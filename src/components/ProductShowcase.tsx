@@ -1,5 +1,5 @@
-
 import { Card, CardContent } from "@/components/ui/card";
+
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 
@@ -8,7 +8,7 @@ const products = [
     id: 1,
     name: "Sac Tressé Naturel",
     price: 89,
-    image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
+    image: "public/assets/images/produits_phares/sac_tresse_naturel.jpeg",
     category: "Sacs",
     badge: "Bestseller",
   },
@@ -16,7 +16,7 @@ const products = [
     id: 2,
     name: "Chapeau à Large Bord",
     price: 65,
-    image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
+    image: "public/assets/images/produits_phares/chapeau_a_large_bord.webp",
     category: "Chapeaux",
     badge: "Nouveau",
   },
@@ -24,14 +24,14 @@ const products = [
     id: 3,
     name: "Sac Bandoulière",
     price: 110,
-    image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
+    image: "public/assets/images/produits_phares/sac_bandouliere.webp",
     category: "Sacs",
   },
   {
     id: 4,
     name: "Chapeau Panama",
     price: 75,
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
+    image: "public/assets/images/produits_phares/chapeau_panama.webp",
     category: "Chapeaux",
   },
 ];
@@ -44,9 +44,9 @@ const ProductShowcase = () => {
           <Card className="bg-white border-none overflow-hidden group hover:shadow-md transition-all duration-300">
             <div className="relative">
               <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-t-lg">
-                <img 
-                  src={product.image} 
-                  alt={product.name} 
+                <img
+                  src={product.image}
+                  alt={product.name}
                   className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
@@ -57,8 +57,12 @@ const ProductShowcase = () => {
               )}
             </div>
             <CardContent className="p-4">
-              <p className="text-sm text-olive-700 font-medium">{product.category}</p>
-              <h3 className="font-serif text-lg font-medium text-stone-800 mt-1 mb-2">{product.name}</h3>
+              <p className="text-sm text-olive-700 font-medium">
+                {product.category}
+              </p>
+              <h3 className="font-serif text-lg font-medium text-stone-800 mt-1 mb-2">
+                {product.name}
+              </h3>
               <p className="text-stone-700 font-medium">{product.price} €</p>
             </CardContent>
           </Card>
