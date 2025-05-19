@@ -1,14 +1,16 @@
 import { ArrowRight, ShoppingBag, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { IinitialCartItems } from "../shared/interfaces/IinitialCartItems.interface";
 import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { Separator } from "@/components/ui/separator";
-import { useEffect } from "react";
 
 // Mock cart data
-const cartItems = [
+// Remplace la constante cartItems par un état local
+const initialCartItems: IinitialCartItems[] = [
   {
     id: 1,
     name: "Sac à Main Tissé Traditionnel",
@@ -27,17 +29,28 @@ const cartItems = [
 ];
 
 const Cart = () => {
+  const [cartItems, setCartItems] = useState(initialCartItems);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Fonction pour modifier la quantité d'un article
+  const handleQuantityChange = (index: number, newQuantity: number) => {
+    setCartItems((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, quantity: Math.max(1, newQuantity) } : item
+      )
+    );
+  };
+
   // Calculate totals
-  const subtotal = cartItems.reduce(
+  const subtotal: number = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
   const shipping = 6.95;
-  const total = subtotal + shipping;
+  const total: number = subtotal + shipping;
 
   return (
     <div className="min-h-screen bg-white">
@@ -116,16 +129,26 @@ const Cart = () => {
                           Quantité:
                         </div>
                         <div className="flex md:justify-center">
-                          <button className="border border-stone-300 rounded-l-md px-2 py-1 hover:bg-stone-50">
+                          <button
+                            className="border border-stone-300 rounded-l-md px-3 py-2 hover:bg-stone-50"
+                            onClick={() =>
+                              handleQuantityChange(index, item.quantity - 1)
+                            }
+                          >
                             -
                           </button>
                           <input
                             type="text"
                             value={item.quantity}
                             readOnly
-                            className="border-t border-b border-stone-300 px-2 py-1 w-8 text-center focus:outline-none"
+                            className="border-t border-b border-stone-300 px-4 py-2 w-16 text-center focus:outline-none"
                           />
-                          <button className="border border-stone-300 rounded-r-md px-2 py-1 hover:bg-stone-50">
+                          <button
+                            className="border border-stone-300 rounded-r-md px-3 py-2 hover:bg-stone-50"
+                            onClick={() =>
+                              handleQuantityChange(index, item.quantity + 1)
+                            }
+                          >
                             +
                           </button>
                         </div>
