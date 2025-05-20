@@ -1,22 +1,22 @@
 const instagramPosts = [
   {
     id: 1,
-    image: "public/assets/images/instagram/insta_image_1.jpg",
+    image: "lucid-web-craftsman/assets/images/instagram/insta_image_1.jpg",
     likes: 254,
   },
   {
     id: 2,
-    image: "public/assets/images/instagram/insta_image_3.jpg",
+    image: "lucid-web-craftsman/assets/images/instagram/insta_image_3.jpg",
     likes: 187,
   },
   {
     id: 3,
-    image: "public/assets/images/instagram/insta_image_2.webp",
+    image: "lucid-web-craftsman/assets/images/instagram/insta_image_2.webp",
     likes: 315,
   },
   {
     id: 4,
-    image: "public/assets/images/instagram/insta_image_4.jpg",
+    image: "lucid-web-craftsman/assets/images/instagram/insta_image_4.jpg",
     likes: 201,
   },
 ];

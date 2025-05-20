@@ -8,7 +8,8 @@ const products = [
     id: 1,
     name: "Sac Tressé Naturel",
     price: 89,
-    image: "public/assets/images/produits_phares/sac_tresse_naturel.jpeg",
+    image:
+      "lucid-web-craftsman/assets/images/produits_phares/sac_tresse_naturel.jpeg",
     category: "Sacs",
     badge: "Bestseller",
   },
@@ -16,7 +17,8 @@ const products = [
     id: 2,
     name: "Chapeau à Large Bord",
     price: 65,
-    image: "public/assets/images/produits_phares/chapeau_a_large_bord.webp",
+    image:
+      "lucid-web-craftsman/assets/images/produits_phares/chapeau_a_large_bord.webp",
     category: "Chapeaux",
     badge: "Nouveau",
   },
@@ -24,14 +26,16 @@ const products = [
     id: 3,
     name: "Sac Bandoulière",
     price: 110,
-    image: "public/assets/images/produits_phares/sac_bandouliere.webp",
+    image:
+      "lucid-web-craftsman/assets/images/produits_phares/sac_bandouliere.webp",
     category: "Sacs",
   },
   {
     id: 4,
     name: "Chapeau Panama",
     price: 75,
-    image: "public/assets/images/produits_phares/chapeau_panama.webp",
+    image:
+      "lucid-web-craftsman/assets/images/produits_phares/chapeau_panama.webp",
     category: "Chapeaux",
   },
 ];

@@ -16,7 +16,8 @@ const initialCartItems: IinitialCartItems[] = [
     name: "Sac à Main Tissé Traditionnel",
     price: 89,
     quantity: 1,
-    image: "public/assets/images/products/sac_a_main_tisse_traditionnel.jpg",
+    image:
+      "lucid-web-craftsman/assets/images/products/sac_a_main_tisse_traditionnel.jpg",
   },
   {
     id: 3,

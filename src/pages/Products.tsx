@@ -12,7 +12,8 @@ const products = [
     id: 1,
     name: "Sac à Main Tissé Traditionnel",
     price: 89,
-    image: "public/assets/images/products/sac_a_main_tisse_traditionnel.jpg",
+    image:
+      "lucid-web-craftsman/assets/images/products/sac_a_main_tisse_traditionnel.jpg",
     category: "Sacs",
     new: true,
   },
@@ -20,7 +21,8 @@ const products = [
     id: 2,
     name: "Chapeau de Paille Berbère",
     price: 45,
-    image: "public/assets/images/products/chapeau_de_paille_berbere.jpg",
+    image:
+      "lucid-web-craftsman/assets/images/products/chapeau_de_paille_berbere.jpg",
     category: "Chapeaux",
   },
   {

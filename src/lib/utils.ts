@@ -6,6 +6,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export const BASE_PATH = "/lucid-web-craftsman";
+
 // Ajoute ceci en haut du fichier (avant le composant)
 declare global {
   interface Window {

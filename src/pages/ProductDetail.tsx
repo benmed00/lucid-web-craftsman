@@ -22,10 +22,10 @@ const products: Product[] = [
     name: "Sac à Main Tissé Traditionnel",
     price: 89,
     images: [
-      "/public/assets/images/sacs/sac_traditionnel.jpg",
-      "/public/assets/images/sacs/sac_traditionnel_vue1.jpg",
-      "/public/assets/images/sacs/sac_traditionnel_vue2.jpg",
-      "/public/assets/images/sacs/sac_traditionnel_vue3.jpg",
+      "/lucid-web-craftsman/assets/images/sacs/sac_traditionnel.jpg",
+      "/lucid-web-craftsman/assets/images/sacs/sac_traditionnel_vue1.jpg",
+      "/lucid-web-craftsman/assets/images/sacs/sac_traditionnel_vue2.jpg",
+      "/lucid-web-craftsman/assets/images/sacs/sac_traditionnel_vue3.jpg",
     ],
     category: "Sacs",
     description:
@@ -43,7 +43,9 @@ const products: Product[] = [
     id: 2,
     name: "Chapeau de Paille Berbère",
     price: 45,
-    images: ["/public/assets/images/chapeau_de_paille_berbere_2.jpg"],
+    images: [
+      "/lucid-web-craftsman/assets/images/chapeau_de_paille_berbere_2.jpg",
+    ],
     category: "Chapeaux",
     description:
       "Un chapeau traditionnel berbère tissé à la main avec des fibres de palmier nain, offrant une protection élégante contre le soleil méditerranéen.",
