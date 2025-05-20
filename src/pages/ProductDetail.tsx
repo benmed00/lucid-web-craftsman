@@ -1,3 +1,5 @@
+// file_name : src/pages/ProductDetail.tsx
+
 import { ArrowRight, Leaf, ShoppingBag } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useParams } from "react-router-dom";
@@ -9,17 +11,21 @@ import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { Product } from "../shared/interfaces/Iproduct.interface";
+import { useCart } from "../context/useCart";
+
+// import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Mock product data - in a real application, this would come from an API
-const products = [
+const products: Product[] = [
   {
     id: 1,
     name: "Sac à Main Tissé Traditionnel",
     price: 89,
     images: [
-      "https://images.unsplash.com/photo-1584917865442-de89df41a097?ixlib=rb-4.0.3&auto=format&fit=crop&w=640&q=80",
-      "https://images.unsplash.com/photo-1584917865786-cd739aff1557?ixlib=rb-4.0.3&auto=format&fit=crop&w=640&q=80",
-      "https://images.unsplash.com/photo-1584917865563-3e133c965797?ixlib=rb-4.0.3&auto=format&fit=crop&w=640&q=80",
+      "/public/assets/images/sacs/sac_traditionnel.jpg",
+      "/public/assets/images/sacs/sac_traditionnel_vue1.jpg",
+      "/public/assets/images/sacs/sac_traditionnel_vue2.jpg",
+      "/public/assets/images/sacs/sac_traditionnel_vue3.jpg",
     ],
     category: "Sacs",
     description:
@@ -37,7 +43,7 @@ const products = [
     id: 2,
     name: "Chapeau de Paille Berbère",
     price: 45,
-    images: ["public/assets/images/chapeau_de_paille_berbere_2.jpg"],
+    images: ["/public/assets/images/chapeau_de_paille_berbere_2.jpg"],
     category: "Chapeaux",
     description:
       "Un chapeau traditionnel berbère tissé à la main avec des fibres de palmier nain, offrant une protection élégante contre le soleil méditerranéen.",
@@ -78,18 +84,81 @@ const products = [
   },
 ];
 
+type EventType = CustomEvent<{
+  message: string;
+  type: string;
+}>;
+
 const ProductDetail = () => {
+  const { dispatch } = useCart();
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
+  const handleAddToCart = () => {
+    if (!product || quantity < 1) return;
+
+    // 1. Lecture du panier actuel (array d'items)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let cart: any[] = [];
+    try {
+      const raw = localStorage.getItem("cart");
+      if (raw) {
+        // Supporte les deux formats (array ou {items: [...]})
+        const parsed = JSON.parse(raw);
+        cart = Array.isArray(parsed) ? parsed : parsed.items || [];
+      }
+    } catch {
+      // Si parsing échoue, on repart sur un panier vide
+      cart = [];
+    }
+
+    // 2. Ajout ou incrémentation de l'article
+    const existingIndex = cart.findIndex((item) => item.id === product.id);
+    if (existingIndex !== -1) {
+      cart[existingIndex].quantity += quantity;
+    } else {
+      cart.push({ ...product, quantity });
+    }
+
+    // 3. Tentative de sauvegarde dans le localStorage
+    try {
+      localStorage.setItem("cart", JSON.stringify(cart));
+    } catch (e) {
+      // Fallback mémoire globale (non persistant, mais évite la perte immédiate)
+      // window.__cartFallback = cart;
+      // Affiche un message d'erreur mais continue la logique
+      const event: EventType = new CustomEvent("cart-notification", {
+        detail: {
+          message: "Stockage local indisponible, panier temporaire.",
+          type: "error",
+        },
+      });
+      window.dispatchEvent(event);
+    }
+
+    // 4. Dispatch context pour synchro UI globale
+    dispatch({ type: "ADD_ITEM", payload: product, quantity });
+
+    // 5. Feedback utilisateur
+    const event = new CustomEvent("cart-notification", {
+      detail: {
+        message: `${quantity} × ${product.name} ajouté au panier`,
+        type: "success",
+      },
+    });
+    window.dispatchEvent(event);
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
 
     // Find the product with the matching id
-    const foundProduct = products.find((p) => p.id === parseInt(id || "0"));
+    const foundProduct: Product = products.find(
+      (p) => p.id === parseInt(id || "0")
+    );
     setProduct(foundProduct);
 
     // Get related products
@@ -240,7 +309,10 @@ const ProductDetail = () => {
             </div>
 
             {/* Add to Cart Button */}
-            <Button className="w-full mb-4 bg-olive-700 hover:bg-olive-800 text-white font-medium py-6">
+            <Button
+              onClick={handleAddToCart}
+              className="w-full mb-4 bg-olive-700 hover:bg-olive-800 text-white font-medium py-6"
+            >
               <ShoppingBag className="mr-2 h-5 w-5" />
               Ajouter au panier
             </Button>
