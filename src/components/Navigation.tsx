@@ -65,15 +65,6 @@ const Navigation = () => {
       <Link to="/cart" className="hidden md:flex">
         <Button
           variant="outline"
-          className="border-stone-300 text-stone-700 hover:bg-stone-50"
-        >
-          <ShoppingBag className="mr-2 h-4 w-4" /> Panier ({itemCount})
-        </Button>
-      </Link>
-
-      <Link to="/cart" className="hidden md:flex">
-        <Button
-          variant="outline"
           className={clsx(
             "border-stone-300 transition-colors flex items-center group",
             itemCount >= 1
