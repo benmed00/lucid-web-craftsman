@@ -1,57 +1,87 @@
+
 import { ArrowRight, ShoppingBag, X } from "lucide-react";
+import { getCart, removeFromCart, updateCartItemQuantity } from "@/api/mockApiService";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { IinitialCartItems } from "../shared/interfaces/IinitialCartItems.interface";
 import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { Separator } from "@/components/ui/separator";
-
-// Mock cart data
-// Remplace la constante cartItems par un état local
-const initialCartItems: IinitialCartItems[] = [
-  {
-    id: 1,
-    name: "Sac à Main Tissé Traditionnel",
-    price: 89,
-    quantity: 1,
-    image:
-      "lucid-web-craftsman/assets/images/products/sac_a_main_tisse_traditionnel.jpg",
-  },
-  {
-    id: 3,
-    name: "Pochette Brodée à la Main",
-    price: 62,
-    quantity: 1,
-    image:
-      "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?ixlib=rb-4.0.3&auto=format&fit=crop&w=640&q=80",
-  },
-];
+import { toast } from "sonner";
+import { useCart } from "@/context/useCart";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState(initialCartItems);
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { dispatch } = useCart();
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    fetchCart();
   }, []);
 
-  // Fonction pour modifier la quantité d'un article
-  const handleQuantityChange = (index: number, newQuantity: number) => {
-    setCartItems((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, quantity: Math.max(1, newQuantity) } : item
-      )
-    );
+  const fetchCart = async () => {
+    try {
+      const cart = await getCart();
+      setCartItems(cart.items || []);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      toast.error("Erreur lors du chargement du panier");
+      setLoading(false);
+    }
+  };
+
+  const handleQuantityChange = async (id, newQuantity) => {
+    try {
+      const updatedCart = await updateCartItemQuantity(id, newQuantity);
+      setCartItems(updatedCart.items);
+      // Update global cart state
+      dispatch({ type: "HYDRATE", payload: updatedCart });
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+      toast.error("Erreur lors de la mise à jour de la quantité");
+    }
+  };
+
+  const handleRemoveItem = async (id) => {
+    try {
+      const updatedCart = await removeFromCart(id);
+      setCartItems(updatedCart.items);
+      // Update global cart state
+      dispatch({ type: "HYDRATE", payload: updatedCart });
+      toast.success("Produit retiré du panier");
+    } catch (error) {
+      console.error("Error removing item:", error);
+      toast.error("Erreur lors de la suppression du produit");
+    }
   };
 
   // Calculate totals
-  const subtotal: number = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
     0
   );
-  const shipping = 6.95;
-  const total: number = subtotal + shipping;
+  const shipping = subtotal > 0 ? 6.95 : 0;
+  const total = subtotal + shipping;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navigation />
+        <div className="container mx-auto px-4 py-16">
+          <h1 className="font-serif text-3xl md:text-4xl text-stone-800 mb-8 text-center">
+            Votre Panier
+          </h1>
+          <div className="text-center">
+            <p>Chargement de votre panier...</p>
+          </div>
+        </div>
+        <PageFooter />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -101,16 +131,19 @@ const Cart = () => {
                       <div className="md:col-span-6 flex items-center">
                         <div className="w-20 h-20 rounded-md overflow-hidden mr-4">
                           <img
-                            src={item.image}
-                            alt={item.name}
+                            src={item.product.images[0]}
+                            alt={item.product.name}
                             className="w-full h-full object-cover"
                           />
                         </div>
                         <div>
                           <h3 className="font-medium text-stone-800">
-                            {item.name}
+                            {item.product.name}
                           </h3>
-                          <button className="mt-1 text-stone-400 hover:text-stone-600 text-sm flex items-center">
+                          <button 
+                            className="mt-1 text-stone-400 hover:text-stone-600 text-sm flex items-center"
+                            onClick={() => handleRemoveItem(item.id)}
+                          >
                             <X className="h-3 w-3 mr-1" /> Retirer
                           </button>
                         </div>
@@ -121,7 +154,7 @@ const Cart = () => {
                         <div className="md:hidden text-sm text-stone-500">
                           Prix:
                         </div>
-                        <div>{item.price} €</div>
+                        <div>{item.product.price} €</div>
                       </div>
 
                       {/* Quantity */}
@@ -133,7 +166,7 @@ const Cart = () => {
                           <button
                             className="border border-stone-300 rounded-l-md px-3 py-2 hover:bg-stone-50"
                             onClick={() =>
-                              handleQuantityChange(index, item.quantity - 1)
+                              handleQuantityChange(item.id, item.quantity - 1)
                             }
                           >
                             -
@@ -147,7 +180,7 @@ const Cart = () => {
                           <button
                             className="border border-stone-300 rounded-r-md px-3 py-2 hover:bg-stone-50"
                             onClick={() =>
-                              handleQuantityChange(index, item.quantity + 1)
+                              handleQuantityChange(item.id, item.quantity + 1)
                             }
                           >
                             +
@@ -161,7 +194,7 @@ const Cart = () => {
                           Total:
                         </div>
                         <div className="font-medium">
-                          {item.price * item.quantity} €
+                          {item.product.price * item.quantity} €
                         </div>
                       </div>
                     </div>
