@@ -1,7 +1,5 @@
-// File_name: src/components/Navigation.tsx
 
 import { Leaf, Menu, ShoppingBag, X } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import CartIcon from "../context/CartIcon";
 import { Link } from "react-router-dom";
@@ -9,16 +7,8 @@ import clsx from "clsx";
 import { useCartUI } from "../context/useCartUI";
 import { useState } from "react";
 
-// Import clsx utility for conditional class names
-
-// Import useCartUI if it exists in your project
-// Adjust the import path as needed
-// import { useCartUI } from "../context/useCartUI";
-
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // Dummy fallback values if useCartUI is not available
   const { itemCount, cartColor, badgeTextColor } = useCartUI();
 
   return (
@@ -62,7 +52,7 @@ const Navigation = () => {
         </Link>
       </div>
 
-      <Link to="/cart" className="hidden md:flex">
+      <Link to="/cart" className="hidden md:block">
         <Button
           variant="outline"
           className={clsx(
@@ -137,7 +127,7 @@ const Navigation = () => {
                 variant="outline"
                 className={clsx(
                   "w-full border-stone-300 text-stone-700 flex items-center justify-center",
-                  cartColor // récupéré via useCartUI()
+                  cartColor
                 )}
               >
                 <ShoppingBag className="mr-2 h-4 w-4" /> Panier ({itemCount})

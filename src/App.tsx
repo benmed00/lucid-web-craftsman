@@ -17,7 +17,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Products from "./pages/Products";
 import React from "react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
