@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
+import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { ShoppingBag } from "lucide-react";
 import { addToCart } from "@/api/mockApiService";
 import { getProducts } from "@/api/mockApiService";
@@ -14,8 +15,9 @@ import { toast } from "sonner";
 import { useCart } from "@/context/useCart";
 
 const Products = () => {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const { dispatch } = useCart();
 
@@ -27,16 +29,18 @@ const Products = () => {
         const data = await getProducts();
         setProducts(data);
         setLoading(false);
+        setError(null);
       } catch (error) {
         console.error("Error fetching products:", error);
         setLoading(false);
+        setError("Impossible de charger les produits. Veuillez réessayer plus tard.");
       }
     };
     
     fetchProducts();
   }, []);
 
-  const handleAddToCart = async (product, event) => {
+  const handleAddToCart = async (product: Product, event: React.MouseEvent) => {
     event.preventDefault(); // Prevent navigation to product detail
     event.stopPropagation(); // Stop event propagation
     
@@ -70,6 +74,26 @@ const Products = () => {
         <div className="container mx-auto px-4 py-16 flex justify-center items-center">
           <div className="text-center">
             <p>Chargement des produits...</p>
+          </div>
+        </div>
+        <PageFooter />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navigation />
+        <div className="container mx-auto px-4 py-16 flex justify-center items-center">
+          <div className="text-center">
+            <p className="text-red-500">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 bg-olive-700 hover:bg-olive-800"
+            >
+              Réessayer
+            </Button>
           </div>
         </div>
         <PageFooter />
@@ -151,53 +175,59 @@ const Products = () => {
 
       {/* Products Grid */}
       <div className="container mx-auto px-4 mb-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {filteredProducts.map((product) => (
-            <Link
-              to={`/products/${product.id}`}
-              key={product.id}
-              className="group relative"
-            >
-              <Card className="border-none shadow-sm overflow-hidden hover-scale">
-                <div className="aspect-ratio aspect-w-1 aspect-h-1 relative overflow-hidden">
-                  <img
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
-                  />
-                  {product.new && (
-                    <div className="absolute top-2 right-2">
-                      <Badge className="bg-olive-500 text-white border-none">
-                        Nouveau
-                      </Badge>
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-lg text-stone-600">Aucun produit trouvé</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            {filteredProducts.map((product) => (
+              <Link
+                to={`/products/${product.id}`}
+                key={product.id}
+                className="group relative"
+              >
+                <Card className="border-none shadow-sm overflow-hidden hover-scale">
+                  <div className="aspect-ratio aspect-w-1 aspect-h-1 relative overflow-hidden">
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                    />
+                    {product.new && (
+                      <div className="absolute top-2 right-2">
+                        <Badge className="bg-olive-500 text-white border-none">
+                          Nouveau
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                  <CardContent className="p-4">
+                    <div className="text-xs text-stone-500 mb-1">
+                      {product.category}
                     </div>
-                  )}
-                </div>
-                <CardContent className="p-4">
-                  <div className="text-xs text-stone-500 mb-1">
-                    {product.category}
-                  </div>
-                  <h3 className="font-medium text-stone-800 mb-1">
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center justify-between mt-2">
-                    <p className="text-olive-700 font-medium">
-                      {product.price} €
-                    </p>
-                    <Button 
-                      size="sm" 
-                      className="bg-olive-700 hover:bg-olive-800"
-                      onClick={(e) => handleAddToCart(product, e)}
-                    >
-                      <ShoppingBag className="h-4 w-4 mr-1" />
-                      Ajouter
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
+                    <h3 className="font-medium text-stone-800 mb-1">
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className="text-olive-700 font-medium">
+                        {product.price} €
+                      </p>
+                      <Button 
+                        size="sm" 
+                        className="bg-olive-700 hover:bg-olive-800"
+                        onClick={(e) => handleAddToCart(product, e)}
+                      >
+                        <ShoppingBag className="h-4 w-4 mr-1" />
+                        Ajouter
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       <PageFooter />
