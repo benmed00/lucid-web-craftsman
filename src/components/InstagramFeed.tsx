@@ -1,25 +1,85 @@
-const instagramPosts = [
+// File_name: src\components\InstagramFeed.tsx
+// Description: Instagram feed component for displaying images with likes and comments.
+
+import { useState } from "react";
+
+interface InstagramPost {
+  id: number;
+  image: string;
+  likes: number;
+  link?: string;
+
+  title?: string;
+  description?: string;
+  author?: string;
+  date?: string;
+  views?: number;
+  shares?: number;
+  commentsCount?: number;
+  comments?: string[];
+  caption?: string;
+  timestamp?: string;
+  location?: string;
+  hashtags?: string[];
+  user?: { user?: string };
+  taggedUsers?: string[];
+  isVideo?: boolean;
+  videoUrl?: string;
+  videoThumbnail?: string;
+  videoDuration?: number;
+  videoViews?: number;
+  videoComments?: string[];
+  videoLikes?: number;
+  videoShares?: number;
+  videoSaves?: number;
+  videoReactions?: string[];
+  videoDescription?: string;
+  videoTags?: string[];
+  videoCategories?: string[];
+  videoKeywords?: string[];
+}
+
+const instagramPosts: InstagramPost[] = [
   {
     id: 1,
-    image: "lucid-web-craftsman/assets/images/instagram/insta_image_1.jpg",
+    image:
+      "${process.env.PUBLIC_URL}/assets/images/instagram/insta_image_1.jpg",
     likes: 254,
   },
   {
     id: 2,
-    image: "lucid-web-craftsman/assets/images/instagram/insta_image_3.jpg",
+    image: `${
+      import.meta.env.BASE_URL
+    }/assets/images/instagram/insta_image_3.jpg`,
     likes: 187,
   },
   {
     id: 3,
-    image: "lucid-web-craftsman/assets/images/instagram/insta_image_2.webp",
+    image: `${
+      import.meta.env.BASE_URL
+    }/assets/images/instagram/insta_image_2.webp`,
     likes: 315,
   },
   {
     id: 4,
-    image: "lucid-web-craftsman/assets/images/instagram/insta_image_4.jpg",
+    image: `${
+      import.meta.env.BASE_URL
+    }/assets/images/instagram/insta_image_4.jpg`,
     likes: 201,
   },
 ];
+
+const ImageWithFallback = ({ src, alt }: { src: string; alt: string }) => {
+  const [error, setError] = useState(false);
+
+  return error ? (
+    <div className="bg-gray-100 w-full h-full flex items-center justify-center">
+      Image unavailable
+    </div>
+  ) : (
+    <img src={src} alt={alt} onError={() => setError(true)} loading="lazy" />
+  );
+};
 
 const InstagramFeed = () => {
   return (
@@ -30,11 +90,15 @@ const InstagramFeed = () => {
           href="#"
           className="block relative group overflow-hidden rounded-md aspect-square"
         >
-          <img
+          <ImageWithFallback
+            src={post.image}
+            alt={`Instagram post ${post.id}`}
+          />
+          {/* <img
             src={post.image}
             alt={`Instagram post ${post.id}`}
             className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-          />
+          /> */}
           <div className="opacity-0 group-hover:opacity-100 absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center transition-opacity duration-300">
             <div className="text-white flex items-center">
               <svg

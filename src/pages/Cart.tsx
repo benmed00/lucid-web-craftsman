@@ -1,6 +1,12 @@
+// File_name : src/pages/Cart.tsx
+// this file contains the Cart component that displays the user's cart and allows them to manage their items.
 
 import { ArrowRight, ShoppingBag, X } from "lucide-react";
-import { getCart, removeFromCart, updateCartItemQuantity } from "@/api/mockApiService";
+import {
+  getCart,
+  removeFromCart,
+  updateCartItemQuantity,
+} from "@/api/mockApiService";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -129,24 +135,29 @@ const Cart = () => {
                     <div className="px-6 py-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                       {/* Product Info */}
                       <div className="md:col-span-6 flex items-center">
-                        <div className="w-20 h-20 rounded-md overflow-hidden mr-4">
-                          <img
-                            src={item.product.images[0]}
-                            alt={item.product.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div>
+                        <Link
+                          to={`/products/${item.product.id}`}
+                          className="flex items-center hover:bg-stone-50 rounded-md p-2 transition"
+                        >
+                          <div className="w-20 h-20 rounded-md overflow-hidden mr-4">
+                            <img
+                              src={item.product.images[0]}
+                              alt={item.product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                           <h3 className="font-medium text-stone-800">
                             {item.product.name}
                           </h3>
-                          <button 
-                            className="mt-1 text-stone-400 hover:text-stone-600 text-sm flex items-center"
-                            onClick={() => handleRemoveItem(item.id)}
-                          >
-                            <X className="h-3 w-3 mr-1" /> Retirer
-                          </button>
-                        </div>
+                        </Link>
+
+                        {/* Remove Button (outside the Link!) */}
+                        <button
+                          className="ml-4 mt-1 text-stone-400 hover:text-stone-600 text-sm flex items-center"
+                          onClick={() => handleRemoveItem(item.id)}
+                        >
+                          <X className="h-3 w-3 mr-1" /> Retirer
+                        </button>
                       </div>
 
                       {/* Price */}

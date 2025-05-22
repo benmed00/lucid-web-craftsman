@@ -1,5 +1,8 @@
+// src\data\products.ts
 
-export const blogPosts = [
+import BlogPost from "../pages/BlogPost";
+
+export const blogPosts: BlogPost[] = [
   {
     id: 1,
     title: "L'art du tissage traditionnel dans les montagnes du Rif",
@@ -66,3 +69,5 @@ export const blogPosts = [
     category: "Éthique",
   },
 ];
+
+export default blogPosts;

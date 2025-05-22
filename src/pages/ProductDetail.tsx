@@ -1,5 +1,6 @@
-
 // file_name : src/pages/ProductDetail.tsx
+// this file is used to display the product details
+// and related products
 
 import { ArrowRight, Leaf, ShoppingBag } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,14 +32,14 @@ const ProductDetail = () => {
     try {
       // Add to cart via API (which updates localStorage)
       await addToCart(product, quantity);
-      
+
       // Update global cart state
       dispatch({
         type: "ADD_ITEM",
         payload: product,
         quantity,
       });
-      
+
       // Show success message
       toast.success(`${quantity} × ${product.name} ajouté au panier`);
     } catch (error) {
@@ -49,16 +50,16 @@ const ProductDetail = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    
+
     const fetchProductData = async () => {
       try {
         // Find the product with the matching id
         const productId = parseInt(id || "0");
         const foundProduct = await getProductById(productId);
-        
+
         if (foundProduct) {
           setProduct(foundProduct);
-          
+
           // Get related products
           if (foundProduct.related && foundProduct.related.length > 0) {
             const relatedProds = [];
@@ -71,14 +72,14 @@ const ProductDetail = () => {
             setRelatedProducts(relatedProds);
           }
         }
-        
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching product:", error);
         setLoading(false);
       }
     };
-    
+
     fetchProductData();
   }, [id]);
 

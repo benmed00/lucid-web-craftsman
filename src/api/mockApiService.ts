@@ -1,13 +1,13 @@
+import axios, { AxiosInstance } from "axios";
 
 import { Product } from "../shared/interfaces/Iproduct.interface";
 import { products as localProducts } from "../data/products";
-import axios from "axios";
 
 // Helper to simulate API latency
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Create axios instance for any external API calls if needed in the future
-const api = axios.create({
+const api: AxiosInstance = axios.create({
   baseURL: "https://api.example.com", // This won't be used for now
   headers: {
     "Content-Type": "application/json",
@@ -74,7 +74,7 @@ export interface CartState {
 
 export const getCart = async (): Promise<CartState> => {
   await delay(100);
-  
+
   try {
     const cart = localStorage.getItem("cart");
     return cart ? JSON.parse(cart) : { items: [] };
@@ -86,13 +86,13 @@ export const getCart = async (): Promise<CartState> => {
 
 export const addToCart = async (product: Product, quantity: number = 1): Promise<CartState> => {
   await delay(100);
-  
+
   // Get current cart
-  let cart = await getCart();
-  
+  const cart: CartState = await getCart();
+
   // Find if product is already in cart
-  const existingItem = cart.items.find(item => item.id === product.id);
-  
+  const existingItem: CartItem = cart.items.find(item => item.id === product.id);
+
   if (existingItem) {
     // Update quantity if product already exists
     existingItem.quantity += quantity;
@@ -104,7 +104,7 @@ export const addToCart = async (product: Product, quantity: number = 1): Promise
       product
     });
   }
-  
+
   // Save to localStorage
   localStorage.setItem("cart", JSON.stringify(cart));
   return cart;
@@ -112,13 +112,13 @@ export const addToCart = async (product: Product, quantity: number = 1): Promise
 
 export const removeFromCart = async (productId: number): Promise<CartState> => {
   await delay(100);
-  
+
   // Get current cart
-  let cart = await getCart();
-  
+  const cart: CartState = await getCart();
+
   // Remove product from cart
   cart.items = cart.items.filter(item => item.id !== productId);
-  
+
   // Save to localStorage
   localStorage.setItem("cart", JSON.stringify(cart));
   return cart;
@@ -126,18 +126,18 @@ export const removeFromCart = async (productId: number): Promise<CartState> => {
 
 export const updateCartItemQuantity = async (productId: number, quantity: number): Promise<CartState> => {
   await delay(100);
-  
+
   // Get current cart
-  let cart = await getCart();
-  
+  const cart: CartState = await getCart();
+
   // Find item
   const item = cart.items.find(item => item.id === productId);
-  
+
   if (item) {
     // Update quantity
     item.quantity = Math.max(1, quantity);
   }
-  
+
   // Save to localStorage
   localStorage.setItem("cart", JSON.stringify(cart));
   return cart;

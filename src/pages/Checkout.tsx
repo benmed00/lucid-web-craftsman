@@ -1,8 +1,7 @@
-
 import { ArrowLeft, CheckCircle, CreditCard } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Stripe, loadStripe } from "@stripe/stripe-js";
 import { getCart, updateCartItemQuantity } from "@/api/mockApiService";
-import { loadStripe } from "@stripe/stripe-js";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,18 @@ import { toast } from "sonner";
 import { useCart } from "@/context/useCart";
 
 // Initialize Stripe
-const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
+const stripePromise: Promise<Stripe | null> = loadStripe(STRIPE_PUBLIC_KEY);
+
+// When initializing Stripe
+// const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY!, {
+//   betas: ['YOUR_BETA_FEATURES']
+// });
+
+// In your Stripe initialization code
+// const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY, {
+//   locale: 'fr',
+//   betas: ['YOUR_BETA_FEATURES']
+// });
 
 const Checkout = () => {
   const [step, setStep] = useState(1);
@@ -36,7 +46,7 @@ const Checkout = () => {
     country: "FR",
   });
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   useEffect(() => {
     window.scrollTo(0, 0);
     fetchCart();
@@ -57,9 +67,9 @@ const Checkout = () => {
   // Handle input changes
   const handleInputChange = (e) => {
     const { id, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [id]: value
+      [id]: value,
     }));
   };
 
@@ -84,7 +94,9 @@ const Checkout = () => {
       }
       // Validate postal code format for France
       if (formData.country === "FR" && !/^\d{5}$/.test(formData.postalCode)) {
-        toast.error("Veuillez entrer un code postal français valide (5 chiffres)");
+        toast.error(
+          "Veuillez entrer un code postal français valide (5 chiffres)"
+        );
         return;
       }
     }
@@ -96,10 +108,10 @@ const Checkout = () => {
   const handlePayment = async () => {
     try {
       setIsProcessing(true);
-      
+
       // Here you would typically send the order data to your backend
       // which would create a Stripe checkout session
-      
+
       // For demo purposes, we'll simulate a successful payment
       setTimeout(() => {
         toast.success("Paiement traité avec succès");
@@ -107,7 +119,7 @@ const Checkout = () => {
         // and clear the cart
         setIsProcessing(false);
       }, 1500);
-      
+
       // In a real implementation, you would have code like this:
       /*
       const stripe = await stripePromise;
@@ -131,9 +143,8 @@ const Checkout = () => {
         setIsProcessing(false);
       }
       */
-      
     } catch (error) {
-      console.error('Payment error:', error);
+      console.error("Payment error:", error);
       toast.error("Erreur lors du paiement");
       setIsProcessing(false);
     }
@@ -245,9 +256,9 @@ const Checkout = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="firstName">Prénom</Label>
-                      <Input 
-                        id="firstName" 
-                        placeholder="Votre prénom" 
+                      <Input
+                        id="firstName"
+                        placeholder="Votre prénom"
                         value={formData.firstName}
                         onChange={handleInputChange}
                       />
@@ -255,9 +266,9 @@ const Checkout = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="lastName">Nom</Label>
-                      <Input 
-                        id="lastName" 
-                        placeholder="Votre nom" 
+                      <Input
+                        id="lastName"
+                        placeholder="Votre nom"
                         value={formData.lastName}
                         onChange={handleInputChange}
                       />
@@ -277,9 +288,9 @@ const Checkout = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="phone">Téléphone</Label>
-                    <Input 
-                      id="phone" 
-                      placeholder="Votre numéro de téléphone" 
+                    <Input
+                      id="phone"
+                      placeholder="Votre numéro de téléphone"
                       value={formData.phone}
                       onChange={handleInputChange}
                     />
@@ -310,9 +321,9 @@ const Checkout = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="address">Adresse</Label>
-                    <Input 
-                      id="address" 
-                      placeholder="Numéro et nom de rue" 
+                    <Input
+                      id="address"
+                      placeholder="Numéro et nom de rue"
                       value={formData.address}
                       onChange={handleInputChange}
                     />
@@ -333,9 +344,9 @@ const Checkout = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="postalCode">Code postal</Label>
-                      <Input 
-                        id="postalCode" 
-                        placeholder="Code postal" 
+                      <Input
+                        id="postalCode"
+                        placeholder="Code postal"
                         value={formData.postalCode}
                         onChange={handleInputChange}
                       />
@@ -343,9 +354,9 @@ const Checkout = () => {
 
                     <div className="md:col-span-2 space-y-2">
                       <Label htmlFor="city">Ville</Label>
-                      <Input 
-                        id="city" 
-                        placeholder="Ville" 
+                      <Input
+                        id="city"
+                        placeholder="Ville"
                         value={formData.city}
                         onChange={handleInputChange}
                       />
@@ -478,12 +489,14 @@ const Checkout = () => {
                     </div>
                   </RadioGroup>
 
-                  <Button 
+                  <Button
                     className="w-full md:w-auto bg-olive-700 hover:bg-olive-800"
                     onClick={handlePayment}
                     disabled={isProcessing}
                   >
-                    {isProcessing ? "Traitement en cours..." : `Payer ${total.toFixed(2)} €`}
+                    {isProcessing
+                      ? "Traitement en cours..."
+                      : `Payer ${total.toFixed(2)} €`}
                   </Button>
                 </div>
               )}

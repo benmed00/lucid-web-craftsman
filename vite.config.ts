@@ -1,3 +1,5 @@
+// File_name: vite.config.ts
+
 import { componentTagger } from "lovable-tagger";
 import { defineConfig } from "vite";
 import path from "path";
