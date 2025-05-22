@@ -1,36 +1,43 @@
 
 import { CalendarIcon, User } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
-import { blogPosts } from "@/data/blogPosts";
+import { useQuery } from "@tanstack/react-query";
+import { getBlogPostById } from "@/api/mockApiService";
 
 const BlogPost = () => {
   const { id } = useParams();
-  const [post, setPost] = useState(null);
   const navigate = useNavigate();
-
+  
+  // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
-    
-    // Find post by ID
-    const postId = parseInt(id);
-    const foundPost = blogPosts.find((post) => post.id === postId);
-    
-    if (foundPost) {
-      setPost(foundPost);
-    } else {
-      // Redirect to blog list if post not found
-      navigate("/blog");
-    }
-  }, [id, navigate]);
+  }, []);
+  
+  // Fetch post by ID using React Query
+  const { data: post, isLoading, error } = useQuery({
+    queryKey: ["blogPost", id],
+    queryFn: () => getBlogPostById(Number(id)),
+    onSuccess: (data) => {
+      if (!data) {
+        // Redirect to blog list if post not found
+        navigate("/blog");
+      }
+    },
+  });
 
-  if (!post) {
+  if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
+  }
+  
+  if (error || !post) {
+    navigate("/blog");
+    return null;
   }
 
   return (

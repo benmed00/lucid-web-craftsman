@@ -1,4 +1,3 @@
-
 import { Product } from "../shared/interfaces/Iproduct.interface";
 import { blogPosts } from "@/data/blogPosts";
 import { products } from "@/data/products";
@@ -14,7 +13,11 @@ export const getBlogPosts = async () => {
 
 export const getBlogPostById = async (id: number) => {
   await delay(200);
-  return blogPosts.find((post) => post.id === id) || null;
+  const post = blogPosts.find((post) => post.id === id);
+  if (!post) {
+    console.error(`Post with ID ${id} not found`);
+  }
+  return post || null;
 };
 
 // Products API
