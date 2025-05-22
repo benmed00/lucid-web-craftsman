@@ -10,6 +10,18 @@ import PageFooter from "@/components/PageFooter";
 import { useQuery } from "@tanstack/react-query";
 import { getBlogPostById } from "@/api/mockApiService";
 
+// Define the BlogPost interface to properly type the data
+interface BlogPost {
+  id: number;
+  title: string;
+  excerpt: string;
+  image: string;
+  date: string;
+  author: string;
+  category: string;
+  featured?: boolean;
+}
+
 const BlogPost = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -19,24 +31,24 @@ const BlogPost = () => {
     window.scrollTo(0, 0);
   }, []);
   
-  // Fetch post by ID using React Query
-  const { data: post, isLoading, error } = useQuery({
+  // Fetch post by ID using React Query with proper typing
+  const { data: post, isLoading, error } = useQuery<BlogPost | null>({
     queryKey: ["blogPost", id],
     queryFn: () => getBlogPostById(Number(id)),
-    onSuccess: (data) => {
-      if (!data) {
-        // Redirect to blog list if post not found
-        navigate("/blog");
-      }
-    },
   });
+
+  // Redirect if post not found
+  useEffect(() => {
+    if (!isLoading && !error && !post) {
+      navigate("/blog");
+    }
+  }, [post, isLoading, error, navigate]);
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   }
   
   if (error || !post) {
-    navigate("/blog");
     return null;
   }
 
