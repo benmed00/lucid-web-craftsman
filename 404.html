@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script>
+        const segmentCount = 1;
+        sessionStorage.redirect = location.href.split('/').slice(0, 1 + segmentCount).join('/');
+        location.replace('/lucid-web-craftsman/');
+    </script>
+</head>
+
+</html>
