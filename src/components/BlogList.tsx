@@ -1,28 +1,15 @@
 
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getBlogPosts } from "@/api/mockApiService";
 import BlogCard from "./BlogCard";
 
 const BlogList = () => {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: posts = [], isLoading } = useQuery({
+    queryKey: ["blogPosts"],
+    queryFn: getBlogPosts
+  });
 
-  useEffect(() => {
-    async function fetchPosts() {
-      try {
-        const data = await getBlogPosts();
-        setPosts(data);
-      } catch (error) {
-        console.error("Error fetching blog posts:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchPosts();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="text-center py-12">
         <p>Chargement des articles...</p>

@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { useCart } from "@/context/useCart";
 import { toast } from "sonner";
 import { ShoppingCart } from "lucide-react";
+import { Product } from "@/shared/interfaces/Iproduct.interface";
 
 const products = [
   {
@@ -47,15 +48,18 @@ const products = [
 const ProductShowcase = () => {
   const { dispatch } = useCart();
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = (product: any) => {
     // Convert to full product format expected by cart
-    const fullProduct = {
+    const fullProduct: Product = {
       id: product.id,
       name: product.name,
       price: product.price,
       images: [product.image],
       category: product.category,
       description: `${product.name} - ${product.category}`,
+      details: "", // Adding required fields from Product interface
+      care: "",
+      artisan: "Artisan local"
     };
     
     // Add to cart
