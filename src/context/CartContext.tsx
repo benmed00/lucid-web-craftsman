@@ -1,7 +1,7 @@
 // src/context/CartContext.tsx
 
 import { CartAction, CartContext, CartState } from "./useCart";
-import React, { useEffect, useMemo, useReducer } from "react";
+import React, { useMemo, useReducer } from "react"; // Removed useEffect
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
@@ -33,16 +33,15 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       return {
         items: state.items.filter((item) => item.id !== action.payload),
       };
-    case "HYDRATE": // Nouveau cas pour l'hydratation
-      return {
-        items: action.payload.items,
-      };
+    // HYDRATE case removed as it's no longer used for localStorage hydration
+    // and react-query handles server state.
     default:
       return state;
   }
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  // Initial state is now simply an empty cart, localStorage is removed.
   const [cart, dispatch] = useReducer(cartReducer, { items: [] });
 
   // Calcul du nombre total d’articles (toutes quantités confondues)
@@ -51,19 +50,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [cart.items]
   );
 
-  useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      dispatch({
-        type: "HYDRATE",
-        payload: JSON.parse(savedCart),
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
+  // Removed useEffect for reading from localStorage (HYDRATE on mount)
+  // Removed useEffect for writing to localStorage on cart changes
 
   return (
     <CartContext.Provider value={{ cart, dispatch, itemCount }}>
