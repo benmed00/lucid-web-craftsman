@@ -118,13 +118,14 @@ const ProductDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
       <Navigation />
 
-      {/* Breadcrumbs */}
-      <div className="container mx-auto px-4 py-4">
-        <div className="text-sm text-stone-500">
-          <Link to="/" className="hover:text-olive-700">
+      <main className="flex-grow">
+        {/* Breadcrumbs */}
+        <div className="container mx-auto px-4 py-4">
+          <div className="text-sm text-stone-500">
+            <Link to="/" className="hover:text-olive-700">
             Accueil
           </Link>
           <span className="mx-2">/</span>
@@ -210,11 +211,12 @@ const ProductDetail = () => {
 
             {/* Quantity Selector */}
             <div className="mb-8">
-              <label className="block text-sm font-medium text-stone-700 mb-2">
+              <label htmlFor="quantity-input" className="block text-sm font-medium text-stone-700 mb-2">
                 Quantité
               </label>
               <div className="flex">
                 <button
+                  aria-label="Diminuer la quantité"
                   className="border border-stone-300 rounded-l-md px-3 py-2 hover:bg-stone-50"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 >
@@ -222,11 +224,14 @@ const ProductDetail = () => {
                 </button>
                 <input
                   type="text"
+                  id="quantity-input"
                   value={quantity}
                   readOnly
                   className="border-t border-b border-stone-300 px-4 py-2 w-16 text-center focus:outline-none"
+                  aria-live="polite"
                 />
                 <button
+                  aria-label="Augmenter la quantité"
                   className="border border-stone-300 rounded-r-md px-3 py-2 hover:bg-stone-50"
                   onClick={() => setQuantity(quantity + 1)}
                 >
@@ -333,6 +338,7 @@ const ProductDetail = () => {
           </div>
         </section>
       )}
+      </main>
 
       <PageFooter />
     </div>

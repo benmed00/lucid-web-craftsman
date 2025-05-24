@@ -1,7 +1,7 @@
 
 import { Leaf, Menu, ShoppingBag, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import CartIcon from "../context/CartIcon";
+// import CartIcon from "../context/CartIcon"; // Marked as unused
 import { Link } from "react-router-dom";
 import clsx from "clsx";
 import { useCartUI } from "../context/useCartUI";
@@ -9,7 +9,7 @@ import { useState } from "react";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { itemCount, cartColor, badgeTextColor } = useCartUI();
+  const { itemCount, cartColor } = useCartUI(); // Removed _badgeTextColor
 
   return (
     <nav className="container mx-auto px-4 py-6 flex justify-between items-center">

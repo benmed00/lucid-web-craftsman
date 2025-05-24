@@ -2,7 +2,7 @@
 
 // import { CartContext } from "./CartContext";
 
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext } from "react"; // Removed useMemo
 
 import { Product } from "../shared/interfaces/Iproduct.interface";
 
@@ -14,11 +14,14 @@ export type CartItem = {
 
 export type CartState = {
     items: CartItem[];
+    totalPrice: number; // Added totalPrice
 };
 
 export type CartAction =
     | { type: "ADD_ITEM"; payload: Product; quantity: number }
-    | { type: "REMOVE_ITEM"; payload: number }
+    | { type: "REMOVE_ITEM"; payload: number } // payload is itemId
+    | { type: "UPDATE_ITEM_QUANTITY"; payload: { id: number; quantity: number } }
+    | { type: "CLEAR_CART" }
     | { type: "HYDRATE"; payload: CartState };
 
 
@@ -34,4 +37,5 @@ export const CartContext = createContext<{
     cart: CartState;
     dispatch: React.Dispatch<CartAction>;
     itemCount: number;
+    totalPrice: number; // Added totalPrice
 }>(null!);

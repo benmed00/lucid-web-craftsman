@@ -13,7 +13,7 @@ export const formatPrice = (amount: number): string => {
 };
 
 // Initialize Stripe payment
-export const initializeStripePayment = async (items, customerEmail) => {
+export const initializeStripePayment = async (_items, _customerEmail) => { // Prefixed items and customerEmail
   try {
     // In a real app, this would make an API call to your backend
     // For this mock implementation, we'll simulate a successful checkout URL
