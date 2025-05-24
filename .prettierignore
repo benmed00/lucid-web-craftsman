@@ -1,0 +1,25 @@
+# Ignore artifacts:
+build
+dist
+dist-*
+coverage
+node_modules
+
+# Ignore common files
+.DS_Store
+*.env
+*.lock
+*.log
+
+# Ignore specific files if needed
+# db.json # db.json was listed in the "too many files" error, so let's ignore it for formatting.
+public/vite.svg # Example, if it was an issue
+package-lock.json # Usually not formatted
+bun.lockb # Lockfile
+# server.js # If it's meant to be node-style and not Prettier formatted
+
+# Ignore all JSON files if they are causing too many changes and are not meant to be formatted
+# **/*.json
+
+# Specifically including db.json in the ignore list based on the error message from the previous run
+db.json

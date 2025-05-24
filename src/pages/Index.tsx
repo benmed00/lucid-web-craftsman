@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Leaf, Instagram, ShoppingBag } from "lucide-react";
+import { ArrowRight, Leaf, Instagram } from "lucide-react"; // Removed ShoppingBag
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ProductShowcase from "@/components/ProductShowcase";
@@ -13,14 +13,15 @@ import HeroImage from "@/components/HeroImage";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Navigation */}
       <Navigation />
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-12 md:py-24 flex flex-col md:flex-row items-center">
-        <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8">
-          <Badge className="mb-4 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none">Artisanat Durable & Fait Main</Badge>
+      <main className="flex-grow">
+        {/* Hero Section */}
+        <section className="container mx-auto px-4 py-12 md:py-24 flex flex-col md:flex-row items-center">
+          <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8">
+            <Badge className="mb-4 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none">Artisanat Durable & Fait Main</Badge>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-stone-800 mb-6">Créé avec amour dans les montagnes du Rif</h1>
           <p className="text-lg text-stone-600 mb-8">Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.</p>
           <div className="flex flex-col sm:flex-row gap-4">
@@ -139,18 +140,22 @@ const Index = () => {
             <h2 className="font-serif text-3xl text-white mb-4">Rejoignez Notre Newsletter</h2>
             <p className="text-olive-100 mb-8">Inscrivez-vous pour recevoir des mises à jour sur les nouveaux produits, les offres spéciales et les histoires de nos artisans.</p>
             <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <label htmlFor="newsletter-email-index" className="sr-only">Votre adresse email</label>
               <input 
-                type="email" 
+                type="email"
+                id="newsletter-email-index"
                 placeholder="Votre adresse email" 
                 className="flex-grow px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-300"
+                aria-label="Adresse email pour la newsletter"
               />
-              <Button className="bg-olive-900 hover:bg-olive-950 text-white">
+              <Button type="submit" className="bg-olive-900 hover:bg-olive-950 text-white">
                 S'abonner
               </Button>
             </form>
           </div>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
       <Footer />
