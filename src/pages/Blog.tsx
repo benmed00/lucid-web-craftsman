@@ -1,4 +1,6 @@
 
+// File_name: src/pages/Blog.tsx
+
 import { CalendarIcon, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -8,11 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
+
 import { getBlogPosts } from "@/api/mockApiService";
+import { getImageUrl } from "@/utils/imageUtils";
+import { IBlogPost } from "@/shared/interfaces/IBlogPost";
 
 const Blog = () => {
-  const [featuredPosts, setFeaturedPosts] = useState([]);
-  const [regularPosts, setRegularPosts] = useState([]);
+  const [featuredPosts, setFeaturedPosts] = useState<IBlogPost[]>([]);
+  const [regularPosts, setRegularPosts] = useState<IBlogPost[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,7 +25,7 @@ const Blog = () => {
     
     const fetchPosts = async () => {
       try {
-        const posts = await getBlogPosts();
+        const posts: IBlogPost[] = await getBlogPosts();
         setFeaturedPosts(posts.filter(post => post.featured));
         setRegularPosts(posts.filter(post => !post.featured));
         setLoading(false);
@@ -85,7 +90,7 @@ const Blog = () => {
                 >
                   <div className="aspect-ratio aspect-w-1 aspect-h-1 md:aspect-w-16 md:aspect-h-9">
                     <img
-                      src={post.image}
+                      src={getImageUrl(post.image)}
                       alt={post.title}
                       className="object-cover w-full h-full"
                     />

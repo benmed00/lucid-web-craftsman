@@ -9,18 +9,7 @@ import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { useQuery } from "@tanstack/react-query";
 import { getBlogPostById } from "@/api/mockApiService";
-
-// Define the BlogPost interface to properly type the data
-interface BlogPost {
-  id: number;
-  title: string;
-  excerpt: string;
-  image: string;
-  date: string;
-  author: string;
-  category: string;
-  featured?: boolean;
-}
+import { IBlogPost } from "@/shared/interfaces/IBlogPost";
 
 const BlogPost = () => {
   const { id } = useParams();
@@ -32,7 +21,7 @@ const BlogPost = () => {
   }, []);
   
   // Fetch post by ID using React Query with proper typing
-  const { data: post, isLoading, error } = useQuery<BlogPost | null>({
+  const { data: post, isLoading, error } = useQuery<IBlogPost | null>({
     queryKey: ["blogPost", id],
     queryFn: () => getBlogPostById(Number(id)),
   });

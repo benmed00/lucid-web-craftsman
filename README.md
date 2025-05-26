@@ -1,4 +1,30 @@
-# Welcome to your Lovable project
+# Lucid Web Craftsman
+
+Portfolio React + TypeScript avec Vite, hébergé sur GitHub Pages.
+
+## ⚙️ Installation
+
+```bash
+npm install
+```
+
+## Lancement du serveur de développement
+
+```bash
+npm run dev
+```
+
+## Lancement du serveur de production
+
+```bash
+npm run build
+```
+
+## Lancement du serveur de production sur GitHub Pages
+
+```bash
+npm run deploy:pages
+```
 
 ## Project info
 

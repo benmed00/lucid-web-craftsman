@@ -10,6 +10,7 @@ import Testimonials from "@/components/Testimonials";
 import InstagramFeed from "@/components/InstagramFeed";
 import { Link } from "react-router-dom";
 import HeroImage from "@/components/HeroImage";
+import { ErrorBoundary } from "@/utils/ErrorBoundary";
 
 const Index = () => {
   return (
@@ -128,7 +129,9 @@ const Index = () => {
             </div>
             <h2 className="font-serif text-3xl md:text-4xl text-stone-800">Laissez-vous Inspirer par Notre Communauté</h2>
           </div>
-          <InstagramFeed />
+          <ErrorBoundary fallback={<p>Something went wrong</p>}>
+            <InstagramFeed />
+          </ErrorBoundary>
         </div>
       </section>
 

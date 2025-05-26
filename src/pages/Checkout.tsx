@@ -16,10 +16,7 @@ import { toast } from "sonner";
 import { useCart } from "@/context/useCart";
 
 // Initialize Stripe
-const stripePromise: Promise<Stripe | null> = loadStripe(STRIPE_PUBLIC_KEY);
-
-// When initializing Stripe
-// const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY!, {
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY!);
 //   betas: ['YOUR_BETA_FEATURES']
 // });
 

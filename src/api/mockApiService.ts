@@ -1,7 +1,10 @@
+
+// File_name: src/api/mockApiService.ts
+
 import axios, { AxiosInstance } from "axios";
 
 import { Product } from "../shared/interfaces/Iproduct.interface";
-import { products as localProducts } from "../data/products";
+import { products as localProducts } from "./data/products";
 
 // Helper to simulate API latency
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -19,7 +22,7 @@ export const getBlogPosts = async () => {
   try {
     await delay(300); // Simulate network latency
     // Get blog posts from db.json (imported at runtime)
-    const response = await import("../data/blogPosts");
+    const response = await import("./data/blogPosts");
     return response.default;
   } catch (error) {
     console.error("Error fetching blog posts:", error);
@@ -30,7 +33,7 @@ export const getBlogPosts = async () => {
 export const getBlogPostById = async (id: number) => {
   try {
     await delay(200);
-    const response = await import("../data/blogPosts");
+    const response = await import("./data/blogPosts");
     const post = response.default.find(post => post.id === id);
     return post || null;
   } catch (error) {

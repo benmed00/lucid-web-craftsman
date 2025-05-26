@@ -1,0 +1,21 @@
+[
+    {
+      "id": "1",
+      "title": "Créer un portfolio moderne avec React",
+      "slug": "portfolio-react",
+      "excerpt": "Un guide étape par étape pour créer un portfolio esthétique avec React et Tailwind.",
+      "coverImage": "blog1.jpg",
+      "dateISO": "2025-05-25",
+      "isFeatured": true
+    },
+    {
+      "id": "2",
+      "title": "Optimiser les performances avec Vite",
+      "slug": "vite-optimisation",
+      "excerpt": "Améliore la vitesse de ton site en exploitant Vite intelligemment.",
+      "coverImage": "blog2.jpg",
+      "dateISO": "2025-05-20",
+      "isFeatured": false
+    }
+  ]
+  

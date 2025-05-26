@@ -1,27 +1,88 @@
-# .github/workflows/deploy.yml
-name: Deploy
+# Nom du workflow (visible sur GitHub dans l'onglet Actions)
+name: 🚀 Deploy to GitHub Pages
+
+# Événements déclencheurs du workflow
 on:
   push:
-    branches: [main]
+    branches: [main]  # Déclenché à chaque push sur la branche principale
+  workflow_dispatch:  # Permet de déclencher manuellement le workflow via l'interface GitHub
 
+# Définition des jobs à exécuter
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    name: 🌐 Lint, Test, Build & Deploy  # Nom lisible du job
+    runs-on: ubuntu-latest  # Exécute ce job sur la dernière version d'Ubuntu dans GitHub Actions
+
+    # Définition des permissions nécessaires pour ce job
     permissions:
-      pages: write
-      id-token: write
+      contents: write        # Permet de créer ou mettre à jour la branche gh-pages si elle n'existe pas
+      pages: write           # Permet de déployer sur GitHub Pages
+      id-token: write        # Requis pour l’authentification OIDC avec GitHub Pages
+
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install dependencies
-        run: npm install
-        
-      - name: Build
-        run: npm run build
-        
-      - name: Deploy
-        uses: actions/deploy-pages@v4
+      # Étape 1 : Cloner le dépôt
+      - name: 🛎️ Checkout repository
+        uses: actions/checkout@v4  # Action officielle pour cloner le dépôt dans l’environnement GitHub Actions
+
+      # Étape 2 - Configuration du Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          artifact_name: 'web-app'
-          target_branch: 'gh-pages'
-          upload_dir: 'dist'
+          node-version: 18
+
+      # Étape 3 : Mise en cache des dépendances pour accélérer les exécutions futures
+      - name: ♻️ Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm  # Répertoire à mettre en cache
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}  # Clé de cache unique
+          restore-keys: |
+            ${{ runner.os }}-node-  # Fallback si la clé exacte n’est pas trouvée
+
+      # Étape 4 : Installation des dépendances Node.js
+      - name: 📦 Install dependencies
+        run: npm ci  # Utilise package-lock.json pour une installation déterministe
+
+      # Étape 5 : Linting du code (analyse statique)
+      - name: 🧹 Run Linter
+        run: npm run lint  # Vérifie la qualité du code avec ESLint (doit être défini dans package.json)
+
+      # Étape 6 : Lancement des tests unitaires
+      - name: ✅ Run Tests
+        run: npm run test -- --watchAll=false  # Exécute les tests (ex. avec Vitest, Jest, etc.)
+
+      # Étape 7 : Construction du projet (production build)
+      - name: 🔧 Build project
+        run: npm run build  # Génére le site statique dans le dossier `dist`
+        env:
+          VITE_REPO_NAME: ${{ github.event.repository.name }}
+
+      # Étape 7.1 : Définir dynamiquement le VITE_BASE_PATH selon le dépôt
+      - name: 🔁 Set VITE_BASE_PATH based on repository
+        run: |
+          if [[ "${{ github.repository }}" == "ben-yakoub/rif-raw-fashion" ]]; then
+            echo "VITE_BASE_PATH=/rif-raw-fashion/" >> $GITHUB_ENV
+          elif [[ "${{ github.repository }}" == "benmed00/lucid-web-craftsman" ]]; then
+            echo "VITE_BASE_PATH=/lucid-web-craftsman/" >> $GITHUB_ENV
+          else
+            echo "VITE_BASE_PATH=/" >> $GITHUB_ENV
+          fi
+
+      # Étape 7.2 : Construction du projet
+      - name: 🔧 Build project
+        run: npm run build  # Génére le site statique dans le dossier `dist`
+        env:
+          VITE_BASE_PATH: ${{ env.VITE_BASE_PATH }}
+
+      # Étape 8 : Préparation du contenu à déployer
+      - name: 📤 Upload static files
+        uses: actions/upload-pages-artifact@v3  # Prépare les fichiers pour GitHub Pages
+        with:
+          name: web-app
+          path: ./dist  # Dossier généré par le build à uploader
+
+      # Étape 9 : Déploiement effectif sur GitHub Pages
+      - name: 🚀 Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4  # Déploie automatiquement sur la branche gh-pages
+        with:
+          artifact_name: web-app
