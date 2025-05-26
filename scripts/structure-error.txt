@@ -1,0 +1,6 @@
+// File_name: structure.txt
+
+3  [error opening dir]
+**/node_modules  [error opening dir]
+
+0 directories, 0 files
