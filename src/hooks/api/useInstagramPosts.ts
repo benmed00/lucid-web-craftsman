@@ -29,7 +29,7 @@ export const useInstagramPosts = () => {
       }
     };
     fetchPosts();
-  }, []);
+  }, [BASE_URL, INSTAGRAM_ENDPOINT]);
 
   return { posts, loading, error };
 };

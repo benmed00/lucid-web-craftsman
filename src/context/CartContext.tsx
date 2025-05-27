@@ -59,7 +59,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         payload: JSON.parse(savedCart),
       });
     }
-  }, []);
+  }, [localStorage]);
 
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));

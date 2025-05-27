@@ -38,7 +38,7 @@ const Products = () => {
     };
     
     fetchProducts();
-  }, []);
+  }, [window]);
 
   const handleAddToCart = async (product: Product, event: React.MouseEvent) => {
     event.preventDefault(); // Prevent navigation to product detail

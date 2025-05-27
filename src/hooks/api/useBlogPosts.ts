@@ -25,7 +25,7 @@ export const useBlogPosts = () => {
     };
 
     fetchPosts();
-  }, []);
+  }, [BASE_URL, BLOG_ENDPOINT]);
 
   return { posts, loading, error };
 };

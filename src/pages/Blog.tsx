@@ -36,7 +36,7 @@ const Blog = () => {
     };
     
     fetchPosts();
-  }, []);
+  }, [getBlogPosts]);
 
   if (loading) {
     return (

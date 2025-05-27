@@ -28,7 +28,7 @@ const InstagramFeed = () => {
       {posts.map((post) => (
         <a
           key={post.id}
-          href="#"
+          role="link" tabIndex={0} onClick={() => console.log('pas encore de lien')}
           className="block relative group overflow-hidden rounded-md aspect-square"
         >
           <ImageWithFallback

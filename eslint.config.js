@@ -1,5 +1,3 @@
-// eslint.config.js
-
 import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
@@ -9,22 +7,22 @@ import tseslint from "typescript-eslint";
 import eslintPluginReact from "eslint-plugin-react";
 import ignore from "eslint-config-flat-gitignore";
 
-export default tseslint.config(
-  ignore(), // Respecte automatiquement .gitignore
-
+export default [
+  ignore(),
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  ...tseslint.configs.strictTypeChecked,
   {
-    files: ["**/*.{ts,tsx}"],
+    files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
-      ecmaVersion: 2020,
-      sourceType: "module",
+      parser: tseslint.parser,
+      parserOptions: {
+        project: "./tsconfig.json",
+        tsconfigRootDir: import.meta.dirname,
+      },
       globals: {
         ...globals.browser,
         ...globals.es2021,
-      },
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
       },
     },
     plugins: {
@@ -32,6 +30,7 @@ export default tseslint.config(
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
       "jsx-a11y": jsxA11y,
+      "@typescript-eslint": tseslint.plugin,
     },
     settings: {
       react: {
@@ -39,23 +38,34 @@ export default tseslint.config(
       },
     },
     rules: {
-      ...reactHooks.configs.recommended.rules,
-
-      // HMR
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-
+      // TypeScript
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
+      
       // React
       "react/jsx-uses-react": "off",
       "react/react-in-jsx-scope": "off",
-
-      // Accessibilité
+      
+      // React Hooks
+      ...reactHooks.configs.recommended.rules,
+      
+      // React Refresh
+      "react-refresh/only-export-components": "warn",
+      
+      // Accessibility
       ...jsxA11y.configs.recommended.rules,
-
-      // TypeScript
-      "@typescript-eslint/no-unused-vars": "off",
-
-      // Style optionnel : JSX dans TSX uniquement
-      "react/jsx-filename-extension": ["warn", { extensions: [".tsx"] }],
+      "jsx-a11y/anchor-is-valid": [
+        "error",
+        {
+          components: ["Link"],
+          specialLink: ["hrefLeft", "hrefRight"],
+          aspects: ["invalidHref", "preferButton"],
+        },
+      ],
     },
-  }
-);
+  },
+  {
+    files: ["**/*.js"],
+    ...tseslint.configs.disableTypeChecked,
+  },
+];

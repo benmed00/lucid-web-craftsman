@@ -25,7 +25,7 @@ const Cart = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     fetchCart();
-  }, []);
+  }, [window]);
 
   const fetchCart = async () => {
     try {

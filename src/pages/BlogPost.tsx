@@ -18,7 +18,7 @@ const BlogPost = () => {
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [window]);
   
   // Fetch post by ID using React Query with proper typing
   const { data: post, isLoading, error } = useQuery<IBlogPost | null>({

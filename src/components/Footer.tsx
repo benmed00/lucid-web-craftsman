@@ -20,7 +20,7 @@ const Footer = () => {
             <div className="flex space-x-4">
               {/* Facebook */}
               <a
-                href="#"
+                 role="link" tabIndex={0} onClick={() => console.log('pas encore de lien')}
                 className="text-stone-500 hover:text-olive-700 transition-colors"
               >
                 <svg
@@ -32,7 +32,7 @@ const Footer = () => {
                 </svg>
               </a>
               <a
-                href="#"
+                 role="link" tabIndex={0} onClick={() => console.log('pas encore de lien')}
                 className="text-stone-500 hover:text-olive-700 transition-colors"
               >
                 <svg
@@ -45,7 +45,7 @@ const Footer = () => {
               </a>
               {/* Instagram */}
               <a
-                href="#"
+                 role="link" tabIndex={0} onClick={() => console.log('pas encore de lien')}
                 className="text-stone-500 hover:text-olive-700 transition-colors"
               >
                 <svg
@@ -57,7 +57,7 @@ const Footer = () => {
                 </svg>
               </a>
               <a
-                href="#"
+                role="link" tabIndex={0} onClick={() => console.log('pas encore de lien')}
                 className="text-stone-500 hover:text-olive-700 transition-colors"
               >
                 <svg
@@ -77,7 +77,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="/lucid-web-craftsman/products"
+                  href="/products"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   All Products
@@ -85,7 +85,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/bags"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   Bags
@@ -93,7 +93,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/hats"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   Hats
@@ -101,7 +101,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/new-arrivals"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   New Arrivals
@@ -109,7 +109,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/sale"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   Sale
@@ -132,7 +132,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/artisans"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   Artisans
@@ -140,7 +140,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/materials"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   Materials
@@ -148,7 +148,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/sustainability"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   Sustainability
@@ -195,7 +195,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/lucid-web-craftsman/privacy-policy"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   Privacy Policy

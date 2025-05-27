@@ -30,7 +30,7 @@ const ProductShowcase = () => {
     };
 
     loadFeaturedProducts();
-  }, []);
+  }, [getProducts]);
 
   const handleAddToCart = (product: Product) => {
     // Add to cart
