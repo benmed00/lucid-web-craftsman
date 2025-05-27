@@ -56,7 +56,7 @@ jobs:
 
       # Étape 7 : Lancement des tests unitaires
       - name: ✅ Run Tests
-        run: npm run test -- --watchAll=false
+        run: npm run test -- --run
 
       # Étape 8 : Construction du site pour production
       - name: 🔧 Build project
