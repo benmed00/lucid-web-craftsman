@@ -14,6 +14,11 @@ export default [
   ...tseslint.configs.strictTypeChecked,
   {
     files: ["**/*.ts", "**/*.tsx"],
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/backend/server/server.cjs', // ← fichier problématique
+    ],
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
@@ -39,6 +44,7 @@ export default [
     },
     rules: {
       // TypeScript
+      '@typescript-eslint/await-thenable': 'error',
       "@typescript-eslint/no-unused-vars": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
       
@@ -65,7 +71,7 @@ export default [
     },
   },
   {
-    files: ["**/*.js"],
+    files: ["**/*.js", '**/*.ts', '**/*.tsx'],
     ...tseslint.configs.disableTypeChecked,
   },
 ];
