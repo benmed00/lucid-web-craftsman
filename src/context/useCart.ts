@@ -4,20 +4,11 @@
 
 import { createContext, useContext, useMemo } from "react";
 
-import { Product } from "../shared/interfaces/Iproduct.interface";
-
-export type CartItem = {
-    id: number;
-    quantity: number;
-    product: Product;
-};
-
-export type CartState = {
-    items: CartItem[];
-};
+import { IProduct } from "../shared/interfaces/Iproduct.interface";
+import { CartState } from "@/shared/interfaces/ICart.interface";
 
 export type CartAction =
-    | { type: "ADD_ITEM"; payload: Product; quantity: number }
+    | { type: "ADD_ITEM"; payload: IProduct; quantity: number }
     | { type: "REMOVE_ITEM"; payload: number }
     | { type: "HYDRATE"; payload: CartState };
 

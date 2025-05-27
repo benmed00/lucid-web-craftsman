@@ -1,22 +1,19 @@
 import { ArrowLeft, CheckCircle, CreditCard } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Stripe, loadStripe } from "@stripe/stripe-js";
-import { getCart, updateCartItemQuantity } from "@/api/mockApiService";
+import { getCart } from "@/api/mockApiService";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
-import { STRIPE_PUBLIC_KEY } from "@/lib/stripe";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { useCart } from "@/context/useCart";
 
 // Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY!);
+const stripePromise: Promise<Stripe | null> = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY!);
 //   betas: ['YOUR_BETA_FEATURES']
 // });
 
@@ -26,7 +23,7 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY!);
 //   betas: ['YOUR_BETA_FEATURES']
 // });
 
-const Checkout = () => {
+const Checkout: () => void = () => {
   const [step, setStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [loading, setLoading] = useState(true);
@@ -43,16 +40,18 @@ const Checkout = () => {
     country: "FR",
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [cartTotal, setCartTotal] = useState(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchCart();
+    void fetchCart();
   }, [step]);
 
   const fetchCart = async () => {
     try {
       const cart = await getCart();
       setCartItems(cart.items || []);
+      setCartTotal(cart.total || 0);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching cart:", error);
@@ -61,8 +60,8 @@ const Checkout = () => {
     }
   };
 
-  // Handle input changes
-  const handleInputChange = (e) => {
+  // Handle input changes for both input and select elements
+  const handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void = (e) => {
     const { id, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -71,7 +70,7 @@ const Checkout = () => {
   };
 
   // Navigate to next step if form is valid
-  const goToNextStep = () => {
+  const goToNextStep: () => void = () => {
     if (step === 1) {
       // Validate customer information form
       if (!formData.firstName || !formData.lastName || !formData.email) {
@@ -148,10 +147,7 @@ const Checkout = () => {
   };
 
   // Calculate totals
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  );
+  const subtotal = cartTotal;
   const shipping = subtotal > 0 ? 6.95 : 0;
   const total = subtotal + shipping;
 

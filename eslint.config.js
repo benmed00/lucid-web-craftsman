@@ -1,24 +1,67 @@
+// eslint.config.js
 import js from "@eslint/js";
-import globals from "globals";
-import reactHooks from "eslint-plugin-react-hooks";
-import reactRefresh from "eslint-plugin-react-refresh";
-import jsxA11y from "eslint-plugin-jsx-a11y";
 import tseslint from "typescript-eslint";
-import eslintPluginReact from "eslint-plugin-react";
-import ignore from "eslint-config-flat-gitignore";
+import globals from "globals";
 
 export default [
-  ignore(),
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
+  // 🌐 Global ignores (valide pour tout le projet)
   {
-    files: ["**/*.ts", "**/*.tsx"],
     ignores: [
-      '**/dist/**',
-      '**/node_modules/**',
-      '**/backend/server/server.cjs', // ← fichier problématique
+      "**/dist/**",
+      "**/build/**",
+      "**/node_modules/**",
+      "**/.vite/**",
+      "**/.turbo/**",
+      "**/public/**",
+      "**/*.test.*",
+      "**/*.spec.*",
     ],
+  },
+
+  // 🌱 JavaScript backend
+  {
+    files: ["backend/**/*.js", "backend/**/*.cjs"],
+    languageOptions: {
+      ecmaVersion: 2020,
+      sourceType: "script",
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      "no-var": "error",
+      "prefer-const": "warn",
+      "no-unused-vars": "warn",
+      "no-console": "off",
+    },
+  },
+
+  // ⚙️ TypeScript backend
+  {
+    files: ["backend/**/*.ts"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        project: "./tsconfig.backend.json",
+        tsconfigRootDir: import.meta.dirname,
+      },
+      globals: {
+        ...globals.node,
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint.plugin,
+    },
+    rules: {
+      ...tseslint.configs.recommendedTypeChecked.rules,
+      "@typescript-eslint/await-thenable": "error",
+      "@typescript-eslint/no-floating-promises": "warn",
+    },
+  },
+
+  // 🎨 Frontend React TypeScript
+  {
+    files: ["src/**/*.{ts,tsx}"],
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
@@ -27,51 +70,15 @@ export default [
       },
       globals: {
         ...globals.browser,
-        ...globals.es2021,
       },
     },
     plugins: {
-      react: eslintPluginReact,
-      "react-hooks": reactHooks,
-      "react-refresh": reactRefresh,
-      "jsx-a11y": jsxA11y,
       "@typescript-eslint": tseslint.plugin,
     },
-    settings: {
-      react: {
-        version: "detect",
-      },
-    },
     rules: {
-      // TypeScript
-      '@typescript-eslint/await-thenable': 'error',
-      "@typescript-eslint/no-unused-vars": "warn",
-      "@typescript-eslint/no-explicit-any": "warn",
-      
-      // React
-      "react/jsx-uses-react": "off",
-      "react/react-in-jsx-scope": "off",
-      
-      // React Hooks
-      ...reactHooks.configs.recommended.rules,
-      
-      // React Refresh
-      "react-refresh/only-export-components": "warn",
-      
-      // Accessibility
-      ...jsxA11y.configs.recommended.rules,
-      "jsx-a11y/anchor-is-valid": [
-        "error",
-        {
-          components: ["Link"],
-          specialLink: ["hrefLeft", "hrefRight"],
-          aspects: ["invalidHref", "preferButton"],
-        },
-      ],
+      ...tseslint.configs.recommendedTypeChecked.rules,
+      "@typescript-eslint/no-floating-promises": "warn",
+      "@typescript-eslint/explicit-function-return-type": "off",
     },
-  },
-  {
-    files: ["**/*.js", '**/*.ts', '**/*.tsx'],
-    ...tseslint.configs.disableTypeChecked,
   },
 ];

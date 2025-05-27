@@ -13,17 +13,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
-import { Product } from "../shared/interfaces/Iproduct.interface";
+import { IProduct } from "../shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
 import { useCart } from "../context/useCart";
 
 const ProductDetail = () => {
   const { dispatch } = useCart();
   const { id } = useParams();
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<IProduct | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [relatedProducts, setRelatedProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   const handleAddToCart = async () => {
@@ -51,20 +51,20 @@ const ProductDetail = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    const fetchProductData = async () => {
+    const fetchProductData: () => Promise<void> = async () => {
       try {
         // Find the product with the matching id
-        const productId = parseInt(id || "0");
-        const foundProduct = await getProductById(productId);
+        const productId: number = parseInt(id || "0");
+        const foundProduct: IProduct | null = await getProductById(productId);
 
         if (foundProduct) {
           setProduct(foundProduct);
 
           // Get related products
           if (foundProduct.related && foundProduct.related.length > 0) {
-            const relatedProds = [];
+            const relatedProds: IProduct[] = [];
             for (const relatedId of foundProduct.related) {
-              const relatedProduct = await getProductById(relatedId);
+              const relatedProduct: IProduct | null = await getProductById(relatedId);
               if (relatedProduct) {
                 relatedProds.push(relatedProduct);
               }
@@ -80,7 +80,7 @@ const ProductDetail = () => {
       }
     };
 
-    fetchProductData();
+    void fetchProductData();
   }, [id]);
 
   if (loading) {

@@ -6,20 +6,20 @@ import { Link } from "react-router-dom";
 import { useCart } from "@/context/useCart";
 import { toast } from "sonner";
 import { ShoppingCart } from "lucide-react";
-import { Product } from "@/shared/interfaces/Iproduct.interface";
+import { IProduct } from "@/shared/interfaces/Iproduct.interface";
 import { useEffect, useState } from "react";
 import { getProducts } from "@/api/mockApiService";
 
 const ProductShowcase = () => {
   const { dispatch } = useCart();
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadFeaturedProducts = async () => {
+    const loadFeaturedProducts: () => Promise<void> = async () => {
       try {
         // Get all products
-        const allProducts = await getProducts();
+        const allProducts: IProduct[] = await getProducts();
         // Select first 4 products as featured
         setFeaturedProducts(allProducts.slice(0, 4));
         setLoading(false);
@@ -29,10 +29,10 @@ const ProductShowcase = () => {
       }
     };
 
-    loadFeaturedProducts();
+    void loadFeaturedProducts();
   }, [getProducts]);
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: IProduct) => {
     // Add to cart
     dispatch({
       type: "ADD_ITEM",

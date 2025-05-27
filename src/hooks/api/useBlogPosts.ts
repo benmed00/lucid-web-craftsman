@@ -11,7 +11,7 @@ export const useBlogPosts = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPosts = async () => {
+    const fetchPosts: () => Promise<void> = async () => {
       try {
         const response: Response = await fetch(`${BASE_URL}${BLOG_ENDPOINT}`);
         if (!response.ok) throw new Error("Erreur lors du chargement des articles.");
@@ -24,7 +24,7 @@ export const useBlogPosts = () => {
       }
     };
 
-    fetchPosts();
+    void fetchPosts();
   }, [BASE_URL, BLOG_ENDPOINT]);
 
   return { posts, loading, error };

@@ -16,7 +16,7 @@ export const useInstagramPosts = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPosts = async () => {
+    const fetchPosts: () => Promise<void> = async () => {
       try {
         const res: Response = await fetch(`${BASE_URL}${INSTAGRAM_ENDPOINT}`);
         if (!res.ok) throw new Error("Failed to fetch posts");
@@ -28,7 +28,7 @@ export const useInstagramPosts = () => {
         setLoading(false);
       }
     };
-    fetchPosts();
+    void fetchPosts();
   }, [BASE_URL, INSTAGRAM_ENDPOINT]);
 
   return { posts, loading, error };

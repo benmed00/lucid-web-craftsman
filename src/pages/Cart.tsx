@@ -5,7 +5,7 @@ import { ArrowRight, ShoppingBag, X } from "lucide-react";
 import {
   getCart,
   removeFromCart,
-  updateCartItemQuantity,
+  updateCartStateItemQuantity,
 } from "@/api/mockApiService";
 import { useEffect, useState } from "react";
 
@@ -16,21 +16,23 @@ import PageFooter from "@/components/PageFooter";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useCart } from "@/context/useCart";
+import { CartState } from "@/shared/interfaces/ICart.interface";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { dispatch } = useCart();
+  const { cart, dispatch } = useCart();
+  const { items, total: cartTotal } = cart;
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchCart();
+    void fetchCart();
   }, [window]);
 
-  const fetchCart = async () => {
+  const fetchCart: () => Promise<void> = async () => {
     try {
-      const cart = await getCart();
-      setCartItems(cart.items || []);
+      const cart: CartState = await getCart();
+      // Update global cart state
+      dispatch({ type: "HYDRATE", payload: cart });
       setLoading(false);
     } catch (error) {
       console.error("Error fetching cart:", error);
@@ -39,23 +41,26 @@ const Cart = () => {
     }
   };
 
-  const handleQuantityChange = async (id, newQuantity) => {
+  const handleQuantityChange: (id: number, quantity: number) => Promise<void> = async (id, quantity) => {
     try {
-      const updatedCart = await updateCartItemQuantity(id, newQuantity);
-      setCartItems(updatedCart.items);
+      if (quantity <= 0) {
+        toast.error("Veuillez entrer une quantité valide");
+        return;
+      }
+      const updatedCart: CartState = await updateCartStateItemQuantity(id, quantity);
+      const total = updatedCart.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+      const updatedCartWithTotal: CartState = { ...updatedCart, total };
       // Update global cart state
-      dispatch({ type: "HYDRATE", payload: updatedCart });
+      dispatch({ type: "HYDRATE", payload: updatedCartWithTotal });
     } catch (error) {
       console.error("Error updating quantity:", error);
       toast.error("Erreur lors de la mise à jour de la quantité");
     }
   };
 
-  const handleRemoveItem = async (id) => {
+  const handleRemoveItem: (id: number) => Promise<void> = async (id: number) => {
     try {
-      const updatedCart = await removeFromCart(id);
-      setCartItems(updatedCart.items);
-      // Update global cart state
+      const updatedCart: CartState = await removeFromCart(id);
       dispatch({ type: "HYDRATE", payload: updatedCart });
       toast.success("Produit retiré du panier");
     } catch (error) {
@@ -65,12 +70,9 @@ const Cart = () => {
   };
 
   // Calculate totals
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  );
-  const shipping = subtotal > 0 ? 6.95 : 0;
-  const total = subtotal + shipping;
+  const subtotal: number = cartTotal;
+  const shipping: number = subtotal > 0 ? 6.95 : 0;
+  const total: number = subtotal + shipping;
 
   if (loading) {
     return (
@@ -98,7 +100,7 @@ const Cart = () => {
           Votre Panier
         </h1>
 
-        {cartItems.length === 0 ? (
+        {items.length === 0 ? (
           <div className="text-center py-16">
             <div className="flex justify-center mb-4">
               <ShoppingBag className="h-16 w-16 text-stone-300" />
@@ -129,7 +131,7 @@ const Cart = () => {
                 </div>
 
                 {/* Cart Items */}
-                {cartItems.map((item, index) => (
+                {items.map((item, index) => (
                   <div key={item.id}>
                     {index > 0 && <Separator />}
                     <div className="px-6 py-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">

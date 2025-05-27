@@ -3,8 +3,9 @@
 
 import axios, { AxiosInstance } from "axios";
 
-import { Product } from "../shared/interfaces/Iproduct.interface";
+import { IProduct } from "../shared/interfaces/Iproduct.interface";
 import { products as localProducts } from "./data/products";
+import { CartState, ICartItem } from "@/shared/interfaces/ICart.interface";
 
 // Helper to simulate API latency
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -43,7 +44,7 @@ export const getBlogPostById = async (id: number) => {
 };
 
 // Products API - using in-memory data
-export const getProducts = async (): Promise<Product[]> => {
+export const getProducts = async (): Promise<IProduct[]> => {
   try {
     await delay(300); // Simulate network latency
     return localProducts; // Use local products data directly
@@ -53,7 +54,7 @@ export const getProducts = async (): Promise<Product[]> => {
   }
 };
 
-export const getProductById = async (id: number): Promise<Product | null> => {
+export const getProductById = async (id: number): Promise<IProduct | null> => {
   try {
     await delay(200);
     const product = localProducts.find(product => product.id === id);
@@ -64,37 +65,28 @@ export const getProductById = async (id: number): Promise<Product | null> => {
   }
 };
 
-// Cart API - using localStorage
-export interface CartItem {
-  id: number;
-  quantity: number;
-  product: Product;
-}
-
-export interface CartState {
-  items: CartItem[];
-}
-
 export const getCart = async (): Promise<CartState> => {
   await delay(100);
 
   try {
     const cart = localStorage.getItem("cart");
-    return cart ? JSON.parse(cart) : { items: [] };
+    const parsedCart = cart ? JSON.parse(cart) : { items: [] };
+    const total = parsedCart.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    return { ...parsedCart, total };
   } catch (error) {
     console.error("Error getting cart from localStorage:", error);
-    return { items: [] };
+    return { items: [], total: 0 };
   }
 };
 
-export const addToCart = async (product: Product, quantity: number = 1): Promise<CartState> => {
+export const addToCart = async (product: IProduct, quantity: number = 1): Promise<CartState> => {
   await delay(100);
 
   // Get current cart
   const cart: CartState = await getCart();
 
   // Find if product is already in cart
-  const existingItem: CartItem = cart.items.find(item => item.id === product.id);
+  const existingItem: ICartItem = cart.items.find(item => item.id === product.id);
 
   if (existingItem) {
     // Update quantity if product already exists
@@ -108,9 +100,12 @@ export const addToCart = async (product: Product, quantity: number = 1): Promise
     });
   }
 
+  // Calculate total
+  const total = cart.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+
   // Save to localStorage
-  localStorage.setItem("cart", JSON.stringify(cart));
-  return cart;
+  localStorage.setItem("cart", JSON.stringify({ ...cart, total }));
+  return { ...cart, total };
 };
 
 export const removeFromCart = async (productId: number): Promise<CartState> => {
@@ -122,12 +117,15 @@ export const removeFromCart = async (productId: number): Promise<CartState> => {
   // Remove product from cart
   cart.items = cart.items.filter(item => item.id !== productId);
 
+  // Calculate total
+  const total = cart.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+
   // Save to localStorage
-  localStorage.setItem("cart", JSON.stringify(cart));
-  return cart;
+  localStorage.setItem("cart", JSON.stringify({ ...cart, total }));
+  return { ...cart, total };
 };
 
-export const updateCartItemQuantity = async (productId: number, quantity: number): Promise<CartState> => {
+export const updateCartStateItemQuantity = async (productId: number, quantity: number): Promise<CartState> => {
   await delay(100);
 
   // Get current cart
@@ -141,7 +139,10 @@ export const updateCartItemQuantity = async (productId: number, quantity: number
     item.quantity = Math.max(1, quantity);
   }
 
+  // Calculate total
+  const total = cart.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+
   // Save to localStorage
-  localStorage.setItem("cart", JSON.stringify(cart));
-  return cart;
+  localStorage.setItem("cart", JSON.stringify({ ...cart, total }));
+  return { ...cart, total };
 };

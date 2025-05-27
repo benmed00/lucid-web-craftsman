@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
-import { Product } from "@/shared/interfaces/Iproduct.interface";
+import { IProduct } from "@/shared/interfaces/Iproduct.interface";
 import { ShoppingBag } from "lucide-react";
 import { addToCart } from "@/api/mockApiService";
 import { getProducts } from "@/api/mockApiService";
@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { useCart } from "@/context/useCart";
 
 const Products = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
@@ -24,7 +24,7 @@ const Products = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    const fetchProducts = async () => {
+    const fetchProducts: () => Promise<void> = async () => {
       try {
         const data = await getProducts();
         setProducts(data);
@@ -37,10 +37,10 @@ const Products = () => {
       }
     };
     
-    fetchProducts();
+    void fetchProducts();
   }, [window]);
 
-  const handleAddToCart = async (product: Product, event: React.MouseEvent) => {
+  const handleAddToCart = async (product: IProduct, event: React.MouseEvent) => {
     event.preventDefault(); // Prevent navigation to product detail
     event.stopPropagation(); // Stop event propagation
     

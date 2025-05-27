@@ -23,7 +23,7 @@ const Blog = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    const fetchPosts = async () => {
+    const fetchPosts: () => Promise<void> = async () => {
       try {
         const posts: IBlogPost[] = await getBlogPosts();
         setFeaturedPosts(posts.filter(post => post.featured));
@@ -35,7 +35,7 @@ const Blog = () => {
       }
     };
     
-    fetchPosts();
+    void fetchPosts();
   }, [getBlogPosts]);
 
   if (loading) {

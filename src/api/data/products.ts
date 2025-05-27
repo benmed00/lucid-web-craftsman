@@ -1,8 +1,8 @@
 // File_name: src/data/products.ts
 
-import { Product } from "../../shared/interfaces/Iproduct.interface";
+import { IProduct } from "../../shared/interfaces/Iproduct.interface";
 
-export const products: Product[] = [
+export const products: IProduct[] = [
   {
     id: 1,
     name: "Sac à Main Tissé Traditionnel",
