@@ -2,13 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { BASE_URL, INSTAGRAM_ENDPOINT } from "@/config/constants";
+import { instagramPosts } from "@/api/data/instaSection";
+// No need to import Vite env variables as we'll use process.env.NODE_ENV
 
-export interface InstagramPost {
-  id: number;
-  image: string;
-  likes: number;
-  // Ajoute d'autres champs si nécessaire
-}
+import { InstagramPost } from "@/shared/interfaces/InstagramPost.interface";
 
 export const useInstagramPosts = () => {
   const [posts, setPosts] = useState<InstagramPost[]>([]);
@@ -18,10 +15,16 @@ export const useInstagramPosts = () => {
   useEffect(() => {
     const fetchPosts: () => Promise<void> = async () => {
       try {
-        const res: Response = await fetch(`${BASE_URL}${INSTAGRAM_ENDPOINT}`);
-        if (!res.ok) throw new Error("Failed to fetch posts");
-        const data: InstagramPost[] = await res.json();
-        setPosts(data);
+        if (process.env.NODE_ENV === 'development') {
+          // Use local data in development
+          setPosts(instagramPosts);
+        } else {
+          // Fetch from API in production
+          const res: Response = await fetch(`${BASE_URL}${INSTAGRAM_ENDPOINT}`);
+          if (!res.ok) throw new Error("Failed to fetch posts");
+          const data: InstagramPost[] = await res.json();
+          setPosts(data);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {

@@ -5,24 +5,33 @@
  */
 
 /**
- * Génère une URL vers une image dans le dossier public/assets/images
- * @param filename Nom du fichier (ex: 'logo.png')
- * @param baseUrl (Optionnel) Base URL à utiliser (par exemple: '/lucid-web-craftsman')
- * @returns Chemin complet vers l'image (ex: '/lucid-web-craftsman/assets/images/logo.png')
+ * Resolves a local or remote image URL based on the provided filename.
+ * 
+ * - If `filename` is a full URL (starts with http:// or https://), it returns it as-is.
+ * - If `filename` is null or undefined, it returns the base image directory.
+ * - If `filename` is a relative name, it builds the full local path to the image.
+ *
+ * @param filename - The name of the image file or a full URL.
+ * @param baseUrl - The base URL of the app (default from import.meta.env.BASE_URL).
+ * @returns The complete URL pointing to the image resource.
  */
 export function getImageUrl(filename: string | null | undefined, baseUrl = import.meta.env.BASE_URL): string {
-  // If filename is null/undefined, return the base path
+  // If no filename is provided, return the default assets path
   if (!filename) {
-    return `${baseUrl || ''}assets/images/`;
+    return `${baseUrl || ''}assets/images/`.replace(/\/+/g, '/');
   }
 
-  // Normalize baseUrl by replacing multiple slashes with single slash
-  const normalizedBase = baseUrl ? baseUrl.replace(/\/+/g, '/') : '';
-  
-  // Remove leading slash from filename if it exists
-  const normalizedFilename = filename.replace(/^\/+/g, '');
-  
-  // Return the full path with proper slash normalization
+  // If filename is already a complete URL, return as-is
+  if (/^https?:\/\//i.test(filename)) {
+    return filename;
+  }
+
+  // Normalize baseUrl by replacing multiple slashes
+  const normalizedBase = baseUrl ? baseUrl.replace(/\/+$/, '') : '';
+  // Remove any leading slashes from filename
+  const normalizedFilename = filename.replace(/^\/+/, '');
+
+  // Construct and normalize the final path
   return `${normalizedBase}/assets/images/${normalizedFilename}`.replace(/\/+/g, '/');
 }
 

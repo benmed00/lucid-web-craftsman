@@ -45,14 +45,9 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case "HYDRATE": {
       return {
         items: action.payload.items,
-        total: action.payload.total
-      };
-    }
-    case "HYDRATE": // Nouveau cas pour l'hydratation
-      return {
-        items: action.payload.items,
         total: calculateTotal(action.payload.items)
       };
+    }
     default:
       return state;
   }

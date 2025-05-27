@@ -4,7 +4,7 @@
       "id": 1,
       "title": "L'art du tissage traditionnel dans les montagnes du Rif",
       "excerpt": "Découvrez comment les artisans transmettent leurs techniques de génération en génération tout en adaptant leur savoir-faire aux tendances modernes.",
-      "image": "/assets/images/blog/tissage.jpg",
+      "image": "/blog/tissage.jpg",
       "date": "14 Mai 2025",
       "author": "Layla Nakouri",
       "category": "Artisanat",
@@ -16,7 +16,7 @@
       "id": 2,
       "title": "Matériaux naturels : la beauté des fibres végétales",
       "excerpt": "Quels sont les matériaux utilisés dans la confection de nos sacs et chapeaux? Une exploration des fibres locales et durables que nous privilégions.",
-      "image": "/assets/images/blog/fibre_vegetal.jpg",
+      "image": "/blog/fibre_vegetal.jpg",
       "date": "28 Avril 2025",
       "author": "Thomas Dubois",
       "category": "Durabilité"
@@ -38,7 +38,7 @@
       "id": 4,
       "title": "Les symboles berbères dans nos créations",
       "excerpt": "Chaque motif raconte une histoire. Découvrez la signification des symboles ancestraux que vous retrouvez sur nos créations artisanales.",
-      "image": "/assets/images/blog/symboles_berberes.webp",
+      "image": "/blog/symboles_berberes.webp",
       "date": "2 Avril 2025",
       "author": "Mehdi Alaoui",
       "category": "Culture",
@@ -71,10 +71,10 @@
       "name": "Sac à Main Tissé Traditionnel",
       "price": 89,
       "images": [
-        "/assets/images/sacs/sac_traditionnel.jpg",
-        "/assets/images/sacs/sac_traditionnel_vue1.jpg",
-        "/assets/images/sacs/sac_traditionnel_vue2.jpg",
-        "/assets/images/sacs/sac_traditionnel_vue3.jpg"
+        "/sacs/sac_traditionnel.jpg",
+        "/sacs/sac_traditionnel_vue1.jpg",
+        "/sacs/sac_traditionnel_vue2.jpg",
+        "/sacs/sac_traditionnel_vue3.jpg"
       ],
       "category": "Sacs",
       "description": "Ce sac à main tissé traditionnel est confectionné à la main par des artisans du Rif marocain. Chaque pièce est unique et représente des heures de travail minutieux. Les motifs berbères sont transmis de génération en génération.",
@@ -94,7 +94,7 @@
       "name": "Chapeau de Paille Berbère",
       "price": 45,
       "images": [
-        "/assets/images/chapeau_de_paille_berbere_2.jpg"
+        "/chapeau_de_paille_berbere_2.jpg"
       ],
       "category": "Chapeaux",
       "description": "Un chapeau traditionnel berbère tissé à la main avec des fibres de palmier nain, offrant une protection élégante contre le soleil méditerranéen.",
@@ -164,7 +164,7 @@
   "instagramPosts": [
     {
       "id": 1,
-      "image": "/assets/images/instagram/insta_image_1.jpg",
+      "image": "/instagram/insta_image_1.jpg",
       "likes": 254,
       "caption": "Pièce en céramique émaillée",
       "dateISO": "2024-11-03T14:45:00Z",
@@ -172,7 +172,7 @@
     },
     {
       "id": 2,
-      "image": "/assets/images/instagram/insta_image_3.jpg",
+      "image": "/instagram/insta_image_3.jpg",
       "likes": 187,
       "caption": "Pièce en céramique émaillée",
       "dateISO": "2024-11-03T14:45:00Z",
@@ -180,7 +180,7 @@
     },
     {
       "id": 3,
-      "image": "/assets/images/instagram/insta_image_2.webp",
+      "image": "/instagram/insta_image_2.webp",
       "likes": 315,
       "caption": "Pièce en céramique émaillée",
       "dateISO": "2024-11-03T14:45:00Z",
@@ -188,7 +188,7 @@
     },
     {
       "id": 4,
-      "image": "/assets/images/instagram/insta_image_4.jpg",
+      "image": "/instagram/insta_image_4.jpg",
       "likes": 201,
       "caption": "Pièce en céramique émaillée",
       "dateISO": "2024-11-03T14:45:00Z",

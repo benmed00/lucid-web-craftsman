@@ -145,7 +145,7 @@ const Blog = () => {
               >
                 <div className="aspect-ratio aspect-w-1 aspect-h-1 md:aspect-w-4 md:aspect-h-3">
                   <img
-                    src={post.image}
+                    src={getImageUrl(post.image)}
                     alt={post.title}
                     className="object-cover w-full h-full"
                   />

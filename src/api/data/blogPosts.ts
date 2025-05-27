@@ -1,15 +1,16 @@
 // src\data\products.ts
 
-import BlogPost from "../../pages/BlogPost";
+import { IBlogPost } from "@/shared/interfaces/IBlogPost";
 
-export const blogPosts: BlogPost[] = [
+
+export const blogPosts: IBlogPost[] = [
   {
     id: 1,
     title: "L'art du tissage traditionnel dans les montagnes du Rif",
     excerpt:
       "Découvrez comment les artisans transmettent leurs techniques de génération en génération tout en adaptant leur savoir-faire aux tendances modernes.",
     content: "<p>Dans les montagnes du Rif, l'art du tissage est une tradition ancestrale qui se transmet de génération en génération. Les artisans locaux utilisent des techniques traditionnelles tout en s'adaptant aux tendances modernes.</p>",
-    image: "/lucid-web-craftsman/assets/images/blog/tissage.jpg",
+    image: "/blog/tissage.jpg",
     date: "14 Mai 2025",
     author: "Layla Nakouri",
     category: "Artisanat",
@@ -21,7 +22,7 @@ export const blogPosts: BlogPost[] = [
     excerpt:
       "Quels sont les matériaux utilisés dans la confection de nos sacs et chapeaux? Une exploration des fibres locales et durables que nous privilégions.",
     content: "<p>Nos artisans utilisent uniquement des fibres naturelles pour créer des produits durables et beaux. Ils travaillent avec des matières comme le coton biologique et les fibres de lin pour créer des produits de qualité.</p>",
-    image: "/lucid-web-craftsman/assets/images/blog/fibre_vegetal.jpg",
+    image: "/blog/fibre_vegetal.jpg",
     date: "28 Avril 2025",
     author: "Thomas Dubois",
     category: "Durabilité",
@@ -45,7 +46,7 @@ export const blogPosts: BlogPost[] = [
     excerpt:
       "Chaque motif raconte une histoire. Découvrez la signification des symboles ancestraux que vous retrouvez sur nos créations artisanales.",
     content: "<p>Les symboles berbères sont une partie importante de notre héritage culturel. Chaque motif a une signification particulière et raconte une histoire unique de notre région.</p>",
-    image: "/lucid-web-craftsman/assets/images/blog/symboles_berberes.webp",
+    image: "/blog/symboles_berberes.webp",
     date: "2 Avril 2025",
     author: "Mehdi Alaoui",
     category: "Culture",
