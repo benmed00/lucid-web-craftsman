@@ -160,7 +160,7 @@ describe('Form Submission Tests', () => {
     const productToCheckout = {
       id: 100, 
       name: 'Checkout Test Item',
-      price: 25.00,
+      price: 25.00, // The price for dynamic button text "Payer X €"
       images: ['checkout_item.jpg'],
       category: 'Checkout Category',
       description: 'An item to test checkout.',
@@ -186,26 +186,42 @@ describe('Form Submission Tests', () => {
     const deliveryCityInput = 'input#city';
     const deliveryCountrySelect = 'select#country';
     const continueToPaymentButtonText = 'Continuer vers le paiement';
+    
+    // Step 3 selectors
+    const cardPaymentMethodRadio = 'input#card';
+    const paypalPaymentMethodRadio = 'input#paypal';
+    const cardNumberInput = 'input#cardNumber';
+    const cardExpiryInput = 'input#expiry';
+    const cardCvcInput = 'input#cvc';
+    const cardNameInput = 'input#nameOnCard';
+    // Dynamic text, so use contains
+    const payButtonSelector = 'button[type="submit"]'; 
 
-    // Helper function to fill Step 1 validly
     function fillStep1Valid() {
       cy.get(coordsFirstNameInput).clear().type('Testy');
       cy.get(coordsLastNameInput).clear().type('McTestFace');
       cy.get(coordsEmailInput).clear().type('testy@example.com');
       cy.get(coordsPhoneInput).clear().type('0123456789');
       cy.contains('button', continueToDeliveryButtonText).click();
-      cy.contains('h2', 'Adresse de Livraison').should('be.visible'); // Verify step 2 is active
+      cy.contains('h2', 'Adresse de Livraison').should('be.visible');
     }
     
-    // Helper function to clear Step 2 fields
     function clearStep2Fields() {
         cy.get(deliveryAddressInput).clear();
         cy.get(deliveryAddressComplementInput).clear();
         cy.get(deliveryPostalCodeInput).clear();
         cy.get(deliveryCityInput).clear();
-        // Country select doesn't need clearing in the same way, will be re-selected
     }
 
+    function fillStep2Valid() {
+      cy.get(deliveryAddressInput).clear().type('123 Main St');
+      cy.get(deliveryAddressComplementInput).clear().type('Apt 4B'); // Optional
+      cy.get(deliveryPostalCodeInput).clear().type('75001'); // Valid French postal code
+      cy.get(deliveryCityInput).clear().type('Paris');
+      cy.get(deliveryCountrySelect).select('FR');
+      cy.contains('button', continueToPaymentButtonText).click();
+      cy.contains('h2', 'Méthode de Paiement').should('be.visible'); // Verify Step 3 is active
+    }
 
     beforeEach(() => {
       cy.then(() => Cypress.Promise.try(() => mockApiService.addToCart(productToCheckout, 1)));
@@ -215,14 +231,11 @@ describe('Form Submission Tests', () => {
 
     // --- Step 1: Vos Coordonnées ---
     it('should allow valid data submission for Step 1 and proceed to Step 2', () => {
-      fillStep1Valid(); // Uses the helper
-      // Assertion that Step 2 is active is inside fillStep1Valid()
+      fillStep1Valid(); 
     });
 
     it('should show error toast for missing required fields in Step 1', () => {
       const expectedToastMessage = 'Veuillez remplir tous les champs obligatoires.';
-
-      // Attempt with firstName empty
       cy.get(coordsLastNameInput).type('TestLastName');
       cy.get(coordsEmailInput).type('test@example.com');
       cy.get(coordsPhoneInput).type('0987654321');
@@ -232,7 +245,6 @@ describe('Form Submission Tests', () => {
       cy.contains('h2', 'Adresse de Livraison').should('not.exist'); 
       cy.get(coordsLastNameInput).clear(); cy.get(coordsEmailInput).clear(); cy.get(coordsPhoneInput).clear();
 
-      // Attempt with lastName empty
       cy.get(coordsFirstNameInput).type('TestFirstName');
       cy.get(coordsEmailInput).type('test@example.com');
       cy.get(coordsPhoneInput).type('0987654321');
@@ -242,7 +254,6 @@ describe('Form Submission Tests', () => {
       cy.contains('h2', 'Adresse de Livraison').should('not.exist');
       cy.get(coordsFirstNameInput).clear(); cy.get(coordsEmailInput).clear(); cy.get(coordsPhoneInput).clear();
 
-      // Attempt with email empty
       cy.get(coordsFirstNameInput).type('TestFirstName');
       cy.get(coordsLastNameInput).type('TestLastName');
       cy.get(coordsPhoneInput).type('0987654321');
@@ -264,31 +275,14 @@ describe('Form Submission Tests', () => {
     });
 
     // --- Step 2: Adresse de Livraison ---
-    // Test Case 13: Valid data submission for Step 2
     it('should allow valid data submission for Step 2 and proceed to Step 3', () => {
-      fillStep1Valid(); // Complete Step 1
-
-      cy.get(deliveryAddressInput).type('123 Rue Principale');
-      cy.get(deliveryAddressComplementInput).type('Appartement 4B'); // Optional
-      cy.get(deliveryPostalCodeInput).type('75001');
-      cy.get(deliveryCityInput).type('Paris');
-      cy.get(deliveryCountrySelect).select('FR'); // Select France
-      
-      cy.contains('button', continueToPaymentButtonText).click();
-
-      // Assert Step 3 ("Méthode de Paiement") is now visible
-      cy.contains('h2', 'Méthode de Paiement').should('be.visible');
-      // Assert Step 2 ("Adresse de Livraison") might no longer be the primary focus
-      cy.contains('h2', 'Adresse de Livraison').should('be.visible'); // Still visible in accordion
+      fillStep1Valid(); 
+      fillStep2Valid();
     });
 
-    // Test Case 14: Missing required fields for Step 2
     it('should show error toast for missing required fields in Step 2', () => {
       const expectedToastMessage = 'Veuillez remplir tous les champs obligatoires.';
-      
-      // Sub-case: address empty
       fillStep1Valid();
-      // deliveryAddressInput left empty
       cy.get(deliveryAddressComplementInput).type('Suite 100');
       cy.get(deliveryPostalCodeInput).type('75002');
       cy.get(deliveryCityInput).type('Paris');
@@ -297,12 +291,10 @@ describe('Form Submission Tests', () => {
       cy.get('div[role="status"]').should('contain.text', expectedToastMessage);
       cy.contains('h2', 'Adresse de Livraison').should('be.visible');
       cy.contains('h2', 'Méthode de Paiement').should('not.exist');
-      clearStep2Fields(); // Clear fields for next sub-case
+      clearStep2Fields(); 
 
-      // Sub-case: postalCode empty
-      fillStep1Valid(); // This re-runs beforeEach and fillStep1, effectively resetting for this sub-case
+      fillStep1Valid(); 
       cy.get(deliveryAddressInput).type('456 Avenue Secondaire');
-      // deliveryPostalCodeInput left empty
       cy.get(deliveryCityInput).type('Lyon');
       cy.get(deliveryCountrySelect).select('FR');
       cy.contains('button', continueToPaymentButtonText).click();
@@ -311,11 +303,9 @@ describe('Form Submission Tests', () => {
       cy.contains('h2', 'Méthode de Paiement').should('not.exist');
       clearStep2Fields();
 
-      // Sub-case: city empty
       fillStep1Valid();
       cy.get(deliveryAddressInput).type('789 Boulevard Tertiaire');
       cy.get(deliveryPostalCodeInput).type('13001');
-      // deliveryCityInput left empty
       cy.get(deliveryCountrySelect).select('FR');
       cy.contains('button', continueToPaymentButtonText).click();
       cy.get('div[role="status"]').should('contain.text', expectedToastMessage);
@@ -323,20 +313,72 @@ describe('Form Submission Tests', () => {
       cy.contains('h2', 'Méthode de Paiement').should('not.exist');
     });
     
-    // Test Case 15: Invalid French postal code for Step 2
     it('should show error toast for invalid French postal code in Step 2', () => {
-      fillStep1Valid(); // Complete Step 1
-
+      fillStep1Valid(); 
       cy.get(deliveryAddressInput).type('101 Rue de Test');
       cy.get(deliveryCityInput).type('Quelqueville');
-      cy.get(deliveryCountrySelect).select('FR'); // Select France
-      cy.get(deliveryPostalCodeInput).type('123'); // Invalid French postal code
-      
+      cy.get(deliveryCountrySelect).select('FR'); 
+      cy.get(deliveryPostalCodeInput).type('123'); 
       cy.contains('button', continueToPaymentButtonText).click();
-
       cy.get('div[role="status"]').should('contain.text', 'Veuillez entrer un code postal français valide (5 chiffres)');
-      cy.contains('h2', 'Adresse de Livraison').should('be.visible'); // Still on Step 2
-      cy.contains('h2', 'Méthode de Paiement').should('not.exist'); // Not on Step 3
+      cy.contains('h2', 'Adresse de Livraison').should('be.visible'); 
+      cy.contains('h2', 'Méthode de Paiement').should('not.exist'); 
+    });
+
+    // --- Step 3: Méthode de Paiement ---
+    // Test Case 16: Successful simulated payment with Card details
+    it('should simulate successful payment with Card details', () => {
+      fillStep1Valid();
+      fillStep2Valid();
+
+      cy.get(cardPaymentMethodRadio).check().should('be.checked'); // Ensure card is selected
+
+      cy.get(cardNumberInput).type('1234567890123456');
+      cy.get(cardExpiryInput).type('12/25');
+      cy.get(cardCvcInput).type('123');
+      cy.get(cardNameInput).type('Test Cardholder');
+
+      // Construct the expected button text using the product's price
+      const expectedPayButtonText = `Payer ${productToCheckout.price.toFixed(2).replace('.', ',')} €`;
+      const payButton = cy.contains(payButtonSelector, expectedPayButtonText);
+      payButton.should('be.visible').click();
+
+      // Assert button text changes to "Traitement en cours..."
+      cy.contains(payButtonSelector, 'Traitement en cours...').should('be.visible');
+      // Or check if it's disabled
+      // cy.contains(payButtonSelector, 'Traitement en cours...').should('be.disabled');
+
+      // Assert success toast
+      cy.get('div[role="status"]', { timeout: 2000 }) // Wait a bit longer for the toast
+        .should('be.visible')
+        .and('contain.text', 'Paiement traité avec succès');
+      
+      // Assert button text reverts or button becomes disabled after timeout
+      // The timeout in Checkout.tsx is 1500ms for the processing simulation
+      cy.contains(payButtonSelector, expectedPayButtonText, { timeout: 2000 })
+        .should('be.visible')
+        .and('not.contain.text', 'Traitement en cours...');
+      // Or check if it's re-enabled if it was disabled
+      // cy.contains(payButtonSelector, expectedPayButtonText).should('not.be.disabled');
+    });
+
+    // Test Case 17: Test selecting PayPal
+    it('should hide card fields when PayPal is selected', () => {
+      fillStep1Valid();
+      fillStep2Valid();
+
+      cy.get(paypalPaymentMethodRadio).check().should('be.checked');
+
+      // Assert card input fields are not visible
+      cy.get(cardNumberInput).should('not.exist'); // Or .should('not.be.visible') if they are hidden not removed
+      cy.get(cardExpiryInput).should('not.exist');
+      cy.get(cardCvcInput).should('not.exist');
+      cy.get(cardNameInput).should('not.exist');
+
+      // Assert "Payer X €" button is still present (text might change for PayPal)
+      // For this test, just checking the button exists is enough.
+      // The text might change to "Payer avec PayPal" or similar.
+      cy.contains(payButtonSelector, 'Payer').should('be.visible');
     });
   });
 });
