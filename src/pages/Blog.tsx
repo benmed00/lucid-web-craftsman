@@ -193,8 +193,13 @@ const Blog = () => {
               <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                 <input
                   type="email"
+                  id="newsletter-email"
+                  name="email"
                   placeholder="Votre adresse email"
                   className="flex-grow px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-300"
+                  required
+                  aria-label="Votre adresse email"
+                  autoComplete="email"
                 />
                 <Button className="bg-olive-900 hover:bg-olive-950 text-white">
                   S'abonner

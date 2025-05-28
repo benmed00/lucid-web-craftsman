@@ -1,4 +1,5 @@
 
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,63 @@ import HeroImage from "@/components/HeroImage";
 import { ErrorBoundary } from "@/utils/ErrorBoundary";
 
 const Index = () => {
+  const [formState, setFormState] = useState({
+    email: '',
+    isSubmitting: false,
+    error: '',
+    success: false
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState({
+      ...formState,
+      email: e.target.value,
+      error: '',
+      success: false
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormState({ ...formState, isSubmitting: true, error: '' });
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: formState.email }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Une erreur est survenue lors de l\'inscription');
+      }
+
+      setFormState({
+        email: '',
+        isSubmitting: false,
+        error: '',
+        success: true
+      });
+
+      // Reset form after 5 seconds
+      setTimeout(() => {
+        setFormState({
+          email: '',
+          isSubmitting: false,
+          error: '',
+          success: false
+        });
+      }, 5000);
+    } catch (error) {
+      setFormState({
+        ...formState,
+        isSubmitting: false,
+        error: error instanceof Error ? error.message : 'Une erreur est survenue'
+      });
+    }
+  };
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -141,16 +199,65 @@ const Index = () => {
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-serif text-3xl text-white mb-4">Rejoignez Notre Newsletter</h2>
             <p className="text-olive-100 mb-8">Inscrivez-vous pour recevoir des mises à jour sur les nouveaux produits, les offres spéciales et les histoires de nos artisans.</p>
-            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input 
-                type="email" 
-                placeholder="Votre adresse email" 
-                className="flex-grow px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-300"
-              />
-              <Button className="bg-olive-900 hover:bg-olive-950 text-white">
-                S'abonner
-              </Button>
-            </form>
+            <div className="max-w-md mx-auto">
+              <form 
+                id="newsletter-form"
+                className="flex flex-col sm:flex-row gap-3"
+                onSubmit={handleSubmit}
+              >
+                <div className="flex-grow">
+                  <label htmlFor="newsletter-email" className="sr-only">
+                    Votre adresse email
+                  </label>
+                  <input 
+                    type="email" 
+                    id="newsletter-email"
+                    name="email"
+                    autoComplete="email@gmail.com"
+                    placeholder="Votre adresse email" 
+                    className={`flex-grow px-4 py-3 rounded-md focus:outline-none ${
+                      formState.error ? 'border-red-500 focus:ring-red-300' : 'focus:ring-2 focus:ring-olive-300'
+                    }`}
+                    required
+                    aria-label="Votre adresse email"
+                    aria-invalid={formState.error ? 'true' : 'false'}
+                    aria-describedby="email-error"
+                    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                    title="Veuillez entrer une adresse email valide"
+                    value={formState.email}
+                    onChange={handleChange}
+                    disabled={formState.isSubmitting}
+                  />
+                  {formState.error && (
+                    <p id="email-error" className="text-red-500 text-sm mt-1">
+                      {formState.error}
+                    </p>
+                  )}
+                </div>
+                <Button 
+                  type="submit"
+                  className="bg-olive-900 hover:bg-olive-950 text-white"
+                  disabled={formState.isSubmitting}
+                >
+                  {formState.isSubmitting ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      En cours...
+                    </>
+                  ) : (
+                    'S\'abonner'
+                  )}
+                </Button>
+              </form>
+              {formState.success && (
+                <div className="mt-3 p-3 rounded-md bg-green-50 text-green-700">
+                  Merci pour votre inscription ! Vous recevrez bientôt des nouvelles de notre boutique.
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>

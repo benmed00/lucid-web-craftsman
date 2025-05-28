@@ -103,13 +103,20 @@ const Contact = () => {
                                 <Label htmlFor="firstName">Prénom</Label>
                                 <Input
                                   id="firstName"
+                                  name="firstName"
                                   placeholder="Votre prénom"
+                                  autoComplete="given-name"
                                 />
                               </div>
 
                               <div className="space-y-2">
                                 <Label htmlFor="lastName">Nom</Label>
-                                <Input id="lastName" placeholder="Votre nom" />
+                                <Input
+                                  id="lastName"
+                                  name="lastName"
+                                  placeholder="Votre nom"
+                                  autoComplete="family-name"
+                                />
                               </div>
                             </div>
 
@@ -118,18 +125,24 @@ const Contact = () => {
                                 <Label htmlFor="email">Email</Label>
                                 <Input
                                   id="email"
+                                  name="email"
                                   type="email"
                                   placeholder="votre.email@exemple.com"
+                                  autoComplete="email"
                                 />
                               </div>
+                            </div>
 
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div className="space-y-2">
                                 <Label htmlFor="phone">
                                   Téléphone (optionnel)
                                 </Label>
                                 <Input
                                   id="phone"
+                                  name="phone"
                                   placeholder="Votre numéro de téléphone"
+                                  autoComplete="tel"
                                 />
                               </div>
                             </div>
@@ -138,6 +151,7 @@ const Contact = () => {
                               <Label htmlFor="subject">Sujet</Label>
                               <Input
                                 id="subject"
+                                name="subject"
                                 placeholder="Objet de votre message"
                               />
                             </div>
@@ -146,10 +160,12 @@ const Contact = () => {
                               <Label htmlFor="message">Message</Label>
                               <textarea
                                 id="message"
+                                name="message"
                                 rows={5}
                                 placeholder="Votre message..."
                                 className="w-full px-3 py-2 text-base border border-stone-300 rounded-md focus:outline-none focus:border-olive-400"
-                              ></textarea>
+                                aria-label="Votre message"
+                              />
                             </div>
 
                             <Button className="w-full md:w-auto bg-olive-700 hover:bg-olive-800">
@@ -165,7 +181,9 @@ const Contact = () => {
                                 <Label htmlFor="orderName">Nom complet</Label>
                                 <Input
                                   id="orderName"
+                                  name="orderName"
                                   placeholder="Votre nom complet"
+                                  autoComplete="name"
                                 />
                               </div>
 
@@ -175,7 +193,9 @@ const Contact = () => {
                                 </Label>
                                 <Input
                                   id="orderNumber"
+                                  name="orderNumber"
                                   placeholder="Ex: ORD-12345"
+                                  autoComplete="order-number"
                                 />
                               </div>
                             </div>
@@ -184,8 +204,10 @@ const Contact = () => {
                               <Label htmlFor="orderEmail">Email</Label>
                               <Input
                                 id="orderEmail"
+                                name="orderEmail"
                                 type="email"
                                 placeholder="Email utilisé pour la commande"
+                                autoComplete="email"
                               />
                             </div>
 
@@ -193,6 +215,7 @@ const Contact = () => {
                               <Label htmlFor="orderSubject">Sujet</Label>
                               <select
                                 id="orderSubject"
+                                name="orderSubject"
                                 className="w-full h-10 px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:border-olive-400"
                               >
                                 <option value="">Sélectionnez un sujet</option>
@@ -216,10 +239,12 @@ const Contact = () => {
                               <Label htmlFor="orderMessage">Message</Label>
                               <textarea
                                 id="orderMessage"
+                                name="orderMessage"
                                 rows={5}
                                 placeholder="Détails de votre question concernant la commande..."
                                 className="w-full px-3 py-2 text-base border border-stone-300 rounded-md focus:outline-none focus:border-olive-400"
-                              ></textarea>
+                                aria-label="Détails de votre question concernant la commande"
+                              />
                             </div>
 
                             <Button className="w-full md:w-auto bg-olive-700 hover:bg-olive-800">

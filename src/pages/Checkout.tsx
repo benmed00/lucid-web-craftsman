@@ -38,7 +38,98 @@ const Checkout: () => void = () => {
     postalCode: "",
     city: "",
     country: "FR",
+    cardNumber: "",
+    expiry: "",
+    cvc: "",
+    nameOnCard: ""
   });
+
+  const [formErrors, setFormErrors] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    postalCode: '',
+    city: '',
+    cardNumber: '',
+    expiry: '',
+    cvc: '',
+    nameOnCard: ''
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState('');
+
+  // Form validation functions
+  const validateForm = (step: number): boolean => {
+    const errors: typeof formErrors = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      address: '',
+      postalCode: '',
+      city: '',
+      cardNumber: '',
+      expiry: '',
+      cvc: '',
+      nameOnCard: ''
+    };
+
+    if (step === 1) {
+      if (!formData.firstName) {
+        errors.firstName = 'Le prénom est requis';
+      }
+      if (!formData.lastName) {
+        errors.lastName = 'Le nom est requis';
+      }
+      if (!formData.email) {
+        errors.email = 'L\'email est requis';
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        errors.email = 'Veuillez entrer une adresse email valide';
+      }
+    }
+
+    if (step === 2) {
+      if (!formData.address) {
+        errors.address = 'L\'adresse est requise';
+      }
+      if (!formData.postalCode) {
+        errors.postalCode = 'Le code postal est requis';
+      } else if (formData.country === 'FR' && !/^\d{5}$/.test(formData.postalCode)) {
+        errors.postalCode = 'Veuillez entrer un code postal français valide (5 chiffres)';
+      }
+      if (!formData.city) {
+        errors.city = 'La ville est requise';
+      }
+    }
+
+    if (step === 3 && paymentMethod === 'card') {
+      if (!formData.cardNumber) {
+        errors.cardNumber = 'Le numéro de carte est requis';
+      } else if (!/\d{4} \d{4} \d{4} \d{4}/.test(formData.cardNumber)) {
+        errors.cardNumber = 'Veuillez entrer un numéro de carte valide';
+      }
+      if (!formData.expiry) {
+        errors.expiry = 'La date d\'expiration est requise';
+      } else if (!/\d{2}\/\d{2}/.test(formData.expiry)) {
+        errors.expiry = 'Format invalide (MM/AA)';
+      }
+      if (!formData.cvc) {
+        errors.cvc = 'Le CVC est requis';
+      } else if (!/\d{3}/.test(formData.cvc)) {
+        errors.cvc = 'Le CVC doit contenir 3 chiffres';
+      }
+      if (!formData.nameOnCard) {
+        errors.nameOnCard = 'Le nom sur la carte est requis';
+      }
+    }
+
+    setFormErrors(errors);
+    return Object.values(errors).every(error => error === '');
+  };
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [cartTotal, setCartTotal] = useState(0);
 
@@ -251,9 +342,14 @@ const Checkout: () => void = () => {
                       <Label htmlFor="firstName">Prénom</Label>
                       <Input
                         id="firstName"
+                        name="firstName"
+                        type="text"
                         placeholder="Votre prénom"
                         value={formData.firstName}
                         onChange={handleInputChange}
+                        required
+                        autoComplete="given-name"
+                        aria-label="Votre prénom"
                       />
                     </div>
 
@@ -261,9 +357,14 @@ const Checkout: () => void = () => {
                       <Label htmlFor="lastName">Nom</Label>
                       <Input
                         id="lastName"
+                        name="lastName"
+                        type="text"
                         placeholder="Votre nom"
                         value={formData.lastName}
                         onChange={handleInputChange}
+                        required
+                        autoComplete="family-name"
+                        aria-label="Votre nom"
                       />
                     </div>
                   </div>
@@ -272,10 +373,14 @@ const Checkout: () => void = () => {
                     <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
+                      name="email"
                       type="email"
                       placeholder="votre.email@exemple.com"
                       value={formData.email}
                       onChange={handleInputChange}
+                      required
+                      autoComplete="email"
+                      aria-label="Votre adresse email"
                     />
                   </div>
 
@@ -283,9 +388,13 @@ const Checkout: () => void = () => {
                     <Label htmlFor="phone">Téléphone</Label>
                     <Input
                       id="phone"
+                      name="phone"
+                      type="tel"
                       placeholder="Votre numéro de téléphone"
                       value={formData.phone}
                       onChange={handleInputChange}
+                      autoComplete="tel"
+                      aria-label="Votre numéro de téléphone"
                     />
                   </div>
 
@@ -316,9 +425,14 @@ const Checkout: () => void = () => {
                     <Label htmlFor="address">Adresse</Label>
                     <Input
                       id="address"
+                      name="address"
+                      type="text"
                       placeholder="Numéro et nom de rue"
                       value={formData.address}
                       onChange={handleInputChange}
+                      required
+                      autoComplete="street-address"
+                      aria-label="Votre adresse"
                     />
                   </div>
 
@@ -328,9 +442,13 @@ const Checkout: () => void = () => {
                     </Label>
                     <Input
                       id="addressComplement"
+                      name="addressComplement"
+                      type="text"
                       placeholder="Appartement, étage, etc."
                       value={formData.addressComplement}
                       onChange={handleInputChange}
+                      autoComplete="address-line2"
+                      aria-label="Complément d'adresse"
                     />
                   </div>
 
@@ -339,9 +457,16 @@ const Checkout: () => void = () => {
                       <Label htmlFor="postalCode">Code postal</Label>
                       <Input
                         id="postalCode"
+                        name="postalCode"
+                        type="text"
                         placeholder="Code postal"
                         value={formData.postalCode}
                         onChange={handleInputChange}
+                        required
+                        autoComplete="postal-code"
+                        aria-label="Code postal"
+                        pattern="[0-9]{5}"
+                        title="Veuillez entrer un code postal valide (5 chiffres)"
                       />
                     </div>
 
@@ -349,9 +474,14 @@ const Checkout: () => void = () => {
                       <Label htmlFor="city">Ville</Label>
                       <Input
                         id="city"
+                        name="city"
+                        type="text"
                         placeholder="Ville"
                         value={formData.city}
                         onChange={handleInputChange}
+                        required
+                        autoComplete="address-level2"
+                        aria-label="Ville"
                       />
                     </div>
                   </div>
@@ -360,9 +490,12 @@ const Checkout: () => void = () => {
                     <Label htmlFor="country">Pays</Label>
                     <select
                       id="country"
+                      name="country"
                       className="w-full h-10 px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:border-olive-400"
                       value={formData.country}
                       onChange={handleInputChange}
+                      required
+                      aria-label="Pays"
                     >
                       <option value="FR">France</option>
                       <option value="BE">Belgique</option>
@@ -431,10 +564,24 @@ const Checkout: () => void = () => {
                                 <Label htmlFor="cardNumber">
                                   Numéro de carte
                                 </Label>
-                                <Input
-                                  id="cardNumber"
-                                  placeholder="1234 5678 9012 3456"
-                                />
+                                <div className="space-y-2">
+                                  <Input
+                                    id="cardNumber"
+                                    name="cardNumber"
+                                    type="text"
+                                    placeholder="Numéro de carte"
+                                    pattern="\d{4} \d{4} \d{4} \d{4}"
+                                    title="Veuillez entrer un numéro de carte valide (format: 1234 5678 9012 3456)"
+                                    required
+                                    aria-label="Numéro de carte"
+                                    autoComplete="cc-number"
+                                    onChange={handleInputChange}
+                                    className={formErrors.cardNumber ? 'border-red-500' : ''}
+                                  />
+                                  {formErrors.cardNumber && (
+                                    <p className="text-sm text-red-500">{formErrors.cardNumber}</p>
+                                  )}
+                                </div>
                               </div>
 
                               <div className="grid grid-cols-2 gap-4">
@@ -442,12 +589,46 @@ const Checkout: () => void = () => {
                                   <Label htmlFor="expiry">
                                     Date d'expiration
                                   </Label>
-                                  <Input id="expiry" placeholder="MM/AA" />
+                                  <div className="space-y-2">
+                                  <Input
+                                    id="expiry"
+                                    name="expiry"
+                                    type="text"
+                                    placeholder="Date d'expiration"
+                                    pattern="\d{2}/\d{2}"
+                                    title="Format: MM/AA"
+                                    required
+                                    aria-label="Date d'expiration"
+                                    autoComplete="cc-exp"
+                                    onChange={handleInputChange}
+                                    className={formErrors.expiry ? 'border-red-500' : ''}
+                                  />
+                                  {formErrors.expiry && (
+                                    <p className="text-sm text-red-500">{formErrors.expiry}</p>
+                                  )}
+                                </div>
                                 </div>
 
                                 <div className="space-y-2">
                                   <Label htmlFor="cvc">CVC</Label>
-                                  <Input id="cvc" placeholder="123" />
+                                  <div className="space-y-2">
+                                  <Input
+                                    id="cvc"
+                                    name="cvc"
+                                    type="text"
+                                    placeholder="CVC"
+                                    pattern="\d{3}"
+                                    maxLength={3}
+                                    required
+                                    aria-label="CVC"
+                                    autoComplete="cc-csc"
+                                    onChange={handleInputChange}
+                                    className={formErrors.cvc ? 'border-red-500' : ''}
+                                  />
+                                  {formErrors.cvc && (
+                                    <p className="text-sm text-red-500">{formErrors.cvc}</p>
+                                  )}
+                                </div>
                                 </div>
                               </div>
 
@@ -455,10 +636,22 @@ const Checkout: () => void = () => {
                                 <Label htmlFor="nameOnCard">
                                   Nom sur la carte
                                 </Label>
-                                <Input
-                                  id="nameOnCard"
-                                  placeholder="Nom complet"
-                                />
+                                <div className="space-y-2">
+                                  <Input
+                                    id="nameOnCard"
+                                    name="nameOnCard"
+                                    type="text"
+                                    placeholder="Nom sur la carte"
+                                    required
+                                    aria-label="Nom sur la carte"
+                                    autoComplete="cc-name"
+                                    onChange={handleInputChange}
+                                    className={formErrors.nameOnCard ? 'border-red-500' : ''}
+                                  />
+                                  {formErrors.nameOnCard && (
+                                    <p className="text-sm text-red-500">{formErrors.nameOnCard}</p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           )}

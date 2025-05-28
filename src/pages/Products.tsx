@@ -163,12 +163,20 @@ const Products = () => {
           </div>
 
           <div className="flex gap-2">
-            <select className="text-sm border border-stone-300 rounded-md py-2 px-3 focus:outline-none focus:border-olive-400">
-              <option>Trier par: Populaire</option>
-              <option>Prix: Croissant</option>
-              <option>Prix: Décroissant</option>
-              <option>Nouveautés</option>
-            </select>
+            <div className="flex items-center">
+              <label htmlFor="product-sort" className="sr-only">Trier les produits</label>
+              <select
+                id="product-sort"
+                name="product-sort"
+                className="text-sm border border-stone-300 rounded-md py-2 px-3 focus:outline-none focus:border-olive-400"
+                aria-label="Trier les produits"
+              >
+                <option value="popular">Trier par: Populaire</option>
+                <option value="price-asc">Prix: Croissant</option>
+                <option value="price-desc">Prix: Décroissant</option>
+                <option value="newest">Nouveautés</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>

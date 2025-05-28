@@ -185,10 +185,13 @@ const Cart = () => {
                             -
                           </button>
                           <input
+                            id={`quantity-${item.id}`}
+                            name={`quantity-${item.id}`}
                             type="text"
                             value={item.quantity}
                             readOnly
                             className="border-t border-b border-stone-300 px-4 py-2 w-16 text-center focus:outline-none"
+                            aria-label={`Quantité pour ${item.product.name}`}
                           />
                           <button
                             className="border border-stone-300 rounded-r-md px-3 py-2 hover:bg-stone-50"

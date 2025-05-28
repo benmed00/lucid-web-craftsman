@@ -1,8 +1,8 @@
 import { Facebook, Instagram, Twitter } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
+import { NewsletterForm } from "./forms/NewsletterForm";
 
 const PageFooter = () => {
   return (
@@ -123,16 +123,7 @@ const PageFooter = () => {
             <p className="text-olive-200 mb-4">
               Inscrivez-vous pour recevoir nos actualités et offres spéciales.
             </p>
-            <form className="space-y-2">
-              <Input
-                type="email"
-                placeholder="Votre email"
-                className="bg-olive-800 border-olive-700 focus:border-olive-500 text-white placeholder:text-olive-400"
-              />
-              <Button className="w-full bg-beige-400 hover:bg-beige-500 text-olive-900">
-                S'abonner
-              </Button>
-            </form>
+            <NewsletterForm />
           </div>
         </div>
 
