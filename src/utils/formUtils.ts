@@ -1,5 +1,10 @@
-export const FORM_CONSTANTS = {
-  VALIDATION_MESSAGES: {
+// File_name : src/utlis/formUtils.ts
+
+import { FormConstants, ValidationType } from '@/types/formTypes';
+import { CountryCode } from '@/types/commonTypes';
+
+export const FORM_CONSTANTS: FormConstants = {
+  validationMessages: {
     required: "Ce champ est requis",
     email: "Veuillez entrer une adresse email valide",
     phone: "Veuillez entrer un numéro de téléphone valide",
@@ -12,20 +17,20 @@ export const FORM_CONSTANTS = {
     cvc: "Le CVC doit contenir 3 chiffres",
     nameOnCard: "Ce champ est requis"
   },
-  PATTERNS: {
+  patterns: {
     email: /^\S+@\S+\.\S+$/,
     phone: /^\+?\d{10,15}$/, // International phone numbers
     postalCode: {
-      FR: /^\d{5}$/,
+      FR: /^\d{5}$/, // French
       default: /^\d{5}$|^\d{4}-\d{4}$/ // French or Belgian format
     },
     cardNumber: /^\d{4} \d{4} \d{4} \d{4}$/, // With spaces
     expiry: /^\d{2}\/\d{2}$/, // MM/YY
     cvc: /^\d{3}$/,
-    name: /^[a-zA-Z\sàâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ-]+$/ // French letters and hyphens
+    name: /^[a-zA-Z\sàâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ-]+$/, // Added a closing dollar sign here
   },
-  AUTOCOMPLETE: {
-    PERSONAL: {
+  autocomplete: {
+    personal: {
       firstName: "given-name",
       lastName: "family-name",
       email: "email",
@@ -36,7 +41,7 @@ export const FORM_CONSTANTS = {
       city: "address-level2",
       country: "country"
     },
-    PAYMENT: {
+    payment: {
       cardNumber: "cc-number",
       expiry: "cc-exp",
       cvc: "cc-csc",
@@ -45,16 +50,16 @@ export const FORM_CONSTANTS = {
   }
 };
 
-export const validateField = (value: string, type: 'email' | 'phone' | 'postalCode' | 'cardNumber' | 'expiry' | 'cvc' | 'required' | 'name', country: string = "FR") => {
-  const pattern = FORM_CONSTANTS.PATTERNS[type];
+export const validateField = (value: string, type: ValidationType, country: CountryCode = "FR"): RegExp => {
+  const pattern = FORM_CONSTANTS.patterns[type];
   if (typeof pattern === 'object' && 'default' in pattern) {
     return pattern[country] || pattern.default;
   }
   return pattern;
 };
 
-export const getErrorMessage = (type: keyof typeof FORM_CONSTANTS.VALIDATION_MESSAGES, country: string = "FR") => {
-  const message = FORM_CONSTANTS.VALIDATION_MESSAGES[type];
+export const getErrorMessage = (type: ValidationType, country: CountryCode = "FR"): string => {
+  const message = FORM_CONSTANTS.validationMessages[type];
   if (typeof message === 'object' && 'default' in message) {
     return message[country] || message.default;
   }

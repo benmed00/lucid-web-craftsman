@@ -302,7 +302,6 @@ const Contact = () => {
                           <h3 className="font-medium text-stone-800 mb-1">
                             Adresse
                           </h3>
-                          ;;[]
                           <p className="text-stone-600">
                             Av. de la Liberation
                             <br />
@@ -354,7 +353,7 @@ const Contact = () => {
                       variant="outline"
                       className="border-olive-300 hover:bg-olive-50 hover:text-olive-800"
                     >
-                      Voir la FAQ
+                      <a href="/faq">Voir la FAQ</a>
                     </Button>
                   </div>
                 </div>
