@@ -45,9 +45,9 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case "CLEAR_CART":
       return { ...state, items: [] };
     case "HYDRATE": // Hydrate should also respect the full CartState shape potentially
-      return { 
+      return {
         ...state, // Keep other potential state properties if any in future
-        items: action.payload.items, 
+        items: action.payload.items,
         // totalPrice will be recalculated by useMemo based on hydrated items
       };
     default:
@@ -87,7 +87,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
            dispatch({
             type: "HYDRATE",
             // Pass only items for hydration, totalPrice will be derived
-            payload: { items: parsedCart.items, totalPrice: 0 }, 
+            payload: { items: parsedCart.items, totalPrice: 0 },
           });
         } else if (Array.isArray(parsedCart)) { // Old format support: array of items
            dispatch({
@@ -98,7 +98,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       } catch (e) {
         console.error("Failed to parse cart from localStorage", e);
         // Optionally clear localStorage if it's corrupted
-        // localStorage.removeItem("cart"); 
+        // localStorage.removeItem("cart");
       }
     }
   }, []);

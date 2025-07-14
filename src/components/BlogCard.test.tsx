@@ -34,7 +34,7 @@ describe('BlogCard Component', () => {
 
     // Check for the category
     expect(screen.getByText(mockPostData.category)).toBeInTheDocument();
-    
+
     // Check for the author
     expect(screen.getByText(mockPostData.author)).toBeInTheDocument();
 

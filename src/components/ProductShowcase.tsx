@@ -31,7 +31,7 @@ const ProductShowcase = () => {
     try {
       // Call mock API service first
       const response = await import("@/api/mockApiService").then(api => api.addToCart(product, 1));
-      
+
       if (response.success) {
         // Then dispatch action to update context state
         dispatch({
@@ -73,10 +73,10 @@ const ProductShowcase = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {featuredProducts.map((product) => (
-        <ProductCard 
-          key={product.id} 
-          product={product} 
-          onAddToCart={handleAddToCart} 
+        <ProductCard
+          key={product.id}
+          product={product}
+          onAddToCart={handleAddToCart}
         />
       ))}
     </div>

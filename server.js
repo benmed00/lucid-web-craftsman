@@ -32,7 +32,7 @@ server.post('/api/cart', (req, res) => {
   // Assuming the POST request body contains the entire new cart state
   // or the items to be set. For simplicity, replacing the whole cart.
   if (req.body) {
-    mockCart = req.body; 
+    mockCart = req.body;
     console.log('In-memory cart updated:', mockCart);
     res.status(200).json(mockCart);
   } else {
