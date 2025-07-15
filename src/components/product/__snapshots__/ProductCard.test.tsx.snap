@@ -1,0 +1,84 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ProductCard > matches snapshot 1`] = `
+<div>
+  <a
+    class="group relative"
+    href="/products/1"
+  >
+    <div
+      class="rounded-lg border bg-card text-card-foreground border-none shadow-sm overflow-hidden hover-scale"
+    >
+      <div
+        class="aspect-ratio aspect-w-1 aspect-h-1 relative overflow-hidden"
+      >
+        <img
+          alt="Sac Artisanal"
+          class="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+          src="/test-image.jpg"
+        />
+        <div
+          class="absolute top-2 right-2"
+        >
+          <div
+            class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent hover:bg-primary/80 bg-olive-500 text-white border-none"
+          >
+            Nouveau
+          </div>
+        </div>
+      </div>
+      <div
+        class="p-4"
+      >
+        <div
+          class="text-xs text-stone-500 mb-1"
+        >
+          Sacs
+        </div>
+        <h3
+          class="font-medium text-stone-800 mb-1"
+        >
+          Sac Artisanal
+        </h3>
+        <div
+          class="flex items-center justify-between mt-2"
+        >
+          <p
+            class="text-olive-700 font-medium"
+          >
+            75
+             €
+          </p>
+          <button
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-9 rounded-md px-3 bg-olive-700 hover:bg-olive-800"
+          >
+            <svg
+              class="lucide lucide-shopping-bag h-4 w-4 mr-1"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"
+              />
+              <path
+                d="M3 6h18"
+              />
+              <path
+                d="M16 10a4 4 0 0 1-8 0"
+              />
+            </svg>
+            Ajouter
+          </button>
+        </div>
+      </div>
+    </div>
+  </a>
+</div>
+`;

@@ -2,88 +2,86 @@
 // this file is used to display the product details
 // and related products
 
-import { ArrowRight, Leaf, ShoppingBag } from "lucide-react";
+import { ArrowRight, ShoppingBag } from "lucide-react"; // Leaf removed, will be in ProductInfo
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useParams } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Tabs related imports will be removed as ProductTabs handles it.
+// Badge will be removed as ProductInfo handles it.
 import { addToCart, getProductById } from "@/api/mockApiService";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
-import { Badge } from "@/components/ui/badge";
+import { useQuery, useQueries, useMutation, useQueryClient } from "@tanstack/react-query";
+// Components to be imported
+import ProductImageGallery from '@/components/product/ProductImageGallery';
+import ProductInfo from '@/components/product/ProductInfo';
+import QuantitySelector from '@/components/product/QuantitySelector';
+import ProductTabs from '@/components/product/ProductTabs';
+// Badge removed from here
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { Product } from "../shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
-import { useCart } from "../context/useCart";
 
 const ProductDetail = () => {
-  const { dispatch } = useCart();
-  const { id } = useParams();
-  const [product, setProduct] = useState<Product | null>(null);
+  const queryClient = useQueryClient();
+  const { id } = useParams<{ id: string }>();
+  const numericId = id ? parseInt(id, 10) : undefined;
+
   const [quantity, setQuantity] = useState(1);
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const handleAddToCart = async () => {
-    if (!product || quantity < 1) return;
-
-    try {
-      // Add to cart via API (which updates localStorage)
-      await addToCart(product, quantity);
-
-      // Update global cart state
-      dispatch({
-        type: "ADD_ITEM",
-        payload: product,
-        quantity,
-      });
-
-      // Show success message
-      toast.success(`${quantity} × ${product.name} ajouté au panier`);
-    } catch (error) {
-      console.error("Error adding product to cart:", error);
-      toast.error("Impossible d'ajouter le produit au panier");
-    }
-  };
+  // selectedImage state is removed, ProductImageGallery will manage it.
 
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, [id]); // Scroll to top when id changes
 
-    const fetchProductData = async () => {
-      try {
-        // Find the product with the matching id
-        const productId = parseInt(id || "0");
-        const foundProduct = await getProductById(productId);
+  // Fetch main product
+  const {
+    data: product,
+    isLoading: productLoading,
+    isError: productIsError,
+    error: productError
+  } = useQuery<Product | null, Error>({
+    queryKey: ['product', numericId],
+    queryFn: () => numericId ? getProductById(numericId) : Promise.resolve(null),
+    enabled: !!numericId, // Only run if numericId is a valid number
+  });
 
-        if (foundProduct) {
-          setProduct(foundProduct);
+  // Fetch related products
+  const relatedProductIds = product?.related || [];
+  const relatedProductsResults = useQueries({
+    queries: product && product.related ? product.related.map((relatedId: number) => ({
+      queryKey: ['product', relatedId],
+      queryFn: () => getProductById(relatedId),
+      enabled: !!product, // Only run if main product is loaded
+    })) : [],
+  });
 
-          // Get related products
-          if (foundProduct.related && foundProduct.related.length > 0) {
-            const relatedProds = [];
-            for (const relatedId of foundProduct.related) {
-              const relatedProduct = await getProductById(relatedId);
-              if (relatedProduct) {
-                relatedProds.push(relatedProduct);
-              }
-            }
-            setRelatedProducts(relatedProds);
-          }
-        }
+  // Filter out successfully fetched related products
+  const relatedProducts = relatedProductsResults
+    .filter(query => query.isSuccess && query.data)
+    .map(query => query.data as Product);
 
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching product:", error);
-        setLoading(false);
-      }
-    };
+  const addToCartMutation = useMutation({
+    mutationFn: (variables: { product: Product; quantity: number }) =>
+      addToCart(variables.product, variables.quantity),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      toast.success(`${variables.quantity} × ${variables.product.name} ajouté au panier`);
+    },
+    onError: (error: Error, variables) => {
+      console.error("Error adding product to cart:", error);
+      toast.error(`Impossible d'ajouter ${variables.product.name} au panier`);
+    },
+  });
 
-    fetchProductData();
-  }, [id]);
+  const handleAddToCart = () => {
+    if (!product || quantity < 1) return;
+    addToCartMutation.mutate({ product, quantity });
+  };
 
-  if (loading) {
+  // Handle loading state for the main product
+  if (productLoading) {
     return (
       <div className="min-h-screen bg-white">
         <Navigation />
@@ -97,7 +95,8 @@ const ProductDetail = () => {
     );
   }
 
-  if (!product) {
+  // Handle error state for the main product or if product is not found after loading
+  if (productIsError || !product) {
     return (
       <div className="min-h-screen bg-white">
         <Navigation />
@@ -111,12 +110,16 @@ const ProductDetail = () => {
               Retour aux produits
             </Button>
           </Link>
+          {productIsError && productError && (
+            <p className="mt-4 text-red-500">Erreur: {productError.message}</p>
+          )}
         </div>
         <PageFooter />
       </div>
     );
   }
 
+  // At this point, product is loaded and available
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
@@ -139,147 +142,31 @@ const ProductDetail = () => {
       {/* Product Section */}
       <section className="container mx-auto px-4 py-8 mb-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {/* Product Images */}
+          {/* Product Images - Replaced with ProductImageGallery component */}
+          <ProductImageGallery images={product.images} productName={product.name} />
+
+          {/* Product Info - Replaced with ProductInfo, QuantitySelector, Button, ProductTabs */}
           <div>
-            <div className="aspect-ratio aspect-w-1 aspect-h-1 mb-4 overflow-hidden rounded-lg">
-              <img
-                src={product.images[selectedImage]}
-                alt={product.name}
-                className="object-cover w-full h-full"
+            <ProductInfo product={product} />
+
+            <div className="mb-8"> {/* Kept margin bottom from original Quantity Selector div */}
+              <QuantitySelector
+                quantity={quantity}
+                onIncrement={() => setQuantity(quantity + 1)}
+                onDecrement={() => setQuantity(Math.max(1, quantity - 1))}
               />
             </div>
-            {product.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
-                {product.images.map((image: string, idx: number) => (
-                  <div
-                    key={idx}
-                    className={`aspect-ratio aspect-w-1 aspect-h-1 rounded-md overflow-hidden cursor-pointer border-2 
-                      ${
-                        selectedImage === idx
-                          ? "border-olive-500"
-                          : "border-transparent"
-                      }`}
-                    onClick={() => setSelectedImage(idx)}
-                  >
-                    <img
-                      src={image}
-                      alt={`${product.name} - vue ${idx + 1}`}
-                      className="object-cover w-full h-full"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* Product Info */}
-          <div>
-            <div className="mb-2">
-              <Badge className="bg-olive-100 text-olive-800 hover:bg-olive-200 border-none">
-                {product.category}
-              </Badge>
-              {product.new && (
-                <Badge className="ml-2 bg-olive-500 text-white border-none">
-                  Nouveau
-                </Badge>
-              )}
-            </div>
-
-            <h1 className="font-serif text-3xl md:text-4xl text-stone-800 mb-2">
-              {product.name}
-            </h1>
-
-            <div className="text-2xl font-medium text-olive-700 mb-6">
-              {product.price} €
-            </div>
-
-            <p className="text-stone-600 mb-8">{product.description}</p>
-
-            {/* Artisan Information */}
-            <div className="bg-beige-50 p-4 rounded-lg mb-8">
-              <div className="flex items-center mb-2">
-                <Leaf className="h-5 w-5 text-olive-600 mr-2" />
-                <h3 className="font-medium">
-                  Fait à la main par {product.artisan}
-                </h3>
-              </div>
-              {product.artisanStory && (
-                <p className="text-sm text-stone-600">{product.artisanStory}</p>
-              )}
-            </div>
-
-            {/* Quantity Selector */}
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-stone-700 mb-2">
-                Quantité
-              </label>
-              <div className="flex">
-                <button
-                  className="border border-stone-300 rounded-l-md px-3 py-2 hover:bg-stone-50"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                >
-                  -
-                </button>
-                <input
-                  type="text"
-                  value={quantity}
-                  readOnly
-                  className="border-t border-b border-stone-300 px-4 py-2 w-16 text-center focus:outline-none"
-                />
-                <button
-                  className="border border-stone-300 rounded-r-md px-3 py-2 hover:bg-stone-50"
-                  onClick={() => setQuantity(quantity + 1)}
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* Add to Cart Button */}
             <Button
               onClick={handleAddToCart}
               className="w-full mb-4 bg-olive-700 hover:bg-olive-800 text-white font-medium py-6"
+              disabled={addToCartMutation.isPending} // Disable button when mutation is in progress
             >
               <ShoppingBag className="mr-2 h-5 w-5" />
-              Ajouter au panier
+              {addToCartMutation.isPending ? 'Ajout en cours...' : 'Ajouter au panier'}
             </Button>
 
-            {/* Product Tabs */}
-            <Tabs defaultValue="details" className="mt-8">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="details">Détails</TabsTrigger>
-                <TabsTrigger value="dimensions">Dimensions</TabsTrigger>
-                <TabsTrigger value="care">Entretien</TabsTrigger>
-              </TabsList>
-              <TabsContent value="details" className="mt-4">
-                <div
-                  className="text-stone-600 text-sm space-y-2"
-                  dangerouslySetInnerHTML={{
-                    __html: product.details.replace(
-                      /<br>/g,
-                      '<br class="block mb-2">'
-                    ),
-                  }}
-                />
-              </TabsContent>
-              <TabsContent value="dimensions" className="mt-4">
-                <div className="text-stone-600 text-sm">
-                  Veuillez consulter les informations détaillées pour les
-                  dimensions spécifiques de ce produit.
-                </div>
-              </TabsContent>
-              <TabsContent value="care" className="mt-4">
-                <div
-                  className="text-stone-600 text-sm space-y-2"
-                  dangerouslySetInnerHTML={{
-                    __html: product.care.replace(
-                      /<br>/g,
-                      '<br class="block mb-2">'
-                    ),
-                  }}
-                />
-              </TabsContent>
-            </Tabs>
+            <ProductTabs product={product} />
           </div>
         </div>
       </section>
@@ -310,20 +197,20 @@ const ProductDetail = () => {
                   <Card className="border-none shadow-sm overflow-hidden hover-scale">
                     <div className="aspect-ratio aspect-w-1 aspect-h-1 relative overflow-hidden">
                       <img
-                        src={product.images[0]}
-                        alt={product.name}
+                      src={product.images[0]}
+                      alt={product.name}
                         className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
                     <CardContent className="p-4">
                       <div className="text-xs text-stone-500 mb-1">
-                        {product.category}
+                      {product.category}
                       </div>
                       <h3 className="font-medium text-stone-800 mb-1">
-                        {product.name}
+                      {product.name}
                       </h3>
                       <p className="text-olive-700 font-medium">
-                        {product.price} €
+                      {product.price} €
                       </p>
                     </CardContent>
                   </Card>
