@@ -18,19 +18,21 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 // useCart import might be removed if dispatch is no longer used, or kept if other parts of context are used.
 // For now, we'll assume dispatch is removed due to react-query handling state.
-// import { useCart } from "@/context/useCart"; 
+// import { useCart } from "@/context/useCart";
+import CartItemRow from '@/components/cart/CartItemRow'; // Added
+import CartSummary from '@/components/cart/CartSummary'; // Added
+import { CartItem } from '@/components/cart/CartItemRow'; // Import CartItem type
 
 const Cart = () => {
-  // const { dispatch } = useCart(); // dispatch might not be needed
   const queryClient = useQueryClient();
 
   // Fetch cart data using React Query
-  const { 
-    data: cart, 
-    isLoading, 
-    isError, 
-    error 
-  } = useQuery({
+  const {
+    data: cart,
+    isLoading,
+    isError,
+    error
+  } = useQuery<{ items: CartItem[] }, Error>({ // Specify type for cart data
     queryKey: ['cart'],
     queryFn: getCart,
   });
@@ -38,15 +40,14 @@ const Cart = () => {
   // Scroll to top on mount - using useState for this effect
   useState(() => {
     window.scrollTo(0, 0);
-    return undefined; // Or null, to satisfy React's rule for useState initializer
+    return undefined;
   });
-  
+
   const updateQuantityMutation = useMutation({
-    mutationFn: (variables: { productId: number; quantity: number }) => 
+    mutationFn: (variables: { productId: number; quantity: number }) =>
       updateCartItemQuantity(variables.productId, variables.quantity),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
-      // toast.success("Quantité mise à jour"); // Optional: toast on success
     },
     onError: (err: Error) => {
       console.error("Error updating quantity:", err);
@@ -66,16 +67,22 @@ const Cart = () => {
     },
   });
 
-  const handleQuantityChange = (id: number, newQuantity: number) => {
-    if (newQuantity < 1) return; // Prevent quantity less than 1
-    updateQuantityMutation.mutate({ productId: id, quantity: newQuantity });
+  const handleQuantityChange = (productId: number, newQuantity: number) => {
+    // Basic validation, can be enhanced in CartItemRow or here
+    if (newQuantity >= 1) {
+      updateQuantityMutation.mutate({ productId, quantity: newQuantity });
+    } else if (newQuantity === 0) {
+      // Optional: if quantity is set to 0, remove the item
+      // removeItemMutation.mutate(productId);
+      // For now, QuantitySelector in CartItemRow prevents going below 1.
+    }
   };
 
-  const handleRemoveItem = (id: number) => {
-    removeItemMutation.mutate(id);
+  const handleRemoveItem = (productId: number) => {
+    removeItemMutation.mutate(productId);
   };
 
-  const cartItems = cart?.items || [];
+  const cartItems: CartItem[] = cart?.items || [];
 
   // Calculate totals
   const subtotal = cartItems.reduce(
@@ -122,7 +129,7 @@ const Cart = () => {
       </div>
     );
   }
-  
+
   // cart is defined by now if not loading or erroring
   return (
     <div className="min-h-screen bg-white">
@@ -152,7 +159,7 @@ const Cart = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {/* Cart Items */}
+            {/* Cart Items Section */}
             <div className="lg:col-span-2">
               <div className="border rounded-lg overflow-hidden">
                 {/* Cart Header */}
@@ -163,88 +170,17 @@ const Cart = () => {
                   <div className="col-span-2 text-right">Total</div>
                 </div>
 
-                {/* Cart Items */}
+                {/* Cart Items - Rendered using CartItemRow */}
                 {cartItems.map((item, index) => (
-                  <div key={item.id}>
+                  <React.Fragment key={item.id}> {/* Use React.Fragment for key if Separator is conditional */}
                     {index > 0 && <Separator />}
-                    <div className="px-6 py-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                      {/* Product Info */}
-                      <div className="md:col-span-6 flex items-center">
-                        <Link
-                          to={`/products/${item.product.id}`}
-                          className="flex items-center hover:bg-stone-50 rounded-md p-2 transition"
-                        >
-                          <div className="w-20 h-20 rounded-md overflow-hidden mr-4">
-                            <img
-                              src={item.product.images[0]}
-                              alt={item.product.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <h3 className="font-medium text-stone-800">
-                            {item.product.name}
-                          </h3>
-                        </Link>
-
-                        {/* Remove Button (outside the Link!) */}
-                        <button
-                          className="ml-4 mt-1 text-stone-400 hover:text-stone-600 text-sm flex items-center"
-                          onClick={() => handleRemoveItem(item.id)}
-                        >
-                          <X className="h-3 w-3 mr-1" /> Retirer
-                        </button>
-                      </div>
-
-                      {/* Price */}
-                      <div className="md:col-span-2 md:text-center">
-                        <div className="md:hidden text-sm text-stone-500">
-                          Prix:
-                        </div>
-                        <div>{item.product.price} €</div>
-                      </div>
-
-                      {/* Quantity */}
-                      <div className="md:col-span-2 md:text-center">
-                        <div className="md:hidden text-sm text-stone-500">
-                          Quantité:
-                        </div>
-                        <div className="flex md:justify-center">
-                          <button
-                            className="border border-stone-300 rounded-l-md px-3 py-2 hover:bg-stone-50"
-                            onClick={() =>
-                              handleQuantityChange(item.id, item.quantity - 1)
-                            }
-                          >
-                            -
-                          </button>
-                          <input
-                            type="text"
-                            value={item.quantity}
-                            readOnly
-                            className="border-t border-b border-stone-300 px-4 py-2 w-16 text-center focus:outline-none"
-                          />
-                          <button
-                            className="border border-stone-300 rounded-r-md px-3 py-2 hover:bg-stone-50"
-                            onClick={() =>
-                              handleQuantityChange(item.id, item.quantity + 1)
-                            }
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Total */}
-                      <div className="md:col-span-2 md:text-right">
-                        <div className="md:hidden text-sm text-stone-500">
-                          Total:
-                        </div>
-                        <div className="font-medium">
-                          {item.product.price * item.quantity} €
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    <CartItemRow
+                      item={item}
+                      onQuantityChange={handleQuantityChange}
+                      onRemoveItem={handleRemoveItem}
+                      isUpdating={updateQuantityMutation.isPending || removeItemMutation.isPending} // Example of passing loading state
+                    />
+                  </React.Fragment>
                 ))}
               </div>
 
@@ -260,42 +196,8 @@ const Cart = () => {
               </div>
             </div>
 
-            {/* Cart Summary */}
-            <div className="lg:col-span-1">
-              <div className="border rounded-lg p-6 bg-stone-50">
-                <h3 className="font-serif text-xl text-stone-800 mb-4">
-                  Récapitulatif
-                </h3>
-
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between">
-                    <span className="text-stone-600">Sous-total</span>
-                    <span className="font-medium">{subtotal.toFixed(2)} €</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-stone-600">Frais de livraison</span>
-                    <span className="font-medium">{shipping.toFixed(2)} €</span>
-                  </div>
-                  <Separator className="my-2" />
-                  <div className="flex justify-between text-lg">
-                    <span className="font-medium">Total</span>
-                    <span className="font-medium text-olive-700">
-                      {total.toFixed(2)} €
-                    </span>
-                  </div>
-                </div>
-
-                <Link to="/checkout">
-                  <Button className="w-full bg-olive-700 hover:bg-olive-800 text-white">
-                    Passer à la caisse
-                  </Button>
-                </Link>
-
-                <div className="mt-6 text-center text-sm text-stone-500">
-                  Moyens de paiement sécurisés : Carte Bancaire, PayPal
-                </div>
-              </div>
-            </div>
+            {/* Cart Summary - Replaced with CartSummary component */}
+            <CartSummary subtotal={subtotal} shipping={shipping} total={total} />
           </div>
         )}
       </div>

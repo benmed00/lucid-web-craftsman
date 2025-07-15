@@ -1,0 +1,33 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`QuantitySelector > matches snapshot 1`] = `
+<div>
+  <div>
+    <label
+      class="block text-sm font-medium text-stone-700 mb-2"
+    >
+      Quantité
+    </label>
+    <div
+      class="flex"
+    >
+      <button
+        class="border border-stone-300 rounded-l-md px-3 py-2 hover:bg-stone-50"
+      >
+        -
+      </button>
+      <input
+        class="border-t border-b border-stone-300 px-4 py-2 w-16 text-center focus:outline-none"
+        readonly=""
+        type="text"
+        value="3"
+      />
+      <button
+        class="border border-stone-300 rounded-r-md px-3 py-2 hover:bg-stone-50"
+      >
+        +
+      </button>
+    </div>
+  </div>
+</div>
+`;

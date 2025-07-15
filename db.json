@@ -17,7 +17,11 @@
       "new": true,
       "artisan": "Fatima Ouazzani",
       "artisanStory": "Fatima vit dans un petit village des montagnes du Rif où elle a appris l'art du tissage de sa grand-mère dès l'âge de 12 ans. Elle consacre environ 18 heures à la création de chaque sac.",
-      "related": [2, 3, 6]
+      "related": [
+        2,
+        3,
+        6
+      ]
     },
     {
       "id": 2,

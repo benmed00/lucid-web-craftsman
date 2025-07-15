@@ -1,0 +1,61 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ProductFilterBar > matches snapshot 1`] = `
+<div>
+  <div
+    class="container mx-auto px-4 mb-12"
+  >
+    <div
+      class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8"
+    >
+      <div
+        class="flex flex-wrap gap-2"
+      >
+        <div
+          class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer border-olive-300 bg-olive-50 text-olive-800"
+        >
+          Tous les produits
+        </div>
+        <div
+          class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground cursor-pointer border-stone-300 hover:border-olive-300 hover:bg-olive-50 hover:text-olive-800"
+        >
+          Sacs
+        </div>
+        <div
+          class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground cursor-pointer border-stone-300 hover:border-olive-300 hover:bg-olive-50 hover:text-olive-800"
+        >
+          Chapeaux
+        </div>
+      </div>
+      <div
+        class="flex gap-2"
+      >
+        <select
+          class="text-sm border border-stone-300 rounded-md py-2 px-3 focus:outline-none focus:border-olive-400"
+        >
+          <option
+            value="popular"
+          >
+            Trier par: Populaire
+          </option>
+          <option
+            value="price-asc"
+          >
+            Prix: Croissant
+          </option>
+          <option
+            value="price-desc"
+          >
+            Prix: Décroissant
+          </option>
+          <option
+            value="newest"
+          >
+            Nouveautés
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+`;

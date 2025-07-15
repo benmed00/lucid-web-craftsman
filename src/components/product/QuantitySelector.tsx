@@ -7,11 +7,11 @@ interface QuantitySelectorProps {
   readOnly?: boolean;
 }
 
-const QuantitySelector: React.FC<QuantitySelectorProps> = ({ 
-  quantity, 
-  onIncrement, 
-  onDecrement, 
-  readOnly = false 
+const QuantitySelector: React.FC<QuantitySelectorProps> = ({
+  quantity,
+  onIncrement,
+  onDecrement,
+  readOnly = false
 }) => {
   return (
     <div>

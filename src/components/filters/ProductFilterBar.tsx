@@ -51,7 +51,7 @@ const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
         </div>
 
         <div className="flex gap-2">
-          <select 
+          <select
             className="text-sm border border-stone-300 rounded-md py-2 px-3 focus:outline-none focus:border-olive-400"
             value={currentSort}
             onChange={(e) => onSortChange(e.target.value)}

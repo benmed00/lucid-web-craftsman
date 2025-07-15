@@ -44,8 +44,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
             <p className="text-olive-700 font-medium">
               {product.price} €
             </p>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               className="bg-olive-700 hover:bg-olive-800"
               onClick={(e) => onAddToCart(product, e)}
             >

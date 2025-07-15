@@ -8,7 +8,7 @@ import { Link, useParams } from "react-router-dom";
 // Tabs related imports will be removed as ProductTabs handles it.
 // Badge will be removed as ProductInfo handles it.
 import { addToCart, getProductById } from "@/api/mockApiService";
-import { useState, useEffect } from "react"; 
+import { useState, useEffect } from "react";
 
 import { useQuery, useQueries, useMutation, useQueryClient } from "@tanstack/react-query";
 // Components to be imported
@@ -25,7 +25,7 @@ import { toast } from "sonner";
 
 const ProductDetail = () => {
   const queryClient = useQueryClient();
-  const { id } = useParams<{ id: string }>(); 
+  const { id } = useParams<{ id: string }>();
   const numericId = id ? parseInt(id, 10) : undefined;
 
   const [quantity, setQuantity] = useState(1);
@@ -36,11 +36,11 @@ const ProductDetail = () => {
   }, [id]); // Scroll to top when id changes
 
   // Fetch main product
-  const { 
-    data: product, 
-    isLoading: productLoading, 
-    isError: productIsError, 
-    error: productError 
+  const {
+    data: product,
+    isLoading: productLoading,
+    isError: productIsError,
+    error: productError
   } = useQuery<Product | null, Error>({
     queryKey: ['product', numericId],
     queryFn: () => numericId ? getProductById(numericId) : Promise.resolve(null),
@@ -63,7 +63,7 @@ const ProductDetail = () => {
     .map(query => query.data as Product);
 
   const addToCartMutation = useMutation({
-    mutationFn: (variables: { product: Product; quantity: number }) => 
+    mutationFn: (variables: { product: Product; quantity: number }) =>
       addToCart(variables.product, variables.quantity),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
@@ -148,9 +148,9 @@ const ProductDetail = () => {
           {/* Product Info - Replaced with ProductInfo, QuantitySelector, Button, ProductTabs */}
           <div>
             <ProductInfo product={product} />
-            
+
             <div className="mb-8"> {/* Kept margin bottom from original Quantity Selector div */}
-              <QuantitySelector 
+              <QuantitySelector
                 quantity={quantity}
                 onIncrement={() => setQuantity(quantity + 1)}
                 onDecrement={() => setQuantity(Math.max(1, quantity - 1))}
@@ -197,20 +197,20 @@ const ProductDetail = () => {
                   <Card className="border-none shadow-sm overflow-hidden hover-scale">
                     <div className="aspect-ratio aspect-w-1 aspect-h-1 relative overflow-hidden">
                       <img
-                      src={relatedProd.images[0]} // Changed product to relatedProd
-                      alt={relatedProd.name}      // Changed product to relatedProd
+                      src={product.images[0]}
+                      alt={product.name}
                         className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
                     <CardContent className="p-4">
                       <div className="text-xs text-stone-500 mb-1">
-                      {relatedProd.category} {/* Changed product to relatedProd */}
+                      {product.category}
                       </div>
                       <h3 className="font-medium text-stone-800 mb-1">
-                      {relatedProd.name} {/* Changed product to relatedProd */}
+                      {product.name}
                       </h3>
                       <p className="text-olive-700 font-medium">
-                      {relatedProd.price} € {/* Changed product to relatedProd */}
+                      {product.price} €
                       </p>
                     </CardContent>
                   </Card>

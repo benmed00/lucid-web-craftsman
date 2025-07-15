@@ -36,7 +36,7 @@ export const getBlogPostById = async (id: number) => {
     // json-server returns 404 if not found, axios will throw an error for that.
     // Depending on desired behavior, you might want to return null or let the error propagate.
     // For now, let's re-throw, components can handle it with error boundaries or try/catch.
-    throw error; 
+    throw error;
   }
 };
 
@@ -94,7 +94,7 @@ export const addToCart = async (product: Product, quantity: number = 1): Promise
   await delay(100);
   try {
     const cart: CartState = await getCart(); // Fetch current cart
-    
+
     const existingItemIndex = cart.items.findIndex(item => item.id === product.id);
 
     if (existingItemIndex > -1) {
@@ -106,7 +106,7 @@ export const addToCart = async (product: Product, quantity: number = 1): Promise
         quantity: quantity,
       });
     }
-    
+
     const response = await api.post("/api/cart", cart); // Post the entire updated cart
     return response.data;
   } catch (error) {
@@ -119,9 +119,9 @@ export const removeFromCart = async (productId: number): Promise<CartState> => {
   await delay(100);
   try {
     const cart: CartState = await getCart(); // Fetch current cart
-    
+
     cart.items = cart.items.filter(item => item.id !== productId);
-    
+
     const response = await api.post("/api/cart", cart); // Post the entire updated cart
     return response.data;
   } catch (error) {
@@ -134,9 +134,9 @@ export const updateCartItemQuantity = async (productId: number, quantity: number
   await delay(100);
   try {
     const cart: CartState = await getCart(); // Fetch current cart
-    
+
     const itemIndex = cart.items.findIndex(item => item.id === productId);
-    
+
     if (itemIndex > -1) {
       if (quantity > 0) {
         cart.items[itemIndex].quantity = quantity;

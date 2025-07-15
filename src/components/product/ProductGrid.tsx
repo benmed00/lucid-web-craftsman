@@ -19,10 +19,10 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
       {products.map((product) => (
-        <ProductCard 
+        <ProductCard
           key={product.id} // Key is now correctly on the direct child of map
-          product={product} 
-          onAddToCart={onAddToCart} 
+          product={product}
+          onAddToCart={onAddToCart}
         />
       ))}
     </div>

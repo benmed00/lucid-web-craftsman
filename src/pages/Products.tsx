@@ -1,9 +1,9 @@
 
-// Card, CardContent, Link, ShoppingBag, specific Badge from ui/badge will be indirectly used via sub-components
-// useState is still needed for activeFilter and new currentSort
-import { useState } from "react"; 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"; 
-import { Badge } from "@/components/ui/badge"; // This Badge is for the Hero Banner, keep it.
+// useState will be removed for activeFilter and currentSort as the hook handles them.
+// It's only kept for the scroll-to-top effect.
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button"; // For the error retry button
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
@@ -11,37 +11,46 @@ import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { addToCart, getProducts } from "@/api/mockApiService";
 import { toast } from "sonner";
 
-// Import new sub-components
+// Import sub-components and the new hook
 import ProductFilterBar from '@/components/filters/ProductFilterBar';
 import ProductGrid from '@/components/product/ProductGrid';
+import { useProductFilters } from '@/hooks/useProductFilters'; // Import the new hook
 
 const Products = () => {
-  const [activeFilter, setActiveFilter] = useState("all");
-  const [currentSort, setCurrentSort] = useState("popular"); // Added for ProductFilterBar
+  // const [activeFilter, setActiveFilter] = useState("all"); // Managed by hook
+  // const [currentSort, setCurrentSort] = useState("popular"); // Managed by hook
   const queryClient = useQueryClient();
 
   // Fetch products using React Query
-  const { 
-    data: products = [], // Default to empty array
-    isLoading, 
-    isError, 
-    error: queryError 
+  const {
+    data: productsData = [], // Renamed to avoid conflict with hook's products
+    isLoading,
+    isError,
+    error: queryError
   } = useQuery<Product[], Error>({
     queryKey: ['products'],
     queryFn: getProducts,
   });
 
-  // Scroll to top on mount - can be kept if desired, or handled by router configurations
-  useState(() => { 
+  // Use the custom hook for filtering and sorting
+  const {
+    filteredAndSortedProducts,
+    activeFilter,
+    setActiveFilter,
+    currentSort,
+    setCurrentSort,
+  } = useProductFilters(productsData); // Pass fetched products to the hook
+
+  // Scroll to top on mount
+  useState(() => {
     window.scrollTo(0, 0);
-    // Return undefined or null to satisfy React's rule for useState initializer if it's used like this
     return undefined;
   });
 
   const addToCartMutation = useMutation({
-    mutationFn: (variables: { product: Product; quantity: number }) => 
+    mutationFn: (variables: { product: Product; quantity: number }) =>
       addToCart(variables.product, variables.quantity),
-    onSuccess: (data, variables) => { 
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
       toast.success(`${variables.product.name} ajouté au panier`);
     },
@@ -52,28 +61,16 @@ const Products = () => {
   });
 
   const handleAddToCart = (product: Product, event: React.MouseEvent) => {
-    event.preventDefault(); 
-    event.stopPropagation(); 
+    event.preventDefault();
+    event.stopPropagation();
     addToCartMutation.mutate({ product, quantity: 1 });
   };
-  
-  // TODO: Implement actual sorting based on currentSort
-  const sortedProducts = [...products].sort((a, b) => {
-    if (currentSort === 'price-asc') {
-      return a.price - b.price;
-    } else if (currentSort === 'price-desc') {
-      return b.price - a.price;
-    }
-    // Add more sort conditions as needed, e.g., for 'popular' or 'newest'
-    // For 'popular' or 'newest', you might need additional data or just use default order
-    return 0; // Default: no change in order
-  });
 
-  const filteredProducts = activeFilter === "all" 
-    ? sortedProducts 
-    : sortedProducts.filter(p => p.category.toLowerCase() === activeFilter.toLowerCase());
+  // Filtering and sorting logic is now in useProductFilters hook
+  // const sortedProducts = ...;
+  // const filteredProducts = ...;
 
-  if (isLoading) { 
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-white">
         <Navigation />
@@ -133,16 +130,16 @@ const Products = () => {
       </div>
 
       {/* Filters - Replaced with ProductFilterBar component */}
-      <ProductFilterBar 
+      <ProductFilterBar
         activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
+        onFilterChange={setActiveFilter} // Pass setter from hook
         currentSort={currentSort}
-        onSortChange={setCurrentSort}
+        onSortChange={setCurrentSort}   // Pass setter from hook
       />
 
-      {/* Products Grid - Replaced with ProductGrid component */}
+      {/* Products Grid - Use products from the hook */}
       <div className="container mx-auto px-4 mb-16">
-        <ProductGrid products={filteredProducts} onAddToCart={handleAddToCart} />
+        <ProductGrid products={filteredAndSortedProducts} onAddToCart={handleAddToCart} />
       </div>
 
       <PageFooter />

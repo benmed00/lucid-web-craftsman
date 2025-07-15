@@ -27,7 +27,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images, produ
           {images.map((image: string, idx: number) => (
             <div
               key={idx}
-              className={`aspect-ratio aspect-w-1 aspect-h-1 rounded-md overflow-hidden cursor-pointer border-2 
+              className={`aspect-ratio aspect-w-1 aspect-h-1 rounded-md overflow-hidden cursor-pointer border-2
                 ${
                   selectedImage === idx
                     ? "border-olive-500" // Assuming olive-500 is the active border color
