@@ -1,3 +1,8 @@
+// ❌ old
+const express = require("express");
+
+// ✅ new
+// import express from "express";
 
 const jsonServer = require('json-server');
 const server = jsonServer.create();

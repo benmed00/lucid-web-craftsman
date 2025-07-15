@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "node server.cjs",
     "build": "vite build",
     "predeploy": "vite build",
     "deploy": "gh-pages -d dist",
