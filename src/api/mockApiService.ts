@@ -18,9 +18,9 @@ const api: AxiosInstance = axios.create({
 export const getBlogPosts = async () => {
   try {
     await delay(300); // Simulate network latency
-    // Get blog posts from db.json (imported at runtime)
+    // Get blog posts from blogPosts data
     const response = await import("../data/blogPosts");
-    return response.default;
+    return response.blogPosts;
   } catch (error) {
     console.error("Error fetching blog posts:", error);
     throw error;
@@ -31,7 +31,7 @@ export const getBlogPostById = async (id: number) => {
   try {
     await delay(200);
     const response = await import("../data/blogPosts");
-    const post = response.default.find(post => post.id === id);
+    const post = response.blogPosts.find(post => post.id === id);
     return post || null;
   } catch (error) {
     console.error(`Post with ID ${id} not found`, error);
