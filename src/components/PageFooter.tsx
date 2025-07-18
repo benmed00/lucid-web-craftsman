@@ -124,12 +124,15 @@ const PageFooter = () => {
               Inscrivez-vous pour recevoir nos actualités et offres spéciales.
             </p>
             <form className="space-y-2">
+              <label htmlFor="newsletter-email-footer" className="sr-only">Votre email</label>
               <Input
                 type="email"
+                id="newsletter-email-footer"
                 placeholder="Votre email"
                 className="bg-olive-800 border-olive-700 focus:border-olive-500 text-white placeholder:text-olive-400"
+                aria-label="Adresse email pour la newsletter"
               />
-              <Button className="w-full bg-beige-400 hover:bg-beige-500 text-olive-900">
+              <Button type="submit" className="w-full bg-beige-400 hover:bg-beige-500 text-olive-900">
                 S'abonner
               </Button>
             </form>

@@ -1,22 +1,22 @@
 import { ArrowLeft, CheckCircle, CreditCard } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Stripe, loadStripe } from "@stripe/stripe-js";
-import { getCart, updateCartItemQuantity } from "@/api/mockApiService";
+import { Stripe, loadStripe } from "@stripe/stripe-js"; // Stripe is used by stripePromise type
+import { getCart } from "@/api/mockApiService"; // Removed updateCartItemQuantity
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom"; // Marked as unused
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { STRIPE_PUBLIC_KEY } from "@/lib/stripe";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { useCart } from "@/context/useCart";
+// import { useCart } from "@/context/useCart"; // Marked as unused
 
 // Initialize Stripe
-const stripePromise: Promise<Stripe | null> = loadStripe(STRIPE_PUBLIC_KEY);
+const _stripePromise: Promise<Stripe | null> = loadStripe(STRIPE_PUBLIC_KEY); // Prefixed stripePromise
 
 // When initializing Stripe
 // const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY!, {

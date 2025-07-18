@@ -3,6 +3,8 @@ import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
+import eslintConfigPrettier from "eslint-config-prettier";
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default tseslint.config(
   { ignores: ["dist"] },
@@ -23,7 +25,17 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
-      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "warn", // Changed from "off" to "warn"
     },
-  }
+  },
+  { // Added configuration for jsx-a11y
+    files: ["**/*.{ts,tsx}"],
+    plugins: { 'jsx-a11y': jsxA11y },
+    rules: {
+      ...jsxA11y.configs.recommended.rules,
+      // Example: You might want to adjust specific rules later
+      // 'jsx-a11y/anchor-is-valid': 'off', // If using React Router Links extensively
+    },
+  },
+  eslintConfigPrettier // Ensure Prettier config is last
 );
