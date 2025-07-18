@@ -38,9 +38,11 @@ const queryClient = new QueryClient({
   },
 });
 
-const basePath: string = import.meta.env.BASE_URL || "/";
+const basePath: string = "/";
 
-const App = () => (
+const App = () => {
+  console.log("App component is rendering, basePath:", basePath);
+  return (
   <QueryClientProvider client={queryClient}>
     <CartProvider>
       <TooltipProvider delayDuration={300}>
@@ -88,7 +90,8 @@ const App = () => (
       </TooltipProvider>
     </CartProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 // Composant de fallback pour les erreurs
 const ErrorFallback = () => (

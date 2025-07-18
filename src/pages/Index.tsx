@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import HeroImage from "@/components/HeroImage";
 
 const Index = () => {
+  console.log("Index component is rendering");
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
