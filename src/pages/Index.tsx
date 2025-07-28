@@ -10,6 +10,7 @@ import Testimonials from "@/components/Testimonials";
 import InstagramFeed from "@/components/InstagramFeed";
 import { Link } from "react-router-dom";
 import HeroImage from "@/components/HeroImage";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const Index = () => {
   console.log("Index component is rendering");
@@ -20,24 +21,30 @@ const Index = () => {
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-12 md:py-24 flex flex-col md:flex-row items-center">
-        <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8">
-          <Badge className="mb-4 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none">Artisanat Durable & Fait Main</Badge>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-stone-800 mb-6">Créé avec amour dans les montagnes du Rif</h1>
-          <p className="text-lg text-stone-600 mb-8">Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.</p>
+        <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8 animate-fade-in-up">
+          <Badge className="mb-4 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none animate-slide-in-left">
+            Artisanat Durable & Fait Main
+          </Badge>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-stone-800 mb-6">
+            Créé avec amour dans les montagnes du Rif
+          </h1>
+          <p className="text-lg text-stone-600 mb-8">
+            Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.
+          </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link to="/products">
-              <Button className="bg-olive-700 hover:bg-olive-800 text-white font-medium px-8 py-6 rounded-md">
+              <Button className="bg-olive-700 hover:bg-olive-800 text-white font-medium px-8 py-6 rounded-md hover-lift focus-ring">
                 Découvrir <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
             <Link to="/blog">
-              <Button variant="outline" className="border-stone-300 text-stone-700 hover:bg-stone-50 px-8 py-6 rounded-md">
+              <Button variant="outline" className="border-stone-300 text-stone-700 hover:bg-stone-50 px-8 py-6 rounded-md hover-lift focus-ring">
                 Notre Histoire
               </Button>
             </Link>
           </div>
         </div>
-        <div className="md:w-1/2">
+        <div className="md:w-1/2 animate-scale-in">
           <HeroImage />
         </div>
       </section>
@@ -49,8 +56,8 @@ const Index = () => {
             <h2 className="font-serif text-3xl md:text-4xl text-stone-800 mb-4">Pourquoi Choisir Nos Créations?</h2>
             <p className="text-lg text-stone-600">Nos produits sont fabriqués avec amour, soin et engagement envers des pratiques durables</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="bg-white border-none shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 stagger-animation">
+            <Card className="bg-white border-none shadow-sm hover-lift animate-fade-in-up">
               <CardContent className="p-6">
                 <div className="h-12 w-12 bg-olive-100 rounded-full flex items-center justify-center mb-4">
                   <Leaf className="h-6 w-6 text-olive-700" />
@@ -59,7 +66,7 @@ const Index = () => {
                 <p className="text-stone-600">Tous nos produits sont fabriqués à partir de matériaux durables et éthiques, respectueux de l'environnement.</p>
               </CardContent>
             </Card>
-            <Card className="bg-white border-none shadow-sm">
+            <Card className="bg-white border-none shadow-sm hover-lift animate-fade-in-up">
               <CardContent className="p-6">
                 <div className="h-12 w-12 bg-olive-100 rounded-full flex items-center justify-center mb-4">
                   <svg className="h-6 w-6 text-olive-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -70,7 +77,7 @@ const Index = () => {
                 <p className="text-stone-600">Chaque pièce est soigneusement fabriquée par des artisans qualifiés utilisant des techniques traditionnelles transmises de génération en génération.</p>
               </CardContent>
             </Card>
-            <Card className="bg-white border-none shadow-sm">
+            <Card className="bg-white border-none shadow-sm hover-lift animate-fade-in-up">
               <CardContent className="p-6">
                 <div className="h-12 w-12 bg-olive-100 rounded-full flex items-center justify-center mb-4">
                   <svg className="h-6 w-6 text-olive-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -143,9 +150,9 @@ const Index = () => {
               <input 
                 type="email" 
                 placeholder="Votre adresse email" 
-                className="flex-grow px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-300"
+                className="flex-grow px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-300 transition-all duration-200"
               />
-              <Button className="bg-olive-900 hover:bg-olive-950 text-white">
+              <Button className="bg-olive-900 hover:bg-olive-950 text-white hover-lift focus-ring">
                 S'abonner
               </Button>
             </form>
@@ -155,6 +162,9 @@ const Index = () => {
 
       {/* Footer */}
       <Footer />
+      
+      {/* Scroll to Top Button */}
+      <ScrollToTop />
     </div>
   );
 };
