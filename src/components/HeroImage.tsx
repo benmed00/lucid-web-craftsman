@@ -10,7 +10,7 @@ const HeroImage = () => {
         className="md:aspect-w-4 md:aspect-h-5 bg-beige-100"
       >
         <img
-          src="/lucid-web-craftsman/assets/images/home_page_image.webp"
+          src="/assets/images/home_page_image.webp"
           alt="Chapeau artisanal et sac traditionnel fait main"
           className="object-cover w-full h-full rounded-lg"
         />
