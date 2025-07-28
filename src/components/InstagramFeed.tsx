@@ -42,29 +42,22 @@ interface InstagramPost {
 const instagramPosts: InstagramPost[] = [
   {
     id: 1,
-    image:
-      "${process.env.PUBLIC_URL}/assets/images/instagram/insta_image_1.jpg",
+    image: "/assets/images/instagram/insta_image_1.jpg",
     likes: 254,
   },
   {
     id: 2,
-    image: `${
-      import.meta.env.BASE_URL
-    }/assets/images/instagram/insta_image_3.jpg`,
+    image: "/assets/images/instagram/insta_image_3.jpg",
     likes: 187,
   },
   {
     id: 3,
-    image: `${
-      import.meta.env.BASE_URL
-    }/assets/images/instagram/insta_image_2.webp`,
+    image: "/assets/images/instagram/insta_image_2.webp",
     likes: 315,
   },
   {
     id: 4,
-    image: `${
-      import.meta.env.BASE_URL
-    }/assets/images/instagram/insta_image_4.jpg`,
+    image: "/assets/images/instagram/insta_image_4.jpg",
     likes: 201,
   },
 ];
@@ -77,7 +70,13 @@ const ImageWithFallback = ({ src, alt }: { src: string; alt: string }) => {
       Image unavailable
     </div>
   ) : (
-    <img src={src} alt={alt} onError={() => setError(true)} loading="lazy" />
+    <img 
+      src={src} 
+      alt={alt} 
+      className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+      onError={() => setError(true)} 
+      loading="lazy" 
+    />
   );
 };
 
@@ -94,11 +93,6 @@ const InstagramFeed = () => {
             src={post.image}
             alt={`Instagram post ${post.id}`}
           />
-          {/* <img
-            src={post.image}
-            alt={`Instagram post ${post.id}`}
-            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-          /> */}
           <div className="opacity-0 group-hover:opacity-100 absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center transition-opacity duration-300">
             <div className="text-white flex items-center">
               <svg

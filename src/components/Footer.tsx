@@ -77,7 +77,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="/lucid-web-craftsman/products"
+                  href="/products"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   All Products
@@ -124,7 +124,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="/lucid-web-craftsman/about"
+                  href="/about"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   Our Story
@@ -156,7 +156,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="/lucid-web-craftsman/blog"
+                  href="/blog"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   Blog
@@ -171,7 +171,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="/lucid-web-craftsman/contact"
+                  href="/contact"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   Contact Us
@@ -179,7 +179,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="/lucid-web-craftsman/shipping"
+                  href="/shipping"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   Shipping & Returns
@@ -187,7 +187,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="/lucid-web-craftsman/faq"
+                  href="/faq"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   FAQ
@@ -203,7 +203,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="/lucid-web-craftsman/cgv"
+                  href="/cgv"
                   className="text-stone-600 hover:text-olive-700 transition-colors"
                 >
                   Terms & Conditions
