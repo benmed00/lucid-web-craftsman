@@ -64,19 +64,31 @@ const instagramPosts: InstagramPost[] = [
 
 const ImageWithFallback = ({ src, alt }: { src: string; alt: string }) => {
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  return error ? (
-    <div className="bg-gray-100 w-full h-full flex items-center justify-center">
-      Image unavailable
+  return (
+    <div className="relative w-full h-full">
+      {error ? (
+        <div className="bg-beige-100 w-full h-full flex items-center justify-center text-stone-500 text-sm">
+          Image non disponible
+        </div>
+      ) : (
+        <>
+          <img 
+            src={src} 
+            alt={alt} 
+            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+            style={{ opacity: loading ? 0 : 1 }}
+            onError={() => setError(true)} 
+            onLoad={() => setLoading(false)}
+            loading="lazy" 
+          />
+          {loading && (
+            <div className="absolute inset-0 bg-beige-100 animate-pulse" />
+          )}
+        </>
+      )}
     </div>
-  ) : (
-    <img 
-      src={src} 
-      alt={alt} 
-      className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-      onError={() => setError(true)} 
-      loading="lazy" 
-    />
   );
 };
 

@@ -8,7 +8,7 @@ export const blogPosts: BlogPost[] = [
     title: "L'art du tissage traditionnel dans les montagnes du Rif",
     excerpt:
       "Découvrez comment les artisans transmettent leurs techniques de génération en génération tout en adaptant leur savoir-faire aux tendances modernes.",
-    image: "/lucid-web-craftsman/assets/images/blog/tissage.jpg",
+    image: "/assets/images/blog/tissage.jpg",
     date: "14 Mai 2025",
     author: "Layla Nakouri",
     category: "Artisanat",
@@ -19,7 +19,7 @@ export const blogPosts: BlogPost[] = [
     title: "Matériaux naturels : la beauté des fibres végétales",
     excerpt:
       "Quels sont les matériaux utilisés dans la confection de nos sacs et chapeaux? Une exploration des fibres locales et durables que nous privilégions.",
-    image: "/lucid-web-craftsman/assets/images/blog/fibre_vegetal.jpg",
+    image: "/assets/images/blog/fibre_vegetal.jpg",
     date: "28 Avril 2025",
     author: "Thomas Dubois",
     category: "Durabilité",
@@ -41,7 +41,7 @@ export const blogPosts: BlogPost[] = [
     title: "Les symboles berbères dans nos créations",
     excerpt:
       "Chaque motif raconte une histoire. Découvrez la signification des symboles ancestraux que vous retrouvez sur nos créations artisanales.",
-    image: "/lucid-web-craftsman/assets/images/blog/symboles_berberes.webp",
+    image: "/assets/images/blog/symboles_berberes.webp",
     date: "2 Avril 2025",
     author: "Mehdi Alaoui",
     category: "Culture",

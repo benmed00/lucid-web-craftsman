@@ -53,7 +53,7 @@ const FAQ = () => (
           <p className="text-stone-700">
             Consultez notre page{" "}
             <a
-              href="/lucid-web-craftsman/returns"
+              href="/returns"
               className="text-olive-700 underline hover:text-olive-800"
             >
               Retours
