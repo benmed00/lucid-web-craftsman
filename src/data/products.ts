@@ -8,10 +8,10 @@ export const products: Product[] = [
     name: "Sac à Main Tissé Traditionnel",
     price: 89,
     images: [
-      `${import.meta.env.BASE_URL}assets/images/sacs/sac_traditionnel.jpg`,
-      `${import.meta.env.BASE_URL}assets/images/sacs/sac_traditionnel_vue1.jpg`,
-      `${import.meta.env.BASE_URL}assets/images/sacs/sac_traditionnel_vue2.jpg`,
-      `${import.meta.env.BASE_URL}assets/images/sacs/sac_traditionnel_vue3.jpg`,
+      "/assets/images/sacs/sac_traditionnel.jpg",
+      "/assets/images/sacs/sac_traditionnel_vue1.jpg",
+      "/assets/images/sacs/sac_traditionnel_vue2.jpg",
+      "/assets/images/sacs/sac_traditionnel_vue3.jpg",
     ],
     category: "Sacs",
     description:
@@ -30,7 +30,7 @@ export const products: Product[] = [
     name: "Chapeau de Paille Berbère",
     price: 45,
     images: [
-      `${import.meta.env.BASE_URL}assets/images/chapeau_de_paille_berbere_2.jpg`,
+      "/assets/images/chapeau_de_paille_berbere_2.jpg",
     ],
     category: "Chapeaux",
     description:
