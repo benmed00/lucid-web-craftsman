@@ -2,6 +2,7 @@
 
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Image } from "@/components/ui/image";
+import heroImage from "@/assets/hero-image.jpg";
 
 const HeroImage = () => {
   return (
@@ -11,7 +12,7 @@ const HeroImage = () => {
         className="md:aspect-w-4 md:aspect-h-5 bg-beige-100"
       >
         <Image
-          src="https://images.unsplash.com/photo-1544966503-7cc5ac882d5e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+          src={heroImage}
           alt="Chapeau artisanal et sac traditionnel fait main"
           className="object-cover w-full h-full rounded-lg"
           fallbackText="Produits artisanaux"
