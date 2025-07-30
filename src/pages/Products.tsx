@@ -177,54 +177,62 @@ const Products = () => {
       <div className="container mx-auto px-4 mb-16">
         {filteredProducts.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-lg text-stone-600">Aucun produit trouvé</p>
+            <p className="text-lg text-stone-600">Aucun produit trouvé dans cette catégorie</p>
+            <p className="text-sm text-stone-500 mt-2">Essayez de sélectionner "Tous les produits"</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
             {filteredProducts.map((product) => (
-              <Link
-                to={`/products/${product.id}`}
-                key={product.id}
-                className="group relative"
-              >
-                <Card className="border-none shadow-sm overflow-hidden hover-scale">
-                  <div className="aspect-ratio aspect-w-1 aspect-h-1 relative overflow-hidden">
-                    <img
-                      src={product.images[0]}
-                      alt={product.name}
-                      className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
-                    />
-                    {product.new && (
-                      <div className="absolute top-2 right-2">
-                        <Badge className="bg-olive-500 text-white border-none">
+              <div key={product.id} className="group relative">
+                <Card className="bg-white border-none overflow-hidden group hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1">
+                  <Link to={`/products/${product.id}`}>
+                    <div className="relative overflow-hidden rounded-t-lg">
+                      <div className="aspect-square w-full">
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
+                          loading="lazy"
+                        />
+                      </div>
+                      {product.new && (
+                        <Badge className="absolute top-3 right-3 bg-olive-700 text-white border-none shadow-md px-3 py-1">
                           Nouveau
                         </Badge>
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-4">
-                    <div className="text-xs text-stone-500 mb-1">
-                      {product.category}
+                      )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
                     </div>
-                    <h3 className="font-medium text-stone-800 mb-1">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-olive-700 font-medium">
-                        {product.price} €
-                      </p>
+                  </Link>
+                  
+                  <CardContent className="p-5">
+                    <div className="mb-2">
+                      <Badge variant="outline" className="text-xs text-olive-700 border-olive-200 mb-2">
+                        {product.category}
+                      </Badge>
+                    </div>
+                    <Link to={`/products/${product.id}`}>
+                      <h3 className="font-serif text-lg font-medium text-stone-800 mb-3 hover:text-olive-700 transition-colors line-clamp-2 leading-tight">
+                        {product.name}
+                      </h3>
+                    </Link>
+                    <div className="flex justify-between items-center">
+                      <div className="flex flex-col">
+                        <p className="text-stone-700 font-semibold text-lg">{product.price} €</p>
+                        <p className="text-xs text-stone-500">Livraison gratuite</p>
+                      </div>
                       <Button 
                         size="sm" 
-                        className="bg-olive-700 hover:bg-olive-800"
                         onClick={(e) => handleAddToCart(product, e)}
+                        className="bg-olive-700 hover:bg-olive-800 shadow-md hover:shadow-lg transition-all duration-200 px-4 py-2"
                       >
-                        <ShoppingBag className="h-4 w-4 mr-1" />
-                        Ajouter
+                        <ShoppingBag className="mr-2 h-4 w-4" />
+                        <span className="hidden sm:inline">Ajouter</span>
+                        <span className="sm:hidden">+</span>
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
-              </Link>
+              </div>
             ))}
           </div>
         )}
