@@ -1,0 +1,419 @@
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Package, 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Upload,
+  Search,
+  Filter,
+  Eye,
+  EyeOff
+} from "lucide-react";
+import { getProducts } from "@/api/mockApiService";
+import { Product } from "@/shared/interfaces/Iproduct.interface";
+import { toast } from "sonner";
+
+const AdminProducts = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isNewProduct, setIsNewProduct] = useState(false);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    try {
+      const data = await getProducts();
+      setProducts(data);
+    } catch (error) {
+      console.error("Error loading products:", error);
+      toast.error("Erreur lors du chargement des produits");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         product.artisan.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = filterCategory === "all" || product.category.toLowerCase() === filterCategory.toLowerCase();
+    return matchesSearch && matchesCategory;
+  });
+
+  const categories = [...new Set(products.map(p => p.category))];
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setIsNewProduct(false);
+    setIsDialogOpen(true);
+  };
+
+  const handleNewProduct = () => {
+    setEditingProduct({
+      id: Date.now(),
+      name: "",
+      price: 0,
+      images: [],
+      category: "Sacs",
+      description: "",
+      details: "",
+      care: "",
+      artisan: "",
+      new: false
+    });
+    setIsNewProduct(true);
+    setIsDialogOpen(true);
+  };
+
+  const handleSaveProduct = () => {
+    if (!editingProduct) return;
+
+    if (isNewProduct) {
+      setProducts([...products, editingProduct]);
+      toast.success("Produit ajouté avec succès");
+    } else {
+      setProducts(products.map(p => p.id === editingProduct.id ? editingProduct : p));
+      toast.success("Produit mis à jour avec succès");
+    }
+
+    setIsDialogOpen(false);
+    setEditingProduct(null);
+  };
+
+  const handleDeleteProduct = (productId: number) => {
+    if (confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
+      setProducts(products.filter(p => p.id !== productId));
+      toast.success("Produit supprimé avec succès");
+    }
+  };
+
+  const toggleProductVisibility = (productId: number) => {
+    setProducts(products.map(p => 
+      p.id === productId ? { ...p, new: !p.new } : p
+    ));
+    toast.success("Visibilité du produit mise à jour");
+  };
+
+  const ProductForm = () => {
+    if (!editingProduct) return null;
+
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nom du produit</Label>
+            <Input
+              id="name"
+              value={editingProduct.name}
+              onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
+              placeholder="Nom du produit"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="price">Prix (€)</Label>
+            <Input
+              id="price"
+              type="number"
+              value={editingProduct.price}
+              onChange={(e) => setEditingProduct({...editingProduct, price: Number(e.target.value)})}
+              placeholder="Prix"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="category">Catégorie</Label>
+            <Select 
+              value={editingProduct.category} 
+              onValueChange={(value) => setEditingProduct({...editingProduct, category: value})}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner une catégorie" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Sacs">Sacs</SelectItem>
+                <SelectItem value="Chapeaux">Chapeaux</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="artisan">Artisan</Label>
+            <Input
+              id="artisan"
+              value={editingProduct.artisan}
+              onChange={(e) => setEditingProduct({...editingProduct, artisan: e.target.value})}
+              placeholder="Nom de l'artisan"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={editingProduct.description}
+            onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})}
+            placeholder="Description du produit"
+            rows={3}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="details">Détails techniques</Label>
+          <Textarea
+            id="details"
+            value={editingProduct.details}
+            onChange={(e) => setEditingProduct({...editingProduct, details: e.target.value})}
+            placeholder="Dimensions, matériaux, etc."
+            rows={3}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="care">Instructions d'entretien</Label>
+          <Textarea
+            id="care"
+            value={editingProduct.care}
+            onChange={(e) => setEditingProduct({...editingProduct, care: e.target.value})}
+            placeholder="Instructions d'entretien"
+            rows={2}
+          />
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="new"
+            checked={editingProduct.new}
+            onCheckedChange={(checked) => setEditingProduct({...editingProduct, new: checked})}
+          />
+          <Label htmlFor="new">Marquer comme nouveau</Label>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Images du produit</Label>
+          <div className="border-2 border-dashed border-stone-300 rounded-lg p-8 text-center">
+            <Upload className="h-8 w-8 text-stone-400 mx-auto mb-2" />
+            <p className="text-sm text-stone-600">
+              Glissez-déposez vos images ici ou cliquez pour sélectionner
+            </p>
+            <Button variant="outline" size="sm" className="mt-2">
+              Sélectionner des fichiers
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p>Chargement des produits...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-serif font-semibold text-stone-800">
+            Gestion des produits
+          </h2>
+          <p className="text-stone-600">
+            {products.length} produits dans votre catalogue
+          </p>
+        </div>
+        
+        <Button onClick={handleNewProduct} className="bg-olive-700 hover:bg-olive-800">
+          <Plus className="h-4 w-4 mr-2" />
+          Ajouter un produit
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-stone-400" />
+                <Input
+                  placeholder="Rechercher par nom ou artisan..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-40">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes catégories</SelectItem>
+                  {categories.map(category => (
+                    <SelectItem key={category} value={category.toLowerCase()}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Products Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredProducts.map((product) => (
+          <Card key={product.id} className="group hover:shadow-lg transition-shadow">
+            <CardHeader className="p-0">
+              <div className="relative h-48 overflow-hidden rounded-t-lg">
+                <img
+                  src={product.images[0] || "/placeholder.svg"}
+                  alt={product.name}
+                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute top-2 right-2 flex gap-2">
+                  {product.new && (
+                    <Badge className="bg-olive-700 text-white">Nouveau</Badge>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => toggleProductVisibility(product.id)}
+                    className="p-1 h-8 w-8"
+                  >
+                    {product.new ? (
+                      <Eye className="h-4 w-4" />
+                    ) : (
+                      <EyeOff className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="p-4">
+              <div className="space-y-2">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-stone-800 line-clamp-2">
+                      {product.name}
+                    </h3>
+                    <p className="text-sm text-stone-600">{product.artisan}</p>
+                  </div>
+                  <p className="font-semibold text-olive-700">{product.price}€</p>
+                </div>
+                
+                <Badge variant="outline" className="text-xs">
+                  {product.category}
+                </Badge>
+                
+                <p className="text-sm text-stone-600 line-clamp-2">
+                  {product.description}
+                </p>
+              </div>
+              
+              <div className="flex gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEditProduct(product)}
+                  className="flex-1"
+                >
+                  <Edit className="h-4 w-4 mr-1" />
+                  Modifier
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDeleteProduct(product.id)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredProducts.length === 0 && (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Package className="h-12 w-12 text-stone-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-stone-800 mb-2">
+              Aucun produit trouvé
+            </h3>
+            <p className="text-stone-600 mb-4">
+              {searchQuery || filterCategory !== "all" 
+                ? "Aucun produit ne correspond à vos critères de recherche."
+                : "Commencez par ajouter votre premier produit."
+              }
+            </p>
+            {(!searchQuery && filterCategory === "all") && (
+              <Button onClick={handleNewProduct} className="bg-olive-700 hover:bg-olive-800">
+                <Plus className="h-4 w-4 mr-2" />
+                Ajouter un produit
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Edit/Add Product Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {isNewProduct ? "Ajouter un nouveau produit" : "Modifier le produit"}
+            </DialogTitle>
+            <DialogDescription>
+              {isNewProduct 
+                ? "Remplissez les informations pour créer un nouveau produit."
+                : "Modifiez les informations du produit."
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ProductForm />
+          
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleSaveProduct} className="bg-olive-700 hover:bg-olive-800">
+              {isNewProduct ? "Ajouter" : "Sauvegarder"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default AdminProducts;

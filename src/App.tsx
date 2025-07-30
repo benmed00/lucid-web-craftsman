@@ -27,6 +27,14 @@ import Terms from "./pages/Terms";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
+// Admin imports
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminProducts from "./pages/admin/AdminProducts";
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminSettings from "./pages/admin/AdminSettings";
+
 // Configuration de React Query
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,6 +73,15 @@ const App = () => {
             <Route path="/terms" element={<Terms />} />
             <Route path="/cgv" element={<CGV />} />
             <Route path="/story" element={<Story />} />
+
+            {/* Admin routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="products" element={<AdminProducts />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
 
             {/* <Route path="/products/bags" element={<BagsPage />} />
             <Route path="/products/hats" element={<HatsPage />} /> */}
