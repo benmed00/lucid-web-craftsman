@@ -30,6 +30,7 @@ export const products: Product[] = [
     name: "Chapeau de Paille Berbère",
     price: 45,
     images: [
+      "/assets/images/products/chapeau_de_paille_berbere.jpg",
       "/assets/images/chapeau_de_paille_berbere_2.jpg",
     ],
     category: "Chapeaux",
@@ -45,7 +46,7 @@ export const products: Product[] = [
     name: "Pochette Brodée à la Main",
     price: 62,
     images: [
-      "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?ixlib=rb-4.0.3&auto=format&fit=crop&w=640&q=80",
+      "/assets/images/produits_phares/sac_bandouliere.webp",
     ],
     category: "Sacs",
     description:
@@ -60,7 +61,7 @@ export const products: Product[] = [
     name: "Cabas en Fibres Naturelles",
     price: 75,
     images: [
-      "https://images.unsplash.com/photo-1578237493287-8d4d2b03591a?ixlib=rb-4.0.3&auto=format&fit=crop&w=640&q=80",
+      "/assets/images/produits_phares/sac_tresse_naturel.jpeg",
     ],
     category: "Sacs",
     description:
@@ -75,7 +76,8 @@ export const products: Product[] = [
     name: "Chapeau de Soleil Tressé",
     price: 52,
     images: [
-      "https://images.unsplash.com/photo-1572307480813-ceb0e59d8325?ixlib=rb-4.0.3&auto=format&fit=crop&w=640&q=80",
+      "/assets/images/produits_phares/chapeau_a_large_bord.webp",
+      "/assets/images/produits_phares/chapeau_panama.webp",
     ],
     category: "Chapeaux",
     description:
@@ -88,17 +90,17 @@ export const products: Product[] = [
   },
   {
     id: 6,
-    name: "Panier de Marché Traditionnel",
+    name: "Sac à Main Tissé Traditionnel Premium",
     price: 68,
     images: [
-      "https://images.unsplash.com/photo-1532086853747-99450c17fa2e?ixlib=rb-4.0.3&auto=format&fit=crop&w=640&q=80",
+      "/assets/images/products/sac_a_main_tisse_traditionnel.jpg",
     ],
     category: "Sacs",
     description:
-      "Ce panier de marché traditionnel est parfait pour les courses quotidiennes, alliant fonctionnalité et esthétique artisanale.",
+      "Ce sac à main traditionnel premium est parfait pour les occasions spéciales, alliant fonctionnalité et esthétique artisanale berbère.",
     details:
-      "Dimensions: 40 x 30 x 20 cm<br>Matériau: Osier et cuir<br>Poignées en cuir véritable",
-    care: "Nettoyer avec un chiffon humide<br>Sécher à l'air libre",
+      "Dimensions: 35 x 25 x 15 cm<br>Matériau: Cuir et fibres végétales<br>Poignées en cuir véritable",
+    care: "Nettoyer avec un chiffon humide<br>Sécher à l'air libre<br>Traiter le cuir régulièrement",
     artisan: "Youssef Benali",
   },
 ];
