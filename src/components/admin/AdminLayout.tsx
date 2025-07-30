@@ -9,7 +9,9 @@ import {
   Settings, 
   LogOut, 
   Menu,
-  Leaf
+  Leaf,
+  Users,
+  BarChart3
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -48,6 +50,16 @@ const AdminLayout = () => {
       icon: ShoppingCart,
       label: "Commandes",
       path: "/admin/orders",
+    },
+    {
+      icon: Users,
+      label: "Clients",
+      path: "/admin/customers",
+    },
+    {
+      icon: BarChart3,
+      label: "Analyses",
+      path: "/admin/analytics",
     },
     {
       icon: Settings,
