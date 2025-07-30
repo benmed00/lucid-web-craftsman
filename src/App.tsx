@@ -36,6 +36,8 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminInventory from "./pages/admin/AdminInventory";
+import AdminMarketing from "./pages/admin/AdminMarketing";
 
 // Configuration de React Query
 const queryClient = new QueryClient({
@@ -81,8 +83,10 @@ const App = () => {
             <Route path="/admin" element={<AdminLayout />}>
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="products" element={<AdminProducts />} />
+              <Route path="inventory" element={<AdminInventory />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="customers" element={<AdminCustomers />} />
+              <Route path="marketing" element={<AdminMarketing />} />
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>

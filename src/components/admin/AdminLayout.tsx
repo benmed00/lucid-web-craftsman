@@ -11,7 +11,9 @@ import {
   Menu,
   Leaf,
   Users,
-  BarChart3
+  BarChart3,
+  Warehouse,
+  Megaphone
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -47,6 +49,11 @@ const AdminLayout = () => {
       path: "/admin/products",
     },
     {
+      icon: Warehouse,
+      label: "Stocks",
+      path: "/admin/inventory",
+    },
+    {
       icon: ShoppingCart,
       label: "Commandes",
       path: "/admin/orders",
@@ -55,6 +62,11 @@ const AdminLayout = () => {
       icon: Users,
       label: "Clients",
       path: "/admin/customers",
+    },
+    {
+      icon: Megaphone,
+      label: "Marketing",
+      path: "/admin/marketing",
     },
     {
       icon: BarChart3,
