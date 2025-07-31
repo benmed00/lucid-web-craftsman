@@ -17,11 +17,13 @@ import {
   Search,
   Filter,
   Eye,
-  EyeOff
+  EyeOff,
+  ImageIcon
 } from "lucide-react";
 import { getProducts } from "@/api/mockApiService";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -209,12 +211,16 @@ const AdminProducts = () => {
 
         <div className="space-y-2">
           <Label>Images du produit</Label>
-          <div className="border-2 border-dashed border-stone-300 rounded-lg p-8 text-center">
-            <Upload className="h-8 w-8 text-stone-400 mx-auto mb-2" />
-            <p className="text-sm text-stone-600">
+          <div className="border-2 border-dashed border-stone-300 hover:border-olive-300 rounded-lg p-8 text-center transition-colors cursor-pointer group">
+            <Upload className="h-8 w-8 text-stone-400 group-hover:text-olive-600 mx-auto mb-2 transition-colors" />
+            <p className="text-sm text-stone-600 group-hover:text-stone-800 transition-colors">
               Glissez-déposez vos images ici ou cliquez pour sélectionner
             </p>
-            <Button variant="outline" size="sm" className="mt-2">
+            <p className="text-xs text-stone-500 mt-1">
+              Formats acceptés: JPG, PNG, WebP • Max: 5MB par image
+            </p>
+            <Button variant="outline" size="sm" className="mt-3 border-olive-300 text-olive-700 hover:bg-olive-50">
+              <ImageIcon className="h-4 w-4 mr-2" />
               Sélectionner des fichiers
             </Button>
           </div>
@@ -244,10 +250,18 @@ const AdminProducts = () => {
           </p>
         </div>
         
-        <Button onClick={handleNewProduct} className="bg-olive-700 hover:bg-olive-800">
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter un produit
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Link to="/admin/hero-image">
+            <Button variant="outline" size="sm">
+              <ImageIcon className="h-4 w-4 mr-2" />
+              Gérer l'image principale
+            </Button>
+          </Link>
+          <Button onClick={handleNewProduct} className="bg-olive-700 hover:bg-olive-800">
+            <Plus className="h-4 w-4 mr-2" />
+            Ajouter un produit
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
