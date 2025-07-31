@@ -41,7 +41,7 @@ const AdminLayout = () => {
     {
       icon: LayoutDashboard,
       label: "Tableau de bord",
-      path: "/admin/dashboard",
+      path: "/admin",
     },
     {
       icon: Package,
