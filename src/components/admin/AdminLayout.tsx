@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
 import { 
   LayoutDashboard, 
   Package, 
@@ -13,29 +14,46 @@ import {
   Users,
   BarChart3,
   Warehouse,
-  Megaphone
+  Megaphone,
+  User,
+  Image
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const AdminLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, isAuthenticated, logout, isLoading } = useAdminAuth();
 
   useEffect(() => {
-    // Check authentication
-    const isAuth = localStorage.getItem("adminAuth");
-    if (!isAuth) {
-      navigate("/admin/login");
+    if (!isLoading && !isAuthenticated) {
+      navigate("/admin/login", { replace: true });
     }
-  }, [navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("adminAuth");
+    logout();
     toast.success("Déconnexion réussie");
-    navigate("/admin/login");
+    navigate("/admin/login", { replace: true });
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olive-600 mx-auto mb-4"></div>
+          <p className="text-stone-600">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null; // Will redirect in useEffect
+  }
 
   const menuItems = [
     {
@@ -47,6 +65,11 @@ const AdminLayout = () => {
       icon: Package,
       label: "Produits",
       path: "/admin/products",
+    },
+    {
+      icon: Image,
+      label: "Image Principale",
+      path: "/admin/hero-image",
     },
     {
       icon: Warehouse,
@@ -87,13 +110,32 @@ const AdminLayout = () => {
           <div className="p-2 rounded-lg bg-olive-100">
             <Leaf className="h-5 w-5 text-olive-600" />
           </div>
-          <div>
+          <div className="flex-1">
             <h2 className="font-serif text-lg font-semibold text-stone-800">
               Admin Panel
             </h2>
             <p className="text-xs text-stone-500">Rif Raw Straw</p>
           </div>
         </div>
+        
+        {user && (
+          <div className="mt-4 p-3 bg-stone-50 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <User className="h-4 w-4 text-stone-500" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-stone-800 truncate">
+                  {user.name}
+                </p>
+                <p className="text-xs text-stone-500 truncate">
+                  {user.email}
+                </p>
+              </div>
+              <Badge variant="secondary" className="text-xs">
+                {user.role}
+              </Badge>
+            </div>
+          </div>
+        )}
       </div>
 
       <nav className="p-4 space-y-2">

@@ -1,65 +1,71 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Leaf, Lock, Mail } from "lucide-react";
-import { toast } from "sonner";
+import { Eye, EyeOff, Lock, Mail, Leaf, Info } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('admin@artisanrif.com');
+  const [password, setPassword] = useState('admin123');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { login, isLoading, isAuthenticated } = useAdminAuth();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/admin', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-
+    
+    if (!email || !password) {
+      toast.error('Veuillez remplir tous les champs');
+      return;
+    }
+    
     try {
-      // Mock authentication - replace with Supabase auth
-      if (email === "admin@rifrawstraw.com" && password === "admin123") {
-        localStorage.setItem("adminAuth", "true");
-        toast.success("Connexion réussie");
-        navigate("/admin/dashboard");
-      } else {
-        setError("Email ou mot de passe incorrect");
-      }
-    } catch (err) {
-      setError("Erreur de connexion");
-    } finally {
-      setLoading(false);
+      await login(email, password);
+      toast.success('Connexion réussie!');
+      navigate('/admin', { replace: true });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erreur de connexion');
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-beige-50 to-olive-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-xl">
+      <Card className="w-full max-w-md mx-auto shadow-xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="p-3 rounded-full bg-olive-100">
               <Leaf className="h-8 w-8 text-olive-600" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-serif text-stone-800">
-            Administration
-          </CardTitle>
-          <CardDescription className="text-stone-600">
-            Connexion à l'espace administrateur
+          <CardTitle className="text-2xl font-serif text-stone-800">Administration</CardTitle>
+          <CardDescription className="text-center">
+            Connectez-vous pour accéder au panel d'administration
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            
+        
+        <CardContent className="space-y-4">
+          <Alert className="bg-blue-50 border-blue-200">
+            <Info className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              <strong>Identifiants de démonstration:</strong><br />
+              Email: admin@artisanrif.com<br />
+              Mot de passe: admin123
+            </AlertDescription>
+          </Alert>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email administrateur</Label>
               <div className="relative">
@@ -67,9 +73,9 @@ const AdminLogin = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@rifrawstraw.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@artisanrif.com"
                   className="pl-10"
                   required
                 />
@@ -82,38 +88,43 @@ const AdminLogin = () => {
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-stone-400" />
                 <Input
                   id="password"
-                  type="password"
-                  placeholder="••••••••"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
+                  placeholder="••••••••"
+                  className="pl-10 pr-10"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-stone-400 hover:text-stone-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
               </div>
             </div>
 
             <Button 
               type="submit" 
               className="w-full bg-olive-700 hover:bg-olive-800"
-              disabled={loading}
+              disabled={isLoading}
             >
-              {loading ? "Connexion..." : "Se connecter"}
+              {isLoading ? "Connexion en cours..." : "Se connecter"}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="text-center pt-4">
             <Link 
               to="/" 
               className="text-sm text-stone-600 hover:text-olive-700 transition-colors"
             >
-              ← Retour au site
+              ← Retour au site principal
             </Link>
-          </div>
-
-          <div className="mt-4 p-3 bg-stone-50 rounded-lg">
-            <p className="text-xs text-stone-600 text-center">
-              <strong>Démo:</strong> admin@rifrawstraw.com / admin123
-            </p>
           </div>
         </CardContent>
       </Card>
