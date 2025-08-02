@@ -1,106 +1,68 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Save, 
-  Image as ImageIcon, 
-  Monitor,
-  Smartphone,
-  Eye,
-  RefreshCw
-} from "lucide-react";
-import { toast } from "sonner";
-import ImageUpload from "@/components/ui/ImageUpload";
+import { toast } from 'sonner';
+import ImageUpload from '@/components/ui/ImageUpload';
+import { Eye, Save, RotateCcw, ImageIcon, Monitor } from 'lucide-react';
+import { useHeroImage } from '@/hooks/useHeroImage';
+import { HeroImageData } from '@/services/heroImageService';
 
-interface HeroImageSettings {
-  url: string;
-  alt: string;
-  title: string;
-  subtitle: string;
-}
-
-const AdminHeroImageManager = () => {
-  const [heroSettings, setHeroSettings] = useState<HeroImageSettings>({
-    url: "/lovable-uploads/8937573b-31a4-4669-8ea2-8e6c35b45b81.png",
-    alt: "Chapeau artisanal et sac traditionnel fait main - Artisanat authentique du Rif",
-    title: "Artisanat Authentique du Rif",
-    subtitle: "Chapeau tressé et sac naturel - Fait main avec amour"
-  });
-
+const AdminHeroImage = () => {
+  const { heroImageData, updateHeroImage } = useHeroImage();
+  const [localData, setLocalData] = useState<HeroImageData>(heroImageData);
+  const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
-  const [originalSettings, setOriginalSettings] = useState<HeroImageSettings>(heroSettings);
 
-  useEffect(() => {
-    // Load current settings - in a real app, this would come from Supabase
-    const savedSettings = localStorage.getItem('heroImageSettings');
-    if (savedSettings) {
-      const parsed = JSON.parse(savedSettings);
-      setHeroSettings(parsed);
-      setOriginalSettings(parsed);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Check if there are unsaved changes
-    const hasUnsavedChanges = JSON.stringify(heroSettings) !== JSON.stringify(originalSettings);
-    setHasChanges(hasUnsavedChanges);
-  }, [heroSettings, originalSettings]);
+  const hasChanges = JSON.stringify(localData) !== JSON.stringify(heroImageData);
 
   const handleImageUpload = async (file: File, previewUrl: string) => {
+    setIsUploading(true);
     try {
-      // In a real implementation, you would upload to Supabase Storage here
-      // For now, we'll use the local preview URL
-      console.log('Uploading file:', file.name);
+      // Simulate upload - in real app, upload to your storage service
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setHeroSettings(prev => ({
+      setLocalData(prev => ({
         ...prev,
-        url: previewUrl
+        imageUrl: previewUrl
       }));
       
       toast.success('Image uploadée avec succès!');
     } catch (error) {
+      toast.error('Erreur lors de l\'upload de l\'image');
       console.error('Upload error:', error);
-      throw new Error('Erreur lors de l\'upload');
+    } finally {
+      setIsUploading(false);
     }
-  };
-
-  const handleImageRemove = () => {
-    setHeroSettings(prev => ({
-      ...prev,
-      url: ""
-    }));
   };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // In a real app, save to Supabase here
-      localStorage.setItem('heroImageSettings', JSON.stringify(heroSettings));
-      setOriginalSettings(heroSettings);
-      
-      // Update the actual component - in a real app, this would trigger a refetch
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      toast.success('Paramètres sauvegardés avec succès!');
+      updateHeroImage(localData);
+      toast.success('Image principale mise à jour avec succès!');
     } catch (error) {
-      console.error('Save error:', error);
       toast.error('Erreur lors de la sauvegarde');
+      console.error('Save error:', error);
     } finally {
       setIsSaving(false);
     }
   };
 
+  const handleInputChange = (field: string, value: string) => {
+    setLocalData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const handleReset = () => {
-    setHeroSettings(originalSettings);
-    toast.info('Modifications annulées');
+    setLocalData(heroImageData);
+    toast.success('Modifications annulées');
   };
 
   const previewInNewTab = () => {
@@ -149,11 +111,11 @@ const AdminHeroImageManager = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <ImageUpload
-              currentImage={heroSettings.url}
+              currentImage={localData.imageUrl}
               onImageUpload={handleImageUpload}
-              onImageRemove={handleImageRemove}
-              title="Modifier l'image principale"
-              description="Uploadez une nouvelle image pour la section héro de votre site"
+              title="Image Principale du Site"
+              description="Téléchargez une nouvelle image pour la page d'accueil"
+              className="w-full"
               aspectRatio={4/5}
               maxSizeMB={10}
             />
@@ -177,34 +139,35 @@ const AdminHeroImageManager = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="alt">Texte alternatif (SEO)</Label>
+              <Label htmlFor="altText">Texte alternatif (SEO)</Label>
               <Input
-                id="alt"
-                value={heroSettings.alt}
-                onChange={(e) => setHeroSettings(prev => ({ ...prev, alt: e.target.value }))}
-                placeholder="Description de l'image pour l'accessibilité"
+                id="altText"
+                value={localData.altText}
+                onChange={(e) => handleInputChange('altText', e.target.value)}
+                placeholder="Description alternative de l'image"
               />
             </div>
 
             <Separator />
 
             <div className="space-y-2">
-              <Label htmlFor="title">Titre de l'overlay</Label>
+              <Label htmlFor="title">Titre</Label>
               <Input
                 id="title"
-                value={heroSettings.title}
-                onChange={(e) => setHeroSettings(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Titre affiché sur l'image"
+                value={localData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                placeholder="Titre principal affiché sur l'image"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="subtitle">Sous-titre</Label>
-              <Input
+              <Textarea
                 id="subtitle"
-                value={heroSettings.subtitle}
-                onChange={(e) => setHeroSettings(prev => ({ ...prev, subtitle: e.target.value }))}
-                placeholder="Sous-titre affiché sur l'image"
+                value={localData.subtitle}
+                onChange={(e) => handleInputChange('subtitle', e.target.value)}
+                placeholder="Sous-titre ou description courte"
+                rows={3}
               />
             </div>
 
@@ -212,15 +175,23 @@ const AdminHeroImageManager = () => {
 
             {/* Preview Section */}
             <div className="space-y-2">
-              <Label>Aperçu de l'overlay</Label>
-              <div className="relative bg-stone-100 rounded-lg p-4 border">
-                <div className="bg-white/95 backdrop-blur-sm px-4 py-3 rounded-lg shadow-sm">
-                  <p className="text-sm font-medium text-stone-800 mb-1">
-                    {heroSettings.title || "Titre manquant"}
-                  </p>
-                  <p className="text-xs text-stone-600">
-                    {heroSettings.subtitle || "Sous-titre manquant"}
-                  </p>
+              <Label>Aperçu en temps réel</Label>
+              <div className="relative aspect-[4/5] bg-stone-100 rounded-lg overflow-hidden border">
+                <img 
+                  src={localData.imageUrl} 
+                  alt={localData.altText}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent rounded-lg" />
+                <div className="absolute bottom-4 left-4 right-4">
+                  <div className="bg-white/95 backdrop-blur-sm px-4 py-3 rounded-lg shadow-lg">
+                    <p className="text-sm font-medium text-stone-800 mb-1">
+                      {localData.title}
+                    </p>
+                    <p className="text-xs text-stone-600">
+                      {localData.subtitle}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -242,7 +213,7 @@ const AdminHeroImageManager = () => {
               onClick={handleReset}
               disabled={isSaving}
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
+              <RotateCcw className="h-4 w-4 mr-2" />
               Annuler
             </Button>
           )}
@@ -254,7 +225,7 @@ const AdminHeroImageManager = () => {
           >
             {isSaving ? (
               <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                <RotateCcw className="h-4 w-4 mr-2 animate-spin" />
                 Sauvegarde...
               </>
             ) : (
@@ -270,4 +241,4 @@ const AdminHeroImageManager = () => {
   );
 };
 
-export default AdminHeroImageManager;
+export default AdminHeroImage;
