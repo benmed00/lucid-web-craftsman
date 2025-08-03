@@ -1,15 +1,26 @@
 
-import { Leaf, Menu, ShoppingBag, X } from "lucide-react";
+import { Leaf, Menu, ShoppingBag, X, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CartIcon from "../context/CartIcon";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import { useCartUI } from "../context/useCartUI";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { itemCount, cartColor, badgeTextColor } = useCartUI();
+  const navigate = useNavigate();
+  const { user, signOut, isLoading } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   return (
     <nav className="bg-white/95 backdrop-blur-sm sticky top-0 z-40 border-b border-stone-100 shadow-sm">
@@ -60,30 +71,56 @@ const Navigation = () => {
         </Link>
       </div>
 
-      <Link to="/cart" className="hidden md:block">
-        <Button
-          variant="outline"
-          className={clsx(
-            "border-stone-300 transition-colors flex items-center group",
-            itemCount >= 1
-              ? "bg-olive-700 text-white"
-              : "bg-white text-stone-700",
-            itemCount >= 1
-              ? "hover:bg-white hover:text-olive-700"
-              : "hover:bg-white hover:text-stone-900"
-          )}
-        >
-          <ShoppingBag
+      <div className="flex items-center gap-2">
+        <Link to="/cart" className="hidden md:block">
+          <Button
+            variant="outline"
             className={clsx(
-              "mr-2 h-4 w-4 transition-colors",
+              "border-stone-300 transition-colors flex items-center group",
               itemCount >= 1
-                ? "text-white group-hover:text-olive-700"
-                : "text-stone-700 group-hover:text-stone-900"
+                ? "bg-olive-700 text-white"
+                : "bg-white text-stone-700",
+              itemCount >= 1
+                ? "hover:bg-white hover:text-olive-700"
+                : "hover:bg-white hover:text-stone-900"
             )}
-          />
-          Panier ({itemCount})
-        </Button>
-      </Link>
+          >
+            <ShoppingBag
+              className={clsx(
+                "mr-2 h-4 w-4 transition-colors",
+                itemCount >= 1
+                  ? "text-white group-hover:text-olive-700"
+                  : "text-stone-700 group-hover:text-stone-900"
+              )}
+            />
+            Panier ({itemCount})
+          </Button>
+        </Link>
+
+        {/* Auth buttons - Desktop */}
+        {!isLoading && (
+          <>
+            {user ? (
+              <div className="hidden md:flex items-center gap-2">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/profile" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span className="text-sm">{user.user_metadata?.full_name || user.email}</span>
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-2">
+                  <LogOut className="h-4 w-4" />
+                  <span className="text-sm">Déconnexion</span>
+                </Button>
+              </div>
+            ) : (
+              <Button variant="default" size="sm" asChild className="hidden md:inline-flex">
+                <Link to="/auth">Se connecter</Link>
+              </Button>
+            )}
+          </>
+        )}
+      </div>
 
       {/* Mobile Menu Button */}
       <button
@@ -145,6 +182,38 @@ const Navigation = () => {
                 </Button>
               </Link>
             </div>
+
+            {/* Mobile auth buttons */}
+            {!isLoading && (
+              <>
+                {user ? (
+                  <div className="pt-3 mt-3 border-t border-stone-200">
+                    <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
+                      <div className="mb-3 px-4 py-2 bg-olive-50 rounded-lg hover:bg-olive-100 transition-colors cursor-pointer">
+                        <div className="flex items-center gap-2 text-sm text-olive-700">
+                          <User className="h-4 w-4" />
+                          {user.user_metadata?.full_name || user.email}
+                        </div>
+                      </div>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      onClick={handleSignOut} 
+                      className="w-full flex items-center justify-center gap-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Déconnexion
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="pt-3 mt-3 border-t border-stone-200">
+                    <Button variant="default" asChild className="w-full">
+                      <Link to="/auth" onClick={() => setIsMenuOpen(false)}>Se connecter</Link>
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       )}
