@@ -9,8 +9,7 @@ import { ShoppingCart, Heart } from "lucide-react";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { useEffect, useState } from "react";
 import { getProducts } from "@/api/mockApiService";
-import { Image } from "@/components/ui/image";
-import { ImageUtils } from "@/utils/imageUtils";
+import { ProductImage } from "@/components/ui/GlobalImage";
 
 const ProductShowcase = () => {
   const { dispatch } = useCart();
@@ -23,11 +22,6 @@ const ProductShowcase = () => {
         const allProducts = await getProducts();
         const featured = allProducts.slice(0, 4);
         setFeaturedProducts(featured);
-        
-        // Preload featured product images for better performance
-        const imagesToPreload = featured.flatMap(product => product.images);
-        ImageUtils.preloadImages(imagesToPreload);
-        
         setLoading(false);
       } catch (error) {
         console.error("Error loading featured products:", error);
@@ -75,11 +69,11 @@ const ProductShowcase = () => {
           <Link to={`/products/${product.id}`}>
             <div className="relative overflow-hidden rounded-t-lg">
               <div className="aspect-w-1 aspect-h-1 w-full">
-                <Image
-                  src={ImageUtils.getImageUrl(product.images[0])}
+                <ProductImage
+                  src={product.images[0]}
                   alt={product.name}
                   className="object-cover w-full h-64 group-hover:scale-110 transition-transform duration-700"
-                  fallbackText="Produit artisanal"
+                  preload={true}
                 />
               </div>
               {product.new && (

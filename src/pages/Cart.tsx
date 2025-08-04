@@ -16,7 +16,7 @@ import PageFooter from "@/components/PageFooter";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useCart } from "@/context/useCart";
-import { ImageUtils } from "@/utils/imageUtils";
+import { ProductImage } from "@/components/ui/GlobalImage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -34,13 +34,6 @@ const Cart = () => {
     try {
       const cart = await getCart();
       setCartItems(cart.items || []);
-      
-      // Preload cart item images
-      if (cart.items?.length > 0) {
-        const images = cart.items.flatMap(item => item.product.images);
-        ImageUtils.preloadImages(images);
-      }
-      
       setLoading(false);
     } catch (error) {
       console.error("Error fetching cart:", error);
@@ -147,17 +140,18 @@ const Cart = () => {
                       <div className="md:col-span-6 flex items-center">
                         <Link
                           to={`/products/${item.product.id}`}
-                          className="flex items-center hover:bg-stone-50 rounded-md p-2 transition"
-                        >
-                          <div className="w-20 h-20 rounded-md overflow-hidden mr-4">
-                            <img
-                              src={item.product.images[0]}
-                              alt={item.product.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <h3 className="font-medium text-stone-800">
-                            {item.product.name}
+                           className="flex items-center hover:bg-stone-50 rounded-md p-2 transition"
+                         >
+                           <div className="w-20 h-20 rounded-md overflow-hidden mr-4">
+                             <ProductImage
+                               src={item.product.images[0]}
+                               alt={item.product.name}
+                               className="w-full h-full object-cover rounded-md"
+                               showRetryButton={true}
+                             />
+                           </div>
+                           <h3 className="font-medium text-stone-800">
+                             {item.product.name}
                           </h3>
                         </Link>
 

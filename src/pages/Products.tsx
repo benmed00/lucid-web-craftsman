@@ -13,6 +13,7 @@ import { addToCart } from "@/api/mockApiService";
 import { getProducts } from "@/api/mockApiService";
 import { toast } from "sonner";
 import { useCart } from "@/context/useCart";
+import { ProductImage } from "@/components/ui/GlobalImage";
 
 const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
