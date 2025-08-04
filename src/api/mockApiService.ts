@@ -81,7 +81,7 @@ export const getProductById = async (id: number): Promise<Product | null> => {
   }
 };
 
-// Cart API - using localStorage
+// Cart API - using Supabase for authenticated users, localStorage for guests
 export interface CartItem {
   id: number;
   quantity: number;
@@ -92,9 +92,14 @@ export interface CartState {
   items: CartItem[];
 }
 
-export const getCart = async (): Promise<CartState> => {
-  await delay(100);
+// Helper to check if user is authenticated
+const isAuthenticated = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  return !!session?.user;
+};
 
+// Get cart items from localStorage (for guest users)
+const getLocalStorageCart = (): CartState => {
   try {
     const cart = localStorage.getItem("cart");
     return cart ? JSON.parse(cart) : { items: [] };
@@ -104,20 +109,109 @@ export const getCart = async (): Promise<CartState> => {
   }
 };
 
+// Save cart to localStorage (for guest users)
+const saveLocalStorageCart = (cart: CartState) => {
+  localStorage.setItem("cart", JSON.stringify(cart));
+};
+
+// Get cart items from Supabase (for authenticated users)
+const getSupabaseCart = async (): Promise<CartState> => {
+  try {
+    const { data, error } = await supabase
+      .from('cart_items')
+      .select(`
+        id,
+        product_id,
+        quantity,
+        products (*)
+      `)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error("Error fetching cart from Supabase:", error);
+      return { items: [] };
+    }
+
+    const items: CartItem[] = data?.map(item => ({
+      id: item.product_id,
+      quantity: item.quantity,
+      product: {
+        ...item.products,
+        new: item.products.is_new,
+        artisanStory: item.products.artisan_story,
+        related: item.products.related_products
+      }
+    })) || [];
+
+    return { items };
+  } catch (error) {
+    console.error("Error fetching cart from Supabase:", error);
+    return { items: [] };
+  }
+};
+
+export const getCart = async (): Promise<CartState> => {
+  await delay(100);
+
+  if (await isAuthenticated()) {
+    return getSupabaseCart();
+  } else {
+    return getLocalStorageCart();
+  }
+};
+
 export const addToCart = async (product: Product, quantity: number = 1): Promise<CartState> => {
   await delay(100);
 
-  // Get current cart
-  const cart: CartState = await getCart();
+  if (await isAuthenticated()) {
+    try {
+      // Try to update existing item first
+      const { data: existingItem } = await supabase
+        .from('cart_items')
+        .select('quantity')
+        .eq('product_id', product.id)
+        .single();
 
-  // Find if product is already in cart
-  const existingItem: CartItem = cart.items.find(item => item.id === product.id);
+      if (existingItem) {
+        // Update existing item
+        const { error } = await supabase
+          .from('cart_items')
+          .update({ quantity: existingItem.quantity + quantity })
+          .eq('product_id', product.id);
+
+        if (error) throw error;
+      } else {
+        // Insert new item
+        const { error } = await supabase
+          .from('cart_items')
+          .insert({
+            product_id: product.id,
+            quantity: quantity,
+            user_id: (await supabase.auth.getUser()).data.user?.id
+          });
+
+        if (error) throw error;
+      }
+
+      return getSupabaseCart();
+    } catch (error) {
+      console.error("Error adding to cart in Supabase:", error);
+      // Fallback to localStorage
+      return addToLocalStorageCart(product, quantity);
+    }
+  } else {
+    return addToLocalStorageCart(product, quantity);
+  }
+};
+
+// Helper for localStorage cart operations
+const addToLocalStorageCart = async (product: Product, quantity: number): Promise<CartState> => {
+  const cart = getLocalStorageCart();
+  const existingItem = cart.items.find(item => item.id === product.id);
 
   if (existingItem) {
-    // Update quantity if product already exists
     existingItem.quantity += quantity;
   } else {
-    // Add new item to cart
     cart.items.push({
       id: product.id,
       quantity,
@@ -125,40 +219,71 @@ export const addToCart = async (product: Product, quantity: number = 1): Promise
     });
   }
 
-  // Save to localStorage
-  localStorage.setItem("cart", JSON.stringify(cart));
+  saveLocalStorageCart(cart);
   return cart;
 };
 
 export const removeFromCart = async (productId: number): Promise<CartState> => {
   await delay(100);
 
-  // Get current cart
-  const cart: CartState = await getCart();
+  if (await isAuthenticated()) {
+    try {
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('product_id', productId);
 
-  // Remove product from cart
+      if (error) throw error;
+      return getSupabaseCart();
+    } catch (error) {
+      console.error("Error removing from cart in Supabase:", error);
+      // Fallback to localStorage
+      return removeFromLocalStorageCart(productId);
+    }
+  } else {
+    return removeFromLocalStorageCart(productId);
+  }
+};
+
+// Helper for localStorage cart operations
+const removeFromLocalStorageCart = async (productId: number): Promise<CartState> => {
+  const cart = getLocalStorageCart();
   cart.items = cart.items.filter(item => item.id !== productId);
-
-  // Save to localStorage
-  localStorage.setItem("cart", JSON.stringify(cart));
+  saveLocalStorageCart(cart);
   return cart;
 };
 
 export const updateCartItemQuantity = async (productId: number, quantity: number): Promise<CartState> => {
   await delay(100);
 
-  // Get current cart
-  const cart: CartState = await getCart();
+  if (await isAuthenticated()) {
+    try {
+      const { error } = await supabase
+        .from('cart_items')
+        .update({ quantity: Math.max(1, quantity) })
+        .eq('product_id', productId);
 
-  // Find item
+      if (error) throw error;
+      return getSupabaseCart();
+    } catch (error) {
+      console.error("Error updating cart quantity in Supabase:", error);
+      // Fallback to localStorage
+      return updateLocalStorageCartQuantity(productId, quantity);
+    }
+  } else {
+    return updateLocalStorageCartQuantity(productId, quantity);
+  }
+};
+
+// Helper for localStorage cart operations
+const updateLocalStorageCartQuantity = async (productId: number, quantity: number): Promise<CartState> => {
+  const cart = getLocalStorageCart();
   const item = cart.items.find(item => item.id === productId);
 
   if (item) {
-    // Update quantity
     item.quantity = Math.max(1, quantity);
   }
 
-  // Save to localStorage
-  localStorage.setItem("cart", JSON.stringify(cart));
+  saveLocalStorageCart(cart);
   return cart;
 };
