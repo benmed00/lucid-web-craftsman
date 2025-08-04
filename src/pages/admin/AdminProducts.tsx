@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Package, 
@@ -21,6 +21,7 @@ import {
   ImageIcon
 } from "lucide-react";
 import { getProducts } from "@/api/mockApiService";
+import { productService, CreateProductData, UpdateProductData } from "@/services/productService";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -33,9 +34,12 @@ const AdminProducts = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isNewProduct, setIsNewProduct] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [formData, setFormData] = useState<Partial<CreateProductData>>({});
 
   useEffect(() => {
     loadProducts();
+    loadCategories();
   }, []);
 
   const loadProducts = async () => {
@@ -50,6 +54,15 @@ const AdminProducts = () => {
     }
   };
 
+  const loadCategories = async () => {
+    try {
+      const categoriesData = await productService.getCategories();
+      setCategories(categoriesData);
+    } catch (error) {
+      console.error("Error loading categories:", error);
+    }
+  };
+
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          product.artisan.toLowerCase().includes(searchQuery.toLowerCase());
@@ -57,17 +70,28 @@ const AdminProducts = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = [...new Set(products.map(p => p.category))];
-
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
+    setFormData({
+      name: product.name,
+      price: product.price,
+      images: product.images,
+      category: product.category,
+      description: product.description,
+      details: product.details,
+      care: product.care,
+      is_new: product.new,
+      artisan: product.artisan,
+      artisan_story: product.artisanStory,
+      related_products: product.related
+    });
     setIsNewProduct(false);
     setIsDialogOpen(true);
   };
 
   const handleNewProduct = () => {
-    setEditingProduct({
-      id: Date.now(),
+    setEditingProduct(null);
+    setFormData({
       name: "",
       price: 0,
       images: [],
@@ -75,45 +99,71 @@ const AdminProducts = () => {
       description: "",
       details: "",
       care: "",
+      is_new: false,
       artisan: "",
-      new: false
+      artisan_story: "",
+      related_products: []
     });
     setIsNewProduct(true);
     setIsDialogOpen(true);
   };
 
-  const handleSaveProduct = () => {
-    if (!editingProduct) return;
-
-    if (isNewProduct) {
-      setProducts([...products, editingProduct]);
-      toast.success("Produit ajouté avec succès");
-    } else {
-      setProducts(products.map(p => p.id === editingProduct.id ? editingProduct : p));
-      toast.success("Produit mis à jour avec succès");
+  const handleSaveProduct = async () => {
+    if (!formData.name || !formData.price || !formData.artisan) {
+      toast.error("Veuillez remplir tous les champs obligatoires");
+      return;
     }
 
-    setIsDialogOpen(false);
-    setEditingProduct(null);
+    try {
+      if (isNewProduct) {
+        const newProduct = await productService.createProduct(formData as CreateProductData);
+        setProducts([...products, newProduct]);
+        toast.success("Produit ajouté avec succès");
+      } else if (editingProduct) {
+        const updatedProduct = await productService.updateProduct({
+          id: editingProduct.id,
+          ...formData
+        } as UpdateProductData);
+        setProducts(products.map(p => p.id === editingProduct.id ? updatedProduct : p));
+        toast.success("Produit mis à jour avec succès");
+      }
+
+      setIsDialogOpen(false);
+      setEditingProduct(null);
+      setFormData({});
+    } catch (error) {
+      console.error("Error saving product:", error);
+      toast.error("Erreur lors de la sauvegarde du produit");
+    }
   };
 
-  const handleDeleteProduct = (productId: number) => {
+  const handleDeleteProduct = async (productId: number) => {
     if (confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
-      setProducts(products.filter(p => p.id !== productId));
-      toast.success("Produit supprimé avec succès");
+      try {
+        await productService.deleteProduct(productId);
+        setProducts(products.filter(p => p.id !== productId));
+        toast.success("Produit supprimé avec succès");
+      } catch (error) {
+        console.error("Error deleting product:", error);
+        toast.error("Erreur lors de la suppression du produit");
+      }
     }
   };
 
-  const toggleProductVisibility = (productId: number) => {
-    setProducts(products.map(p => 
-      p.id === productId ? { ...p, new: !p.new } : p
-    ));
-    toast.success("Visibilité du produit mise à jour");
+  const toggleProductVisibility = async (productId: number) => {
+    try {
+      const updatedProduct = await productService.toggleNewStatus(productId);
+      setProducts(products.map(p => 
+        p.id === productId ? updatedProduct : p
+      ));
+      toast.success("Visibilité du produit mise à jour");
+    } catch (error) {
+      console.error("Error toggling product visibility:", error);
+      toast.error("Erreur lors de la mise à jour de la visibilité");
+    }
   };
 
   const ProductForm = () => {
-    if (!editingProduct) return null;
-
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -121,8 +171,8 @@ const AdminProducts = () => {
             <Label htmlFor="name">Nom du produit</Label>
             <Input
               id="name"
-              value={editingProduct.name}
-              onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
+              value={formData.name || ""}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
               placeholder="Nom du produit"
             />
           </div>
@@ -132,8 +182,8 @@ const AdminProducts = () => {
             <Input
               id="price"
               type="number"
-              value={editingProduct.price}
-              onChange={(e) => setEditingProduct({...editingProduct, price: Number(e.target.value)})}
+              value={formData.price || 0}
+              onChange={(e) => setFormData({...formData, price: Number(e.target.value)})}
               placeholder="Prix"
             />
           </div>
@@ -143,8 +193,8 @@ const AdminProducts = () => {
           <div className="space-y-2">
             <Label htmlFor="category">Catégorie</Label>
             <Select 
-              value={editingProduct.category} 
-              onValueChange={(value) => setEditingProduct({...editingProduct, category: value})}
+              value={formData.category || "Sacs"} 
+              onValueChange={(value) => setFormData({...formData, category: value})}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner une catégorie" />
@@ -160,8 +210,8 @@ const AdminProducts = () => {
             <Label htmlFor="artisan">Artisan</Label>
             <Input
               id="artisan"
-              value={editingProduct.artisan}
-              onChange={(e) => setEditingProduct({...editingProduct, artisan: e.target.value})}
+              value={formData.artisan || ""}
+              onChange={(e) => setFormData({...formData, artisan: e.target.value})}
               placeholder="Nom de l'artisan"
             />
           </div>
@@ -171,8 +221,8 @@ const AdminProducts = () => {
           <Label htmlFor="description">Description</Label>
           <Textarea
             id="description"
-            value={editingProduct.description}
-            onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})}
+            value={formData.description || ""}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
             placeholder="Description du produit"
             rows={3}
           />
@@ -182,8 +232,8 @@ const AdminProducts = () => {
           <Label htmlFor="details">Détails techniques</Label>
           <Textarea
             id="details"
-            value={editingProduct.details}
-            onChange={(e) => setEditingProduct({...editingProduct, details: e.target.value})}
+            value={formData.details || ""}
+            onChange={(e) => setFormData({...formData, details: e.target.value})}
             placeholder="Dimensions, matériaux, etc."
             rows={3}
           />
@@ -193,8 +243,8 @@ const AdminProducts = () => {
           <Label htmlFor="care">Instructions d'entretien</Label>
           <Textarea
             id="care"
-            value={editingProduct.care}
-            onChange={(e) => setEditingProduct({...editingProduct, care: e.target.value})}
+            value={formData.care || ""}
+            onChange={(e) => setFormData({...formData, care: e.target.value})}
             placeholder="Instructions d'entretien"
             rows={2}
           />
@@ -203,8 +253,8 @@ const AdminProducts = () => {
         <div className="flex items-center space-x-2">
           <Switch
             id="new"
-            checked={editingProduct.new}
-            onCheckedChange={(checked) => setEditingProduct({...editingProduct, new: checked})}
+            checked={formData.is_new || false}
+            onCheckedChange={(checked) => setFormData({...formData, is_new: checked})}
           />
           <Label htmlFor="new">Marquer comme nouveau</Label>
         </div>
