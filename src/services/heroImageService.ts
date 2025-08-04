@@ -8,7 +8,7 @@ export interface HeroImageData {
 const HERO_IMAGE_KEY = 'heroImageData';
 
 const defaultHeroImage: HeroImageData = {
-  imageUrl: '/lovable-uploads/8937573b-31a4-4669-8ea2-8e6c35b45b81.png',
+  imageUrl: '/assets/images/home_page_image.webp',
   altText: 'Chapeau artisanal et sac traditionnel fait main - Artisanat authentique du Rif',
   title: 'Artisanat Authentique du Rif',
   subtitle: 'Chapeau tressé et sac naturel - Fait main avec amour'
