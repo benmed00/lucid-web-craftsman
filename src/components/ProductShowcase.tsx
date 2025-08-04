@@ -10,6 +10,7 @@ import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { useEffect, useState } from "react";
 import { getProducts } from "@/api/mockApiService";
 import { Image } from "@/components/ui/image";
+import { ImageUtils } from "@/utils/imageUtils";
 
 const ProductShowcase = () => {
   const { dispatch } = useCart();
@@ -20,7 +21,13 @@ const ProductShowcase = () => {
     const loadFeaturedProducts = async () => {
       try {
         const allProducts = await getProducts();
-        setFeaturedProducts(allProducts.slice(0, 4));
+        const featured = allProducts.slice(0, 4);
+        setFeaturedProducts(featured);
+        
+        // Preload featured product images for better performance
+        const imagesToPreload = featured.flatMap(product => product.images);
+        ImageUtils.preloadImages(imagesToPreload);
+        
         setLoading(false);
       } catch (error) {
         console.error("Error loading featured products:", error);
@@ -69,7 +76,7 @@ const ProductShowcase = () => {
             <div className="relative overflow-hidden rounded-t-lg">
               <div className="aspect-w-1 aspect-h-1 w-full">
                 <Image
-                  src={product.images[0]}
+                  src={ImageUtils.getImageUrl(product.images[0])}
                   alt={product.name}
                   className="object-cover w-full h-64 group-hover:scale-110 transition-transform duration-700"
                   fallbackText="Produit artisanal"

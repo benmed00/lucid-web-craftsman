@@ -1,7 +1,7 @@
 // File_name : src/pages/Cart.tsx
 // this file contains the Cart component that displays the user's cart and allows them to manage their items.
 
-import { ArrowRight, ShoppingBag, X } from "lucide-react";
+import { ArrowRight, ShoppingBag, X, Plus, Minus } from "lucide-react";
 import {
   getCart,
   removeFromCart,
@@ -16,6 +16,9 @@ import PageFooter from "@/components/PageFooter";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useCart } from "@/context/useCart";
+import { ImageUtils } from "@/utils/imageUtils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -31,6 +34,13 @@ const Cart = () => {
     try {
       const cart = await getCart();
       setCartItems(cart.items || []);
+      
+      // Preload cart item images
+      if (cart.items?.length > 0) {
+        const images = cart.items.flatMap(item => item.product.images);
+        ImageUtils.preloadImages(images);
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error("Error fetching cart:", error);
