@@ -1,18 +1,8 @@
-import axios, { AxiosInstance } from "axios";
-
+import { supabase } from "@/integrations/supabase/client";
 import { Product } from "../shared/interfaces/Iproduct.interface";
-import { products as localProducts } from "../data/products";
 
 // Helper to simulate API latency
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// Create axios instance for any external API calls if needed in the future
-const api: AxiosInstance = axios.create({
-  baseURL: "https://api.example.com", // This won't be used for now
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
 
 // Blog posts API - using in-memory data
 export const getBlogPosts = async () => {
@@ -39,11 +29,26 @@ export const getBlogPostById = async (id: number) => {
   }
 };
 
-// Products API - using in-memory data
+// Products API - using Supabase
 export const getProducts = async (): Promise<Product[]> => {
   try {
-    await delay(300); // Simulate network latency
-    return localProducts; // Use local products data directly
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching products:", error);
+      throw error;
+    }
+
+    // Transform database fields to match interface
+    return data?.map(product => ({
+      ...product,
+      new: product.is_new,
+      artisanStory: product.artisan_story,
+      related: product.related_products
+    })) || [];
   } catch (error) {
     console.error("Error fetching products:", error);
     throw error;
@@ -52,9 +57,24 @@ export const getProducts = async (): Promise<Product[]> => {
 
 export const getProductById = async (id: number): Promise<Product | null> => {
   try {
-    await delay(200);
-    const product = localProducts.find(product => product.id === id);
-    return product || null;
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error(`Product with ID ${id} not found`, error);
+      return null;
+    }
+
+    // Transform database fields to match interface
+    return data ? {
+      ...data,
+      new: data.is_new,
+      artisanStory: data.artisan_story,
+      related: data.related_products
+    } : null;
   } catch (error) {
     console.error(`Product with ID ${id} not found`, error);
     return null;

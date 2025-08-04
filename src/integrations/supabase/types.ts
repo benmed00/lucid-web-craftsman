@@ -47,6 +47,57 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          artisan: string
+          artisan_story: string | null
+          care: string
+          category: string
+          created_at: string
+          description: string
+          details: string
+          id: number
+          images: string[]
+          is_new: boolean | null
+          name: string
+          price: number
+          related_products: number[] | null
+          updated_at: string
+        }
+        Insert: {
+          artisan: string
+          artisan_story?: string | null
+          care: string
+          category: string
+          created_at?: string
+          description: string
+          details: string
+          id?: number
+          images?: string[]
+          is_new?: boolean | null
+          name: string
+          price: number
+          related_products?: number[] | null
+          updated_at?: string
+        }
+        Update: {
+          artisan?: string
+          artisan_story?: string | null
+          care?: string
+          category?: string
+          created_at?: string
+          description?: string
+          details?: string
+          id?: number
+          images?: string[]
+          is_new?: boolean | null
+          name?: string
+          price?: number
+          related_products?: number[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
