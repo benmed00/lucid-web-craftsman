@@ -30,11 +30,11 @@ export class ErrorBoundary extends React.Component<
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(_: Error) {
+  static getDerivedStateFromError(__: Error) { // Prefixed _
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(_error: Error, _errorInfo: React.ErrorInfo) { // Prefixed error and errorInfo
     // Vous pouvez loguer l'erreur ici si besoin
     // console.error(error, errorInfo);
   }

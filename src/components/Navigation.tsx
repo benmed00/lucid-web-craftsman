@@ -1,8 +1,9 @@
 
 import { Leaf, Menu, ShoppingBag, X, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import CartIcon from "../context/CartIcon";
-import { Link, useNavigate } from "react-router-dom";
+// import CartIcon from "../context/CartIcon"; // Marked as unused
+import { Link } from "react-router-dom";
+
 import clsx from "clsx";
 import { useCartUI } from "../context/useCartUI";
 import { useState } from "react";
@@ -10,17 +11,8 @@ import { useAuth } from "@/hooks/useAuth";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { itemCount, cartColor, badgeTextColor } = useCartUI();
-  const navigate = useNavigate();
-  const { user, signOut, isLoading } = useAuth();
+  const { itemCount, cartColor } = useCartUI(); // Removed _badgeTextColor
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
 
   return (
     <nav className="bg-white/95 backdrop-blur-sm sticky top-0 z-40 border-b border-stone-100 shadow-sm">

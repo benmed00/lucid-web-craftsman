@@ -3,11 +3,11 @@
 
 import { ArrowRight, ShoppingBag, X, Plus, Minus } from "lucide-react";
 import {
-  getCart,
+  // getCart, // No longer needed from mockApiService
   removeFromCart,
   updateCartItemQuantity,
 } from "@/api/mockApiService";
-import { useEffect, useState } from "react";
+import { useEffect } from "react"; // Removed useState
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -21,76 +21,74 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { dispatch } = useCart();
+  // const [cartItems, setCartItems] = useState([]); // Removed: Get items from context
+  // const [loading, setLoading] = useState(true); // Removed: CartContext handles initial load
+  const { cart, dispatch } = useCart();
+  const cartItems = cart.items; // Get items directly from context
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchCart();
+    // fetchCart(); // Removed: Cart is hydrated by CartProvider
   }, []);
 
-  const fetchCart = async () => {
-    try {
-      const cart = await getCart();
-      setCartItems(cart.items || []);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching cart:", error);
-      toast.error("Erreur lors du chargement du panier");
-      setLoading(false);
-    }
-  };
+  // const fetchCart = async () => { // Removed
+  //   try {
+  //     const cart = await getCart(); // mockApiService.getCart() is no longer for fetching items
+  //     // setCartItems(cart.items || []); // Data comes from context
+  //     // setLoading(false);
+  //   } catch (error) {
+  //     console.error("Error fetching cart:", error);
+  //     toast.error("Erreur lors du chargement du panier");
+  //     // setLoading(false);
+  //   }
+  // };
 
-  const handleQuantityChange = async (id, newQuantity) => {
+  const handleQuantityChange = async (itemId: number, newQuantity: number) => {
     try {
-      const updatedCart = await updateCartItemQuantity(id, newQuantity);
-      setCartItems(updatedCart.items);
-      // Update global cart state
-      dispatch({ type: "HYDRATE", payload: updatedCart });
+      // Simulate API call first
+      const response = await updateCartItemQuantity(itemId, newQuantity);
+      if (response.success) {
+        // Then dispatch action to update context state
+        dispatch({ type: "UPDATE_ITEM_QUANTITY", payload: { id: itemId, quantity: newQuantity } });
+        if (newQuantity > 0) {
+          toast.success("Quantité mise à jour");
+        } else {
+          toast.success("Produit retiré du panier"); // As quantity <= 0 removes it
+        }
+      } else {
+        toast.error("Erreur lors de la mise à jour de la quantité");
+      }
     } catch (error) {
       console.error("Error updating quantity:", error);
       toast.error("Erreur lors de la mise à jour de la quantité");
     }
   };
 
-  const handleRemoveItem = async (id) => {
+  const handleRemoveItem = async (itemId: number) => {
     try {
-      const updatedCart = await removeFromCart(id);
-      setCartItems(updatedCart.items);
-      // Update global cart state
-      dispatch({ type: "HYDRATE", payload: updatedCart });
-      toast.success("Produit retiré du panier");
+      // Simulate API call first
+      const response = await removeFromCart(itemId);
+      if (response.success) {
+        // Then dispatch action to update context state
+        dispatch({ type: "REMOVE_ITEM", payload: itemId });
+        toast.success("Produit retiré du panier");
+      } else {
+        toast.error("Erreur lors de la suppression du produit");
+      }
     } catch (error) {
       console.error("Error removing item:", error);
       toast.error("Erreur lors de la suppression du produit");
     }
   };
 
-  // Calculate totals
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  );
-  const shipping = subtotal > 0 ? 6.95 : 0;
+  // Calculate totals using data from context
+  const subtotal = cart.totalPrice; // Use totalPrice from context
+  const shipping = subtotal > 0 ? 6.95 : 0; // Shipping logic can remain local
   const total = subtotal + shipping;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <Navigation />
-        <div className="container mx-auto px-4 py-16">
-          <h1 className="font-serif text-3xl md:text-4xl text-stone-800 mb-8 text-center">
-            Votre Panier
-          </h1>
-          <div className="text-center">
-            <p>Chargement de votre panier...</p>
-          </div>
-        </div>
-        <PageFooter />
-      </div>
-    );
-  }
+  // Loading state is implicitly handled by CartProvider's initial hydration.
+  // A more sophisticated app might have a global loading indicator or specific loading states for API interactions.
+  // For this refactor, we assume CartProvider handles initial load and then context is source of truth.
 
   return (
     <div className="min-h-screen bg-white">

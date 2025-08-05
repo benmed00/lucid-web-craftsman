@@ -1,3 +1,8 @@
+// ❌ old
+const express = require("express");
+
+// ✅ new
+// import express from "express";
 
 const jsonServer = require('json-server');
 const server = jsonServer.create();
@@ -18,24 +23,25 @@ server.use((req, res, next) => {
   next();
 });
 
+// In-memory store for the mock cart
+let mockCart = { items: [] }; // Default cart structure
+
 // Custom route for cart
 server.get('/api/cart', (req, res) => {
-  try {
-    const cart = localStorage.getItem('cart');
-    res.json(cart ? JSON.parse(cart) : { items: [] });
-  } catch (error) {
-    console.error('Error getting cart from localStorage:', error);
-    res.json({ items: [] });
-  }
+  console.log('GET /api/cart called, returning in-memory cart:', mockCart);
+  res.status(200).json(mockCart);
 });
 
 server.post('/api/cart', (req, res) => {
-  try {
-    localStorage.setItem('cart', JSON.stringify(req.body));
-    res.json(req.body);
-  } catch (error) {
-    console.error('Error saving cart to localStorage:', error);
-    res.status(500).json({ error: 'Failed to save cart' });
+  console.log('POST /api/cart called with body:', req.body);
+  // Assuming the POST request body contains the entire new cart state
+  // or the items to be set. For simplicity, replacing the whole cart.
+  if (req.body) {
+    mockCart = req.body;
+    console.log('In-memory cart updated:', mockCart);
+    res.status(200).json(mockCart);
+  } else {
+    res.status(400).json({ error: 'Request body is missing' });
   }
 });
 
