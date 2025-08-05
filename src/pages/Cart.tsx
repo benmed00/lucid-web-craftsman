@@ -1,7 +1,7 @@
 // File_name : src/pages/Cart.tsx
 // this file contains the Cart component that displays the user's cart and allows them to manage their items.
 
-import { ArrowRight, ShoppingBag, X } from "lucide-react";
+import { ArrowRight, ShoppingBag, X, Plus, Minus } from "lucide-react";
 import {
   // getCart, // No longer needed from mockApiService
   removeFromCart,
@@ -16,6 +16,9 @@ import PageFooter from "@/components/PageFooter";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useCart } from "@/context/useCart";
+import { ProductImage } from "@/components/ui/GlobalImage";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const Cart = () => {
   // const [cartItems, setCartItems] = useState([]); // Removed: Get items from context
@@ -135,17 +138,18 @@ const Cart = () => {
                       <div className="md:col-span-6 flex items-center">
                         <Link
                           to={`/products/${item.product.id}`}
-                          className="flex items-center hover:bg-stone-50 rounded-md p-2 transition"
-                        >
-                          <div className="w-20 h-20 rounded-md overflow-hidden mr-4">
-                            <img
-                              src={item.product.images[0]}
-                              alt={item.product.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <h3 className="font-medium text-stone-800">
-                            {item.product.name}
+                           className="flex items-center hover:bg-stone-50 rounded-md p-2 transition"
+                         >
+                           <div className="w-20 h-20 rounded-md overflow-hidden mr-4">
+                             <ProductImage
+                               src={item.product.images[0]}
+                               alt={item.product.name}
+                               className="w-full h-full object-cover rounded-md"
+                               showRetryButton={true}
+                             />
+                           </div>
+                           <h3 className="font-medium text-stone-800">
+                             {item.product.name}
                           </h3>
                         </Link>
 

@@ -7,6 +7,7 @@ import { getProducts } from "@/api/mockApiService";
 import ProductCard from "./ProductCard"; // Import the new ProductCard component
 import { Card, CardContent } from "@/components/ui/card"; // Keep for skeleton
 
+
 const ProductShowcase = () => {
   const { dispatch } = useCart();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -17,6 +18,7 @@ const ProductShowcase = () => {
       try {
         const allProducts = await getProducts();
         setFeaturedProducts(allProducts.slice(0, 4));
+
         setLoading(false);
       } catch (error) {
         console.error("Error loading featured products:", error);
@@ -47,11 +49,12 @@ const ProductShowcase = () => {
       console.error("Error adding product to cart:", error);
       toast.error("Impossible d'ajouter le produit au panier");
     }
+
   };
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {[...Array(4)].map((_, i) => (
           // Using Card and CardContent for skeleton structure
           <Card key={i} className="bg-white border-none overflow-hidden animate-pulse">
@@ -62,6 +65,7 @@ const ProductShowcase = () => {
               <div className="flex justify-between items-center mt-2">
                 <div className="h-5 bg-gray-200 rounded w-1/4"></div> {/* Price placeholder */}
                 <div className="h-8 bg-gray-200 rounded w-1/3"></div> {/* Button placeholder */}
+
               </div>
             </CardContent>
           </Card>
@@ -71,13 +75,14 @@ const ProductShowcase = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
       {featuredProducts.map((product) => (
         <ProductCard
           key={product.id}
           product={product}
           onAddToCart={handleAddToCart}
         />
+
       ))}
     </div>
   );

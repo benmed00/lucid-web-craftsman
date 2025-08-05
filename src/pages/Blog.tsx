@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { getBlogPosts } from "@/api/mockApiService";
+import { BlogImage } from "@/components/ui/GlobalImage";
 
 const Blog = () => {
   const [featuredPosts, setFeaturedPosts] = useState([]);
@@ -84,7 +85,7 @@ const Blog = () => {
                   className="overflow-hidden border-none shadow-md hover-scale"
                 >
                   <div className="aspect-ratio aspect-w-1 aspect-h-1 md:aspect-w-16 md:aspect-h-9">
-                    <img
+                    <BlogImage
                       src={post.image}
                       alt={post.title}
                       className="object-cover w-full h-full"
@@ -139,7 +140,7 @@ const Blog = () => {
                 className="overflow-hidden border-none shadow-sm hover-scale"
               >
                 <div className="aspect-ratio aspect-w-1 aspect-h-1 md:aspect-w-4 md:aspect-h-3">
-                  <img
+                  <BlogImage
                     src={post.image}
                     alt={post.title}
                     className="object-cover w-full h-full"

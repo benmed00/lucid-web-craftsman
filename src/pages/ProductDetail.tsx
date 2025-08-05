@@ -2,7 +2,7 @@
 // this file is used to display the product details
 // and related products
 
-import { ArrowRight, Leaf, ShoppingBag } from "lucide-react";
+import { ArrowRight, Leaf, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +16,7 @@ import PageFooter from "@/components/PageFooter";
 import { Product } from "../shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
 import { useCart } from "../context/useCart";
+import { ProductImage } from "@/components/ui/GlobalImage";
 
 const ProductDetail = () => {
   const { dispatch } = useCart();
@@ -143,10 +144,11 @@ const ProductDetail = () => {
           {/* Product Images */}
           <div>
             <div className="aspect-ratio aspect-w-1 aspect-h-1 mb-4 overflow-hidden rounded-lg">
-              <img
+              <ProductImage
                 src={product.images[selectedImage]}
                 alt={product.name}
                 className="object-cover w-full h-full"
+                preload={true}
               />
             </div>
             {product.images.length > 1 && (
@@ -162,7 +164,7 @@ const ProductDetail = () => {
                       }`}
                     onClick={() => setSelectedImage(idx)}
                   >
-                    <img
+                    <ProductImage
                       src={image}
                       alt={`${product.name} - vue ${idx + 1}`}
                       className="object-cover w-full h-full"
@@ -313,12 +315,12 @@ const ProductDetail = () => {
                   className="group"
                 >
                   <Card className="border-none shadow-sm overflow-hidden hover-scale">
-                    <div className="aspect-ratio aspect-w-1 aspect-h-1 relative overflow-hidden">
-                      <img
-                        src={product.images[0]}
-                        alt={product.name}
-                        className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
-                      />
+                     <div className="aspect-ratio aspect-w-1 aspect-h-1 relative overflow-hidden">
+                       <ProductImage
+                         src={product.images[0]}
+                         alt={product.name}
+                         className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                       />
                     </div>
                     <CardContent className="p-4">
                       <div className="text-xs text-stone-500 mb-1">

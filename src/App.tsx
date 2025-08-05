@@ -14,6 +14,8 @@ import Contact from "./pages/Contact";
 import { ErrorBoundary } from "react-error-boundary";
 import FAQ from "./pages/FAQ";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import ProductDetail from "./pages/ProductDetail";
 import Products from "./pages/Products";
@@ -27,6 +29,19 @@ import Terms from "./pages/Terms";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
+// Admin imports
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminProducts from "./pages/admin/AdminProducts";
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminSettings from "./pages/admin/AdminSettings";
+import AdminCustomers from "./pages/admin/AdminCustomers";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminInventory from "./pages/admin/AdminInventory";
+import AdminMarketing from "./pages/admin/AdminMarketing";
+import AdminHeroImage from "./pages/admin/AdminHeroImage";
+
 // Configuration de React Query
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,9 +53,11 @@ const queryClient = new QueryClient({
   },
 });
 
-const basePath: string = import.meta.env.BASE_URL || "/";
+const basePath: string = "/";
 
-const App = () => (
+const App = () => {
+  console.log("App component is rendering, basePath:", basePath);
+  return (
   <QueryClientProvider client={queryClient}>
     <CartProvider>
       <TooltipProvider delayDuration={300}>
@@ -48,6 +65,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/products" element={<Products />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
@@ -63,6 +82,21 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             <Route path="/cgv" element={<CGV />} />
             <Route path="/story" element={<Story />} />
+
+            {/* Admin routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="products" element={<AdminProducts />} />
+              <Route path="hero-image" element={<AdminHeroImage />} />
+              <Route path="inventory" element={<AdminInventory />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="customers" element={<AdminCustomers />} />
+              <Route path="marketing" element={<AdminMarketing />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
 
             {/* <Route path="/products/bags" element={<BagsPage />} />
             <Route path="/products/hats" element={<HatsPage />} /> */}
@@ -88,7 +122,8 @@ const App = () => (
       </TooltipProvider>
     </CartProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 // Composant de fallback pour les erreurs
 const ErrorFallback = () => (

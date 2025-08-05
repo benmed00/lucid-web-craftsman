@@ -1,7 +1,7 @@
 // import axios from "axios"; // Marked as unused
 
+import { supabase } from "@/integrations/supabase/client";
 import { Product } from "../shared/interfaces/Iproduct.interface";
-import { products as localProducts } from "../data/products";
 
 // Helper to simulate API latency
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -19,9 +19,9 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export const getBlogPosts = async () => {
   try {
     await delay(300); // Simulate network latency
-    // Get blog posts from db.json (imported at runtime)
+    // Get blog posts from blogPosts data
     const response = await import("../data/blogPosts");
-    return response.default;
+    return response.blogPosts;
   } catch (error) {
     console.error("Error fetching blog posts:", error);
     throw error;
@@ -32,7 +32,7 @@ export const getBlogPostById = async (id: number) => {
   try {
     await delay(200);
     const response = await import("../data/blogPosts");
-    const post = response.default.find(post => post.id === id);
+    const post = response.blogPosts.find(post => post.id === id);
     return post || null;
   } catch (error) {
     console.error(`Post with ID ${id} not found`, error);
@@ -40,11 +40,26 @@ export const getBlogPostById = async (id: number) => {
   }
 };
 
-// Products API - using in-memory data
+// Products API - using Supabase
 export const getProducts = async (): Promise<Product[]> => {
   try {
-    await delay(300); // Simulate network latency
-    return localProducts; // Use local products data directly
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching products:", error);
+      throw error;
+    }
+
+    // Transform database fields to match interface
+    return data?.map(product => ({
+      ...product,
+      new: product.is_new,
+      artisanStory: product.artisan_story,
+      related: product.related_products
+    })) || [];
   } catch (error) {
     console.error("Error fetching products:", error);
     throw error;
@@ -53,9 +68,24 @@ export const getProducts = async (): Promise<Product[]> => {
 
 export const getProductById = async (id: number): Promise<Product | null> => {
   try {
-    await delay(200);
-    const product = localProducts.find(product => product.id === id);
-    return product || null;
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error(`Product with ID ${id} not found`, error);
+      return null;
+    }
+
+    // Transform database fields to match interface
+    return data ? {
+      ...data,
+      new: data.is_new,
+      artisanStory: data.artisan_story,
+      related: data.related_products
+    } : null;
   } catch (error) {
     console.error(`Product with ID ${id} not found`, error);
     return null;
@@ -76,6 +106,7 @@ export interface CartState { // This interface might still be useful for type de
   // totalPrice might be part of a real API response, but not strictly needed for mock here
 }
 
+
 // Simulates fetching the cart structure, not actual items from localStorage
 export const getCart = async (): Promise<{ success: boolean, cart?: CartState }> => {
   await delay(100);
@@ -93,6 +124,7 @@ export const addToCart = async (product: Product, quantity: number = 1): Promise
   // Simulate a successful API response
   // The actual state update will be handled by dispatching to CartContext in the component
   return { success: true, item: { id: product.id, product, quantity } };
+
 };
 
 // Simulates removing an item from the cart via an API call
@@ -101,6 +133,7 @@ export const removeFromCart = async (productId: number): Promise<{ success: bool
   console.log(`mockApiService: removeFromCart called for product ${productId} (simulated)`);
   // Simulate a successful API response
   return { success: true, productId };
+
 };
 
 // Simulates updating an item's quantity in the cart via an API call
@@ -112,6 +145,7 @@ export const updateCartItemQuantity = async (productId: number, quantity: number
     // For this mock, let's assume it can also be handled as a removal or just a success for update.
     // The reducer will handle the removal if quantity is 0.
     console.log(`mockApiService: quantity for product ${productId} is <= 0, will be handled by reducer as removal if needed.`);
+
   }
   // Simulate a successful API response
   return { success: true, item: { id: productId, quantity } };
@@ -123,4 +157,5 @@ export const clearCart = async (): Promise<{ success: boolean }> => {
   console.log("mockApiService: clearCart called (simulated)");
   // Simulate a successful API response
   return { success: true };
+
 };

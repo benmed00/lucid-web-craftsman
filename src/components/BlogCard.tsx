@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { BlogImage } from "@/components/ui/GlobalImage";
 
 interface BlogCardProps {
   post: {
@@ -20,7 +21,7 @@ const BlogCard = ({ post }: BlogCardProps) => {
   return (
     <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300">
       <div className="aspect-w-16 aspect-h-9 w-full overflow-hidden">
-        <img
+        <BlogImage
           src={post.image}
           alt={post.title}
           className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"

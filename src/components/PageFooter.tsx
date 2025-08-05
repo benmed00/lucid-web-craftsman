@@ -84,7 +84,7 @@ const PageFooter = () => {
             <ul className="space-y-2">
               <li>
                 <Link
-                  to="/lucid-web-craftsman/shipping"
+                  to="/shipping"
                   className="text-olive-200 hover:text-white transition-colors"
                 >
                   Livraison
@@ -92,7 +92,7 @@ const PageFooter = () => {
               </li>
               <li>
                 <Link
-                  to="/lucid-web-craftsman/returns"
+                  to="/returns"
                   className="text-olive-200 hover:text-white transition-colors"
                 >
                   Retours
@@ -100,7 +100,7 @@ const PageFooter = () => {
               </li>
               <li>
                 <Link
-                  to="/lucid-web-craftsman/faq"
+                  to="/faq"
                   className="text-olive-200 hover:text-white transition-colors"
                 >
                   FAQ
@@ -108,7 +108,7 @@ const PageFooter = () => {
               </li>
               <li>
                 <Link
-                  to="/lucid-web-craftsman/cgv"
+                  to="/cgv"
                   className="text-olive-200 hover:text-white transition-colors"
                 >
                   Conditions Générales
