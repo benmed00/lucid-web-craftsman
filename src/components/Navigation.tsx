@@ -12,6 +12,16 @@ import { useAuth } from "@/hooks/useAuth";
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { itemCount, cartColor } = useCartUI(); // Removed _badgeTextColor
+  const { user, isLoading, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setIsMenuOpen(false);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
 
   return (
