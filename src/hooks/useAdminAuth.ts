@@ -1,68 +1,97 @@
 import { useState, useEffect } from 'react';
-import { adminAuthService, AdminUser } from '@/services/adminAuthService';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'super-admin';
+  lastLogin: string;
+}
 
 export const useAdminAuth = () => {
-  const [user, setUser] = useState<AdminUser | null>(null);
+  const { user, session, isLoading: authLoading } = useAuth();
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const checkAuth = () => {
-      const currentUser = adminAuthService.getCurrentUser();
-      const authenticated = adminAuthService.isAuthenticated();
-      
-      setUser(currentUser);
-      setIsAuthenticated(authenticated);
-      setIsLoading(false);
-    };
+    const checkAdminStatus = async () => {
+      if (!user || authLoading) {
+        setAdminUser(null);
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return;
+      }
 
-    checkAuth();
+      try {
+        // Check if user has admin profile
+        const { data: adminProfile, error } = await supabase
+          .from('admin_users')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
 
-    // Listen for storage changes (logout from other tabs)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'adminSession' || e.key === 'adminAuth') {
-        checkAuth();
+        if (error || !adminProfile) {
+          setAdminUser(null);
+          setIsAuthenticated(false);
+        } else {
+          const admin: AdminUser = {
+            id: adminProfile.id,
+            email: adminProfile.email,
+            name: adminProfile.name,
+            role: adminProfile.role as 'admin' | 'super-admin',
+            lastLogin: adminProfile.last_login || new Date().toISOString()
+          };
+          setAdminUser(admin);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setAdminUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+    checkAdminStatus();
+  }, [user, authLoading]);
 
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
+  const updateProfile = async (updates: Partial<AdminUser>) => {
+    if (!user || !adminUser) throw new Error('No admin user logged in');
+    
     try {
-      const user = await adminAuthService.login(email, password);
-      setUser(user);
-      setIsAuthenticated(true);
-      return user;
+      const { error } = await supabase
+        .from('admin_users')
+        .update({
+          name: updates.name || adminUser.name,
+          role: updates.role || adminUser.role
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const updatedAdmin = { ...adminUser, ...updates };
+      setAdminUser(updatedAdmin);
+      return updatedAdmin;
     } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
+      console.error('Error updating admin profile:', error);
+      throw new Error('Erreur lors de la mise à jour du profil');
     }
   };
 
-  const logout = () => {
-    adminAuthService.logout();
-    setUser(null);
-    setIsAuthenticated(false);
-  };
-
-  const updateProfile = async (updates: Partial<AdminUser>) => {
-    if (!user) throw new Error('No user logged in');
-    
-    const updatedUser = await adminAuthService.updateProfile(updates);
-    setUser(updatedUser);
-    return updatedUser;
-  };
-
   return {
-    user,
+    user: adminUser,
     isLoading,
     isAuthenticated,
-    login,
-    logout,
+    login: () => {
+      throw new Error('Use regular auth login instead');
+    },
+    logout: () => {
+      throw new Error('Use regular auth logout instead');
+    },
     updateProfile
   };
 };

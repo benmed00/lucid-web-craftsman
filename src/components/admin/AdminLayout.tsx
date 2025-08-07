@@ -21,12 +21,14 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useAuth } from "@/hooks/useAuth";
 
 const AdminLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAuthenticated, logout, isLoading } = useAdminAuth();
+  const { user: adminUser, isAuthenticated, isLoading } = useAdminAuth();
+  const { signOut } = useAuth();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -34,10 +36,15 @@ const AdminLayout = () => {
     }
   }, [isAuthenticated, isLoading, navigate]);
 
-  const handleLogout = () => {
-    logout();
-    toast.success("Déconnexion réussie");
-    navigate("/admin/login", { replace: true });
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Déconnexion réussie");
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force redirect even if logout fails
+      navigate("/admin/login", { replace: true });
+    }
   };
 
   if (isLoading) {
@@ -118,20 +125,20 @@ const AdminLayout = () => {
           </div>
         </div>
         
-        {user && (
+        {adminUser && (
           <div className="mt-4 p-3 bg-stone-50 rounded-lg">
             <div className="flex items-center space-x-2">
               <User className="h-4 w-4 text-stone-500" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-stone-800 truncate">
-                  {user.name}
+                  {adminUser.name}
                 </p>
                 <p className="text-xs text-stone-500 truncate">
-                  {user.email}
+                  {adminUser.email}
                 </p>
               </div>
               <Badge variant="secondary" className="text-xs">
-                {user.role}
+                {adminUser.role}
               </Badge>
             </div>
           </div>

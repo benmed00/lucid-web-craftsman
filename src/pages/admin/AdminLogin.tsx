@@ -7,21 +7,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Lock, Mail, Leaf, Info } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAuth } from '@/hooks/useAuth';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('admin@artisanrif.com');
   const [password, setPassword] = useState('admin123');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { login, isLoading, isAuthenticated } = useAdminAuth();
+  const { signIn, user } = useAuth();
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
+    if (user) {
       navigate('/admin', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,12 +32,15 @@ const AdminLogin = () => {
       return;
     }
     
+    setIsLoading(true);
     try {
-      await login(email, password);
+      await signIn(email, password);
       toast.success('Connexion réussie!');
-      navigate('/admin', { replace: true });
+      // Navigation will happen via useEffect when user state updates
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Erreur de connexion');
+    } finally {
+      setIsLoading(false);
     }
   };
 

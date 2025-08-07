@@ -73,8 +73,8 @@ export const useAuth = () => {
     }
 
     if (data.user) {
-      // Force page reload for clean state
-      window.location.href = '/';
+      // Don't force page reload - let React handle the state updates
+      return data;
     }
 
     return data;
@@ -109,8 +109,8 @@ export const useAuth = () => {
     }
 
     if (data.user) {
-      // Force page reload for clean state
-      window.location.href = '/';
+      // Don't force page reload - let React handle the state updates
+      return data;
     }
 
     return data;
@@ -128,12 +128,11 @@ export const useAuth = () => {
         // Ignore errors
       }
       
-      // Force page reload for clean state
-      window.location.href = '/';
+      // Don't force page reload - let React Router handle navigation
+      return;
     } catch (error) {
       console.error('Error signing out:', error);
-      // Force reload anyway
-      window.location.href = '/';
+      throw error;
     }
   };
 
