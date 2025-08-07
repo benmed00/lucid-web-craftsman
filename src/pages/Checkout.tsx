@@ -55,7 +55,11 @@ const Checkout = () => {
   const fetchCart = async () => {
     try {
       const response = await getCart();
-      setCartItems(Array.isArray(response) ? response : response.items || []);
+      if (response.success && response.cart) {
+        setCartItems(response.cart.items || []);
+      } else {
+        setCartItems([]);
+      }
       setLoading(false);
     } catch (error) {
       console.error("Error fetching cart:", error);
