@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Lock, Mail, Leaf, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { useCsrfToken } from '@/hooks/useCsrfToken';
+import { emailSchema, passwordSchema, sanitizeInput, loginRateLimiter } from '@/utils/validation';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('admin@artisanrif.com');
@@ -16,6 +18,7 @@ const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { signIn, user } = useAuth();
+  const csrfToken = useCsrfToken();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -27,14 +30,28 @@ const AdminLogin = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast.error('Veuillez remplir tous les champs');
+    // Rate limiting check
+    const clientId = navigator.userAgent + window.location.hostname;
+    if (!loginRateLimiter(clientId)) {
+      toast.error('Trop de tentatives. Veuillez attendre 15 minutes avant de réessayer.');
+      return;
+    }
+
+    // Input validation and sanitization
+    const sanitizedEmail = sanitizeInput(email);
+    const sanitizedPassword = sanitizeInput(password);
+    
+    try {
+      emailSchema.parse(sanitizedEmail);
+      passwordSchema.parse(sanitizedPassword);
+    } catch (error) {
+      toast.error('Veuillez vérifier vos informations de connexion');
       return;
     }
     
     setIsLoading(true);
     try {
-      await signIn(email, password);
+      await signIn(sanitizedEmail, sanitizedPassword);
       toast.success('Connexion réussie!');
       // Navigation will happen via useEffect when user state updates
     } catch (error) {
@@ -70,6 +87,7 @@ const AdminLogin = () => {
           </Alert>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            <input type="hidden" name="csrf_token" value={csrfToken} />
             <div className="space-y-2">
               <Label htmlFor="email">Email administrateur</Label>
               <div className="relative">
