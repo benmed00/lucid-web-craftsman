@@ -9,7 +9,7 @@ import react from "@vitejs/plugin-react-swc";
 export default defineConfig(({ mode }) => ({
   base: "/", // Fixed for Lovable preview environment
   server: {
-    host: "::",
+    host: "127.0.0.1",
     port: 8080,
   },
   plugins: [
