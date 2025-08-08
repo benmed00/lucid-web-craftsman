@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SecurityStatusCard } from "@/components/admin/SecurityStatusCard";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -297,6 +298,9 @@ const AdminDashboard = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Security Status */}
+      <SecurityStatusCard />
 
       {/* Business Insights */}
       <Card className="border-stone-200">

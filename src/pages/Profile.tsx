@@ -6,8 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useCsrfToken } from '@/hooks/useCsrfToken';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Mail, Calendar } from 'lucide-react';
+import { validateAndSanitizeName } from '@/utils/xssProtection';
 
 export default function Profile() {
   const [fullName, setFullName] = useState('');
@@ -17,6 +19,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, signOut } = useAuth();
+  const csrfToken = useCsrfToken();
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -36,10 +39,13 @@ export default function Profile() {
     e.preventDefault();
     if (!user) return;
 
-    setIsUpdating(true);
+    // Validation and sanitization
     try {
+      const sanitizedFullName = validateAndSanitizeName(fullName);
+
+      setIsUpdating(true);
       const { error } = await supabase.auth.updateUser({
-        data: { full_name: fullName }
+        data: { full_name: sanitizedFullName }
       });
 
       if (error) throw error;
@@ -114,6 +120,7 @@ export default function Profile() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleUpdateProfile} className="space-y-4">
+                <input type="hidden" name="csrf_token" value={csrfToken} />
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Nom complet</Label>
                   <Input
@@ -122,6 +129,7 @@ export default function Profile() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Votre nom complet"
+                    maxLength={100}
                   />
                 </div>
                 

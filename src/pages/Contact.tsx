@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Facebook,
@@ -15,11 +16,143 @@ import { Label } from "@/components/ui/label";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { useEffect } from "react";
+import { toast } from "sonner";
+import { useCsrfToken } from "@/hooks/useCsrfToken";
+import { validateAndSanitizeEmail, validateAndSanitizeName, sanitizeUserInput } from "@/utils/xssProtection";
+import { createRateLimiter } from "@/utils/validation";
+
+// Rate limiter for contact form submissions
+const contactRateLimiter = createRateLimiter(3, 10 * 60 * 1000); // 3 attempts per 10 minutes
 
 const Contact = () => {
+  // Form states
+  const [messageForm, setMessageForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: ''
+  });
+  
+  const [orderForm, setOrderForm] = useState({
+    name: '',
+    orderNumber: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const csrfToken = useCsrfToken();
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const handleMessageSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Rate limiting
+    const clientId = navigator.userAgent + window.location.hostname;
+    if (!contactRateLimiter(clientId)) {
+      toast.error("Trop de soumissions. Veuillez attendre 10 minutes avant de réessayer.");
+      return;
+    }
+
+    // Validation and sanitization
+    try {
+      const sanitizedData = {
+        firstName: validateAndSanitizeName(messageForm.firstName),
+        lastName: validateAndSanitizeName(messageForm.lastName),
+        email: validateAndSanitizeEmail(messageForm.email),
+        phone: sanitizeUserInput(messageForm.phone),
+        subject: sanitizeUserInput(messageForm.subject.trim()),
+        message: sanitizeUserInput(messageForm.message.trim())
+      };
+
+      if (sanitizedData.subject.length < 5) {
+        throw new Error("Le sujet doit contenir au moins 5 caractères");
+      }
+
+      if (sanitizedData.message.length < 20) {
+        throw new Error("Le message doit contenir au moins 20 caractères");
+      }
+
+      setIsSubmitting(true);
+      
+      // Simulate form submission (in production, this would call an API)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast.success("Message envoyé avec succès! Nous vous répondrons bientôt.");
+      
+      // Reset form
+      setMessageForm({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: ''
+      });
+
+    } catch (error: any) {
+      toast.error(error.message || "Erreur lors de l'envoi du message");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOrderSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Rate limiting
+    const clientId = navigator.userAgent + window.location.hostname;
+    if (!contactRateLimiter(clientId)) {
+      toast.error("Trop de soumissions. Veuillez attendre 10 minutes avant de réessayer.");
+      return;
+    }
+
+    // Validation and sanitization
+    try {
+      const sanitizedData = {
+        name: validateAndSanitizeName(orderForm.name),
+        orderNumber: sanitizeUserInput(orderForm.orderNumber.trim()),
+        email: validateAndSanitizeEmail(orderForm.email),
+        subject: sanitizeUserInput(orderForm.subject),
+        message: sanitizeUserInput(orderForm.message.trim())
+      };
+
+      if (!sanitizedData.subject) {
+        throw new Error("Veuillez sélectionner un sujet");
+      }
+
+      if (sanitizedData.message.length < 20) {
+        throw new Error("Le message doit contenir au moins 20 caractères");
+      }
+
+      setIsSubmitting(true);
+      
+      // Simulate form submission (in production, this would call an API)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast.success("Demande envoyée avec succès! Nous traiterons votre demande rapidement.");
+      
+      // Reset form
+      setOrderForm({
+        name: '',
+        orderNumber: '',
+        email: '',
+        subject: '',
+        message: ''
+      });
+
+    } catch (error: any) {
+      toast.error(error.message || "Erreur lors de l'envoi de la demande");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div
@@ -97,29 +230,46 @@ const Contact = () => {
                         </TabsList>
 
                         <TabsContent value="message" className="mt-6">
-                          <form className="space-y-6">
+                          <form onSubmit={handleMessageSubmit} className="space-y-6">
+                            <input type="hidden" name="csrf_token" value={csrfToken} />
+                            
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div className="space-y-2">
-                                <Label htmlFor="firstName">Prénom</Label>
+                                <Label htmlFor="firstName">Prénom *</Label>
                                 <Input
                                   id="firstName"
                                   placeholder="Votre prénom"
+                                  value={messageForm.firstName}
+                                  onChange={(e) => setMessageForm(prev => ({...prev, firstName: e.target.value}))}
+                                  required
+                                  maxLength={50}
                                 />
                               </div>
 
                               <div className="space-y-2">
-                                <Label htmlFor="lastName">Nom</Label>
-                                <Input id="lastName" placeholder="Votre nom" />
+                                <Label htmlFor="lastName">Nom *</Label>
+                                <Input 
+                                  id="lastName" 
+                                  placeholder="Votre nom"
+                                  value={messageForm.lastName}
+                                  onChange={(e) => setMessageForm(prev => ({...prev, lastName: e.target.value}))}
+                                  required
+                                  maxLength={50}
+                                />
                               </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email">Email *</Label>
                                 <Input
                                   id="email"
                                   type="email"
                                   placeholder="votre.email@exemple.com"
+                                  value={messageForm.email}
+                                  onChange={(e) => setMessageForm(prev => ({...prev, email: e.target.value}))}
+                                  required
+                                  maxLength={255}
                                 />
                               </div>
 
@@ -130,42 +280,66 @@ const Contact = () => {
                                 <Input
                                   id="phone"
                                   placeholder="Votre numéro de téléphone"
+                                  value={messageForm.phone}
+                                  onChange={(e) => setMessageForm(prev => ({...prev, phone: e.target.value}))}
+                                  maxLength={20}
                                 />
                               </div>
                             </div>
 
                             <div className="space-y-2">
-                              <Label htmlFor="subject">Sujet</Label>
+                              <Label htmlFor="subject">Sujet *</Label>
                               <Input
                                 id="subject"
                                 placeholder="Objet de votre message"
+                                value={messageForm.subject}
+                                onChange={(e) => setMessageForm(prev => ({...prev, subject: e.target.value}))}
+                                required
+                                maxLength={200}
                               />
                             </div>
 
                             <div className="space-y-2">
-                              <Label htmlFor="message">Message</Label>
+                              <Label htmlFor="message">Message *</Label>
                               <textarea
                                 id="message"
                                 rows={5}
                                 placeholder="Votre message..."
+                                value={messageForm.message}
+                                onChange={(e) => setMessageForm(prev => ({...prev, message: e.target.value}))}
                                 className="w-full px-3 py-2 text-base border border-stone-300 rounded-md focus:outline-none focus:border-olive-400"
+                                required
+                                maxLength={2000}
                               ></textarea>
+                              <p className="text-sm text-muted-foreground">
+                                {messageForm.message.length}/2000 caractères
+                              </p>
                             </div>
 
-                            <Button className="w-full md:w-auto bg-olive-700 hover:bg-olive-800">
-                              Envoyer le message
+                            <Button 
+                              type="submit" 
+                              className="w-full md:w-auto bg-olive-700 hover:bg-olive-800"
+                              disabled={isSubmitting}
+                            >
+                              {isSubmitting ? "Envoi en cours..." : "Envoyer le message"}
                             </Button>
                           </form>
                         </TabsContent>
 
                         <TabsContent value="commande" className="mt-6">
-                          <form className="space-y-6">
+                          <form onSubmit={handleOrderSubmit} className="space-y-6">
+                            <input type="hidden" name="csrf_token" value={csrfToken} />
+                            
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div className="space-y-2">
-                                <Label htmlFor="orderName">Nom complet</Label>
+                                <Label htmlFor="orderName">Nom complet *</Label>
                                 <Input
                                   id="orderName"
                                   placeholder="Votre nom complet"
+                                  value={orderForm.name}
+                                  onChange={(e) => setOrderForm(prev => ({...prev, name: e.target.value}))}
+                                  required
+                                  maxLength={100}
                                 />
                               </div>
 
@@ -176,24 +350,34 @@ const Contact = () => {
                                 <Input
                                   id="orderNumber"
                                   placeholder="Ex: ORD-12345"
+                                  value={orderForm.orderNumber}
+                                  onChange={(e) => setOrderForm(prev => ({...prev, orderNumber: e.target.value}))}
+                                  maxLength={50}
                                 />
                               </div>
                             </div>
 
                             <div className="space-y-2">
-                              <Label htmlFor="orderEmail">Email</Label>
+                              <Label htmlFor="orderEmail">Email *</Label>
                               <Input
                                 id="orderEmail"
                                 type="email"
                                 placeholder="Email utilisé pour la commande"
+                                value={orderForm.email}
+                                onChange={(e) => setOrderForm(prev => ({...prev, email: e.target.value}))}
+                                required
+                                maxLength={255}
                               />
                             </div>
 
                             <div className="space-y-2">
-                              <Label htmlFor="orderSubject">Sujet</Label>
+                              <Label htmlFor="orderSubject">Sujet *</Label>
                               <select
                                 id="orderSubject"
                                 className="w-full h-10 px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:border-olive-400"
+                                value={orderForm.subject}
+                                onChange={(e) => setOrderForm(prev => ({...prev, subject: e.target.value}))}
+                                required
                               >
                                 <option value="">Sélectionnez un sujet</option>
                                 <option value="status">
@@ -213,17 +397,28 @@ const Contact = () => {
                             </div>
 
                             <div className="space-y-2">
-                              <Label htmlFor="orderMessage">Message</Label>
+                              <Label htmlFor="orderMessage">Message *</Label>
                               <textarea
                                 id="orderMessage"
                                 rows={5}
                                 placeholder="Détails de votre question concernant la commande..."
+                                value={orderForm.message}
+                                onChange={(e) => setOrderForm(prev => ({...prev, message: e.target.value}))}
                                 className="w-full px-3 py-2 text-base border border-stone-300 rounded-md focus:outline-none focus:border-olive-400"
+                                required
+                                maxLength={2000}
                               ></textarea>
+                              <p className="text-sm text-muted-foreground">
+                                {orderForm.message.length}/2000 caractères
+                              </p>
                             </div>
 
-                            <Button className="w-full md:w-auto bg-olive-700 hover:bg-olive-800">
-                              Envoyer la demande
+                            <Button 
+                              type="submit" 
+                              className="w-full md:w-auto bg-olive-700 hover:bg-olive-800"
+                              disabled={isSubmitting}
+                            >
+                              {isSubmitting ? "Envoi en cours..." : "Envoyer la demande"}
                             </Button>
                           </form>
                         </TabsContent>
@@ -277,7 +472,6 @@ const Contact = () => {
                           <h3 className="font-medium text-stone-800 mb-1">
                             Adresse
                           </h3>
-                          ;;[]
                           <p className="text-stone-600">
                             Av. de la Liberation
                             <br />
@@ -298,18 +492,24 @@ const Contact = () => {
                       <a
                         href="https://instagram.com"
                         className="bg-olive-100 hover:bg-olive-200 transition-colors p-3 rounded-full text-olive-700"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
                         <Instagram className="h-6 w-6" />
                       </a>
                       <a
                         href="https://facebook.com"
                         className="bg-olive-100 hover:bg-olive-200 transition-colors p-3 rounded-full text-olive-700"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
                         <Facebook className="h-6 w-6" />
                       </a>
                       <a
                         href="https://twitter.com"
                         className="bg-olive-100 hover:bg-olive-200 transition-colors p-3 rounded-full text-olive-700"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
                         <Twitter className="h-6 w-6" />
                       </a>

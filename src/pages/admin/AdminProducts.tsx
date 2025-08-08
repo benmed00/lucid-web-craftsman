@@ -25,6 +25,7 @@ import { productService, CreateProductData, UpdateProductData } from "@/services
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -32,6 +33,7 @@ const AdminProducts = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const { logAction } = useAuditLog();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isNewProduct, setIsNewProduct] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
@@ -118,6 +120,14 @@ const AdminProducts = () => {
       if (isNewProduct) {
         const newProduct = await productService.createProduct(formData as CreateProductData);
         setProducts([...products, newProduct]);
+        
+        // Audit log
+        await logAction("CREATE", "product", newProduct.id.toString(), {
+          productName: newProduct.name,
+          category: newProduct.category,
+          price: newProduct.price
+        });
+        
         toast.success("Produit ajouté avec succès");
       } else if (editingProduct) {
         const updatedProduct = await productService.updateProduct({
@@ -125,6 +135,13 @@ const AdminProducts = () => {
           ...formData
         } as UpdateProductData);
         setProducts(products.map(p => p.id === editingProduct.id ? updatedProduct : p));
+        
+        // Audit log
+        await logAction("UPDATE", "product", editingProduct.id.toString(), {
+          productName: updatedProduct.name,
+          changes: formData
+        });
+        
         toast.success("Produit mis à jour avec succès");
       }
 
@@ -138,10 +155,20 @@ const AdminProducts = () => {
   };
 
   const handleDeleteProduct = async (productId: number) => {
+    const product = products.find(p => p.id === productId);
     if (confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
       try {
         await productService.deleteProduct(productId);
         setProducts(products.filter(p => p.id !== productId));
+        
+        // Audit log
+        if (product) {
+          await logAction("DELETE", "product", productId.toString(), {
+            productName: product.name,
+            category: product.category
+          });
+        }
+        
         toast.success("Produit supprimé avec succès");
       } catch (error) {
         console.error("Error deleting product:", error);

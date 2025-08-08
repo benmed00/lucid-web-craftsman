@@ -7,7 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useCsrfToken } from '@/hooks/useCsrfToken';
 import { Eye, EyeOff } from 'lucide-react';
+import { validateAndSanitizeEmail, validateAndSanitizeName, validatePassword } from '@/utils/xssProtection';
+import { createRateLimiter } from '@/utils/validation';
+
+// Rate limiters for different actions
+const authRateLimiter = createRateLimiter(5, 15 * 60 * 1000); // 5 attempts per 15 minutes
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -21,6 +27,7 @@ export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signIn, signUp, user } = useAuth();
+  const csrfToken = useCsrfToken();
 
   // Redirect if already authenticated
   if (user) {
@@ -30,23 +37,32 @@ export default function Auth() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    
+    // Rate limiting check
+    const clientId = navigator.userAgent + window.location.hostname;
+    if (!authRateLimiter(clientId)) {
       toast({
-        title: "Erreur",
-        description: "Veuillez remplir tous les champs",
+        title: "Trop de tentatives",
+        description: "Veuillez attendre 15 minutes avant de réessayer",
         variant: "destructive"
       });
       return;
     }
 
-    setIsLoading(true);
+    // Validation and sanitization
     try {
-      await signIn(email, password);
+      const sanitizedEmail = validateAndSanitizeEmail(email);
+      
+      if (!password) {
+        throw new Error("Mot de passe requis");
+      }
+
+      setIsLoading(true);
+      await signIn(sanitizedEmail, password);
       toast({
         title: "Connexion réussie",
         description: "Bienvenue !"
       });
-      // Redirect will happen automatically from useAuth
     } catch (error: any) {
       toast({
         title: "Erreur de connexion",
@@ -60,41 +76,35 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !confirmPassword || !fullName) {
+    
+    // Rate limiting check
+    const clientId = navigator.userAgent + window.location.hostname;
+    if (!authRateLimiter(clientId)) {
       toast({
-        title: "Erreur",
-        description: "Veuillez remplir tous les champs",
+        title: "Trop de tentatives",
+        description: "Veuillez attendre 15 minutes avant de réessayer",
         variant: "destructive"
       });
       return;
     }
 
-    if (password !== confirmPassword) {
-      toast({
-        title: "Erreur",
-        description: "Les mots de passe ne correspondent pas",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      toast({
-        title: "Erreur",
-        description: "Le mot de passe doit contenir au moins 6 caractères",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsLoading(true);
+    // Validation and sanitization
     try {
-      await signUp(email, password, fullName);
+      const sanitizedEmail = validateAndSanitizeEmail(email);
+      const sanitizedFullName = validateAndSanitizeName(fullName);
+      
+      validatePassword(password);
+
+      if (password !== confirmPassword) {
+        throw new Error("Les mots de passe ne correspondent pas");
+      }
+
+      setIsLoading(true);
+      await signUp(sanitizedEmail, password, sanitizedFullName);
       toast({
         title: "Inscription réussie",
         description: "Bienvenue ! Votre compte a été créé avec succès."
       });
-      // Redirect will happen automatically from useAuth
     } catch (error: any) {
       toast({
         title: "Erreur d'inscription",
@@ -130,6 +140,7 @@ export default function Auth() {
 
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
+                  <input type="hidden" name="csrf_token" value={csrfToken} />
                   <div className="space-y-2">
                     <Label htmlFor="signin-email">Email</Label>
                     <Input
@@ -139,6 +150,7 @@ export default function Auth() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      maxLength={255}
                     />
                   </div>
                   <div className="space-y-2">
@@ -171,6 +183,7 @@ export default function Auth() {
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
+                  <input type="hidden" name="csrf_token" value={csrfToken} />
                   <div className="space-y-2">
                     <Label htmlFor="signup-name">Nom complet</Label>
                     <Input
@@ -180,6 +193,7 @@ export default function Auth() {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       required
+                      maxLength={100}
                     />
                   </div>
                   <div className="space-y-2">
@@ -191,6 +205,7 @@ export default function Auth() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      maxLength={255}
                     />
                   </div>
                   <div className="space-y-2">
