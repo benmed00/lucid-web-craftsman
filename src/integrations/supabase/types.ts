@@ -82,6 +82,39 @@ export type Database = {
           },
         ]
       }
+      orders: {
+        Row: {
+          amount: number | null
+          created_at: string
+          currency: string | null
+          id: string
+          status: string | null
+          stripe_session_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          status?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          status?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           artisan: string
@@ -132,6 +165,74 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      shipments: {
+        Row: {
+          carrier: string | null
+          created_at: string
+          expected_delivery: string | null
+          id: string
+          order_id: string
+          status: string | null
+          tracking_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier?: string | null
+          created_at?: string
+          expected_delivery?: string | null
+          id?: string
+          order_id: string
+          status?: string | null
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier?: string | null
+          created_at?: string
+          expected_delivery?: string | null
+          id?: string
+          order_id?: string
+          status?: string | null
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
