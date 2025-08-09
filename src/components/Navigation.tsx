@@ -116,8 +116,8 @@ const Navigation = () => {
                 </Button>
               </div>
             ) : (
-              <Button variant="default" size="sm" asChild className="hidden md:inline-flex">
-                <Link to="/auth">Se connecter</Link>
+              <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
+                <Link to="/auth" aria-label="Se connecter">Se connecter</Link>
               </Button>
             )}
           </>
