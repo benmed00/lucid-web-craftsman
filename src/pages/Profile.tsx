@@ -3,19 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useCsrfToken } from '@/hooks/useCsrfToken';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Mail, Calendar } from 'lucide-react';
-import { validateAndSanitizeName } from '@/utils/xssProtection';
+import ImageUpload from '@/components/ui/ImageUpload';
+import { validateAndSanitizeName, sanitizeUserInput } from '@/utils/xssProtection';
 
 export default function Profile() {
   const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  
+  const [bio, setBio] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, signOut } = useAuth();
@@ -28,11 +31,23 @@ export default function Profile() {
     }
   }, [user, navigate]);
 
-  // Load user data
+  // Load user data and profile
   useEffect(() => {
-    if (user) {
+    const loadProfile = async () => {
+      if (!user) return;
       setFullName(user.user_metadata?.full_name || '');
-    }
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name,bio,avatar_url')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (!error && data) {
+        setFullName(data.full_name || user.user_metadata?.full_name || '');
+        setBio(data.bio || '');
+        setAvatarUrl(data.avatar_url || '');
+      }
+    };
+    loadProfile();
   }, [user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -44,11 +59,18 @@ export default function Profile() {
       const sanitizedFullName = validateAndSanitizeName(fullName);
 
       setIsUpdating(true);
-      const { error } = await supabase.auth.updateUser({
+      // Update auth metadata full name
+      const { error: authError } = await supabase.auth.updateUser({
         data: { full_name: sanitizedFullName }
       });
+      if (authError) throw authError;
 
-      if (error) throw error;
+      // Upsert profile with full name, bio, and current avatar URL
+      const sanitizedBio = sanitizeUserInput(bio).slice(0, 500);
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({ id: user.id, full_name: sanitizedFullName, bio: sanitizedBio, avatar_url: avatarUrl || null }, { onConflict: 'id' });
+      if (profileError) throw profileError;
 
       toast({
         title: "Profil mis à jour",
@@ -63,6 +85,30 @@ export default function Profile() {
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  // Avatar upload handlers
+  const onAvatarImageUpload = async (file: File) => {
+    if (!user) return;
+    const ext = (file.type.split('/')[1] || 'jpg').toLowerCase();
+    const filePath = `${user.id}/avatar_${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true, contentType: file.type });
+    if (uploadError) throw uploadError;
+
+    const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+    const publicUrl = publicData.publicUrl;
+    setAvatarUrl(publicUrl);
+
+    await supabase.from('profiles').upsert({ id: user.id, avatar_url: publicUrl }, { onConflict: 'id' });
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!user) return;
+    await supabase.from('profiles').update({ avatar_url: null }).eq('id', user.id);
+    setAvatarUrl('');
   };
 
   const handleDeleteAccount = async () => {
@@ -121,6 +167,18 @@ export default function Profile() {
             <CardContent>
               <form onSubmit={handleUpdateProfile} className="space-y-4">
                 <input type="hidden" name="csrf_token" value={csrfToken} />
+
+                <div className="mb-4">
+                  <ImageUpload
+                    currentImage={avatarUrl || undefined}
+                    onImageUpload={async (file) => { await onAvatarImageUpload(file); }}
+                    onImageRemove={handleRemoveAvatar}
+                    title="Photo de profil"
+                    description="JPEG, PNG, WEBP (max 5MB)"
+                    acceptedTypes={['image/jpeg','image/png','image/webp']}
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Nom complet</Label>
                   <Input
@@ -130,6 +188,18 @@ export default function Profile() {
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Votre nom complet"
                     maxLength={100}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    rows={4}
+                    maxLength={500}
+                    placeholder="Décrivez-vous..."
                   />
                 </div>
                 
