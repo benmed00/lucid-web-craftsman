@@ -21,26 +21,31 @@ const Index = () => {
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="container mx-auto px-4 py-12 md:py-24 flex flex-col md:flex-row items-center">
+        <section className="container mx-auto px-4 py-12 md:py-24 flex flex-col md:flex-row items-center gap-8">
+          {/* Left: Copy and CTA */}
           <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8">
             <Badge className="mb-4 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none">Artisanat Durable & Fait Main</Badge>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-stone-800 mb-6">Créé avec amour dans les montagnes du Rif</h1>
-          <p className="text-lg text-stone-600 mb-8">Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.</p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link to="/products">
-              <Button className="bg-olive-700 hover:bg-olive-800 text-white font-medium px-8 py-6 rounded-md">
-                Découvrir <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Link to="/blog">
-              <Button variant="outline" className="border-stone-300 text-stone-700 hover:bg-stone-50 px-8 py-6 rounded-md">
-                Notre Histoire
-              </Button>
-            </Link>
-
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-stone-800 mb-6">Créé avec amour dans les montagnes du Rif</h1>
+            <p className="text-lg text-stone-600 mb-8">Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.</p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link to="/products">
+                <Button className="bg-olive-700 hover:bg-olive-800 text-white font-medium px-8 py-6 rounded-md">
+                  Découvrir <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/blog">
+                <Button variant="outline" className="border-stone-300 text-stone-700 hover:bg-stone-50 px-8 py-6 rounded-md">
+                  Notre Histoire
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+
+          {/* Right: Hero image */}
+          <div className="md:w-1/2 w-full">
+            <HeroImage />
+          </div>
+        </section>
 
       {/* Features Section */}
       <section id="about" className="bg-beige-50 py-20 md:py-28">
