@@ -18,7 +18,19 @@ export const heroImageService = {
   get: (): HeroImageData => {
     try {
       const stored = localStorage.getItem(HERO_IMAGE_KEY);
-      return stored ? JSON.parse(stored) : defaultHeroImage;
+      const parsed: HeroImageData | null = stored ? JSON.parse(stored) : null;
+
+      // Sanitize non-persistent or invalid URLs (e.g., blob: from previous admin uploads)
+      const data: HeroImageData = {
+        ...defaultHeroImage,
+        ...(parsed || {}),
+      };
+      if (data.imageUrl?.startsWith('blob:') || !data.imageUrl) {
+        data.imageUrl = defaultHeroImage.imageUrl;
+      }
+      if (!data.altText) data.altText = defaultHeroImage.altText;
+
+      return data;
     } catch (error) {
       console.error('Error getting hero image data:', error);
       return defaultHeroImage;
