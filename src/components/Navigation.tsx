@@ -107,7 +107,7 @@ const Navigation = () => {
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/profile" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
-                    <span className="text-sm">{user.user_metadata?.full_name || user.email}</span>
+                    <span className="text-sm">Mon Profil</span>
                   </Link>
                 </Button>
                 <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-2">
@@ -192,9 +192,9 @@ const Navigation = () => {
                   <div className="pt-3 mt-3 border-t border-stone-200">
                     <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
                       <div className="mb-3 px-4 py-2 bg-olive-50 rounded-lg hover:bg-olive-100 transition-colors cursor-pointer">
-                        <div className="flex items-center gap-2 text-sm text-olive-700">
+                        <div className="flex items-center gap-2 text-sm text-olive-700 font-medium">
                           <User className="h-4 w-4" />
-                          {user.user_metadata?.full_name || user.email}
+                          👤 Mon Profil
                         </div>
                       </div>
                     </Link>

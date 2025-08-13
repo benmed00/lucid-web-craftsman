@@ -168,28 +168,61 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address_line1: string | null
+          address_line2: string | null
           avatar_url: string | null
           bio: string | null
+          city: string | null
+          country: string | null
           created_at: string
+          facebook_url: string | null
           full_name: string | null
           id: string
+          instagram_handle: string | null
+          location: string | null
+          phone: string | null
+          postal_code: string | null
+          twitter_handle: string | null
           updated_at: string
+          website_url: string | null
         }
         Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
           avatar_url?: string | null
           bio?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          facebook_url?: string | null
           full_name?: string | null
           id: string
+          instagram_handle?: string | null
+          location?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          twitter_handle?: string | null
           updated_at?: string
+          website_url?: string | null
         }
         Update: {
+          address_line1?: string | null
+          address_line2?: string | null
           avatar_url?: string | null
           bio?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          facebook_url?: string | null
           full_name?: string | null
           id?: string
+          instagram_handle?: string | null
+          location?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          twitter_handle?: string | null
           updated_at?: string
+          website_url?: string | null
         }
         Relationships: []
       }
@@ -230,6 +263,59 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          currency: string | null
+          email_notifications: boolean | null
+          id: string
+          language: string | null
+          marketing_emails: boolean | null
+          order_updates: boolean | null
+          privacy_profile_public: boolean | null
+          privacy_show_email: boolean | null
+          privacy_show_phone: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          language?: string | null
+          marketing_emails?: boolean | null
+          order_updates?: boolean | null
+          privacy_profile_public?: boolean | null
+          privacy_show_email?: boolean | null
+          privacy_show_phone?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          language?: string | null
+          marketing_emails?: boolean | null
+          order_updates?: boolean | null
+          privacy_profile_public?: boolean | null
+          privacy_show_email?: boolean | null
+          privacy_show_phone?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

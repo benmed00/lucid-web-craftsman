@@ -15,7 +15,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import FAQ from "./pages/FAQ";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Profile from "./pages/Profile";
+import EnhancedProfile from "./pages/EnhancedProfile";
 import NotFound from "./pages/NotFound";
 import ProductDetail from "./pages/ProductDetail";
 import Products from "./pages/Products";
@@ -67,7 +67,7 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/products" element={<Products />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile" element={<EnhancedProfile />} />
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
