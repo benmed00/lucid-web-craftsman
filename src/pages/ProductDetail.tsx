@@ -17,6 +17,7 @@ import { Product } from "../shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
 import { useCart } from "../context/useCart";
 import { ProductImage } from "@/components/ui/GlobalImage";
+import { sanitizeHtmlContent } from "@/utils/xssProtection";
 
 const ProductDetail = () => {
   const { dispatch } = useCart();
@@ -262,9 +263,11 @@ const ProductDetail = () => {
                 <div
                   className="text-stone-600 text-sm space-y-2"
                   dangerouslySetInnerHTML={{
-                    __html: product.details.replace(
-                      /<br>/g,
-                      '<br class="block mb-2">'
+                    __html: sanitizeHtmlContent(
+                      product.details.replace(
+                        /<br>/g,
+                        '<br class="block mb-2">'
+                      )
                     ),
                   }}
                 />
@@ -279,9 +282,11 @@ const ProductDetail = () => {
                 <div
                   className="text-stone-600 text-sm space-y-2"
                   dangerouslySetInnerHTML={{
-                    __html: product.care.replace(
-                      /<br>/g,
-                      '<br class="block mb-2">'
+                    __html: sanitizeHtmlContent(
+                      product.care.replace(
+                        /<br>/g,
+                        '<br class="block mb-2">'
+                      )
                     ),
                   }}
                 />

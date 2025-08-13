@@ -1,8 +1,8 @@
 
 // Stripe configuration for the frontend
 
-// Note: This should be moved to environment variables in production
-export const STRIPE_PUBLIC_KEY = "pk_test_51OzdrzCnv9i5ZLAFKWzWGBrVXYOyK0WoVnGQXTvBW3T0GVXbsQ9L0EqkSahRD4cp9NPleEUP6T0tSgvH8lFwaPWF00QHiYTfMU";
+// Using a demo Stripe public key (safe for client-side use)
+export const STRIPE_PUBLIC_KEY = "pk_test_demo_key_for_testing_only";
 
 export const formatPrice = (amount: number): string => {
   const formatter = new Intl.NumberFormat('fr-FR', {

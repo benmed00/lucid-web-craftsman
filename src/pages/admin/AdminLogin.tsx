@@ -12,8 +12,8 @@ import { useCsrfToken } from '@/hooks/useCsrfToken';
 import { emailSchema, passwordSchema, sanitizeInput, loginRateLimiter } from '@/utils/validation';
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState('admin@artisanrif.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -77,14 +77,6 @@ const AdminLogin = () => {
         </CardHeader>
         
         <CardContent className="space-y-4">
-          <Alert className="bg-blue-50 border-blue-200">
-            <Info className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800">
-              <strong>Identifiants de démonstration:</strong><br />
-              Email: admin@artisanrif.com<br />
-              Mot de passe: admin123
-            </AlertDescription>
-          </Alert>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <input type="hidden" name="csrf_token" value={csrfToken} />
