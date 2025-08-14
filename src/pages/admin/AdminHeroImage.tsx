@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,22 +13,27 @@ import { useHeroImage } from '@/hooks/useHeroImage';
 import { HeroImageData } from '@/services/heroImageService';
 
 const AdminHeroImage = () => {
-  const { heroImageData, updateHeroImage } = useHeroImage();
+  const { heroImageData, updateHeroImage, uploadImage, isLoading: heroLoading } = useHeroImage();
   const [localData, setLocalData] = useState<HeroImageData>(heroImageData);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Update local data when hero image data changes
+  useEffect(() => {
+    setLocalData(heroImageData);
+  }, [heroImageData]);
 
   const hasChanges = JSON.stringify(localData) !== JSON.stringify(heroImageData);
 
   const handleImageUpload = async (file: File, previewUrl: string) => {
     setIsUploading(true);
     try {
-      // Simulate upload - in real app, upload to your storage service
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Upload to Supabase Storage
+      const uploadedUrl = await uploadImage(file);
       
       setLocalData(prev => ({
         ...prev,
-        imageUrl: previewUrl
+        imageUrl: uploadedUrl
       }));
       
       toast.success('Image uploadée avec succès!');
@@ -43,7 +48,7 @@ const AdminHeroImage = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      updateHeroImage(localData);
+      await updateHeroImage(localData);
       toast.success('Image principale mise à jour avec succès!');
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde');

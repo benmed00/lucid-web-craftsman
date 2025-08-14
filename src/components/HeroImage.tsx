@@ -4,7 +4,19 @@ import { useHeroImage } from "@/hooks/useHeroImage";
 import { HeroImage as HeroImageComponent } from "@/components/ui/GlobalImage";
 
 const HeroImage = () => {
-  const { heroImageData } = useHeroImage();
+  const { heroImageData, isLoading } = useHeroImage();
+
+  if (isLoading) {
+    return (
+      <div className="relative rounded-lg overflow-hidden shadow-lg">
+        <AspectRatio ratio={4 / 5} className="bg-stone-100">
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olive-600"></div>
+          </div>
+        </AspectRatio>
+      </div>
+    );
+  }
 
   return (
     <div className="relative rounded-lg overflow-hidden shadow-lg">
