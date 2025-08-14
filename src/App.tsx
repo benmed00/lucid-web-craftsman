@@ -68,6 +68,7 @@ const App = () => {
             <Route path="/products" element={<Products />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile" element={<EnhancedProfile />} />
+            <Route path="/enhanced-profile" element={<EnhancedProfile />} />
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
@@ -78,7 +79,6 @@ const App = () => {
             <Route path="/returns" element={<Returns />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/about" element={<About />} />
-            <Route path="*" element={<NotFound />} />
 
             <Route path="/terms" element={<Terms />} />
             <Route path="/cgv" element={<CGV />} />
