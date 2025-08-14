@@ -75,7 +75,7 @@ const AdminLogin = () => {
 
   // Handle admin check after successful login
   useEffect(() => {
-    if (user && !adminLoading) {
+    if (user && !adminLoading && isLoading) {
       setIsLoading(false);
       
       if (isAdminAuthenticated) {
@@ -85,7 +85,7 @@ const AdminLogin = () => {
         toast.error('Accès refusé. Ce compte n\'a pas les privilèges administrateur.');
       }
     }
-  }, [user, adminLoading, isAdminAuthenticated, navigate]);
+  }, [user, adminLoading, isAdminAuthenticated, navigate, isLoading]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-beige-50 to-olive-50 flex items-center justify-center p-4">
