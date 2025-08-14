@@ -18,12 +18,20 @@ export const useAdminAuth = () => {
 
   useEffect(() => {
     const checkAdminStatus = async () => {
-      if (!user || authLoading) {
+      // If auth is still loading, keep loading
+      if (authLoading) {
+        return;
+      }
+
+      // If no user, clear admin state
+      if (!user) {
         setAdminUser(null);
         setIsAuthenticated(false);
         setIsLoading(false);
         return;
       }
+
+      setIsLoading(true);
 
       try {
         // Check if user has admin profile
@@ -34,6 +42,7 @@ export const useAdminAuth = () => {
           .single();
 
         if (error || !adminProfile) {
+          console.log('No admin profile found for user:', user.id, error?.message);
           setAdminUser(null);
           setIsAuthenticated(false);
         } else {
@@ -46,6 +55,12 @@ export const useAdminAuth = () => {
           };
           setAdminUser(admin);
           setIsAuthenticated(true);
+          
+          // Update last login
+          await supabase
+            .from('admin_users')
+            .update({ last_login: new Date().toISOString() })
+            .eq('user_id', user.id);
         }
       } catch (error) {
         console.error('Error checking admin status:', error);

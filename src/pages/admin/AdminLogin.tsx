@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Lock, Mail, Leaf, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useCsrfToken } from '@/hooks/useCsrfToken';
 import { emailSchema, passwordSchema, sanitizeInput, loginRateLimiter } from '@/utils/validation';
 
@@ -16,16 +17,18 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(false);
   const navigate = useNavigate();
   const { signIn, user } = useAuth();
+  const { isAuthenticated: isAdminAuthenticated, isLoading: adminLoading } = useAdminAuth();
   const csrfToken = useCsrfToken();
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated as admin
   useEffect(() => {
-    if (user) {
+    if (!adminLoading && isAdminAuthenticated) {
       navigate('/admin', { replace: true });
     }
-  }, [user, navigate]);
+  }, [isAdminAuthenticated, adminLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,16 +53,50 @@ const AdminLogin = () => {
     }
     
     setIsLoading(true);
+    setCheckingAdmin(true);
+    
     try {
       await signIn(sanitizedEmail, sanitizedPassword);
-      toast.success('Connexion réussie!');
-      // Navigation will happen via useEffect when user state updates
+      
+      // Wait a moment for admin auth to process
+      setTimeout(() => {
+        setCheckingAdmin(false);
+        // Check will happen via useEffect when admin state updates
+      }, 1000);
+      
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erreur de connexion');
-    } finally {
       setIsLoading(false);
+      setCheckingAdmin(false);
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error('Email ou mot de passe incorrect');
+        } else if (error.message.includes('Email not confirmed')) {
+          toast.error('Veuillez confirmer votre email avant de vous connecter');
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.error('Erreur de connexion');
+      }
     }
   };
+
+  // Handle admin check after login
+  useEffect(() => {
+    if (user && checkingAdmin && !adminLoading) {
+      setIsLoading(false);
+      setCheckingAdmin(false);
+      
+      if (isAdminAuthenticated) {
+        toast.success('Connexion administrateur réussie!');
+        navigate('/admin', { replace: true });
+      } else {
+        toast.error('Accès refusé. Ce compte n\'a pas les privilèges administrateur.');
+        // Keep user on login page
+      }
+    }
+  }, [user, checkingAdmin, adminLoading, isAdminAuthenticated, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-beige-50 to-olive-50 flex items-center justify-center p-4">
@@ -126,9 +163,9 @@ const AdminLogin = () => {
             <Button 
               type="submit" 
               className="w-full bg-olive-700 hover:bg-olive-800"
-              disabled={isLoading}
+              disabled={isLoading || checkingAdmin}
             >
-              {isLoading ? "Connexion en cours..." : "Se connecter"}
+              {checkingAdmin ? "Vérification des privilèges..." : isLoading ? "Connexion en cours..." : "Se connecter"}
             </Button>
           </form>
 
