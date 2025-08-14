@@ -23,18 +23,25 @@ const Index = () => {
         {/* Hero Section */}
         <section className="container mx-auto px-4 py-12 md:py-24 flex flex-col md:flex-row items-center gap-8">
           {/* Left: Copy and CTA */}
-          <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8">
-            <Badge className="mb-4 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none">Artisanat Durable & Fait Main</Badge>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-stone-800 mb-6">Créé avec amour dans les montagnes du Rif</h1>
-            <p className="text-lg text-stone-600 mb-8">Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.</p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/products">
-                <Button className="bg-olive-700 hover:bg-olive-800 text-white font-medium px-8 py-6 rounded-md">
-                  Découvrir <ArrowRight className="ml-2 h-5 w-5" />
+          <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8 hero-text-animation">
+            <Badge className="mb-4 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none animate-scale-in hover-glow">
+              Artisanat Durable & Fait Main
+            </Badge>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-stone-800 mb-6 animate-fade-in-up">
+              Créé avec amour dans les montagnes du Rif
+            </h1>
+            <p className="text-lg text-stone-600 mb-8 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+              Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+              <Link to="/products" className="group">
+                <Button className="bg-olive-700 hover:bg-olive-800 text-white font-medium px-8 py-6 rounded-md transition-all duration-300 hover:scale-105 hover:shadow-lg button-press hover-glow">
+                  Découvrir la Collection 
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </Link>
-              <Link to="/blog">
-                <Button variant="outline" className="border-stone-300 text-stone-700 hover:bg-stone-50 px-8 py-6 rounded-md">
+              <Link to="/blog" className="group">
+                <Button variant="outline" className="border-stone-300 text-stone-700 hover:bg-stone-50 px-8 py-6 rounded-md transition-all duration-300 hover:scale-105 hover:border-olive-300 button-press">
                   Notre Histoire
                 </Button>
               </Link>
@@ -42,8 +49,10 @@ const Index = () => {
           </div>
 
           {/* Right: Hero image */}
-          <div className="md:w-1/2 w-full">
-            <HeroImage />
+          <div className="md:w-1/2 w-full hero-image-animation">
+            <div className="hover-scale transition-all duration-500">
+              <HeroImage />
+            </div>
           </div>
         </section>
 
@@ -62,39 +71,39 @@ const Index = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 stagger-animation">
-            <Card className="bg-white border-none shadow-lg hover:shadow-xl hover-lift animate-fade-in-up transition-all duration-500 p-8">
+            <Card className="bg-white border-none shadow-lg hover:shadow-xl hover-lift animate-fade-in-up transition-all duration-500 p-8 hover-glow group">
               <CardContent className="p-0">
-                <div className="h-16 w-16 bg-olive-100 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                  <Leaf className="h-8 w-8 text-olive-700" />
+                <div className="h-16 w-16 bg-olive-100 rounded-2xl flex items-center justify-center mb-6 mx-auto transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <Leaf className="h-8 w-8 text-olive-700 transition-transform duration-300" />
                 </div>
-                <h3 className="text-xl font-serif text-stone-800 mb-4 text-center">Matériaux Écologiques</h3>
-                <p className="text-stone-600 text-center leading-relaxed">
+                <h3 className="text-xl font-serif text-stone-800 mb-4 text-center transition-colors duration-300 group-hover:text-olive-700">Matériaux Écologiques</h3>
+                <p className="text-stone-600 text-center leading-relaxed transition-colors duration-300 group-hover:text-stone-700">
                   Tous nos produits sont fabriqués à partir de matériaux durables et éthiques, respectueux de l'environnement et des traditions locales.
                 </p>
               </CardContent>
             </Card>
-            <Card className="bg-white border-none shadow-lg hover:shadow-xl hover-lift animate-fade-in-up transition-all duration-500 p-8">
+            <Card className="bg-white border-none shadow-lg hover:shadow-xl hover-lift animate-fade-in-up transition-all duration-500 p-8 hover-glow group">
               <CardContent className="p-0">
-                <div className="h-16 w-16 bg-olive-100 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                  <svg className="h-8 w-8 text-olive-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="h-16 w-16 bg-olive-100 rounded-2xl flex items-center justify-center mb-6 mx-auto transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <svg className="h-8 w-8 text-olive-700 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-serif text-stone-800 mb-4 text-center">Artisanat Traditionnel</h3>
-                <p className="text-stone-600 text-center leading-relaxed">
+                <h3 className="text-xl font-serif text-stone-800 mb-4 text-center transition-colors duration-300 group-hover:text-olive-700">Artisanat Traditionnel</h3>
+                <p className="text-stone-600 text-center leading-relaxed transition-colors duration-300 group-hover:text-stone-700">
                   Chaque pièce est soigneusement fabriquée par des artisans qualifiés utilisant des techniques traditionnelles transmises de génération en génération.
                 </p>
               </CardContent>
             </Card>
-            <Card className="bg-white border-none shadow-lg hover:shadow-xl hover-lift animate-fade-in-up transition-all duration-500 p-8">
+            <Card className="bg-white border-none shadow-lg hover:shadow-xl hover-lift animate-fade-in-up transition-all duration-500 p-8 hover-glow group">
               <CardContent className="p-0">
-                <div className="h-16 w-16 bg-olive-100 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                  <svg className="h-8 w-8 text-olive-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="h-16 w-16 bg-olive-100 rounded-2xl flex items-center justify-center mb-6 mx-auto transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <svg className="h-8 w-8 text-olive-700 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-serif text-stone-800 mb-4 text-center">Designs Uniques</h3>
-                <p className="text-stone-600 text-center leading-relaxed">
+                <h3 className="text-xl font-serif text-stone-800 mb-4 text-center transition-colors duration-300 group-hover:text-olive-700">Designs Uniques</h3>
+                <p className="text-stone-600 text-center leading-relaxed transition-colors duration-300 group-hover:text-stone-700">
                   Nos designs allient esthétique moderne et influences traditionnelles, pour des pièces intemporelles qui racontent une histoire.
                 </p>
               </CardContent>
@@ -118,17 +127,17 @@ const Index = () => {
                 Chaque création raconte l'histoire de nos artisans et perpétue un savoir-faire ancestral
               </p>
             </div>
-            <Link to="/products" className="hidden md:flex items-center text-olive-700 hover:text-olive-900 transition-colors font-medium">
+            <Link to="/products" className="hidden md:flex items-center text-olive-700 hover:text-olive-900 transition-all duration-300 font-medium group hover-underline icon-bounce">
               Voir Toute la Collection 
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
           <ProductShowcase />
           <div className="mt-12 text-center md:hidden">
-            <Link to="/products">
-              <Button variant="outline" className="border-2 border-stone-300 text-stone-700 hover:bg-stone-50 hover:border-olive-300 px-8 py-4 rounded-lg font-medium">
+            <Link to="/products" className="group">
+              <Button variant="outline" className="border-2 border-stone-300 text-stone-700 hover:bg-stone-50 hover:border-olive-300 px-8 py-4 rounded-lg font-medium transition-all duration-300 hover:scale-105 button-press hover-glow">
                 Voir Tous les Produits 
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
               </Button>
             </Link>
           </div>
@@ -173,8 +182,7 @@ const Index = () => {
                 className="flex-grow px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-300"
                 aria-label="Adresse email pour la newsletter"
               />
-              <Button type="submit" className="bg-olive-900 hover:bg-olive-950 text-white">
-
+              <Button type="submit" className="bg-olive-900 hover:bg-olive-950 text-white transition-all duration-300 hover:scale-105 button-press hover-glow">
                 S'abonner
               </Button>
             </form>

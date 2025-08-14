@@ -125,26 +125,144 @@
   }
 }
 
-/* Animation utilities */
+/* Advanced Animation Utilities */
+
+/* Keyframe Animations */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-in-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes gentle-bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-4px);
+  }
+  60% {
+    transform: translateY(-2px);
+  }
+}
+
+/* Animation Classes */
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.4s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.5s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.5s ease-out forwards;
+}
+
+.animate-gentle-bounce {
+  animation: gentle-bounce 2s ease-in-out infinite;
+}
+
+/* Hover Effects */
 .hover-lift {
-  @apply transition-transform duration-200 hover:-translate-y-1;
+  @apply transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl;
 }
 
 .hover-scale {
-  @apply transition-transform duration-200 hover:scale-102;
+  @apply transition-transform duration-200 ease-out hover:scale-105;
 }
 
-.animate-once {
-  animation-iteration-count: 1;
-  animation-fill-mode: forwards;
+.hover-glow {
+  @apply transition-all duration-300 ease-out hover:shadow-lg hover:shadow-olive-200/50;
 }
 
+.hover-underline {
+  @apply relative after:content-[''] after:absolute after:w-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-current after:transition-all after:duration-300 hover:after:w-full;
+}
+
+/* Micro-interactions */
+.button-press {
+  @apply active:scale-95 transition-transform duration-75;
+}
+
+.icon-bounce:hover svg {
+  @apply animate-gentle-bounce;
+}
+
+/* Staggered Animations */
 .stagger-animation > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-animation > *:nth-child(2) { animation-delay: 100ms; }
-.stagger-animation > *:nth-child(3) { animation-delay: 200ms; }
-.stagger-animation > *:nth-child(4) { animation-delay: 300ms; }
-.stagger-animation > *:nth-child(5) { animation-delay: 400ms; }
-.stagger-animation > *:nth-child(6) { animation-delay: 500ms; }
+.stagger-animation > *:nth-child(2) { animation-delay: 150ms; }
+.stagger-animation > *:nth-child(3) { animation-delay: 300ms; }
+.stagger-animation > *:nth-child(4) { animation-delay: 450ms; }
+.stagger-animation > *:nth-child(5) { animation-delay: 600ms; }
+.stagger-animation > *:nth-child(6) { animation-delay: 750ms; }
+
+/* Smooth entrance animations */
+.entrance-animation {
+  opacity: 0;
+  animation: fade-in-up 0.8s ease-out 0.2s forwards;
+}
+
+.hero-text-animation {
+  opacity: 0;
+  animation: slide-in-left 0.8s ease-out 0.4s forwards;
+}
+
+.hero-image-animation {
+  opacity: 0;
+  animation: slide-in-right 0.8s ease-out 0.6s forwards;
+}
+
+/* Group hover effects */
+.group:hover .group-hover-translate-x {
+  transform: translateX(4px);
+}
+
+.group:hover .group-hover-rotate {
+  transform: rotate(5deg);
+}
 
 /* Smooth scrolling */
 html {
