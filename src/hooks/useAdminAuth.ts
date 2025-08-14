@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -15,6 +15,8 @@ export const useAdminAuth = () => {
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const hasCheckedRef = useRef(false);
+  const currentUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -28,10 +30,18 @@ export const useAdminAuth = () => {
         setAdminUser(null);
         setIsAuthenticated(false);
         setIsLoading(false);
+        hasCheckedRef.current = false;
+        currentUserIdRef.current = null;
+        return;
+      }
+
+      // Avoid unnecessary checks for the same user
+      if (hasCheckedRef.current && currentUserIdRef.current === user.id) {
         return;
       }
 
       setIsLoading(true);
+      currentUserIdRef.current = user.id;
 
       try {
         // Check if user has admin profile
@@ -42,7 +52,6 @@ export const useAdminAuth = () => {
           .single();
 
         if (error || !adminProfile) {
-          console.log('No admin profile found for user:', user.id, error?.message);
           setAdminUser(null);
           setIsAuthenticated(false);
         } else {
@@ -56,23 +65,26 @@ export const useAdminAuth = () => {
           setAdminUser(admin);
           setIsAuthenticated(true);
           
-          // Update last login
-          await supabase
+          // Update last login silently (don't wait for it)
+          supabase
             .from('admin_users')
             .update({ last_login: new Date().toISOString() })
             .eq('user_id', user.id);
         }
+        
+        hasCheckedRef.current = true;
       } catch (error) {
         console.error('Error checking admin status:', error);
         setAdminUser(null);
         setIsAuthenticated(false);
+        hasCheckedRef.current = true;
       } finally {
         setIsLoading(false);
       }
     };
 
     checkAdminStatus();
-  }, [user, authLoading]);
+  }, [user?.id, authLoading]); // Only depend on user.id, not the whole user object
 
   const updateProfile = async (updates: Partial<AdminUser>) => {
     if (!user || !adminUser) throw new Error('No admin user logged in');

@@ -17,7 +17,6 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [checkingAdmin, setCheckingAdmin] = useState(false);
   const navigate = useNavigate();
   const { signIn, user } = useAuth();
   const { isAuthenticated: isAdminAuthenticated, isLoading: adminLoading } = useAdminAuth();
@@ -53,20 +52,12 @@ const AdminLogin = () => {
     }
     
     setIsLoading(true);
-    setCheckingAdmin(true);
     
     try {
       await signIn(sanitizedEmail, sanitizedPassword);
-      
-      // Wait a moment for admin auth to process
-      setTimeout(() => {
-        setCheckingAdmin(false);
-        // Check will happen via useEffect when admin state updates
-      }, 1000);
-      
+      // Success - let useEffect handle the admin check and redirect
     } catch (error) {
       setIsLoading(false);
-      setCheckingAdmin(false);
       
       if (error instanceof Error) {
         if (error.message.includes('Invalid login credentials')) {
@@ -82,21 +73,19 @@ const AdminLogin = () => {
     }
   };
 
-  // Handle admin check after login
+  // Handle admin check after successful login
   useEffect(() => {
-    if (user && checkingAdmin && !adminLoading) {
+    if (user && !adminLoading) {
       setIsLoading(false);
-      setCheckingAdmin(false);
       
       if (isAdminAuthenticated) {
         toast.success('Connexion administrateur réussie!');
         navigate('/admin', { replace: true });
       } else {
         toast.error('Accès refusé. Ce compte n\'a pas les privilèges administrateur.');
-        // Keep user on login page
       }
     }
-  }, [user, checkingAdmin, adminLoading, isAdminAuthenticated, navigate]);
+  }, [user, adminLoading, isAdminAuthenticated, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-beige-50 to-olive-50 flex items-center justify-center p-4">
@@ -163,9 +152,9 @@ const AdminLogin = () => {
             <Button 
               type="submit" 
               className="w-full bg-olive-700 hover:bg-olive-800"
-              disabled={isLoading || checkingAdmin}
+              disabled={isLoading || adminLoading}
             >
-              {checkingAdmin ? "Vérification des privilèges..." : isLoading ? "Connexion en cours..." : "Se connecter"}
+              {isLoading || adminLoading ? "Connexion en cours..." : "Se connecter"}
             </Button>
           </form>
 
