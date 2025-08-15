@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { User as UserIcon, Settings, Package, UserCog, Home, Trash2, Shield } from 'lucide-react';
+import { User as UserIcon, Settings, Package, UserCog, Home, Trash2, Shield, Crown } from 'lucide-react';
 import { ProfileOverview } from '@/components/profile/ProfileOverview';
 import { PersonalInfo } from '@/components/profile/PersonalInfo';
 import { PreferencesSettings } from '@/components/profile/PreferencesSettings';
 import { OrderHistory } from '@/components/profile/OrderHistory';
+import { LoyaltyProgram } from '@/components/profile/LoyaltyProgram';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -195,7 +196,7 @@ export default function EnhancedProfile() {
 
         {/* Profile Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full lg:w-auto lg:grid-cols-4 grid-cols-2 gap-1">
+          <TabsList className="grid w-full lg:w-auto lg:grid-cols-5 grid-cols-2 gap-1">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <UserIcon className="h-4 w-4" />
               <span className="hidden sm:inline">Vue d'ensemble</span>
@@ -205,6 +206,11 @@ export default function EnhancedProfile() {
               <UserCog className="h-4 w-4" />
               <span className="hidden sm:inline">Informations</span>
               <span className="sm:hidden">Infos</span>
+            </TabsTrigger>
+            <TabsTrigger value="loyalty" className="flex items-center gap-2">
+              <Crown className="h-4 w-4" />
+              <span className="hidden sm:inline">Fidélité</span>
+              <span className="sm:hidden">Points</span>
             </TabsTrigger>
             <TabsTrigger value="preferences" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -283,6 +289,10 @@ export default function EnhancedProfile() {
               profile={profile} 
               onProfileUpdate={handleProfileUpdate}
             />
+          </TabsContent>
+
+          <TabsContent value="loyalty">
+            <LoyaltyProgram user={user} />
           </TabsContent>
 
           <TabsContent value="preferences">
