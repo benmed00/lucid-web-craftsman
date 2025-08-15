@@ -126,46 +126,62 @@ const Navigation = () => {
 
       {/* Mobile Menu Button */}
       <button
-        className="md:hidden text-stone-700"
+        className="md:hidden text-stone-700 p-2 rounded-lg hover:bg-stone-100 transition-all duration-200 active:scale-95"
         onClick={() => setIsMenuOpen(!isMenuOpen)}
+        aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
       >
-        {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        <div className="relative w-6 h-6">
+          <span className={`absolute block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'rotate-45 top-3' : 'top-1'}`}></span>
+          <span className={`absolute block w-6 h-0.5 bg-current transition-opacity duration-300 top-3 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
+          <span className={`absolute block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? '-rotate-45 top-3' : 'top-5'}`}></span>
+        </div>
       </button>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Overlay */}
       {isMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-white/98 backdrop-blur-sm shadow-xl z-50 animate-fade-in border-t border-stone-100">
-          <div className="flex flex-col space-y-1 p-4">
+        <div 
+          className="md:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 animate-fade-in"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Menu */}
+      <div className={`md:hidden absolute top-full left-0 right-0 bg-white/98 backdrop-blur-sm shadow-xl z-50 border-t border-stone-100 transition-all duration-300 ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
+          <div className="flex flex-col space-y-2 p-6">
             <Link
               to="/"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-all py-3 px-4 rounded-lg font-medium"
+              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-4 px-4 rounded-xl font-medium flex items-center gap-3 group"
               onClick={() => setIsMenuOpen(false)}
             >
-              🏠 Accueil
+              <span className="text-xl">🏠</span>
+              <span className="group-hover:translate-x-1 transition-transform duration-200">Accueil</span>
             </Link>
             <Link
               to="/products"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-all py-3 px-4 rounded-lg font-medium"
+              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-4 px-4 rounded-xl font-medium flex items-center gap-3 group"
               onClick={() => setIsMenuOpen(false)}
             >
-              🛍️ Boutique
+              <span className="text-xl">🛍️</span>
+              <span className="group-hover:translate-x-1 transition-transform duration-200">Boutique</span>
             </Link>
             <Link
               to="/blog"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-all py-3 px-4 rounded-lg font-medium"
+              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-4 px-4 rounded-xl font-medium flex items-center gap-3 group"
               onClick={() => setIsMenuOpen(false)}
             >
-              📖 Blog
+              <span className="text-xl">📖</span>
+              <span className="group-hover:translate-x-1 transition-transform duration-200">Blog</span>
             </Link>
             <Link
               to="/contact"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-all py-3 px-4 rounded-lg font-medium"
+              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-4 px-4 rounded-xl font-medium flex items-center gap-3 group"
               onClick={() => setIsMenuOpen(false)}
             >
-              💬 Contact
+              <span className="text-xl">💬</span>
+              <span className="group-hover:translate-x-1 transition-transform duration-200">Contact</span>
             </Link>
 
-            <div className="pt-3 mt-3 border-t border-stone-200">
+            <div className="pt-4 mt-4 border-t border-stone-200">
               <Link
                 to="/cart"
                 className="w-full block"
@@ -173,14 +189,14 @@ const Navigation = () => {
               >
                 <Button
                   className={clsx(
-                    "w-full transition-all duration-200 flex items-center justify-center py-3",
+                    "w-full transition-all duration-200 flex items-center justify-center py-4 rounded-xl active:scale-[0.98] hover:shadow-lg",
                     itemCount >= 1
-                      ? "bg-olive-700 text-white hover:bg-olive-800"
+                      ? "bg-olive-700 text-white hover:bg-olive-800 shadow-olive-700/30"
                       : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                   )}
                 >
-                  <ShoppingBag className="mr-2 h-4 w-4" /> 
-                  Panier {itemCount > 0 && `(${itemCount})`}
+                  <ShoppingBag className="mr-3 h-5 w-5" /> 
+                  <span className="font-medium">Panier {itemCount > 0 && `(${itemCount})`}</span>
                 </Button>
               </Link>
             </div>
@@ -189,28 +205,30 @@ const Navigation = () => {
             {!isLoading && (
               <>
                 {user ? (
-                  <div className="pt-3 mt-3 border-t border-stone-200">
+                  <div className="pt-4 mt-4 border-t border-stone-200 space-y-3">
                     <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
-                      <div className="mb-3 px-4 py-2 bg-olive-50 rounded-lg hover:bg-olive-100 transition-colors cursor-pointer">
-                        <div className="flex items-center gap-2 text-sm text-olive-700 font-medium">
-                          <User className="h-4 w-4" />
-                          👤 Mon Profil
+                      <div className="px-4 py-3 bg-olive-50 rounded-xl hover:bg-olive-100 active:bg-olive-200 transition-all duration-200 cursor-pointer">
+                        <div className="flex items-center gap-3 text-olive-700 font-medium">
+                          <User className="h-5 w-5" />
+                          <span>👤 Mon Profil</span>
                         </div>
                       </div>
                     </Link>
                     <Button 
                       variant="outline" 
                       onClick={handleSignOut} 
-                      className="w-full flex items-center justify-center gap-2"
+                      className="w-full flex items-center justify-center gap-3 py-4 rounded-xl hover:shadow-lg active:scale-[0.98] transition-all duration-200"
                     >
-                      <LogOut className="h-4 w-4" />
-                      Déconnexion
+                      <LogOut className="h-5 w-5" />
+                      <span className="font-medium">Déconnexion</span>
                     </Button>
                   </div>
                 ) : (
-                  <div className="pt-3 mt-3 border-t border-stone-200">
-                    <Button variant="default" asChild className="w-full">
-                      <Link to="/auth" onClick={() => setIsMenuOpen(false)}>Se connecter</Link>
+                  <div className="pt-4 mt-4 border-t border-stone-200">
+                    <Button variant="default" asChild className="w-full py-4 rounded-xl hover:shadow-lg active:scale-[0.98] transition-all duration-200">
+                      <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+                        <span className="font-medium">Se connecter</span>
+                      </Link>
                     </Button>
                   </div>
                 )}
@@ -218,8 +236,7 @@ const Navigation = () => {
             )}
           </div>
         </div>
-      )}
-    </div>
+      </div>
     </nav>
   );
 };

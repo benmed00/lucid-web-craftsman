@@ -72,11 +72,52 @@ const Products = () => {
     return (
       <div className="min-h-screen bg-white">
         <Navigation />
-        <div className="container mx-auto px-4 py-16 flex justify-center items-center">
-          <div className="text-center">
-            <p>Chargement des produits...</p>
+        
+        {/* Header Skeleton */}
+        <div className="bg-gradient-to-r from-stone-50 to-stone-100 py-12">
+          <div className="container mx-auto px-4 text-center">
+            <div className="h-12 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-64 mx-auto mb-4 animate-pulse"></div>
+            <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-96 mx-auto animate-pulse"></div>
           </div>
         </div>
+
+        {/* Filter Skeleton */}
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+            <div className="h-10 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-48 animate-pulse"></div>
+            <div className="h-10 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-32 animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Products Grid Skeleton */}
+        <div className="container mx-auto px-4 mb-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+            {[...Array(12)].map((_, i) => (
+              <div
+                key={i}
+                className="animate-fade-in opacity-0"
+                style={{ 
+                  animationDelay: `${i * 30}ms`,
+                  animationFillMode: 'forwards'
+                }}
+              >
+                <Card className="bg-white border-none overflow-hidden animate-pulse">
+                  <div className="aspect-square w-full bg-gradient-to-br from-gray-200 to-gray-100 rounded-t-lg"></div>
+                  <CardContent className="p-5 space-y-3">
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-100 rounded-full w-2/3"></div>
+                    <div className="h-5 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-3/4"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-1/2"></div>
+                    <div className="flex justify-between items-center pt-2">
+                      <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-1/3"></div>
+                      <div className="h-9 bg-gradient-to-r from-gray-200 to-gray-100 rounded-full w-24"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+          </div>
+        </div>
+        
         <PageFooter />
       </div>
     );
@@ -183,8 +224,15 @@ const Products = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-            {filteredProducts.map((product) => (
-              <div key={product.id} className="group relative">
+            {filteredProducts.map((product, index) => (
+              <div 
+                key={product.id} 
+                className="group relative animate-fade-in opacity-0"
+                style={{ 
+                  animationDelay: `${index * 50}ms`,
+                  animationFillMode: 'forwards'
+                }}
+              >
                 <Card className="bg-white border-none overflow-hidden group hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1">
                   <Link to={`/products/${product.id}`}>
                     <div className="relative overflow-hidden rounded-t-lg">
