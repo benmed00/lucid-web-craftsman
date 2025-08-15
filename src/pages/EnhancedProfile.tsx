@@ -39,19 +39,22 @@ interface Profile {
 
 export default function EnhancedProfile() {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isLoading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
+    // Don't redirect while auth is still loading
+    if (authLoading) return;
+    
     if (!user) {
       navigate('/auth');
       return;
     }
 
     loadProfile();
-  }, [user, navigate]);
+  }, [user, navigate, authLoading]);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -77,7 +80,7 @@ export default function EnhancedProfile() {
       console.error('Error loading profile:', error);
       toast.error('Erreur lors du chargement du profil');
     } finally {
-      setIsLoading(false);
+      setIsProfileLoading(false);
     }
   };
 
@@ -125,7 +128,7 @@ export default function EnhancedProfile() {
     }
   };
 
-  if (isLoading) {
+  if (authLoading || isProfileLoading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
