@@ -4,14 +4,17 @@ import { toast } from "sonner";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { useEffect, useState } from "react";
 import { getProducts } from "@/api/mockApiService";
-import ProductCard from "./ProductCard"; // Import the new ProductCard component
-import { Card, CardContent } from "@/components/ui/card"; // Keep for skeleton
+import ProductCard from "./ProductCard";
+import { ProductQuickView } from "./ProductQuickView";
+import { Card, CardContent } from "@/components/ui/card";
 
 
 const ProductShowcase = () => {
   const { dispatch } = useCart();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   useEffect(() => {
     const loadFeaturedProducts = async () => {
@@ -52,6 +55,34 @@ const ProductShowcase = () => {
 
   };
 
+  const handleQuickView = (product: Product) => {
+    setQuickViewProduct(product);
+    setIsQuickViewOpen(true);
+  };
+
+  const handleQuickViewAddToCart = async (product: Product, quantity: number) => {
+    try {
+      // Call mock API service first
+      const response = await import("@/api/mockApiService").then(api => api.addToCart(product, quantity));
+
+      if (response.success) {
+        // Then dispatch action to update context state
+        for (let i = 0; i < quantity; i++) {
+          dispatch({
+            type: "ADD_ITEM",
+            payload: product,
+            quantity: 1,
+          });
+        }
+      } else {
+        toast.error("Impossible d'ajouter le produit au panier (API error)");
+      }
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+      toast.error("Impossible d'ajouter le produit au panier");
+    }
+  };
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -82,23 +113,36 @@ const ProductShowcase = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-      {featuredProducts.map((product, index) => (
-        <div 
-          key={product.id}
-          className="animate-fade-in opacity-0"
-          style={{ 
-            animationDelay: `${index * 100}ms`,
-            animationFillMode: 'forwards'
-          }}
-        >
-          <ProductCard
-            product={product}
-            onAddToCart={handleAddToCart}
-          />
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {featuredProducts.map((product, index) => (
+          <div 
+            key={product.id}
+            className="animate-fade-in opacity-0"
+            style={{ 
+              animationDelay: `${index * 100}ms`,
+              animationFillMode: 'forwards'
+            }}
+          >
+            <ProductCard
+              product={product}
+              onAddToCart={handleAddToCart}
+              onQuickView={handleQuickView}
+            />
+          </div>
+        ))}
+      </div>
+      
+      <ProductQuickView
+        product={quickViewProduct}
+        isOpen={isQuickViewOpen}
+        onClose={() => {
+          setIsQuickViewOpen(false);
+          setQuickViewProduct(null);
+        }}
+        onAddToCart={handleQuickViewAddToCart}
+      />
+    </>
   );
 };
 

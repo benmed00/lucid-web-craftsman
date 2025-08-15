@@ -8,7 +8,8 @@ import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Eye, ShoppingCart } from "lucide-react";
+import { ProductQuickView } from "@/components/ProductQuickView";
 import { addToCart } from "@/api/mockApiService";
 import { getProducts } from "@/api/mockApiService";
 import { toast } from "sonner";
@@ -20,6 +21,8 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const { dispatch } = useCart();
 
   useEffect(() => {
@@ -58,6 +61,35 @@ const Products = () => {
       
       // Show success message
       toast.success(`${product.name} ajouté au panier`);
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+      toast.error("Impossible d'ajouter le produit au panier");
+    }
+  };
+
+  const handleQuickView = (product: Product) => {
+    setQuickViewProduct(product);
+    setIsQuickViewOpen(true);
+  };
+
+  const handleQuickViewAddToCart = async (product: Product, quantity: number) => {
+    try {
+      // Call mock API service first
+      const response = await import("@/api/mockApiService").then(api => api.addToCart(product, quantity));
+
+      if (response.success) {
+        // Then dispatch action to update context state
+        for (let i = 0; i < quantity; i++) {
+          dispatch({
+            type: "ADD_ITEM",
+            payload: product,
+            quantity: 1,
+          });
+        }
+        toast.success(`${quantity}x ${product.name} ajouté au panier`);
+      } else {
+        toast.error("Impossible d'ajouter le produit au panier (API error)");
+      }
     } catch (error) {
       console.error("Error adding product to cart:", error);
       toast.error("Impossible d'ajouter le produit au panier");
@@ -235,7 +267,7 @@ const Products = () => {
               >
                 <Card className="bg-white border-none overflow-hidden group hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1">
                   <Link to={`/products/${product.id}`}>
-                    <div className="relative overflow-hidden rounded-t-lg">
+                    <div className="relative overflow-hidden rounded-t-lg group/image">
                       <div className="aspect-square w-full">
                         <img
                           src={product.images[0]}
@@ -244,8 +276,23 @@ const Products = () => {
                           loading="lazy"
                         />
                       </div>
+                      
+                      {/* Quick View Button */}
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleQuickView(product);
+                        }}
+                        className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+
                       {product.new && (
-                        <Badge className="absolute top-3 right-3 bg-olive-700 text-white border-none shadow-md px-3 py-1">
+                        <Badge className="absolute top-3 left-3 bg-olive-700 text-white border-none shadow-md px-3 py-1">
                           Nouveau
                         </Badge>
                       )}
@@ -286,6 +333,16 @@ const Products = () => {
           </div>
         )}
       </div>
+
+      <ProductQuickView
+        product={quickViewProduct}
+        isOpen={isQuickViewOpen}
+        onClose={() => {
+          setIsQuickViewOpen(false);
+          setQuickViewProduct(null);
+        }}
+        onAddToCart={handleQuickViewAddToCart}
+      />
 
       <PageFooter />
     </div>
