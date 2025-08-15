@@ -40,7 +40,7 @@ const HeroImage = () => {
       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent rounded-lg" />
       
       {/* Hover hint text */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute top-6 left-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <div className="bg-black/60 text-white px-4 py-2 rounded-lg backdrop-blur-sm">
           <p className="text-sm font-medium">{heroImageData.altText}</p>
         </div>
