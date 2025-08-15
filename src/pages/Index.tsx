@@ -28,7 +28,7 @@ const Index = () => {
               Artisanat Durable & Fait Main
             </Badge>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-stone-800 mb-6 animate-fade-in-up">
-              Créé avec amour dans les montagnes du Rif
+              Créé avec amour dans les <span className="text-olive-700">montagnes</span> du Rif 🏔️
             </h1>
             <p className="text-lg text-stone-600 mb-8 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.
