@@ -1,29 +1,44 @@
-
-import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useState } from "react";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
-import { Product } from "@/shared/interfaces/Iproduct.interface";
-import { ShoppingBag, Eye, ShoppingCart } from "lucide-react";
+import ProductCard from "@/components/ProductCard";
 import { ProductQuickView } from "@/components/ProductQuickView";
-import { addToCart } from "@/api/mockApiService";
-import { getProducts } from "@/api/mockApiService";
+import { ProductFilters } from "@/components/ProductFilters";
+import { SearchResultsHeader, HighlightText } from "@/components/SearchResults";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+
+import { getProducts } from "@/api/mockApiService";
 import { useCart } from "@/context/useCart";
-import { ProductImage } from "@/components/ui/GlobalImage";
+import { useProductFilters } from "@/hooks/useProductFilters";
+import { Product } from "@/shared/interfaces/Iproduct.interface";
 
 const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState("all");
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
-  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  
   const { dispatch } = useCart();
+
+  // Initialize filters hook
+  const {
+    filters,
+    filteredProducts,
+    availableCategories,
+    priceRange,
+    updateFilters,
+    resetFilters,
+    clearFilter,
+    activeFiltersCount,
+    totalProducts,
+    filteredCount
+  } = useProductFilters({ products });
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -44,112 +59,79 @@ const Products = () => {
     fetchProducts();
   }, []);
 
-  const handleAddToCart = async (product: Product, event: React.MouseEvent) => {
-    event.preventDefault(); // Prevent navigation to product detail
-    event.stopPropagation(); // Stop event propagation
-    
-    try {
-      // Add to cart via API (which updates localStorage)
-      await addToCart(product, 1);
-      
-      // Update global cart state
-      dispatch({ 
-        type: "ADD_ITEM", 
-        payload: product, 
-        quantity: 1 
-      });
-      
-      // Show success message
-      toast.success(`${product.name} ajouté au panier`);
-    } catch (error) {
-      console.error("Error adding product to cart:", error);
-      toast.error("Impossible d'ajouter le produit au panier");
+  // Memoized categories for filter badges
+  const displayCategories = useMemo(() => availableCategories, [availableCategories]);
+
+  const handleAddToCart = (product: Product, event?: React.MouseEvent) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
     }
+    
+    dispatch({
+      type: "ADD_ITEM",
+      payload: product,
+      quantity: 1,
+    });
+
+    toast.success(`${product.name} ajouté au panier`, {
+      duration: 2000,
+    });
   };
 
   const handleQuickView = (product: Product) => {
     setQuickViewProduct(product);
-    setIsQuickViewOpen(true);
   };
 
-  const handleQuickViewAddToCart = async (product: Product, quantity: number) => {
-    try {
-      // Call mock API service first
-      const response = await import("@/api/mockApiService").then(api => api.addToCart(product, quantity));
+  const handleQuickViewAddToCart = (product: Product, quantity: number) => {
+    dispatch({
+      type: "ADD_ITEM",
+      payload: product,
+      quantity: quantity,
+    });
 
-      if (response.success) {
-        // Then dispatch action to update context state
-        for (let i = 0; i < quantity; i++) {
-          dispatch({
-            type: "ADD_ITEM",
-            payload: product,
-            quantity: 1,
-          });
-        }
-        toast.success(`${quantity}x ${product.name} ajouté au panier`);
-      } else {
-        toast.error("Impossible d'ajouter le produit au panier (API error)");
-      }
-    } catch (error) {
-      console.error("Error adding product to cart:", error);
-      toast.error("Impossible d'ajouter le produit au panier");
-    }
+    toast.success(`${product.name} ajouté au panier (${quantity}x)`, {
+      duration: 2000,
+    });
+
+    setQuickViewProduct(null);
   };
-
-  const filteredProducts = activeFilter === "all" 
-    ? products 
-    : products.filter(p => p.category.toLowerCase() === activeFilter.toLowerCase());
 
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
         <Navigation />
-        
-        {/* Header Skeleton */}
-        <div className="bg-gradient-to-r from-stone-50 to-stone-100 py-12">
-          <div className="container mx-auto px-4 text-center">
-            <div className="h-12 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-64 mx-auto mb-4 animate-pulse"></div>
-            <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-96 mx-auto animate-pulse"></div>
+        <div className="container mx-auto px-4 py-12">
+          {/* Hero Section Skeleton */}
+          <div className="mb-16">
+            <div className="h-8 bg-stone-200 rounded w-64 mb-4 mx-auto animate-pulse"></div>
+            <div className="h-6 bg-stone-200 rounded w-96 mx-auto animate-pulse"></div>
           </div>
-        </div>
 
-        {/* Filter Skeleton */}
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-            <div className="h-10 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-48 animate-pulse"></div>
-            <div className="h-10 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-32 animate-pulse"></div>
+          {/* Filters Skeleton */}
+          <div className="mb-8 space-y-4">
+            <div className="flex gap-4">
+              <div className="h-10 bg-stone-200 rounded flex-1 animate-pulse"></div>
+              <div className="h-10 bg-stone-200 rounded w-32 animate-pulse"></div>
+              <div className="h-10 bg-stone-200 rounded w-24 animate-pulse"></div>
+            </div>
+            <div className="h-4 bg-stone-200 rounded w-48 animate-pulse"></div>
           </div>
-        </div>
 
-        {/* Products Grid Skeleton */}
-        <div className="container mx-auto px-4 mb-16">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-            {[...Array(12)].map((_, i) => (
-              <div
-                key={i}
-                className="animate-fade-in opacity-0"
-                style={{ 
-                  animationDelay: `${i * 30}ms`,
-                  animationFillMode: 'forwards'
-                }}
-              >
-                <Card className="bg-white border-none overflow-hidden animate-pulse">
-                  <div className="aspect-square w-full bg-gradient-to-br from-gray-200 to-gray-100 rounded-t-lg"></div>
-                  <CardContent className="p-5 space-y-3">
-                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-100 rounded-full w-2/3"></div>
-                    <div className="h-5 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-3/4"></div>
-                    <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-1/2"></div>
-                    <div className="flex justify-between items-center pt-2">
-                      <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-1/3"></div>
-                      <div className="h-9 bg-gradient-to-r from-gray-200 to-gray-100 rounded-full w-24"></div>
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* Products Grid Skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-stone-200 aspect-square rounded-lg mb-4"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-stone-200 rounded w-16"></div>
+                  <div className="h-5 bg-stone-200 rounded w-32"></div>
+                  <div className="h-4 bg-stone-200 rounded w-20"></div>
+                </div>
               </div>
             ))}
           </div>
         </div>
-        
         <PageFooter />
       </div>
     );
@@ -159,13 +141,13 @@ const Products = () => {
     return (
       <div className="min-h-screen bg-white">
         <Navigation />
-        <div className="container mx-auto px-4 py-16 flex justify-center items-center">
+        <div className="container mx-auto px-4 py-16">
           <div className="text-center">
-            <p className="text-red-500">{error}</p>
-            <Button 
-              onClick={() => window.location.reload()} 
-              className="mt-4 bg-olive-700 hover:bg-olive-800"
-            >
+            <h1 className="text-2xl font-serif text-stone-800 mb-4">
+              Erreur de chargement
+            </h1>
+            <p className="text-stone-600 mb-8">{error}</p>
+            <Button onClick={() => window.location.reload()}>
               Réessayer
             </Button>
           </div>
@@ -180,169 +162,136 @@ const Products = () => {
       <Navigation />
 
       {/* Hero Banner */}
-      <div className="bg-beige-50 py-12 mb-12">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <Badge className="mb-2 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none">
-              Collection Artisanale
-            </Badge>
-            <h1 className="font-serif text-4xl md:text-5xl text-stone-800 mb-4">
-              Notre Boutique
-            </h1>
-            <p className="text-stone-600 md:text-lg">
-              Découvrez notre sélection de sacs et chapeaux faits main dans les
-              montagnes du Rif au Maroc, perpétuant des traditions ancestrales.
-            </p>
-          </div>
+      <div className="bg-gradient-to-r from-olive-50 to-stone-50 py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="font-serif text-4xl md:text-5xl text-stone-800 mb-4">
+            Nos Créations Artisanales
+          </h1>
+          <p className="text-lg text-stone-600 max-w-2xl mx-auto">
+            Découvrez notre collection unique d'accessoires berbères, 
+            confectionnés à la main par des artisans passionnés.
+          </p>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="container mx-auto px-4 mb-12">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              variant="outline"
-              className={`cursor-pointer ${
-                activeFilter === "all"
-                  ? "border-olive-300 bg-olive-50 text-olive-800"
-                  : "border-stone-300 hover:border-olive-300 hover:bg-olive-50 hover:text-olive-800"
-              }`}
-              onClick={() => setActiveFilter("all")}
-            >
-              Tous les produits
-            </Badge>
-            <Badge
-              variant="outline"
-              className={`cursor-pointer ${
-                activeFilter === "sacs"
-                  ? "border-olive-300 bg-olive-50 text-olive-800"
-                  : "border-stone-300 hover:border-olive-300 hover:bg-olive-50 hover:text-olive-800"
-              }`}
-              onClick={() => setActiveFilter("sacs")}
-            >
-              Sacs
-            </Badge>
-            <Badge
-              variant="outline"
-              className={`cursor-pointer ${
-                activeFilter === "chapeaux"
-                  ? "border-olive-300 bg-olive-50 text-olive-800"
-                  : "border-stone-300 hover:border-olive-300 hover:bg-olive-50 hover:text-olive-800"
-              }`}
-              onClick={() => setActiveFilter("chapeaux")}
-            >
-              Chapeaux
-            </Badge>
-          </div>
+      <div className="container mx-auto px-4 py-12">
+        {/* Product Filters */}
+        <ProductFilters
+          filters={filters}
+          availableCategories={availableCategories}
+          priceRange={priceRange}
+          totalProducts={totalProducts}
+          filteredCount={filteredCount}
+          activeFiltersCount={activeFiltersCount}
+          onFiltersChange={updateFilters}
+          onResetFilters={resetFilters}
+          onClearFilter={clearFilter}
+        />
 
-          <div className="flex gap-2">
-            <select className="text-sm border border-stone-300 rounded-md py-2 px-3 focus:outline-none focus:border-olive-400">
-              <option>Trier par: Populaire</option>
-              <option>Prix: Croissant</option>
-              <option>Prix: Décroissant</option>
-              <option>Nouveautés</option>
-            </select>
-          </div>
-        </div>
-      </div>
+        {/* Search Results Header */}
+        <SearchResultsHeader
+          searchQuery={filters.searchQuery}
+          totalResults={filteredCount}
+          showingCount={filteredCount}
+        />
 
-      {/* Products Grid */}
-      <div className="container mx-auto px-4 mb-16">
-        {filteredProducts.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-lg text-stone-600">Aucun produit trouvé dans cette catégorie</p>
-            <p className="text-sm text-stone-500 mt-2">Essayez de sélectionner "Tous les produits"</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-            {filteredProducts.map((product, index) => (
-              <div 
-                key={product.id} 
-                className="group relative animate-fade-in opacity-0"
-                style={{ 
-                  animationDelay: `${index * 50}ms`,
-                  animationFillMode: 'forwards'
+        {/* Category Quick Filters */}
+        {!filters.searchQuery && (
+          <div className="flex flex-wrap gap-2 mb-8">
+            <Badge
+              variant={filters.category.length === 0 ? "default" : "secondary"}
+              className="cursor-pointer px-4 py-2 text-sm"
+              onClick={() => updateFilters({ category: [] })}
+            >
+              Tout voir
+            </Badge>
+            {displayCategories.map((category) => (
+              <Badge
+                key={category}
+                variant={filters.category.includes(category) ? "default" : "secondary"}
+                className="cursor-pointer px-4 py-2 text-sm"
+                onClick={() => {
+                  if (filters.category.includes(category)) {
+                    updateFilters({ category: filters.category.filter(c => c !== category) });
+                  } else {
+                    updateFilters({ category: [...filters.category, category] });
+                  }
                 }}
               >
-                <Card className="bg-white border-none overflow-hidden group hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1">
-                  <Link to={`/products/${product.id}`}>
-                    <div className="relative overflow-hidden rounded-t-lg group/image">
-                      <div className="aspect-square w-full">
-                        <img
-                          src={product.images[0]}
-                          alt={product.name}
-                          className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
-                          loading="lazy"
-                        />
-                      </div>
-                      
-                      {/* Quick View Button */}
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleQuickView(product);
-                        }}
-                        className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                {category}
+              </Badge>
+            ))}
+          </div>
+        )}
 
-                      {product.new && (
-                        <Badge className="absolute top-3 left-3 bg-olive-700 text-white border-none shadow-md px-3 py-1">
-                          Nouveau
-                        </Badge>
-                      )}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
-                    </div>
-                  </Link>
-                  
-                  <CardContent className="p-5">
-                    <div className="mb-2">
-                      <Badge variant="outline" className="text-xs text-olive-700 border-olive-200 mb-2">
-                        {product.category}
-                      </Badge>
-                    </div>
-                    <Link to={`/products/${product.id}`}>
-                      <h3 className="font-serif text-lg font-medium text-stone-800 mb-3 hover:text-olive-700 transition-colors line-clamp-2 leading-tight">
-                        {product.name}
-                      </h3>
-                    </Link>
-                    <div className="flex justify-between items-center">
-                      <div className="flex flex-col">
-                        <p className="text-stone-700 font-semibold text-lg">{product.price} €</p>
-                        <p className="text-xs text-stone-500">Livraison gratuite</p>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        onClick={(e) => handleAddToCart(product, e)}
-                        className="bg-olive-700 hover:bg-olive-800 shadow-md hover:shadow-lg transition-all duration-200 px-4 py-2"
-                      >
-                        <ShoppingBag className="mr-2 h-4 w-4" />
-                        <span className="hidden sm:inline">Ajouter</span>
-                        <span className="sm:hidden">+</span>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+        {/* Products Grid */}
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="mb-8">
+              <div className="text-6xl mb-4">🔍</div>
+              <h2 className="font-serif text-2xl text-stone-800 mb-4">
+                Aucun produit trouvé
+              </h2>
+              <p className="text-stone-600 mb-6">
+                {filters.searchQuery 
+                  ? `Aucun produit ne correspond à "${filters.searchQuery}". Essayez avec d'autres mots-clés.`
+                  : "Aucun produit ne correspond à vos critères. Essayez de modifier vos filtres."
+                }
+              </p>
+              <Button onClick={resetFilters} variant="outline">
+                Effacer tous les filtres
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
+            {filteredProducts.map((product, index) => (
+              <div 
+                key={product.id}
+                className="animate-fade-in"
+                style={{ 
+                  animationDelay: `${Math.min(index * 50, 400)}ms`,
+                  animationFillMode: 'both'
+                }}
+              >
+                <ProductCard
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                  onQuickView={handleQuickView}
+                />
               </div>
             ))}
           </div>
         )}
+
+        {/* CTA Section */}
+        {filteredProducts.length > 0 && (
+          <div className="text-center py-16 border-t border-stone-200">
+            <h2 className="font-serif text-2xl text-stone-800 mb-4">
+              Vous ne trouvez pas ce que vous cherchez ?
+            </h2>
+            <p className="text-stone-600 mb-6">
+              Contactez-nous pour une création personnalisée selon vos goûts.
+            </p>
+            <Button asChild className="bg-olive-700 hover:bg-olive-800">
+              <Link to="/contact" className="inline-flex items-center">
+                Nous contacter
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
 
-      <ProductQuickView
-        product={quickViewProduct}
-        isOpen={isQuickViewOpen}
-        onClose={() => {
-          setIsQuickViewOpen(false);
-          setQuickViewProduct(null);
-        }}
-        onAddToCart={handleQuickViewAddToCart}
-      />
+      {/* Quick View Modal */}
+      {quickViewProduct && (
+        <ProductQuickView
+          product={quickViewProduct}
+          isOpen={!!quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
+          onAddToCart={handleQuickViewAddToCart}
+        />
+      )}
 
       <PageFooter />
     </div>
