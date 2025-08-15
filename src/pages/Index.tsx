@@ -35,13 +35,13 @@ const Index = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
               <Link to="/products" className="group">
-                <Button className="bg-olive-700 hover:bg-olive-800 text-white font-medium px-8 py-6 rounded-md transition-all duration-300 hover:scale-105 hover:shadow-lg button-press hover-glow">
+                <Button className="bg-olive-700 hover:bg-olive-800 text-white font-medium px-8 py-6 rounded-md transition-all duration-300 hover:scale-105 hover:shadow-lg button-press hover-glow text-lg">
                   Découvrir la Collection 
                   <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </Link>
               <Link to="/blog" className="group">
-                <Button variant="outline" className="border-stone-300 text-stone-700 hover:bg-stone-50 px-8 py-6 rounded-md transition-all duration-300 hover:scale-105 hover:border-olive-300 button-press">
+                <Button variant="outline" className="border-stone-300 text-stone-700 hover:bg-stone-50 px-8 py-6 rounded-md transition-all duration-300 hover:scale-105 hover:border-olive-300 button-press text-lg">
                   Notre Histoire
                 </Button>
               </Link>
