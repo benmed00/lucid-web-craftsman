@@ -225,3 +225,6 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
     </Dialog>
   );
 };
+
+// Also export as default to handle any caching issues
+export default ProductQuickView;
