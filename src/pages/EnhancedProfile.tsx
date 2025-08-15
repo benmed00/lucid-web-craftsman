@@ -114,17 +114,36 @@ export default function EnhancedProfile() {
   const handleDeleteAccount = async () => {
     if (!user) return;
 
+    setIsProfileLoading(true);
     try {
-      // First delete the profile data
-      await supabase.from('profiles').delete().eq('id', user.id);
-      
-      // Then sign out and redirect
+      // Delete profile data
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      // Sign out user
       await signOut();
+      navigate('/auth');
       toast.success('Compte supprimé avec succès');
-      navigate('/');
     } catch (error: any) {
       console.error('Error deleting account:', error);
       toast.error('Erreur lors de la suppression du compte');
+    } finally {
+      setIsProfileLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/auth');
+      toast.success('Déconnexion réussie');
+    } catch (error: any) {
+      console.error('Error signing out:', error);
+      toast.error('Erreur lors de la déconnexion');
     }
   };
 
@@ -165,6 +184,10 @@ export default function EnhancedProfile() {
                 Accueil
               </Button>
               
+              <Button variant="outline" onClick={handleSignOut}>
+                <UserCog className="h-4 w-4 mr-2" />
+                Se déconnecter
+              </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" className="text-destructive hover:text-destructive">
@@ -307,6 +330,75 @@ export default function EnhancedProfile() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Footer */}
+      <footer className="border-t bg-muted/20 mt-12">
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Contact Info */}
+            <div>
+              <h3 className="font-semibold mb-4">Contact</h3>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>Email: contact@rifstraw.com</p>
+                <p>Téléphone: +33 1 23 45 67 89</p>
+                <p>Adresse: 123 Rue de l'Artisanat, 75001 Paris</p>
+              </div>
+            </div>
+
+            {/* Important Links */}
+            <div>
+              <h3 className="font-semibold mb-4">Liens Importants</h3>
+              <div className="space-y-2 text-sm">
+                <Button 
+                  variant="link" 
+                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                  onClick={() => navigate('/terms')}
+                >
+                  Conditions d'utilisation
+                </Button>
+                <Button 
+                  variant="link" 
+                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                  onClick={() => navigate('/cgv')}
+                >
+                  Conditions générales de vente
+                </Button>
+                <Button 
+                  variant="link" 
+                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                  onClick={() => window.open('/privacy-policy', '_blank')}
+                >
+                  Politique de confidentialité (RGPD)
+                </Button>
+              </div>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h3 className="font-semibold mb-4">Informations Légales</h3>
+              <div className="space-y-2 text-sm">
+                <Button 
+                  variant="link" 
+                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                  onClick={() => window.open('/legal-notices', '_blank')}
+                >
+                  Mentions légales
+                </Button>
+                <Button 
+                  variant="link" 
+                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                  onClick={() => window.open('/cookie-policy', '_blank')}
+                >
+                  Politique des cookies
+                </Button>
+                <p className="text-xs text-muted-foreground mt-4">
+                  © 2024 RifStraw. Tous droits réservés.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
