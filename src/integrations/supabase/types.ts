@@ -1223,6 +1223,27 @@ export type Database = {
           },
         ]
       }
+      wishlist: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       wishlists: {
         Row: {
           created_at: string | null

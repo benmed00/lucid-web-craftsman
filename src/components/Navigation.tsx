@@ -1,5 +1,5 @@
 
-import { Leaf, Menu, ShoppingBag, X, User, LogOut } from "lucide-react";
+import { Leaf, Menu, ShoppingBag, X, User, LogOut, Heart, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // import CartIcon from "../context/CartIcon"; // Marked as unused
 import { Link } from "react-router-dom";
@@ -8,11 +8,13 @@ import clsx from "clsx";
 import { useCartUI } from "../context/useCartUI";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useWishlist } from "@/hooks/useWishlist";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { itemCount, cartColor } = useCartUI(); // Removed _badgeTextColor
   const { user, isLoading, signOut } = useAuth();
+  const { wishlistCount } = useWishlist();
 
   const handleSignOut = async () => {
     try {
@@ -74,6 +76,25 @@ const Navigation = () => {
       </div>
 
       <div className="flex items-center gap-2">
+        {/* Wishlist button - Desktop */}
+        {user && (
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="relative hidden md:flex items-center gap-2"
+          >
+            <Link to="/wishlist">
+              <Heart size={18} />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
+          </Button>
+        )}
+
         <Link to="/cart" className="hidden md:block">
           <Button
             variant="outline"
@@ -204,7 +225,35 @@ const Navigation = () => {
             {/* Mobile auth buttons */}
             {!isLoading && (
               <>
-                {user ? (
+              {user && (
+                <>
+                  <Link
+                    to="/wishlist"
+                    className="flex items-center justify-between py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors relative"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <span className="flex items-center">
+                      <Heart size={20} className="mr-3" />
+                      Mes Favoris
+                    </span>
+                    {wishlistCount > 0 && (
+                      <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </Link>
+                  <Link
+                    to="/cart"
+                    className="flex items-center py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <ShoppingCart size={20} className="mr-3" />
+                    Panier
+                  </Link>
+                </>
+              )}
+
+              {user ? (
                   <div className="pt-4 mt-4 border-t border-stone-200 space-y-3">
                     <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
                       <div className="px-4 py-3 bg-olive-50 rounded-xl hover:bg-olive-100 active:bg-olive-200 transition-all duration-200 cursor-pointer">

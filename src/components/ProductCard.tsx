@@ -4,6 +4,7 @@ import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { WishlistButton } from "@/components/ui/WishlistButton";
 
 interface ProductCardProps {
   product: Product;
@@ -13,7 +14,17 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) => {
   return (
-    <Card key={product.id} className="bg-white border-none overflow-hidden group hover:shadow-md transition-all duration-300">
+    <Card key={product.id} className="bg-white border-none overflow-hidden group hover:shadow-md transition-all duration-300 relative">
+      {/* Wishlist button - positioned absolutely */}
+      <div className="absolute top-3 left-3 z-10">
+        <WishlistButton 
+          productId={product.id}
+          size="sm"
+          variant="ghost"
+          className="bg-white/80 backdrop-blur-sm hover:bg-white/90"
+        />
+      </div>
+
       <Link to={`/products/${product.id}`}>
         <div className="relative group/image">
           <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-t-lg">
@@ -41,12 +52,13 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
           )}
 
           {product.new && (
-            <Badge className="absolute top-3 left-3 bg-olive-700 text-white border-none shadow-lg">
+            <Badge className="absolute bottom-3 right-3 bg-olive-700 text-white border-none shadow-lg">
               Nouveau
             </Badge>
           )}
         </div>
       </Link>
+      
       <CardContent className="p-4">
         <p className="text-sm text-olive-700 font-medium">
           {product.category}
