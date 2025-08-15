@@ -50,7 +50,7 @@ const Index = () => {
 
           {/* Right: Hero image */}
           <div className="md:w-1/2 w-full hero-image-animation">
-            <div className="hover-scale transition-all duration-500">
+            <div className="transition-all duration-500">
               <HeroImage />
             </div>
           </div>
