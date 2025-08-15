@@ -1,8 +1,8 @@
 
 // Stripe configuration for the frontend
 
-// Using a demo Stripe public key (safe for client-side use)
-export const STRIPE_PUBLIC_KEY = "pk_test_demo_key_for_testing_only";
+// Live Stripe public key (safe for client-side use)
+export const STRIPE_PUBLIC_KEY = "pk_live_51JcgE4IoTolWHboBY8dZF4BDQdpQ3y1wpeLkui305ZFPSKePiTJxTRVacksDIm8XHCYbzbWJH6opa8Aoxbktq0Rp00sOSRTCK1";
 
 export const formatPrice = (amount: number): string => {
   const formatter = new Intl.NumberFormat('fr-FR', {
@@ -14,26 +14,16 @@ export const formatPrice = (amount: number): string => {
 };
 
 // Initialize Stripe payment
-export const initializeStripePayment = async (_items, _customerEmail) => { // Prefixed items and customerEmail
+export const initializeStripePayment = async (items: any[], customerInfo: any) => {
   try {
-    // In a real app, this would make an API call to your backend
-    // For this mock implementation, we'll simulate a successful checkout URL
-    return {
-      url: '/checkout',
-      success: true
-    };
-    
-    // Real implementation would look like this:
-    /*
     const response = await fetch('/api/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items, customerEmail }),
+      body: JSON.stringify({ items, customerInfo }),
     });
     
     const { url } = await response.json();
     return { url, success: true };
-    */
   } catch (error) {
     console.error("Error initializing payment:", error);
     return { success: false, error: "Payment initialization failed" };

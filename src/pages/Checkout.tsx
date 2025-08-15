@@ -13,6 +13,7 @@ import PageFooter from "@/components/PageFooter";
 import { STRIPE_PUBLIC_KEY } from "@/lib/stripe";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 // import { useCart } from "@/context/useCart"; // Marked as unused
 
 // Initialize Stripe
@@ -113,40 +114,25 @@ const Checkout = () => {
     try {
       setIsProcessing(true);
 
-      // Here you would typically send the order data to your backend
-      // which would create a Stripe checkout session
-
-      // For demo purposes, we'll simulate a successful payment
-      setTimeout(() => {
-        toast.success("Paiement traité avec succès");
-        // Here you would typically redirect to a success page
-        // and clear the cart
-        setIsProcessing(false);
-      }, 1500);
-
-      // In a real implementation, you would have code like this:
-      /*
-      const stripe = await stripePromise;
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Call Supabase edge function to create Stripe checkout session
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: {
           items: cartItems,
           customerInfo: formData
-        }),
+        }
       });
-      
-      const { sessionId } = await response.json();
-      const { error } = await stripe.redirectToCheckout({ sessionId });
-      
+
       if (error) {
-        console.error('Error redirecting to checkout:', error);
-        toast.error("Erreur lors de la redirection vers le paiement");
-        setIsProcessing(false);
+        throw new Error(error.message);
       }
-      */
+
+      if (data?.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL received");
+      }
+
     } catch (error) {
       console.error("Payment error:", error);
       toast.error("Erreur lors du paiement");

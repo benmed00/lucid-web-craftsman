@@ -12,6 +12,7 @@ import { CartProvider } from "@/context/CartContext";
 import Checkout from "./pages/Checkout";
 import Contact from "./pages/Contact";
 import { ErrorBoundary } from "react-error-boundary";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import FAQ from "./pages/FAQ";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -72,6 +73,7 @@ const App = () => {
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogPost />} />
             <Route path="/contact" element={<Contact />} />
