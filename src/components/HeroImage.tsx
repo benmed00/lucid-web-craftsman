@@ -19,7 +19,7 @@ const HeroImage = () => {
   }
 
   return (
-    <div className="relative rounded-lg overflow-hidden shadow-lg">
+    <div className="group relative rounded-lg overflow-hidden shadow-lg">
       <AspectRatio
         ratio={4 / 5}
         className="bg-stone-100"
@@ -28,7 +28,7 @@ const HeroImage = () => {
         <HeroImageComponent
           src={heroImageData.imageUrl}
           alt={heroImageData.altText}
-          className="object-cover w-full h-full rounded-lg transition-all duration-700 hover:scale-105"
+          className="object-cover w-full h-full rounded-lg"
           fallbackText="Produits artisanaux du Rif"
           preload={true}
           showLoadingSpinner={true}
@@ -39,8 +39,15 @@ const HeroImage = () => {
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent rounded-lg" />
       
-      {/* Content overlay */}
-      <div className="absolute bottom-6 left-6 right-6">
+      {/* Hover hint text */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="bg-black/60 text-white px-4 py-2 rounded-lg backdrop-blur-sm">
+          <p className="text-sm font-medium">{heroImageData.altText}</p>
+        </div>
+      </div>
+      
+      {/* Content overlay - fades on hover */}
+      <div className="absolute bottom-6 left-6 right-6 group-hover:opacity-0 transition-opacity duration-300">
         <div className="bg-white/95 backdrop-blur-sm px-6 py-4 rounded-lg shadow-lg">
           <p className="text-sm font-medium text-stone-800 mb-1">
             {heroImageData.title}
