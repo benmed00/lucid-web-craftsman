@@ -20,6 +20,7 @@ import {
   EyeOff,
   ImageIcon
 } from "lucide-react";
+import ProductImageManager from "@/components/admin/ProductImageManager";
 import { getProducts } from "@/api/mockApiService";
 import { productService, CreateProductData, UpdateProductData } from "@/services/productService";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
@@ -286,22 +287,12 @@ const AdminProducts = () => {
           <Label htmlFor="new">Marquer comme nouveau</Label>
         </div>
 
-        <div className="space-y-2">
-          <Label>Images du produit</Label>
-          <div className="border-2 border-dashed border-stone-300 hover:border-olive-300 rounded-lg p-8 text-center transition-colors cursor-pointer group">
-            <Upload className="h-8 w-8 text-stone-400 group-hover:text-olive-600 mx-auto mb-2 transition-colors" />
-            <p className="text-sm text-stone-600 group-hover:text-stone-800 transition-colors">
-              Glissez-déposez vos images ici ou cliquez pour sélectionner
-            </p>
-            <p className="text-xs text-stone-500 mt-1">
-              Formats acceptés: JPG, PNG, WebP • Max: 5MB par image
-            </p>
-            <Button variant="outline" size="sm" className="mt-3 border-olive-300 text-olive-700 hover:bg-olive-50">
-              <ImageIcon className="h-4 w-4 mr-2" />
-              Sélectionner des fichiers
-            </Button>
-          </div>
-        </div>
+        <ProductImageManager
+          images={formData.images || []}
+          onImagesChange={(images) => setFormData({...formData, images})}
+          productId={editingProduct?.id}
+          maxImages={8}
+        />
       </div>
     );
   };
