@@ -41,9 +41,11 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
   );
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  // Sync with parent when images change
+  // Sync with parent when images change (only non-uploading images)
   React.useEffect(() => {
-    const urls = imageItems.filter(item => !item.error).map(item => item.url);
+    const urls = imageItems
+      .filter(item => !item.error && !item.uploading) // Exclude uploading and error images
+      .map(item => item.url);
     if (JSON.stringify(urls) !== JSON.stringify(images)) {
       onImagesChange(urls);
     }
@@ -149,6 +151,8 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
   };
 
   const canAddMore = imageItems.length < maxImages;
+  const hasUploading = imageItems.some(item => item.uploading);
+  const uploadingCount = imageItems.filter(item => item.uploading).length;
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -158,8 +162,13 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
             <ImageIcon className="h-5 w-5" />
             Images du produit
             <Badge variant="secondary" className="text-xs">
-              {imageItems.length}/{maxImages}
+              {imageItems.filter(item => !item.uploading).length}/{maxImages}
             </Badge>
+            {hasUploading && (
+              <Badge variant="outline" className="text-xs text-amber-600 border-amber-300 bg-amber-50">
+                {uploadingCount} en cours...
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -266,6 +275,14 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
             <p>• Glissez-déposez pour réorganiser l'ordre des images</p>
             <p>• Formats supportés: JPG, PNG, WebP (max 5MB chacune)</p>
             <p>• Les images sont automatiquement optimisées</p>
+            {hasUploading && (
+              <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <Loader2 className="h-4 w-4 animate-spin text-amber-600" />
+                <span className="text-amber-700 font-medium">
+                  {uploadingCount} image{uploadingCount > 1 ? 's' : ''} en cours d'upload... Attendez avant de sauvegarder.
+                </span>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

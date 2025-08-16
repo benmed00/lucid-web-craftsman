@@ -117,6 +117,13 @@ const AdminProducts = () => {
       return;
     }
 
+    // Check if there are any images still uploading
+    const hasUploadingImages = formData.images?.some(url => url.startsWith('blob:'));
+    if (hasUploadingImages) {
+      toast.error("Veuillez attendre que toutes les images soient uploadées avant de sauvegarder");
+      return;
+    }
+
     try {
       if (isNewProduct) {
         const newProduct = await productService.createProduct(formData as CreateProductData);
@@ -488,7 +495,11 @@ const AdminProducts = () => {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Annuler
             </Button>
-            <Button onClick={handleSaveProduct} className="bg-olive-700 hover:bg-olive-800">
+            <Button 
+              onClick={handleSaveProduct} 
+              className="bg-olive-700 hover:bg-olive-800"
+              disabled={formData.images?.some(url => url.startsWith('blob:'))}
+            >
               {isNewProduct ? "Ajouter" : "Sauvegarder"}
             </Button>
           </div>
