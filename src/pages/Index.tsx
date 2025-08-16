@@ -25,11 +25,11 @@ const Index = () => {
           {/* Left: Copy and CTA */}
           <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8 hero-text-animation">
             <Badge className="mb-4 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none animate-scale-in hover-glow">
-              <span className="w-2 h-2 bg-olive-500 rounded-full mr-2"></span>
+              <span class="w-2 h-2 bg-olive-500 rounded-full mr-2"></span>
               Artisanat Durable & Fait Main
             </Badge>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-stone-800 mb-6 animate-fade-in-up">
-              Créé avec amour dans <span className="text-olive-700">les montagnes du Rif</span>
+              Créé avec amour dans les <span className="text-olive-700">montagnes du Rif</span>
             </h1>
             <p className="text-lg text-stone-600 mb-8 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.
