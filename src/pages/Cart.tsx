@@ -1,60 +1,58 @@
-// File_name : src/pages/Cart.tsx
-// this file contains the Cart component that displays the user's cart and allows them to manage their items.
-
-import { ArrowRight, ShoppingBag, X, Plus, Minus } from "lucide-react";
-import {
-  // getCart, // No longer needed from mockApiService
-  removeFromCart,
-  updateCartItemQuantity,
-} from "@/api/mockApiService";
-import { useEffect } from "react"; // Removed useState
-
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import Navigation from "@/components/Navigation";
-import PageFooter from "@/components/PageFooter";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
-import { useCart } from "@/context/useCart";
-import { ProductImage } from "@/components/ui/GlobalImage";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import React, { useState, useMemo } from 'react';
+import { useCart } from '@/context/useCart';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Minus, Plus, X, ShoppingBag, ArrowRight, Truck, AlertCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useShipping } from '@/hooks/useShipping';
+import { useStock } from '@/hooks/useStock';
+import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { removeFromCart as removeFromCartAPI, updateCartItemQuantity } from '@/api/mockApiService';
 
 const Cart = () => {
-  // const [cartItems, setCartItems] = useState([]); // Removed: Get items from context
-  // const [loading, setLoading] = useState(true); // Removed: CartContext handles initial load
-  const { cart, dispatch } = useCart();
-  const cartItems = cart.items; // Get items directly from context
+  const { cart, dispatch, itemCount, totalPrice } = useCart();
+  const [postalCode, setPostalCode] = useState('');
+  const { calculation, loading: shippingLoading, loadZones } = useShipping({ postalCode, orderAmount: totalPrice });
+  
+  // Get all product IDs from cart for bulk stock checking
+  const productIds = cart.items.map(item => item.product.id);
+  const { stockInfo, canOrderQuantity } = useStock({ productIds, enabled: productIds.length > 0 });
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    // fetchCart(); // Removed: Cart is hydrated by CartProvider
-  }, []);
-
-  // const fetchCart = async () => { // Removed
-  //   try {
-  //     const cart = await getCart(); // mockApiService.getCart() is no longer for fetching items
-  //     // setCartItems(cart.items || []); // Data comes from context
-  //     // setLoading(false);
-  //   } catch (error) {
-  //     console.error("Error fetching cart:", error);
-  //     toast.error("Erreur lors du chargement du panier");
-  //     // setLoading(false);
-  //   }
-  // };
+  // Check stock for all items and get any issues
+  const stockIssues = useMemo(() => {
+    const issues: { productId: number; available: number; requested: number }[] = [];
+    
+    if (stockInfo && typeof stockInfo === 'object') {
+      cart.items.forEach(item => {
+        const productStock = stockInfo[item.product.id];
+        if (productStock && productStock.isOutOfStock) {
+          issues.push({
+            productId: item.product.id,
+            available: productStock.available,
+            requested: item.quantity
+          });
+        }
+      });
+    }
+    
+    return issues;
+  }, [cart.items, stockInfo]);
 
   const handleQuantityChange = async (itemId: number, newQuantity: number) => {
+    if (newQuantity < 1) {
+      handleRemoveItem(itemId);
+      return;
+    }
+    
     try {
-      // Simulate API call first
       const response = await updateCartItemQuantity(itemId, newQuantity);
       if (response.success) {
-        // Then dispatch action to update context state
         dispatch({ type: "UPDATE_ITEM_QUANTITY", payload: { id: itemId, quantity: newQuantity } });
-        if (newQuantity > 0) {
-          toast.success("Quantité mise à jour");
-        } else {
-          toast.success("Produit retiré du panier"); // As quantity <= 0 removes it
-        }
+        toast.success("Quantité mise à jour");
       } else {
         toast.error("Erreur lors de la mise à jour de la quantité");
       }
@@ -66,10 +64,8 @@ const Cart = () => {
 
   const handleRemoveItem = async (itemId: number) => {
     try {
-      // Simulate API call first
-      const response = await removeFromCart(itemId);
+      const response = await removeFromCartAPI(itemId);
       if (response.success) {
-        // Then dispatch action to update context state
         dispatch({ type: "REMOVE_ITEM", payload: itemId });
         toast.success("Produit retiré du panier");
       } else {
@@ -81,193 +77,212 @@ const Cart = () => {
     }
   };
 
-  // Calculate totals using data from context
-  const subtotal = cart.totalPrice; // Use totalPrice from context
-  const shipping = subtotal > 0 ? 6.95 : 0; // Shipping logic can remain local
-  const total = subtotal + shipping;
+  const handleCheckShipping = () => {
+    if (!postalCode.trim()) {
+      toast.error('Veuillez entrer un code postal');
+      return;
+    }
+    loadZones();
+  };
 
-  // Loading state is implicitly handled by CartProvider's initial hydration.
-  // A more sophisticated app might have a global loading indicator or specific loading states for API interactions.
-  // For this refactor, we assume CartProvider handles initial load and then context is source of truth.
+  const subtotal = totalPrice;
+  const shippingCost = calculation?.cost || 0;
+  const total = subtotal + shippingCost;
+
+  if (cart.items.length === 0) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navigation />
+        <main className="container mx-auto px-4 py-16">
+          <div className="text-center">
+            <div className="w-24 h-24 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ShoppingBag className="h-12 w-12 text-stone-400" />
+            </div>
+            <h1 className="text-2xl font-serif text-stone-800 mb-4">Votre Panier est Vide</h1>
+            <p className="text-stone-600 mb-8">Découvrez notre belle collection de produits artisanaux</p>
+            <Link to="/products">
+              <Button className="bg-olive-700 hover:bg-olive-800 text-white px-8 py-3">
+                Commencer Vos Achats
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-serif text-stone-800 mb-2">Votre Panier</h1>
+          <p className="text-stone-600">{itemCount} article{itemCount > 1 ? 's' : ''} dans votre panier</p>
+        </div>
 
-      <div className="container mx-auto px-4 py-12">
-        <h1 className="font-serif text-3xl md:text-4xl text-stone-800 mb-8 text-center">
-          Votre Panier
-        </h1>
+        {stockIssues.length > 0 && (
+          <Alert className="mb-6 border-amber-200 bg-amber-50">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800">
+              Attention : Certains articles de votre panier ont un stock limité. Veuillez ajuster les quantités.
+            </AlertDescription>
+          </Alert>
+        )}
 
-        {cartItems.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="flex justify-center mb-4">
-              <ShoppingBag className="h-16 w-16 text-stone-300" />
-            </div>
-            <h2 className="text-2xl font-serif text-stone-800 mb-4">
-              Votre panier est vide
-            </h2>
-            <p className="text-stone-600 mb-8">
-              Vous n'avez aucun article dans votre panier.
-            </p>
-            <Link to="/products">
-              <Button className="bg-olive-700 hover:bg-olive-800">
-                Découvrir nos produits
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {/* Cart Items */}
-            <div className="lg:col-span-2">
-              <div className="border rounded-lg overflow-hidden">
-                {/* Cart Header */}
-                <div className="bg-stone-50 px-6 py-4 hidden md:grid grid-cols-12 text-stone-600 font-medium">
-                  <div className="col-span-6">Produit</div>
-                  <div className="col-span-2 text-center">Prix</div>
-                  <div className="col-span-2 text-center">Quantité</div>
-                  <div className="col-span-2 text-right">Total</div>
-                </div>
-
-                {/* Cart Items */}
-                {cartItems.map((item, index) => (
-                  <div key={item.id}>
-                    {index > 0 && <Separator />}
-                    <div className="px-6 py-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                      {/* Product Info */}
-                      <div className="md:col-span-6 flex items-center">
-                        <Link
-                          to={`/products/${item.product.id}`}
-                           className="flex items-center hover:bg-stone-50 rounded-md p-2 transition"
-                         >
-                           <div className="w-20 h-20 rounded-md overflow-hidden mr-4">
-                             <ProductImage
-                               src={item.product.images[0]}
-                               alt={item.product.name}
-                               className="w-full h-full object-cover rounded-md"
-                               showRetryButton={true}
-                             />
-                           </div>
-                           <h3 className="font-medium text-stone-800">
-                             {item.product.name}
-                          </h3>
-                        </Link>
-
-                        {/* Remove Button (outside the Link!) */}
-                        <button
-                          className="ml-4 mt-1 text-stone-400 hover:text-stone-600 text-sm flex items-center"
-                          onClick={() => handleRemoveItem(item.id)}
-                        >
-                          <X className="h-3 w-3 mr-1" /> Retirer
-                        </button>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Cart Items */}
+          <div className="lg:col-span-2 space-y-4">
+            {cart.items.map((item) => {
+              const productStock = stockInfo && typeof stockInfo === 'object' ? stockInfo[item.product.id] : null;
+              const hasStockIssue = stockIssues.find(issue => issue.productId === item.product.id);
+              
+              return (
+                <Card key={item.id} className={`transition-all duration-200 ${hasStockIssue ? 'border-amber-200 bg-amber-50' : ''}`}>
+                  <CardContent className="p-6">
+                    <div className="flex gap-4">
+                      <div className="w-24 h-24 bg-stone-100 rounded-lg overflow-hidden flex-shrink-0">
+                        <img
+                          src={item.product.images[0] || '/placeholder.svg'}
+                          alt={item.product.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-
-                      {/* Price */}
-                      <div className="md:col-span-2 md:text-center">
-                        <div className="md:hidden text-sm text-stone-500">
-                          Prix:
-                        </div>
-                        <div>{item.product.price} €</div>
-                      </div>
-
-                      {/* Quantity */}
-                      <div className="md:col-span-2 md:text-center">
-                        <div className="md:hidden text-sm text-stone-500">
-                          Quantité:
-                        </div>
-                        <div className="flex md:justify-center">
-                          <button
-                            className="border border-stone-300 rounded-l-md px-3 py-2 hover:bg-stone-50"
-                            onClick={() =>
-                              handleQuantityChange(item.id, item.quantity - 1)
-                            }
+                      
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h3 className="font-medium text-stone-800">{item.product.name}</h3>
+                            <p className="text-sm text-stone-600">{item.product.category}</p>
+                            {hasStockIssue && (
+                              <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-100 mt-1">
+                                Stock limité ({productStock?.available} disponibles)
+                              </Badge>
+                            )}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="text-stone-400 hover:text-red-500"
                           >
-                            -
-                          </button>
-                          <input
-                            type="text"
-                            value={item.quantity}
-                            readOnly
-                            className="border-t border-b border-stone-300 px-4 py-2 w-16 text-center focus:outline-none"
-                          />
-                          <button
-                            className="border border-stone-300 rounded-r-md px-3 py-2 hover:bg-stone-50"
-                            onClick={() =>
-                              handleQuantityChange(item.id, item.quantity + 1)
-                            }
-                          >
-                            +
-                          </button>
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
-                      </div>
-
-                      {/* Total */}
-                      <div className="md:col-span-2 md:text-right">
-                        <div className="md:hidden text-sm text-stone-500">
-                          Total:
-                        </div>
-                        <div className="font-medium">
-                          {item.product.price * item.quantity} €
+                        
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                              disabled={item.quantity <= 1}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="w-8 text-center font-medium">{item.quantity}</span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                              disabled={productStock && item.quantity >= productStock.available}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium text-stone-800">{(item.product.price * item.quantity).toFixed(2)} €</p>
+                            <p className="text-sm text-stone-600">{item.product.price.toFixed(2)} € l'unité</p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
 
-              {/* Continue Shopping */}
-              <div className="mt-8">
-                <Link
-                  to="/products"
-                  className="inline-flex items-center text-olive-700 hover:text-olive-900"
-                >
-                  <ArrowRight className="mr-2 h-4 w-4 rotate-180" /> Continuer
-                  vos achats
-                </Link>
-              </div>
-            </div>
-
-            {/* Cart Summary */}
-            <div className="lg:col-span-1">
-              <div className="border rounded-lg p-6 bg-stone-50">
-                <h3 className="font-serif text-xl text-stone-800 mb-4">
-                  Récapitulatif
-                </h3>
-
+          {/* Order Summary */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-4">
+              <CardContent className="p-6">
+                <h2 className="text-xl font-medium text-stone-800 mb-4">Résumé de Commande</h2>
+                
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
-                    <span className="text-stone-600">Sous-total</span>
-                    <span className="font-medium">{subtotal.toFixed(2)} €</span>
+                    <span>Sous-total</span>
+                    <span>{subtotal.toFixed(2)} €</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-stone-600">Frais de livraison</span>
-                    <span className="font-medium">{shipping.toFixed(2)} €</span>
+                  
+                  {calculation && (
+                    <>
+                      <div className="flex justify-between">
+                        <span>Livraison</span>
+                        <span>{calculation.is_free ? 'Gratuit' : `${calculation.cost.toFixed(2)} €`}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-stone-600">
+                        <span>Délai de livraison</span>
+                        <span>{calculation.delivery_estimate}</span>
+                      </div>
+                    </>
+                  )}
+                  
+                  <div className="border-t pt-3">
+                    <div className="flex justify-between font-medium text-lg">
+                      <span>Total</span>
+                      <span>{total.toFixed(2)} €</span>
+                    </div>
                   </div>
-                  <Separator className="my-2" />
-                  <div className="flex justify-between text-lg">
-                    <span className="font-medium">Total</span>
-                    <span className="font-medium text-olive-700">
-                      {total.toFixed(2)} €
-                    </span>
+                </div>
+
+                {/* Shipping Calculator */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-stone-700 mb-2">
+                    <Truck className="inline h-4 w-4 mr-1" />
+                    Calculer les frais de livraison
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={postalCode}
+                      onChange={(e) => setPostalCode(e.target.value)}
+                      placeholder="Code postal"
+                      className="flex-1 px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-500"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCheckShipping}
+                      disabled={shippingLoading}
+                    >
+                      {shippingLoading ? 'Calcul...' : 'Calculer'}
+                    </Button>
                   </div>
                 </div>
 
                 <Link to="/checkout">
-                  <Button className="w-full bg-olive-700 hover:bg-olive-800 text-white">
-                    Passer à la caisse
+                  <Button 
+                    className="w-full bg-olive-700 hover:bg-olive-800 text-white"
+                    disabled={stockIssues.length > 0}
+                  >
+                    {stockIssues.length > 0 ? 'Corriger le stock d\'abord' : 'Procéder au Paiement'}
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
 
-                <div className="mt-6 text-center text-sm text-stone-500">
-                  Moyens de paiement sécurisés : Carte Bancaire, PayPal
+                <div className="mt-4 text-center">
+                  <Link to="/products" className="text-olive-700 hover:text-olive-900 text-sm">
+                    Continuer mes achats
+                  </Link>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
-        )}
-      </div>
-
-      <PageFooter />
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 };
