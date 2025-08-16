@@ -847,6 +847,7 @@ export type Database = {
           id: number
           images: string[]
           is_active: boolean | null
+          is_available: boolean | null
           is_featured: boolean | null
           is_new: boolean | null
           material: string | null
@@ -877,6 +878,7 @@ export type Database = {
           id?: number
           images?: string[]
           is_active?: boolean | null
+          is_available?: boolean | null
           is_featured?: boolean | null
           is_new?: boolean | null
           material?: string | null
@@ -907,6 +909,7 @@ export type Database = {
           id?: number
           images?: string[]
           is_active?: boolean | null
+          is_available?: boolean | null
           is_featured?: boolean | null
           is_new?: boolean | null
           material?: string | null
@@ -1081,6 +1084,45 @@ export type Database = {
           state_province?: string | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      shipping_zones: {
+        Row: {
+          created_at: string | null
+          delivery_days_max: number
+          delivery_days_min: number
+          free_shipping_threshold: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          postal_codes: Json
+          shipping_cost: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_days_max?: number
+          delivery_days_min?: number
+          free_shipping_threshold?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          postal_codes: Json
+          shipping_cost?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delivery_days_max?: number
+          delivery_days_min?: number
+          free_shipping_threshold?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          postal_codes?: Json
+          shipping_cost?: number
+          updated_at?: string | null
         }
         Relationships: []
       }

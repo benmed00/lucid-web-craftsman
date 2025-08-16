@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
-import { ShoppingCart, Eye } from "lucide-react";
+import { ShoppingCart, Eye, AlertTriangle } from "lucide-react";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { WishlistButton } from "@/components/ui/WishlistButton";
+import { useStock } from "@/hooks/useStock";
+import { StockInfo } from "@/services/stockService";
+import { useEffect } from "react";
 
 interface ProductCardProps {
   product: Product;
@@ -13,6 +16,10 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) => {
+  const { stockInfo } = useStock({ productId: product.id });
+
+  // Type guard to ensure stockInfo is StockInfo for single product
+  const singleStockInfo = stockInfo as StockInfo | null;
   return (
     <Card key={product.id} className="bg-white border-none overflow-hidden group hover:shadow-md transition-all duration-300 relative">
       {/* Wishlist button - positioned absolutely */}
@@ -56,6 +63,23 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
               Nouveau
             </Badge>
           )}
+
+          {/* Stock alerts */}
+          {singleStockInfo && (
+            <>
+              {singleStockInfo.isOutOfStock && (
+                <Badge className="absolute top-3 right-3 bg-red-600 text-white border-none shadow-lg">
+                  {singleStockInfo.message}
+                </Badge>
+              )}
+              {singleStockInfo.isLow && !singleStockInfo.isOutOfStock && (
+                <Badge className="absolute top-3 right-3 bg-amber-500 text-white border-none shadow-lg flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  {singleStockInfo.message}
+                </Badge>
+              )}
+            </>
+          )}
         </div>
       </Link>
       
@@ -77,10 +101,11 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
               e.stopPropagation();
               onAddToCart(product);
             }}
-            className="bg-olive-700 hover:bg-olive-800 active:scale-95 transition-all duration-200"
+            disabled={singleStockInfo?.isOutOfStock}
+            className="bg-olive-700 hover:bg-olive-800 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingCart className="mr-1 h-4 w-4" />
-            Ajouter
+            {singleStockInfo?.isOutOfStock ? 'Indisponible' : 'Ajouter'}
           </Button>
         </div>
       </CardContent>

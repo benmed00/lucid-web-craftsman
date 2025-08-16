@@ -2,7 +2,7 @@
 // this file is used to display the product details
 // and related products
 
-import { ArrowRight, Leaf, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, Leaf, ShoppingBag, ChevronLeft, ChevronRight, AlertTriangle, Truck, CheckCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +19,9 @@ import { toast } from "sonner";
 import { useCart } from "../context/useCart";
 import { ProductImage } from "@/components/ui/GlobalImage";
 import { sanitizeHtmlContent } from "@/utils/xssProtection";
+import { useStock } from "@/hooks/useStock";
+import { useShipping } from "@/hooks/useShipping";
+import { StockInfo } from "@/services/stockService";
 
 const ProductDetail = () => {
   const { dispatch } = useCart();
@@ -29,8 +32,28 @@ const ProductDetail = () => {
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Stock and shipping hooks
+  const { stockInfo, canOrderQuantity } = useStock({ 
+    productId: product?.id || 0, 
+    enabled: !!product 
+  });
+  const singleStockInfo = stockInfo as StockInfo | null;
+  
+  const { getShippingMessage, isNantesMetropole } = useShipping({
+    orderAmount: product ? product.price * quantity : 0,
+    postalCode: '44000', // Default to Nantes for demo
+    enabled: !!product
+  });
+
   const handleAddToCart = async () => {
     if (!product || quantity < 1) return;
+
+    // Validate stock before adding to cart
+    const canOrder = await canOrderQuantity(product.id, quantity);
+    if (!canOrder.canOrder) {
+      toast.error(canOrder.reason || "Impossible d'ajouter ce produit au panier");
+      return;
+    }
 
     try {
       // Add to cart via API (which updates localStorage)
@@ -198,7 +221,53 @@ const ProductDetail = () => {
               {product.price} €
             </div>
 
-            <p className="text-stone-600 mb-8">{product.description}</p>
+            <p className="text-stone-600 mb-6">{product.description}</p>
+
+            {/* Stock Status */}
+            {singleStockInfo && (
+              <div className="mb-6">
+                {singleStockInfo.isOutOfStock ? (
+                  <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <AlertTriangle className="h-5 w-5 text-red-600" />
+                    <span className="text-red-800 font-medium">
+                      {singleStockInfo.message}
+                    </span>
+                  </div>
+                ) : singleStockInfo.isLow ? (
+                  <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                    <span className="text-amber-800 font-medium">
+                      {singleStockInfo.message}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-green-800 font-medium">
+                      En stock ({singleStockInfo.available} disponible{singleStockInfo.available > 1 ? 's' : ''})
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Shipping Information */}
+            <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-2">
+                <Truck className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div>
+                  <p className="text-blue-800 font-medium">Informations de livraison</p>
+                  <p className="text-blue-600 text-sm mt-1">
+                    {getShippingMessage() || '🚚 Livraison: 2-5 jours • France métropolitaine'}
+                  </p>
+                  {isNantesMetropole('44000') && (
+                    <p className="text-blue-600 text-sm mt-1 font-medium">
+                      ✨ Livraison gratuite sur la métropole Nantaise !
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
 
             {/* Artisan Information */}
             <div className="bg-beige-50 p-4 rounded-lg mb-8">
@@ -216,13 +285,14 @@ const ProductDetail = () => {
             {/* Quantity Selector */}
             <div className="mb-8">
               <label htmlFor="quantity-input" className="block text-sm font-medium text-stone-700 mb-2">
-                Quantité
+                Quantité {singleStockInfo && `(max: ${singleStockInfo.maxQuantity})`}
               </label>
               <div className="flex">
                 <button
                   aria-label="Diminuer la quantité"
-                  className="border border-stone-300 rounded-l-md px-3 py-2 hover:bg-stone-50"
+                  className="border border-stone-300 rounded-l-md px-3 py-2 hover:bg-stone-50 disabled:opacity-50"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
                 >
                   -
                 </button>
@@ -236,21 +306,28 @@ const ProductDetail = () => {
                 />
                 <button
                   aria-label="Augmenter la quantité"
-                  className="border border-stone-300 rounded-r-md px-3 py-2 hover:bg-stone-50"
-                  onClick={() => setQuantity(quantity + 1)}
+                  className="border border-stone-300 rounded-r-md px-3 py-2 hover:bg-stone-50 disabled:opacity-50"
+                  onClick={() => setQuantity(Math.min(singleStockInfo?.maxQuantity || 99, quantity + 1))}
+                  disabled={singleStockInfo ? quantity >= singleStockInfo.maxQuantity : false}
                 >
                   +
                 </button>
               </div>
+              {singleStockInfo && quantity > singleStockInfo.maxQuantity && (
+                <p className="text-red-600 text-sm mt-1">
+                  Stock insuffisant ({singleStockInfo.available} disponible{singleStockInfo.available > 1 ? 's' : ''})
+                </p>
+              )}
             </div>
 
             {/* Add to Cart Button */}
             <Button
               onClick={handleAddToCart}
-              className="w-full mb-4 bg-olive-700 hover:bg-olive-800 text-white font-medium py-6"
+              disabled={singleStockInfo?.isOutOfStock || !singleStockInfo?.canOrder}
+              className="w-full mb-4 bg-olive-700 hover:bg-olive-800 text-white font-medium py-6 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ShoppingBag className="mr-2 h-5 w-5" />
-              Ajouter au panier
+              {singleStockInfo?.isOutOfStock ? 'Produit indisponible' : 'Ajouter au panier'}
             </Button>
 
             {/* Product Tabs */}
