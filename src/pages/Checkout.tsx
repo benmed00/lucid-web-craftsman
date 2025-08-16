@@ -14,7 +14,7 @@ import { STRIPE_PUBLIC_KEY } from "@/lib/stripe";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-// import { useCart } from "@/context/useCart"; // Marked as unused
+import { stockService } from "@/services/stockService";
 
 // Initialize Stripe
 const _stripePromise: Promise<Stripe | null> = loadStripe(STRIPE_PUBLIC_KEY); // Prefixed stripePromise
@@ -113,6 +113,25 @@ const Checkout = () => {
   const handlePayment = async () => {
     try {
       setIsProcessing(true);
+
+      // Verify stock availability for all items before payment
+      const stockVerification = await stockService.reserveStock(
+        cartItems.map(item => ({
+          productId: item.product.id,
+          quantity: item.quantity
+        }))
+      );
+
+      if (!stockVerification.success) {
+        const errors = stockVerification.errors || [];
+        const errorMessages = errors.map(error => 
+          `${cartItems.find(item => item.product.id === error.productId)?.product.name}: ${error.error}`
+        ).join('\n');
+        
+        toast.error(`Stock insuffisant:\n${errorMessages}`);
+        setIsProcessing(false);
+        return;
+      }
 
       // Call Supabase edge function to create Stripe checkout session
       const { data, error } = await supabase.functions.invoke('create-payment', {
