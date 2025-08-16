@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { SecurityMonitoringCard } from "@/components/admin/SecurityMonitoringCard";
 import { 
   Settings, 
   Save,
@@ -430,6 +431,9 @@ const AdminSettings = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Security Monitoring */}
+      <SecurityMonitoringCard />
 
       {/* Data Management */}
       <Card>

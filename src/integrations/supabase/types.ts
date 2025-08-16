@@ -989,6 +989,48 @@ export type Database = {
         }
         Relationships: []
       }
+      security_events: {
+        Row: {
+          created_at: string
+          detected_at: string
+          event_data: Json
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          severity: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          detected_at?: string
+          event_data: Json
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          detected_at?: string
+          event_data?: Json
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       shipments: {
         Row: {
           carrier: string | null
@@ -1347,6 +1389,15 @@ export type Database = {
       is_admin_user: {
         Args: { user_uuid: string }
         Returns: boolean
+      }
+      log_security_event: {
+        Args: {
+          p_event_data?: Json
+          p_event_type: string
+          p_severity?: string
+          p_user_id?: string
+        }
+        Returns: undefined
       }
       update_loyalty_tier: {
         Args: { user_uuid: string }
