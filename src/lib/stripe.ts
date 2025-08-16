@@ -1,8 +1,14 @@
 
 // Stripe configuration for the frontend
 
-// Live Stripe public key (safe for client-side use)
-export const STRIPE_PUBLIC_KEY = "pk_live_51JcgE4IoTolWHboBY8dZF4BDQdpQ3y1wpeLkui305ZFPSKePiTJxTRVacksDIm8XHCYbzbWJH6opa8Aoxbktq0Rp00sOSRTCK1";
+// SECURITY NOTE: In production, this should be loaded from environment variables
+// For now using a constant - replace with your actual Stripe publishable key
+const DEFAULT_STRIPE_PUBLIC_KEY = "pk_test_YOUR_TEST_KEY_HERE"; // Replace with your key
+
+// Get Stripe public key - prioritize environment variable if available
+export const STRIPE_PUBLIC_KEY = 
+  (typeof window !== 'undefined' && (window as any).STRIPE_PUBLIC_KEY) || 
+  DEFAULT_STRIPE_PUBLIC_KEY;
 
 export const formatPrice = (amount: number): string => {
   const formatter = new Intl.NumberFormat('fr-FR', {
