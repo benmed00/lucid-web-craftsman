@@ -1,26 +1,85 @@
-import { CheckCircle, ShoppingBag, Home } from "lucide-react";
+import { CheckCircle, ShoppingBag, Home, Loader2 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useCart } from "@/context/useCart";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
+  const [isVerifying, setIsVerifying] = useState(true);
+  const [verificationResult, setVerificationResult] = useState<{
+    success: boolean;
+    message: string;
+    orderId?: string;
+  } | null>(null);
+  const { clearCart } = useCart();
 
   useEffect(() => {
-    // Clear cart from localStorage on successful payment
-    localStorage.removeItem('cart');
-    
-    // Show success message
-    toast.success("Paiement confirmé avec succès !");
-    
-    // Optional: Send confirmation email or update order status
-    // This would typically be handled by Stripe webhooks in production
-  }, []);
+    const verifyPayment = async () => {
+      if (!sessionId) {
+        setVerificationResult({
+          success: false,
+          message: "ID de session manquant"
+        });
+        setIsVerifying(false);
+        return;
+      }
+
+      try {
+        console.log("Verifying payment for session:", sessionId);
+        
+        const { data, error } = await supabase.functions.invoke('verify-payment', {
+          body: { session_id: sessionId }
+        });
+
+        if (error) {
+          console.error("Verification error:", error);
+          setVerificationResult({
+            success: false,
+            message: "Erreur lors de la vérification du paiement"
+          });
+          toast.error("Erreur lors de la vérification du paiement");
+        } else if (data?.success) {
+          console.log("Payment verified successfully:", data);
+          setVerificationResult({
+            success: true,
+            message: data.message || "Paiement vérifié avec succès",
+            orderId: data.orderId
+          });
+          
+          // Clear cart after successful verification
+          clearCart();
+          localStorage.removeItem('cart');
+          
+          toast.success("Paiement confirmé et stock mis à jour !");
+        } else {
+          console.log("Payment verification failed:", data);
+          setVerificationResult({
+            success: false,
+            message: data?.message || "Échec de la vérification du paiement"
+          });
+          toast.error(data?.message || "Problème avec la vérification du paiement");
+        }
+      } catch (error) {
+        console.error("Unexpected error during verification:", error);
+        setVerificationResult({
+          success: false,
+          message: "Erreur inattendue"
+        });
+        toast.error("Erreur inattendue lors de la vérification");
+      } finally {
+        setIsVerifying(false);
+      }
+    };
+
+    verifyPayment();
+  }, [sessionId, clearCart]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -29,17 +88,50 @@ const PaymentSuccess = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-2xl mx-auto text-center">
           <div className="mb-8">
-            <CheckCircle className="w-20 h-20 text-green-600 mx-auto mb-4" />
-            <h1 className="font-serif text-3xl md:text-4xl text-stone-800 mb-4">
-              Paiement Confirmé
-            </h1>
-            <p className="text-lg text-stone-600 mb-2">
-              Merci pour votre commande ! Votre paiement a été traité avec succès.
-            </p>
-            {sessionId && (
-              <p className="text-sm text-stone-500 mb-6">
-                Numéro de transaction : {sessionId.slice(-8).toUpperCase()}
-              </p>
+            {isVerifying ? (
+              <>
+                <Loader2 className="w-20 h-20 text-olive-600 mx-auto mb-4 animate-spin" />
+                <h1 className="font-serif text-3xl md:text-4xl text-stone-800 mb-4">
+                  Vérification du Paiement
+                </h1>
+                <p className="text-lg text-stone-600 mb-2">
+                  Nous vérifions votre paiement et mettons à jour votre commande...
+                </p>
+              </>
+            ) : verificationResult?.success ? (
+              <>
+                <CheckCircle className="w-20 h-20 text-green-600 mx-auto mb-4" />
+                <h1 className="font-serif text-3xl md:text-4xl text-stone-800 mb-4">
+                  Paiement Confirmé
+                </h1>
+                <p className="text-lg text-stone-600 mb-2">
+                  Merci pour votre commande ! {verificationResult.message}
+                </p>
+                {sessionId && (
+                  <p className="text-sm text-stone-500 mb-2">
+                    Numéro de transaction : {sessionId.slice(-8).toUpperCase()}
+                  </p>
+                )}
+                {verificationResult.orderId && (
+                  <p className="text-sm text-stone-500 mb-6">
+                    Numéro de commande : {verificationResult.orderId.slice(-8).toUpperCase()}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <h1 className="font-serif text-3xl md:text-4xl text-stone-800 mb-4">
+                  Problème de Vérification
+                </h1>
+                <p className="text-lg text-stone-600 mb-6">
+                  {verificationResult?.message || "Une erreur s'est produite lors de la vérification de votre paiement."}
+                </p>
+              </>
             )}
           </div>
 
@@ -78,21 +170,23 @@ const PaymentSuccess = () => {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild className="bg-olive-700 hover:bg-olive-800">
-              <Link to="/products" className="flex items-center">
-                <ShoppingBag className="w-4 h-4 mr-2" />
-                Continuer mes achats
-              </Link>
-            </Button>
-            
-            <Button variant="outline" asChild>
-              <Link to="/" className="flex items-center">
-                <Home className="w-4 h-4 mr-2" />
-                Retour à l'accueil
-              </Link>
-            </Button>
-          </div>
+          {!isVerifying && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild className="bg-olive-700 hover:bg-olive-800">
+                <Link to="/products" className="flex items-center">
+                  <ShoppingBag className="w-4 h-4 mr-2" />
+                  Continuer mes achats
+                </Link>
+              </Button>
+              
+              <Button variant="outline" asChild>
+                <Link to="/" className="flex items-center">
+                  <Home className="w-4 h-4 mr-2" />
+                  Retour à l'accueil
+                </Link>
+              </Button>
+            </div>
+          )}
 
           <div className="mt-12 p-6 bg-olive-50 rounded-lg">
             <h3 className="text-lg font-medium text-stone-800 mb-2">

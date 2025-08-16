@@ -1,6 +1,7 @@
 // src/context/CartContext.tsx
 
 import { CartAction, CartContext, CartState } from "./useCart";
+import { Product } from "../shared/interfaces/Iproduct.interface";
 import React, { useEffect, useMemo, useReducer } from "react";
 
 function cartReducer(state: CartState, action: CartAction): CartState {
@@ -112,8 +113,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("cart", JSON.stringify({ items: cart.items }));
   }, [cart.items]); // Depend only on cart.items to avoid loop with totalPrice
 
+  // Helper functions
+  const clearCart = () => dispatch({ type: "CLEAR_CART" });
+  const addItem = (product: Product, quantity: number) => dispatch({ type: "ADD_ITEM", payload: product, quantity });
+  const removeItem = (itemId: number) => dispatch({ type: "REMOVE_ITEM", payload: itemId });
+  const updateItemQuantity = (id: number, quantity: number) => dispatch({ type: "UPDATE_ITEM_QUANTITY", payload: { id, quantity } });
+
   return (
-    <CartContext.Provider value={{ cart: { ...cart, totalPrice }, dispatch, itemCount, totalPrice }}>
+    <CartContext.Provider value={{ 
+      cart: { ...cart, totalPrice }, 
+      dispatch, 
+      itemCount, 
+      totalPrice,
+      clearCart,
+      addItem,
+      removeItem,
+      updateItemQuantity
+    }}>
       {children}
     </CartContext.Provider>
   );

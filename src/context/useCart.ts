@@ -37,5 +37,9 @@ export const CartContext = createContext<{
     cart: CartState;
     dispatch: React.Dispatch<CartAction>;
     itemCount: number;
-    totalPrice: number; // Added totalPrice
+    totalPrice: number;
+    clearCart: () => void;
+    addItem: (product: Product, quantity: number) => void;
+    removeItem: (itemId: number) => void;
+    updateItemQuantity: (id: number, quantity: number) => void;
 }>(null!);

@@ -136,6 +136,72 @@ export class StockService {
   }
 
   /**
+   * Deduct stock after successful payment
+   */
+  async deductStock(items: Array<{ productId: number; quantity: number }>): Promise<{
+    success: boolean;
+    errors?: Array<{ productId: number; error: string }>;
+    stockUpdates?: Array<{ productId: number; previousStock: number; newStock: number; quantitySold: number }>;
+  }> {
+    const errors: Array<{ productId: number; error: string }> = [];
+    const stockUpdates: Array<{ productId: number; previousStock: number; newStock: number; quantitySold: number }> = [];
+
+    for (const item of items) {
+      try {
+        const { data: product, error: fetchError } = await supabase
+          .from('products')
+          .select('stock_quantity')
+          .eq('id', item.productId)
+          .single();
+
+        if (fetchError) {
+          errors.push({
+            productId: item.productId,
+            error: `Erreur lors de la récupération du stock: ${fetchError.message}`
+          });
+          continue;
+        }
+
+        const currentStock = product.stock_quantity || 0;
+        const newStock = Math.max(0, currentStock - item.quantity);
+
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({ 
+            stock_quantity: newStock,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', item.productId);
+
+        if (updateError) {
+          errors.push({
+            productId: item.productId,
+            error: `Erreur lors de la mise à jour du stock: ${updateError.message}`
+          });
+        } else {
+          stockUpdates.push({
+            productId: item.productId,
+            previousStock: currentStock,
+            newStock: newStock,
+            quantitySold: item.quantity
+          });
+        }
+      } catch (error) {
+        errors.push({
+          productId: item.productId,
+          error: `Erreur inattendue: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }
+
+    if (errors.length > 0) {
+      return { success: false, errors, stockUpdates };
+    }
+
+    return { success: true, stockUpdates };
+  }
+
+  /**
    * Update stock quantity (for admin use)
    */
   async updateStock(update: StockUpdate): Promise<void> {

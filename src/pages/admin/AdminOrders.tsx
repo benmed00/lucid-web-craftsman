@@ -1,368 +1,213 @@
-import { useState } from "react";
+import React, { useEffect, useState } from 'react';
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  Search, 
-  Filter, 
-  Eye, 
-  Package,
-  Truck,
-  CheckCircle,
-  Clock,
-  Mail,
-  Phone,
-  MapPin,
-  ShoppingCart
-} from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Package2, Search, Eye, RefreshCw, DollarSign, ShoppingCart, Clock, Truck, CheckCircle, Package, Filter, Mail, Phone, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
-// Mock orders data - replace with Supabase data
-const mockOrders = [
-  {
-    id: 1,
-    orderNumber: "CMD-2024-001",
-    customerName: "Marie Dubois",
-    email: "marie.dubois@email.com",
-    phone: "+33 6 12 34 56 78",
-    address: "15 rue de la Paix, 75001 Paris",
-    total: 145,
-    status: "pending",
-    paymentStatus: "paid",
-    date: "2024-01-15T10:30:00",
-    items: [
-      { id: 1, name: "Sac à Main Tissé Traditionnel", quantity: 1, price: 89 },
-      { id: 2, name: "Chapeau de Paille Berbère", quantity: 1, price: 45 },
-    ],
-    shippingMethod: "Colissimo",
-    trackingNumber: null
-  },
-  {
-    id: 2,
-    orderNumber: "CMD-2024-002",
-    customerName: "Jean Martin",
-    email: "jean.martin@email.com",
-    phone: "+33 6 98 76 54 32",
-    address: "42 avenue des Champs, 69000 Lyon",
-    total: 89,
-    status: "shipped",
-    paymentStatus: "paid",
-    date: "2024-01-14T14:20:00",
-    items: [
-      { id: 1, name: "Sac à Main Tissé Traditionnel", quantity: 1, price: 89 }
-    ],
-    shippingMethod: "Chronopost",
-    trackingNumber: "CP123456789FR"
-  },
-  {
-    id: 3,
-    orderNumber: "CMD-2024-003",
-    customerName: "Sophie Laurent",
-    email: "sophie.laurent@email.com",
-    phone: "+33 6 55 44 33 22",
-    address: "8 rue du Commerce, 33000 Bordeaux",
-    total: 267,
-    status: "completed",
-    paymentStatus: "paid",
-    date: "2024-01-13T16:45:00",
-    items: [
-      { id: 1, name: "Sac à Main Tissé Traditionnel", quantity: 1, price: 89 },
-      { id: 3, name: "Pochette Brodée à la Main", quantity: 1, price: 62 },
-      { id: 4, name: "Cabas en Fibres Naturelles", quantity: 1, price: 75 },
-    ],
-    shippingMethod: "Mondial Relay",
-    trackingNumber: "MR987654321FR"
-  },
-  {
-    id: 4,
-    orderNumber: "CMD-2024-004",
-    customerName: "Pierre Moreau",
-    email: "pierre.moreau@email.com",
-    phone: "+33 6 11 22 33 44",
-    address: "23 boulevard Saint-Germain, 13000 Marseille",
-    total: 97,
-    status: "pending",
-    paymentStatus: "pending",
-    date: "2024-01-16T09:15:00",
-    items: [
-      { id: 5, name: "Chapeau de Soleil Tressé", quantity: 1, price: 52 },
-      { id: 2, name: "Chapeau de Paille Berbère", quantity: 1, price: 45 },
-    ],
-    shippingMethod: "Colissimo",
-    trackingNumber: null
-  },
-];
+interface OrderItem {
+  id: string;
+  product_id: number;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  product_snapshot: any;
+}
 
+interface Order {
+  id: string;
+  user_id: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  stripe_session_id: string | null;
+  created_at: string;
+  updated_at: string;
+  order_items: OrderItem[];
+  payments?: any[];
+}
 const AdminOrders = () => {
-  const [orders, setOrders] = useState(mockOrders);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [selectedOrder, setSelectedOrder] = useState<typeof mockOrders[0] | null>(null);
+  const { user } = useAuth();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          order_items (
+            id,
+            product_id,
+            quantity,
+            unit_price,
+            total_price,
+            product_snapshot
+          ),
+          payments (
+            id,
+            status,
+            amount,
+            processed_at
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setOrders((data as Order[]) || []);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      toast.error('Erreur lors du chargement des commandes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchOrders();
+    }
+  }, [user]);
+
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      toast.success('Statut de commande mis à jour');
+      fetchOrders();
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+      pending: { label: 'En attente', variant: 'outline' },
+      paid: { label: 'Payée', variant: 'default' },
+      processing: { label: 'En cours', variant: 'secondary' },
+      shipped: { label: 'Expédiée', variant: 'default' },
+      delivered: { label: 'Livrée', variant: 'default' },
+      cancelled: { label: 'Annulée', variant: 'destructive' },
+      refunded: { label: 'Remboursée', variant: 'destructive' }
+    };
+
+    const config = statusConfig[status] || { label: status, variant: 'outline' };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
-      order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = searchTerm === '' || 
+      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.stripe_session_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.order_items.some(item => 
+        item.product_snapshot?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     
-    const matchesStatus = filterStatus === "all" || order.status === filterStatus;
+    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "shipped": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "completed": return "bg-green-100 text-green-800 border-green-200";
-      default: return "bg-stone-100 text-stone-800 border-stone-200";
-    }
-  };
+  const totalRevenue = orders
+    .filter(order => order.status === 'paid' || order.status === 'processing' || order.status === 'shipped' || order.status === 'delivered')
+    .reduce((sum, order) => sum + (order.amount || 0), 0);
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "pending": return "En attente";
-      case "shipped": return "Expédiée";
-      case "completed": return "Terminée";
-      default: return status;
-    }
-  };
+  const totalOrders = orders.length;
+  const pendingOrders = orders.filter(order => order.status === 'pending').length;
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "pending": return <Clock className="h-4 w-4" />;
-      case "shipped": return <Truck className="h-4 w-4" />;
-      case "completed": return <CheckCircle className="h-4 w-4" />;
-      default: return <Package className="h-4 w-4" />;
-    }
-  };
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <RefreshCw className="h-8 w-8 animate-spin text-olive-600" />
+        </div>
+      </div>
+    );
+  }
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case "paid": return "bg-green-100 text-green-800";
-      case "pending": return "bg-yellow-100 text-yellow-800";
-      case "failed": return "bg-red-100 text-red-800";
-      default: return "bg-stone-100 text-stone-800";
-    }
-  };
-
-  const getPaymentStatusText = (status: string) => {
-    switch (status) {
-      case "paid": return "Payé";
-      case "pending": return "En attente";
-      case "failed": return "Échoué";
-      default: return status;
-    }
-  };
-
-  const updateOrderStatus = (orderId: number, newStatus: string) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
-    toast.success("Statut de la commande mis à jour");
-  };
-
-  const addTrackingNumber = (orderId: number, trackingNumber: string) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, trackingNumber } : order
-    ));
-    toast.success("Numéro de suivi ajouté");
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
+  // Simplified dialog - just show basic order info
   const OrderDetailDialog = () => {
     if (!selectedOrder) return null;
 
     return (
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            Commande {selectedOrder.orderNumber}
-            <Badge className={getStatusColor(selectedOrder.status)}>
-              {getStatusIcon(selectedOrder.status)}
-              <span className="ml-1">{getStatusText(selectedOrder.status)}</span>
-            </Badge>
-          </DialogTitle>
+          <DialogTitle>Commande {selectedOrder.id.slice(-8)}</DialogTitle>
           <DialogDescription>
-            Passée le {formatDate(selectedOrder.date)}
+            {format(new Date(selectedOrder.created_at), 'dd/MM/yyyy HH:mm', { locale: fr })}
           </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Customer Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informations client</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-stone-100 rounded-lg">
-                  <Mail className="h-4 w-4 text-stone-600" />
-                </div>
-                <div>
-                  <p className="font-medium">{selectedOrder.customerName}</p>
-                  <p className="text-sm text-stone-600">{selectedOrder.email}</p>
-                </div>
+        <div className="space-y-4">
+          <div>
+            <h4 className="font-medium mb-2">Articles:</h4>
+            {selectedOrder.order_items.map((item) => (
+              <div key={item.id} className="flex justify-between">
+                <span>{item.product_snapshot?.name || 'Produit'} × {item.quantity}</span>
+                <span>{(item.total_price).toFixed(2)} €</span>
               </div>
-              
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-stone-100 rounded-lg">
-                  <Phone className="h-4 w-4 text-stone-600" />
-                </div>
-                <p className="text-sm">{selectedOrder.phone}</p>
-              </div>
-              
-              <div className="flex items-start space-x-3">
-                <div className="p-2 bg-stone-100 rounded-lg">
-                  <MapPin className="h-4 w-4 text-stone-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Adresse de livraison</p>
-                  <p className="text-sm text-stone-600">{selectedOrder.address}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Order Items */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Articles commandés</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {selectedOrder.items.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center py-2 border-b border-stone-200 last:border-0">
-                    <div className="flex-1">
-                      <p className="font-medium">{item.name}</p>
-                      <p className="text-sm text-stone-600">Quantité: {item.quantity}</p>
-                    </div>
-                    <p className="font-semibold">{item.price}€</p>
-                  </div>
-                ))}
-                <div className="pt-3 border-t border-stone-300">
-                  <div className="flex justify-between items-center">
-                    <p className="font-semibold">Total</p>
-                    <p className="font-bold text-lg">{selectedOrder.total}€</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Payment & Shipping */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Paiement</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Badge className={getPaymentStatusColor(selectedOrder.paymentStatus)}>
-                  {getPaymentStatusText(selectedOrder.paymentStatus)}
-                </Badge>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Expédition</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-sm">
-                  <span className="font-medium">Méthode:</span> {selectedOrder.shippingMethod}
-                </p>
-                {selectedOrder.trackingNumber && (
-                  <p className="text-sm">
-                    <span className="font-medium">Suivi:</span> {selectedOrder.trackingNumber}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+            ))}
           </div>
-
-          {/* Status Management */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Gestion du statut</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Button
-                  variant={selectedOrder.status === "pending" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => updateOrderStatus(selectedOrder.id, "pending")}
-                  className="flex-1"
-                >
-                  <Clock className="h-4 w-4 mr-2" />
-                  En attente
-                </Button>
-                <Button
-                  variant={selectedOrder.status === "shipped" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => updateOrderStatus(selectedOrder.id, "shipped")}
-                  className="flex-1"
-                >
-                  <Truck className="h-4 w-4 mr-2" />
-                  Expédiée
-                </Button>
-                <Button
-                  variant={selectedOrder.status === "completed" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => updateOrderStatus(selectedOrder.id, "completed")}
-                  className="flex-1"
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Terminée
-                </Button>
-              </div>
-
-              {selectedOrder.status === "shipped" && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Numéro de suivi</label>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Entrer le numéro de suivi"
-                      defaultValue={selectedOrder.trackingNumber || ""}
-                      onBlur={(e) => {
-                        if (e.target.value) {
-                          addTrackingNumber(selectedOrder.id, e.target.value);
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <Separator />
+          <div className="flex justify-between items-center">
+            <span className="font-medium">Total:</span>
+            <span className="font-bold">{(selectedOrder.amount / 100).toFixed(2)} €</span>
+          </div>
+          <div>
+            <h4 className="font-medium mb-2">Changer le statut:</h4>
+            <Select value={selectedOrder.status} onValueChange={(status) => updateOrderStatus(selectedOrder.id, status)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">En attente</SelectItem>
+                <SelectItem value="paid">Payée</SelectItem>
+                <SelectItem value="processing">En cours</SelectItem>
+                <SelectItem value="shipped">Expédiée</SelectItem>
+                <SelectItem value="delivered">Livrée</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </DialogContent>
     );
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-serif font-semibold text-stone-800">
-            Gestion des commandes
-          </h2>
-          <p className="text-stone-600">
-            {orders.length} commandes au total
-          </p>
+          <h1 className="text-2xl font-bold text-stone-800">Gestion des Commandes</h1>
+          <p className="text-stone-600">Gérez toutes les commandes de votre boutique</p>
         </div>
+        <Button onClick={fetchOrders} variant="outline" className="gap-2">
+          <RefreshCw className="h-4 w-4" />
+          Actualiser
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -415,7 +260,7 @@ const AdminOrders = () => {
               <div>
                 <p className="text-sm text-stone-600">Chiffre d'affaires</p>
                 <p className="text-2xl font-bold text-olive-600">
-                  {orders.reduce((sum, order) => sum + order.total, 0)}€
+                  {(totalRevenue / 100).toFixed(2)} €
                 </p>
               </div>
               <Package className="h-8 w-8 text-olive-600" />
@@ -433,14 +278,14 @@ const AdminOrders = () => {
                 <Search className="absolute left-3 top-3 h-4 w-4 text-stone-400" />
                 <Input
                   placeholder="Rechercher par numéro, nom ou email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
             
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-48">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue />
@@ -477,36 +322,31 @@ const AdminOrders = () => {
                   <tr key={order.id} className="border-b border-stone-200 hover:bg-stone-50">
                     <td className="p-4">
                       <div>
-                        <p className="font-medium">{order.orderNumber}</p>
+                        <p className="font-medium">{order.id.slice(-8)}</p>
                         <p className="text-sm text-stone-600">
-                          {order.items.length} article{order.items.length > 1 ? 's' : ''}
+                          {order.order_items.length} article{order.order_items.length > 1 ? 's' : ''}
                         </p>
                       </div>
                     </td>
                     <td className="p-4">
                       <div>
-                        <p className="font-medium">{order.customerName}</p>
-                        <p className="text-sm text-stone-600">{order.email}</p>
+                        <p className="font-medium">Client #{order.user_id?.slice(-8) || 'Invité'}</p>
+                        <p className="text-sm text-stone-600">{order.stripe_session_id?.slice(-8) || 'N/A'}</p>
                       </div>
                     </td>
                     <td className="p-4">
                       <p className="text-sm">
-                        {new Date(order.date).toLocaleDateString('fr-FR')}
+                        {format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: fr })}
                       </p>
                     </td>
                     <td className="p-4">
-                      <p className="font-semibold">{order.total}€</p>
+                      <p className="font-semibold">{(order.amount / 100).toFixed(2)} €</p>
                     </td>
                     <td className="p-4">
-                      <Badge className={getStatusColor(order.status)}>
-                        {getStatusIcon(order.status)}
-                        <span className="ml-1">{getStatusText(order.status)}</span>
-                      </Badge>
+                      {getStatusBadge(order.status)}
                     </td>
                     <td className="p-4">
-                      <Badge className={getPaymentStatusColor(order.paymentStatus)}>
-                        {getPaymentStatusText(order.paymentStatus)}
-                      </Badge>
+                      <Badge variant="default">Stripe</Badge>
                     </td>
                     <td className="p-4">
                       <Dialog>
@@ -536,7 +376,7 @@ const AdminOrders = () => {
                 Aucune commande trouvée
               </h3>
               <p className="text-stone-600">
-                {searchQuery || filterStatus !== "all" 
+                {searchTerm || statusFilter !== "all" 
                   ? "Aucune commande ne correspond à vos critères de recherche."
                   : "Vous n'avez pas encore reçu de commandes."
                 }

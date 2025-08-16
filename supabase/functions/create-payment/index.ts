@@ -7,17 +7,49 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper logging function
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-PAYMENT] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Create Supabase clients
+  const supabaseClient = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+  );
+
+  const supabaseService = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } }
+  );
+
   try {
+    logStep("Function started");
+    
     const { items, customerInfo } = await req.json();
     
     if (!items || !Array.isArray(items) || items.length === 0) {
       throw new Error("No items provided for payment");
+    }
+
+    logStep("Received order data", { itemCount: items.length });
+
+    // Get authenticated user (optional for guest checkout)
+    let user = null;
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader) {
+      const token = authHeader.replace("Bearer ", "");
+      const { data: userData } = await supabaseClient.auth.getUser(token);
+      user = userData.user;
+      logStep("User authenticated", { userId: user?.id });
     }
 
     // Initialize Stripe
@@ -70,6 +102,55 @@ serve(async (req) => {
       }
     }
 
+    // Calculate total amount
+    const totalAmount = lineItems.reduce((sum, item) => sum + (item.price_data.unit_amount * item.quantity), 0);
+    logStep("Calculated total amount", { totalAmount });
+
+    // Create order record first
+    const { data: orderData, error: orderError } = await supabaseService
+      .from('orders')
+      .insert({
+        user_id: user?.id || null,
+        amount: totalAmount,
+        currency: 'eur',
+        status: 'pending'
+      })
+      .select('*')
+      .single();
+
+    if (orderError) {
+      logStep("Error creating order", orderError);
+      throw new Error(`Failed to create order: ${orderError.message}`);
+    }
+
+    logStep("Order created", { orderId: orderData.id });
+
+    // Create order items
+    const orderItems = items.map((item: any) => ({
+      order_id: orderData.id,
+      product_id: item.product.id,
+      quantity: item.quantity,
+      unit_price: item.product.price,
+      total_price: item.product.price * item.quantity,
+      product_snapshot: {
+        name: item.product.name,
+        description: item.product.description,
+        images: item.product.images,
+        price: item.product.price
+      }
+    }));
+
+    const { error: itemsError } = await supabaseService
+      .from('order_items')
+      .insert(orderItems);
+
+    if (itemsError) {
+      logStep("Error creating order items", itemsError);
+      throw new Error(`Failed to create order items: ${itemsError.message}`);
+    }
+
+    logStep("Order items created", { itemCount: orderItems.length });
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -84,10 +165,24 @@ serve(async (req) => {
       },
       billing_address_collection: 'required',
       metadata: {
+        order_id: orderData.id,
         customer_name: customerInfo ? `${customerInfo.firstName} ${customerInfo.lastName}` : 'Guest',
         customer_phone: customerInfo?.phone || '',
       },
     });
+
+    logStep("Stripe session created", { sessionId: session.id });
+
+    // Update order with Stripe session ID
+    const { error: updateError } = await supabaseService
+      .from('orders')
+      .update({ stripe_session_id: session.id })
+      .eq('id', orderData.id);
+
+    if (updateError) {
+      logStep("Error updating order with session ID", updateError);
+      // Non-fatal error, continue
+    }
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
