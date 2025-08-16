@@ -1416,6 +1416,10 @@ export type Database = {
         Args: { input_data: Json }
         Returns: Json
       }
+      can_access_support_ticket: {
+        Args: { ticket_id: string }
+        Returns: boolean
+      }
       get_security_setting: {
         Args: { setting_key: string }
         Returns: Json
