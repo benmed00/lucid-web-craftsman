@@ -1,5 +1,5 @@
 
-import { Leaf, Menu, ShoppingBag, X, User, LogOut, Heart, ShoppingCart } from "lucide-react";
+import { Leaf, Menu, ShoppingBag, X, User, LogOut, Heart, ShoppingCart, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // import CartIcon from "../context/CartIcon"; // Marked as unused
 import { Link } from "react-router-dom";
@@ -123,19 +123,25 @@ const Navigation = () => {
         {/* Auth buttons - Desktop */}
         {!isLoading && (
           <>
-            {user ? (
-              <div className="hidden md:flex items-center gap-2">
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/profile" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    <span className="text-sm">Mon Profil</span>
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-2">
-                  <LogOut className="h-4 w-4" />
-                  <span className="text-sm">Déconnexion</span>
-                </Button>
-              </div>
+             {user ? (
+               <div className="hidden md:flex items-center gap-2">
+                 <Button variant="ghost" size="sm" asChild>
+                   <Link to="/orders" className="flex items-center gap-2">
+                     <Package className="h-4 w-4" />
+                     <span className="text-sm">Mes Commandes</span>
+                   </Link>
+                 </Button>
+                 <Button variant="ghost" size="sm" asChild>
+                   <Link to="/profile" className="flex items-center gap-2">
+                     <User className="h-4 w-4" />
+                     <span className="text-sm">Mon Profil</span>
+                   </Link>
+                 </Button>
+                 <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-2">
+                   <LogOut className="h-4 w-4" />
+                   <span className="text-sm">Déconnexion</span>
+                 </Button>
+               </div>
             ) : (
               <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
                 <Link to="/auth" aria-label="Se connecter">Se connecter</Link>
@@ -242,14 +248,22 @@ const Navigation = () => {
                       </span>
                     )}
                   </Link>
-                  <Link
-                    to="/cart"
-                    className="flex items-center py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <ShoppingCart size={20} className="mr-3" />
-                    Panier
-                  </Link>
+                   <Link
+                     to="/orders"
+                     className="flex items-center py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors"
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     <Package size={20} className="mr-3" />
+                     Mes Commandes
+                   </Link>
+                   <Link
+                     to="/cart"
+                     className="flex items-center py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors"
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     <ShoppingCart size={20} className="mr-3" />
+                     Panier
+                   </Link>
                 </>
               )}
 

@@ -18,6 +18,7 @@ import FAQ from "./pages/FAQ";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import EnhancedProfile from "./pages/EnhancedProfile";
+import OrderHistory from "./pages/OrderHistory";
 import NotFound from "./pages/NotFound";
 import ProductDetail from "./pages/ProductDetail";
 import Products from "./pages/Products";
@@ -71,6 +72,7 @@ const App = () => {
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile" element={<EnhancedProfile />} />
             <Route path="/enhanced-profile" element={<EnhancedProfile />} />
+            <Route path="/orders" element={<OrderHistory />} />
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
