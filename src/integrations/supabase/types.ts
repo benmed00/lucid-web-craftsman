@@ -1416,9 +1416,17 @@ export type Database = {
         Args: { input_data: Json }
         Returns: Json
       }
+      archive_old_payment_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       can_access_support_ticket: {
         Args: { ticket_id: string }
         Returns: boolean
+      }
+      get_masked_payment_info: {
+        Args: { payment_id: string }
+        Returns: Json
       }
       get_security_setting: {
         Args: { setting_key: string }
