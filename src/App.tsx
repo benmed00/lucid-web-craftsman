@@ -32,6 +32,11 @@ import Terms from "./pages/Terms";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
+// PWA Components
+import { PWAInstallPrompt } from "@/components/ui/PWAInstallPrompt";
+import { OfflineManager } from "@/components/ui/OfflineManager";
+import { PushNotificationManager } from "@/components/ui/PushNotificationManager";
+
 // Admin imports
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminLayout from "./components/admin/AdminLayout";
@@ -63,9 +68,12 @@ const App = () => {
   console.log("App component is rendering, basePath:", basePath);
   return (
   <QueryClientProvider client={queryClient}>
-    <CartProvider>
-      <TooltipProvider delayDuration={300}>
-        <BrowserRouter basename={basePath}>
+    <OfflineManager>
+      <CartProvider>
+        <TooltipProvider delayDuration={300}>
+          <BrowserRouter basename={basePath}>
+            <PushNotificationManager />
+            <PWAInstallPrompt />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/products" element={<Products />} />
@@ -125,9 +133,10 @@ const App = () => {
         <Sonner richColors expand visibleToasts={3} />
 
         {/* Devtools React Query (en développement seulement) */}
-        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-      </TooltipProvider>
-    </CartProvider>
+          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+        </TooltipProvider>
+      </CartProvider>
+    </OfflineManager>
   </QueryClientProvider>
   );
 };

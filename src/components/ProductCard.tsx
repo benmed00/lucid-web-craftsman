@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
-import { ShoppingCart, Eye, AlertTriangle } from "lucide-react";
+import { ShoppingCart, Eye, AlertTriangle, Share } from "lucide-react";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { WishlistButton } from "@/components/ui/WishlistButton";
+import { NativeShare } from "@/components/ui/NativeShare";
 import { useStock } from "@/hooks/useStock";
 import { StockInfo } from "@/services/stockService";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface ProductCardProps {
   product: Product;
@@ -17,6 +18,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) => {
   const { stockInfo } = useStock({ productId: product.id });
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   // Type guard to ensure stockInfo is StockInfo for single product
   const singleStockInfo = stockInfo as StockInfo | null;
@@ -58,6 +60,20 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
               <Eye className="h-4 w-4" />
             </Button>
           )}
+
+          {/* Share Button - Mobile Only */}
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowShareDialog(true);
+            }}
+            className="absolute top-12 right-2 md:top-14 md:right-3 md:hidden bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full touch-manipulation"
+          >
+            <Share className="h-4 w-4" />
+          </Button>
 
           {product.new && (
             <Badge className="absolute bottom-2 right-2 md:bottom-3 md:right-3 bg-olive-700 text-white border-none shadow-lg text-xs px-2 py-1">
@@ -113,6 +129,15 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
           </Button>
         </div>
       </CardContent>
+
+      {/* Native Share Dialog */}
+      <NativeShare
+        title={product.name}
+        text={`Découvrez ce magnifique ${product.name} - ${product.description}`}
+        url={`${window.location.origin}/products/${product.id}`}
+        isOpen={showShareDialog}
+        onClose={() => setShowShareDialog(false)}
+      />
     </Card>
   );
 };
