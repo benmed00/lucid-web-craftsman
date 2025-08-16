@@ -25,7 +25,7 @@ const Index = () => {
           {/* Left: Copy and CTA */}
           <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8 hero-text-animation">
             <Badge className="mb-4 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none animate-scale-in hover-glow">
-              <span class="w-2 h-2 bg-olive-500 rounded-full mr-2"></span>
+              <span className="w-2 h-2 bg-olive-500 rounded-full mr-2"></span>
               Artisanat Durable & Fait Main
             </Badge>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-stone-800 mb-6 animate-fade-in-up">
