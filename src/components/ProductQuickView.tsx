@@ -3,9 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ShoppingCart, Heart, Eye, Star, Minus, Plus, X } from 'lucide-react';
+import { ShoppingCart, Heart, Eye, Star, Minus, Plus, X, ZoomIn } from 'lucide-react';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { toast } from 'sonner';
+import { MobileImageGallery } from '@/components/ui/MobileImageGallery';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ProductQuickViewProps {
   product: Product | null;
@@ -18,6 +20,8 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [showMobileGallery, setShowMobileGallery] = useState(false);
+  const isMobile = useIsMobile();
 
   if (!product) return null;
 
@@ -56,12 +60,25 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
               <img
                 src={product.images[selectedImageIndex]}
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
+                onClick={() => isMobile && setShowMobileGallery(true)}
               />
               {product.new && (
                 <Badge className="absolute top-4 left-4 bg-olive-700 text-white">
                   Nouveau
                 </Badge>
+              )}
+              
+              {/* Mobile Zoom Button */}
+              {isMobile && product.images.length > 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowMobileGallery(true)}
+                  className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full"
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
               )}
               
               {/* Image Navigation Dots */}
@@ -222,6 +239,15 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
           </div>
         </div>
       </DialogContent>
+      
+      {/* Mobile Image Gallery */}
+      <MobileImageGallery
+        images={product.images}
+        productName={product.name}
+        isOpen={showMobileGallery}
+        onClose={() => setShowMobileGallery(false)}
+        initialIndex={selectedImageIndex}
+      />
     </Dialog>
   );
 };

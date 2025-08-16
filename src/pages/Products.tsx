@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
@@ -13,6 +13,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import FloatingCartButton from "@/components/ui/FloatingCartButton";
+import { PullToRefresh } from "@/components/ui/PullToRefresh";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import { getProducts } from "@/api/mockApiService";
 import { useCart } from "@/context/useCart";
@@ -26,6 +29,7 @@ const Products = () => {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   
   const { dispatch } = useCart();
+  const isMobile = useIsMobile();
 
   // Initialize filters hook
   const {
@@ -40,6 +44,27 @@ const Products = () => {
     totalProducts,
     filteredCount
   } = useProductFilters({ products });
+
+  // Infinite scroll for mobile
+  const {
+    visibleItems: visibleProducts,
+    hasMore,
+    isLoading: isLoadingMore,
+    sentinelRef,
+  } = useInfiniteScroll({ 
+    items: filteredProducts, 
+    itemsPerPage: isMobile ? 6 : 12 
+  });
+
+  const handleRefresh = async () => {
+    try {
+      const data = await getProducts();
+      setProducts(data);
+      toast.success("Produits mis à jour");
+    } catch (error) {
+      toast.error("Erreur lors de la mise à jour");
+    }
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -227,45 +252,61 @@ const Products = () => {
           </div>
         )}
 
-        {/* Products Grid */}
-        {filteredProducts.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="mb-8">
-              <div className="text-6xl mb-4">🔍</div>
-              <h2 className="font-serif text-2xl text-stone-800 mb-4">
-                Aucun produit trouvé
-              </h2>
-              <p className="text-stone-600 mb-6">
-                {filters.searchQuery 
-                  ? `Aucun produit ne correspond à "${filters.searchQuery}". Essayez avec d'autres mots-clés.`
-                  : "Aucun produit ne correspond à vos critères. Essayez de modifier vos filtres."
-                }
-              </p>
-              <Button onClick={resetFilters} variant="outline">
-                Effacer tous les filtres
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-12 md:mb-16">
-            {filteredProducts.map((product, index) => (
-              <div 
-                key={product.id}
-                className="animate-fade-in mobile-product-card"
-                style={{ 
-                  animationDelay: `${Math.min(index * 50, 400)}ms`,
-                  animationFillMode: 'both'
-                }}
-              >
-                <ProductCard
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                  onQuickView={handleQuickView}
-                />
+        {/* Products Grid with Pull to Refresh */}
+        <PullToRefresh onRefresh={handleRefresh} disabled={loading}>
+          {filteredProducts.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="mb-8">
+                <div className="text-6xl mb-4">🔍</div>
+                <h2 className="font-serif text-2xl text-stone-800 mb-4">
+                  Aucun produit trouvé
+                </h2>
+                <p className="text-stone-600 mb-6">
+                  {filters.searchQuery 
+                    ? `Aucun produit ne correspond à "${filters.searchQuery}". Essayez avec d'autres mots-clés.`
+                    : "Aucun produit ne correspond à vos critères. Essayez de modifier vos filtres."
+                  }
+                </p>
+                <Button onClick={resetFilters} variant="outline">
+                  Effacer tous les filtres
+                </Button>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ) : (
+            <div className="space-y-8">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
+                {(isMobile ? visibleProducts : filteredProducts).map((product, index) => (
+                  <div 
+                    key={product.id}
+                    className="animate-fade-in mobile-product-card"
+                    style={{ 
+                      animationDelay: `${Math.min(index * 50, 400)}ms`,
+                      animationFillMode: 'both'
+                    }}
+                  >
+                    <ProductCard
+                      product={product}
+                      onAddToCart={handleAddToCart}
+                      onQuickView={handleQuickView}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Infinite Scroll Sentinel and Loading */}
+              {isMobile && hasMore && (
+                <div ref={sentinelRef} className="flex justify-center py-8">
+                  {isLoadingMore && (
+                    <div className="flex items-center space-x-2 text-stone-600">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Chargement...</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </PullToRefresh>
 
         {/* CTA Section */}
         {filteredProducts.length > 0 && (
