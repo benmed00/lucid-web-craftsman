@@ -989,6 +989,36 @@ export type Database = {
         }
         Relationships: []
       }
+      security_config: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          setting_name: string
+          setting_value: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          setting_name: string
+          setting_value: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          setting_name?: string
+          setting_value?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       security_events: {
         Row: {
           created_at: string
@@ -1381,6 +1411,14 @@ export type Database = {
           user_uuid: string
         }
         Returns: undefined
+      }
+      anonymize_sensitive_data: {
+        Args: { input_data: Json }
+        Returns: Json
+      }
+      get_security_setting: {
+        Args: { setting_key: string }
+        Returns: Json
       }
       init_loyalty_account: {
         Args: { user_uuid: string }
