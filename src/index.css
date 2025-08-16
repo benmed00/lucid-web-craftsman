@@ -296,3 +296,84 @@ html {
 .focus-ring {
   @apply focus:outline-none focus:ring-2 focus:ring-olive-500 focus:ring-offset-2;
 }
+
+/* Mobile Touch Optimizations */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.safe-area {
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Mobile-first breakpoints */
+@media (max-width: 768px) {
+  .mobile-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .mobile-text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .mobile-p-3 {
+    padding: 0.75rem;
+  }
+  
+  /* Optimize product cards for mobile */
+  .mobile-product-card {
+    padding: 0.75rem;
+  }
+  
+  .mobile-product-card h3 {
+    font-size: 1rem;
+    line-height: 1.25rem;
+  }
+}
+
+/* Improve mobile form inputs */
+input, textarea, select {
+  font-size: 16px; /* Prevents zoom on iOS */
+}
+
+@media (max-width: 768px) {
+  input, textarea, select {
+    min-height: 44px; /* Apple's recommended touch target */
+  }
+  
+  /* Larger touch targets for mobile */
+  button, [role="button"], .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Better mobile scrolling */
+@media (max-width: 768px) {
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Mobile-optimized animations */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+}

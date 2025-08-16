@@ -11,6 +11,7 @@ import InstagramFeed from "@/components/InstagramFeed";
 import { Link } from "react-router-dom";
 import HeroImage from "@/components/HeroImage";
 import ScrollToTop from "@/components/ScrollToTop";
+import FloatingCartButton from "@/components/ui/FloatingCartButton";
 
 const Index = () => {
   console.log("Index component is rendering");
@@ -21,28 +22,28 @@ const Index = () => {
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="container mx-auto px-4 py-12 md:py-24 flex flex-col md:flex-row items-center gap-8">
+        <section className="container mx-auto px-4 py-8 md:py-12 lg:py-24 flex flex-col md:flex-row items-center gap-6 md:gap-8">
           {/* Left: Copy and CTA */}
-          <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8 hero-text-animation">
+          <div className="md:w-1/2 mb-6 md:mb-0 md:pr-8 hero-text-animation text-center md:text-left">
             <Badge className="mb-4 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none animate-scale-in hover-glow">
               <span className="w-2 h-2 bg-olive-500 rounded-full mr-2"></span>
               Artisanat Durable & Fait Main
             </Badge>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-stone-800 mb-6 animate-fade-in-up">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-serif font-medium text-stone-800 mb-4 md:mb-6 animate-fade-in-up leading-tight">
               Créé avec amour dans les <span className="text-olive-700">montagnes du Rif</span>
             </h1>
-            <p className="text-lg text-stone-600 mb-8 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <p className="text-base md:text-lg lg:text-xl text-stone-600 mb-6 md:mb-8 animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.3s' }}>
               Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-              <Link to="/products" className="group">
-                <Button className="bg-olive-700 hover:bg-olive-800 text-white font-medium px-8 py-6 rounded-md transition-all duration-300 hover:scale-105 hover:shadow-lg button-press hover-glow text-lg">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 animate-fade-in-up w-full sm:w-auto" style={{ animationDelay: '0.5s' }}>
+              <Link to="/products" className="group w-full sm:w-auto">
+                <Button className="w-full sm:w-auto bg-olive-700 hover:bg-olive-800 text-white font-medium px-6 md:px-8 py-4 md:py-6 rounded-md transition-all duration-300 hover:scale-105 hover:shadow-lg button-press hover-glow text-base md:text-lg touch-manipulation min-h-[48px] md:min-h-[56px]">
                   Découvrir la Collection 
-                  <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                  <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </Link>
-              <Link to="/blog" className="group">
-                <Button variant="outline" className="border-stone-300 text-stone-700 hover:bg-stone-50 px-8 py-6 rounded-md transition-all duration-300 hover:scale-105 hover:border-olive-300 button-press text-lg">
+              <Link to="/blog" className="group w-full sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto border-stone-300 text-stone-700 hover:bg-stone-50 px-6 md:px-8 py-4 md:py-6 rounded-md transition-all duration-300 hover:scale-105 hover:border-olive-300 button-press text-base md:text-lg touch-manipulation min-h-[48px] md:min-h-[56px]">
                   Notre Histoire
                 </Button>
               </Link>
@@ -58,9 +59,9 @@ const Index = () => {
         </section>
 
       {/* Features Section */}
-      <section id="about" className="bg-beige-50 py-20 md:py-28">
+      <section id="about" className="bg-beige-50 py-12 md:py-20 lg:py-28">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-20">
+          <div className="max-w-4xl mx-auto text-center mb-12 md:mb-20">
             <Badge className="mb-4 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none px-4 py-2">
               Nos Valeurs
             </Badge>
@@ -71,7 +72,7 @@ const Index = () => {
               Nos produits sont fabriqués avec amour, soin et engagement envers des pratiques durables
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 stagger-animation">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 lg:gap-12 stagger-animation">
             <Card className="bg-white border-none shadow-lg hover:shadow-xl hover-lift animate-fade-in-up transition-all duration-500 p-8 hover-glow group">
               <CardContent className="p-0">
                 <div className="h-16 w-16 bg-olive-100 rounded-2xl flex items-center justify-center mb-6 mx-auto transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
@@ -194,6 +195,7 @@ const Index = () => {
 
       <Footer />
       <ScrollToTop />
+      <FloatingCartButton />
     </div>
   );
 };

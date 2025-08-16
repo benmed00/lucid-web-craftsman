@@ -12,6 +12,7 @@ import { useStock } from '@/hooks/useStock';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { removeFromCart as removeFromCartAPI, updateCartItemQuantity } from '@/api/mockApiService';
+import FloatingCartButton from '@/components/ui/FloatingCartButton';
 
 const Cart = () => {
   const { cart, dispatch, itemCount, totalPrice } = useCart();
@@ -116,9 +117,9 @@ const Cart = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-serif text-stone-800 mb-2">Votre Panier</h1>
+      <main className="container mx-auto px-4 py-4 md:py-8 safe-area">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-serif text-stone-800 mb-2">Votre Panier</h1>
           <p className="text-stone-600">{itemCount} article{itemCount > 1 ? 's' : ''} dans votre panier</p>
         </div>
 
@@ -131,30 +132,31 @@ const Cart = () => {
           </Alert>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-3 md:space-y-4">
             {cart.items.map((item) => {
               const productStock = stockInfo && typeof stockInfo === 'object' ? stockInfo[item.product.id] : null;
               const hasStockIssue = stockIssues.find(issue => issue.productId === item.product.id);
               
               return (
                 <Card key={item.id} className={`transition-all duration-200 ${hasStockIssue ? 'border-amber-200 bg-amber-50' : ''}`}>
-                  <CardContent className="p-6">
-                    <div className="flex gap-4">
-                      <div className="w-24 h-24 bg-stone-100 rounded-lg overflow-hidden flex-shrink-0">
+                  <CardContent className="p-4 md:p-6">
+                    <div className="flex gap-3 md:gap-4">
+                      <div className="w-20 h-20 md:w-24 md:h-24 bg-stone-100 rounded-lg overflow-hidden flex-shrink-0">
                         <img
                           src={item.product.images[0] || '/placeholder.svg'}
                           alt={item.product.name}
                           className="w-full h-full object-cover"
+                          loading="lazy"
                         />
                       </div>
                       
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h3 className="font-medium text-stone-800">{item.product.name}</h3>
-                            <p className="text-sm text-stone-600">{item.product.category}</p>
+                          <div className="flex-1 mr-2">
+                            <h3 className="font-medium text-stone-800 text-sm md:text-base leading-tight">{item.product.name}</h3>
+                            <p className="text-xs md:text-sm text-stone-600">{item.product.category}</p>
                             {hasStockIssue && (
                               <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-100 mt-1">
                                 Stock limité ({productStock?.available} disponibles)
@@ -165,35 +167,37 @@ const Cart = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleRemoveItem(item.id)}
-                            className="text-stone-400 hover:text-red-500"
+                            className="text-stone-400 hover:text-red-500 p-2 touch-manipulation min-h-[44px] min-w-[44px] flex-shrink-0"
                           >
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
                         
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-3">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                          <div className="flex items-center gap-2 md:gap-3">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                               disabled={item.quantity <= 1}
+                              className="touch-manipulation min-h-[44px] min-w-[44px] p-2"
                             >
-                              <Minus className="h-3 w-3" />
+                              <Minus className="h-3 w-3 md:h-4 md:w-4" />
                             </Button>
-                            <span className="w-8 text-center font-medium">{item.quantity}</span>
+                            <span className="w-8 md:w-10 text-center font-medium text-base">{item.quantity}</span>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                               disabled={productStock && item.quantity >= productStock.available}
+                              className="touch-manipulation min-h-[44px] min-w-[44px] p-2"
                             >
-                              <Plus className="h-3 w-3" />
+                              <Plus className="h-3 w-3 md:h-4 md:w-4" />
                             </Button>
                           </div>
-                          <div className="text-right">
-                            <p className="font-medium text-stone-800">{(item.product.price * item.quantity).toFixed(2)} €</p>
-                            <p className="text-sm text-stone-600">{item.product.price.toFixed(2)} € l'unité</p>
+                          <div className="text-left sm:text-right w-full sm:w-auto">
+                            <p className="font-medium text-stone-800 text-base md:text-lg">{(item.product.price * item.quantity).toFixed(2)} €</p>
+                            <p className="text-xs md:text-sm text-stone-600">{item.product.price.toFixed(2)} € l'unité</p>
                           </div>
                         </div>
                       </div>
@@ -206,8 +210,8 @@ const Cart = () => {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-4">
-              <CardContent className="p-6">
+            <Card className="lg:sticky lg:top-4">
+              <CardContent className="p-4 md:p-6">
                 <h2 className="text-xl font-medium text-stone-800 mb-4">Résumé de Commande</h2>
                 
                 <div className="space-y-3 mb-6">
@@ -264,7 +268,7 @@ const Cart = () => {
 
                 <Link to="/checkout">
                   <Button 
-                    className="w-full bg-olive-700 hover:bg-olive-800 text-white"
+                    className="w-full bg-olive-700 hover:bg-olive-800 text-white py-3 md:py-4 text-base md:text-lg font-medium touch-manipulation min-h-[48px] md:min-h-[56px]"
                     disabled={stockIssues.length > 0}
                   >
                     {stockIssues.length > 0 ? 'Corriger le stock d\'abord' : 'Procéder au Paiement'}

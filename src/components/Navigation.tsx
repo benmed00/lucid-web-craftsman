@@ -29,17 +29,17 @@ const Navigation = () => {
   return (
     <nav className="bg-white/95 backdrop-blur-sm sticky top-0 z-40 border-b border-stone-100 shadow-sm">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2">
           <Link to="/" className="group">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 rounded-full bg-olive-50 group-hover:bg-olive-100 transition-colors">
-                <Leaf className="h-5 w-5 text-olive-600" />
+            <div className="flex items-center space-x-2 md:space-x-3">
+              <div className="p-1.5 md:p-2 rounded-full bg-olive-50 group-hover:bg-olive-100 transition-colors">
+                <Leaf className="h-4 w-4 md:h-5 md:w-5 text-olive-600" />
               </div>
               <div className="flex flex-col">
-                <span className="font-serif text-xl font-semibold text-stone-800 leading-tight">
+                <span className="font-serif text-lg md:text-xl font-semibold text-stone-800 leading-tight">
                   Rif Raw Straw
                 </span>
-                <span className="text-xs text-stone-500 leading-tight">
+                <span className="text-xs text-stone-500 leading-tight hidden sm:block">
                   Artisanat Berbère
                 </span>
               </div>
@@ -153,7 +153,7 @@ const Navigation = () => {
 
       {/* Mobile Menu Button */}
       <button
-        className="md:hidden text-stone-700 p-2 rounded-lg hover:bg-stone-100 transition-all duration-200 active:scale-95"
+        className="md:hidden text-stone-700 p-3 rounded-xl hover:bg-stone-100 transition-all duration-200 active:scale-95 touch-manipulation"
         onClick={() => setIsMenuOpen(!isMenuOpen)}
         aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
       >
@@ -173,39 +173,39 @@ const Navigation = () => {
       )}
 
       {/* Mobile Menu */}
-      <div className={`md:hidden absolute top-full left-0 right-0 bg-white/98 backdrop-blur-sm shadow-xl z-50 border-t border-stone-100 transition-all duration-300 ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
-          <div className="flex flex-col space-y-2 p-6">
+      <div className={`md:hidden absolute top-full left-0 right-0 bg-white/98 backdrop-blur-sm shadow-xl z-50 border-t border-stone-100 transition-all duration-300 max-h-[90vh] overflow-y-auto ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
+          <div className="flex flex-col space-y-3 p-6 pb-8">
             <Link
               to="/"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-4 px-4 rounded-xl font-medium flex items-center gap-3 group"
+              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-5 px-5 rounded-xl font-medium flex items-center gap-4 group touch-manipulation min-h-[56px]"
               onClick={() => setIsMenuOpen(false)}
             >
-              <span className="text-xl">🏠</span>
-              <span className="group-hover:translate-x-1 transition-transform duration-200">Accueil</span>
+              <span className="text-2xl">🏠</span>
+              <span className="group-hover:translate-x-1 transition-transform duration-200 text-lg">Accueil</span>
             </Link>
             <Link
               to="/products"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-4 px-4 rounded-xl font-medium flex items-center gap-3 group"
+              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-5 px-5 rounded-xl font-medium flex items-center gap-4 group touch-manipulation min-h-[56px]"
               onClick={() => setIsMenuOpen(false)}
             >
-              <span className="text-xl">🛍️</span>
-              <span className="group-hover:translate-x-1 transition-transform duration-200">Boutique</span>
+              <span className="text-2xl">🛍️</span>
+              <span className="group-hover:translate-x-1 transition-transform duration-200 text-lg">Boutique</span>
             </Link>
             <Link
               to="/blog"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-4 px-4 rounded-xl font-medium flex items-center gap-3 group"
+              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-5 px-5 rounded-xl font-medium flex items-center gap-4 group touch-manipulation min-h-[56px]"
               onClick={() => setIsMenuOpen(false)}
             >
-              <span className="text-xl">📖</span>
-              <span className="group-hover:translate-x-1 transition-transform duration-200">Blog</span>
+              <span className="text-2xl">📖</span>
+              <span className="group-hover:translate-x-1 transition-transform duration-200 text-lg">Blog</span>
             </Link>
             <Link
               to="/contact"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-4 px-4 rounded-xl font-medium flex items-center gap-3 group"
+              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-5 px-5 rounded-xl font-medium flex items-center gap-4 group touch-manipulation min-h-[56px]"
               onClick={() => setIsMenuOpen(false)}
             >
-              <span className="text-xl">💬</span>
-              <span className="group-hover:translate-x-1 transition-transform duration-200">Contact</span>
+              <span className="text-2xl">💬</span>
+              <span className="group-hover:translate-x-1 transition-transform duration-200 text-lg">Contact</span>
             </Link>
 
             <div className="pt-4 mt-4 border-t border-stone-200">
