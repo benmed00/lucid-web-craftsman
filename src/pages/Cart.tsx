@@ -5,7 +5,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Minus, Plus, X, ShoppingBag, ArrowRight, Truck, AlertCircle } from 'lucide-react';
+import { Minus, Plus, X, ShoppingBag, ArrowRight, Truck, AlertCircle, CreditCard } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useShipping } from '@/hooks/useShipping';
 import { useStock } from '@/hooks/useStock';
@@ -13,15 +13,34 @@ import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { removeFromCart as removeFromCartAPI, updateCartItemQuantity } from '@/api/mockApiService';
 import FloatingCartButton from '@/components/ui/FloatingCartButton';
+import { MobilePaymentButtons } from '@/components/ui/MobilePaymentButtons';
+import { LocationBasedFeatures } from '@/components/ui/LocationBasedFeatures';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Cart = () => {
   const { cart, dispatch, itemCount, totalPrice } = useCart();
   const [postalCode, setPostalCode] = useState('');
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const { calculation, loading: shippingLoading, loadZones } = useShipping({ postalCode, orderAmount: totalPrice });
+  const isMobile = useIsMobile();
   
   // Get all product IDs from cart for bulk stock checking
   const productIds = cart.items.map(item => item.product.id);
   const { stockInfo, canOrderQuantity } = useStock({ productIds, enabled: productIds.length > 0 });
+
+  const handlePaymentSuccess = (paymentMethod: string) => {
+    toast.success(`Paiement réussi via ${paymentMethod}`);
+    // Clear cart and redirect
+    dispatch({ type: "CLEAR_CART" });
+    setTimeout(() => {
+      window.location.href = "/payment-success";
+    }, 1500);
+  };
+
+  const handlePaymentError = (error: string) => {
+    toast.error(error);
+    setIsCheckingOut(false);
+  };
 
   // Check stock for all items and get any issues
   const stockIssues = useMemo(() => {
@@ -266,13 +285,37 @@ const Cart = () => {
                   </div>
                 </div>
 
+                {/* Mobile-specific features */}
+                {isMobile && (
+                  <div className="space-y-6 mb-6">
+                    {/* Mobile Payment Buttons */}
+                    <MobilePaymentButtons
+                      amount={total}
+                      currency="EUR"
+                      onPaymentSuccess={handlePaymentSuccess}
+                      onPaymentError={handlePaymentError}
+                      disabled={isCheckingOut || stockIssues.length > 0}
+                    />
+                    
+                    {/* Location-based features */}
+                    <LocationBasedFeatures />
+                  </div>
+                )}
+
+                {/* Traditional checkout button */}
                 <Link to="/checkout">
                   <Button 
-                    className="w-full bg-olive-700 hover:bg-olive-800 text-white py-3 md:py-4 text-base md:text-lg font-medium touch-manipulation min-h-[48px] md:min-h-[56px]"
-                    disabled={stockIssues.length > 0}
+                    className="w-full bg-olive-700 hover:bg-olive-800 text-white py-3 md:py-4 text-base md:text-lg font-medium touch-manipulation min-h-[48px] md:min-h-[56px] flex items-center justify-center"
+                    disabled={stockIssues.length > 0 || isCheckingOut}
                   >
-                    {stockIssues.length > 0 ? 'Corriger le stock d\'abord' : 'Procéder au Paiement'}
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    {stockIssues.length > 0 
+                      ? 'Corriger le stock d\'abord' 
+                      : isMobile 
+                        ? 'Commander' 
+                        : 'Procéder au Paiement'
+                    }
+                    {!stockIssues.length && <ArrowRight className="ml-2 h-4 w-4" />}
                   </Button>
                 </Link>
 

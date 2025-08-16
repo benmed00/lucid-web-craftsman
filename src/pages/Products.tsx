@@ -16,6 +16,9 @@ import FloatingCartButton from "@/components/ui/FloatingCartButton";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { VoiceSearch } from "@/components/ui/VoiceSearch";
+import { QuickReorder } from "@/components/ui/QuickReorder";
+import { MobilePromotions } from "@/components/ui/MobilePromotions";
 
 import { getProducts } from "@/api/mockApiService";
 import { useCart } from "@/context/useCart";
@@ -107,6 +110,15 @@ const Products = () => {
 
   const handleQuickView = (product: Product) => {
     setQuickViewProduct(product);
+  };
+
+  const handleVoiceSearch = (query: string) => {
+    updateFilters({ searchQuery: query });
+  };
+
+  const handlePromotionApply = (code: string) => {
+    toast.success(`Code promo ${code} appliqué!`);
+    // In a real app, apply the promotion logic
   };
 
   const handleQuickViewAddToCart = (product: Product, quantity: number) => {
@@ -201,6 +213,26 @@ const Products = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6 md:py-8 lg:py-12 safe-area">
+        {/* Mobile-specific features */}
+        {isMobile && (
+          <div className="space-y-6 mb-6">
+            {/* Voice Search */}
+            <VoiceSearch 
+              onSearch={handleVoiceSearch}
+              placeholder="Rechercher des produits artisanaux..."
+            />
+            
+            {/* Quick Reorder */}
+            <QuickReorder userId="demo-user" />
+            
+            {/* Mobile Promotions */}
+            <MobilePromotions 
+              cartTotal={150} // Pass actual cart total
+              onPromotionApply={handlePromotionApply}
+            />
+          </div>
+        )}
+
         {/* Product Filters */}
         <ProductFilters
           filters={filters}
