@@ -1,0 +1,352 @@
+import React, { useState, useCallback, useMemo } from 'react';
+import { User } from '@supabase/supabase-js';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { 
+  User as UserIcon, 
+  Settings, 
+  Bell, 
+  Shield, 
+  CreditCard, 
+  MapPin,
+  Smartphone,
+  Mail,
+  Globe,
+  History,
+  Award,
+  Heart,
+} from 'lucide-react';
+import { ProfileOverview } from './ProfileOverview';
+import { PersonalInfo } from './PersonalInfo';
+import { PreferencesSettings } from './PreferencesSettings';
+import { OrderHistory } from './OrderHistory';
+import { LoyaltyProgram } from './LoyaltyProgram';
+import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
+import { useOptimizedQuery } from '@/hooks/useOptimizedData';
+import { supabase } from '@/integrations/supabase/client';
+import { LoadingManager, ProfileSkeleton } from '@/components/ui/LoadingStateManager';
+import { toast } from 'sonner';
+
+interface Profile {
+  id: string;
+  full_name: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  phone: string | null;
+  location: string | null;
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  postal_code: string | null;
+  country: string | null;
+  website_url: string | null;
+  instagram_handle: string | null;
+  facebook_url: string | null;
+  twitter_handle: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface UserPreferences {
+  id: string;
+  email_notifications: boolean;
+  marketing_emails: boolean;
+  order_updates: boolean;
+  privacy_profile_public: boolean;
+  privacy_show_email: boolean;
+  privacy_show_phone: boolean;
+  language: string;
+  currency: string;
+}
+
+export const EnhancedProfileManager: React.FC = () => {
+  const { user, profile, isLoading: authLoading, updateProfile } = useOptimizedAuth();
+  const [activeTab, setActiveTab] = useState('overview');
+
+  // Fetch user preferences with caching
+  const { 
+    data: preferences, 
+    isLoading: preferencesLoading, 
+    refetch: refetchPreferences 
+  } = useOptimizedQuery<UserPreferences[]>(`preferences_${user?.id}`, async () => {
+    if (!user) return [];
+    const { data, error } = await supabase
+      .from('user_preferences')
+      .select('*')
+      .eq('user_id', user.id);
+    
+    if (error && error.code !== 'PGRST116') throw error;
+    return data || [];
+  });
+
+  // Fetch orders with caching
+  const { 
+    data: orders, 
+    isLoading: ordersLoading,
+    refetch: refetchOrders 
+  } = useOptimizedQuery(`orders_${user?.id}`, async () => {
+    if (!user) return [];
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        shipments(*),
+        order_items(
+          *,
+          products(*)
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  });
+
+  // Fetch loyalty data
+  const { 
+    data: loyaltyData, 
+    isLoading: loyaltyLoading 
+  } = useOptimizedQuery(`loyalty_${user?.id}`, async () => {
+    if (!user) return null;
+    const { data, error } = await supabase
+      .from('loyalty_points')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  });
+
+  const handleProfileUpdate = useCallback(async (updatedProfile: Profile) => {
+    try {
+      await updateProfile(updatedProfile);
+      toast.success('Profil mis à jour avec succès');
+    } catch (error) {
+      console.error('Profile update error:', error);
+      toast.error('Erreur lors de la mise à jour');
+    }
+  }, [updateProfile]);
+
+  const completionPercentage = useMemo(() => {
+    if (!profile) return 0;
+    
+    const fields = [
+      'full_name', 'bio', 'phone', 'location', 
+      'address_line1', 'city', 'postal_code', 'country'
+    ];
+    
+    const filledFields = fields.filter(field => profile[field as keyof Profile]);
+    return Math.round((filledFields.length / fields.length) * 100);
+  }, [profile]);
+
+  const getCompletionBadgeColor = (percentage: number) => {
+    if (percentage >= 80) return 'default';
+    if (percentage >= 50) return 'secondary';
+    return 'outline';
+  };
+
+  if (authLoading) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <ProfileSkeleton />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="container mx-auto py-8 px-4 text-center">
+        <Card>
+          <CardContent className="pt-6">
+            <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Accès restreint</h2>
+            <p className="text-muted-foreground">
+              Veuillez vous connecter pour accéder à votre profil.
+            </p>
+            <Button className="mt-4" onClick={() => window.location.href = '/auth'}>
+              Se connecter
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-8 px-4">
+      {/* Profile Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-3xl font-bold">Mon Profil</h1>
+            <p className="text-muted-foreground">
+              Gérez vos informations personnelles et préférences
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <Badge variant={getCompletionBadgeColor(completionPercentage)}>
+              Profil {completionPercentage}% complété
+            </Badge>
+            {user.email_confirmed_at && (
+              <Badge variant="default" className="bg-green-100 text-green-800">
+                <Shield className="h-3 w-3 mr-1" />
+                Vérifié
+              </Badge>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Profile Navigation */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <UserIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">Vue d'ensemble</span>
+          </TabsTrigger>
+          <TabsTrigger value="personal" className="flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            <span className="hidden sm:inline">Informations</span>
+          </TabsTrigger>
+          <TabsTrigger value="preferences" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">Préférences</span>
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="flex items-center gap-2">
+            <History className="h-4 w-4" />
+            <span className="hidden sm:inline">Commandes</span>
+          </TabsTrigger>
+          <TabsTrigger value="loyalty" className="flex items-center gap-2">
+            <Award className="h-4 w-4" />
+            <span className="hidden sm:inline">Fidélité</span>
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            <span className="hidden sm:inline">Sécurité</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <LoadingManager
+            isLoading={authLoading}
+            loadingKey="profile-overview"
+            fallback={<ProfileSkeleton />}
+          >
+            <ProfileOverview
+              user={user}
+              profile={profile}
+              onProfileUpdate={handleProfileUpdate}
+            />
+          </LoadingManager>
+        </TabsContent>
+
+        <TabsContent value="personal">
+          <LoadingManager
+            isLoading={authLoading}
+            loadingKey="personal-info"
+            fallback={<ProfileSkeleton />}
+          >
+            <PersonalInfo
+              user={user}
+              profile={profile}
+              onProfileUpdate={handleProfileUpdate}
+            />
+          </LoadingManager>
+        </TabsContent>
+
+        <TabsContent value="preferences">
+          <LoadingManager
+            isLoading={preferencesLoading}
+            loadingKey="preferences"
+            fallback={<ProfileSkeleton />}
+          >
+            <PreferencesSettings
+              user={user}
+            />
+          </LoadingManager>
+        </TabsContent>
+
+        <TabsContent value="orders">
+          <LoadingManager
+            isLoading={ordersLoading}
+            loadingKey="orders"
+            fallback={<ProfileSkeleton />}
+          >
+            <OrderHistory user={user} />
+          </LoadingManager>
+        </TabsContent>
+
+        <TabsContent value="loyalty">
+          <LoadingManager
+            isLoading={loyaltyLoading}
+            loadingKey="loyalty"
+            fallback={<ProfileSkeleton />}
+          >
+            <LoyaltyProgram 
+              user={user}
+            />
+          </LoadingManager>
+        </TabsContent>
+
+        <TabsContent value="security">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Sécurité et confidentialité
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-8 w-8 text-blue-500" />
+                      <div>
+                        <h3 className="font-semibold">Email vérifié</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {user.email_confirmed_at ? 'Vérifié le ' + 
+                            new Date(user.email_confirmed_at).toLocaleDateString() : 'Non vérifié'}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <Smartphone className="h-8 w-8 text-green-500" />
+                      <div>
+                        <h3 className="font-semibold">Téléphone</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {user.phone ? 'Configuré' : 'Non configuré'}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="space-y-4">
+                <Button variant="outline" className="w-full">
+                  Changer le mot de passe
+                </Button>
+                <Button variant="outline" className="w-full">
+                  Configurer l'authentification à deux facteurs
+                </Button>
+                <Button variant="destructive" className="w-full">
+                  Supprimer mon compte
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
