@@ -162,11 +162,11 @@ const Index = () => {
           { sectionConfig.showProductShowcase && <ProductShowcase /> }
           
           {/* Recently Viewed Section - Hidden by default, configurable */}
-          {/*sectionConfig.showRecentlyViewed && (
+          {sectionConfig.showRecentlyViewed && (
             <div className="mt-16">
               <RecentlyViewedProducts />
             </div>
-          )*/}
+          )}
 
           {/* Recommendations Section - Hidden by default, configurable */}
           {/*sectionConfig.showRecommendations && (
