@@ -76,7 +76,7 @@ const queryClient = new QueryClient({
 const basePath: string = "/";
 
 const App = () => {
-  console.log("App component is rendering, basePath:", basePath);
+  // console.log("App component is rendering, basePath:", basePath);
   return (
   <QueryClientProvider client={queryClient}>
     <LoadingStateProvider>

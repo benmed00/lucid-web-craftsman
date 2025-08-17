@@ -110,7 +110,7 @@ export interface CartState { // This interface might still be useful for type de
 // Simulates fetching the cart structure, not actual items from localStorage
 export const getCart = async (): Promise<{ success: boolean, cart?: CartState }> => {
   await delay(100);
-  console.log("mockApiService: getCart called (simulated)");
+  // console.log("mockApiService: getCart called (simulated)");
   // In a real scenario, this might fetch user's cart from backend.
   // For this refactor, components will rely on CartContext for actual data after initial load.
   // This function becomes less critical if CartContext is the source of truth post-hydration.
@@ -120,7 +120,7 @@ export const getCart = async (): Promise<{ success: boolean, cart?: CartState }>
 // Simulates adding an item to the cart via an API call
 export const addToCart = async (product: Product, quantity: number = 1): Promise<{ success: boolean, item?: CartItem }> => {
   await delay(100);
-  console.log(`mockApiService: addToCart called for product ${product.id}, quantity ${quantity} (simulated)`);
+  // console.log(`mockApiService: addToCart called for product ${product.id}, quantity ${quantity} (simulated)`);
   // Simulate a successful API response
   // The actual state update will be handled by dispatching to CartContext in the component
   return { success: true, item: { id: product.id, product, quantity } };
@@ -130,7 +130,7 @@ export const addToCart = async (product: Product, quantity: number = 1): Promise
 // Simulates removing an item from the cart via an API call
 export const removeFromCart = async (productId: number): Promise<{ success: boolean, productId?: number }> => {
   await delay(100);
-  console.log(`mockApiService: removeFromCart called for product ${productId} (simulated)`);
+  // console.log(`mockApiService: removeFromCart called for product ${productId} (simulated)`);
   // Simulate a successful API response
   return { success: true, productId };
 
@@ -139,12 +139,12 @@ export const removeFromCart = async (productId: number): Promise<{ success: bool
 // Simulates updating an item's quantity in the cart via an API call
 export const updateCartItemQuantity = async (productId: number, quantity: number): Promise<{ success: boolean, item?: { id: number, quantity: number } }> => {
   await delay(100);
-  console.log(`mockApiService: updateCartItemQuantity called for product ${productId}, quantity ${quantity} (simulated)`);
+  // console.log(`mockApiService: updateCartItemQuantity called for product ${productId}, quantity ${quantity} (simulated)`);
   if (quantity <= 0) {
     // Typically, an API might handle quantity <= 0 as a remove operation or error
     // For this mock, let's assume it can also be handled as a removal or just a success for update.
     // The reducer will handle the removal if quantity is 0.
-    console.log(`mockApiService: quantity for product ${productId} is <= 0, will be handled by reducer as removal if needed.`);
+    // console.log(`mockApiService: quantity for product ${productId} is <= 0, will be handled by reducer as removal if needed.`);
 
   }
   // Simulate a successful API response
@@ -154,7 +154,7 @@ export const updateCartItemQuantity = async (productId: number, quantity: number
 // Simulates clearing the cart via an API call
 export const clearCart = async (): Promise<{ success: boolean }> => {
   await delay(100);
-  console.log("mockApiService: clearCart called (simulated)");
+  // console.log("mockApiService: clearCart called (simulated)");
   // Simulate a successful API response
   return { success: true };
 
