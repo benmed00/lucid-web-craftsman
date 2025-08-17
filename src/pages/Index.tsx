@@ -159,7 +159,7 @@ const Index = () => {
               <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
-          {sectionConfig.showProductShowcase && <ProductShowcase />}
+          {/*sectionConfig.showProductShowcase && <ProductShowcase />*/}
           
           {/* Recently Viewed Section - Hidden by default, configurable */}
           {/*sectionConfig.showRecentlyViewed && (
