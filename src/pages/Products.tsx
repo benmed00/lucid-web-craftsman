@@ -1,54 +1,62 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, TrendingUp, BarChart3 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import ProductCard from "@/components/ProductCard";
 import { ProductQuickView } from "@/components/ProductQuickView";
-import { ProductFilters } from "@/components/ProductFilters";
+import { AdvancedProductFilters } from "@/components/AdvancedProductFilters";
+import { ProductAnalytics } from "@/components/ProductAnalytics";
 import { SearchResultsHeader, HighlightText } from "@/components/SearchResults";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
 import FloatingCartButton from "@/components/ui/FloatingCartButton";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { VoiceSearch } from "@/components/ui/VoiceSearch";
-import { QuickReorder } from "@/components/ui/QuickReorder";
 import { MobilePromotions } from "@/components/ui/MobilePromotions";
 
 import { getProducts } from "@/api/mockApiService";
 import { useCart } from "@/context/useCart";
-import { useProductFilters } from "@/hooks/useProductFilters";
+import { useAdvancedProductFilters } from "@/hooks/useAdvancedProductFilters";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
+import { toast } from "sonner";
 
 const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   
   const { dispatch } = useCart();
   const isMobile = useIsMobile();
 
-  // Initialize filters hook
+  // Enhanced filters hook with analytics
   const {
     filters,
     filteredProducts,
-    availableCategories,
-    priceRange,
+    availableOptions,
+    searchHistory,
+    isLoading: filterLoading,
     updateFilters,
     resetFilters,
     clearFilter,
+    getSearchSuggestions,
     activeFiltersCount,
-    totalProducts,
+    totalProducts: totalProductsCount,
     filteredCount
-  } = useProductFilters({ products });
+  } = useAdvancedProductFilters({ 
+    products,
+    enableAnalytics: true,
+    debounceMs: 300
+  });
 
-  // Infinite scroll for mobile
+  // Infinite scroll for mobile with better performance  
   const {
     visibleItems: visibleProducts,
     hasMore,
@@ -56,16 +64,19 @@ const Products = () => {
     sentinelRef,
   } = useInfiniteScroll({ 
     items: filteredProducts, 
-    itemsPerPage: isMobile ? 6 : 12 
+    itemsPerPage: isMobile ? 8 : 16 
   });
 
   const handleRefresh = async () => {
     try {
+      setLoading(true);
       const data = await getProducts();
       setProducts(data);
       toast.success("Produits mis à jour");
     } catch (error) {
       toast.error("Erreur lors de la mise à jour");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,8 +99,8 @@ const Products = () => {
     fetchProducts();
   }, []);
 
-  // Memoized categories for filter badges
-  const displayCategories = useMemo(() => availableCategories, [availableCategories]);
+  // Memoized categories for performance
+  const displayCategories = useMemo(() => availableOptions.categories, [availableOptions.categories]);
 
   const handleAddToCart = (product: Product, event?: React.MouseEvent) => {
     if (event) {
@@ -116,11 +127,6 @@ const Products = () => {
     updateFilters({ searchQuery: query });
   };
 
-  const handlePromotionApply = (code: string) => {
-    toast.success(`Code promo ${code} appliqué!`);
-    // In a real app, apply the promotion logic
-  };
-
   const handleQuickViewAddToCart = (product: Product, quantity: number) => {
     dispatch({
       type: "ADD_ITEM",
@@ -140,25 +146,29 @@ const Products = () => {
       <div className="min-h-screen bg-white">
         <Navigation />
         <div className="container mx-auto px-4 py-12">
-          {/* Hero Section Skeleton */}
+          {/* Enhanced Loading Skeleton */}
           <div className="mb-16">
             <div className="h-8 bg-stone-200 rounded w-64 mb-4 mx-auto animate-pulse"></div>
             <div className="h-6 bg-stone-200 rounded w-96 mx-auto animate-pulse"></div>
           </div>
 
-          {/* Filters Skeleton */}
+          {/* Advanced Search Bar Skeleton */}
           <div className="mb-8 space-y-4">
             <div className="flex gap-4">
-              <div className="h-10 bg-stone-200 rounded flex-1 animate-pulse"></div>
-              <div className="h-10 bg-stone-200 rounded w-32 animate-pulse"></div>
-              <div className="h-10 bg-stone-200 rounded w-24 animate-pulse"></div>
+              <div className="h-12 bg-stone-200 rounded flex-1 animate-pulse"></div>
+              <div className="h-12 bg-stone-200 rounded w-48 animate-pulse"></div>
+              <div className="h-12 bg-stone-200 rounded w-32 animate-pulse"></div>
             </div>
-            <div className="h-4 bg-stone-200 rounded w-48 animate-pulse"></div>
+            <div className="flex gap-2">
+              <div className="h-6 bg-stone-200 rounded w-20 animate-pulse"></div>
+              <div className="h-6 bg-stone-200 rounded w-24 animate-pulse"></div>
+              <div className="h-6 bg-stone-200 rounded w-28 animate-pulse"></div>
+            </div>
           </div>
 
           {/* Products Grid Skeleton */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
+            {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="animate-pulse">
                 <div className="bg-stone-200 aspect-square rounded-lg mb-4"></div>
                 <div className="space-y-2">
@@ -213,7 +223,7 @@ const Products = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6 md:py-8 lg:py-12 safe-area">
-        {/* Mobile-specific features */}
+        {/* Enhanced Mobile Features */}
         {isMobile && (
           <div className="space-y-6 mb-6">
             {/* Voice Search */}
@@ -222,64 +232,95 @@ const Products = () => {
               placeholder="Rechercher des produits artisanaux..."
             />
             
-            {/* Quick Reorder */}
-            <QuickReorder userId="demo-user" />
-            
-            {/* Mobile Promotions */}
+            {/* Mobile Promotions with Dynamic Cart Total */}
             <MobilePromotions 
               cartTotal={150} // Pass actual cart total
-              onPromotionApply={handlePromotionApply}
+              onPromotionApply={(code) => toast.success(`Code promo ${code} appliqué!`)}
             />
           </div>
         )}
 
-        {/* Product Filters */}
-        <ProductFilters
+        {/* Advanced Product Filters */}
+        <AdvancedProductFilters
           filters={filters}
-          availableCategories={availableCategories}
-          priceRange={priceRange}
-          totalProducts={totalProducts}
+          availableOptions={availableOptions}
+          searchHistory={searchHistory}
+          isLoading={filterLoading}
+          totalProducts={totalProductsCount}
           filteredCount={filteredCount}
           activeFiltersCount={activeFiltersCount}
           onFiltersChange={updateFilters}
           onResetFilters={resetFilters}
           onClearFilter={clearFilter}
+          getSearchSuggestions={getSearchSuggestions}
         />
 
-        {/* Search Results Header */}
+        {/* Analytics Toggle for Power Users */}
+        {!isMobile && activeFiltersCount > 0 && (
+          <Collapsible open={showAnalytics} onOpenChange={setShowAnalytics}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" size="sm" className="mb-4">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                {showAnalytics ? 'Masquer' : 'Afficher'} les analyses de recherche
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Analyses de recherche
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ProductAnalytics />
+                </CardContent>
+              </Card>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {/* Enhanced Search Results Header */}
         <SearchResultsHeader
           searchQuery={filters.searchQuery}
           totalResults={filteredCount}
-          showingCount={filteredCount}
+          showingCount={isMobile ? visibleProducts.length : filteredCount}
         />
 
-        {/* Category Quick Filters */}
+        {/* Smart Category Filters with Loading State */}
         {!filters.searchQuery && (
           <div className="flex flex-wrap gap-2 mb-6 md:mb-8 overflow-x-auto mobile-scroll">
             <div className="flex gap-2 min-w-max">
               <Badge
                 variant={filters.category.length === 0 ? "default" : "secondary"}
-                className="cursor-pointer px-3 md:px-4 py-2 text-sm touch-manipulation min-h-[44px] flex items-center whitespace-nowrap"
+                className={`cursor-pointer px-3 md:px-4 py-2 text-sm touch-manipulation min-h-[44px] flex items-center whitespace-nowrap ${
+                  filterLoading ? 'animate-pulse' : ''
+                }`}
                 onClick={() => updateFilters({ category: [] })}
               >
-                Tout voir
+                Tout voir ({totalProductsCount})
               </Badge>
-              {displayCategories.map((category) => (
-                <Badge
-                  key={category}
-                  variant={filters.category.includes(category) ? "default" : "secondary"}
-                  className="cursor-pointer px-3 md:px-4 py-2 text-sm touch-manipulation min-h-[44px] flex items-center whitespace-nowrap"
-                  onClick={() => {
-                    if (filters.category.includes(category)) {
-                      updateFilters({ category: filters.category.filter(c => c !== category) });
-                    } else {
-                      updateFilters({ category: [...filters.category, category] });
-                    }
-                  }}
-                >
-                  {category}
-                </Badge>
-              ))}
+              {displayCategories.map((category) => {
+                const categoryCount = products.filter(p => p.category === category).length;
+                return (
+                  <Badge
+                    key={category}
+                    variant={filters.category.includes(category) ? "default" : "secondary"}
+                    className={`cursor-pointer px-3 md:px-4 py-2 text-sm touch-manipulation min-h-[44px] flex items-center whitespace-nowrap ${
+                      filterLoading ? 'animate-pulse' : ''
+                    }`}
+                    onClick={() => {
+                      if (filters.category.includes(category)) {
+                        updateFilters({ category: filters.category.filter(c => c !== category) });
+                      } else {
+                        updateFilters({ category: [...filters.category, category] });
+                      }
+                    }}
+                  >
+                    {category} ({categoryCount})
+                  </Badge>
+                );
+              })}
             </div>
           </div>
         )}
