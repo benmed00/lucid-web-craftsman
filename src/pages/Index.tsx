@@ -12,9 +12,28 @@ import { Link } from "react-router-dom";
 import HeroImage from "@/components/HeroImage";
 import ScrollToTop from "@/components/ScrollToTop";
 import FloatingCartButton from "@/components/ui/FloatingCartButton";
+import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
+import { ProductRecommendations } from "@/components/ProductRecommendations";
+import { useState, useEffect } from "react";
+import { getProducts } from "@/api/mockApiService";
+import { Product } from "@/shared/interfaces/Iproduct.interface";
 
 const Index = () => {
   console.log("Index component is rendering");
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const products = await getProducts();
+        setAllProducts(products);
+      } catch (error) {
+        console.error('Error loading products:', error);
+      }
+    };
+    loadProducts();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Navigation */}
@@ -135,6 +154,21 @@ const Index = () => {
             </Link>
           </div>
           <ProductShowcase />
+          
+          {/* Recently Viewed Section */}
+          <div className="mt-16">
+            <RecentlyViewedProducts />
+          </div>
+
+          {/* Recommendations Section */}
+          <div className="mt-16">
+            <ProductRecommendations
+              allProducts={allProducts}
+              title="Découvrir nos nouveautés"
+              maxRecommendations={8}
+            />
+          </div>
+
           <div className="mt-12 text-center md:hidden">
             <Link to="/products" className="group">
               <Button variant="outline" className="border-2 border-stone-300 text-stone-700 hover:bg-stone-50 hover:border-olive-300 px-8 py-4 rounded-lg font-medium transition-all duration-300 hover:scale-105 button-press hover-glow">

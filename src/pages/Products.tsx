@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Loader2, TrendingUp, BarChart3 } from "lucide-react";
+import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
+import { ProductRecommendations } from "@/components/ProductRecommendations";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -398,6 +400,21 @@ const Products = () => {
             </Button>
           </div>
         )}
+
+        {/* Recently Viewed Products */}
+        <div className="mt-16">
+          <RecentlyViewedProducts onQuickView={setQuickViewProduct} />
+        </div>
+
+        {/* General Recommendations */}
+        <div className="mt-16">
+          <ProductRecommendations
+            allProducts={products}
+            title="Recommandés pour vous"
+            maxRecommendations={8}
+            onQuickView={setQuickViewProduct}
+          />
+        </div>
       </div>
 
       {/* Quick View Modal */}

@@ -6,7 +6,7 @@ import { ArrowRight, Leaf, ShoppingBag, ChevronLeft, ChevronRight, AlertTriangle
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { addToCart, getProductById } from "@/api/mockApiService";
+import { addToCart, getProductById, getProducts } from "@/api/mockApiService";
 import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -22,11 +22,15 @@ import { sanitizeHtmlContent } from "@/utils/xssProtection";
 import { useStock } from "@/hooks/useStock";
 import { useShipping } from "@/hooks/useShipping";
 import { StockInfo } from "@/services/stockService";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+import { ProductRecommendations } from "@/components/ProductRecommendations";
 
 const ProductDetail = () => {
   const { dispatch } = useCart();
+  const { addToRecentlyViewed } = useRecentlyViewed();
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -79,12 +83,19 @@ const ProductDetail = () => {
 
     const fetchProductData = async () => {
       try {
+        // Load all products for recommendations
+        const products = await getProducts();
+        setAllProducts(products);
+
         // Find the product with the matching id
         const productId = parseInt(id || "0");
         const foundProduct = await getProductById(productId);
 
         if (foundProduct) {
           setProduct(foundProduct);
+          
+          // Add to recently viewed
+          addToRecentlyViewed(foundProduct);
 
           // Get related products
           if (foundProduct.related && foundProduct.related.length > 0) {
@@ -376,6 +387,16 @@ const ProductDetail = () => {
         {/* Reviews Section */}
         <section className="mt-16">
           <ProductReviews product={product} />
+        </section>
+
+        {/* Recommendations Section */}
+        <section className="mt-16">
+          <ProductRecommendations
+            currentProduct={product}
+            allProducts={allProducts}
+            title="Vous pourriez aussi aimer"
+            maxRecommendations={4}
+          />
         </section>
       </section>
 
