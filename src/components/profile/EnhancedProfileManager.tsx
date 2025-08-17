@@ -24,7 +24,7 @@ import { PreferencesSettings } from './PreferencesSettings';
 import { OrderHistory } from './OrderHistory';
 import { LoyaltyProgram } from './LoyaltyProgram';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
-import { useOptimizedQuery } from '@/hooks/useOptimizedData';
+import { useOptimizedData } from '@/hooks/useOptimizedData';
 import { supabase } from '@/integrations/supabase/client';
 import { LoadingManager, ProfileSkeleton } from '@/components/ui/LoadingStateManager';
 import { toast } from 'sonner';
@@ -45,6 +45,8 @@ interface Profile {
   instagram_handle: string | null;
   facebook_url: string | null;
   twitter_handle: string | null;
+  preferences: any;
+  notification_settings: any;
   created_at: string;
   updated_at: string;
 }
@@ -62,94 +64,127 @@ interface UserPreferences {
 }
 
 export const EnhancedProfileManager: React.FC = () => {
-  const { user, profile, isLoading: authLoading, updateProfile } = useOptimizedAuth();
+  const { user, isLoading: authLoading } = useOptimizedAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [profileCompletion, setProfileCompletion] = useState(0);
 
-  // Fetch user preferences with caching
-  const { 
-    data: preferences, 
-    isLoading: preferencesLoading, 
-    refetch: refetchPreferences 
-  } = useOptimizedQuery<UserPreferences[]>(`preferences_${user?.id}`, async () => {
-    if (!user) return [];
-    const { data, error } = await supabase
-      .from('user_preferences')
-      .select('*')
-      .eq('user_id', user.id);
-    
-    if (error && error.code !== 'PGRST116') throw error;
-    return data || [];
-  });
+  // Fetch profile with enhanced caching
+  const { data: profile, isLoading: profileLoading } = useOptimizedData(
+    `profile_${user?.id}`,
+    async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        // Create profile if it doesn't exist
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert([{ id: user.id, full_name: user.user_metadata?.full_name }])
+          .select()
+          .single();
+        
+        if (createError) throw createError;
+        return newProfile;
+      }
+      return data;
+    },
+    { 
+      enableCache: true,
+      cacheTime: 5 * 60 * 1000 // 5 minutes for profile data
+    }
+  );
 
-  // Fetch orders with caching
-  const { 
-    data: orders, 
-    isLoading: ordersLoading,
-    refetch: refetchOrders 
-  } = useOptimizedQuery(`orders_${user?.id}`, async () => {
-    if (!user) return [];
-    const { data, error } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        shipments(*),
-        order_items(
-          *,
-          products(*)
-        )
-      `)
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    return data;
-  });
+  // Fetch user preferences with enhanced caching
+  const { data: preferences, isLoading: preferencesLoading } = useOptimizedData(
+    `preferences_${user?.id}`,
+    async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return data || [];
+    },
+    { 
+      enableCache: true,
+      cacheTime: 10 * 60 * 1000 // 10 minutes for preferences
+    }
+  );
 
-  // Fetch loyalty data
-  const { 
-    data: loyaltyData, 
-    isLoading: loyaltyLoading 
-  } = useOptimizedQuery(`loyalty_${user?.id}`, async () => {
-    if (!user) return null;
-    const { data, error } = await supabase
-      .from('loyalty_points')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+  // Fetch loyalty data with enhanced caching
+  const { data: loyaltyData, isLoading: loyaltyLoading } = useOptimizedData(
+    `loyalty_${user?.id}`,
+    async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from('loyalty_points')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+    { 
+      enableCache: true,
+      cacheTime: 10 * 60 * 1000 // 10 minutes for loyalty data
+    }
+  );
+
+  // Fetch profile completion percentage using database function
+  React.useEffect(() => {
+    const getProfileCompletion = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data, error } = await supabase.rpc('get_profile_completion_percentage', {
+          user_uuid: user.id
+        });
+        
+        if (error) throw error;
+        setProfileCompletion(data || 0);
+      } catch (error) {
+        console.error('Error getting profile completion:', error);
+        // Fallback calculation
+        if (profile) {
+          const fields = ['full_name', 'bio', 'phone', 'location', 'city', 'country'];
+          const filledFields = fields.filter(field => profile[field as keyof Profile]);
+          setProfileCompletion(Math.round((filledFields.length / fields.length) * 100));
+        }
+      }
+    };
     
-    if (error && error.code !== 'PGRST116') throw error;
-    return data;
-  });
+    getProfileCompletion();
+  }, [user?.id, profile]);
 
   const handleProfileUpdate = useCallback(async (updatedProfile: Profile) => {
     try {
-      await updateProfile(updatedProfile);
+      const { error } = await supabase
+        .from('profiles')
+        .update(updatedProfile)
+        .eq('id', user?.id);
+      
+      if (error) throw error;
       toast.success('Profil mis à jour avec succès');
     } catch (error) {
       console.error('Profile update error:', error);
       toast.error('Erreur lors de la mise à jour');
     }
-  }, [updateProfile]);
-
-  const completionPercentage = useMemo(() => {
-    if (!profile) return 0;
-    
-    const fields = [
-      'full_name', 'bio', 'phone', 'location', 
-      'address_line1', 'city', 'postal_code', 'country'
-    ];
-    
-    const filledFields = fields.filter(field => profile[field as keyof Profile]);
-    return Math.round((filledFields.length / fields.length) * 100);
-  }, [profile]);
+  }, [user?.id]);
 
   const getCompletionBadgeColor = (percentage: number) => {
     if (percentage >= 80) return 'default';
-    if (percentage >= 50) return 'secondary';
+    if (percentage >= 50) return 'secondary'; 
     return 'outline';
   };
 
-  if (authLoading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="container mx-auto py-8 px-4">
         <ProfileSkeleton />
@@ -188,8 +223,8 @@ export const EnhancedProfileManager: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <Badge variant={getCompletionBadgeColor(completionPercentage)}>
-              Profil {completionPercentage}% complété
+            <Badge variant={getCompletionBadgeColor(profileCompletion)}>
+              Profil {profileCompletion}% complété
             </Badge>
             {user.email_confirmed_at && (
               <Badge variant="default" className="bg-green-100 text-green-800">
@@ -271,13 +306,19 @@ export const EnhancedProfileManager: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="orders">
-          <LoadingManager
-            isLoading={ordersLoading}
-            loadingKey="orders"
-            fallback={<ProfileSkeleton />}
-          >
-            <OrderHistory user={user} />
-          </LoadingManager>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Historique des commandes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Aucune commande trouvée. Commencez vos achats pour voir votre historique ici.
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="loyalty">

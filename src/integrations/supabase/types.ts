@@ -545,6 +545,57 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          created_at: string | null
+          email_delivery_confirmation: boolean | null
+          email_loyalty_updates: boolean | null
+          email_order_confirmation: boolean | null
+          email_promotional: boolean | null
+          email_security_alerts: boolean | null
+          email_shipping_updates: boolean | null
+          id: string
+          push_order_updates: boolean | null
+          push_promotional: boolean | null
+          sms_delivery_updates: boolean | null
+          sms_order_updates: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email_delivery_confirmation?: boolean | null
+          email_loyalty_updates?: boolean | null
+          email_order_confirmation?: boolean | null
+          email_promotional?: boolean | null
+          email_security_alerts?: boolean | null
+          email_shipping_updates?: boolean | null
+          id?: string
+          push_order_updates?: boolean | null
+          push_promotional?: boolean | null
+          sms_delivery_updates?: boolean | null
+          sms_order_updates?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email_delivery_confirmation?: boolean | null
+          email_loyalty_updates?: boolean | null
+          email_order_confirmation?: boolean | null
+          email_promotional?: boolean | null
+          email_security_alerts?: boolean | null
+          email_shipping_updates?: boolean | null
+          id?: string
+          push_order_updates?: boolean | null
+          push_promotional?: boolean | null
+          sms_delivery_updates?: boolean | null
+          sms_order_updates?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string | null
@@ -943,8 +994,10 @@ export type Database = {
           id: string
           instagram_handle: string | null
           location: string | null
+          notification_settings: Json | null
           phone: string | null
           postal_code: string | null
+          preferences: Json | null
           twitter_handle: string | null
           updated_at: string
           website_url: string | null
@@ -962,8 +1015,10 @@ export type Database = {
           id: string
           instagram_handle?: string | null
           location?: string | null
+          notification_settings?: Json | null
           phone?: string | null
           postal_code?: string | null
+          preferences?: Json | null
           twitter_handle?: string | null
           updated_at?: string
           website_url?: string | null
@@ -981,8 +1036,10 @@ export type Database = {
           id?: string
           instagram_handle?: string | null
           location?: string | null
+          notification_settings?: Json | null
           phone?: string | null
           postal_code?: string | null
+          preferences?: Json | null
           twitter_handle?: string | null
           updated_at?: string
           website_url?: string | null
@@ -1296,6 +1353,8 @@ export type Database = {
           privacy_profile_public: boolean | null
           privacy_show_email: boolean | null
           privacy_show_phone: boolean | null
+          theme_preference: string | null
+          timezone: string | null
           updated_at: string
           user_id: string
         }
@@ -1310,6 +1369,8 @@ export type Database = {
           privacy_profile_public?: boolean | null
           privacy_show_email?: boolean | null
           privacy_show_phone?: boolean | null
+          theme_preference?: string | null
+          timezone?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1324,6 +1385,8 @@ export type Database = {
           privacy_profile_public?: boolean | null
           privacy_show_email?: boolean | null
           privacy_show_phone?: boolean | null
+          theme_preference?: string | null
+          timezone?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1428,6 +1491,10 @@ export type Database = {
         Args: { payment_id: string }
         Returns: Json
       }
+      get_profile_completion_percentage: {
+        Args: { user_uuid: string }
+        Returns: number
+      }
       get_security_setting: {
         Args: { setting_key: string }
         Returns: Json
@@ -1446,6 +1513,15 @@ export type Database = {
           p_event_type: string
           p_severity?: string
           p_user_id?: string
+        }
+        Returns: undefined
+      }
+      log_user_activity: {
+        Args: {
+          p_activity_type: string
+          p_description?: string
+          p_metadata?: Json
+          p_user_id: string
         }
         Returns: undefined
       }
