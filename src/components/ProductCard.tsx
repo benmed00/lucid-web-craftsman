@@ -75,7 +75,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
             <Share className="h-4 w-4" />
           </Button>
 
-          {product.new && (
+          {(product.new || product.is_new) && (
             <Badge className="absolute bottom-2 right-2 md:bottom-3 md:right-3 bg-olive-700 text-white border-none shadow-lg text-xs px-2 py-1">
               Nouveau
             </Badge>

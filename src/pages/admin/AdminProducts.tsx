@@ -387,7 +387,7 @@ const AdminProducts = () => {
                   className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-2 right-2 flex gap-2">
-                  {product.new && (
+                  {(product.new || product.is_new) && (
                     <Badge className="bg-olive-700 text-white">Nouveau</Badge>
                   )}
                   <Button
@@ -396,7 +396,7 @@ const AdminProducts = () => {
                     onClick={() => toggleProductVisibility(product.id)}
                     className="p-1 h-8 w-8"
                   >
-                    {product.new ? (
+                    {(product.new || product.is_new) ? (
                       <Eye className="h-4 w-4" />
                     ) : (
                       <EyeOff className="h-4 w-4" />

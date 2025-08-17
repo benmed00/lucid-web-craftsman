@@ -147,7 +147,7 @@ export const useAdvancedProductFilters = ({
 
     // New products filter
     if (filters.isNew) {
-      filtered = filtered.filter(p => p.is_new);
+      filtered = filtered.filter(p => p.new || p.is_new);
     }
 
     // Stock filter (simplified - assuming all products are in stock for now)

@@ -66,8 +66,8 @@ export const useProductRecommendations = ({
         score += 15;
       }
       
-      // Random factor for variety
-      score += Math.random() * 5;
+      // Use product ID as a stable "random" factor for variety
+      score += (product.id % 5);
       
       if (score > 0) {
         scored.push({ product, score });

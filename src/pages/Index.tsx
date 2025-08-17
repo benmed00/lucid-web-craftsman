@@ -19,7 +19,6 @@ import { getProducts } from "@/api/mockApiService";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 
 const Index = () => {
-  console.log("Index component is rendering");
   const [allProducts, setAllProducts] = useState<Product[]>([]);
 
   useEffect(() => {

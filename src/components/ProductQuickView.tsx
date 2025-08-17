@@ -63,7 +63,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                 className="w-full h-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
                 onClick={() => isMobile && setShowMobileGallery(true)}
               />
-              {product.new && (
+              {(product.new || product.is_new) && (
                 <Badge className="absolute top-4 left-4 bg-olive-700 text-white">
                   Nouveau
                 </Badge>

@@ -217,7 +217,7 @@ const ProductDetail = () => {
               <Badge className="bg-olive-100 text-olive-800 hover:bg-olive-200 border-none">
                 {product.category}
               </Badge>
-              {product.new && (
+              {(product.new || product.is_new) && (
                 <Badge className="ml-2 bg-olive-500 text-white border-none">
                   Nouveau
                 </Badge>
