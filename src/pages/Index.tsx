@@ -161,15 +161,15 @@ const Index = () => {
           </div>
           {sectionConfig.showProductShowcase && <ProductShowcase />}
           
-          /* {/* Recently Viewed Section - Hidden by default, configurable */}
-          {sectionConfig.showRecentlyViewed && (
+          {/* Recently Viewed Section - Hidden by default, configurable */}
+          {/*sectionConfig.showRecentlyViewed && (
             <div className="mt-16">
               <RecentlyViewedProducts />
             </div>
-          )}
+          )*/}
 
           {/* Recommendations Section - Hidden by default, configurable */}
-          {sectionConfig.showRecommendations && (
+          {/*sectionConfig.showRecommendations && (
             <div className="mt-16">
               <ProductRecommendations
                 allProducts={allProducts}
@@ -177,7 +177,7 @@ const Index = () => {
                 maxRecommendations={8}
               />
             </div>
-          )} */
+          )*/}
 
           <div className="mt-12 text-center md:hidden">
             <Link to="/products" className="group">
