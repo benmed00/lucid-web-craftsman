@@ -46,6 +46,23 @@ export const validateAndSanitizeEmail = (email: string): string => {
   return sanitized;
 };
 
+// Enhanced phone validation with sanitization
+export const validatePhoneNumber = (phone: string): string => {
+  const sanitized = sanitizeUserInput(phone.trim());
+  
+  // Basic phone validation (international format)
+  const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+  if (!phoneRegex.test(sanitized.replace(/[\s\-\(\)]/g, ''))) {
+    throw new Error('Format de téléphone invalide');
+  }
+  
+  if (sanitized.length > 20) {
+    throw new Error('Numéro de téléphone trop long');
+  }
+  
+  return sanitized;
+};
+
 export const validateAndSanitizeName = (name: string): string => {
   const sanitized = sanitizeUserInput(name.trim());
   

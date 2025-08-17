@@ -1,22 +1,31 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
-// Simplified debounce and throttle
+// Enhanced debounce and throttle with cancel functionality
 const debounce = (fn: Function, ms: number) => {
   let timer: NodeJS.Timeout;
-  return (...args: any[]) => {
+  const debouncedFn = (...args: any[]) => {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), ms);
   };
+  debouncedFn.cancel = () => clearTimeout(timer);
+  return debouncedFn;
 };
 
 const throttle = (fn: Function, ms: number) => {
   let timer: NodeJS.Timeout | null = null;
-  return (...args: any[]) => {
+  const throttledFn = (...args: any[]) => {
     if (!timer) {
       timer = setTimeout(() => { timer = null; }, ms);
       fn(...args);
     }
   };
+  throttledFn.cancel = () => {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  };
+  return throttledFn;
 };
 
 // Performance monitoring hook
