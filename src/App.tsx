@@ -2,6 +2,7 @@
 
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { LoadingStateProvider } from "@/components/ui/LoadingStateManager";
 
 import About from "./pages/About";
 import Blog from "./pages/Blog";
@@ -51,13 +52,23 @@ import AdminInventory from "./pages/admin/AdminInventory";
 import AdminMarketing from "./pages/admin/AdminMarketing";
 import AdminHeroImage from "./pages/admin/AdminHeroImage";
 
-// Configuration de React Query
+// Enhanced React Query configuration for optimized caching
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
+      staleTime: 1000 * 60 * 10, // 10 minutes - longer for better performance
+      gcTime: 1000 * 60 * 15, // 15 minutes cache retention
+      retry: (failureCount, error: any) => {
+        // Don't retry on auth errors
+        if (error?.status === 401 || error?.status === 403) return false;
+        return failureCount < 2; // Max 2 retries
+      },
       refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      retry: 1,
     },
   },
 });
@@ -68,12 +79,13 @@ const App = () => {
   console.log("App component is rendering, basePath:", basePath);
   return (
   <QueryClientProvider client={queryClient}>
-    <OfflineManager>
-      <CartProvider>
-        <TooltipProvider delayDuration={300}>
-          <BrowserRouter basename={basePath}>
-            <PushNotificationManager />
-            <PWAInstallPrompt />
+    <LoadingStateProvider>
+      <OfflineManager>
+        <CartProvider>
+          <TooltipProvider delayDuration={300}>
+            <BrowserRouter basename={basePath}>
+              <PushNotificationManager />
+              <PWAInstallPrompt />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/products" element={<Products />} />
@@ -137,6 +149,7 @@ const App = () => {
         </TooltipProvider>
       </CartProvider>
     </OfflineManager>
+    </LoadingStateProvider>
   </QueryClientProvider>
   );
 };

@@ -13,7 +13,9 @@ import { PersonalInfo } from '@/components/profile/PersonalInfo';
 import { PreferencesSettings } from '@/components/profile/PreferencesSettings';
 import { OrderHistory } from '@/components/profile/OrderHistory';
 import { LoyaltyProgram } from '@/components/profile/LoyaltyProgram';
-import { useAuth } from '@/hooks/useAuth';
+import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
+import { EnhancedProfileManager } from '@/components/profile/EnhancedProfileManager';
+import { ProfileSkeleton } from '@/components/ui/LoadingStateManager';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -39,7 +41,7 @@ interface Profile {
 
 export default function EnhancedProfile() {
   const navigate = useNavigate();
-  const { user, signOut, isLoading: authLoading } = useAuth();
+  const { user, signOut, isLoading: authLoading, session } = useOptimizedAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -138,9 +140,16 @@ export default function EnhancedProfile() {
 
   const handleSignOut = async () => {
     try {
+      // Clean up auth state properly
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
       await signOut();
-      navigate('/auth');
-      toast.success('Déconnexion réussie');
+      // Force page reload for clean state
+      window.location.href = '/auth';
     } catch (error: any) {
       console.error('Error signing out:', error);
       toast.error('Erreur lors de la déconnexion');
@@ -151,11 +160,7 @@ export default function EnhancedProfile() {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-1/3"></div>
-            <div className="h-64 bg-muted rounded"></div>
-            <div className="h-32 bg-muted rounded"></div>
-          </div>
+          <ProfileSkeleton />
         </div>
       </div>
     );
@@ -251,62 +256,7 @@ export default function EnhancedProfile() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <ProfileOverview 
-              user={user} 
-              profile={profile} 
-              onProfileUpdate={handleProfileUpdate}
-            />
-            
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <Shield className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Statut</p>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={user.email_confirmed_at ? "default" : "secondary"}>
-                          {user.email_confirmed_at ? "Vérifié" : "Non vérifié"}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <Package className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Commandes</p>
-                      <p className="text-2xl font-bold">-</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <UserIcon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Profil</p>
-                      <p className="text-sm font-medium">
-                        {profile?.full_name ? "Complet" : "À compléter"}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <EnhancedProfileManager />
           </TabsContent>
 
           <TabsContent value="personal">
