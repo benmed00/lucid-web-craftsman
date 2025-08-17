@@ -20,6 +20,13 @@ import { Product } from "@/shared/interfaces/Iproduct.interface";
 
 const Index = () => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  
+  // Configuration for showing/hiding sections - easily configurable for future
+  const sectionConfig = {
+    showRecentlyViewed: false,
+    showRecommendations: false,
+    showProductShowcase: true,
+  };
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -152,21 +159,25 @@ const Index = () => {
               <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
-          <ProductShowcase />
+          {sectionConfig.showProductShowcase && <ProductShowcase />}
           
-          {/* Recently Viewed Section */}
-          <div className="mt-16">
-            <RecentlyViewedProducts />
-          </div>
+          {/* Recently Viewed Section - Hidden by default, configurable */}
+          {sectionConfig.showRecentlyViewed && (
+            <div className="mt-16">
+              <RecentlyViewedProducts />
+            </div>
+          )}
 
-          {/* Recommendations Section */}
-          <div className="mt-16">
-            <ProductRecommendations
-              allProducts={allProducts}
-              title="Découvrir nos nouveautés"
-              maxRecommendations={8}
-            />
-          </div>
+          {/* Recommendations Section - Hidden by default, configurable */}
+          {sectionConfig.showRecommendations && (
+            <div className="mt-16">
+              <ProductRecommendations
+                allProducts={allProducts}
+                title="Découvrir nos nouveautés"
+                maxRecommendations={8}
+              />
+            </div>
+          )}
 
           <div className="mt-12 text-center md:hidden">
             <Link to="/products" className="group">
