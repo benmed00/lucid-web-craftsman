@@ -9,6 +9,7 @@ import { useCartUI } from "../context/useCartUI";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
+import CurrencySelector from "@/components/CurrencySelector";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -75,7 +76,7 @@ const Navigation = () => {
         </Link>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         {/* Wishlist button - Desktop */}
         {user && (
           <Button
@@ -94,6 +95,11 @@ const Navigation = () => {
             </Link>
           </Button>
         )}
+
+        {/* Currency Selector - Desktop */}
+        <div className="hidden md:block">
+          <CurrencySelector />
+        </div>
 
         <Link to="/cart" className="hidden md:block">
           <Button
@@ -207,6 +213,14 @@ const Navigation = () => {
               <span className="text-2xl">💬</span>
               <span className="group-hover:translate-x-1 transition-transform duration-200 text-lg">Contact</span>
             </Link>
+
+            {/* Currency Selector - Mobile */}
+            <div className="px-4 py-3">
+              <div className="flex items-center justify-between">
+                <span className="text-stone-700 font-medium">Devise:</span>
+                <CurrencySelector />
+              </div>
+            </div>
 
             <div className="pt-4 mt-4 border-t border-stone-200">
               <Link

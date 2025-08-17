@@ -9,6 +9,7 @@ import { NativeShare } from "@/components/ui/NativeShare";
 import { useStock } from "@/hooks/useStock";
 import { StockInfo } from "@/services/stockService";
 import { useEffect, useState } from "react";
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface ProductCardProps {
   product: Product;
@@ -19,6 +20,7 @@ interface ProductCardProps {
 const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) => {
   const { stockInfo } = useStock({ productId: product.id });
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const { formatPrice } = useCurrency();
 
   // Type guard to ensure stockInfo is StockInfo for single product
   const singleStockInfo = stockInfo as StockInfo | null;
@@ -112,22 +114,22 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
         </Link>
         <div className="flex flex-col gap-4">
           <div className="relative">
-            <p className="text-stone-800 font-bold text-xl md:text-2xl relative inline-block">
-              {product.price} €
-              <svg 
-                className="absolute -bottom-1 left-0 w-full h-2 text-red-400 opacity-80" 
-                viewBox="0 0 100 8" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path 
-                  d="M2 6c20-4 40-4 60 0s40 4 36-2" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round"
-                />
-              </svg>
+            <p className="text-stone-800 font-bold text-xl md:text-2xl whitespace-nowrap">
+              {formatPrice(product.price)}
             </p>
+            <svg 
+              className="absolute -bottom-1 left-0 w-full h-2 text-red-400 opacity-80" 
+              viewBox="0 0 100 8" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path 
+                d="M2 6c20-4 40-4 60 0s40 4 36-2" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round"
+              />
+            </svg>
           </div>
           <Button
             size="default"

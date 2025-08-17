@@ -10,6 +10,7 @@ import BlogPost from "./pages/BlogPost";
 import CGV from "./pages/CGV";
 import Cart from "./pages/Cart";
 import { CartProvider } from "@/context/CartContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 import Checkout from "./pages/Checkout";
 import Contact from "./pages/Contact";
 import { ErrorBoundary } from "react-error-boundary";
@@ -81,7 +82,8 @@ const App = () => {
   <QueryClientProvider client={queryClient}>
     <LoadingStateProvider>
       <OfflineManager>
-        <CartProvider>
+        <CurrencyProvider>
+          <CartProvider>
           <TooltipProvider delayDuration={300}>
             <BrowserRouter basename={basePath}>
               <PushNotificationManager />
@@ -147,8 +149,9 @@ const App = () => {
         {/* Devtools React Query (en développement seulement) */}
           {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
         </TooltipProvider>
-      </CartProvider>
-    </OfflineManager>
+          </CartProvider>
+        </CurrencyProvider>
+      </OfflineManager>
     </LoadingStateProvider>
   </QueryClientProvider>
   );

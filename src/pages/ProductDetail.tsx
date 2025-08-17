@@ -24,10 +24,12 @@ import { useShipping } from "@/hooks/useShipping";
 import { StockInfo } from "@/services/stockService";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { ProductRecommendations } from "@/components/ProductRecommendations";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const ProductDetail = () => {
   const { dispatch } = useCart();
   const { addToRecentlyViewed } = useRecentlyViewed();
+  const { formatPrice } = useCurrency();
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -229,7 +231,7 @@ const ProductDetail = () => {
             </h1>
 
             <div className="text-2xl font-medium text-olive-700 mb-6">
-              {product.price} €
+              {formatPrice(product.price)}
             </div>
 
             <p className="text-stone-600 mb-6">{product.description}</p>
@@ -439,7 +441,7 @@ const ProductDetail = () => {
                         {product.name}
                       </h3>
                       <p className="text-olive-700 font-medium">
-                        {product.price} €
+                        {formatPrice(product.price)}
                       </p>
                     </CardContent>
                   </Card>

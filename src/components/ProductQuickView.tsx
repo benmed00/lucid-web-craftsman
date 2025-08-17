@@ -8,6 +8,7 @@ import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { toast } from 'sonner';
 import { MobileImageGallery } from '@/components/ui/MobileImageGallery';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useCurrency } from '@/context/CurrencyContext';
 
 interface ProductQuickViewProps {
   product: Product | null;
@@ -22,6 +23,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showMobileGallery, setShowMobileGallery] = useState(false);
   const isMobile = useIsMobile();
+  const { formatPrice } = useCurrency();
 
   if (!product) return null;
 
@@ -149,8 +151,8 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                 <span className="text-sm text-gray-600">(24 avis)</span>
               </div>
 
-              <div className="text-3xl font-bold text-olive-700">
-                {product.price}€
+              <div className="text-3xl font-bold text-olive-700 whitespace-nowrap">
+                {formatPrice(product.price)}
               </div>
             </DialogHeader>
 
@@ -205,7 +207,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                 className="w-full bg-olive-700 hover:bg-olive-800 text-white py-3"
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
-                Ajouter au panier - {(product.price * quantity).toFixed(2)}€
+                Ajouter au panier - {formatPrice(product.price * quantity)}
               </Button>
 
               <div className="grid grid-cols-2 gap-3">
