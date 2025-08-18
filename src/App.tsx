@@ -2,7 +2,7 @@
 
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { LoadingStateProvider } from "@/components/ui/LoadingStateManager";
+// import { LoadingStateProvider } from "@/components/ui/LoadingStateManager";
 
 import About from "./pages/About";
 import Blog from "./pages/Blog";
@@ -79,7 +79,7 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <LoadingStateProvider>
+        {/* <LoadingStateProvider> */}
           <OfflineManager>
             <CurrencyProvider>
               <CartProvider>
@@ -144,7 +144,7 @@ const App = () => {
               </CartProvider>
             </CurrencyProvider>
           </OfflineManager>
-        </LoadingStateProvider>
+        {/* </LoadingStateProvider> */}
       </QueryClientProvider>
     </ErrorBoundary>
   );
