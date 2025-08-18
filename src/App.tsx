@@ -24,7 +24,6 @@ import OrderHistory from "./pages/OrderHistory";
 import NotFound from "./pages/NotFound";
 import ProductDetail from "./pages/ProductDetail";
 import Products from "./pages/Products";
-import React from "react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import Returns from "./pages/Returns";
 import Shipping from "./pages/Shipping";
