@@ -50,9 +50,12 @@ export const validateAndSanitizeEmail = (email: string): string => {
 export const validatePhoneNumber = (phone: string): string => {
   const sanitized = sanitizeUserInput(phone.trim());
   
+  // Remove formatting and validate basic phone number pattern
+  const cleanPhone = sanitized.replace(/[\s\-\(\)\.]/g, '');
+  
   // Basic phone validation (international format)
   const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-  if (!phoneRegex.test(sanitized.replace(/[\s\-\(\)]/g, ''))) {
+  if (!phoneRegex.test(cleanPhone)) {
     throw new Error('Format de téléphone invalide');
   }
   
