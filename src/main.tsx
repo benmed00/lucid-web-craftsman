@@ -1,13 +1,13 @@
 import React, { StrictMode } from "react";
 import { createRoot } from 'react-dom/client';
-import AppNew from './AppNew.tsx';
+import App from './App.tsx';
 import './index.css';
 
-console.log('main.tsx loaded');
-console.log('React from main.tsx:', React);
+console.log('main.tsx loaded - cache cleared');
+console.log('React available:', !!React);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AppNew />
+    <App />
   </StrictMode>
 );
