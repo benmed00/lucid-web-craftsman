@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
-import { useCart } from '@/context/useCart';
+import { useCart } from '@/context/CartContext';
 
 interface QuickReorderProps {
   userId?: string;

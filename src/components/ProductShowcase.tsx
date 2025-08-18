@@ -1,5 +1,5 @@
 
-import { useCart } from "@/context/useCart";
+import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { useEffect, useState } from "react";

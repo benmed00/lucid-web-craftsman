@@ -11,7 +11,7 @@ import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
 import { products } from '@/data/products';
 import { formatPrice } from '@/lib/stripe';
-import { useCart } from '@/context/useCart';
+import { useCart } from '@/context/CartContext';
 import { toast } from 'sonner';
 
 const Wishlist = () => {

@@ -23,7 +23,7 @@ import { VoiceSearch } from "@/components/ui/VoiceSearch";
 import { MobilePromotions } from "@/components/ui/MobilePromotions";
 
 import { getProducts } from "@/api/mockApiService";
-import { useCart } from "@/context/useCart";
+import { useCart } from "@/context/CartContext";
 import { useAdvancedProductFilters } from "@/hooks/useAdvancedProductFilters";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";

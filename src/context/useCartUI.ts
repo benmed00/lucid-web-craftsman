@@ -1,4 +1,4 @@
-import { useCart } from "./useCart"; // Import useCart
+import { useCart } from "./CartContext";
 // import { useMemo } from "react"; // useMemo no longer needed for itemCount
 
 /**

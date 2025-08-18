@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useCart } from '@/context/useCart';
+import { useCart } from '@/context/CartContext';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';

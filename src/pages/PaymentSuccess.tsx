@@ -7,7 +7,7 @@ import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useCart } from "@/context/useCart";
+import { useCart } from "@/context/CartContext";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();

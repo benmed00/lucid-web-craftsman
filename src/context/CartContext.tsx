@@ -1,8 +1,50 @@
 // src/context/CartContext.tsx
 
-import { CartAction, CartContext, CartState } from "./useCart";
 import { Product } from "../shared/interfaces/Iproduct.interface";
-import React, { useEffect, useMemo, useReducer } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useReducer } from "react";
+
+// Types
+export type CartItem = {
+  id: number;
+  quantity: number;
+  product: Product;
+};
+
+export type CartState = {
+  items: CartItem[];
+  totalPrice: number;
+};
+
+export type CartAction =
+  | { type: "ADD_ITEM"; payload: Product; quantity: number }
+  | { type: "REMOVE_ITEM"; payload: number }
+  | { type: "UPDATE_ITEM_QUANTITY"; payload: { id: number; quantity: number } }
+  | { type: "CLEAR_CART" }
+  | { type: "HYDRATE"; payload: CartState };
+
+// Context type
+interface CartContextType {
+  cart: CartState;
+  dispatch: React.Dispatch<CartAction>;
+  itemCount: number;
+  totalPrice: number;
+  clearCart: () => void;
+  addItem: (product: Product, quantity: number) => void;
+  removeItem: (itemId: number) => void;
+  updateItemQuantity: (id: number, quantity: number) => void;
+}
+
+// Create context
+export const CartContext = createContext<CartContextType | undefined>(undefined);
+
+// useCart hook
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("useCart must be used within a CartProvider");
+  }
+  return context;
+};
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
@@ -133,4 +175,4 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       {children}
     </CartContext.Provider>
   );
-}
+};

@@ -1,6 +1,6 @@
 import { useProductRecommendations } from '@/hooks/useProductRecommendations';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
-import { useCart } from '@/context/useCart';
+import { useCart } from '@/context/CartContext';
 import { toast } from 'sonner';
 import ProductCard from './ProductCard';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';

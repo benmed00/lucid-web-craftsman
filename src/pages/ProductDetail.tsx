@@ -16,7 +16,7 @@ import PageFooter from "@/components/PageFooter";
 import { Product } from "../shared/interfaces/Iproduct.interface";
 import { ProductReviews } from '@/components/reviews/ProductReviews';
 import { toast } from "sonner";
-import { useCart } from "../context/useCart";
+import { useCart } from "../context/CartContext";
 import { ProductImage } from "@/components/ui/GlobalImage";
 import { sanitizeHtmlContent } from "@/utils/xssProtection";
 import { useStock } from "@/hooks/useStock";
