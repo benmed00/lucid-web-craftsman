@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, FC, ReactNode } from 'react';
 
 interface LoadingState {
   [key: string]: boolean;
@@ -14,7 +14,7 @@ interface LoadingContextType {
 
 const LoadingContext = createContext<LoadingContextType | null>(null);
 
-export const LoadingStateProvider: React.FC<{ children: React.ReactNode }> = ({ 
+export const LoadingStateProvider: FC<{ children: ReactNode }> = ({ 
   children 
 }) => {
   const [loadingStates, setLoadingStates] = useState<LoadingState>({});
@@ -78,11 +78,11 @@ export const useLoadingState = () => {
 interface LoadingManagerProps {
   isLoading: boolean;
   loadingKey: string;
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
+  children: ReactNode;
+  fallback?: ReactNode;
 }
 
-export const LoadingManager: React.FC<LoadingManagerProps> = ({
+export const LoadingManager: FC<LoadingManagerProps> = ({
   isLoading,
   loadingKey,
   children,
@@ -102,7 +102,7 @@ export const LoadingManager: React.FC<LoadingManagerProps> = ({
 };
 
 // Enhanced skeleton components with reduced flickering
-export const OptimizedSkeleton: React.FC<{
+export const OptimizedSkeleton: FC<{
   className?: string;
   animate?: boolean;
   duration?: number;
@@ -122,7 +122,7 @@ export const OptimizedSkeleton: React.FC<{
   );
 };
 
-export const ProductCardSkeleton: React.FC = () => (
+export const ProductCardSkeleton: FC = () => (
   <div className="bg-card rounded-lg border p-4 space-y-4">
     <OptimizedSkeleton className="h-48 bg-muted rounded-md" />
     <div className="space-y-2">
@@ -133,7 +133,7 @@ export const ProductCardSkeleton: React.FC = () => (
   </div>
 );
 
-export const ProfileSkeleton: React.FC = () => (
+export const ProfileSkeleton: FC = () => (
   <div className="space-y-6">
     <div className="flex items-center space-x-4">
       <OptimizedSkeleton className="h-16 w-16 bg-muted rounded-full" />
