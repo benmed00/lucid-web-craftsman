@@ -13,7 +13,7 @@ import { CartProvider } from "@/context/CartContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import Checkout from "./pages/Checkout";
 import Contact from "./pages/Contact";
-import { ErrorBoundary } from "react-error-boundary";
+import ErrorBoundary from "./components/ErrorBoundary";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import Wishlist from "./pages/Wishlist";
 import FAQ from "./pages/FAQ";
@@ -77,18 +77,18 @@ const queryClient = new QueryClient({
 const basePath: string = "/";
 
 const App = () => {
-  // console.log("App component is rendering, basePath:", basePath);
   return (
-  <QueryClientProvider client={queryClient}>
-    <LoadingStateProvider>
-      <OfflineManager>
-        <CurrencyProvider>
-          <CartProvider>
-          <TooltipProvider delayDuration={300}>
-            <BrowserRouter basename={basePath}>
-              <PushNotificationManager />
-              <PWAInstallPrompt />
-          <Routes>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <LoadingStateProvider>
+          <OfflineManager>
+            <CurrencyProvider>
+              <CartProvider>
+                <TooltipProvider delayDuration={300}>
+                  <BrowserRouter basename={basePath}>
+                    <PushNotificationManager />
+                    <PWAInstallPrompt />
+                    <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/products" element={<Products />} />
             <Route path="/auth" element={<Auth />} />
@@ -130,30 +130,24 @@ const App = () => {
             {/* <Route path="/products/bags" element={<BagsPage />} />
             <Route path="/products/hats" element={<HatsPage />} /> */}
 
-            {/* Gestion des erreurs globale */}
-            <Route
-              path="*"
-              element={
-                <ErrorBoundary fallback={<ErrorFallback />}>
-                  <NotFound />
-                </ErrorBoundary>
-              }
-            />
-          </Routes>
-        </BrowserRouter>
+            {/* Catch-all route for 404 pages */}
+            <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </BrowserRouter>
 
-        {/* Système de notifications */}
-        <Toaster />
-        <Sonner richColors expand visibleToasts={3} />
+                  {/* Système de notifications */}
+                  <Toaster />
+                  <Sonner richColors expand visibleToasts={3} />
 
-        {/* Devtools React Query (en développement seulement) */}
-          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-        </TooltipProvider>
-          </CartProvider>
-        </CurrencyProvider>
-      </OfflineManager>
-    </LoadingStateProvider>
-  </QueryClientProvider>
+                  {/* Devtools React Query (en développement seulement) */}
+                  {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+                </TooltipProvider>
+              </CartProvider>
+            </CurrencyProvider>
+          </OfflineManager>
+        </LoadingStateProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
