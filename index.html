@@ -24,23 +24,32 @@
   <body>
     <div id="root-new"></div>
     
-    <!-- Service Worker Registration -->
+    <!-- Service Worker DISABLED - Cache clearing -->
     <script>
+      // Force clear all caches and service workers
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('SW registered: ', registration);
-            })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
-            });
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
         });
       }
+      
+      // Clear all caches
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) {
+            caches.delete(name);
+          }
+        });
+      }
+      
+      // Force reload without cache
+      console.log('Cache clearing complete - forcing hard refresh');
     </script>
     
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="/src/main-new.tsx"></script>
+    <script type="module" src="/src/main-new.tsx?v=1755524191988"></script>
   </body>
 </html>
