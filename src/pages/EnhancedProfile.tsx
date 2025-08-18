@@ -15,7 +15,7 @@ import { OrderHistory } from '@/components/profile/OrderHistory';
 import { LoyaltyProgram } from '@/components/profile/LoyaltyProgram';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { EnhancedProfileManager } from '@/components/profile/EnhancedProfileManager';
-import { ProfileSkeleton } from '@/components/ui/LoadingStateManager';
+import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -160,7 +160,20 @@ export default function EnhancedProfile() {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
-          <ProfileSkeleton />
+          <div className="space-y-6">
+            <div className="flex items-center space-x-4">
+              <Skeleton className="h-16 w-16 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-48" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/3" />
+            </div>
+          </div>
         </div>
       </div>
     );

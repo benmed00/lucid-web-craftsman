@@ -26,7 +26,7 @@ import { LoyaltyProgram } from './LoyaltyProgram';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { useOptimizedData } from '@/hooks/useOptimizedData';
 import { supabase } from '@/integrations/supabase/client';
-import { LoadingManager, ProfileSkeleton } from '@/components/ui/LoadingStateManager';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
 interface Profile {
@@ -187,7 +187,20 @@ export const EnhancedProfileManager: React.FC = () => {
   if (authLoading || profileLoading) {
     return (
       <div className="container mx-auto py-8 px-4">
-        <ProfileSkeleton />
+        <div className="space-y-6">
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-16 w-16 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-48" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-4 w-1/3" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -266,43 +279,49 @@ export const EnhancedProfileManager: React.FC = () => {
         </TabsList>
 
         <TabsContent value="overview">
-          <LoadingManager
-            isLoading={authLoading}
-            loadingKey="profile-overview"
-            fallback={<ProfileSkeleton />}
-          >
+          {authLoading ? (
+            <div className="space-y-6">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/3" />
+            </div>
+          ) : (
             <ProfileOverview
               user={user}
               profile={profile}
               onProfileUpdate={handleProfileUpdate}
             />
-          </LoadingManager>
+          )}
         </TabsContent>
 
         <TabsContent value="personal">
-          <LoadingManager
-            isLoading={authLoading}
-            loadingKey="personal-info"
-            fallback={<ProfileSkeleton />}
-          >
+          {authLoading ? (
+            <div className="space-y-6">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/3" />
+            </div>
+          ) : (
             <PersonalInfo
               user={user}
               profile={profile}
               onProfileUpdate={handleProfileUpdate}
             />
-          </LoadingManager>
+          )}
         </TabsContent>
 
         <TabsContent value="preferences">
-          <LoadingManager
-            isLoading={preferencesLoading}
-            loadingKey="preferences"
-            fallback={<ProfileSkeleton />}
-          >
+          {preferencesLoading ? (
+            <div className="space-y-6">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/3" />
+            </div>
+          ) : (
             <PreferencesSettings
               user={user}
             />
-          </LoadingManager>
+          )}
         </TabsContent>
 
         <TabsContent value="orders">
@@ -322,15 +341,17 @@ export const EnhancedProfileManager: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="loyalty">
-          <LoadingManager
-            isLoading={loyaltyLoading}
-            loadingKey="loyalty"
-            fallback={<ProfileSkeleton />}
-          >
+          {loyaltyLoading ? (
+            <div className="space-y-6">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/3" />
+            </div>
+          ) : (
             <LoyaltyProgram 
               user={user}
             />
-          </LoadingManager>
+          )}
         </TabsContent>
 
         <TabsContent value="security">
