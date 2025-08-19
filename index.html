@@ -50,6 +50,16 @@
     
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="/src/main-clean.tsx?bust=${Date.now()}&v=clean"></script>
+    <!-- Force Vite to rebuild deps by changing import strategy -->
+    <script type="module">
+      // Clear all module caches and force fresh imports
+      const timestamp = Date.now();
+      console.log('🔄 Force clearing Vite deps cache at:', timestamp);
+      
+      // Dynamic import to bypass Vite's pre-bundling cache
+      import(`/src/main-clean.tsx?t=${timestamp}&force=true&bust=${Math.random()}`)
+        .then(() => console.log('✅ Dynamic import successful'))
+        .catch(err => console.error('❌ Dynamic import failed:', err));
+    </script>
   </body>
 </html>
