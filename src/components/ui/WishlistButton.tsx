@@ -2,6 +2,7 @@ import { Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useWishlist } from '@/hooks/useWishlist';
 import { Button } from '@/components/ui/button';
+import { TooltipWrapper } from '@/components/ui/TooltipWrapper';
 
 interface WishlistButtonProps {
   productId: number;
@@ -40,31 +41,36 @@ export const WishlistButton = ({
   };
 
   return (
-    <Button
-      variant={variant}
-      size={showText ? 'default' : 'icon'}
-      onClick={handleClick}
-      disabled={loading}
-      className={cn(
-        'transition-all duration-200',
-        !showText && sizeClasses[size],
-        isFavorited && 'text-red-500 hover:text-red-600',
-        !isFavorited && 'text-stone-400 hover:text-stone-600',
-        className
-      )}
+    <TooltipWrapper 
+      content={isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+      disabled={showText} // Don't show tooltip if text is already visible
     >
-      <Heart
-        size={iconSizes[size]}
+      <Button
+        variant={variant}
+        size={showText ? 'default' : 'icon'}
+        onClick={handleClick}
+        disabled={loading}
         className={cn(
           'transition-all duration-200',
-          isFavorited && 'fill-current'
+          !showText && sizeClasses[size],
+          isFavorited && 'text-red-500 hover:text-red-600',
+          !isFavorited && 'text-stone-400 hover:text-stone-600',
+          className
         )}
-      />
-      {showText && (
-        <span className="ml-2">
-          {isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-        </span>
-      )}
-    </Button>
+      >
+        <Heart
+          size={iconSizes[size]}
+          className={cn(
+            'transition-all duration-200',
+            isFavorited && 'fill-current'
+          )}
+        />
+        {showText && (
+          <span className="ml-2">
+            {isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+          </span>
+        )}
+      </Button>
+    </TooltipWrapper>
   );
 };

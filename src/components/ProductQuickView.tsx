@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import { ShoppingCart, Heart, Eye, Star, Minus, Plus, X, ZoomIn } from 'lucide-r
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { toast } from 'sonner';
 import { MobileImageGallery } from '@/components/ui/MobileImageGallery';
+import { TooltipWrapper } from '@/components/ui/TooltipWrapper';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCurrency } from '@/context/CurrencyContext';
 
@@ -24,6 +25,16 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
   const [showMobileGallery, setShowMobileGallery] = useState(false);
   const isMobile = useIsMobile();
   const { formatPrice } = useCurrency();
+
+  // Reset state when product changes or popup opens
+  useEffect(() => {
+    if (isOpen && product) {
+      setSelectedImageIndex(0);
+      setQuantity(1);
+      setIsWishlisted(false);
+      setShowMobileGallery(false);
+    }
+  }, [isOpen, product?.id]);
 
   if (!product) return null;
 
@@ -60,10 +71,17 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
             {/* Main Image */}
             <div className="aspect-square bg-gray-100 relative overflow-hidden">
               <img
-                src={product.images[selectedImageIndex]}
+                src={product.images?.[selectedImageIndex] || product.images?.[0] || '/placeholder.svg'}
                 alt={product.name}
                 className="w-full h-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
                 onClick={() => isMobile && setShowMobileGallery(true)}
+                onError={(e) => {
+                  // Fallback to first image if selected image fails
+                  if (selectedImageIndex !== 0 && product.images?.[0]) {
+                    e.currentTarget.src = product.images[0];
+                    setSelectedImageIndex(0);
+                  }
+                }}
               />
               {(product.new || product.is_new) && (
                 <Badge className="absolute top-4 left-4 bg-olive-700 text-white">
@@ -73,14 +91,16 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
               
               {/* Mobile Zoom Button */}
               {isMobile && product.images.length > 0 && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setShowMobileGallery(true)}
-                  className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full"
-                >
-                  <ZoomIn className="h-4 w-4" />
-                </Button>
+                <TooltipWrapper content="Agrandir les images">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setShowMobileGallery(true)}
+                    className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full"
+                  >
+                    <ZoomIn className="h-4 w-4" />
+                  </Button>
+                </TooltipWrapper>
               )}
               
               {/* Image Navigation Dots */}
@@ -202,32 +222,42 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
             {/* Action Buttons */}
             <div className="space-y-3 mt-auto">
-              <Button
-                onClick={handleAddToCart}
-                className="w-full bg-olive-700 hover:bg-olive-800 text-white py-3"
+              <TooltipWrapper 
+                content={`Ajouter ${quantity}x ${product.name} au panier pour ${formatPrice(product.price * quantity)}`}
               >
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                Ajouter au panier - {formatPrice(product.price * quantity)}
-              </Button>
+                <Button
+                  onClick={handleAddToCart}
+                  className="w-full bg-olive-700 hover:bg-olive-800 text-white py-3"
+                >
+                  <ShoppingCart className="mr-2 h-5 w-5" />
+                  Ajouter au panier - {formatPrice(product.price * quantity)}
+                </Button>
+              </TooltipWrapper>
 
               <div className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  onClick={handleWishlist}
-                  className={`${
-                    isWishlisted 
-                      ? 'bg-red-50 text-red-600 border-red-200' 
-                      : 'hover:bg-gray-50'
-                  }`}
+                <TooltipWrapper 
+                  content={isWishlisted ? "Retirer des favoris" : "Ajouter aux favoris"}
                 >
-                  <Heart className={`mr-2 h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
-                  {isWishlisted ? 'Favoris' : 'Ajouter'}
-                </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleWishlist}
+                    className={`${
+                      isWishlisted 
+                        ? 'bg-red-50 text-red-600 border-red-200' 
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <Heart className={`mr-2 h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
+                    {isWishlisted ? 'Favoris' : 'Ajouter'}
+                  </Button>
+                </TooltipWrapper>
                 
-                <Button variant="outline">
-                  <Eye className="mr-2 h-4 w-4" />
-                  Voir détails
-                </Button>
+                <TooltipWrapper content="Voir la page détaillée du produit">
+                  <Button variant="outline">
+                    <Eye className="mr-2 h-4 w-4" />
+                    Voir détails
+                  </Button>
+                </TooltipWrapper>
               </div>
             </div>
 

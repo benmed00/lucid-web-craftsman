@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { WishlistButton } from "@/components/ui/WishlistButton";
 import { NativeShare } from "@/components/ui/NativeShare";
+import { TooltipWrapper } from "@/components/ui/TooltipWrapper";
 import { useStock } from "@/hooks/useStock";
 import { StockInfo } from "@/services/stockService";
 import { useEffect, useState } from "react";
@@ -25,15 +26,20 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
   // Type guard to ensure stockInfo is StockInfo for single product
   const singleStockInfo = stockInfo as StockInfo | null;
   return (
-    <Card key={product.id} className="bg-white border-none overflow-hidden group hover:shadow-xl transition-all duration-500 relative touch-manipulation rounded-xl hover:scale-[1.02] hover:-translate-y-1">
-       {/* Wishlist button - positioned absolutely */}
-      <div className="absolute top-3 left-3 z-20">
-        <WishlistButton 
-          productId={product.id}
-          size="sm"
-          variant="ghost"
-          className="bg-white/95 backdrop-blur-sm hover:bg-white p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
-        />
+    <Card key={product.id} className="bg-white border border-stone-100 overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-2xl hover:scale-[1.03] hover:-translate-y-2 shadow-lg">
+       {/* Wishlist button - repositioned to top-right */}
+      <div className="absolute top-3 right-3 z-20">
+        <TooltipWrapper 
+          content={`Ajouter ${product.name} aux favoris`}
+          side="left"
+        >
+          <WishlistButton 
+            productId={product.id}
+            size="sm"
+            variant="ghost"
+            className="bg-white/95 backdrop-blur-sm hover:bg-white p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+          />
+        </TooltipWrapper>
       </div>
 
       <Link to={`/products/${product.id}`} className="block touch-manipulation">
@@ -49,33 +55,43 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
           
           {/* Quick View Button - always visible on mobile, hover on desktop */}
           {onQuickView && (
+            <TooltipWrapper 
+              content={`Aperçu rapide de ${product.name}`}
+              side="left"
+            >
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onQuickView(product);
+                }}
+                className="absolute top-14 right-3 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full touch-manipulation"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            </TooltipWrapper>
+          )}
+
+          {/* Share Button - Mobile Only */}
+          <TooltipWrapper 
+            content={`Partager ${product.name}`}
+            side="left"
+          >
             <Button
               size="sm"
               variant="secondary"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onQuickView(product);
+                setShowShareDialog(true);
               }}
-              className="absolute top-2 right-2 md:top-3 md:right-3 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full touch-manipulation"
+              className="absolute top-26 right-3 md:hidden bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full touch-manipulation"
             >
-              <Eye className="h-4 w-4" />
+              <Share className="h-4 w-4" />
             </Button>
-          )}
-
-          {/* Share Button - Mobile Only */}
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setShowShareDialog(true);
-            }}
-            className="absolute top-12 right-2 md:top-14 md:right-3 md:hidden bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full touch-manipulation"
-          >
-            <Share className="h-4 w-4" />
-          </Button>
+          </TooltipWrapper>
 
           {(product.new || product.is_new) && (
             <Badge className="absolute bottom-2 right-2 md:bottom-3 md:right-3 bg-olive-700 text-white border-none shadow-lg text-xs px-2 py-1">
@@ -118,21 +134,34 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
               {formatPrice(product.price)}
             </p>
           </div>
-          <Button
-            size="default"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onAddToCart(product);
-            }}
-            disabled={singleStockInfo?.isOutOfStock}
-            className="w-full bg-olive-700 hover:bg-olive-800 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-3 touch-manipulation min-h-[48px] font-medium text-base rounded-lg shadow-md hover:shadow-lg"
+          <TooltipWrapper 
+            content={singleStockInfo?.isOutOfStock 
+              ? `${product.name} est actuellement indisponible` 
+              : `Ajouter ${product.name} à votre panier (${formatPrice(product.price)})`
+            }
+            side="top"
           >
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            <span>
-              {singleStockInfo?.isOutOfStock ? 'Indisponible' : 'Ajouter au panier'}
-            </span>
-          </Button>
+            <Button
+              size="lg"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onAddToCart(product);
+              }}
+              disabled={singleStockInfo?.isOutOfStock}
+              className="w-full bg-olive-700 hover:bg-olive-800 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-4 touch-manipulation min-h-[52px] font-semibold text-base rounded-xl shadow-lg hover:shadow-xl disabled:hover:shadow-lg group relative overflow-hidden"
+            >
+              {/* Button background animation */}
+              <div className="absolute inset-0 bg-gradient-to-r from-olive-600 to-olive-800 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+              
+              <div className="relative flex items-center justify-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="font-medium">
+                  {singleStockInfo?.isOutOfStock ? 'Indisponible' : 'Ajouter au panier'}
+                </span>
+              </div>
+            </Button>
+          </TooltipWrapper>
         </div>
       </CardContent>
 
