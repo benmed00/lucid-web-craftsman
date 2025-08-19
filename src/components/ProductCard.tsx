@@ -117,19 +117,6 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
             <p className="text-stone-800 font-bold text-xl md:text-2xl whitespace-nowrap">
               {formatPrice(product.price)}
             </p>
-            <svg 
-              className="absolute -bottom-1 left-0 w-full h-2 text-red-400 opacity-80" 
-              viewBox="0 0 100 8" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path 
-                d="M2 6c20-4 40-4 60 0s40 4 36-2" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round"
-              />
-            </svg>
           </div>
           <Button
             size="default"

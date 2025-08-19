@@ -386,71 +386,7 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* Reviews Section */}
-        <section className="mt-16">
-          <ProductReviews product={product} />
-        </section>
-
-        {/* Recommendations Section */}
-        <section className="mt-16">
-          <ProductRecommendations
-            currentProduct={product}
-            allProducts={allProducts}
-            title="Vous pourriez aussi aimer"
-            maxRecommendations={4}
-          />
-        </section>
       </section>
-
-      {/* Related Products */}
-      {relatedProducts.length > 0 && (
-        <section className="bg-beige-50 py-16">
-          <div className="container mx-auto px-4">
-            <div className="flex justify-between items-end mb-8">
-              <h2 className="font-serif text-2xl md:text-3xl text-stone-800">
-                Vous pourriez aussi aimer
-              </h2>
-              <Link
-                to="/products"
-                className="hidden md:flex items-center text-olive-700 hover:text-olive-900 transition-colors"
-              >
-                Voir tout <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-              {relatedProducts.map((product) => (
-                <Link
-                  to={`/products/${product.id}`}
-                  key={product.id}
-                  className="group"
-                >
-                  <Card className="border-none shadow-sm overflow-hidden hover-scale">
-                     <div className="aspect-ratio aspect-w-1 aspect-h-1 relative overflow-hidden">
-                       <ProductImage
-                         src={product.images[0]}
-                         alt={product.name}
-                         className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
-                       />
-                    </div>
-                    <CardContent className="p-4">
-                      <div className="text-xs text-stone-500 mb-1">
-                        {product.category}
-                      </div>
-                      <h3 className="font-medium text-stone-800 mb-1">
-                        {product.name}
-                      </h3>
-                      <p className="text-olive-700 font-medium">
-                        {formatPrice(product.price)}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
       </main>
 
       <PageFooter />
