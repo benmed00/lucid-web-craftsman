@@ -15,13 +15,13 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 //   },
 // });
 
-// Blog posts API - using in-memory data
+// Blog posts API - using static data
+import { blogPosts } from "../data/blogPosts";
+
 export const getBlogPosts = async () => {
   try {
     await delay(300); // Simulate network latency
-    // Get blog posts from blogPosts data
-    const response = await import("../data/blogPosts");
-    return response.blogPosts;
+    return blogPosts;
   } catch (error) {
     console.error("Error fetching blog posts:", error);
     throw error;
@@ -31,8 +31,7 @@ export const getBlogPosts = async () => {
 export const getBlogPostById = async (id: number) => {
   try {
     await delay(200);
-    const response = await import("../data/blogPosts");
-    const post = response.blogPosts.find(post => post.id === id);
+    const post = blogPosts.find(post => post.id === id);
     return post || null;
   } catch (error) {
     console.error(`Post with ID ${id} not found`, error);
