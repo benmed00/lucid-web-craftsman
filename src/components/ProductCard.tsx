@@ -26,20 +26,15 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
   // Type guard to ensure stockInfo is StockInfo for single product
   const singleStockInfo = stockInfo as StockInfo | null;
   return (
-    <Card key={product.id} className="bg-white border border-stone-100 overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-2xl hover:scale-[1.03] hover:-translate-y-2 shadow-lg">
+    <Card key={product.id} className="bg-white border border-stone-100 overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-2xl hover:scale-[1.02] hover:-translate-y-1 shadow-lg hover:border-olive-200">
        {/* Wishlist button - repositioned to top-right */}
       <div className="absolute top-3 right-3 z-20">
-        <TooltipWrapper 
-          content={`Ajouter ${product.name} aux favoris`}
-          side="left"
-        >
-          <WishlistButton 
-            productId={product.id}
-            size="sm"
-            variant="ghost"
-            className="bg-white/95 backdrop-blur-sm hover:bg-white p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
-          />
-        </TooltipWrapper>
+        <WishlistButton 
+          productId={product.id}
+          size="sm"
+          variant="ghost"
+          className="bg-white/95 backdrop-blur-sm hover:bg-white p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+        />
       </div>
 
       <Link to={`/products/${product.id}`} className="block touch-manipulation">
@@ -149,17 +144,17 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
                 onAddToCart(product);
               }}
               disabled={singleStockInfo?.isOutOfStock}
-              className="w-full bg-olive-700 hover:bg-olive-800 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-4 touch-manipulation min-h-[52px] font-semibold text-base rounded-xl shadow-lg hover:shadow-xl disabled:hover:shadow-lg group relative overflow-hidden"
+              className="w-full bg-olive-700 hover:bg-olive-800 text-white hover:text-white active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-4 touch-manipulation min-h-[52px] font-semibold text-base rounded-xl shadow-lg hover:shadow-xl disabled:hover:bg-olive-700 disabled:hover:shadow-lg group relative overflow-hidden border-0"
             >
-              {/* Button background animation */}
-              <div className="absolute inset-0 bg-gradient-to-r from-olive-600 to-olive-800 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-              
-              <div className="relative flex items-center justify-center gap-2">
+              <div className="relative flex items-center justify-center gap-2 z-10">
                 <ShoppingCart className="h-5 w-5" />
                 <span className="font-medium">
                   {singleStockInfo?.isOutOfStock ? 'Indisponible' : 'Ajouter au panier'}
                 </span>
               </div>
+              
+              {/* Hover gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-olive-600 to-olive-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </Button>
           </TooltipWrapper>
         </div>

@@ -33,8 +33,8 @@ const Navigation = () => {
       <div className="flex items-center space-x-2">
           <Link to="/" className="group">
             <div className="flex items-center space-x-2 md:space-x-3">
-              <div className="p-1.5 md:p-2 rounded-full bg-olive-50 group-hover:bg-olive-100 transition-colors">
-                <Leaf className="h-4 w-4 md:h-5 md:w-5 text-olive-600" />
+              <div className="p-1.5 md:p-2 rounded-full bg-gradient-to-br from-olive-600 to-olive-800 group-hover:from-olive-700 group-hover:to-olive-900 transition-all duration-300 shadow-md group-hover:shadow-lg">
+                <Leaf className="h-4 w-4 md:h-5 md:w-5 text-white drop-shadow-sm" />
               </div>
               <div className="flex flex-col">
                 <span className="font-serif text-lg md:text-xl font-semibold text-stone-800 leading-tight">

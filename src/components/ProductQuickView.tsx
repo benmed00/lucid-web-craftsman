@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -10,6 +10,7 @@ import { MobileImageGallery } from '@/components/ui/MobileImageGallery';
 import { TooltipWrapper } from '@/components/ui/TooltipWrapper';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCurrency } from '@/context/CurrencyContext';
+import { useNavigate } from 'react-router-dom';
 
 interface ProductQuickViewProps {
   product: Product | null;
@@ -25,6 +26,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
   const [showMobileGallery, setShowMobileGallery] = useState(false);
   const isMobile = useIsMobile();
   const { formatPrice } = useCurrency();
+  const navigate = useNavigate();
 
   // Reset state when product changes or popup opens
   useEffect(() => {
@@ -51,9 +53,17 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
   const incrementQuantity = () => setQuantity(prev => prev + 1);
   const decrementQuantity = () => setQuantity(prev => Math.max(1, prev - 1));
 
+  const handleViewDetails = () => {
+    navigate(`/products/${product.id}`);
+    onClose();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+        <DialogDescription className="sr-only">
+          Aperçu rapide du produit {product.name} - {product.description}
+        </DialogDescription>
         <div className="grid md:grid-cols-2 gap-0">
           {/* Images Section */}
           <div className="relative">
@@ -201,22 +211,26 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                 Quantité
               </label>
               <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={decrementQuantity}
-                  disabled={quantity <= 1}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
+                <TooltipWrapper content="Diminuer la quantité">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={decrementQuantity}
+                    disabled={quantity <= 1}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                </TooltipWrapper>
                 <span className="w-12 text-center font-medium">{quantity}</span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={incrementQuantity}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <TooltipWrapper content="Augmenter la quantité">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={incrementQuantity}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </TooltipWrapper>
               </div>
             </div>
 
@@ -253,7 +267,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                 </TooltipWrapper>
                 
                 <TooltipWrapper content="Voir la page détaillée du produit">
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={handleViewDetails}>
                     <Eye className="mr-2 h-4 w-4" />
                     Voir détails
                   </Button>
