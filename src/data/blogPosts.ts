@@ -1,6 +1,4 @@
-// src\data\products.ts
-
-import BlogPost from "../pages/BlogPost";
+import { BlogPost } from "../shared/interfaces/IBlogPost.interface";
 
 export const blogPosts: BlogPost[] = [
   {

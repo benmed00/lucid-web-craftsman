@@ -1,3 +1,4 @@
+import React from 'react';
 import { Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -12,13 +13,13 @@ interface WishlistButtonProps {
   showText?: boolean;
 }
 
-export const WishlistButton = ({ 
+export const WishlistButton = React.forwardRef<HTMLButtonElement, WishlistButtonProps>(({ 
   productId, 
   className, 
   size = 'md',
   variant = 'ghost',
   showText = false 
-}: WishlistButtonProps) => {
+}, ref) => {
   const { isInWishlist, toggleWishlist, loading } = useWishlist();
   const isFavorited = isInWishlist(productId);
 
@@ -46,6 +47,7 @@ export const WishlistButton = ({
       disabled={showText} // Don't show tooltip if text is already visible
     >
       <Button
+        ref={ref}
         variant={variant}
         size={showText ? 'default' : 'icon'}
         onClick={handleClick}
@@ -73,4 +75,6 @@ export const WishlistButton = ({
       </Button>
     </TooltipWrapper>
   );
-};
+});
+
+WishlistButton.displayName = "WishlistButton";
