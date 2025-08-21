@@ -172,7 +172,7 @@ const Cart = () => {
                         to={`/products/${item.product.id}`}
                         className="flex gap-3 md:gap-4 flex-1 hover:opacity-80 transition-opacity"
                       >
-                        <TooltipWrapper content={`Voir les détails de ${item.product.name}`}>
+                        <TooltipWrapper content={`Voir les détails de ${item.product.name}`} disabled={isMobile}>
                           <div className="w-20 h-20 md:w-24 md:h-24 bg-stone-100 rounded-lg overflow-hidden flex-shrink-0 hover:scale-105 transition-transform">
                             <img
                               src={item.product.images[0] || '/placeholder.svg'}

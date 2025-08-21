@@ -62,13 +62,22 @@ const Index = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up justify-center lg:justify-start" style={{ animationDelay: '0.5s' }}>
               <Link to="/products" className="group">
-                <Button className="w-full sm:w-auto bg-olive-700 hover:bg-olive-800 text-white font-medium px-6 md:px-8 py-4 md:py-5 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg button-press hover-glow text-base md:text-lg touch-manipulation min-h-[48px] md:min-h-[56px]">
+                <Button 
+                  className="w-full sm:w-auto bg-olive-700 hover:bg-olive-800 text-white font-medium px-6 md:px-8 py-4 md:py-5 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg button-press hover-glow text-base md:text-lg touch-manipulation min-h-[48px] md:min-h-[56px]"
+                  id="hero-discover-collection"
+                  name="discover-collection-button"
+                >
                   Découvrir la Collection 
                   <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </Link>
               <Link to="/blog" className="group">
-                <Button variant="outline" className="w-full sm:w-auto border-stone-300 text-stone-700 hover:bg-stone-50 px-6 md:px-8 py-4 md:py-5 rounded-lg transition-all duration-300 hover:scale-105 hover:border-olive-300 button-press text-base md:text-lg touch-manipulation min-h-[48px] md:min-h-[56px]">
+                <Button 
+                  variant="outline" 
+                  className="w-full sm:w-auto border-stone-300 text-stone-700 hover:bg-stone-50 px-6 md:px-8 py-4 md:py-5 rounded-lg transition-all duration-300 hover:scale-105 hover:border-olive-300 button-press text-base md:text-lg touch-manipulation min-h-[48px] md:min-h-[56px]"
+                  id="hero-our-story"
+                  name="our-story-button"
+                >
                   Notre Histoire
                 </Button>
               </Link>
@@ -155,7 +164,9 @@ const Index = () => {
               </p>
             </div>
             <Link to="/products" className="hidden lg:flex items-center text-olive-700 hover:text-olive-900 transition-all duration-300 font-medium group hover-underline icon-bounce">
-              Voir Toute la Collection 
+              <span id="collection-link-desktop" className="cursor-pointer">
+                Voir Toute la Collection 
+              </span>
               <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
@@ -171,7 +182,12 @@ const Index = () => {
           {/* Mobile CTA Button */}
           <div className="mt-12 text-center lg:hidden">
             <Link to="/products" className="group">
-              <Button variant="outline" className="border-2 border-stone-300 text-stone-700 hover:bg-stone-50 hover:border-olive-300 px-6 md:px-8 py-4 rounded-lg font-medium transition-all duration-300 hover:scale-105 button-press hover-glow touch-manipulation min-h-[48px]">
+              <Button 
+                variant="outline" 
+                className="border-2 border-stone-300 text-stone-700 hover:bg-stone-50 hover:border-olive-300 px-6 md:px-8 py-4 rounded-lg font-medium transition-all duration-300 hover:scale-105 button-press hover-glow touch-manipulation min-h-[48px]"
+                id="mobile-view-all-products"
+                name="view-all-products-mobile"
+              >
                 Voir Tous les Produits 
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
               </Button>
@@ -216,11 +232,17 @@ const Index = () => {
               <input 
                 type="email"
                 id="newsletter-email-index"
+                name="newsletter-email-subscription"
                 placeholder="Votre adresse email" 
                 className="flex-grow px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-olive-300 text-base touch-manipulation min-h-[48px]"
                 aria-label="Adresse email pour la newsletter"
               />
-              <Button type="submit" className="bg-olive-900 hover:bg-olive-950 text-white transition-all duration-300 hover:scale-105 button-press hover-glow px-6 py-3 rounded-lg touch-manipulation min-h-[48px]">
+              <Button 
+                type="submit" 
+                className="bg-olive-900 hover:bg-olive-950 text-white transition-all duration-300 hover:scale-105 button-press hover-glow px-6 py-3 rounded-lg touch-manipulation min-h-[48px]"
+                id="newsletter-subscribe-button"
+                name="subscribe-newsletter"
+              >
                 S'abonner
               </Button>
             </form>
