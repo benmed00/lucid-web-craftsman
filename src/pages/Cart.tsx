@@ -122,7 +122,11 @@ const Cart = () => {
             <h1 className="text-2xl font-serif text-stone-800 mb-4">Votre Panier est Vide</h1>
             <p className="text-stone-600 mb-8">Découvrez notre belle collection de produits artisanaux</p>
             <Link to="/products">
-              <Button className="bg-olive-700 hover:bg-olive-800 text-white px-8 py-3">
+              <Button 
+                className="bg-olive-700 hover:bg-olive-800 text-white px-8 py-3"
+                id="empty-cart-shop-button"
+                name="start-shopping-button"
+              >
                 Commencer Vos Achats
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -204,6 +208,8 @@ const Cart = () => {
                           size="sm"
                           onClick={() => handleRemoveItem(item.id)}
                           className="text-stone-400 hover:text-red-500 p-2 touch-manipulation min-h-[44px] min-w-[44px] flex-shrink-0"
+                          id={`cart-remove-${item.id}`}
+                          name={`remove-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -220,6 +226,8 @@ const Cart = () => {
                             onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                             disabled={item.quantity <= 1}
                             className="touch-manipulation min-h-[44px] min-w-[44px] p-2"
+                            id={`cart-qty-minus-${item.id}`}
+                            name={`quantity-decrease-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
                           >
                             <Minus className="h-3 w-3 md:h-4 md:w-4" />
                           </Button>
@@ -232,6 +240,8 @@ const Cart = () => {
                             onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                             disabled={productStock && item.quantity >= productStock.available}
                             className="touch-manipulation min-h-[44px] min-w-[44px] p-2"
+                            id={`cart-qty-plus-${item.id}`}
+                            name={`quantity-increase-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
                           >
                             <Plus className="h-3 w-3 md:h-4 md:w-4" />
                           </Button>
@@ -294,6 +304,8 @@ const Cart = () => {
                       onChange={(e) => setPostalCode(e.target.value)}
                       placeholder="Code postal"
                       className="flex-1 px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-500"
+                      id="shipping-postal-code"
+                      name="postal-code-input"
                     />
                     <TooltipWrapper content="Calculer les frais de livraison pour votre code postal">
                       <Button
@@ -301,6 +313,8 @@ const Cart = () => {
                         size="sm"
                         onClick={handleCheckShipping}
                         disabled={shippingLoading}
+                        id="shipping-calculator-button"
+                        name="calculate-shipping-costs"
                       >
                         {shippingLoading ? 'Calcul...' : 'Calculer'}
                       </Button>
@@ -336,6 +350,8 @@ const Cart = () => {
                     <Button 
                       className="w-full bg-olive-700 hover:bg-olive-800 text-white py-3 md:py-4 text-base md:text-lg font-medium touch-manipulation min-h-[48px] md:min-h-[56px] flex items-center justify-center"
                       disabled={stockIssues.length > 0 || isCheckingOut}
+                      id="cart-checkout-button"
+                      name="proceed-to-checkout"
                     >
                       <CreditCard className="mr-2 h-4 w-4" />
                       {stockIssues.length > 0 
@@ -415,6 +431,8 @@ const Cart = () => {
                           }
                         }}
                         className="text-stone-600 hover:text-stone-800"
+                        id="cart-share-button"
+                        name="share-cart-selection"
                       >
                         <Share2 className="mr-2 h-4 w-4" />
                         Partager mon panier
