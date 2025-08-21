@@ -66,7 +66,6 @@ interface UserPreferences {
 export const EnhancedProfileManager: React.FC = () => {
   const { user, isLoading: authLoading } = useOptimizedAuth();
   const [activeTab, setActiveTab] = useState('overview');
-  const [profileCompletion, setProfileCompletion] = useState(0);
 
   // Fetch profile with enhanced caching
   const { data: profile, isLoading: profileLoading } = useOptimizedData(
@@ -137,31 +136,14 @@ export const EnhancedProfileManager: React.FC = () => {
     }
   );
 
-  // Fetch profile completion percentage using database function
-  React.useEffect(() => {
-    const getProfileCompletion = async () => {
-      if (!user?.id) return;
-      
-      try {
-        const { data, error } = await supabase.rpc('get_profile_completion_percentage', {
-          user_uuid: user.id
-        });
-        
-        if (error) throw error;
-        setProfileCompletion(data || 0);
-      } catch (error) {
-        console.error('Error getting profile completion:', error);
-        // Fallback calculation
-        if (profile) {
-          const fields = ['full_name', 'bio', 'phone', 'location', 'city', 'country'];
-          const filledFields = fields.filter(field => profile[field as keyof Profile]);
-          setProfileCompletion(Math.round((filledFields.length / fields.length) * 100));
-        }
-      }
-    };
+  // Calculate profile completion percentage using useMemo to prevent infinite loops
+  const profileCompletion = useMemo(() => {
+    if (!profile) return 0;
     
-    getProfileCompletion();
-  }, [user?.id, profile]);
+    const fields = ['full_name', 'bio', 'phone', 'location', 'city', 'country'];
+    const filledFields = fields.filter(field => profile[field as keyof Profile]);
+    return Math.round((filledFields.length / fields.length) * 100);
+  }, [profile]);
 
   const handleProfileUpdate = useCallback(async (updatedProfile: Profile) => {
     try {
