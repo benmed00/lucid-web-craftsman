@@ -33,14 +33,14 @@ const Navigation = () => {
       <div className="flex items-center space-x-2">
           <Link to="/" className="group">
             <div className="flex items-center space-x-2 md:space-x-3">
-              <div className="p-1.5 md:p-2 rounded-full bg-gradient-to-br from-olive-600 to-olive-800 group-hover:from-olive-700 group-hover:to-olive-900 transition-all duration-300 shadow-md group-hover:shadow-lg">
+              <div className="p-1.5 md:p-2 rounded-full bg-gradient-to-br from-olive-600 to-olive-800 group-hover:from-olive-700 group-hover:to-olive-900 transition-all duration-300 shadow-md group-hover:shadow-lg border border-white/20">
                 <Leaf className="h-4 w-4 md:h-5 md:w-5 text-white drop-shadow-sm" />
               </div>
               <div className="flex flex-col">
-                <span className="font-serif text-lg md:text-xl font-semibold text-stone-800 leading-tight">
+                <span className="font-serif text-lg md:text-xl font-semibold text-stone-800 leading-tight group-hover:text-olive-700 transition-colors">
                   Rif Raw Straw
                 </span>
-                <span className="text-xs text-stone-500 leading-tight hidden sm:block">
+                <span className="text-xs text-stone-500 leading-tight hidden sm:block group-hover:text-olive-600 transition-colors">
                   Artisanat Berbère
                 </span>
               </div>

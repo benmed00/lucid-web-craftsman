@@ -12,6 +12,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Mail, Calendar } from 'lucide-react';
 import ImageUpload from '@/components/ui/ImageUpload';
 import { validateAndSanitizeName, sanitizeUserInput } from '@/utils/xssProtection';
+import Navigation from '@/components/Navigation';
+import PageFooter from '@/components/PageFooter';
 
 export default function Profile() {
   const [fullName, setFullName] = useState('');
@@ -145,8 +147,10 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
+      <Navigation />
+      <div className="py-12 px-4">
+        <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Mon Profil</h1>
           <p className="text-muted-foreground">Gérez vos informations personnelles</p>
@@ -278,7 +282,9 @@ export default function Profile() {
             </Button>
           </div>
         </div>
+        </div>
       </div>
+      <PageFooter />
     </div>
   );
 }

@@ -187,7 +187,10 @@ const Cart = () => {
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex-1 mr-2">
                               <h3 className="font-medium text-stone-800 text-sm md:text-base leading-tight hover:text-olive-700 transition-colors">{item.product.name}</h3>
-                              <p className="text-xs md:text-sm text-stone-600">{item.product.category}</p>
+                              <p className="text-xs md:text-sm text-stone-600 mb-1">{item.product.category}</p>
+                              <p className="text-xs text-stone-500 line-clamp-2 mb-1">
+                                {item.product.description || "Produit artisanal berbère fait main avec des matériaux naturels et traditionnels."}
+                              </p>
                               {hasStockIssue && (
                                 <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-100 mt-1">
                                   Stock limité ({productStock?.available} disponibles)
