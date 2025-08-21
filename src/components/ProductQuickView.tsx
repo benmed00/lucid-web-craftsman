@@ -267,7 +267,12 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                 </TooltipWrapper>
                 
                 <TooltipWrapper content="Voir la page détaillée du produit">
-                  <Button variant="outline" onClick={handleViewDetails}>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleViewDetails}
+                    id={`view-details-${product.id}`}
+                    name={`view-details-${product.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
                     <Eye className="mr-2 h-4 w-4" />
                     Voir détails
                   </Button>

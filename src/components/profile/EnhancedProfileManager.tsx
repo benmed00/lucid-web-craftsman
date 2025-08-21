@@ -215,7 +215,12 @@ export const EnhancedProfileManager: React.FC = () => {
             <p className="text-muted-foreground">
               Veuillez vous connecter pour accéder à votre profil.
             </p>
-            <Button className="mt-4" onClick={() => window.location.href = '/auth'}>
+            <Button 
+              className="mt-4" 
+              onClick={() => window.location.href = '/auth'}
+              id="profile-login-redirect"
+              name="profile-login-button"
+            >
               Se connecter
             </Button>
           </CardContent>

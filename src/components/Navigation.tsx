@@ -143,10 +143,17 @@ const Navigation = () => {
                      <span className="text-sm">Mon Profil</span>
                    </Link>
                  </Button>
-                 <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-2">
-                   <LogOut className="h-4 w-4" />
-                   <span className="text-sm">Déconnexion</span>
-                 </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleSignOut} 
+                    className="flex items-center gap-2"
+                    id="nav-signout"
+                    name="navigation-signout-button"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span className="text-sm">Déconnexion</span>
+                  </Button>
                </div>
             ) : (
               <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">

@@ -302,7 +302,11 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
                     </div>
                   </div>
 
-                  <Button onClick={() => setIsEditing(true)}>
+                  <Button 
+                    onClick={() => setIsEditing(true)}
+                    id="edit-profile-button"
+                    name="edit-profile-action"
+                  >
                     Modifier le profil
                   </Button>
                 </div>
