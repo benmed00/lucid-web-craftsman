@@ -25,18 +25,19 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
 
   // Type guard to ensure stockInfo is StockInfo for single product
   const singleStockInfo = stockInfo as StockInfo | null;
-  return (
-    <Card key={product.id} className="bg-white border border-stone-100 overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-2xl hover:scale-[1.02] hover:-translate-y-1 shadow-lg hover:border-olive-200">
-       {/* Wishlist button - repositioned to top-right */}
-      <div className="absolute top-3 right-3 z-20">
-        <WishlistButton 
-          productId={product.id}
-          size="sm"
-          variant="ghost"
-          className="bg-white/95 backdrop-blur-sm hover:bg-white p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
-        />
-      </div>
+  
+  // Generate unique IDs for accessibility
+  const cardId = `product-card-${product.id}`;
+  const quickViewBtnId = `quick-view-btn-${product.id}`;
+  const addToCartBtnId = `add-to-cart-btn-${product.id}`;
+  const wishlistBtnId = `wishlist-btn-${product.id}`;
+  const shareBtnId = `share-btn-${product.id}`;
 
+  return (
+    <Card 
+      id={cardId}
+      className="bg-white border border-stone-100 overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-2xl hover:scale-[1.02] hover:-translate-y-1 shadow-lg hover:border-olive-200"
+    >
       <Link to={`/products/${product.id}`} className="block touch-manipulation">
         <div className="relative group/image">
           <div className="aspect-[4/3] w-full overflow-hidden rounded-t-xl">
@@ -48,45 +49,55 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
             />
           </div>
           
-          {/* Quick View Button - always visible on mobile, hover on desktop */}
+          {/* Quick View Button - repositioned to top-right of image */}
           {onQuickView && (
+            <div className="absolute top-3 right-3 z-20">
+              <TooltipWrapper 
+                content={`Aperçu rapide de ${product.name}`}
+                side="left"
+              >
+                <Button
+                  id={quickViewBtnId}
+                  name={`quick-view-${product.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  size="sm"
+                  variant="secondary"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onQuickView(product);
+                  }}
+                  className="bg-white/95 backdrop-blur-sm hover:bg-white p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+                  aria-label={`Aperçu rapide de ${product.name}`}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TooltipWrapper>
+            </div>
+          )}
+
+          {/* Share Button - Mobile Only */}
+          <div className="absolute top-16 right-3 z-10 md:hidden">
             <TooltipWrapper 
-              content={`Aperçu rapide de ${product.name}`}
+              content={`Partager ${product.name}`}
               side="left"
             >
               <Button
+                id={shareBtnId}
+                name={`share-${product.name.toLowerCase().replace(/\s+/g, '-')}`}
                 size="sm"
                 variant="secondary"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onQuickView(product);
+                  setShowShareDialog(true);
                 }}
-                className="absolute top-14 right-3 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full touch-manipulation"
+                className="bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full touch-manipulation"
+                aria-label={`Partager ${product.name}`}
               >
-                <Eye className="h-4 w-4" />
+                <Share className="h-4 w-4" />
               </Button>
             </TooltipWrapper>
-          )}
-
-          {/* Share Button - Mobile Only */}
-          <TooltipWrapper 
-            content={`Partager ${product.name}`}
-            side="left"
-          >
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowShareDialog(true);
-              }}
-              className="absolute top-26 right-3 md:hidden bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full touch-manipulation"
-            >
-              <Share className="h-4 w-4" />
-            </Button>
-          </TooltipWrapper>
+          </div>
 
           {(product.new || product.is_new) && (
             <Badge className="absolute bottom-2 right-2 md:bottom-3 md:right-3 bg-olive-700 text-white border-none shadow-lg text-xs px-2 py-1">
@@ -114,12 +125,26 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
         </div>
       </Link>
       
-      <CardContent className="p-5 md:p-6">
+      <CardContent className="p-5 md:p-6 relative">
+        {/* Wishlist button - repositioned to top-right of white section */}
+        <div 
+          className="absolute -top-2 right-4 z-20"
+          id={wishlistBtnId}
+          data-name={`wishlist-${product.name.toLowerCase().replace(/\s+/g, '-')}`}
+        >
+          <WishlistButton 
+            productId={product.id}
+            size="sm"
+            variant="ghost"
+            className="bg-white border-2 border-stone-200 hover:bg-stone-50 p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+          />
+        </div>
+
         <p className="text-sm text-olive-700 font-medium mb-2 uppercase tracking-wide">
           {product.category}
         </p>
         <Link to={`/products/${product.id}`} className="touch-manipulation">
-          <h3 className="font-serif text-lg md:text-xl font-medium text-stone-800 mb-4 line-clamp-2 leading-tight hover:text-olive-700 transition-colors duration-200">
+          <h3 className="font-serif text-lg md:text-xl font-medium text-stone-800 mb-4 line-clamp-2 leading-tight hover:text-olive-700 transition-colors duration-200 pr-12">
             {product.name}
           </h3>
         </Link>
@@ -137,6 +162,8 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
             side="top"
           >
             <Button
+              id={addToCartBtnId}
+              name={`add-to-cart-${product.name.toLowerCase().replace(/\s+/g, '-')}`}
               size="lg"
               onClick={(e) => {
                 e.preventDefault();
@@ -145,6 +172,10 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
               }}
               disabled={singleStockInfo?.isOutOfStock}
               className="w-full bg-olive-700 hover:bg-olive-800 text-white hover:text-white active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-4 touch-manipulation min-h-[52px] font-semibold text-base rounded-xl shadow-lg hover:shadow-xl disabled:hover:bg-olive-700 disabled:hover:shadow-lg group relative overflow-hidden border-0"
+              aria-label={singleStockInfo?.isOutOfStock 
+                ? `${product.name} est indisponible` 
+                : `Ajouter ${product.name} au panier pour ${formatPrice(product.price)}`
+              }
             >
               <div className="relative flex items-center justify-center gap-2 z-10">
                 <ShoppingCart className="h-5 w-5" />

@@ -23,14 +23,17 @@ export const TooltipWrapper = ({
   }
 
   return (
-    <TooltipProvider>
-      <Tooltip delayDuration={300}>
+    <TooltipProvider delayDuration={200} skipDelayDuration={100}>
+      <Tooltip>
         <TooltipTrigger asChild>
           {children}
         </TooltipTrigger>
         <TooltipContent 
           side={side}
-          className="bg-stone-800 text-white text-sm px-3 py-2 rounded-md shadow-lg border-0 font-medium"
+          className="bg-stone-900 text-white text-sm px-3 py-2 rounded-lg shadow-xl border border-stone-700 font-medium max-w-xs z-50 animate-in fade-in-0 zoom-in-95"
+          sideOffset={8}
+          avoidCollisions={true}
+          collisionPadding={10}
         >
           {content}
         </TooltipContent>

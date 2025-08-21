@@ -1,0 +1,222 @@
+{
+  "productCard": {
+    "quickView": {
+      "idPattern": "quick-view-btn-{productId}",
+      "namePattern": "quick-view-{product-slug}",
+      "description": "Bouton d'aperçu rapide du produit",
+      "ariaLabel": "Aperçu rapide de {productName}"
+    },
+    "addToCart": {
+      "idPattern": "add-to-cart-btn-{productId}",
+      "namePattern": "add-to-cart-{product-slug}",
+      "description": "Bouton d'ajout au panier",
+      "ariaLabel": "Ajouter {productName} au panier pour {price}"
+    },
+    "wishlist": {
+      "idPattern": "wishlist-btn-{productId}",
+      "namePattern": "wishlist-{product-slug}",
+      "description": "Bouton d'ajout/retrait des favoris",
+      "ariaLabel": "Ajouter {productName} aux favoris"
+    },
+    "share": {
+      "idPattern": "share-btn-{productId}",
+      "namePattern": "share-{product-slug}",
+      "description": "Bouton de partage du produit",
+      "ariaLabel": "Partager {productName}"
+    }
+  },
+  "navigation": {
+    "logo": {
+      "id": "main-logo",
+      "name": "main-logo-link",
+      "description": "Logo principal de l'application",
+      "ariaLabel": "Retour à l'accueil - Rif Raw Straw"
+    },
+    "menu": {
+      "home": {
+        "id": "nav-home",
+        "name": "nav-home-link",
+        "description": "Lien vers la page d'accueil",
+        "ariaLabel": "Accueil"
+      },
+      "products": {
+        "id": "nav-products",
+        "name": "nav-products-link",
+        "description": "Lien vers la boutique",
+        "ariaLabel": "Boutique - Voir tous les produits"
+      },
+      "blog": {
+        "id": "nav-blog",
+        "name": "nav-blog-link",
+        "description": "Lien vers le blog",
+        "ariaLabel": "Blog - Articles et actualités"
+      },
+      "contact": {
+        "id": "nav-contact",
+        "name": "nav-contact-link",
+        "description": "Lien vers la page de contact",
+        "ariaLabel": "Contact - Nous contacter"
+      }
+    },
+    "cart": {
+      "id": "cart-button",
+      "name": "main-cart-button",
+      "description": "Bouton du panier d'achat",
+      "ariaLabel": "Panier ({cartItemsCount} articles)"
+    },
+    "wishlist": {
+      "id": "wishlist-button",
+      "name": "main-wishlist-button",
+      "description": "Bouton des favoris",
+      "ariaLabel": "Mes favoris ({wishlistCount} produits)"
+    },
+    "profile": {
+      "id": "profile-button",
+      "name": "user-profile-button",
+      "description": "Bouton du profil utilisateur",
+      "ariaLabel": "Mon profil"
+    }
+  },
+  "forms": {
+    "search": {
+      "input": {
+        "id": "search-input",
+        "name": "search-products",
+        "description": "Champ de recherche de produits",
+        "ariaLabel": "Rechercher des produits"
+      },
+      "button": {
+        "id": "search-submit",
+        "name": "search-submit-button",
+        "description": "Bouton de soumission de recherche",
+        "ariaLabel": "Lancer la recherche"
+      }
+    },
+    "newsletter": {
+      "input": {
+        "id": "newsletter-email",
+        "name": "newsletter-email-input",
+        "description": "Champ email pour l'inscription à la newsletter",
+        "ariaLabel": "Votre adresse email"
+      },
+      "button": {
+        "id": "newsletter-submit",
+        "name": "newsletter-subscribe-button",
+        "description": "Bouton d'inscription à la newsletter",
+        "ariaLabel": "S'abonner à la newsletter"
+      }
+    },
+    "contact": {
+      "name": {
+        "id": "contact-name",
+        "name": "contact-form-name",
+        "description": "Champ nom du formulaire de contact",
+        "ariaLabel": "Votre nom complet"
+      },
+      "email": {
+        "id": "contact-email",
+        "name": "contact-form-email",
+        "description": "Champ email du formulaire de contact",
+        "ariaLabel": "Votre adresse email"
+      },
+      "message": {
+        "id": "contact-message",
+        "name": "contact-form-message",
+        "description": "Champ message du formulaire de contact",
+        "ariaLabel": "Votre message"
+      },
+      "submit": {
+        "id": "contact-submit",
+        "name": "contact-form-submit",
+        "description": "Bouton d'envoi du formulaire de contact",
+        "ariaLabel": "Envoyer le message"
+      }
+    }
+  },
+  "quickView": {
+    "close": {
+      "id": "quick-view-close",
+      "name": "quick-view-close-button",
+      "description": "Bouton de fermeture de l'aperçu rapide",
+      "ariaLabel": "Fermer l'aperçu rapide"
+    },
+    "quantityMinus": {
+      "idPattern": "qty-minus-{productId}",
+      "namePattern": "quantity-decrease-{product-slug}",
+      "description": "Bouton de diminution de quantité",
+      "ariaLabel": "Diminuer la quantité"
+    },
+    "quantityPlus": {
+      "idPattern": "qty-plus-{productId}",
+      "namePattern": "quantity-increase-{product-slug}",
+      "description": "Bouton d'augmentation de quantité",
+      "ariaLabel": "Augmenter la quantité"
+    },
+    "viewDetails": {
+      "idPattern": "view-details-{productId}",
+      "namePattern": "view-details-{product-slug}",
+      "description": "Bouton de consultation des détails complets",
+      "ariaLabel": "Voir tous les détails de {productName}"
+    }
+  },
+  "filters": {
+    "category": {
+      "idPattern": "filter-category-{categorySlug}",
+      "namePattern": "filter-category-{categorySlug}",
+      "description": "Filtre par catégorie de produits",
+      "ariaLabel": "Filtrer par catégorie: {categoryName}"
+    },
+    "priceRange": {
+      "id": "price-range-filter",
+      "name": "price-range-selector",
+      "description": "Sélecteur de gamme de prix",
+      "ariaLabel": "Filtrer par prix"
+    },
+    "clearFilters": {
+      "id": "clear-filters",
+      "name": "clear-all-filters",
+      "description": "Bouton de suppression de tous les filtres",
+      "ariaLabel": "Effacer tous les filtres"
+    }
+  },
+  "pagination": {
+    "previous": {
+      "id": "pagination-previous",
+      "name": "pagination-prev-button",
+      "description": "Bouton page précédente",
+      "ariaLabel": "Page précédente"
+    },
+    "next": {
+      "id": "pagination-next",
+      "name": "pagination-next-button",
+      "description": "Bouton page suivante",
+      "ariaLabel": "Page suivante"
+    },
+    "pageNumber": {
+      "idPattern": "pagination-page-{pageNumber}",
+      "namePattern": "pagination-page-{pageNumber}",
+      "description": "Bouton de navigation vers une page spécifique",
+      "ariaLabel": "Aller à la page {pageNumber}"
+    }
+  },
+  "socialMedia": {
+    "facebook": {
+      "id": "social-facebook",
+      "name": "facebook-share-link",
+      "description": "Lien vers Facebook",
+      "ariaLabel": "Suivez-nous sur Facebook"
+    },
+    "instagram": {
+      "id": "social-instagram",
+      "name": "instagram-share-link",
+      "description": "Lien vers Instagram",
+      "ariaLabel": "Suivez-nous sur Instagram"
+    },
+    "whatsapp": {
+      "id": "social-whatsapp",
+      "name": "whatsapp-share-link",
+      "description": "Partage via WhatsApp",
+      "ariaLabel": "Partager sur WhatsApp"
+    }
+  }
+}
