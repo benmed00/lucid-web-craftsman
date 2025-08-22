@@ -248,36 +248,22 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                 </Button>
               </TooltipWrapper>
 
-              <div className="grid grid-cols-2 gap-3">
-                <TooltipWrapper 
-                  content={isWishlisted ? "Retirer des favoris" : "Ajouter aux favoris"}
+              <TooltipWrapper 
+                content={isWishlisted ? "Retirer des favoris" : "Ajouter aux favoris"}
+              >
+                <Button
+                  variant="outline"
+                  onClick={handleWishlist}
+                  className={`w-full ${
+                    isWishlisted 
+                      ? 'bg-red-50 text-red-600 border-red-200' 
+                      : 'hover:bg-gray-50'
+                  }`}
                 >
-                  <Button
-                    variant="outline"
-                    onClick={handleWishlist}
-                    className={`${
-                      isWishlisted 
-                        ? 'bg-red-50 text-red-600 border-red-200' 
-                        : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    <Heart className={`mr-2 h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
-                    {isWishlisted ? 'Favoris' : 'Ajouter'}
-                  </Button>
-                </TooltipWrapper>
-                
-                <TooltipWrapper content="Voir la page détaillée du produit">
-                  <Button 
-                    variant="outline" 
-                    onClick={handleViewDetails}
-                    id={`view-details-${product.id}`}
-                    name={`view-details-${product.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    Voir détails
-                  </Button>
-                </TooltipWrapper>
-              </div>
+                  <Heart className={`mr-2 h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
+                  {isWishlisted ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                </Button>
+              </TooltipWrapper>
             </div>
 
             {/* Product Features */}

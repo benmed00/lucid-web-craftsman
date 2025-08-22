@@ -2,6 +2,7 @@
 
 import { Product } from "../shared/interfaces/Iproduct.interface";
 import React, { createContext, useContext, useEffect, useMemo, useReducer } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Types
 export type CartItem = {
@@ -120,40 +121,123 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [cart.items]
   );
 
+  // Load cart from Supabase or localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      try {
-        const parsedCart = JSON.parse(savedCart);
-        // Ensure what we hydrate is compatible with CartState, especially items
-        if (parsedCart && Array.isArray(parsedCart.items)) {
-           dispatch({
+    const loadCart = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Load from Supabase for authenticated users
+        const { data, error } = await supabase
+          .from('cart_items')
+          .select('*, products(*)')
+          .eq('user_id', user.id);
+        
+        if (!error && data) {
+          const cartItems = data.map(item => ({
+            id: item.product_id,
+            quantity: item.quantity,
+            product: {
+              id: item.product_id,
+              name: `Product ${item.product_id}`, // Fallback name
+              price: 0, // Will be updated from actual product data
+              images: [],
+              category: '',
+              description: '',
+              details: '',
+              care: '',
+              artisan: '',
+              ...item.products // Override with actual product data if available
+            }
+          }));
+          
+          dispatch({
             type: "HYDRATE",
-            // Pass only items for hydration, totalPrice will be derived
-            payload: { items: parsedCart.items, totalPrice: 0 },
+            payload: { items: cartItems, totalPrice: 0 },
           });
-        } else if (Array.isArray(parsedCart)) { // Old format support: array of items
-           dispatch({
-            type: "HYDRATE",
-            payload: { items: parsedCart, totalPrice: 0 },
-          });
+          return;
         }
-      } catch (e) {
-        console.error("Failed to parse cart from localStorage", e);
-        // Optionally clear localStorage if it's corrupted
-        // localStorage.removeItem("cart");
       }
-    }
+      
+      // Fallback to localStorage for non-authenticated users
+      const savedCart = localStorage.getItem("cart");
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart);
+          if (parsedCart && Array.isArray(parsedCart.items)) {
+            dispatch({
+              type: "HYDRATE",
+              payload: { items: parsedCart.items, totalPrice: 0 },
+            });
+          } else if (Array.isArray(parsedCart)) {
+            dispatch({
+              type: "HYDRATE",
+              payload: { items: parsedCart, totalPrice: 0 },
+            });
+          }
+        } catch (e) {
+          console.error("Failed to parse cart from localStorage", e);
+        }
+      }
+    };
+
+    loadCart();
   }, []);
 
+  // Save cart changes
   useEffect(() => {
-    // Persist only items and totalPrice derived from items.
-    // totalPrice in localStorage might not be needed if always calculated.
-    // However, if we persist it, ensure it's consistent.
-    // For simplicity, we'll persist the cart object which includes items.
-    // totalPrice will be recalculated on load.
-    localStorage.setItem("cart", JSON.stringify({ items: cart.items }));
-  }, [cart.items]); // Depend only on cart.items to avoid loop with totalPrice
+    const saveCart = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Save to Supabase for authenticated users
+        try {
+          // Clear existing cart items
+          await supabase
+            .from('cart_items')
+            .delete()
+            .eq('user_id', user.id);
+          
+          // Insert new cart items
+          if (cart.items.length > 0) {
+            const cartItemsForDB = cart.items.map(item => ({
+              user_id: user.id,
+              product_id: item.id,
+              quantity: item.quantity
+            }));
+            
+            await supabase
+              .from('cart_items')
+              .insert(cartItemsForDB);
+          }
+        } catch (error) {
+          console.error("Failed to save cart to Supabase", error);
+          // Fallback to localStorage if Supabase fails
+          localStorage.setItem("cart", JSON.stringify({ items: cart.items }));
+        }
+      } else {
+        // Save to localStorage for non-authenticated users
+        localStorage.setItem("cart", JSON.stringify({ items: cart.items }));
+      }
+    };
+
+    // Only save if cart has been initialized (avoid saving empty cart on mount)
+    if (cart.items.length > 0 || localStorage.getItem("cart")) {
+      saveCart();
+    }
+  }, [cart.items]);
+
+  // Clear cart on logout
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        dispatch({ type: "CLEAR_CART" });
+        localStorage.removeItem("cart");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Helper functions
   const clearCart = () => dispatch({ type: "CLEAR_CART" });
