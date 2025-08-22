@@ -132,10 +132,11 @@ export function useOptimizedQuery<T>(
         }
       }
 
-      // Set loading state if no cached data
-      if (!state.data || forceRefresh) {
-        setState(prev => ({ ...prev, isLoading: true }));
-      }
+      // Set loading state if forcing refresh or no cached data
+      setState(prev => ({ 
+        ...prev, 
+        isLoading: forceRefresh || !prev.data 
+      }));
 
       // Fetch data with retry logic
       let lastError: Error | null = null;

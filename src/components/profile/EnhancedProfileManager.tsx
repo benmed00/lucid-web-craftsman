@@ -67,30 +67,56 @@ export const EnhancedProfileManager: React.FC = () => {
   const { user, isLoading: authLoading } = useOptimizedAuth();
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Memoize query functions to prevent infinite loops
+  const profileQueryFn = useCallback(async () => {
+    if (!user) return null;
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      // Create profile if it doesn't exist
+      const { data: newProfile, error: createError } = await supabase
+        .from('profiles')
+        .insert([{ id: user.id, full_name: user.user_metadata?.full_name }])
+        .select()
+        .single();
+      
+      if (createError) throw createError;
+      return newProfile;
+    }
+    return data;
+  }, [user?.id, user?.user_metadata?.full_name]);
+
+  const preferencesQueryFn = useCallback(async () => {
+    if (!user) return [];
+    const { data, error } = await supabase
+      .from('user_preferences')
+      .select('*')
+      .eq('user_id', user.id);
+    
+    if (error && error.code !== 'PGRST116') throw error;
+    return data || [];
+  }, [user?.id]);
+
+  const loyaltyQueryFn = useCallback(async () => {
+    if (!user) return null;
+    const { data, error } = await supabase
+      .from('loyalty_points')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  }, [user?.id]);
+
   // Fetch profile with enhanced caching
   const { data: profile, isLoading: profileLoading } = useOptimizedData(
     `profile_${user?.id}`,
-    async () => {
-      if (!user) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') {
-        // Create profile if it doesn't exist
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert([{ id: user.id, full_name: user.user_metadata?.full_name }])
-          .select()
-          .single();
-        
-        if (createError) throw createError;
-        return newProfile;
-      }
-      return data;
-    },
+    profileQueryFn,
     { 
       enableCache: true,
       cacheTime: 5 * 60 * 1000 // 5 minutes for profile data
@@ -100,16 +126,7 @@ export const EnhancedProfileManager: React.FC = () => {
   // Fetch user preferences with enhanced caching
   const { data: preferences, isLoading: preferencesLoading } = useOptimizedData(
     `preferences_${user?.id}`,
-    async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', user.id);
-      
-      if (error && error.code !== 'PGRST116') throw error;
-      return data || [];
-    },
+    preferencesQueryFn,
     { 
       enableCache: true,
       cacheTime: 10 * 60 * 1000 // 10 minutes for preferences
@@ -119,17 +136,7 @@ export const EnhancedProfileManager: React.FC = () => {
   // Fetch loyalty data with enhanced caching
   const { data: loyaltyData, isLoading: loyaltyLoading } = useOptimizedData(
     `loyalty_${user?.id}`,
-    async () => {
-      if (!user) return null;
-      const { data, error } = await supabase
-        .from('loyalty_points')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
-    },
+    loyaltyQueryFn,
     { 
       enableCache: true,
       cacheTime: 10 * 60 * 1000 // 10 minutes for loyalty data
