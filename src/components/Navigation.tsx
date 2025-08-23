@@ -105,7 +105,7 @@ const Navigation = () => {
           <Button
             variant="outline"
             className={clsx(
-              "border-stone-300 transition-colors flex items-center group",
+              "border-stone-300 transition-colors flex items-center group relative",
               itemCount >= 1
                 ? "bg-olive-700 text-white"
                 : "bg-white text-stone-700",
@@ -114,15 +114,11 @@ const Navigation = () => {
                 : "hover:bg-white hover:text-stone-900"
             )}
           >
-            <ShoppingBag
-              className={clsx(
-                "mr-2 h-4 w-4 transition-colors",
-                itemCount >= 1
-                  ? "text-white group-hover:text-olive-700"
-                  : "text-stone-700 group-hover:text-stone-900"
-              )}
-            />
-            Panier ({itemCount})
+            <ShoppingBag className={clsx("h-4 w-4 transition-colors", itemCount >= 1 ? "text-white group-hover:text-olive-700" : "text-stone-700 group-hover:text-stone-900")} />
+            <span className="ml-2">({itemCount})</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              Panier
+            </div>
           </Button>
         </Link>
 
@@ -130,29 +126,35 @@ const Navigation = () => {
         {!isLoading && (
           <>
              {user ? (
-               <div className="hidden md:flex items-center gap-2">
-                 <Button variant="ghost" size="sm" asChild>
-                   <Link to="/orders" className="flex items-center gap-2">
+               <div className="hidden md:flex items-center gap-1">
+                 <Button variant="ghost" size="sm" asChild className="group relative">
+                   <Link to="/orders" className="flex items-center p-2">
                      <Package className="h-4 w-4" />
-                     <span className="text-sm">Mes Commandes</span>
+                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                       Mes Commandes
+                     </div>
                    </Link>
                  </Button>
-                 <Button variant="ghost" size="sm" asChild>
-                   <Link to="/profile" className="flex items-center gap-2">
+                 <Button variant="ghost" size="sm" asChild className="group relative">
+                   <Link to="/profile" className="flex items-center p-2">
                      <User className="h-4 w-4" />
-                     <span className="text-sm">Mon Profil</span>
+                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                       Mon Profil
+                     </div>
                    </Link>
                  </Button>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={handleSignOut} 
-                    className="flex items-center gap-2"
+                    className="group relative flex items-center p-2"
                     id="nav-signout"
                     name="navigation-signout-button"
                   >
                     <LogOut className="h-4 w-4" />
-                    <span className="text-sm">Déconnexion</span>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      Déconnexion
+                    </div>
                   </Button>
                </div>
             ) : (

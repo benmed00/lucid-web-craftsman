@@ -123,65 +123,79 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Load cart from Supabase or localStorage on mount
   useEffect(() => {
+    let mounted = true;
+    
     const loadCart = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        // Load from Supabase for authenticated users
-        const { data, error } = await supabase
-          .from('cart_items')
-          .select('*, products(*)')
-          .eq('user_id', user.id);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
         
-        if (!error && data) {
-          const cartItems = data.map(item => ({
-            id: item.product_id,
-            quantity: item.quantity,
-            product: {
-              id: item.product_id,
-              name: `Product ${item.product_id}`, // Fallback name
-              price: 0, // Will be updated from actual product data
-              images: [],
-              category: '',
-              description: '',
-              details: '',
-              care: '',
-              artisan: '',
-              ...item.products // Override with actual product data if available
-            }
-          }));
+        if (user && mounted) {
+          // Load from Supabase for authenticated users
+          const { data, error } = await supabase
+            .from('cart_items')
+            .select('product_id, quantity')
+            .eq('user_id', user.id);
           
-          dispatch({
-            type: "HYDRATE",
-            payload: { items: cartItems, totalPrice: 0 },
-          });
-          return;
-        }
-      }
-      
-      // Fallback to localStorage for non-authenticated users
-      const savedCart = localStorage.getItem("cart");
-      if (savedCart) {
-        try {
-          const parsedCart = JSON.parse(savedCart);
-          if (parsedCart && Array.isArray(parsedCart.items)) {
-            dispatch({
-              type: "HYDRATE",
-              payload: { items: parsedCart.items, totalPrice: 0 },
-            });
-          } else if (Array.isArray(parsedCart)) {
-            dispatch({
-              type: "HYDRATE",
-              payload: { items: parsedCart, totalPrice: 0 },
-            });
+          if (!error && data && data.length > 0) {
+            // Import products data dynamically
+            const { products } = await import('@/data/products');
+            
+            const cartItems = data
+              .map(item => {
+                const product = products.find(p => p.id === item.product_id);
+                if (product) {
+                  return {
+                    id: item.product_id,
+                    quantity: item.quantity,
+                    product: product
+                  };
+                }
+                return null;
+              })
+              .filter(Boolean);
+            
+            if (mounted) {
+              dispatch({
+                type: "HYDRATE",
+                payload: { items: cartItems, totalPrice: 0 },
+              });
+            }
+            return;
           }
-        } catch (e) {
-          console.error("Failed to parse cart from localStorage", e);
         }
+        
+        if (mounted) {
+          // Fallback to localStorage for non-authenticated users or when Supabase fails
+          const savedCart = localStorage.getItem("cart");
+          if (savedCart) {
+            try {
+              const parsedCart = JSON.parse(savedCart);
+              if (parsedCart && Array.isArray(parsedCart.items)) {
+                dispatch({
+                  type: "HYDRATE",
+                  payload: { items: parsedCart.items, totalPrice: 0 },
+                });
+              } else if (Array.isArray(parsedCart)) {
+                dispatch({
+                  type: "HYDRATE",
+                  payload: { items: parsedCart, totalPrice: 0 },
+                });
+              }
+            } catch (e) {
+              console.error("Failed to parse cart from localStorage", e);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error loading cart:", error);
       }
     };
 
     loadCart();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Save cart changes

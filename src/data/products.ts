@@ -61,7 +61,7 @@ export const products: Product[] = [
     name: "Cabas en Fibres Naturelles",
     price: 75,
     images: [
-      "/assets/images/produits_phares/sac_tresse_naturel.jpeg",
+      "/assets/images/sacs/sac_traditionnel.jpg",
     ],
     category: "Sacs",
     description:

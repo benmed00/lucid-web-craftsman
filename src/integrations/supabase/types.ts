@@ -234,6 +234,54 @@ export type Database = {
           },
         ]
       }
+      contact_messages: {
+        Row: {
+          company: string | null
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+          ip_address: unknown | null
+          last_name: string
+          message: string
+          phone: string | null
+          status: string | null
+          subject: string
+          updated_at: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+          ip_address?: unknown | null
+          last_name: string
+          message: string
+          phone?: string | null
+          status?: string | null
+          subject: string
+          updated_at?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          ip_address?: unknown | null
+          last_name?: string
+          message?: string
+          phone?: string | null
+          status?: string | null
+          subject?: string
+          updated_at?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       discount_coupons: {
         Row: {
           applicable_categories: string[] | null
@@ -1337,6 +1385,54 @@ export type Database = {
           status?: string | null
           subject?: string
           updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      support_tickets_error_reports: {
+        Row: {
+          browser_info: Json | null
+          created_at: string | null
+          description: string
+          email: string
+          error_type: string
+          id: string
+          page_url: string | null
+          priority: string | null
+          screenshot_url: string | null
+          status: string | null
+          updated_at: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser_info?: Json | null
+          created_at?: string | null
+          description: string
+          email: string
+          error_type?: string
+          id?: string
+          page_url?: string | null
+          priority?: string | null
+          screenshot_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser_info?: Json | null
+          created_at?: string | null
+          description?: string
+          email?: string
+          error_type?: string
+          id?: string
+          page_url?: string | null
+          priority?: string | null
+          screenshot_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Relationships: []

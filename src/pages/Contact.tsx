@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { useCsrfToken } from "@/hooks/useCsrfToken";
 import { validateAndSanitizeEmail, validateAndSanitizeName, sanitizeUserInput } from "@/utils/xssProtection";
 import { createRateLimiter } from "@/utils/validation";
+import { supabase } from "@/integrations/supabase/client";
 
 // Rate limiter for contact form submissions
 const contactRateLimiter = createRateLimiter(3, 10 * 60 * 1000); // 3 attempts per 10 minutes
@@ -78,8 +79,23 @@ const Contact = () => {
 
       setIsSubmitting(true);
       
-      // Simulate form submission (in production, this would call an API)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Submit to Supabase edge function
+      const supabaseUrl = 'https://xcvlijchkmhjonhfildm.supabase.co';
+      const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdmxpamNoa21oam9uaGZpbGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2MDY3MDEsImV4cCI6MjA2MzE4MjcwMX0.3_FZWbV4qCqs1xQmh0Hws83xQxofSApzVRScSCEi9Pg';
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/submit-contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`
+        },
+        body: JSON.stringify(sanitizedData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Erreur de communication' }));
+        throw new Error(errorData.error || 'Erreur lors de l\'envoi du message');
+      }
       
       toast.success("Message envoyé avec succès! Nous vous répondrons bientôt.");
       
@@ -118,15 +134,15 @@ const Contact = () => {
               Solutions développées commerciales spécialisées à l'entreprise.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                className="bg-white text-olive-800 hover:bg-olive-50 px-8 py-3 text-lg font-semibold"
-                id="contact-hero-button"
-                name="start-contact-discussion"
-              >
-                <MessageSquare className="mr-2 h-5 w-5" />
-                Démarrer une Discussion
-              </Button>
+                      <Button 
+                        size="lg" 
+                        className="bg-olive-700 text-white hover:bg-olive-800 px-8 py-3 text-lg font-semibold"
+                        id="contact-hero-button"
+                        name="start-contact-discussion"
+                      >
+                        <MessageSquare className="mr-2 h-5 w-5" />
+                        Démarrer une Discussion
+                      </Button>
             </div>
           </div>
         </div>
