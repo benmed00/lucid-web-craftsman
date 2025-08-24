@@ -182,13 +182,13 @@ const Navigation = () => {
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 animate-fade-in"
+          className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 animate-fade-in"
           onClick={() => setIsMenuOpen(false)}
         />
       )}
 
       {/* Mobile Menu */}
-      <div className={`md:hidden absolute top-full left-0 right-0 bg-white/98 backdrop-blur-sm shadow-xl z-50 border-t border-stone-100 transition-all duration-300 max-h-[90vh] overflow-y-auto ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
+      <div className={`md:hidden absolute top-full left-0 right-0 bg-white shadow-xl z-50 border-t border-stone-100 transition-all duration-300 max-h-[90vh] overflow-y-auto ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
           <div className="flex flex-col space-y-3 p-6 pb-8">
             <Link
               to="/"
