@@ -135,7 +135,7 @@ const Index = () => {
               <CardContent className="p-0">
                 <div className="h-14 w-14 md:h-16 md:w-16 bg-olive-100 rounded-2xl flex items-center justify-center mb-4 md:mb-6 mx-auto transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
                   <svg className="h-7 w-7 md:h-8 md:w-8 text-olive-700 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 0 002-2v-7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 1 1 2 2h-2zm0 0V5.5A2.5 2.5 0 1 0 9.5 8H12zm-7 4h14M5 12a2 2 0 1 1 0-4h14a2 2 0 1 1 0 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
                   </svg>
                 </div>
                 <h3 className="text-lg md:text-xl font-serif text-stone-800 mb-3 md:mb-4 text-center transition-colors duration-300 group-hover:text-olive-700">Designs Uniques</h3>
