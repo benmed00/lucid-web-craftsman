@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { Product } from "../shared/interfaces/Iproduct.interface";
-import { ProductReviews } from '@/components/reviews/ProductReviews';
+import ProductReviews from '@/components/ProductReviews';
 import { toast } from "sonner";
 import { useCart } from "../context/CartContext";
 import { ProductImage } from "@/components/ui/GlobalImage";
@@ -385,6 +385,26 @@ const ProductDetail = () => {
             </Tabs>
           </div>
         </div>
+
+        {/* Reviews Section */}
+        <div className="mt-16">
+          <ProductReviews 
+            productId={product.id} 
+            productName={product.name}
+          />
+        </div>
+
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-16">
+            <ProductRecommendations
+              allProducts={relatedProducts}
+              title="Produits similaires"
+              maxRecommendations={4}
+              onQuickView={() => {}}
+            />
+          </div>
+        )}
 
       </section>
       </main>

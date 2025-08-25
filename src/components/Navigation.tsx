@@ -1,8 +1,9 @@
 
-import { Leaf, Menu, ShoppingBag, X, User, LogOut, Heart, ShoppingCart, Package } from "lucide-react";
+import { Leaf, Menu, ShoppingBag, X, User, LogOut, Heart, ShoppingCart, Package, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 // import CartIcon from "../context/CartIcon"; // Marked as unused
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import clsx from "clsx";
 import { useCartUI } from "../context/useCartUI";
@@ -13,9 +14,12 @@ import CurrencySelector from "@/components/CurrencySelector";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
   const { itemCount, cartColor } = useCartUI(); // Removed _badgeTextColor
   const { user, isLoading, signOut } = useAuth();
   const { wishlistCount } = useWishlist();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     try {
@@ -23,6 +27,16 @@ const Navigation = () => {
       setIsMenuOpen(false);
     } catch (error) {
       console.error('Error signing out:', error);
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+      setShowSearch(false);
+      setIsMenuOpen(false);
     }
   };
 
@@ -77,6 +91,19 @@ const Navigation = () => {
       </div>
 
       <div className="flex items-center gap-3">
+        {/* Search Button - Desktop */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowSearch(!showSearch)}
+          className="relative hidden md:flex items-center gap-2 group"
+        >
+          <Search size={18} />
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            Rechercher
+          </div>
+        </Button>
+
         {/* Wishlist button - Desktop */}
         {user && (
           <Button
@@ -179,6 +206,28 @@ const Navigation = () => {
         </div>
       </button>
 
+      {/* Search Bar - Desktop Dropdown */}
+      {showSearch && (
+        <div className="absolute top-full left-0 right-0 bg-white border-b border-stone-200 shadow-lg z-30 hidden md:block">
+          <div className="container mx-auto px-4 py-4">
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <Input
+                type="text"
+                placeholder="Rechercher des produits..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1"
+                autoFocus
+              />
+              <Button type="submit" disabled={!searchQuery.trim()}>
+                <Search size={18} />
+                <span className="ml-2">Rechercher</span>
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
         <div 
@@ -190,6 +239,22 @@ const Navigation = () => {
       {/* Mobile Menu */}
       <div className={`md:hidden absolute top-full left-0 right-0 bg-white shadow-xl z-50 border-t border-stone-100 transition-all duration-300 max-h-[90vh] overflow-y-auto ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
           <div className="flex flex-col space-y-3 p-6 pb-8">
+            {/* Mobile Search */}
+            <div className="mb-4">
+              <form onSubmit={handleSearch} className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Rechercher des produits..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1"
+                />
+                <Button type="submit" disabled={!searchQuery.trim()} size="sm">
+                  <Search size={16} />
+                </Button>
+              </form>
+            </div>
+
             <Link
               to="/"
               className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-5 px-5 rounded-xl font-medium flex items-center gap-4 group touch-manipulation min-h-[56px]"
