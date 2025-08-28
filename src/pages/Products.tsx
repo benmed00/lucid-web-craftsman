@@ -22,7 +22,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { VoiceSearch } from "@/components/ui/VoiceSearch";
 import { MobilePromotions } from "@/components/ui/MobilePromotions";
 
-import { getProducts } from "@/api/mockApiService";
+import { ProductService } from "@/services/productService";
 import { useCart } from "@/context/CartContext";
 import { useAdvancedProductFilters } from "@/hooks/useAdvancedProductFilters";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
@@ -72,7 +72,7 @@ const Products = () => {
   const handleRefresh = async () => {
     try {
       setLoading(true);
-      const data = await getProducts();
+      const data = await ProductService.getAllProducts();
       setProducts(data);
       toast.success("Produits mis à jour");
     } catch (error) {
@@ -87,7 +87,7 @@ const Products = () => {
     
     const fetchProducts = async () => {
       try {
-        const data = await getProducts();
+        const data = await ProductService.getAllProducts();
         setProducts(data);
         setLoading(false);
         setError(null);

@@ -13,16 +13,13 @@ import {
   Plus, 
   Edit, 
   Trash2, 
-  Upload,
   Search,
   Filter,
   Eye,
   EyeOff,
   ImageIcon
 } from "lucide-react";
-import ProductImageManager from "@/components/admin/ProductImageManager";
-import { getProducts } from "@/api/mockApiService";
-import { productService, CreateProductData, UpdateProductData } from "@/services/productService";
+import { ProductService } from "@/services/productService";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -37,17 +34,16 @@ const AdminProducts = () => {
   const { logAction } = useAuditLog();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isNewProduct, setIsNewProduct] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [formData, setFormData] = useState<Partial<CreateProductData>>({});
+  const [categories] = useState<string[]>(["Sacs", "Chapeaux"]);
+  const [formData, setFormData] = useState<Partial<Product>>({});
 
   useEffect(() => {
     loadProducts();
-    loadCategories();
   }, []);
 
   const loadProducts = async () => {
     try {
-      const data = await getProducts();
+      const data = await ProductService.getAllProducts();
       setProducts(data);
     } catch (error) {
       console.error("Error loading products:", error);
@@ -57,18 +53,9 @@ const AdminProducts = () => {
     }
   };
 
-  const loadCategories = async () => {
-    try {
-      const categoriesData = await productService.getCategories();
-      setCategories(categoriesData);
-    } catch (error) {
-      console.error("Error loading categories:", error);
-    }
-  };
-
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.artisan.toLowerCase().includes(searchQuery.toLowerCase());
+                         product.artisan?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = filterCategory === "all" || product.category.toLowerCase() === filterCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
@@ -83,10 +70,9 @@ const AdminProducts = () => {
       description: product.description,
       details: product.details,
       care: product.care,
-      is_new: product.new,
+      is_new: product.is_new,
       artisan: product.artisan,
-      artisan_story: product.artisanStory,
-      related_products: product.related
+      artisan_story: product.artisan_story
     });
     setIsNewProduct(false);
     setIsDialogOpen(true);
@@ -104,98 +90,10 @@ const AdminProducts = () => {
       care: "",
       is_new: false,
       artisan: "",
-      artisan_story: "",
-      related_products: []
+      artisan_story: ""
     });
     setIsNewProduct(true);
     setIsDialogOpen(true);
-  };
-
-  const handleSaveProduct = async () => {
-    if (!formData.name || !formData.price || !formData.artisan) {
-      toast.error("Veuillez remplir tous les champs obligatoires");
-      return;
-    }
-
-    // Check if there are any images still uploading
-    const hasUploadingImages = formData.images?.some(url => url.startsWith('blob:'));
-    if (hasUploadingImages) {
-      toast.error("Veuillez attendre que toutes les images soient uploadées avant de sauvegarder");
-      return;
-    }
-
-    try {
-      if (isNewProduct) {
-        const newProduct = await productService.createProduct(formData as CreateProductData);
-        setProducts([...products, newProduct]);
-        
-        // Audit log
-        await logAction("CREATE", "product", newProduct.id.toString(), {
-          productName: newProduct.name,
-          category: newProduct.category,
-          price: newProduct.price
-        });
-        
-        toast.success("Produit ajouté avec succès");
-      } else if (editingProduct) {
-        const updatedProduct = await productService.updateProduct({
-          id: editingProduct.id,
-          ...formData
-        } as UpdateProductData);
-        setProducts(products.map(p => p.id === editingProduct.id ? updatedProduct : p));
-        
-        // Audit log
-        await logAction("UPDATE", "product", editingProduct.id.toString(), {
-          productName: updatedProduct.name,
-          changes: formData
-        });
-        
-        toast.success("Produit mis à jour avec succès");
-      }
-
-      setIsDialogOpen(false);
-      setEditingProduct(null);
-      setFormData({});
-    } catch (error) {
-      console.error("Error saving product:", error);
-      toast.error("Erreur lors de la sauvegarde du produit");
-    }
-  };
-
-  const handleDeleteProduct = async (productId: number) => {
-    const product = products.find(p => p.id === productId);
-    if (confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
-      try {
-        await productService.deleteProduct(productId);
-        setProducts(products.filter(p => p.id !== productId));
-        
-        // Audit log
-        if (product) {
-          await logAction("DELETE", "product", productId.toString(), {
-            productName: product.name,
-            category: product.category
-          });
-        }
-        
-        toast.success("Produit supprimé avec succès");
-      } catch (error) {
-        console.error("Error deleting product:", error);
-        toast.error("Erreur lors de la suppression du produit");
-      }
-    }
-  };
-
-  const toggleProductVisibility = async (productId: number) => {
-    try {
-      const updatedProduct = await productService.toggleNewStatus(productId);
-      setProducts(products.map(p => 
-        p.id === productId ? updatedProduct : p
-      ));
-      toast.success("Visibilité du produit mise à jour");
-    } catch (error) {
-      console.error("Error toggling product visibility:", error);
-      toast.error("Erreur lors de la mise à jour de la visibilité");
-    }
   };
 
   const ProductForm = () => {
@@ -293,13 +191,6 @@ const AdminProducts = () => {
           />
           <Label htmlFor="new">Marquer comme nouveau</Label>
         </div>
-
-        <ProductImageManager
-          images={formData.images || []}
-          onImagesChange={(images) => setFormData({...formData, images})}
-          productId={editingProduct?.id}
-          maxImages={8}
-        />
       </div>
     );
   };
@@ -382,26 +273,14 @@ const AdminProducts = () => {
             <CardHeader className="p-0">
               <div className="relative h-48 overflow-hidden rounded-t-lg">
                 <img
-                  src={product.images[0] || "/placeholder.svg"}
+                  src={product.images?.[0] || "/placeholder.svg"}
                   alt={product.name}
                   className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-2 right-2 flex gap-2">
-                  {(product.new || product.is_new) && (
+                  {product.is_new && (
                     <Badge className="bg-olive-700 text-white">Nouveau</Badge>
                   )}
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => toggleProductVisibility(product.id)}
-                    className="p-1 h-8 w-8"
-                  >
-                    {(product.new || product.is_new) ? (
-                      <Eye className="h-4 w-4" />
-                    ) : (
-                      <EyeOff className="h-4 w-4" />
-                    )}
-                  </Button>
                 </div>
               </div>
             </CardHeader>
@@ -436,14 +315,6 @@ const AdminProducts = () => {
                 >
                   <Edit className="h-4 w-4 mr-1" />
                   Modifier
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDeleteProduct(product.id)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
@@ -496,9 +367,7 @@ const AdminProducts = () => {
               Annuler
             </Button>
             <Button 
-              onClick={handleSaveProduct} 
               className="bg-olive-700 hover:bg-olive-800"
-              disabled={formData.images?.some(url => url.startsWith('blob:'))}
             >
               {isNewProduct ? "Ajouter" : "Sauvegarder"}
             </Button>

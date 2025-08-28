@@ -1,14 +1,14 @@
 // src/context/CartContext.tsx
 
-import { Product } from "../shared/interfaces/Iproduct.interface";
 import React, { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { ProductService } from "@/services/productService";
 
 // Types
 export type CartItem = {
   id: number;
   quantity: number;
-  product: Product;
+  product: any; // Using any since we're getting from Supabase now
 };
 
 export type CartState = {
@@ -17,7 +17,7 @@ export type CartState = {
 };
 
 export type CartAction =
-  | { type: "ADD_ITEM"; payload: Product; quantity: number }
+  | { type: "ADD_ITEM"; payload: any; quantity: number }
   | { type: "REMOVE_ITEM"; payload: number }
   | { type: "UPDATE_ITEM_QUANTITY"; payload: { id: number; quantity: number } }
   | { type: "CLEAR_CART" }
@@ -30,7 +30,7 @@ interface CartContextType {
   itemCount: number;
   totalPrice: number;
   clearCart: () => void;
-  addItem: (product: Product, quantity: number) => void;
+  addItem: (product: any, quantity: number) => void;
   removeItem: (itemId: number) => void;
   updateItemQuantity: (id: number, quantity: number) => void;
 }
@@ -137,27 +137,32 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             .eq('user_id', user.id);
           
           if (!error && data && data.length > 0) {
-            // Import products data dynamically
-            const { products } = await import('@/data/products');
-            
-            const cartItems = data
-              .map(item => {
-                const product = products.find(p => p.id === item.product_id);
-                if (product) {
-                  return {
-                    id: item.product_id,
-                    quantity: item.quantity,
-                    product: product
-                  };
+            // Get products from database
+            const cartItems = await Promise.all(
+              data.map(async (item) => {
+                try {
+                  const product = await ProductService.getProductById(item.product_id);
+                  if (product) {
+                    return {
+                      id: item.product_id,
+                      quantity: item.quantity,
+                      product: product
+                    };
+                  }
+                  return null;
+                } catch (error) {
+                  console.error(`Error loading product ${item.product_id}:`, error);
+                  return null;
                 }
-                return null;
               })
-              .filter(Boolean);
+            );
             
-            if (mounted) {
+            const validCartItems = cartItems.filter(Boolean);
+            
+            if (mounted && validCartItems.length > 0) {
               dispatch({
                 type: "HYDRATE",
-                payload: { items: cartItems, totalPrice: 0 },
+                payload: { items: validCartItems, totalPrice: 0 },
               });
             }
             return;
@@ -171,15 +176,62 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             try {
               const parsedCart = JSON.parse(savedCart);
               if (parsedCart && Array.isArray(parsedCart.items)) {
-                dispatch({
-                  type: "HYDRATE",
-                  payload: { items: parsedCart.items, totalPrice: 0 },
-                });
+                // Load products for localStorage cart items
+                const cartItems = await Promise.all(
+                  parsedCart.items.map(async (item: any) => {
+                    try {
+                      const product = await ProductService.getProductById(item.id);
+                      if (product) {
+                        return {
+                          id: item.id,
+                          quantity: item.quantity,
+                          product: product
+                        };
+                      }
+                      return null;
+                    } catch (error) {
+                      console.error(`Error loading product ${item.id}:`, error);
+                      return null;
+                    }
+                  })
+                );
+                
+                const validCartItems = cartItems.filter(Boolean);
+                
+                if (validCartItems.length > 0) {
+                  dispatch({
+                    type: "HYDRATE",
+                    payload: { items: validCartItems, totalPrice: 0 },
+                  });
+                }
               } else if (Array.isArray(parsedCart)) {
-                dispatch({
-                  type: "HYDRATE",
-                  payload: { items: parsedCart, totalPrice: 0 },
-                });
+                const cartItems = await Promise.all(
+                  parsedCart.map(async (item: any) => {
+                    try {
+                      const product = await ProductService.getProductById(item.id);
+                      if (product) {
+                        return {
+                          id: item.id,
+                          quantity: item.quantity,
+                          product: product
+                        };
+                      }
+                      return null;
+                    } catch (error) {
+                      console.error(`Error loading product ${item.id}:`, error);
+                      return null;
+                    }
+                  })
+                );
+                
+                const validCartItems = cartItems.filter(Boolean);
+                
+                if (validCartItems.length > 0) {
+                  dispatch({
+                    type: "HYDRATE",
+                    payload: { items: validCartItems, totalPrice: 0 },
+                  });
+                }
               }
             } catch (e) {
               console.error("Failed to parse cart from localStorage", e);
@@ -255,7 +307,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Helper functions
   const clearCart = () => dispatch({ type: "CLEAR_CART" });
-  const addItem = (product: Product, quantity: number) => dispatch({ type: "ADD_ITEM", payload: product, quantity });
+  const addItem = (product: any, quantity: number) => dispatch({ type: "ADD_ITEM", payload: product, quantity });
   const removeItem = (itemId: number) => dispatch({ type: "REMOVE_ITEM", payload: itemId });
   const updateItemQuantity = (id: number, quantity: number) => dispatch({ type: "UPDATE_ITEM_QUANTITY", payload: { id, quantity } });
 

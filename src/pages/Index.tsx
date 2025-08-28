@@ -15,7 +15,7 @@ import FloatingCartButton from "@/components/ui/FloatingCartButton";
 import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
 import { ProductRecommendations } from "@/components/ProductRecommendations";
 import { useState, useEffect } from "react";
-import { getProducts } from "@/api/mockApiService";
+import { ProductService } from "@/services/productService";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 
 const Index = () => {
@@ -31,7 +31,7 @@ const Index = () => {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const products = await getProducts();
+        const products = await ProductService.getAllProducts();
         setAllProducts(products);
       } catch (error) {
         console.error('Error loading products:', error);

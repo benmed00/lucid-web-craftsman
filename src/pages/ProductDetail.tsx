@@ -6,7 +6,7 @@ import { ArrowRight, Leaf, ShoppingBag, ChevronLeft, ChevronRight, AlertTriangle
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { addToCart, getProductById, getProducts } from "@/api/mockApiService";
+import { ProductService } from "@/services/productService";
 import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -62,10 +62,7 @@ const ProductDetail = () => {
     }
 
     try {
-      // Add to cart via API (which updates localStorage)
-      await addToCart(product, quantity);
-
-      // Update global cart state
+      // Update global cart state directly
       dispatch({
         type: "ADD_ITEM",
         payload: product,
@@ -86,12 +83,12 @@ const ProductDetail = () => {
     const fetchProductData = async () => {
       try {
         // Load all products for recommendations
-        const products = await getProducts();
+        const products = await ProductService.getAllProducts();
         setAllProducts(products);
 
         // Find the product with the matching id
         const productId = parseInt(id || "0");
-        const foundProduct = await getProductById(productId);
+        const foundProduct = await ProductService.getProductById(productId);
 
         if (foundProduct) {
           setProduct(foundProduct);
@@ -99,17 +96,12 @@ const ProductDetail = () => {
           // Add to recently viewed
           addToRecentlyViewed(foundProduct);
 
-          // Get related products
-          if (foundProduct.related && foundProduct.related.length > 0) {
-            const relatedProds = [];
-            for (const relatedId of foundProduct.related) {
-              const relatedProduct = await getProductById(relatedId);
-              if (relatedProduct) {
-                relatedProds.push(relatedProduct);
-              }
-            }
-            setRelatedProducts(relatedProds);
-          }
+          // Get related products based on category and artisan
+          const categoryProducts = products.filter(p => 
+            p.id !== foundProduct.id && 
+            (p.category === foundProduct.category || p.artisan === foundProduct.artisan)
+          );
+          setRelatedProducts(categoryProducts.slice(0, 4));
         }
 
         setLoading(false);

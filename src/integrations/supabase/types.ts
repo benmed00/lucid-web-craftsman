@@ -1397,6 +1397,7 @@ export type Database = {
           email: string
           error_type: string
           id: string
+          masked_email: string | null
           page_url: string | null
           priority: string | null
           screenshot_url: string | null
@@ -1412,6 +1413,7 @@ export type Database = {
           email: string
           error_type?: string
           id?: string
+          masked_email?: string | null
           page_url?: string | null
           priority?: string | null
           screenshot_url?: string | null
@@ -1427,6 +1429,7 @@ export type Database = {
           email?: string
           error_type?: string
           id?: string
+          masked_email?: string | null
           page_url?: string | null
           priority?: string | null
           screenshot_url?: string | null
@@ -1620,6 +1623,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      mask_email: {
+        Args: { email: string }
+        Returns: string
       }
       update_loyalty_tier: {
         Args: { user_uuid: string }

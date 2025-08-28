@@ -3,7 +3,7 @@ import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { useEffect, useState } from "react";
-import { getProducts } from "@/api/mockApiService";
+import { ProductService } from "@/services/productService";
 import ProductCard from "./ProductCard";
 import { ProductQuickView } from "./ProductQuickView";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,7 +19,7 @@ const ProductShowcase = () => {
   useEffect(() => {
     const loadFeaturedProducts = async () => {
       try {
-        const allProducts = await getProducts();
+        const allProducts = await ProductService.getAllProducts();
         setFeaturedProducts(allProducts.slice(0, 4));
 
         setLoading(false);
