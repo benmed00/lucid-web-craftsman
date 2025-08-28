@@ -46,7 +46,7 @@ export const products: Product[] = [
     name: "Pochette Brodée à la Main",
     price: 62,
     images: [
-      "/assets/images/produits_phares/sac_bandouliere.webp",
+      "/assets/images/sacs/sac_traditionnel_vue2.jpg",
     ],
     category: "Sacs",
     description:
@@ -93,9 +93,7 @@ export const products: Product[] = [
     name: "Sac à Main Tissé Traditionnel Premium",
     price: 68,
     images: [
-      "/assets/images/sacs/sac_traditionnel.jpg",
-      "/assets/images/sacs/sac_traditionnel_vue1.jpg",
-      "/assets/images/sacs/sac_traditionnel_vue2.jpg",
+      "/assets/images/products/sac_a_main_tisse_traditionnel.jpg",
     ],
     category: "Sacs",
     description:
