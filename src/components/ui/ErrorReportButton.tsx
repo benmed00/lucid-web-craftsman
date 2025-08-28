@@ -82,7 +82,7 @@ export const ErrorReportButton = () => {
         <Button
           variant="outline"
           size="sm"
-          className="fixed bottom-4 right-4 bg-red-50 border-red-200 text-red-700 hover:bg-red-100 hover:border-red-300 shadow-lg z-50"
+          className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100 hover:border-red-300"
         >
           <AlertTriangle className="h-4 w-4 mr-2" />
           Signaler un problème

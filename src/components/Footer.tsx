@@ -1,5 +1,6 @@
 import { Leaf } from "lucide-react";
 import NewsletterSubscription from "./NewsletterSubscription";
+import { ErrorReportButton } from "./ui/ErrorReportButton";
 
 const Footer = () => {
   return (
@@ -93,6 +94,9 @@ const Footer = () => {
         
         <div className="border-t border-stone-600 mt-12 pt-6 text-center sm:text-left sm:flex sm:justify-between sm:items-center">
           <p className="text-stone-400">© 2024 Rif Raw Straw. Tous droits réservés.</p>
+          <div className="mt-4 sm:mt-0">
+            <ErrorReportButton />
+          </div>
         </div>
       </div>
     </footer>

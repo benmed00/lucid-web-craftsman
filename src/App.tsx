@@ -32,7 +32,7 @@ import Story from "./pages/Story";
 import Terms from "./pages/Terms";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ErrorReportButton } from "@/components/ui/ErrorReportButton";
+
 
 // PWA Components
 import { PWAInstallPrompt } from "@/components/ui/PWAInstallPrompt";
@@ -137,7 +137,6 @@ const App = () => {
                   {/* Système de notifications */}
                   <Toaster />
                   <Sonner richColors expand visibleToasts={3} />
-                  <ErrorReportButton />
 
                   {/* Devtools React Query (en développement seulement) */}
                   {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
