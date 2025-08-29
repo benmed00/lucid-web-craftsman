@@ -12,6 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import ProductCard from "@/components/ProductCard";
+import ProductGridSkeleton from "@/components/ProductGridSkeleton";
 import { ProductQuickView } from "@/components/ProductQuickView";
 import { AdvancedProductFilters } from "@/components/AdvancedProductFilters";
 import { ProductAnalytics } from "@/components/ProductAnalytics";
@@ -148,41 +149,42 @@ const Products = () => {
     return (
       <div className="min-h-screen bg-white">
         <Navigation />
-        <div className="container mx-auto px-4 py-12">
-          {/* Enhanced Loading Skeleton */}
-          <div className="mb-16">
-            <div className="h-8 bg-stone-200 rounded w-64 mb-4 mx-auto animate-pulse"></div>
-            <div className="h-6 bg-stone-200 rounded w-96 mx-auto animate-pulse"></div>
+        
+        {/* Hero Banner Skeleton */}
+        <div className="bg-gradient-to-r from-olive-50 to-stone-50 py-8 md:py-12 lg:py-16">
+          <div className="container mx-auto px-4 text-center animate-pulse">
+            <div className="h-8 md:h-10 lg:h-12 bg-stone-200 rounded w-80 mx-auto mb-3 md:mb-4"></div>
+            <div className="h-5 md:h-6 bg-stone-200 rounded w-96 mx-auto max-w-2xl"></div>
           </div>
+        </div>
 
-          {/* Advanced Search Bar Skeleton */}
-          <div className="mb-8 space-y-4">
+        <div className="container mx-auto px-4 py-6 md:py-8 lg:py-12 safe-area">
+          {/* Mobile Features Skeleton */}
+          {isMobile && (
+            <div className="space-y-6 mb-6 animate-pulse">
+              <div className="h-12 bg-stone-200 rounded-xl"></div>
+              <div className="h-20 bg-stone-200 rounded-xl"></div>
+            </div>
+          )}
+
+          {/* Advanced Filters Skeleton */}
+          <div className="mb-8 space-y-4 animate-pulse">
             <div className="flex gap-4">
-              <div className="h-12 bg-stone-200 rounded flex-1 animate-pulse"></div>
-              <div className="h-12 bg-stone-200 rounded w-48 animate-pulse"></div>
-              <div className="h-12 bg-stone-200 rounded w-32 animate-pulse"></div>
+              <div className="h-12 bg-stone-200 rounded flex-1"></div>
+              <div className="h-12 bg-stone-200 rounded w-48"></div>
+              <div className="h-12 bg-stone-200 rounded w-32"></div>
             </div>
             <div className="flex gap-2">
-              <div className="h-6 bg-stone-200 rounded w-20 animate-pulse"></div>
-              <div className="h-6 bg-stone-200 rounded w-24 animate-pulse"></div>
-              <div className="h-6 bg-stone-200 rounded w-28 animate-pulse"></div>
+              <div className="h-6 bg-stone-200 rounded w-20"></div>
+              <div className="h-6 bg-stone-200 rounded w-24"></div>
+              <div className="h-6 bg-stone-200 rounded w-28"></div>
             </div>
           </div>
 
           {/* Products Grid Skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="bg-stone-200 aspect-square rounded-lg mb-4"></div>
-                <div className="space-y-2">
-                  <div className="h-4 bg-stone-200 rounded w-16"></div>
-                  <div className="h-5 bg-stone-200 rounded w-32"></div>
-                  <div className="h-4 bg-stone-200 rounded w-20"></div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <ProductGridSkeleton count={isMobile ? 8 : 12} />
         </div>
+        
         <PageFooter />
       </div>
     );
