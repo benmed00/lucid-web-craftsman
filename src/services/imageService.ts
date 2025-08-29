@@ -169,7 +169,10 @@ class ImageService {
     for (const fallback of fallbacks) {
       const isValid = await this.checkImage(fallback);
       if (isValid) {
-        console.warn(`Image fallback used: ${originalSrc} -> ${fallback}`);
+        // Reduce console noise - only warn in development
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`Image fallback used: ${originalSrc} -> ${fallback}`);
+        }
         return fallback;
       }
     }

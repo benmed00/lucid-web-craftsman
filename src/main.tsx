@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import App from './App.tsx';
 import './index.css';
 import { initPerformanceOptimizations } from '@/utils/sitemapGenerator';
+import { setupProductionErrorSuppression } from './utils/errorSuppression';
 
 // Declare global flag
 declare global {
@@ -11,6 +12,9 @@ declare global {
     __PERF_OPTIMIZED__?: boolean;
   }
 }
+
+// Setup error suppression for production
+setupProductionErrorSuppression();
 
 // Initialize performance optimizations only once
 if (!window.__PERF_OPTIMIZED__) {

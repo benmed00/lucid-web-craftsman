@@ -2,12 +2,10 @@
 import { Leaf, Menu, ShoppingBag, X, User, LogOut, Heart, ShoppingCart, Package, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// import CartIcon from "../context/CartIcon"; // Marked as unused
 import { Link, useNavigate } from "react-router-dom";
-
 import clsx from "clsx";
 import { useCartUI } from "../context/useCartUI";
-import { useState, useMemo } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
@@ -16,19 +14,19 @@ const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-  const { itemCount, cartColor } = useCartUI(); // Removed _badgeTextColor
+  const { itemCount } = useCartUI();
   const { user, isLoading, signOut } = useAuth();
   const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     try {
       await signOut();
       setIsMenuOpen(false);
-      } catch (error) {
-        // Silent error handling for production
-      }
-  };
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
+  }, [signOut]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
