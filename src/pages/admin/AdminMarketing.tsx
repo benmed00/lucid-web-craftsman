@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,72 +22,140 @@ import {
   Target,
   TrendingUp
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-// Mock marketing data
-const mockCampaigns = [
-  {
-    id: 1,
-    name: "Promotion Printemps 2024",
-    type: "discount",
-    status: "active",
-    discount: 15,
-    code: "PRINTEMPS15",
-    startDate: "2024-03-01",
-    endDate: "2024-03-31",
-    usageCount: 23,
-    usageLimit: 100,
-    revenue: 445
-  },
-  {
-    id: 2,
-    name: "Newsletter Nouveautés",
-    type: "newsletter",
-    status: "sent",
-    sentTo: 156,
-    openRate: 24.3,
-    clickRate: 3.2,
-    sentDate: "2024-01-15"
-  },
-  {
-    id: 3,
-    name: "Code Première Commande",
-    type: "discount",
-    status: "active",
-    discount: 10,
-    code: "BIENVENUE10",
-    startDate: "2024-01-01",
-    endDate: "2024-12-31",
-    usageCount: 8,
-    usageLimit: null,
-    revenue: 156
-  }
-];
+interface NewsletterSubscription {
+  id: string;
+  email: string;
+  status: string;
+  created_at: string;
+  source: string | null;
+  tags: string[] | null;
+}
 
-const mockCustomerSegments = [
-  { id: 1, name: "Clients VIP", count: 12, criteria: "Plus de 300€ d'achats" },
-  { id: 2, name: "Nouveaux clients", count: 34, criteria: "Inscrits dans les 30 derniers jours" },
-  { id: 3, name: "Clients inactifs", count: 18, criteria: "Aucun achat depuis 6 mois" },
-  { id: 4, name: "Amateurs de sacs", count: 28, criteria: "Achats principalement en catégorie Sacs" }
-];
+interface DiscountCoupon {
+  id: string;
+  code: string;
+  type: string;
+  value: number;
+  minimum_order_amount: number | null;
+  valid_from: string;
+  valid_until: string | null;
+  usage_count: number;
+  usage_limit: number | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+interface CustomerSegment {
+  id: string;
+  name: string;
+  count: number;
+  criteria: string;
+}
 
 const AdminMarketing = () => {
-  const [campaigns, setCampaigns] = useState(mockCampaigns);
-  const [newCampaign, setNewCampaign] = useState({
-    name: "",
-    type: "discount",
-    discount: 0,
+  const [newsletterSubscriptions, setNewsletterSubscriptions] = useState<NewsletterSubscription[]>([]);
+  const [discountCoupons, setDiscountCoupons] = useState<DiscountCoupon[]>([]);
+  const [customerSegments, setCustomerSegments] = useState<CustomerSegment[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [newCoupon, setNewCoupon] = useState({
     code: "",
-    startDate: "",
-    endDate: "",
+    type: "percentage",
+    value: 0,
+    minimumAmount: 0,
+    validFrom: "",
+    validUntil: "",
     usageLimit: "",
-    targetSegment: "all"
   });
+  
   const [newsletterContent, setNewsletterContent] = useState({
     subject: "",
     content: "",
     targetSegment: "all"
   });
+
+  useEffect(() => {
+    fetchMarketingData();
+  }, []);
+
+  const fetchMarketingData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch newsletter subscriptions
+      const { data: newsletters, error: newsletterError } = await supabase
+        .from('newsletter_subscriptions')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (newsletterError) throw newsletterError;
+
+      // Fetch discount coupons
+      const { data: coupons, error: couponsError } = await supabase
+        .from('discount_coupons')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (couponsError) throw couponsError;
+
+      // Generate customer segments from profiles and orders
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, created_at');
+
+      if (profilesError) throw profilesError;
+
+      const { data: orders, error: ordersError } = await supabase
+        .from('orders')
+        .select('user_id, amount, created_at, status');
+
+      if (ordersError) throw ordersError;
+
+      // Calculate customer segments
+      const totalCustomers = profiles?.length || 0;
+      const newCustomers = profiles?.filter(p => {
+        const createdDate = new Date(p.created_at);
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        return createdDate > thirtyDaysAgo;
+      }).length || 0;
+
+      const customerSpending = orders?.reduce((acc: Record<string, number>, order) => {
+        if (order.user_id && ['paid', 'processing', 'shipped', 'delivered'].includes(order.status)) {
+          acc[order.user_id] = (acc[order.user_id] || 0) + (order.amount / 100);
+        }
+        return acc;
+      }, {}) || {};
+
+      const vipCustomers = Object.values(customerSpending).filter(amount => amount > 300).length;
+      
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      const recentOrderUserIds = new Set(orders?.filter(o => new Date(o.created_at) > sixMonthsAgo).map(o => o.user_id));
+      const inactiveCustomers = Math.max(0, totalCustomers - recentOrderUserIds.size);
+
+      const segments: CustomerSegment[] = [
+        { id: "vip", name: "Clients VIP", count: vipCustomers, criteria: "Plus de 300€ d'achats" },
+        { id: "new", name: "Nouveaux clients", count: newCustomers, criteria: "Inscrits dans les 30 derniers jours" },
+        { id: "inactive", name: "Clients inactifs", count: inactiveCustomers, criteria: "Aucun achat depuis 6 mois" },
+        { id: "all", name: "Tous les clients", count: totalCustomers, criteria: "Tous les clients enregistrés" }
+      ];
+
+      setNewsletterSubscriptions(newsletters || []);
+      setDiscountCoupons(coupons || []);
+      setCustomerSegments(segments);
+      
+    } catch (error) {
+      console.error('Error fetching marketing data:', error);
+      toast.error('Erreur lors du chargement des données marketing');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -118,34 +186,45 @@ const AdminMarketing = () => {
     }
   };
 
-  const handleCreateDiscount = () => {
-    if (!newCampaign.name || !newCampaign.code || !newCampaign.discount) {
+  const handleCreateCoupon = async () => {
+    if (!newCoupon.code || !newCoupon.value) {
       toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
 
-    const campaign = {
-      id: Date.now(),
-      ...newCampaign,
-      type: "discount",
-      status: "active",
-      usageCount: 0,
-      revenue: 0,
-      usageLimit: newCampaign.usageLimit ? Number(newCampaign.usageLimit) : null
-    };
+    try {
+      const { data, error } = await supabase
+        .from('discount_coupons')
+        .insert({
+          code: newCoupon.code.toUpperCase(),
+          type: newCoupon.type,
+          value: newCoupon.value,
+          minimum_order_amount: newCoupon.minimumAmount || null,
+          valid_from: newCoupon.validFrom || new Date().toISOString(),
+          valid_until: newCoupon.validUntil || null,
+          usage_limit: newCoupon.usageLimit ? Number(newCoupon.usageLimit) : null,
+          is_active: true
+        })
+        .select()
+        .single();
 
-    setCampaigns([...campaigns, campaign]);
-    setNewCampaign({
-      name: "",
-      type: "discount",
-      discount: 0,
-      code: "",
-      startDate: "",
-      endDate: "",
-      usageLimit: "",
-      targetSegment: "all"
-    });
-    toast.success("Code de réduction créé avec succès");
+      if (error) throw error;
+
+      setDiscountCoupons([data, ...discountCoupons]);
+      setNewCoupon({
+        code: "",
+        type: "percentage",
+        value: 0,
+        minimumAmount: 0,
+        validFrom: "",
+        validUntil: "",
+        usageLimit: "",
+      });
+      toast.success("Code de réduction créé avec succès");
+    } catch (error) {
+      console.error('Error creating coupon:', error);
+      toast.error('Erreur lors de la création du code de réduction');
+    }
   };
 
   const handleSendNewsletter = () => {
@@ -154,31 +233,53 @@ const AdminMarketing = () => {
       return;
     }
 
-    const targetCount = newsletterContent.targetSegment === "all" ? 156 : 
-                       mockCustomerSegments.find(s => s.id.toString() === newsletterContent.targetSegment)?.count || 0;
+    const targetSegment = customerSegments.find(s => s.id === newsletterContent.targetSegment);
+    const targetCount = targetSegment ? targetSegment.count : newsletterSubscriptions.length;
 
-    const newsletter = {
-      id: Date.now(),
-      name: newsletterContent.subject,
-      type: "newsletter",
-      status: "sent",
-      sentTo: targetCount,
-      openRate: 0,
-      clickRate: 0,
-      sentDate: new Date().toISOString().split('T')[0]
-    };
-
-    setCampaigns([...campaigns, newsletter]);
+    toast.success(`Newsletter programmée pour ${targetCount} destinataires`);
     setNewsletterContent({ subject: "", content: "", targetSegment: "all" });
-    toast.success(`Newsletter envoyée à ${targetCount} clients`);
   };
 
   const generateCode = () => {
-    const code = newCampaign.name.toUpperCase().replace(/\s+/g, '').slice(0, 8) + newCampaign.discount;
-    setNewCampaign({...newCampaign, code});
+    const randomCode = 'PROMO' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    setNewCoupon({...newCoupon, code: randomCode});
   };
 
-  const DiscountDialog = () => (
+  const deleteCoupon = async (couponId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce code de réduction ?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('discount_coupons')
+        .delete()
+        .eq('id', couponId);
+
+      if (error) throw error;
+
+      setDiscountCoupons(discountCoupons.filter(c => c.id !== couponId));
+      toast.success('Code de réduction supprimé');
+    } catch (error) {
+      console.error('Error deleting coupon:', error);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-serif font-semibold text-stone-800">
+              Marketing et promotions
+            </h2>
+            <p className="text-stone-600">Chargement...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const CouponDialog = () => (
     <DialogContent className="max-w-2xl">
       <DialogHeader>
         <DialogTitle>Créer un code de réduction</DialogTitle>
@@ -190,97 +291,94 @@ const AdminMarketing = () => {
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="campaignName">Nom de la campagne *</Label>
-            <Input
-              id="campaignName"
-              value={newCampaign.name}
-              onChange={(e) => setNewCampaign({...newCampaign, name: e.target.value})}
-              placeholder="ex: Promotion Été 2024"
-            />
+            <Label htmlFor="couponCode">Code promo *</Label>
+            <div className="flex gap-2">
+              <Input
+                id="couponCode"
+                value={newCoupon.code}
+                onChange={(e) => setNewCoupon({...newCoupon, code: e.target.value.toUpperCase()})}
+                placeholder="PROMO15"
+                className="flex-1"
+              />
+              <Button variant="outline" onClick={generateCode}>
+                Générer
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="discount">Réduction (%) *</Label>
+            <Label htmlFor="couponValue">Valeur *</Label>
             <Input
-              id="discount"
+              id="couponValue"
               type="number"
               min="1"
-              max="50"
-              value={newCampaign.discount}
-              onChange={(e) => setNewCampaign({...newCampaign, discount: Number(e.target.value)})}
+              value={newCoupon.value}
+              onChange={(e) => setNewCoupon({...newCoupon, value: Number(e.target.value)})}
               placeholder="15"
             />
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="code">Code promo *</Label>
-          <div className="flex gap-2">
-            <Input
-              id="code"
-              value={newCampaign.code}
-              onChange={(e) => setNewCampaign({...newCampaign, code: e.target.value.toUpperCase()})}
-              placeholder="PROMO15"
-              className="flex-1"
-            />
-            <Button variant="outline" onClick={generateCode}>
-              Générer
-            </Button>
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="startDate">Date de début</Label>
-            <Input
-              id="startDate"
-              type="date"
-              value={newCampaign.startDate}
-              onChange={(e) => setNewCampaign({...newCampaign, startDate: e.target.value})}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="endDate">Date de fin</Label>
-            <Input
-              id="endDate"
-              type="date"
-              value={newCampaign.endDate}
-              onChange={(e) => setNewCampaign({...newCampaign, endDate: e.target.value})}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="usageLimit">Limite d'utilisation</Label>
-            <Input
-              id="usageLimit"
-              type="number"
-              value={newCampaign.usageLimit}
-              onChange={(e) => setNewCampaign({...newCampaign, usageLimit: e.target.value})}
-              placeholder="100 (optionnel)"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="targetSegment">Public cible</Label>
+            <Label htmlFor="couponType">Type</Label>
             <select 
-              value={newCampaign.targetSegment}
-              onChange={(e) => setNewCampaign({...newCampaign, targetSegment: e.target.value})}
+              value={newCoupon.type}
+              onChange={(e) => setNewCoupon({...newCoupon, type: e.target.value})}
               className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-500"
             >
-              <option value="all">Tous les clients</option>
-              {mockCustomerSegments.map(segment => (
-                <option key={segment.id} value={segment.id.toString()}>
-                  {segment.name} ({segment.count})
-                </option>
-              ))}
+              <option value="percentage">Pourcentage (%)</option>
+              <option value="fixed">Montant fixe (€)</option>
             </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="minimumAmount">Montant minimum (€)</Label>
+            <Input
+              id="minimumAmount"
+              type="number"
+              min="0"
+              value={newCoupon.minimumAmount}
+              onChange={(e) => setNewCoupon({...newCoupon, minimumAmount: Number(e.target.value)})}
+              placeholder="50"
+            />
           </div>
         </div>
 
-        <Button onClick={handleCreateDiscount} className="w-full bg-olive-700 hover:bg-olive-800">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="validFrom">Date de début</Label>
+            <Input
+              id="validFrom"
+              type="date"
+              value={newCoupon.validFrom}
+              onChange={(e) => setNewCoupon({...newCoupon, validFrom: e.target.value})}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="validUntil">Date de fin</Label>
+            <Input
+              id="validUntil"
+              type="date"
+              value={newCoupon.validUntil}
+              onChange={(e) => setNewCoupon({...newCoupon, validUntil: e.target.value})}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="usageLimit">Limite d'utilisation</Label>
+          <Input
+            id="usageLimit"
+            type="number"
+            value={newCoupon.usageLimit}
+            onChange={(e) => setNewCoupon({...newCoupon, usageLimit: e.target.value})}
+            placeholder="100 (optionnel)"
+          />
+        </div>
+
+        <Button onClick={handleCreateCoupon} className="w-full bg-olive-700 hover:bg-olive-800">
           <Percent className="h-4 w-4 mr-2" />
           Créer le code de réduction
         </Button>
@@ -326,9 +424,9 @@ const AdminMarketing = () => {
             onChange={(e) => setNewsletterContent({...newsletterContent, targetSegment: e.target.value})}
             className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-500"
           >
-            <option value="all">Tous les clients (156)</option>
-            {mockCustomerSegments.map(segment => (
-              <option key={segment.id} value={segment.id.toString()}>
+            <option value="all">Tous les clients ({newsletterSubscriptions.length})</option>
+            {customerSegments.map(segment => (
+              <option key={segment.id} value={segment.id}>
                 {segment.name} ({segment.count})
               </option>
             ))}
@@ -375,7 +473,7 @@ const AdminMarketing = () => {
               </CardContent>
             </Card>
           </DialogTrigger>
-          <DiscountDialog />
+          <CouponDialog />
         </Dialog>
 
         <Dialog>
@@ -411,7 +509,7 @@ const AdminMarketing = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {mockCustomerSegments.map((segment) => (
+            {customerSegments.map((segment) => (
               <div key={segment.id} className="p-4 border border-stone-200 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium text-stone-800">{segment.name}</h4>
@@ -421,88 +519,78 @@ const AdminMarketing = () => {
               </div>
             ))}
           </div>
+          
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="font-medium text-blue-800 mb-2">Newsletter</h4>
+            <p className="text-sm text-blue-700">{newsletterSubscriptions.length} abonnés actifs à votre newsletter</p>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Active Campaigns */}
+      {/* Active Discount Coupons */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center">
-              <Megaphone className="h-5 w-5 mr-2 text-olive-600" />
-              Campagnes actives
+              <Percent className="h-5 w-5 mr-2 text-olive-600" />
+              Codes de réduction
             </div>
-            <Badge variant="outline">{campaigns.filter(c => c.status === 'active').length} actives</Badge>
+            <Badge variant="outline">{discountCoupons.filter(c => c.is_active).length} actifs</Badge>
           </CardTitle>
           <CardDescription>
-            Vos promotions et newsletters en cours
+            Vos codes promotionnels et leur utilisation
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {campaigns.map((campaign) => (
-              <div key={campaign.id} className="p-4 border border-stone-200 rounded-lg">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3">
-                    <div className="p-2 bg-stone-100 rounded-lg">
-                      {getCampaignIcon(campaign.type)}
-                    </div>
+            {discountCoupons.length === 0 ? (
+              <div className="text-center py-8 text-stone-600">
+                Aucun code de réduction créé. Créez votre premier code pour stimuler les ventes.
+              </div>
+            ) : (
+              discountCoupons.map((coupon) => (
+                <div key={coupon.id} className="p-4 border border-stone-200 rounded-lg">
+                  <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <h4 className="font-medium text-stone-800">{campaign.name}</h4>
-                        <Badge className={getStatusColor(campaign.status)}>
-                          {getStatusText(campaign.status)}
+                      <div className="flex items-center space-x-2 mb-2">
+                        <h4 className="font-medium text-stone-800">
+                          Code: <span className="font-mono bg-stone-100 px-2 py-1 rounded">{coupon.code}</span>
+                        </h4>
+                        <Badge className={coupon.is_active ? "bg-green-100 text-green-800 border-green-200" : "bg-stone-100 text-stone-800 border-stone-200"}>
+                          {coupon.is_active ? "Actif" : "Inactif"}
                         </Badge>
                       </div>
                       
-                      {campaign.type === "discount" && (
-                        <div className="space-y-1">
+                      <div className="space-y-1">
+                        <p className="text-sm text-stone-600">
+                          {coupon.type === 'percentage' ? `${coupon.value}% de réduction` : `${coupon.value}€ de réduction`}
+                          {coupon.minimum_order_amount && ` • Minimum ${coupon.minimum_order_amount}€`}
+                        </p>
+                        <p className="text-sm text-stone-600">
+                          Utilisé {coupon.usage_count} fois
+                          {coupon.usage_limit && ` / ${coupon.usage_limit}`}
+                        </p>
+                        {coupon.valid_until && (
                           <p className="text-sm text-stone-600">
-                            Code: <span className="font-mono bg-stone-100 px-2 py-1 rounded">{campaign.code}</span>
-                            • Réduction: {campaign.discount}%
+                            Expire le: {new Date(coupon.valid_until).toLocaleDateString('fr-FR')}
                           </p>
-                          <p className="text-sm text-stone-600">
-                            Utilisé {campaign.usageCount} fois
-                            {campaign.usageLimit && ` / ${campaign.usageLimit}`}
-                            • Revenus générés: {campaign.revenue}€
-                          </p>
-                          {campaign.endDate && (
-                            <p className="text-sm text-stone-600">
-                              Fin: {new Date(campaign.endDate).toLocaleDateString('fr-FR')}
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {campaign.type === "newsletter" && (
-                        <div className="space-y-1">
-                          <p className="text-sm text-stone-600">
-                            Envoyée à {campaign.sentTo} clients
-                          </p>
-                          <div className="flex space-x-4 text-sm">
-                            <span className="text-green-600">
-                              📈 Taux d'ouverture: {campaign.openRate}%
-                            </span>
-                            <span className="text-blue-600">
-                              🔗 Taux de clic: {campaign.clickRate}%
-                            </span>
-                          </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteCoupon(coupon.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
