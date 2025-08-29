@@ -85,7 +85,7 @@ export const ProductAnalytics: React.FC = () => {
           hourlyDistribution[hour]++;
           
         } catch (error) {
-          console.error('Error processing search log:', error);
+          // Silent error handling for production
         }
       });
 

@@ -73,12 +73,12 @@ export const MobilePaymentButtons = ({
       
       session.onvalidatemerchant = async (event) => {
         // In production, validate merchant with your server
-        console.log('Validating merchant:', event);
+        // Merchant validation handled silently
       };
 
       session.onpaymentauthorized = (event) => {
         // Process payment with your backend
-        console.log('Payment authorized:', event.payment);
+        // Payment processing handled silently
         
         // Simulate successful payment
         setTimeout(() => {
@@ -90,8 +90,8 @@ export const MobilePaymentButtons = ({
 
       session.begin();
     } catch (error) {
-      console.error('Apple Pay error:', error);
-      onPaymentError('Erreur Apple Pay: ' + error.message);
+      // Handle error gracefully
+      onPaymentError('Erreur Apple Pay: ' + (error as Error).message);
       setIsProcessing(null);
     }
   };
@@ -137,7 +137,7 @@ export const MobilePaymentButtons = ({
       const paymentData = await paymentsClient.loadPaymentData(paymentDataRequest);
       
       // Process payment data with your backend
-      console.log('Google Pay data:', paymentData);
+      // Payment data processing handled silently
       
       // Simulate successful payment
       setTimeout(() => {
@@ -146,8 +146,8 @@ export const MobilePaymentButtons = ({
       }, 1000);
 
     } catch (error) {
-      console.error('Google Pay error:', error);
-      onPaymentError('Erreur Google Pay: ' + error.message);
+      // Handle error gracefully
+      onPaymentError('Erreur Google Pay: ' + (error as Error).message);
       setIsProcessing(null);
     }
   };

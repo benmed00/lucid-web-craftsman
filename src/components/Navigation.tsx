@@ -25,9 +25,9 @@ const Navigation = () => {
     try {
       await signOut();
       setIsMenuOpen(false);
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
+      } catch (error) {
+        // Silent error handling for production
+      }
   };
 
   const handleSearch = (e: React.FormEvent) => {

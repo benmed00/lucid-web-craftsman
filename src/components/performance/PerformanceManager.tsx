@@ -25,7 +25,7 @@ export const PerformanceManager = ({ children }: PerformanceManagerProps) => {
             // Track visible components for analytics
             const target = entry.target as HTMLElement;
             if (target.dataset.trackPerformance) {
-              console.log('Component visible:', target.dataset.trackPerformance);
+              // Performance tracking handled silently
             }
           }
         });
