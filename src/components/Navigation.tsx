@@ -42,8 +42,8 @@ const Navigation = () => {
 
 
   return (
-    <nav className="bg-white/95 backdrop-blur-sm sticky top-0 z-40 border-b border-stone-100 shadow-sm">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+    <nav className="bg-white sticky top-0 z-40 border-b border-stone-100 shadow-sm transition-none">
+      <div className="container mx-auto px-4 py-4 flex justify-between items-center transition-none">
       <div className="flex items-center space-x-2">
           <Link to="/" className="group">
             <div className="flex items-center space-x-2 md:space-x-3">
@@ -66,25 +66,25 @@ const Navigation = () => {
       <div className="hidden md:flex space-x-6">
         <Link
           to="/"
-          className="text-stone-700 hover:text-stone-900 transition-colors"
+          className="text-stone-700 hover:text-stone-900 transition-colors duration-150"
         >
           Accueil
         </Link>
         <Link
           to="/products"
-          className="text-stone-700 hover:text-stone-900 transition-colors"
+          className="text-stone-700 hover:text-stone-900 transition-colors duration-150"
         >
           Boutique
         </Link>
         <Link
           to="/blog"
-          className="text-stone-700 hover:text-stone-900 transition-colors"
+          className="text-stone-700 hover:text-stone-900 transition-colors duration-150"
         >
           Blog
         </Link>
         <Link
           to="/contact"
-          className="text-stone-700 hover:text-stone-900 transition-colors"
+          className="text-stone-700 hover:text-stone-900 transition-colors duration-150"
         >
           Contact
         </Link>
@@ -235,13 +235,13 @@ const Navigation = () => {
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 animate-fade-in"
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
           onClick={() => setIsMenuOpen(false)}
         />
       )}
 
       {/* Mobile Menu */}
-      <div className={`md:hidden absolute top-full left-0 right-0 bg-white shadow-xl z-50 border-t border-stone-100 transition-all duration-300 max-h-[90vh] overflow-y-auto ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
+      <div className={`md:hidden absolute top-full left-0 right-0 bg-white shadow-xl z-50 border-t border-stone-100 transform transition-transform duration-200 ease-out max-h-[90vh] overflow-y-auto ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'}`}>
           <div className="flex flex-col space-y-3 p-6 pb-8">
             {/* Mobile Search */}
             <div className="mb-4">
@@ -261,35 +261,35 @@ const Navigation = () => {
 
             <Link
               to="/"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-5 px-5 rounded-xl font-medium flex items-center gap-4 group touch-manipulation min-h-[56px]"
+              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
               onClick={() => setIsMenuOpen(false)}
             >
               <span className="text-2xl">🏠</span>
-              <span className="group-hover:translate-x-1 transition-transform duration-200 text-lg">Accueil</span>
+              <span className="text-lg">Accueil</span>
             </Link>
             <Link
               to="/products"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-5 px-5 rounded-xl font-medium flex items-center gap-4 group touch-manipulation min-h-[56px]"
+              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
               onClick={() => setIsMenuOpen(false)}
             >
               <span className="text-2xl">🛍️</span>
-              <span className="group-hover:translate-x-1 transition-transform duration-200 text-lg">Boutique</span>
+              <span className="text-lg">Boutique</span>
             </Link>
             <Link
               to="/blog"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-5 px-5 rounded-xl font-medium flex items-center gap-4 group touch-manipulation min-h-[56px]"
+              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
               onClick={() => setIsMenuOpen(false)}
             >
               <span className="text-2xl">📖</span>
-              <span className="group-hover:translate-x-1 transition-transform duration-200 text-lg">Blog</span>
+              <span className="text-lg">Blog</span>
             </Link>
             <Link
               to="/contact"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 active:bg-olive-100 transition-all duration-200 py-5 px-5 rounded-xl font-medium flex items-center gap-4 group touch-manipulation min-h-[56px]"
+              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
               onClick={() => setIsMenuOpen(false)}
             >
               <span className="text-2xl">💬</span>
-              <span className="group-hover:translate-x-1 transition-transform duration-200 text-lg">Contact</span>
+              <span className="text-lg">Contact</span>
             </Link>
 
             {/* Currency Selector - Mobile */}

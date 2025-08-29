@@ -116,19 +116,48 @@
 @layer base {
   * {
     @apply border-border;
+    /* Prevent flickering by disabling smooth scroll during page transitions */
+    scroll-behavior: auto !important;
   }
 
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Prevent layout shifts and optimize performance */
+    overflow-x: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
   }
   
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
 @layer utilities {
+  /* Prevent flickering during page transitions */
+  .transition-none {
+    transition: none !important;
+  }
+  
+  .no-flicker {
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    will-change: auto;
+  }
+
   .aspect-w-1 {
     position: relative;
     padding-bottom: calc(var(--tw-aspect-h) / var(--tw-aspect-w) * 100%);
@@ -292,9 +321,9 @@
   transform: rotate(5deg);
 }
 
-/* Smooth scrolling */
+/* Smooth scrolling - disabled to prevent flickering */
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
 }
 
 /* Loading skeleton */
