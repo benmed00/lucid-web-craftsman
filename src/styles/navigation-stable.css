@@ -5,9 +5,6 @@
 /* Critical MIME type and performance declarations */
 @charset "UTF-8";
 
-/* Force proper CSS loading */
-@layer components {
-  
 /* =================================================================
    CONTAINER STABILIZATION - PREVENT ALL LAYOUT SHIFTS
    ================================================================= */
@@ -341,8 +338,6 @@
     -moz-backface-visibility: hidden;
   }
 }
-
-} /* End @layer components */
 
 /* =================================================================
    CRITICAL PERFORMANCE RULES - HIGHEST PRIORITY
