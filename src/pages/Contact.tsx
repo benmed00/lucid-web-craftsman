@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import SEOHelmet from "@/components/seo/SEOHelmet";
 import {
   Mail,
   MapPin,
@@ -119,6 +120,13 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-olive-50 to-stone-100">
+      <SEOHelmet
+        title="Nous Contacter - Rif Raw Straw"
+        description="Contactez notre équipe d'experts pour toute question sur nos produits artisanaux berbères. Réponse sous 24h."
+        keywords={["contact", "support", "artisanat marocain", "service client"]}
+        url="/contact"
+        type="website"
+      />
       <Navigation />
 
       {/* Hero Section */}

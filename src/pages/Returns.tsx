@@ -1,9 +1,17 @@
 import { Link } from "react-router-dom";
+import SEOHelmet from "@/components/seo/SEOHelmet";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 
 const Returns = () => (
   <div className="min-h-screen bg-white flex flex-col">
+    <SEOHelmet
+      title="Retours & Remboursements - Rif Raw Straw"
+      description="Politique de retour et remboursement pour vos achats d'artisanat marocain. 14 jours pour retourner vos articles."
+      keywords={["retours", "remboursements", "politique", "garantie"]}
+      url="/returns"
+      type="website"
+    />
     <Navigation />
     <main className="flex-1 container mx-auto px-4 py-12">
       <h1 className="text-3xl font-serif font-semibold text-olive-700 mb-6">

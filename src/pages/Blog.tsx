@@ -2,6 +2,7 @@
 import { CalendarIcon, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
+import SEOHelmet from "@/components/seo/SEOHelmet";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,13 @@ const Blog = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEOHelmet
+        title="Journal de l'Artisanat - Blog | Rif Raw Straw"
+        description="Découvrez les histoires derrière nos créations, rencontrez nos artisans, et plongez dans la richesse de l'artisanat marocain."
+        keywords={["blog artisanat", "histoires artisans", "savoir-faire traditionnel", "culture berbère"]}
+        url="/blog"
+        type="website"
+      />
       <Navigation />
 
       {/* Page Header */}

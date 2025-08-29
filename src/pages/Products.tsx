@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Loader2, TrendingUp, BarChart3 } from "lucide-react";
 import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
 import { ProductRecommendations } from "@/components/ProductRecommendations";
+import SEOHelmet from "@/components/seo/SEOHelmet";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -209,6 +210,13 @@ const Products = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEOHelmet
+        title="Nos Créations Artisanales - Sacs et Chapeaux Berbères | Rif Raw Straw"
+        description="Découvrez notre collection unique d'accessoires berbères, confectionnés à la main par des artisans passionnés des montagnes du Rif."
+        keywords={["produits artisanaux", "sacs berbères", "chapeaux paille", "artisanat marocain", "accessoires fait main"]}
+        url="/products"
+        type="website"
+      />
       <Navigation />
 
       {/* Hero Banner */}

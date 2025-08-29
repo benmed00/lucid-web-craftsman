@@ -1,8 +1,16 @@
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
+import SEOHelmet from "@/components/seo/SEOHelmet";
 
 const Story = () => (
   <div className="min-h-screen bg-white flex flex-col">
+    <SEOHelmet
+      title="Notre Histoire - Rif Raw Straw"
+      description="Découvrez l'histoire de Rif Raw Straw, notre passion pour l'artisanat berbère et notre quête de valoriser le fait-main authentique."
+      keywords={["histoire", "artisanat berbère", "fait-main", "authenticité", "tradition"]}
+      url="/story"
+      type="website"
+    />
     <Navigation />
     <main className="flex-1 container mx-auto px-4 py-12">
       <div className="max-w-3xl mx-auto bg-beige-100 rounded-lg shadow p-8">
