@@ -90,14 +90,49 @@
                 url.includes('register-conversion')) {
               return Promise.resolve(new Response('{}', { status: 204 }));
             }
-            // Block excessive Sentry requests (90% of them to reduce spam)
-            if (url.includes('sentry.io') && Math.random() < 0.9) {
+            // Block excessive Sentry requests (95% of them to reduce spam)
+            if (url.includes('sentry.io') && Math.random() < 0.95) {
               return Promise.resolve(new Response('{}', { status: 204 }));
             }
           }
           return originalFetch.apply(this, args);
         };
       }
+
+      // Block postMessage spam
+      const originalPostMessage = window.postMessage;
+      let postMessageCount = 0;
+      const postMessageLimit = 10;
+      const resetInterval = 1000; // 1 second
+      
+      window.postMessage = function(...args) {
+        postMessageCount++;
+        if (postMessageCount > postMessageLimit) {
+          // Silently drop excessive postMessage calls
+          return;
+        }
+        return originalPostMessage.apply(this, args);
+      };
+      
+      // Reset counter periodically
+      setInterval(() => {
+        postMessageCount = 0;
+      }, resetInterval);
+
+      // Suppress feature detection warnings
+      const originalConsoleWarn = console.warn;
+      console.warn = function(...args) {
+        const message = args[0];
+        if (typeof message === 'string' && 
+            (message.includes('Unrecognized feature') || 
+             message.includes('vr') || 
+             message.includes('ambient-light-sensor') || 
+             message.includes('battery'))) {
+          // Suppress these warnings
+          return;
+        }
+        return originalConsoleWarn.apply(this, args);
+      };
     </script>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>

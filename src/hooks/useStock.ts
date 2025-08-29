@@ -36,7 +36,8 @@ export function useStock(options: UseStockOptions = {}): any {
   useEffect(() => {
     if (!enabled) return;
 
-    const fetchStockInfo = async () => {
+    // Debounce requests to prevent rapid-fire calls
+    const timeoutId = setTimeout(async () => {
       setLoading(true);
       setError(null);
 
@@ -59,10 +60,10 @@ export function useStock(options: UseStockOptions = {}): any {
       } finally {
         setLoading(false);
       }
-    };
+    }, 50); // Small debounce delay
 
-    fetchStockInfo();
-  }, [productId, productIds, enabled]);
+    return () => clearTimeout(timeoutId);
+  }, [productId, productIds?.join(','), enabled]); // Use join for stable dependency
 
   const canOrderQuantity = async (productId: number, quantity: number) => {
     try {

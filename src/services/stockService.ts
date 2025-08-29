@@ -19,6 +19,10 @@ export interface StockUpdate {
 
 export class StockService {
   private static instance: StockService;
+  private cache = new Map<string, { data: StockInfo; timestamp: number }>();
+  private multiCache = new Map<string, { data: Record<number, StockInfo>; timestamp: number }>();
+  private pendingRequests = new Map<string, Promise<any>>();
+  private readonly CACHE_DURATION = 30000; // 30 seconds
 
   static getInstance(): StockService {
     if (!StockService.instance) {
@@ -27,10 +31,57 @@ export class StockService {
     return StockService.instance;
   }
 
+  private getCacheKey(productId: number): string {
+    return `stock_${productId}`;
+  }
+
+  private getMultiCacheKey(productIds: number[]): string {
+    return `stock_multi_${productIds.sort().join('_')}`;
+  }
+
+  private isCacheValid(timestamp: number): boolean {
+    return Date.now() - timestamp < this.CACHE_DURATION;
+  }
+
   /**
    * Get stock information for a product
    */
   async getStockInfo(productId: number): Promise<StockInfo | null> {
+    const cacheKey = this.getCacheKey(productId);
+    
+    // Check cache first
+    const cached = this.cache.get(cacheKey);
+    if (cached && this.isCacheValid(cached.timestamp)) {
+      return cached.data;
+    }
+
+    // Check for pending request
+    if (this.pendingRequests.has(cacheKey)) {
+      return await this.pendingRequests.get(cacheKey);
+    }
+
+    // Create new request
+    const requestPromise = this.fetchSingleStockInfo(productId);
+    this.pendingRequests.set(cacheKey, requestPromise);
+
+    try {
+      const result = await requestPromise;
+      
+      // Cache result
+      if (result) {
+        this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
+      }
+      
+      return result;
+    } catch (error) {
+      throw error;
+    } finally {
+      // Clean up pending request
+      this.pendingRequests.delete(cacheKey);
+    }
+  }
+
+  private async fetchSingleStockInfo(productId: number): Promise<StockInfo | null> {
     try {
       const { data, error } = await supabase
         .from('products')
@@ -57,6 +108,39 @@ export class StockService {
    * Get stock information for multiple products
    */
   async getMultipleStockInfo(productIds: number[]): Promise<Record<number, StockInfo>> {
+    const cacheKey = this.getMultiCacheKey(productIds);
+    
+    // Check cache first
+    const cached = this.multiCache.get(cacheKey);
+    if (cached && this.isCacheValid(cached.timestamp)) {
+      return cached.data;
+    }
+
+    // Check for pending request
+    if (this.pendingRequests.has(cacheKey)) {
+      return await this.pendingRequests.get(cacheKey);
+    }
+
+    // Create new request
+    const requestPromise = this.fetchMultipleStockInfo(productIds);
+    this.pendingRequests.set(cacheKey, requestPromise);
+
+    try {
+      const result = await requestPromise;
+      
+      // Cache result
+      this.multiCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      
+      return result;
+    } catch (error) {
+      throw error;
+    } finally {
+      // Clean up pending request
+      this.pendingRequests.delete(cacheKey);
+    }
+  }
+
+  private async fetchMultipleStockInfo(productIds: number[]): Promise<Record<number, StockInfo>> {
     try {
       const { data, error } = await supabase
         .from('products')
@@ -238,10 +322,37 @@ export class StockService {
 
       if (updateError) throw updateError;
 
+      // Invalidate cache for this product
+      this.invalidateProductCache(update.productId);
+
     } catch (error) {
       console.error('Error updating stock:', error);
       throw error;
     }
+  }
+
+  /**
+   * Invalidate cache for a specific product
+   */
+  private invalidateProductCache(productId: number): void {
+    const cacheKey = this.getCacheKey(productId);
+    this.cache.delete(cacheKey);
+    
+    // Also invalidate any multi-cache entries that include this product
+    for (const [key] of this.multiCache.entries()) {
+      if (key.includes(`_${productId}_`) || key.endsWith(`_${productId}`) || key.startsWith(`stock_multi_${productId}_`)) {
+        this.multiCache.delete(key);
+      }
+    }
+  }
+
+  /**
+   * Clear all cache entries (useful for testing or when needed)
+   */
+  public clearCache(): void {
+    this.cache.clear();
+    this.multiCache.clear();
+    this.pendingRequests.clear();
   }
 
   /**
