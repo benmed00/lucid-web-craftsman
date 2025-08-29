@@ -159,6 +159,9 @@ class ImageService {
   async getOptimizedSource(originalSrc: string, category: ImageCategory = 'default'): Promise<string> {
     const normalizedSrc = this.normalizeUrl(originalSrc);
     
+    // Clear cache for this specific image to ensure fresh loading
+    this.imageCache.delete(normalizedSrc);
+    
     // Try original source first
     const isOriginalValid = await this.checkImage(normalizedSrc);
     if (isOriginalValid) {

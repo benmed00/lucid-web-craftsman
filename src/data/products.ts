@@ -30,7 +30,7 @@ export const products: Product[] = [
     name: "Chapeau de Paille Berbère",
     price: 45,
     images: [
-      "/assets/images/products/chapeau_de_paille_berbere.jpg",
+      "/assets/images/produits_phares/chapeau_a_large_bord.webp",
       "/assets/images/chapeau_de_paille_berbere_2.jpg",
     ],
     category: "Chapeaux",
@@ -46,7 +46,7 @@ export const products: Product[] = [
     name: "Pochette Brodée à la Main",
     price: 62,
     images: [
-      "/assets/images/sacs/sac_traditionnel_vue2.jpg",
+      "/assets/images/produits_phares/sac_bandouliere.webp",
     ],
     category: "Sacs",
     description:
@@ -61,7 +61,7 @@ export const products: Product[] = [
     name: "Cabas en Fibres Naturelles",
     price: 75,
     images: [
-      "/assets/images/sacs/sac_traditionnel.jpg",
+      "/assets/images/produits_phares/sac_tresse_naturel.jpeg",
     ],
     category: "Sacs",
     description:
