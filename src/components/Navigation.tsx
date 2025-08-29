@@ -2,7 +2,7 @@
 import { Leaf, Menu, ShoppingBag, X, User, LogOut, Heart, ShoppingCart, Package, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import clsx from "clsx";
 import { useCartUI } from "../context/useCartUI";
 import { useState, useCallback } from "react";
@@ -18,6 +18,7 @@ const Navigation = () => {
   const { user, isLoading, signOut } = useAuth();
   const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -61,32 +62,36 @@ const Navigation = () => {
         </div>
 
       {/* Desktop Navigation */}
-      <div className="hidden md:flex space-x-6">
+      <nav className="hidden md:flex space-x-6" role="navigation" aria-label="Navigation principale">
         <Link
           to="/"
-          className="text-stone-700 hover:text-stone-900 transition-colors duration-150"
+          className="relative text-stone-700 hover:text-stone-900 transition-colors duration-150 py-2 px-1 nav-link"
+          aria-current={location.pathname === "/" ? "page" : undefined}
         >
-          Accueil
+          <span>Accueil</span>
         </Link>
         <Link
           to="/products"
-          className="text-stone-700 hover:text-stone-900 transition-colors duration-150"
+          className="relative text-stone-700 hover:text-stone-900 transition-colors duration-150 py-2 px-1 nav-link"
+          aria-current={location.pathname === "/products" ? "page" : undefined}
         >
-          Boutique
+          <span>Boutique</span>
         </Link>
         <Link
           to="/blog"
-          className="text-stone-700 hover:text-stone-900 transition-colors duration-150"
+          className="relative text-stone-700 hover:text-stone-900 transition-colors duration-150 py-2 px-1 nav-link"
+          aria-current={location.pathname === "/blog" ? "page" : undefined}
         >
-          Blog
+          <span>Blog</span>
         </Link>
         <Link
           to="/contact"
-          className="text-stone-700 hover:text-stone-900 transition-colors duration-150"
+          className="relative text-stone-700 hover:text-stone-900 transition-colors duration-150 py-2 px-1 nav-link"
+          aria-current={location.pathname === "/contact" ? "page" : undefined}
         >
-          Contact
+          <span>Contact</span>
         </Link>
-      </div>
+      </nav>
 
       <div className="flex items-center gap-3">
         {/* Search Button - Desktop */}
