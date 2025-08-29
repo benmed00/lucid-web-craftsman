@@ -1,14 +1,12 @@
 import React from 'react';
 import './index.css';
 
-console.log('App.minimal.tsx loaded');
-console.log('React object:', React);
-console.log('React.useState:', React.useState);
+// Production build - logging disabled
 
 const App = () => {
   const [test] = React.useState('working');
   
-  console.log('App component rendered, test state:', test);
+  // Component rendering - logging disabled for production
   
   return (
     <div className="p-8">

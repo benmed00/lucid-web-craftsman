@@ -3,9 +3,7 @@ import './index.css';
 
 // Cache buster component - completely new file
 const AppNew = () => {
-  console.log('AppNew.tsx loaded - cache buster active');
-  console.log('React check:', !!React);
-  console.log('useState check:', !!React.useState);
+  // Production build - logging disabled
   
   const [status] = React.useState('✅ Working!');
   

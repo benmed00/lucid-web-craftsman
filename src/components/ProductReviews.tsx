@@ -70,7 +70,7 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
       setReviews(data || []);
       calculateStats(data || []);
     } catch (error) {
-      console.error('Error fetching reviews:', error);
+      // Silent error handling for production
     } finally {
       setLoading(false);
     }
@@ -128,7 +128,7 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
       setShowReviewForm(false);
       setReviewForm({ rating: 5, title: '', comment: '' });
     } catch (error) {
-      console.error('Error submitting review:', error);
+      // Silent error handling for production
       toast.error('Erreur lors de l\'envoi de votre avis');
     } finally {
       setSubmitting(false);

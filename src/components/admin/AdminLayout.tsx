@@ -41,7 +41,7 @@ const AdminLayout = () => {
       await signOut();
       toast.success("Déconnexion réussie");
     } catch (error) {
-      console.error('Logout error:', error);
+      // Silent error handling for production
       // Force redirect even if logout fails
       navigate("/admin/login", { replace: true });
     }

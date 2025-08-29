@@ -97,7 +97,7 @@ const NewsletterSubscription = ({
       setTimeout(() => setIsSubscribed(false), 5000);
 
     } catch (error) {
-      console.error('Newsletter subscription error:', error);
+      // Silent error handling for production
       toast.error('Une erreur est survenue. Veuillez réessayer.');
     } finally {
       setIsSubscribing(false);

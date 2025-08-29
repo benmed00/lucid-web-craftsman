@@ -1,12 +1,12 @@
 import React from 'react';
 
 // Ultra minimal React app - zero imports from existing codebase
-console.log('App.fresh.tsx loading - completely isolated');
+// Production build - logging disabled
 
 const FreshApp: React.FC = () => {
   const [working, setWorking] = React.useState(true);
   
-  console.log('FreshApp rendering, React working:', working);
+  // Component rendering - logging disabled for production
   
   return (
     <div style={{

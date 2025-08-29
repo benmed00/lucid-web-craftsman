@@ -99,7 +99,7 @@ const CodeSplittingWrapper: React.FC<CodeSplittingWrapperProps> = ({
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
       onError={(error, errorInfo) => {
-        console.error('Code splitting error:', error, errorInfo);
+        // Silent error handling for production
         // You could send this to an error reporting service
       }}
     >
@@ -120,7 +120,7 @@ export const createLazyComponent = <T extends Record<string, any>>(
       const module = await importFn();
       return { default: module.default };
     } catch (error) {
-      console.error(`Failed to load ${componentName}:`, error);
+      // Silent error handling for production
       
       // Return a fallback component
       return {
@@ -171,7 +171,7 @@ export const useRoutePreloading = () => {
         preloadComponent(() => import('@/pages/Checkout'));
         break;
       default:
-        console.warn(`Unknown route for preloading: ${routeName}`);
+        // Component not found - handled silently
     }
   };
 

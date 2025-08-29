@@ -24,7 +24,7 @@ const ProductShowcase = () => {
 
         setLoading(false);
       } catch (error) {
-        console.error("Error loading featured products:", error);
+        // Silent error handling for production
         setLoading(false);
       }
     };
@@ -49,7 +49,7 @@ const ProductShowcase = () => {
         toast.error("Impossible d'ajouter le produit au panier (API error)");
       }
     } catch (error) {
-      console.error("Error adding product to cart:", error);
+      // Silent error handling for production
       toast.error("Impossible d'ajouter le produit au panier");
     }
 
@@ -78,7 +78,7 @@ const ProductShowcase = () => {
         toast.error("Impossible d'ajouter le produit au panier (API error)");
       }
     } catch (error) {
-      console.error("Error adding product to cart:", error);
+      // Silent error handling for production
       toast.error("Impossible d'ajouter le produit au panier");
     }
   };

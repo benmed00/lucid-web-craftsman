@@ -47,7 +47,7 @@ export const ProductRecommendations = ({
         toast.error("Impossible d'ajouter le produit au panier");
       }
     } catch (error) {
-      console.error("Error adding product to cart:", error);
+      // Silent error handling for production
       toast.error("Impossible d'ajouter le produit au panier");
     }
   };
