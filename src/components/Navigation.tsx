@@ -1,11 +1,12 @@
 
+import React from "react";
 import { Leaf, Menu, ShoppingBag, X, User, LogOut, Heart, ShoppingCart, Package, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import clsx from "clsx";
 import { useCartUI } from "../context/useCartUI";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
@@ -20,6 +21,9 @@ const Navigation = () => {
   const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Memoize current path to prevent unnecessary re-renders
+  const currentPath = useMemo(() => location.pathname, [location.pathname]);
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -69,7 +73,7 @@ const Navigation = () => {
             <li>
               <Link
                 to="/"
-                aria-current={location.pathname === "/" ? "page" : undefined}
+                aria-current={currentPath === "/" ? "page" : undefined}
               >
                 Accueil
               </Link>
@@ -77,7 +81,7 @@ const Navigation = () => {
             <li>
               <Link
                 to="/products"
-                aria-current={location.pathname === "/products" ? "page" : undefined}
+                aria-current={currentPath === "/products" ? "page" : undefined}
               >
                 Boutique
               </Link>
@@ -85,7 +89,7 @@ const Navigation = () => {
             <li>
               <Link
                 to="/blog"
-                aria-current={location.pathname === "/blog" ? "page" : undefined}
+                aria-current={currentPath === "/blog" ? "page" : undefined}
               >
                 Blog
               </Link>
@@ -93,7 +97,7 @@ const Navigation = () => {
             <li>
               <Link
                 to="/contact"
-                aria-current={location.pathname === "/contact" ? "page" : undefined}
+                aria-current={currentPath === "/contact" ? "page" : undefined}
               >
                 Contact
               </Link>
@@ -408,4 +412,5 @@ const Navigation = () => {
   );
 };
 
-export default Navigation;
+// Wrap in React.memo to prevent unnecessary re-renders
+export default React.memo(Navigation);
