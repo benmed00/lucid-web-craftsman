@@ -9,6 +9,7 @@ import { useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
+import "../styles/navigation-fixed.css";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -41,8 +42,9 @@ const Navigation = () => {
 
 
   return (
-    <nav className="bg-white sticky top-0 z-40 border-b border-stone-100 shadow-sm transition-none">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center transition-none">
+    <nav className="bg-white sticky top-0 z-40 border-b border-stone-100 shadow-sm">
+      <div className="container mx-auto px-4 py-4 flex justify-between items-center"
+           style={{ willChange: 'auto' }}>
       <div className="flex items-center space-x-2">
           <Link to="/" className="group">
             <div className="flex items-center space-x-2 md:space-x-3">
@@ -62,36 +64,38 @@ const Navigation = () => {
         </div>
 
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex space-x-6" role="navigation" aria-label="Navigation principale">
-        <Link
-          to="/"
-          className="relative text-stone-700 hover:text-stone-900 transition-colors duration-150 py-2 px-1 nav-link"
-          aria-current={location.pathname === "/" ? "page" : undefined}
-        >
-          <span>Accueil</span>
-        </Link>
-        <Link
-          to="/products"
-          className="relative text-stone-700 hover:text-stone-900 transition-colors duration-150 py-2 px-1 nav-link"
-          aria-current={location.pathname === "/products" ? "page" : undefined}
-        >
-          <span>Boutique</span>
-        </Link>
-        <Link
-          to="/blog"
-          className="relative text-stone-700 hover:text-stone-900 transition-colors duration-150 py-2 px-1 nav-link"
-          aria-current={location.pathname === "/blog" ? "page" : undefined}
-        >
-          <span>Blog</span>
-        </Link>
-        <Link
-          to="/contact"
-          className="relative text-stone-700 hover:text-stone-900 transition-colors duration-150 py-2 px-1 nav-link"
-          aria-current={location.pathname === "/contact" ? "page" : undefined}
-        >
-          <span>Contact</span>
-        </Link>
-      </nav>
+      <div className="navigation-container navigation-desktop hidden md:block">
+        <div className="nav-link-container" role="navigation" aria-label="Navigation principale">
+          <Link
+            to="/"
+            className="nav-link text-stone-700 hover:text-stone-900"
+            aria-current={location.pathname === "/" ? "page" : undefined}
+          >
+            <span>Accueil</span>
+          </Link>
+          <Link
+            to="/products"
+            className="nav-link text-stone-700 hover:text-stone-900"
+            aria-current={location.pathname === "/products" ? "page" : undefined}
+          >
+            <span>Boutique</span>
+          </Link>
+          <Link
+            to="/blog"
+            className="nav-link text-stone-700 hover:text-stone-900"
+            aria-current={location.pathname === "/blog" ? "page" : undefined}
+          >
+            <span>Blog</span>
+          </Link>
+          <Link
+            to="/contact"
+            className="nav-link text-stone-700 hover:text-stone-900"
+            aria-current={location.pathname === "/contact" ? "page" : undefined}
+          >
+            <span>Contact</span>
+          </Link>
+        </div>
+      </div>
 
       <div className="flex items-center gap-3">
         {/* Search Button - Desktop */}
