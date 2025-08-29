@@ -37,56 +37,53 @@ export const generateAndUpdateSitemap = async () => {
 };
 
 export const preloadCriticalResources = () => {
-  // Preload critical fonts
+  // Avoid duplicate preloading
+  if (document.querySelector('link[data-preload-initialized]')) return;
+  
+  // Mark as initialized
+  const marker = document.createElement('meta');
+  marker.setAttribute('data-preload-initialized', 'true');
+  document.head.appendChild(marker);
+  
+  // Preload critical fonts (only if not already loaded)
   const fontLinks = [
     'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
   ];
   
   fontLinks.forEach(href => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'style';
-    link.href = href;
-    link.onload = () => {
-      link.rel = 'stylesheet';
-    };
-    document.head.appendChild(link);
+    if (!document.querySelector(`link[href="${href}"]`)) {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'style';
+      link.href = href;
+      link.onload = () => {
+        link.rel = 'stylesheet';
+      };
+      document.head.appendChild(link);
+    }
   });
   
-  // Preload critical images
+  // Preload critical images (avoid duplicates)
   const criticalImages = [
     '/assets/images/home_page_image.webp',
     '/favicon.png'
   ];
   
   criticalImages.forEach(src => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'image';
-    link.href = src;
-    document.head.appendChild(link);
+    if (!document.querySelector(`link[href="${src}"]`)) {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = src;
+      document.head.appendChild(link);
+    }
   });
 };
 
 // Initialize performance optimizations
 export const initPerformanceOptimizations = () => {
-  // Preload critical resources
+  // Only preload critical resources - no background API calls
   preloadCriticalResources();
   
-  // Lazy load non-critical scripts
-  setTimeout(() => {
-    // Load analytics or other non-critical scripts
-    console.log('Loading non-critical resources...');
-  }, 2000);
-  
-  // Generate sitemap in background for better SEO
-  setTimeout(() => {
-    generateAndUpdateSitemap().then(result => {
-      if (result.success) {
-        console.log('Sitemap updated successfully');
-      } else {
-        console.warn('Failed to update sitemap:', result.error);
-      }
-    });
-  }, 5000);
+  console.log('Performance optimizations initialized');
 };
