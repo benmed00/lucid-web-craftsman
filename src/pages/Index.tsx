@@ -17,6 +17,8 @@ import { ProductRecommendations } from "@/components/ProductRecommendations";
 import { useState, useEffect } from "react";
 import { ProductService } from "@/services/productService";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
+import SEOHelmet from '@/components/seo/SEOHelmet';
+import OptimizedImage from '@/components/performance/OptimizedImage';
 
 const Index = () => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -42,6 +44,16 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      {/* SEO Meta Tags */}
+      <SEOHelmet 
+        title="Rif Raw Straw - Artisanat Marocain Authentique | Sacs et Chapeaux Fait Main"
+        description="Découvrez notre collection de sacs et chapeaux fabriqués à la main dans les montagnes du Rif. Artisanat durable et savoir-faire traditionnel marocain."
+        keywords={['artisanat marocain', 'sacs fait main', 'chapeaux paille', 'rif', 'artisan', 'durable', 'traditionnel', 'berbère', 'écologique']}
+        url="/"
+        type="website"
+        image="/assets/images/home_page_image.webp"
+      />
+
       {/* Navigation */}
       <Navigation />
 

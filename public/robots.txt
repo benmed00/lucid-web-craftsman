@@ -1,14 +1,26 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+
+# Sitemaps
+Sitemap: https://rifrawstraw.lovable.app/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Block admin areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /profile/
+
+# Block search parameters
+Disallow: /*?*sort=
+Disallow: /*?*filter=
+Disallow: /*?*search=
+
+# Allow important paths
+Allow: /products
+Allow: /blog
+Allow: /about
+Allow: /contact
