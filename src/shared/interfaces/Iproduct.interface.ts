@@ -9,6 +9,10 @@ export interface Product {
     care: string;
     new?: boolean;
     is_new?: boolean;
+    is_available?: boolean;
+    is_active?: boolean;
+    stock_quantity?: number;
+    min_stock_level?: number;
     artisan: string;
     artisanStory?: string;
     artisan_story?: string;
@@ -16,4 +20,15 @@ export interface Product {
     related_products?: number[];
     created_at?: string;
     updated_at?: string;
+    slug?: string;
+    seo_title?: string;
+    seo_description?: string;
+    short_description?: string;
+    material?: string;
+    color?: string;
+    dimensions_cm?: string;
+    weight_grams?: number;
+    is_featured?: boolean;
+    rating_average?: number;
+    rating_count?: number;
 }

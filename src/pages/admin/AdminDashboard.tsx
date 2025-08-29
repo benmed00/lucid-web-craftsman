@@ -18,52 +18,161 @@ import {
   BarChart3
 } from "lucide-react";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
-import { getProducts } from "@/api/mockApiService";
+import { ProductService } from "@/services/productService";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-// Mock data for dashboard
-const mockOrders = [
-  { id: "ORD-001", customer: "Marie Dubois", total: 89.99, status: "pending", date: "2024-01-15" },
-  { id: "ORD-002", customer: "Pierre Martin", total: 156.50, status: "shipped", date: "2024-01-14" },
-  { id: "ORD-003", customer: "Sophie Leclerc", total: 234.75, status: "delivered", date: "2024-01-14" },
-  { id: "ORD-004", customer: "Antoine Rousseau", total: 67.25, status: "pending", date: "2024-01-13" },
-  { id: "ORD-005", customer: "Camille Bernard", total: 198.00, status: "processing", date: "2024-01-13" },
-];
+interface Order {
+  id: string;
+  user_id: string;
+  amount: number;
+  status: string;
+  currency: string;
+  created_at: string;
+  profiles?: {
+    full_name: string;
+  };
+}
 
-const recentActivity = [
-  { type: "order", message: "Nouvelle commande #ORD-006 de €125.50", time: "Il y a 5 min" },
-  { type: "product", message: "Stock faible: Chapeau Panama (3 restants)", time: "Il y a 15 min" },
-  { type: "customer", message: "Nouveau client inscrit: Julie Moreau", time: "Il y a 1h" },
-  { type: "order", message: "Commande #ORD-005 expédiée", time: "Il y a 2h" },
-  { type: "product", message: "Produit 'Sac Traditionnel' mis à jour", time: "Il y a 3h" },
-];
+interface DashboardStats {
+  totalProducts: number;
+  activeProducts: number;
+  totalOrders: number;
+  pendingOrders: number;
+  totalRevenue: number;
+  avgOrderValue: number;
+  totalCustomers: number;
+  lowStockProducts: number;
+}
 
 const AdminDashboard = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalProducts: 0,
+    activeProducts: 0,
+    totalOrders: 0,
+    pendingOrders: 0,
+    totalRevenue: 0,
+    avgOrderValue: 0,
+    totalCustomers: 0,
+    lowStockProducts: 0,
+  });
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadProducts = async () => {
+    const loadDashboardData = async () => {
       try {
-        const productData = await getProducts();
+        // Load products
+        const productData = await ProductService.getAllProducts();
         setProducts(productData);
+
+        // Load orders
+        const { data: ordersData, error: ordersError } = await supabase
+          .from('orders')
+          .select(`
+            id,
+            user_id,
+            amount,
+            status,
+            currency,
+            created_at
+          `)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (ordersError) throw ordersError;
+
+        // Load user profiles for orders
+        const ordersWithProfiles = await Promise.all(
+          (ordersData || []).map(async (order) => {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('full_name')
+              .eq('id', order.user_id)
+              .single();
+            
+            return {
+              ...order,
+              profiles: profile
+            };
+          })
+        );
+
+        setOrders(ordersWithProfiles);
+
+        // Load customer count
+        const { count: customerCount, error: customerError } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+
+        if (customerError) throw customerError;
+
+        // Calculate statistics
+        const totalProducts = productData.length;
+        const activeProducts = productData.filter(p => p.is_active !== false).length;
+        const lowStockProducts = productData.filter(p => (p.stock_quantity || 0) <= (p.min_stock_level || 5)).length;
+        const totalOrders = ordersData?.length || 0;
+        const pendingOrders = ordersData?.filter(o => o.status === 'pending').length || 0;
+        const totalRevenue = ordersData?.reduce((sum, order) => sum + (order.amount / 100), 0) || 0;
+        const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+        setStats({
+          totalProducts,
+          activeProducts,
+          totalOrders,
+          pendingOrders,
+          totalRevenue,
+          avgOrderValue,
+          totalCustomers: customerCount || 0,
+          lowStockProducts,
+        });
+
+        // Generate recent activity from real data
+        const activities = [];
+        
+        // Recent orders
+        ordersData?.slice(0, 3).forEach(order => {
+          activities.push({
+            type: "order",
+            message: `Nouvelle commande #${order.id.slice(-8)} de €${(order.amount / 100).toFixed(2)}`,
+            time: formatTimeAgo(order.created_at)
+          });
+        });
+
+        // Low stock products
+        productData.filter(p => (p.stock_quantity || 0) <= (p.min_stock_level || 5)).slice(0, 2).forEach(product => {
+          const stock = product.stock_quantity || 0;
+          activities.push({
+            type: "product",
+            message: `Stock faible: ${product.name} (${stock} restant${stock > 1 ? 's' : ''})`,
+            time: "Il y a 1h"
+          });
+        });
+
+        setRecentActivity(activities.slice(0, 5));
+
       } catch (error) {
-        console.error("Erreur lors du chargement des produits:", error);
+        console.error("Erreur lors du chargement des données:", error);
+        toast.error("Erreur lors du chargement des données du tableau de bord");
       } finally {
         setLoading(false);
       }
     };
 
-    loadProducts();
+    loadDashboardData();
   }, []);
 
-  // Calculate statistics
-  const stats = {
-    totalProducts: products.length,
-    activeProducts: products.filter(p => p.new).length,
-    totalOrders: mockOrders.length,
-    pendingOrders: mockOrders.filter(o => o.status === "pending").length,
-    totalRevenue: mockOrders.reduce((sum, order) => sum + order.total, 0),
-    avgOrderValue: mockOrders.length > 0 ? mockOrders.reduce((sum, order) => sum + order.total, 0) / mockOrders.length : 0,
+  const formatTimeAgo = (dateString: string): string => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return "Il y a moins d'1h";
+    if (diffInHours < 24) return `Il y a ${diffInHours}h`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `Il y a ${diffInDays} jour${diffInDays > 1 ? 's' : ''}`;
   };
 
   const getStatusColor = (status: string): string => {
@@ -128,9 +237,9 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-stone-800">{stats.totalProducts}</div>
-            <p className="text-xs text-stone-500">
-              {stats.activeProducts} actifs
-            </p>
+              <p className="text-xs text-stone-500">
+                {stats.activeProducts} actifs • {stats.lowStockProducts} stock faible
+              </p>
           </CardContent>
         </Card>
 
@@ -204,24 +313,34 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockOrders.slice(0, 5).map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-3 rounded-lg border border-stone-100">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <div>
-                          <p className="font-medium text-stone-800">{order.id}</p>
-                          <p className="text-sm text-stone-500">{order.customer}</p>
+                {orders.length === 0 ? (
+                  <div className="text-center py-8 text-stone-500">
+                    Aucune commande trouvée
+                  </div>
+                ) : (
+                  orders.slice(0, 5).map((order) => (
+                    <div key={order.id} className="flex items-center justify-between p-3 rounded-lg border border-stone-100">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3">
+                          <div>
+                            <p className="font-medium text-stone-800">#{order.id.slice(-8)}</p>
+                            <p className="text-sm text-stone-500">
+                              {order.profiles?.full_name || 'Client anonyme'}
+                            </p>
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center space-x-3">
+                        <Badge className={getStatusColor(order.status)}>
+                          {getStatusText(order.status)}
+                        </Badge>
+                        <p className="font-semibold text-stone-800">
+                          €{(order.amount / 100).toFixed(2)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <Badge className={getStatusColor(order.status)}>
-                        {getStatusText(order.status)}
-                      </Badge>
-                      <p className="font-semibold text-stone-800">€{order.total}</p>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -334,10 +453,10 @@ const AdminDashboard = () => {
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Users className="h-4 w-4 text-purple-600" />
-                <h4 className="font-medium text-stone-800">Nouveaux clients</h4>
+                <h4 className="font-medium text-stone-800">Total clients</h4>
               </div>
               <p className="text-sm text-stone-600">
-                23 nouveaux clients ont rejoint la boutique cette semaine.
+                {stats.totalCustomers} client{stats.totalCustomers > 1 ? 's' : ''} inscrit{stats.totalCustomers > 1 ? 's' : ''} dans la boutique.
               </p>
             </div>
           </div>
