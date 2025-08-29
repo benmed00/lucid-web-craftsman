@@ -64,11 +64,11 @@
 }
 
 .header-nav a {
-  /* REQUIREMENT: position: relative and display: inline-block */
+  /* CRITICAL: position: relative and display: inline-block */
   position: relative;
   display: inline-block;
   
-  /* REQUIREMENT: 44x44px touch targets */
+  /* CRITICAL: Fixed dimensions prevent layout shift */
   min-height: 44px;
   min-width: 44px;
   padding: 12px 16px;
@@ -80,17 +80,21 @@
   text-decoration: none;
   white-space: nowrap;
   
-  /* Color transitions only - no layout properties */
+  /* Color transitions only - NEVER transition layout properties */
   color: hsl(var(--stone-700));
   transition: color 0.15s ease-out;
   
-  /* GPU optimization */
+  /* CRITICAL: Prevent any movement or shifts */
   transform: translateZ(0);
   backface-visibility: hidden;
+  will-change: auto;
   
   /* Text rendering optimization */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* CRITICAL: Prevent any box model changes */
+  box-sizing: border-box;
 }
 
 .header-nav a:hover {
@@ -105,29 +109,31 @@
   content: '';
   position: absolute;
   bottom: -1px;
-  left: 50%;
-  width: calc(100% - 24px); /* Account for padding */
+  left: 16px; /* Match padding-left */
+  right: 16px; /* Match padding-right */
+  width: auto; /* Let left/right define width */
   height: 2px;
   
-  /* REQUIREMENT: transform: scaleX() approach */
-  transform: translateX(-50%) scaleX(0);
-  transform-origin: center;
+  /* CRITICAL: Only transform - never change dimensions */
+  transform: scaleX(0);
+  transform-origin: left;
   
-  /* REQUIREMENT: will-change only on pseudo-element */
-  will-change: transform, opacity;
+  /* CRITICAL: Only transform during animation */
+  will-change: transform;
   
-  /* Smooth animation */
-  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* Smooth but fast animation */
+  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   
   /* Visual styling */
   background: hsl(var(--olive-700));
   border-radius: 1px;
   
-  /* REQUIREMENT: z-index safeguards */
+  /* Layer management */
   z-index: 1;
   
-  /* Performance */
+  /* Performance optimizations */
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* =================================================================
@@ -135,7 +141,7 @@
    ================================================================= */
 
 .header-nav a:hover::after {
-  transform: translateX(-50%) scaleX(1);
+  transform: scaleX(1);
 }
 
 /* REQUIREMENT: Visible focus state with high contrast */
@@ -146,7 +152,7 @@
 }
 
 .header-nav a:focus-visible::after {
-  transform: translateX(-50%) scaleX(1);
+  transform: scaleX(1);
 }
 
 /* REQUIREMENT: aria-current="page" handling */
@@ -156,7 +162,7 @@
 }
 
 .header-nav a[aria-current="page"]::after {
-  transform: translateX(-50%) scaleX(1);
+  transform: scaleX(1);
   background: hsl(var(--olive-800));
 }
 
@@ -167,7 +173,7 @@
 }
 
 .header-nav a.is-active::after {
-  transform: translateX(-50%) scaleX(1);
+  transform: scaleX(1);
   background: hsl(var(--olive-800));
 }
 
@@ -208,7 +214,7 @@
   .header-nav a[aria-current="page"]::after,
   .header-nav a.is-active::after {
     opacity: 1;
-    transform: translateX(-50%) scaleX(1);
+    transform: scaleX(1);
   }
   
   .header-nav a {
@@ -277,6 +283,20 @@
   will-change: auto;
 }
 
+/* CRITICAL: Prevent ANY movement during route changes */
+.header-nav a,
+.header-nav a * {
+  pointer-events: auto;
+  transform: translateZ(0) !important;
+}
+
+/* Prevent layout reflows during navigation */
+.header-nav-root,
+.header-nav-container,
+.header-nav {
+  contain: layout style paint !important;
+}
+
 /* Force hardware acceleration for nav elements */
 .header-nav-root *,
 .header-nav-root *::before,
@@ -292,13 +312,13 @@
 /* Safari optimizations */
 @supports (-webkit-appearance: none) {
   .header-nav a::after {
-    -webkit-transform: translateX(-50%) scaleX(0);
-    -webkit-transition: -webkit-transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    -webkit-transform: scaleX(0);
+    -webkit-transition: -webkit-transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
   
   .header-nav a:hover::after,
   .header-nav a:focus-visible::after {
-    -webkit-transform: translateX(-50%) scaleX(1);
+    -webkit-transform: scaleX(1);
   }
 }
 
