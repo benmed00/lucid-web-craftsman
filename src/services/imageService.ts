@@ -111,19 +111,23 @@ class ImageService {
     return new Promise((resolve) => {
       const img = new Image();
       const timeout = setTimeout(() => {
+        img.onload = null;
+        img.onerror = null;
         img.src = '';
         this.imageCache.set(normalizedSrc, false);
         resolve(false);
-      }, 5000); // 5 second timeout
+      }, 3000); // Reduced timeout to 3 seconds
 
       img.onload = () => {
         clearTimeout(timeout);
+        img.onerror = null;
         this.imageCache.set(normalizedSrc, true);
         resolve(true);
       };
 
       img.onerror = () => {
         clearTimeout(timeout);
+        img.onload = null;
         this.imageCache.set(normalizedSrc, false);
         resolve(false);
       };
@@ -170,8 +174,7 @@ class ImageService {
       }
     }
 
-    // Last resort
-    console.error(`All image sources failed for: ${originalSrc}`);
+    // Last resort - silent fallback for production
     return '/placeholder.svg';
   }
 

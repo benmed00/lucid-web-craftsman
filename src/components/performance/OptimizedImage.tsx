@@ -67,9 +67,9 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Generate optimized src with dimensions and quality
   const generateOptimizedSrc = (originalSrc: string): string => {
-    // Handle relative URLs by converting to absolute
+    // Handle relative URLs - keep them as-is for better browser caching
     if (originalSrc.startsWith('/assets/')) {
-      return `${window.location.origin}${originalSrc}`;
+      return originalSrc;
     }
     
     if (originalSrc.includes('supabase')) {
@@ -129,8 +129,20 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
         // Use optimized version of original format
         const optimizedSrc = generateOptimizedSrc(src);
-        await checkImageExists(optimizedSrc);
-        setCurrentSrc(optimizedSrc);
+        try {
+          await checkImageExists(optimizedSrc);
+          setCurrentSrc(optimizedSrc);
+        } catch {
+          // If optimized version fails, try original
+          try {
+            await checkImageExists(src);
+            setCurrentSrc(src);
+          } catch {
+            // Both failed, use fallback
+            setHasError(true);
+            setCurrentSrc(fallback);
+          }
+        }
       } catch {
         // Original failed, use fallback
         setHasError(true);

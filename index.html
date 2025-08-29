@@ -83,8 +83,11 @@
         const originalFetch = window.fetch;
         window.fetch = function(...args) {
           const url = args[0];
-          if (typeof url === 'string' && url.includes('privacy-sandbox/register')) {
-            // Prevent privacy sandbox attribution calls that are causing errors
+          if (typeof url === 'string' && 
+              (url.includes('privacy-sandbox/register') || 
+               url.includes('register-os-conversion') ||
+               url.includes('register-conversion'))) {
+            // Prevent problematic analytics calls
             return Promise.resolve(new Response('{}', { status: 204 }));
           }
           return originalFetch.apply(this, args);

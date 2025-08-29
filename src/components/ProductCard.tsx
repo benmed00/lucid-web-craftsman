@@ -45,13 +45,14 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
             <OptimizedImage
               src={product.images[0]}
               alt={product.name}
-              width={400}
-              height={300}
+              width={300}
+              height={225}
               aspectRatio="4/3"
               className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
               priority={false}
-              webp={true}
-              quality={85}
+              webp={false}
+              quality={75}
+              fallback="/assets/images/handmade_products.webp"
             />
           </div>
           
