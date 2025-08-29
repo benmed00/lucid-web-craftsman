@@ -44,12 +44,15 @@ const BlogPost = () => {
     }
   }, [post, isLoading, error, navigate]);
 
+  // Always render, handle loading/error states within JSX to avoid hook order issues
+  const shouldRender = !isLoading && !error && post;
+
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   }
   
   if (error || !post) {
-    return null;
+    return <div className="min-h-screen flex items-center justify-center">Article non trouvé</div>;
   }
 
   return (
