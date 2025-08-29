@@ -12,8 +12,6 @@ class ImageService {
   // Comprehensive fallback system with actual available images
   private readonly fallbackConfig: ImageFallbackConfig = {
     product: [
-      "/assets/images/sacs/sac_traditionnel.jpg",
-      "/assets/images/products/sac_a_main_tisse_traditionnel.jpg", 
       "/assets/images/handmade_products.webp",
       "/placeholder.svg"
     ],
@@ -59,7 +57,12 @@ class ImageService {
       return this.fallbackConfig.default[0];
     }
 
-    // Handle absolute URLs
+    // Handle Supabase storage URLs (keep as-is)
+    if (src.startsWith('https://') && src.includes('supabase.co/storage')) {
+      return src;
+    }
+
+    // Handle other absolute URLs
     if (src.startsWith('http') || src.startsWith('//')) {
       return src;
     }
@@ -158,9 +161,6 @@ class ImageService {
    */
   async getOptimizedSource(originalSrc: string, category: ImageCategory = 'default'): Promise<string> {
     const normalizedSrc = this.normalizeUrl(originalSrc);
-    
-    // Clear cache for this specific image to ensure fresh loading
-    this.imageCache.delete(normalizedSrc);
     
     // Try original source first
     const isOriginalValid = await this.checkImage(normalizedSrc);

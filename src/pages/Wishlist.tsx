@@ -11,7 +11,7 @@ import Navigation from '@/components/Navigation';
 import PageFooter from '@/components/PageFooter';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
-import { products } from '@/data/products';
+import { ProductService } from '@/services/productService';
 import { useCart } from '@/context/CartContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { toast } from 'sonner';
@@ -26,13 +26,43 @@ const Wishlist = () => {
   const { user } = useAuth();
   const { dispatch } = useCart();
   const { formatPrice } = useCurrency();
+  const [wishlistProducts, setWishlistProducts] = useState<WishlistProduct[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
-  // Memoize wishlist products to prevent unnecessary re-calculations
-  const wishlistProducts = useMemo<WishlistProduct[]>(() => {
-    return wishlistItems.map(item => {
-      const product = products.find(p => p.id === item.product_id);
-      return product ? { ...product, wishlistId: item.id } : null;
-    }).filter((product): product is WishlistProduct => product !== null);
+  // Fetch products from database when wishlist items change
+  useEffect(() => {
+    const fetchWishlistProducts = async () => {
+      if (wishlistItems.length === 0) {
+        setWishlistProducts([]);
+        return;
+      }
+
+      setLoadingProducts(true);
+      try {
+        // Fetch all products for the wishlist items
+        const productPromises = wishlistItems.map(item => 
+          ProductService.getProductById(item.product_id)
+        );
+        
+        const products = await Promise.all(productPromises);
+        
+        // Filter out null products and add wishlist ID
+        const validProducts = products
+          .map((product, index) => 
+            product ? { ...product, wishlistId: wishlistItems[index].id } : null
+          )
+          .filter((product): product is WishlistProduct => product !== null);
+        
+        setWishlistProducts(validProducts);
+      } catch (error) {
+        console.error('Error fetching wishlist products:', error);
+        setWishlistProducts([]);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    fetchWishlistProducts();
   }, [wishlistItems]);
 
   // Memoized handlers for better performance
@@ -114,7 +144,7 @@ const Wishlist = () => {
             </div>
           </div>
 
-          {loading ? (
+          {(loading || loadingProducts) ? (
             <div className="space-y-4">
               {Array.from({ length: 3 }).map((_, i) => (
                 <Card key={i} className="animate-pulse">
