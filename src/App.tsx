@@ -33,7 +33,7 @@ import Story from "./pages/Story";
 import Terms from "./pages/Terms";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-
+import NavigationTest from "@/components/NavigationTest";
 
 // PWA Components
 import { PWAInstallPrompt } from "@/components/ui/PWAInstallPrompt";
@@ -136,6 +136,9 @@ const App = () => {
             {/* Catch-all route for 404 pages */}
             <Route path="*" element={<NotFound />} />
                     </Routes>
+                    
+                    {/* Navigation Test Component - Development Only */}
+                    <NavigationTest />
                   </BrowserRouter>
 
                   {/* Système de notifications */}
