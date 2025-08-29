@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { ProductImage } from '@/components/ui/GlobalImage';
 import Navigation from '@/components/Navigation';
 import PageFooter from '@/components/PageFooter';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -128,11 +129,14 @@ const Wishlist = () => {
                         to={`/products/${product.id}`}
                         className="flex-shrink-0"
                       >
-                        <img
-                          src={product.images[0]}
-                          alt={product.name}
-                          className="w-24 h-24 object-cover rounded-lg hover:scale-105 transition-transform duration-200"
-                        />
+                        <div className="w-24 h-24 overflow-hidden rounded-lg">
+                          <ProductImage
+                            src={product.images[0]}
+                            alt={product.name}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+                            aspectRatio="1/1"
+                          />
+                        </div>
                       </Link>
 
                       {/* Product Details */}
