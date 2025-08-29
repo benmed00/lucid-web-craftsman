@@ -31,7 +31,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   webp = true,
   placeholder = 'empty',
   blurDataURL,
-  fallback = '/assets/images/placeholder.jpg',
+  fallback = '/assets/images/handmade_products.webp',
   sizes,
   aspectRatio,
   objectFit = 'cover',
@@ -67,6 +67,11 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Generate optimized src with dimensions and quality
   const generateOptimizedSrc = (originalSrc: string): string => {
+    // Handle relative URLs by converting to absolute
+    if (originalSrc.startsWith('/assets/')) {
+      return `${window.location.origin}${originalSrc}`;
+    }
+    
     if (originalSrc.includes('supabase')) {
       const url = new URL(originalSrc);
       if (quality && quality !== 85) url.searchParams.set('quality', quality.toString());

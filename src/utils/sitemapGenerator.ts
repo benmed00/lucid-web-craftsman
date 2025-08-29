@@ -3,11 +3,8 @@ import { SitemapGenerator } from './sitemap';
 
 export const generateAndUpdateSitemap = async () => {
   try {
-    console.log('Generating sitemap...');
-    
     // Fetch current products
     const products = await ProductService.getAllProducts();
-    console.log(`Found ${products.length} products for sitemap`);
     
     // Initialize sitemap generator
     const generator = new SitemapGenerator();
@@ -18,15 +15,12 @@ export const generateAndUpdateSitemap = async () => {
     // Generate robots.txt
     const robotsTxt = generator.generateRobotsTxt();
     
-    console.log('Sitemap generated successfully');
-    
     return {
       sitemap: sitemapXml,
       robots: robotsTxt,
       success: true
     };
   } catch (error) {
-    console.error('Error generating sitemap:', error);
     return {
       sitemap: null,
       robots: null,
@@ -38,7 +32,7 @@ export const generateAndUpdateSitemap = async () => {
 
 export const preloadCriticalResources = () => {
   // Avoid duplicate preloading
-  if (document.querySelector('link[data-preload-initialized]')) return;
+  if (document.querySelector('meta[data-preload-initialized]')) return;
   
   // Mark as initialized
   const marker = document.createElement('meta');
@@ -63,27 +57,31 @@ export const preloadCriticalResources = () => {
     }
   });
   
-  // Preload critical images (avoid duplicates)
-  const criticalImages = [
-    '/assets/images/home_page_image.webp',
-    '/favicon.png'
-  ];
-  
-  criticalImages.forEach(src => {
-    if (!document.querySelector(`link[href="${src}"]`)) {
+  // Only preload home page image on home page
+  const currentPath = window.location.pathname;
+  if (currentPath === '/' || currentPath === '/index') {
+    const homeImage = '/assets/images/home_page_image.webp';
+    if (!document.querySelector(`link[href="${homeImage}"]`)) {
       const link = document.createElement('link');
       link.rel = 'preload';
       link.as = 'image';
-      link.href = src;
+      link.href = homeImage;
       document.head.appendChild(link);
     }
-  });
+  }
+  
+  // Always preload favicon
+  const favicon = '/favicon.png';
+  if (!document.querySelector(`link[href="${favicon}"]`)) {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = favicon;
+    document.head.appendChild(link);
+  }
 };
 
-// Initialize performance optimizations
 export const initPerformanceOptimizations = () => {
   // Only preload critical resources - no background API calls
   preloadCriticalResources();
-  
-  console.log('Performance optimizations initialized');
 };

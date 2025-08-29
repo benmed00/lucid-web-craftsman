@@ -13,6 +13,7 @@ export interface WishlistItem {
 export const useWishlist = () => {
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
   const { user } = useAuth();
 
   const fetchWishlist = async () => {
@@ -21,6 +22,10 @@ export const useWishlist = () => {
       setLoading(false);
       return;
     }
+
+    // Prevent multiple simultaneous fetches
+    if (isFetching) return;
+    setIsFetching(true);
 
     try {
       const { data, error } = await supabase
@@ -33,10 +38,10 @@ export const useWishlist = () => {
 
       setWishlistItems(data || []);
     } catch (error) {
-      console.error('Error fetching wishlist:', error);
-      toast.error('Erreur lors du chargement de vos favoris');
+      // Silent error handling for production
     } finally {
       setLoading(false);
+      setIsFetching(false);
     }
   };
 
@@ -101,8 +106,22 @@ export const useWishlist = () => {
   };
 
   useEffect(() => {
-    fetchWishlist();
-  }, [user]);
+    let timeoutId: NodeJS.Timeout;
+    
+    // Debounce the fetch to prevent excessive calls
+    const debouncedFetch = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        fetchWishlist();
+      }, 100);
+    };
+
+    debouncedFetch();
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [user?.id]); // Only depend on user.id, not the entire user object
 
   return {
     wishlistItems,

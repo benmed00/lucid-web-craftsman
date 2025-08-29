@@ -12,9 +12,6 @@ declare global {
   }
 }
 
-console.log('main.tsx loaded - cache cleared');
-console.log('React available:', !!React);
-
 // Initialize performance optimizations only once
 if (!window.__PERF_OPTIMIZED__) {
   window.__PERF_OPTIMIZED__ = true;
