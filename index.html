@@ -78,17 +78,22 @@
         value: null
       });
       
-      // Intercept Attribution Reporting API to prevent errors
+      // Enhanced fetch interceptor for problematic requests
       if ('fetch' in window) {
         const originalFetch = window.fetch;
         window.fetch = function(...args) {
           const url = args[0];
-          if (typeof url === 'string' && 
-              (url.includes('privacy-sandbox/register') || 
-               url.includes('register-os-conversion') ||
-               url.includes('register-conversion'))) {
-            // Prevent problematic analytics calls
-            return Promise.resolve(new Response('{}', { status: 204 }));
+          if (typeof url === 'string') {
+            // Block analytics calls causing errors
+            if (url.includes('privacy-sandbox/register') || 
+                url.includes('register-os-conversion') ||
+                url.includes('register-conversion')) {
+              return Promise.resolve(new Response('{}', { status: 204 }));
+            }
+            // Block excessive Sentry requests (90% of them to reduce spam)
+            if (url.includes('sentry.io') && Math.random() < 0.9) {
+              return Promise.resolve(new Response('{}', { status: 204 }));
+            }
           }
           return originalFetch.apply(this, args);
         };

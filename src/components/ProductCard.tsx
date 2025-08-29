@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ShoppingCart, Eye, AlertTriangle, Share } from "lucide-react";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
-import OptimizedImage from "@/components/performance/OptimizedImage";
+import { ProductImage } from "@/components/ui/GlobalImage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,17 +42,11 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
       <Link to={`/products/${product.id}`} className="block touch-manipulation">
         <div className="relative group/image">
           <div className="aspect-[4/3] w-full overflow-hidden rounded-t-xl">
-            <OptimizedImage
+            <ProductImage
               src={product.images[0]}
               alt={product.name}
-              width={300}
-              height={225}
-              aspectRatio="4/3"
               className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
-              priority={false}
-              webp={false}
-              quality={75}
-              fallback="/assets/images/handmade_products.webp"
+              aspectRatio="4/3"
             />
           </div>
           
