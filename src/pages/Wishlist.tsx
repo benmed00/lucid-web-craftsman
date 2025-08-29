@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ProductImage } from '@/components/ui/GlobalImage';
-import { SEOHelmet } from '@/components/seo/SEOHelmet';
+import SEOHelmet from '@/components/seo/SEOHelmet';
 import Navigation from '@/components/Navigation';
 import PageFooter from '@/components/PageFooter';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -64,7 +64,6 @@ const Wishlist = () => {
         <SEOHelmet 
           title="Mes Favoris - Connectez-vous"
           description="Connectez-vous pour accéder à votre liste de favoris et retrouver vos créations artisanales préférées."
-          canonical="/wishlist"
         />
         <div className="min-h-screen bg-white">
           <Navigation />
@@ -86,13 +85,13 @@ const Wishlist = () => {
       </div>
     </>
   );
+  }
 
   return (
     <>
       <SEOHelmet 
         title={`Mes Favoris (${wishlistProducts.length}) - Artisanat Berbère`}
         description={`Votre liste de favoris contient ${wishlistProducts.length} création${wishlistProducts.length > 1 ? 's' : ''} artisanale${wishlistProducts.length > 1 ? 's' : ''} du Rif marocain. Découvrez et commandez vos pièces préférées.`}
-        canonical="/wishlist"
       />
       <div className="min-h-screen bg-white">
         <Navigation />
@@ -243,6 +242,6 @@ const Wishlist = () => {
     </div>
   </>
   );
-};
+}; // End of Wishlist component
 
 export default Wishlist;
