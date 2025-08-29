@@ -12,8 +12,8 @@ import PageFooter from '@/components/PageFooter';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
 import { products } from '@/data/products';
-import { formatPrice } from '@/lib/stripe';
 import { useCart } from '@/context/CartContext';
+import { useCurrency } from '@/context/CurrencyContext';
 import { toast } from 'sonner';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 
@@ -25,6 +25,7 @@ const Wishlist = () => {
   const { wishlistItems, loading, removeFromWishlist } = useWishlist();
   const { user } = useAuth();
   const { dispatch } = useCart();
+  const { formatPrice } = useCurrency();
 
   // Memoize wishlist products to prevent unnecessary re-calculations
   const wishlistProducts = useMemo<WishlistProduct[]>(() => {
@@ -131,22 +132,28 @@ const Wishlist = () => {
               ))}
             </div>
           ) : wishlistProducts.length === 0 ? (
-            <div className="text-center py-16">
-              <Heart className="w-16 h-16 text-stone-300 mx-auto mb-6" />
+            <div className="text-center py-16 animate-fade-in">
+              <div className="animate-gentle-bounce">
+                <Heart className="w-16 h-16 text-stone-300 mx-auto mb-6" />
+              </div>
               <h2 className="font-serif text-2xl text-stone-800 mb-4">
                 Votre liste de favoris est vide
               </h2>
-              <p className="text-stone-600 mb-8">
-                Découvrez nos créations artisanales et ajoutez vos préférées à vos favoris.
+              <p className="text-stone-600 mb-8 max-w-md mx-auto">
+                Découvrez nos créations artisanales uniques et ajoutez vos pièces préférées à vos favoris pour les retrouver facilement.
               </p>
-              <Button asChild className="bg-olive-700 hover:bg-olive-800">
-                <Link to="/products">Découvrir nos produits</Link>
+              <Button asChild className="bg-olive-700 hover:bg-olive-800 shadow-lg hover:shadow-xl transition-all duration-200">
+                <Link to="/products">✨ Découvrir nos produits</Link>
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
-              {wishlistProducts.map((product) => (
-                <Card key={product.id} className="hover:shadow-md transition-shadow duration-200">
+            <div className="space-y-4 animate-fade-in">
+              {wishlistProducts.map((product, index) => (
+                <Card 
+                  key={product.id} 
+                  className="hover:shadow-md transition-all duration-200 animate-fade-in-up"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
                   <CardContent className="p-4 md:p-6">
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                       {/* Product Image */}
