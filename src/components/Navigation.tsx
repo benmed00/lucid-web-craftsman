@@ -9,7 +9,7 @@ import { useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
-import "../styles/navigation-stable.css";
+import "../styles/header-nav-fix.css";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,10 +42,10 @@ const Navigation = () => {
 
 
   return (
-    <header className="navigation-root">
-      <div className="navigation-inner">
+    <header className="header-nav-root">
+      <div className="header-nav-container">
         {/* Logo Section */}
-        <div className="navigation-logo">
+        <div className="header-logo">
           <Link to="/" className="group">
             <div className="flex items-center space-x-2 md:space-x-3">
               <div className="p-1.5 md:p-2 rounded-full bg-olive-700 group-hover:bg-olive-800 transition-all duration-300 shadow-md group-hover:shadow-lg">
@@ -63,42 +63,46 @@ const Navigation = () => {
           </Link>
         </div>
 
-        {/* Desktop Navigation Links */}
-        <div className="navigation-desktop">
-          <nav className="nav-links-container" role="navigation" aria-label="Navigation principale">
-            <Link
-              to="/"
-              className="nav-link text-stone-700"
-              aria-current={location.pathname === "/" ? "page" : undefined}
-            >
-              <span>Accueil</span>
-            </Link>
-            <Link
-              to="/products"
-              className="nav-link text-stone-700"
-              aria-current={location.pathname === "/products" ? "page" : undefined}
-            >
-              <span>Boutique</span>
-            </Link>
-            <Link
-              to="/blog"
-              className="nav-link text-stone-700"
-              aria-current={location.pathname === "/blog" ? "page" : undefined}
-            >
-              <span>Blog</span>
-            </Link>
-            <Link
-              to="/contact"
-              className="nav-link text-stone-700"
-              aria-current={location.pathname === "/contact" ? "page" : undefined}
-            >
-              <span>Contact</span>
-            </Link>
-          </nav>
-        </div>
+        {/* Desktop Navigation Links - Semantic Markup */}
+        <nav className="header-nav" role="navigation" aria-label="Navigation principale">
+          <ul>
+            <li>
+              <Link
+                to="/"
+                aria-current={location.pathname === "/" ? "page" : undefined}
+              >
+                Accueil
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/products"
+                aria-current={location.pathname === "/products" ? "page" : undefined}
+              >
+                Boutique
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/blog"
+                aria-current={location.pathname === "/blog" ? "page" : undefined}
+              >
+                Blog
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/contact"
+                aria-current={location.pathname === "/contact" ? "page" : undefined}
+              >
+                Contact
+              </Link>
+            </li>
+          </ul>
+        </nav>
 
         {/* Actions Section */}
-        <div className="navigation-actions">
+        <div className="header-actions">
         {/* Search Button - Desktop */}
         <Button
           variant="ghost"
