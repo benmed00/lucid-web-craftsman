@@ -7,7 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import clsx from "clsx";
 import { useCartUI } from "../context/useCartUI";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
@@ -153,9 +153,9 @@ const Navigation = () => {
         <div className="hidden md:flex items-center gap-1 min-w-[200px] justify-end">
           {isLoading ? (
             <div className="flex items-center gap-1">
-              <div className="w-8 h-8 rounded bg-stone-200 animate-pulse"></div>
-              <div className="w-8 h-8 rounded bg-stone-200 animate-pulse"></div>
-              <div className="w-8 h-8 rounded bg-stone-200 animate-pulse"></div>
+              <div className="w-8 h-8 rounded bg-stone-200"></div>
+              <div className="w-8 h-8 rounded bg-stone-200"></div>
+              <div className="w-8 h-8 rounded bg-stone-200"></div>
             </div>
           ) : user ? (
             <>
