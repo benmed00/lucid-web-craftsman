@@ -20,7 +20,7 @@ export const useWebVitals = () => {
           loadComplete: navigationTiming.loadEventEnd - navigationTiming.fetchStart
         };
         
-        console.log('Web Vitals:', metrics);
+        // Silent performance tracking for production
       }
     };
     

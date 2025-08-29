@@ -159,9 +159,15 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const handleError = () => {
     if (!hasError) {
       setHasError(true);
+      // Try fallback image first
       setCurrentSrc(fallback);
     } else {
-      onError?.();
+      // If fallback also fails, try the main handmade products image
+      if (currentSrc !== '/assets/images/handmade_products.webp') {
+        setCurrentSrc('/assets/images/handmade_products.webp');
+      } else {
+        onError?.();
+      }
     }
   };
 

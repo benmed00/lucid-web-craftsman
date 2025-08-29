@@ -46,11 +46,51 @@
         });
       }
       
-      // Force reload without cache
-      console.log('Cache clearing complete - forcing hard refresh');
+      // Force reload without cache complete
     </script>
     
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
+    <!-- Google Analytics Configuration Override -->
+    <script>
+      // Override Google Analytics configuration to prevent Attribution Reporting API errors
+      window.gtag = function() {
+        // Override gtag to prevent attribution reporting API calls
+        if (arguments[0] === 'config' && arguments[1]) {
+          // Call original gtag but without attribution reporting
+          const originalArgs = Array.from(arguments);
+          if (originalArgs[2]) {
+            // Remove attribution reporting related configs
+            delete originalArgs[2]['attribution_reporting'];
+            delete originalArgs[2]['enhanced_conversions'];
+            delete originalArgs[2]['os_attribution'];
+          }
+        }
+        // Call the original gtag function if it exists
+        if (window.gtag_original) {
+          return window.gtag_original.apply(this, arguments);
+        }
+      };
+      
+      // Backup original gtag if it gets loaded later
+      Object.defineProperty(window, 'gtag_original', {
+        configurable: true,
+        writable: true,
+        value: null
+      });
+      
+      // Intercept Attribution Reporting API to prevent errors
+      if ('fetch' in window) {
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+          const url = args[0];
+          if (typeof url === 'string' && url.includes('privacy-sandbox/register')) {
+            // Prevent privacy sandbox attribution calls that are causing errors
+            return Promise.resolve(new Response('{}', { status: 204 }));
+          }
+          return originalFetch.apply(this, args);
+        };
+      }
+    </script>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
