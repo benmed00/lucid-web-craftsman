@@ -111,9 +111,7 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
     /* Prevent flickering by disabling smooth scroll during page transitions */
@@ -145,6 +143,7 @@
     }
   }
 }
+
 
 @layer utilities {
   /* Prevent flickering during page transitions */
