@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   TrendingUp, 
   TrendingDown,
@@ -17,52 +18,198 @@ import {
   Download
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-// Mock analytics data - replace with real Supabase data
-const mockAnalytics = {
+interface AnalyticsData {
   overview: {
-    revenue: {
-      current: 2845,
-      previous: 2156,
-      growth: 31.9
-    },
-    orders: {
-      current: 18,
-      previous: 12,
-      growth: 50
-    },
-    customers: {
-      current: 24,
-      previous: 18,
-      growth: 33.3
-    },
-    avgOrder: {
-      current: 158,
-      previous: 179,
-      growth: -11.7
-    }
-  },
-  topProducts: [
-    { id: 1, name: "Sac à Main Tissé Traditionnel", sales: 8, revenue: 712 },
-    { id: 2, name: "Chapeau de Paille Berbère", sales: 6, revenue: 270 },
-    { id: 3, name: "Cabas en Fibres Naturelles", sales: 4, revenue: 300 },
-    { id: 4, name: "Pochette Brodée à la Main", sales: 3, revenue: 186 }
-  ],
-  salesByCategory: [
-    { category: "Sacs", sales: 15, percentage: 75 },
-    { category: "Chapeaux", sales: 5, percentage: 25 }
-  ],
-  recentActivity: [
-    { type: "order", description: "Nouvelle commande de Marie Dubois", time: "Il y a 2h", amount: 145 },
-    { type: "customer", description: "Nouveau client: Pierre Moreau", time: "Il y a 4h" },
-    { type: "product", description: "Stock faible: Chapeau Panama", time: "Il y a 6h" },
-    { type: "order", description: "Commande expédiée à Jean Martin", time: "Il y a 8h", amount: 89 }
-  ]
-};
+    revenue: { current: number; previous: number; growth: number };
+    orders: { current: number; previous: number; growth: number };
+    customers: { current: number; previous: number; growth: number };
+    avgOrder: { current: number; previous: number; growth: number };
+  };
+  topProducts: Array<{
+    id: number;
+    name: string;
+    sales: number;
+    revenue: number;
+  }>;
+  salesByCategory: Array<{
+    category: string;
+    sales: number;
+    percentage: number;
+  }>;
+  recentActivity: Array<{
+    type: string;
+    description: string;
+    time: string;
+    amount?: number;
+  }>;
+}
 
 const AdminAnalytics = () => {
   const [timeRange, setTimeRange] = useState("30d");
-  const [analytics, setAnalytics] = useState(mockAnalytics);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [timeRange]);
+
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true);
+      
+      // Calculate date ranges
+      const endDate = new Date();
+      const startDate = new Date();
+      const previousStartDate = new Date();
+      const previousEndDate = new Date();
+      
+      switch (timeRange) {
+        case "7d":
+          startDate.setDate(endDate.getDate() - 7);
+          previousStartDate.setDate(endDate.getDate() - 14);
+          previousEndDate.setDate(endDate.getDate() - 7);
+          break;
+        case "30d":
+          startDate.setDate(endDate.getDate() - 30);
+          previousStartDate.setDate(endDate.getDate() - 60);
+          previousEndDate.setDate(endDate.getDate() - 30);
+          break;
+        case "90d":
+          startDate.setDate(endDate.getDate() - 90);
+          previousStartDate.setDate(endDate.getDate() - 180);
+          previousEndDate.setDate(endDate.getDate() - 90);
+          break;
+        case "1y":
+          startDate.setFullYear(endDate.getFullYear() - 1);
+          previousStartDate.setFullYear(endDate.getFullYear() - 2);
+          previousEndDate.setFullYear(endDate.getFullYear() - 1);
+          break;
+      }
+
+      // Fetch current period data
+      const { data: currentOrders, error: currentError } = await supabase
+        .from('orders')
+        .select(`
+          id, amount, status, created_at, user_id,
+          order_items(id, product_id, quantity, unit_price, total_price, product_snapshot)
+        `)
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString());
+
+      if (currentError) throw currentError;
+
+      // Fetch previous period data
+      const { data: previousOrders, error: previousError } = await supabase
+        .from('orders')
+        .select('id, amount, status, created_at, user_id')
+        .gte('created_at', previousStartDate.toISOString())
+        .lte('created_at', previousEndDate.toISOString());
+
+      if (previousError) throw previousError;
+
+      // Calculate metrics
+      const paidStatuses = ['paid', 'processing', 'shipped', 'delivered'];
+      
+      const currentRevenue = (currentOrders || [])
+        .filter(order => paidStatuses.includes(order.status))
+        .reduce((sum, order) => sum + (order.amount || 0), 0) / 100;
+      
+      const previousRevenue = (previousOrders || [])
+        .filter(order => paidStatuses.includes(order.status))
+        .reduce((sum, order) => sum + (order.amount || 0), 0) / 100;
+
+      const currentOrderCount = (currentOrders || []).filter(order => paidStatuses.includes(order.status)).length;
+      const previousOrderCount = (previousOrders || []).filter(order => paidStatuses.includes(order.status)).length;
+
+      const uniqueCurrentCustomers = new Set((currentOrders || []).filter(order => order.user_id).map(order => order.user_id)).size;
+      const uniquePreviousCustomers = new Set((previousOrders || []).filter(order => order.user_id).map(order => order.user_id)).size;
+
+      const currentAvgOrder = currentOrderCount > 0 ? currentRevenue / currentOrderCount : 0;
+      const previousAvgOrder = previousOrderCount > 0 ? previousRevenue / previousOrderCount : 0;
+
+      // Calculate growth rates
+      const revenueGrowth = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
+      const ordersGrowth = previousOrderCount > 0 ? ((currentOrderCount - previousOrderCount) / previousOrderCount) * 100 : 0;
+      const customersGrowth = uniquePreviousCustomers > 0 ? ((uniqueCurrentCustomers - uniquePreviousCustomers) / uniquePreviousCustomers) * 100 : 0;
+      const avgOrderGrowth = previousAvgOrder > 0 ? ((currentAvgOrder - previousAvgOrder) / previousAvgOrder) * 100 : 0;
+
+      // Process top products
+      const productSales: Record<string, { name: string; sales: number; revenue: number }> = {};
+      
+      (currentOrders || []).forEach(order => {
+        if (paidStatuses.includes(order.status) && order.order_items) {
+          order.order_items.forEach((item: any) => {
+            const productName = item.product_snapshot?.name || `Produit ${item.product_id}`;
+            if (!productSales[productName]) {
+              productSales[productName] = { name: productName, sales: 0, revenue: 0 };
+            }
+            productSales[productName].sales += item.quantity;
+            productSales[productName].revenue += item.total_price;
+          });
+        }
+      });
+
+      const topProducts = Object.keys(productSales)
+        .map((key, index) => ({ id: index + 1, ...productSales[key] }))
+        .sort((a, b) => b.sales - a.sales)
+        .slice(0, 4);
+
+      // Process category sales
+      const categorySales: Record<string, number> = {};
+      let totalSales = 0;
+
+      (currentOrders || []).forEach(order => {
+        if (paidStatuses.includes(order.status) && order.order_items) {
+          order.order_items.forEach((item: any) => {
+            const category = item.product_snapshot?.category || 'Autre';
+            categorySales[category] = (categorySales[category] || 0) + item.quantity;
+            totalSales += item.quantity;
+          });
+        }
+      });
+
+      const salesByCategory = Object.keys(categorySales).map(category => ({
+        category,
+        sales: categorySales[category],
+        percentage: totalSales > 0 ? Math.round((categorySales[category] / totalSales) * 100) : 0
+      }));
+
+      // Generate recent activity
+      const recentActivity = (currentOrders || [])
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 4)
+        .map((order, index) => {
+          const hoursAgo = Math.floor((Date.now() - new Date(order.created_at).getTime()) / (1000 * 60 * 60));
+          return {
+            type: "order",
+            description: `Nouvelle commande #${order.id.slice(-8)}`,
+            time: `Il y a ${hoursAgo}h`,
+            amount: (order.amount || 0) / 100
+          };
+        });
+
+      setAnalytics({
+        overview: {
+          revenue: { current: currentRevenue, previous: previousRevenue, growth: revenueGrowth },
+          orders: { current: currentOrderCount, previous: previousOrderCount, growth: ordersGrowth },
+          customers: { current: uniqueCurrentCustomers, previous: uniquePreviousCustomers, growth: customersGrowth },
+          avgOrder: { current: currentAvgOrder, previous: previousAvgOrder, growth: avgOrderGrowth }
+        },
+        topProducts,
+        salesByCategory,
+        recentActivity
+      });
+
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      toast.error('Erreur lors du chargement des analyses');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getGrowthColor = (growth: number) => {
     return growth >= 0 ? "text-green-600" : "text-red-600";
@@ -82,9 +229,51 @@ const AdminAnalytics = () => {
   };
 
   const exportReport = () => {
-    // Export logic here
     console.log("Exporting analytics report...");
+    toast.success("Fonctionnalité d'export bientôt disponible");
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48 mt-2" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <Skeleton className="h-16 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <Skeleton className="h-48 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!analytics) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-stone-600">Aucune donnée disponible</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -127,7 +316,7 @@ const AdminAnalytics = () => {
             <DollarSign className="h-4 w-4 text-olive-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.overview.revenue.current}€</div>
+            <div className="text-2xl font-bold">{analytics.overview.revenue.current.toFixed(2)}€</div>
             <div className={`flex items-center text-xs ${getGrowthColor(analytics.overview.revenue.growth)}`}>
               {getGrowthIcon(analytics.overview.revenue.growth)}
               <span className="ml-1">
@@ -178,7 +367,7 @@ const AdminAnalytics = () => {
             <Package className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.overview.avgOrder.current}€</div>
+            <div className="text-2xl font-bold">{analytics.overview.avgOrder.current.toFixed(2)}€</div>
             <div className={`flex items-center text-xs ${getGrowthColor(analytics.overview.avgOrder.growth)}`}>
               {getGrowthIcon(analytics.overview.avgOrder.growth)}
               <span className="ml-1">
@@ -214,10 +403,10 @@ const AdminAnalytics = () => {
                       <p className="font-medium text-stone-800 line-clamp-1">{product.name}</p>
                       <p className="text-sm text-stone-600">{product.sales} ventes</p>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-olive-700">{product.revenue}€</p>
-                  </div>
+                   </div>
+                   <div className="text-right">
+                     <p className="font-semibold text-olive-700">{product.revenue.toFixed(2)}€</p>
+                   </div>
                 </div>
               ))}
             </div>
@@ -273,11 +462,11 @@ const AdminAnalytics = () => {
                   <p className="font-medium text-stone-800">{activity.description}</p>
                   <p className="text-sm text-stone-600">{activity.time}</p>
                 </div>
-                {activity.amount && (
-                  <div className="text-right">
-                    <p className="font-semibold text-olive-700">{activity.amount}€</p>
-                  </div>
-                )}
+                 {activity.amount && (
+                   <div className="text-right">
+                     <p className="font-semibold text-olive-700">{activity.amount.toFixed(2)}€</p>
+                   </div>
+                 )}
               </div>
             ))}
           </div>
@@ -297,45 +486,53 @@ const AdminAnalytics = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <h4 className="font-semibold text-green-800">Forte croissance</h4>
+            {analytics.overview.revenue.growth > 0 && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <h4 className="font-semibold text-green-800">Forte croissance</h4>
+                </div>
+                <p className="text-sm text-green-700">
+                  Vos ventes ont augmenté de {analytics.overview.revenue.growth.toFixed(1)}% sur la période. Excellent travail !
+                </p>
               </div>
-              <p className="text-sm text-green-700">
-                Vos ventes ont augmenté de 31% ce mois-ci. Excellent travail !
-              </p>
-            </div>
+            )}
 
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <h4 className="font-semibold text-blue-800">Opportunité</h4>
+            {analytics.salesByCategory.length > 0 && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <h4 className="font-semibold text-blue-800">Catégorie populaire</h4>
+                </div>
+                <p className="text-sm text-blue-700">
+                  {analytics.salesByCategory[0]?.category} représente {analytics.salesByCategory[0]?.percentage}% des ventes.
+                </p>
               </div>
-              <p className="text-sm text-blue-700">
-                Considérez ajouter plus de variété dans la catégorie "Chapeaux".
-              </p>
-            </div>
+            )}
 
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <h4 className="font-semibold text-yellow-800">Attention</h4>
+            {analytics.overview.avgOrder.growth < 0 && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  <h4 className="font-semibold text-yellow-800">Attention</h4>
+                </div>
+                <p className="text-sm text-yellow-700">
+                  Le panier moyen a diminué de {Math.abs(analytics.overview.avgOrder.growth).toFixed(1)}%. Pensez à proposer des produits complémentaires.
+                </p>
               </div>
-              <p className="text-sm text-yellow-700">
-                Le panier moyen a diminué. Pensez à proposer des produits complémentaires.
-              </p>
-            </div>
+            )}
 
-            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <h4 className="font-semibold text-purple-800">Fidélisation</h4>
+            {analytics.overview.customers.growth > 0 && (
+              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <h4 className="font-semibold text-purple-800">Fidélisation</h4>
+                </div>
+                <p className="text-sm text-purple-700">
+                  {analytics.overview.customers.growth.toFixed(1)}% de nouveaux clients. Excellent taux d'acquisition !
+                </p>
               </div>
-              <p className="text-sm text-purple-700">
-                33% de nouveaux clients ce mois. Excellent taux d'acquisition !
-              </p>
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>
