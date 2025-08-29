@@ -1,8 +1,16 @@
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
+import SEOHelmet from "@/components/seo/SEOHelmet";
 
 const CGV = () => (
   <div className="min-h-screen bg-white flex flex-col">
+    <SEOHelmet
+      title="Conditions Générales de Vente - Rif Raw Straw"
+      description="Consultez nos conditions générales de vente pour vos achats d'artisanat berbère. Garanties, modalités de paiement et de livraison."
+      keywords={["cgv", "conditions générales", "vente", "garantie", "paiement"]}
+      url="/cgv"
+      type="website"
+    />
     <Navigation />
     <main className="flex-1 container mx-auto px-4 py-12">
       <div className="max-w-3xl mx-auto bg-beige-100 rounded-lg shadow p-8">

@@ -2,7 +2,6 @@
 
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import SEOHelmet from "@/components/seo/SEOHelmet";
 import { useWebVitals } from "@/hooks/useWebVitals";
 
 
@@ -90,7 +89,6 @@ const App = () => {
               <CartProvider>
                 <TooltipProvider delayDuration={300}>
                   <BrowserRouter basename={basePath}>
-                    <SEOHelmet />
                     <PushNotificationManager />
                     <PWAInstallPrompt />
                     <Routes>

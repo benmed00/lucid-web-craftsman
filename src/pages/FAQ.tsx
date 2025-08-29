@@ -1,8 +1,16 @@
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
+import SEOHelmet from "@/components/seo/SEOHelmet";
 
 const FAQ = () => (
   <div className="min-h-screen bg-white flex flex-col">
+    <SEOHelmet
+      title="FAQ - Questions Fréquentes | Rif Raw Straw"
+      description="Trouvez les réponses à vos questions sur nos produits artisanaux, livraison, retours et notre artisanat berbère."
+      keywords={["faq", "questions", "réponses", "aide", "support", "livraison"]}
+      url="/faq"
+      type="website"
+    />
     <Navigation />
     <main className="flex-1 container mx-auto px-4 py-12">
       <h1 className="text-3xl font-serif font-semibold text-olive-700 mb-8">

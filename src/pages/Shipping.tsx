@@ -1,9 +1,17 @@
 import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
+import SEOHelmet from "@/components/seo/SEOHelmet";
 
 const Shipping = () => (
   <div className="min-h-screen bg-white flex flex-col">
+    <SEOHelmet
+      title="Livraison et Expédition - Rif Raw Straw"
+      description="Découvrez nos options de livraison pour vos achats d'artisanat marocain. Livraison rapide et sécurisée en France et à l'international."
+      keywords={["livraison", "expédition", "transport", "délais", "frais"]}
+      url="/shipping"
+      type="website"
+    />
     <Navigation />
 
     <main className="flex-1 container mx-auto px-4 py-12">

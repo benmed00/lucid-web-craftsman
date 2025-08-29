@@ -3,66 +3,43 @@ import SEOHelmet from "@/components/seo/SEOHelmet";
 import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 
-const Returns = () => (
+const About = () => (
   <div className="min-h-screen bg-white flex flex-col">
     <SEOHelmet
-      title="Retours & Remboursements - Rif Raw Straw"
-      description="Politique de retour et remboursement pour vos achats d'artisanat marocain. 14 jours pour retourner vos articles."
-      keywords={["retours", "remboursements", "politique", "garantie"]}
-      url="/returns"
+      title="À Propos - Rif Raw Straw"
+      description="Découvrez notre histoire, notre passion pour l'artisanat berbère et notre engagement envers les artisans des montagnes du Rif."
+      keywords={["à propos", "histoire", "artisanat berbère", "rif", "artisans", "mission"]}
+      url="/about"
       type="website"
     />
     <Navigation />
     <main className="flex-1 container mx-auto px-4 py-12">
-      <h1 className="text-3xl font-serif font-semibold text-olive-700 mb-6">
-        Retours & Remboursements
-      </h1>
-      <div className="bg-beige-100 rounded-lg shadow p-6 max-w-2xl mx-auto">
-        <h2 className="text-xl font-semibold text-stone-800 mb-4">
-          Politique de retour
-        </h2>
-        <ul className="list-disc pl-6 text-stone-700 mb-6">
-          <li>
-            Vous disposez de 14 jours après réception pour retourner un article.
-          </li>
-          <li>
-            Les produits doivent être neufs, non utilisés et dans leur emballage
-            d’origine.
-          </li>
-          <li>
-            Les frais de retour sont à la charge du client sauf erreur de notre
-            part.
-          </li>
-        </ul>
-        <h2 className="text-xl font-semibold text-stone-800 mb-2">Procédure</h2>
-        <ol className="list-decimal pl-6 text-stone-700 mb-4">
-          <li>
-            Contactez-nous via la page{" "}
-            <Link
-              to="/contact"
-              className="text-olive-700 underline hover:text-olive-800"
-            >
-              Contact
-            </Link>{" "}
-            en précisant votre numéro de commande.
-          </li>
-          <li>
-            Nous vous indiquerons l’adresse de retour et la marche à suivre.
-          </li>
-          <li>
-            Après réception et vérification, le remboursement sera effectué sous
-            7 jours ouvrés.
-          </li>
-        </ol>
+      <div className="max-w-3xl mx-auto bg-beige-100 rounded-lg shadow p-8">
+        <h1 className="text-3xl font-serif font-bold text-olive-700 mb-6">
+          À Propos de Rif Raw Straw
+        </h1>
+        <p className="text-lg text-stone-700 mb-6">
+          L'aventure{" "}
+          <span className="font-semibold text-olive-700">
+            Rif Raw Straw
+          </span>{" "}
+          commence avec une passion commune : révéler la beauté de l'artisanat
+          berbère et la partager au plus grand nombre.
+        </p>
+        <p className="text-stone-700 mb-4">
+          Depuis nos débuts, nous parcourons les ateliers, les marchés et les
+          villages à la recherche de créateurs talentueux. Chaque rencontre,
+          chaque objet, chaque histoire nourrit notre envie de valoriser le
+          fait-main et l'authenticité.
+        </p>
+        <p className="text-stone-700 mb-4">
+          Aujourd'hui, notre boutique est le reflet de cette quête : une
+          sélection exigeante, des pièces uniques, et une volonté de tisser un
+          lien entre artisans et amoureux du beau.
+        </p>
         <p className="text-stone-700">
-          Pour toute question, n’hésitez pas à consulter notre{" "}
-          <Link
-            to="/faq"
-            className="text-olive-700 underline hover:text-olive-800"
-          >
-            FAQ
-          </Link>{" "}
-          ou à nous écrire.
+          Merci de faire partie de cette aventure et de soutenir l'artisanat
+          avec nous.
         </p>
       </div>
     </main>
@@ -70,4 +47,4 @@ const Returns = () => (
   </div>
 );
 
-export default Returns;
+export default About;
