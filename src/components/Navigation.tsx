@@ -9,7 +9,7 @@ import { useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
-import "../styles/navigation-fixed.css";
+import "../styles/navigation-stable.css";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,10 +42,10 @@ const Navigation = () => {
 
 
   return (
-    <nav className="bg-white sticky top-0 z-40 border-b border-stone-100 shadow-sm">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center"
-           style={{ willChange: 'auto' }}>
-      <div className="flex items-center space-x-2">
+    <header className="navigation-root">
+      <div className="navigation-inner">
+        {/* Logo Section */}
+        <div className="navigation-logo">
           <Link to="/" className="group">
             <div className="flex items-center space-x-2 md:space-x-3">
               <div className="p-1.5 md:p-2 rounded-full bg-olive-700 group-hover:bg-olive-800 transition-all duration-300 shadow-md group-hover:shadow-lg">
@@ -63,41 +63,42 @@ const Navigation = () => {
           </Link>
         </div>
 
-      {/* Desktop Navigation */}
-      <div className="navigation-container navigation-desktop hidden md:block">
-        <div className="nav-link-container" role="navigation" aria-label="Navigation principale">
-          <Link
-            to="/"
-            className="nav-link text-stone-700 hover:text-stone-900"
-            aria-current={location.pathname === "/" ? "page" : undefined}
-          >
-            <span>Accueil</span>
-          </Link>
-          <Link
-            to="/products"
-            className="nav-link text-stone-700 hover:text-stone-900"
-            aria-current={location.pathname === "/products" ? "page" : undefined}
-          >
-            <span>Boutique</span>
-          </Link>
-          <Link
-            to="/blog"
-            className="nav-link text-stone-700 hover:text-stone-900"
-            aria-current={location.pathname === "/blog" ? "page" : undefined}
-          >
-            <span>Blog</span>
-          </Link>
-          <Link
-            to="/contact"
-            className="nav-link text-stone-700 hover:text-stone-900"
-            aria-current={location.pathname === "/contact" ? "page" : undefined}
-          >
-            <span>Contact</span>
-          </Link>
+        {/* Desktop Navigation Links */}
+        <div className="navigation-desktop">
+          <nav className="nav-links-container" role="navigation" aria-label="Navigation principale">
+            <Link
+              to="/"
+              className="nav-link text-stone-700"
+              aria-current={location.pathname === "/" ? "page" : undefined}
+            >
+              <span>Accueil</span>
+            </Link>
+            <Link
+              to="/products"
+              className="nav-link text-stone-700"
+              aria-current={location.pathname === "/products" ? "page" : undefined}
+            >
+              <span>Boutique</span>
+            </Link>
+            <Link
+              to="/blog"
+              className="nav-link text-stone-700"
+              aria-current={location.pathname === "/blog" ? "page" : undefined}
+            >
+              <span>Blog</span>
+            </Link>
+            <Link
+              to="/contact"
+              className="nav-link text-stone-700"
+              aria-current={location.pathname === "/contact" ? "page" : undefined}
+            >
+              <span>Contact</span>
+            </Link>
+          </nav>
         </div>
-      </div>
 
-      <div className="flex items-center gap-3">
+        {/* Actions Section */}
+        <div className="navigation-actions">
         {/* Search Button - Desktop */}
         <Button
           variant="ghost"
@@ -202,20 +203,21 @@ const Navigation = () => {
             </Button>
           )}
         </div>
-      </div>
-
-      {/* Mobile Menu Button */}
-      <button
-        className="md:hidden text-stone-700 p-3 rounded-xl hover:bg-stone-100 transition-all duration-200 active:scale-95 touch-manipulation"
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-        aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
-      >
-        <div className="relative w-6 h-6">
-          <span className={`absolute block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'rotate-45 top-3' : 'top-1'}`}></span>
-          <span className={`absolute block w-6 h-0.5 bg-current transition-opacity duration-300 top-3 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
-          <span className={`absolute block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? '-rotate-45 top-3' : 'top-5'}`}></span>
         </div>
-      </button>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden text-stone-700 p-3 rounded-xl hover:bg-stone-100 transition-all duration-200 active:scale-95 touch-manipulation"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+        >
+          <div className="relative w-6 h-6">
+            <span className={`absolute block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'rotate-45 top-3' : 'top-1'}`}></span>
+            <span className={`absolute block w-6 h-0.5 bg-current transition-opacity duration-300 top-3 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
+            <span className={`absolute block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? '-rotate-45 top-3' : 'top-5'}`}></span>
+          </div>
+        </button>
+      </div>
 
       {/* Search Bar - Desktop Dropdown */}
       {showSearch && (
@@ -249,157 +251,156 @@ const Navigation = () => {
 
       {/* Mobile Menu */}
       <div className={`md:hidden absolute top-full left-0 right-0 bg-white shadow-xl z-50 border-t border-stone-100 transform transition-transform duration-200 ease-out max-h-[90vh] overflow-y-auto ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'}`}>
-          <div className="flex flex-col space-y-3 p-6 pb-8">
-            {/* Mobile Search */}
-            <div className="mb-4">
-              <form onSubmit={handleSearch} className="flex gap-2">
-                <Input
-                  type="text"
-                  placeholder="Rechercher des produits..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1"
-                />
-                <Button type="submit" disabled={!searchQuery.trim()} size="sm">
-                  <Search size={16} />
-                </Button>
-              </form>
+        <div className="flex flex-col space-y-3 p-6 pb-8">
+          {/* Mobile Search */}
+          <div className="mb-4">
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <Input
+                type="text"
+                placeholder="Rechercher des produits..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit" disabled={!searchQuery.trim()} size="sm">
+                <Search size={16} />
+              </Button>
+            </form>
+          </div>
+
+          <Link
+            to="/"
+            className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <span className="text-2xl">🏠</span>
+            <span className="text-lg">Accueil</span>
+          </Link>
+          <Link
+            to="/products"
+            className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <span className="text-2xl">🛍️</span>
+            <span className="text-lg">Boutique</span>
+          </Link>
+          <Link
+            to="/blog"
+            className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <span className="text-2xl">📖</span>
+            <span className="text-lg">Blog</span>
+          </Link>
+          <Link
+            to="/contact"
+            className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <span className="text-2xl">💬</span>
+            <span className="text-lg">Contact</span>
+          </Link>
+
+          {/* Currency Selector - Mobile */}
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between">
+              <span className="text-stone-700 font-medium">Devise:</span>
+              <CurrencySelector />
             </div>
+          </div>
 
+          <div className="pt-4 mt-4 border-t border-stone-200">
             <Link
-              to="/"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
+              to="/cart"
+              className="w-full block"
               onClick={() => setIsMenuOpen(false)}
             >
-              <span className="text-2xl">🏠</span>
-              <span className="text-lg">Accueil</span>
-            </Link>
-            <Link
-              to="/products"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <span className="text-2xl">🛍️</span>
-              <span className="text-lg">Boutique</span>
-            </Link>
-            <Link
-              to="/blog"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <span className="text-2xl">📖</span>
-              <span className="text-lg">Blog</span>
-            </Link>
-            <Link
-              to="/contact"
-              className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <span className="text-2xl">💬</span>
-              <span className="text-lg">Contact</span>
-            </Link>
-
-            {/* Currency Selector - Mobile */}
-            <div className="px-4 py-3">
-              <div className="flex items-center justify-between">
-                <span className="text-stone-700 font-medium">Devise:</span>
-                <CurrencySelector />
-              </div>
-            </div>
-
-            <div className="pt-4 mt-4 border-t border-stone-200">
-              <Link
-                to="/cart"
-                className="w-full block"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <Button
-                  className={clsx(
-                    "w-full transition-all duration-200 flex items-center justify-center py-4 rounded-xl active:scale-[0.98] hover:shadow-lg",
-                    itemCount >= 1
-                      ? "bg-olive-700 text-white hover:bg-olive-800 shadow-olive-700/30"
-                      : "bg-stone-100 text-stone-700 hover:bg-stone-200"
-                  )}
-                >
-                  <ShoppingBag className="mr-3 h-5 w-5" /> 
-                  <span className="font-medium">Panier {itemCount > 0 && `(${itemCount})`}</span>
-                </Button>
-              </Link>
-            </div>
-
-            {/* Mobile auth buttons */}
-            {!isLoading && (
-              <>
-              {user && (
-                <>
-                  <Link
-                    to="/wishlist"
-                    className="flex items-center justify-between py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors relative"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <span className="flex items-center">
-                      <Heart size={20} className="mr-3" />
-                      Mes Favoris
-                    </span>
-                    {wishlistCount > 0 && (
-                      <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                        {wishlistCount}
-                      </span>
-                    )}
-                  </Link>
-                   <Link
-                     to="/orders"
-                     className="flex items-center py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors"
-                     onClick={() => setIsMenuOpen(false)}
-                   >
-                     <Package size={20} className="mr-3" />
-                     Mes Commandes
-                   </Link>
-                   <Link
-                     to="/cart"
-                     className="flex items-center py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors"
-                     onClick={() => setIsMenuOpen(false)}
-                   >
-                     <ShoppingCart size={20} className="mr-3" />
-                     Panier
-                   </Link>
-                </>
-              )}
-
-              {user ? (
-                  <div className="pt-4 mt-4 border-t border-stone-200 space-y-3">
-                    <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
-                      <div className="px-4 py-3 bg-olive-50 rounded-xl hover:bg-olive-100 active:bg-olive-200 transition-all duration-200 cursor-pointer">
-                        <div className="flex items-center gap-3 text-olive-700 font-medium">
-                          <User className="h-5 w-5" />
-                          <span>👤 Mon Profil</span>
-                        </div>
-                      </div>
-                    </Link>
-                    <Button 
-                      variant="outline" 
-                      onClick={handleSignOut} 
-                      className="w-full flex items-center justify-center gap-3 py-4 rounded-xl hover:shadow-lg active:scale-[0.98] transition-all duration-200"
-                    >
-                      <LogOut className="h-5 w-5" />
-                      <span className="font-medium">Déconnexion</span>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="pt-4 mt-4 border-t border-stone-200">
-                    <Button variant="default" asChild className="w-full py-4 rounded-xl hover:shadow-lg active:scale-[0.98] transition-all duration-200">
-                      <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
-                        <span className="font-medium">Se connecter</span>
-                      </Link>
-                    </Button>
-                  </div>
+              <Button
+                className={clsx(
+                  "w-full transition-all duration-200 flex items-center justify-center py-4 rounded-xl active:scale-[0.98] hover:shadow-lg",
+                  itemCount >= 1
+                    ? "bg-olive-700 text-white hover:bg-olive-800 shadow-olive-700/30"
+                    : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                 )}
+              >
+                <ShoppingBag className="mr-3 h-5 w-5" /> 
+                <span className="font-medium">Panier {itemCount > 0 && `(${itemCount})`}</span>
+              </Button>
+            </Link>
+          </div>
+
+          {/* Mobile auth buttons */}
+          {!isLoading && (
+            <>
+            {user && (
+              <>
+                <Link
+                  to="/wishlist"
+                  className="flex items-center justify-between py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors relative"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span className="flex items-center">
+                    <Heart size={20} className="mr-3" />
+                    Mes Favoris
+                  </span>
+                  {wishlistCount > 0 && (
+                    <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </Link>
+                 <Link
+                   to="/orders"
+                   className="flex items-center py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors"
+                   onClick={() => setIsMenuOpen(false)}
+                 >
+                   <Package size={20} className="mr-3" />
+                   Mes Commandes
+                 </Link>
+                 <Link
+                   to="/cart"
+                   className="flex items-center py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors"
+                   onClick={() => setIsMenuOpen(false)}
+                 >
+                   <ShoppingCart size={20} className="mr-3" />
+                   Panier
+                 </Link>
               </>
             )}
-          </div>
+
+            {user ? (
+                <div className="pt-4 mt-4 border-t border-stone-200 space-y-3">
+                  <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
+                    <div className="px-4 py-3 bg-olive-50 rounded-xl hover:bg-olive-100 active:bg-olive-200 transition-all duration-200 cursor-pointer">
+                      <div className="flex items-center gap-3 text-olive-700 font-medium">
+                        <User className="h-5 w-5" />
+                        <span>👤 Mon Profil</span>
+                      </div>
+                    </div>
+                  </Link>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleSignOut} 
+                    className="w-full flex items-center justify-center gap-3 py-4 rounded-xl hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <span className="font-medium">Déconnexion</span>
+                  </Button>
+                </div>
+              ) : (
+                <div className="pt-4 mt-4 border-t border-stone-200">
+                  <Button variant="default" asChild className="w-full py-4 rounded-xl hover:shadow-lg active:scale-[0.98] transition-all duration-200">
+                    <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+                      <span className="font-medium">Se connecter</span>
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
-    </nav>
+    </header>
   );
 };
 

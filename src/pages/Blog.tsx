@@ -11,6 +11,7 @@ import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { getBlogPosts } from "@/api/mockApiService";
 import { BlogImage } from "@/components/ui/GlobalImage";
+import BlogSkeleton from "@/components/BlogSkeleton";
 
 const Blog = () => {
   const [featuredPosts, setFeaturedPosts] = useState([]);
@@ -37,15 +38,11 @@ const Blog = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <>
         <Navigation />
-        <div className="container mx-auto px-4 py-16 flex justify-center items-center">
-          <div className="text-center">
-            <p>Chargement des articles...</p>
-          </div>
-        </div>
+        <BlogSkeleton />
         <PageFooter />
-      </div>
+      </>
     );
   }
 
