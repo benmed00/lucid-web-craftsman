@@ -8,8 +8,8 @@ export const products: Product[] = [
     name: "Sac à Main Tissé Traditionnel",
     price: 89,
     images: [
-      "/assets/images/sacs/sac_traditionnel.jpg",
-      "/assets/images/sacs/sac_traditionnel_vue1.jpg",
+      "/assets/images/products/sac_a_main_tisse_traditionnel.jpg",
+      "/assets/images/sacs/sac_traditionnel_vue1.jpg", 
       "/assets/images/sacs/sac_traditionnel_vue2.jpg",
       "/assets/images/sacs/sac_traditionnel_vue3.jpg",
     ],

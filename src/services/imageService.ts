@@ -12,8 +12,9 @@ class ImageService {
   // Comprehensive fallback system with actual available images
   private readonly fallbackConfig: ImageFallbackConfig = {
     product: [
+      "/assets/images/sacs/sac_traditionnel.jpg",
+      "/assets/images/products/sac_a_main_tisse_traditionnel.jpg", 
       "/assets/images/handmade_products.webp",
-      "/assets/images/home_page_image.webp",
       "/placeholder.svg"
     ],
     hero: [
@@ -169,8 +170,7 @@ class ImageService {
     for (const fallback of fallbacks) {
       const isValid = await this.checkImage(fallback);
       if (isValid) {
-        // Silently handle fallbacks - only log in development console for debugging
-        // console.warn(`Image fallback used: ${originalSrc} -> ${fallback}`);
+        // Silent fallback for production
         return fallback;
       }
     }
