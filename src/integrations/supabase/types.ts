@@ -1094,6 +1094,33 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          action_type: string
+          attempts: number
+          created_at: string
+          id: string
+          identifier: string
+          window_start: string
+        }
+        Insert: {
+          action_type: string
+          attempts?: number
+          created_at?: string
+          id?: string
+          identifier: string
+          window_start?: string
+        }
+        Update: {
+          action_type?: string
+          attempts?: number
+          created_at?: string
+          id?: string
+          identifier?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       security_config: {
         Row: {
           created_at: string | null
@@ -1584,6 +1611,15 @@ export type Database = {
       }
       can_access_support_ticket: {
         Args: { ticket_id: string }
+        Returns: boolean
+      }
+      check_rate_limit: {
+        Args: {
+          p_action_type: string
+          p_identifier: string
+          p_max_attempts?: number
+          p_window_minutes?: number
+        }
         Returns: boolean
       }
       get_masked_error_report: {
