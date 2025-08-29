@@ -122,14 +122,14 @@ const Wishlist = () => {
             <div className="space-y-4">
               {wishlistProducts.map((product) => (
                 <Card key={product.id} className="hover:shadow-md transition-shadow duration-200">
-                  <CardContent className="p-6">
-                    <div className="flex gap-6">
+                  <CardContent className="p-4 md:p-6">
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                       {/* Product Image */}
                       <Link 
                         to={`/products/${product.id}`}
-                        className="flex-shrink-0"
+                        className="flex-shrink-0 self-center sm:self-start"
                       >
-                        <div className="w-24 h-24 overflow-hidden rounded-lg">
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 overflow-hidden rounded-lg">
                           <ProductImage
                             src={product.images[0]}
                             alt={product.name}
@@ -141,40 +141,40 @@ const Wishlist = () => {
 
                       {/* Product Details */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <div>
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                          <div className="flex-1 min-w-0">
                             <Link 
                               to={`/products/${product.id}`}
                               className="hover:text-olive-700 transition-colors"
                             >
-                              <h3 className="font-medium text-lg text-stone-800 mb-2">
+                              <h3 className="font-medium text-lg text-stone-800 mb-2 line-clamp-2">
                                 {product.name}
                               </h3>
                             </Link>
                             
-                            <div className="flex items-center gap-4 text-sm text-stone-600 mb-4">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-stone-600 mb-3">
                               <span className="bg-stone-100 px-2 py-1 rounded text-xs">
                                 {product.category}
                               </span>
-                              <span>Par {product.artisan}</span>
+                              <span className="text-xs sm:text-sm">Par {product.artisan}</span>
                             </div>
 
-                            <p className="text-stone-600 text-sm line-clamp-2 mb-4">
+                            <p className="text-stone-600 text-sm mb-4 line-clamp-2 overflow-hidden hidden sm:block">
                               {product.description}
                             </p>
 
-                            <div className="text-2xl font-semibold text-olive-700 mb-4">
+                            <div className="text-xl sm:text-2xl font-semibold text-olive-700 mb-4">
                               {formatPrice(product.price)}
                             </div>
                           </div>
 
                           {/* Actions */}
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-row sm:flex-col items-center gap-2 flex-shrink-0">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleAddToCart(product)}
-                              className="hover:bg-olive-50 hover:border-olive-200"
+                              className="hover:bg-olive-50 hover:border-olive-200 flex-1 sm:flex-none whitespace-nowrap"
                             >
                               Ajouter au panier
                             </Button>
@@ -183,7 +183,8 @@ const Wishlist = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleRemoveFromWishlist(product.id)}
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                              aria-label="Retirer des favoris"
                             >
                               <Trash2 size={16} />
                             </Button>
