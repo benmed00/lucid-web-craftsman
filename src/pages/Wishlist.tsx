@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Heart, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ProductImage } from '@/components/ui/GlobalImage';
+import { SEOHelmet } from '@/components/seo/SEOHelmet';
 import Navigation from '@/components/Navigation';
 import PageFooter from '@/components/PageFooter';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -14,40 +15,59 @@ import { products } from '@/data/products';
 import { formatPrice } from '@/lib/stripe';
 import { useCart } from '@/context/CartContext';
 import { toast } from 'sonner';
+import { Product } from '@/shared/interfaces/Iproduct.interface';
+
+interface WishlistProduct extends Product {
+  wishlistId: string;
+}
 
 const Wishlist = () => {
   const { wishlistItems, loading, removeFromWishlist } = useWishlist();
   const { user } = useAuth();
   const { dispatch } = useCart();
-  const [wishlistProducts, setWishlistProducts] = useState<any[]>([]);
 
-  useEffect(() => {
-    // Get product details for wishlist items
-    const productDetails = wishlistItems.map(item => {
+  // Memoize wishlist products to prevent unnecessary re-calculations
+  const wishlistProducts = useMemo<WishlistProduct[]>(() => {
+    return wishlistItems.map(item => {
       const product = products.find(p => p.id === item.product_id);
       return product ? { ...product, wishlistId: item.id } : null;
-    }).filter(Boolean);
-    
-    setWishlistProducts(productDetails);
+    }).filter((product): product is WishlistProduct => product !== null);
   }, [wishlistItems]);
 
-  const handleRemoveFromWishlist = async (productId: number) => {
-    await removeFromWishlist(productId);
-  };
+  // Memoized handlers for better performance
+  const handleRemoveFromWishlist = useCallback(async (productId: number) => {
+    try {
+      await removeFromWishlist(productId);
+    } catch (error) {
+      console.error('Failed to remove from wishlist:', error);
+      toast.error('Erreur lors de la suppression des favoris');
+    }
+  }, [removeFromWishlist]);
 
-  const handleAddToCart = (product: any) => {
-    dispatch({
-      type: "ADD_ITEM",
-      payload: product,
-      quantity: 1
-    });
-    toast.success("Produit ajouté au panier");
-  };
+  const handleAddToCart = useCallback((product: WishlistProduct) => {
+    try {
+      dispatch({
+        type: "ADD_ITEM",
+        payload: product,
+        quantity: 1
+      });
+      toast.success("Produit ajouté au panier");
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
+      toast.error('Erreur lors de l\'ajout au panier');
+    }
+  }, [dispatch]);
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-white">
-        <Navigation />
+      <>
+        <SEOHelmet 
+          title="Mes Favoris - Connectez-vous"
+          description="Connectez-vous pour accéder à votre liste de favoris et retrouver vos créations artisanales préférées."
+          canonical="/wishlist"
+        />
+        <div className="min-h-screen bg-white">
+          <Navigation />
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-2xl mx-auto text-center">
             <Heart className="w-16 h-16 text-stone-300 mx-auto mb-6" />
@@ -64,12 +84,18 @@ const Wishlist = () => {
         </div>
         <PageFooter />
       </div>
-    );
-  }
+    </>
+  );
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navigation />
+    <>
+      <SEOHelmet 
+        title={`Mes Favoris (${wishlistProducts.length}) - Artisanat Berbère`}
+        description={`Votre liste de favoris contient ${wishlistProducts.length} création${wishlistProducts.length > 1 ? 's' : ''} artisanale${wishlistProducts.length > 1 ? 's' : ''} du Rif marocain. Découvrez et commandez vos pièces préférées.`}
+        canonical="/wishlist"
+      />
+      <div className="min-h-screen bg-white">
+        <Navigation />
 
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
@@ -215,6 +241,7 @@ const Wishlist = () => {
 
       <PageFooter />
     </div>
+  </>
   );
 };
 
