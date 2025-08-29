@@ -1586,6 +1586,10 @@ export type Database = {
         Args: { ticket_id: string }
         Returns: boolean
       }
+      get_masked_error_report: {
+        Args: { report_id: string }
+        Returns: Json
+      }
       get_masked_payment_info: {
         Args: { payment_id: string }
         Returns: Json
