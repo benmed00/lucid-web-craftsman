@@ -150,47 +150,51 @@ const Navigation = () => {
         </Link>
 
         {/* Auth buttons - Desktop */}
-        {!isLoading && (
-          <>
-             {user ? (
-               <div className="hidden md:flex items-center gap-1">
-                 <Button variant="ghost" size="sm" asChild className="group relative">
-                   <Link to="/orders" className="flex items-center p-2">
-                     <Package className="h-4 w-4" />
-                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                       Mes Commandes
-                     </div>
-                   </Link>
-                 </Button>
-                 <Button variant="ghost" size="sm" asChild className="group relative">
-                   <Link to="/profile" className="flex items-center p-2">
-                     <User className="h-4 w-4" />
-                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                       Mon Profil
-                     </div>
-                   </Link>
-                 </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleSignOut} 
-                    className="group relative flex items-center p-2"
-                    id="nav-signout"
-                    name="navigation-signout-button"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                      Déconnexion
-                    </div>
-                  </Button>
-               </div>
-            ) : (
-              <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
-                <Link to="/auth" aria-label="Se connecter">Se connecter</Link>
+        <div className="hidden md:flex items-center gap-1 min-w-[200px] justify-end">
+          {isLoading ? (
+            <div className="flex items-center gap-1">
+              <div className="w-8 h-8 rounded bg-stone-200 animate-pulse"></div>
+              <div className="w-8 h-8 rounded bg-stone-200 animate-pulse"></div>
+              <div className="w-8 h-8 rounded bg-stone-200 animate-pulse"></div>
+            </div>
+          ) : user ? (
+            <>
+              <Button variant="ghost" size="sm" asChild className="group relative">
+                <Link to="/orders" className="flex items-center p-2">
+                  <Package className="h-4 w-4" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Mes Commandes
+                  </div>
+                </Link>
               </Button>
-            )}
-          </>
-        )}
+              <Button variant="ghost" size="sm" asChild className="group relative">
+                <Link to="/profile" className="flex items-center p-2">
+                  <User className="h-4 w-4" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Mon Profil
+                  </div>
+                </Link>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleSignOut} 
+                className="group relative flex items-center p-2"
+                id="nav-signout"
+                name="navigation-signout-button"
+              >
+                <LogOut className="h-4 w-4" />
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Déconnexion
+                </div>
+              </Button>
+            </>
+          ) : (
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/auth" aria-label="Se connecter">Se connecter</Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Mobile Menu Button */}
