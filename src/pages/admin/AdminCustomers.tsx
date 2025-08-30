@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { AddClientDialog } from "@/components/admin/AddClientDialog";
 
 interface CustomerProfile {
   id: string;
@@ -205,10 +206,13 @@ const AdminCustomers = () => {
           <h1 className="text-2xl font-bold text-stone-800">Gestion des Clients</h1>
           <p className="text-stone-600">Gérez tous vos clients et leurs commandes</p>
         </div>
-        <Button onClick={fetchCustomers} variant="outline" className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Actualiser
-        </Button>
+        <div className="flex space-x-2">
+          <AddClientDialog onClientAdded={fetchCustomers} />
+          <Button onClick={fetchCustomers} variant="outline" className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Actualiser
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}

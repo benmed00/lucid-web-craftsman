@@ -13,6 +13,7 @@ import { Package2, Search, Eye, RefreshCw, DollarSign, ShoppingCart, Clock, Truc
 import { toast } from "sonner";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { AddOrderDialog } from "@/components/admin/AddOrderDialog";
 
 interface OrderItem {
   id: string;
