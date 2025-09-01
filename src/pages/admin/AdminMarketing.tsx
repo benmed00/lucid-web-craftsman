@@ -55,10 +55,20 @@ interface CustomerSegment {
   criteria: string;
 }
 
+interface MarketingData {
+  newsletters: NewsletterSubscription[];
+  coupons: DiscountCoupon[];
+  segments: CustomerSegment[];
+  campaigns: any[];
+}
+
 const AdminMarketing = () => {
-  const [newsletterSubscriptions, setNewsletterSubscriptions] = useState<NewsletterSubscription[]>([]);
-  const [discountCoupons, setDiscountCoupons] = useState<DiscountCoupon[]>([]);
-  const [customerSegments, setCustomerSegments] = useState<CustomerSegment[]>([]);
+  const [marketingData, setMarketingData] = useState<MarketingData>({
+    newsletters: [],
+    coupons: [],
+    segments: [],
+    campaigns: []
+  });
   const [loading, setLoading] = useState(true);
   
   const [newCoupon, setNewCoupon] = useState({
@@ -102,87 +112,66 @@ const AdminMarketing = () => {
 
       if (couponsError) throw couponsError;
 
-      // Generate customer segments from profiles and orders
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, created_at');
-
-      if (profilesError) throw profilesError;
-
-      const { data: orders, error: ordersError } = await supabase
-        .from('orders')
-        .select('user_id, amount, created_at, status');
-
-      if (ordersError) throw ordersError;
-
-      // Calculate customer segments
-      const totalCustomers = profiles?.length || 0;
-      const newCustomers = profiles?.filter(p => {
-        const createdDate = new Date(p.created_at);
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        return createdDate > thirtyDaysAgo;
-      }).length || 0;
-
-      const customerSpending = orders?.reduce((acc: Record<string, number>, order) => {
-        if (order.user_id && ['paid', 'processing', 'shipped', 'delivered'].includes(order.status)) {
-          acc[order.user_id] = (acc[order.user_id] || 0) + (order.amount / 100);
-        }
-        return acc;
-      }, {}) || {};
-
-      const vipCustomers = Object.values(customerSpending).filter(amount => amount > 300).length;
+      // Get customer segments using the database function
+      const { data: segmentsData, error: segmentsError } = await supabase
+        .rpc('get_customer_segments');
       
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-      const recentOrderUserIds = new Set(orders?.filter(o => new Date(o.created_at) > sixMonthsAgo).map(o => o.user_id));
-      const inactiveCustomers = Math.max(0, totalCustomers - recentOrderUserIds.size);
+      let customerSegments: CustomerSegment[] = [];
+      
+      if (!segmentsError && segmentsData) {
+        // Type assertion for the RPC response
+        const segments = segmentsData as { total: number; new: number; returning: number; at_risk: number };
+        
+        // Convert the database result to CustomerSegment format
+        customerSegments = [
+          { 
+            id: "total", 
+            name: "Tous les clients", 
+            count: segments.total || 0, 
+            criteria: "Tous les clients enregistrés" 
+          },
+          { 
+            id: "new", 
+            name: "Nouveaux clients", 
+            count: segments.new || 0, 
+            criteria: "Inscrits dans les 30 derniers jours" 
+          },
+          { 
+            id: "returning", 
+            name: "Clients fidèles", 
+            count: segments.returning || 0, 
+            criteria: "Plus d'une commande" 
+          },
+          { 
+            id: "at_risk", 
+            name: "Clients à risque", 
+            count: segments.at_risk || 0, 
+            criteria: "Aucun achat depuis 90 jours" 
+          }
+        ];
+      } else if (segmentsError) {
+        console.error('Error fetching customer segments:', segmentsError);
+        // Fallback segments
+        customerSegments = [
+          { id: "total", name: "Tous les clients", count: 0, criteria: "Tous les clients enregistrés" },
+          { id: "new", name: "Nouveaux clients", count: 0, criteria: "Inscrits dans les 30 derniers jours" },
+          { id: "returning", name: "Clients fidèles", count: 0, criteria: "Plus d'une commande" },
+          { id: "at_risk", name: "Clients à risque", count: 0, criteria: "Aucun achat depuis 90 jours" }
+        ];
+      }
 
-      const segments: CustomerSegment[] = [
-        { id: "vip", name: "Clients VIP", count: vipCustomers, criteria: "Plus de 300€ d'achats" },
-        { id: "new", name: "Nouveaux clients", count: newCustomers, criteria: "Inscrits dans les 30 derniers jours" },
-        { id: "inactive", name: "Clients inactifs", count: inactiveCustomers, criteria: "Aucun achat depuis 6 mois" },
-        { id: "all", name: "Tous les clients", count: totalCustomers, criteria: "Tous les clients enregistrés" }
-      ];
-
-      setNewsletterSubscriptions(newsletters || []);
-      setDiscountCoupons(coupons || []);
-      setCustomerSegments(segments);
+      setMarketingData({
+        newsletters: newsletters || [],
+        coupons: coupons || [],
+        segments: customerSegments,
+        campaigns: [] // This could be expanded in the future
+      });
       
     } catch (error) {
       console.error('Error fetching marketing data:', error);
       toast.error('Erreur lors du chargement des données marketing');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active": return "bg-green-100 text-green-800 border-green-200";
-      case "scheduled": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "ended": return "bg-stone-100 text-stone-800 border-stone-200";
-      case "sent": return "bg-purple-100 text-purple-800 border-purple-200";
-      default: return "bg-stone-100 text-stone-800 border-stone-200";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "active": return "Active";
-      case "scheduled": return "Programmée";
-      case "ended": return "Terminée";
-      case "sent": return "Envoyée";
-      default: return status;
-    }
-  };
-
-  const getCampaignIcon = (type: string) => {
-    switch (type) {
-      case "discount": return <Percent className="h-4 w-4" />;
-      case "newsletter": return <Mail className="h-4 w-4" />;
-      case "gift": return <Gift className="h-4 w-4" />;
-      default: return <Megaphone className="h-4 w-4" />;
     }
   };
 
@@ -210,7 +199,11 @@ const AdminMarketing = () => {
 
       if (error) throw error;
 
-      setDiscountCoupons([data, ...discountCoupons]);
+      setMarketingData(prev => ({
+        ...prev,
+        coupons: [data, ...prev.coupons]
+      }));
+      
       setNewCoupon({
         code: "",
         type: "percentage",
@@ -233,8 +226,8 @@ const AdminMarketing = () => {
       return;
     }
 
-    const targetSegment = customerSegments.find(s => s.id === newsletterContent.targetSegment);
-    const targetCount = targetSegment ? targetSegment.count : newsletterSubscriptions.length;
+    const targetSegment = marketingData.segments.find(s => s.id === newsletterContent.targetSegment);
+    const targetCount = targetSegment ? targetSegment.count : marketingData.newsletters.length;
 
     toast.success(`Newsletter programmée pour ${targetCount} destinataires`);
     setNewsletterContent({ subject: "", content: "", targetSegment: "all" });
@@ -256,7 +249,10 @@ const AdminMarketing = () => {
 
       if (error) throw error;
 
-      setDiscountCoupons(discountCoupons.filter(c => c.id !== couponId));
+      setMarketingData(prev => ({
+        ...prev,
+        coupons: prev.coupons.filter(c => c.id !== couponId)
+      }));
       toast.success('Code de réduction supprimé');
     } catch (error) {
       console.error('Error deleting coupon:', error);
@@ -424,8 +420,8 @@ const AdminMarketing = () => {
             onChange={(e) => setNewsletterContent({...newsletterContent, targetSegment: e.target.value})}
             className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-500"
           >
-            <option value="all">Tous les clients ({newsletterSubscriptions.length})</option>
-            {customerSegments.map(segment => (
+            <option value="all">Tous les clients ({marketingData.newsletters.length})</option>
+            {marketingData.segments.map(segment => (
               <option key={segment.id} value={segment.id}>
                 {segment.name} ({segment.count})
               </option>
@@ -509,7 +505,7 @@ const AdminMarketing = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {customerSegments.map((segment) => (
+            {marketingData.segments.map((segment) => (
               <div key={segment.id} className="p-4 border border-stone-200 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium text-stone-800">{segment.name}</h4>
@@ -522,7 +518,7 @@ const AdminMarketing = () => {
           
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h4 className="font-medium text-blue-800 mb-2">Newsletter</h4>
-            <p className="text-sm text-blue-700">{newsletterSubscriptions.length} abonnés actifs à votre newsletter</p>
+            <p className="text-sm text-blue-700">{marketingData.newsletters.length} abonnés actifs à votre newsletter</p>
           </div>
         </CardContent>
       </Card>
@@ -535,7 +531,7 @@ const AdminMarketing = () => {
               <Percent className="h-5 w-5 mr-2 text-olive-600" />
               Codes de réduction
             </div>
-            <Badge variant="outline">{discountCoupons.filter(c => c.is_active).length} actifs</Badge>
+            <Badge variant="outline">{marketingData.coupons.filter(c => c.is_active).length} actifs</Badge>
           </CardTitle>
           <CardDescription>
             Vos codes promotionnels et leur utilisation
@@ -543,12 +539,12 @@ const AdminMarketing = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {discountCoupons.length === 0 ? (
+            {marketingData.coupons.length === 0 ? (
               <div className="text-center py-8 text-stone-600">
                 Aucun code de réduction créé. Créez votre premier code pour stimuler les ventes.
               </div>
             ) : (
-              discountCoupons.map((coupon) => (
+              marketingData.coupons.map((coupon) => (
                 <div key={coupon.id} className="p-4 border border-stone-200 rounded-lg">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -611,28 +607,31 @@ const AdminMarketing = () => {
             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
               <h4 className="font-semibold text-green-800 mb-2">💰 Opportunité de vente</h4>
               <p className="text-sm text-green-700">
-                18 clients n'ont pas commandé depuis 6 mois. Une promotion ciblée pourrait les reconquérir.
+                {marketingData.segments.find(s => s.id === 'at_risk')?.count || 0} clients n'ont pas commandé récemment. 
+                Une promotion ciblée pourrait les reconquérir.
               </p>
             </div>
 
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <h4 className="font-semibold text-blue-800 mb-2">📧 Performance email</h4>
               <p className="text-sm text-blue-700">
-                Votre taux d'ouverture de 24% est excellent ! Continuez avec du contenu de qualité.
+                Votre base de {marketingData.newsletters.length} abonnés est prête pour vos campagnes !
               </p>
             </div>
 
             <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
               <h4 className="font-semibold text-purple-800 mb-2">🎯 Segmentation</h4>
               <p className="text-sm text-purple-700">
-                Vos clients VIP représentent 40% de votre CA. Créez des offres exclusives pour les fidéliser.
+                {marketingData.segments.find(s => s.id === 'returning')?.count || 0} clients fidèles. 
+                Créez des offres exclusives pour les récompenser.
               </p>
             </div>
 
             <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
               <h4 className="font-semibold text-orange-800 mb-2">🆕 Nouveaux clients</h4>
               <p className="text-sm text-orange-700">
-                34 nouveaux clients ce mois ! Pensez à un email de bienvenue avec un code de réduction.
+                {marketingData.segments.find(s => s.id === 'new')?.count || 0} nouveaux clients ce mois ! 
+                Pensez à un email de bienvenue avec une offre spéciale.
               </p>
             </div>
           </div>

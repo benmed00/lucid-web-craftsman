@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { AddOrderDialog } from "@/components/admin/AddOrderDialog";
+import { ManualTestOrderStatus } from "@/components/admin/ManualTestOrderStatus";
 
 interface OrderItem {
   id: string;
@@ -205,10 +206,14 @@ const AdminOrders = () => {
           <h1 className="text-2xl font-bold text-stone-800">Gestion des Commandes</h1>
           <p className="text-stone-600">Gérez toutes les commandes de votre boutique</p>
         </div>
-        <Button onClick={fetchOrders} variant="outline" className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Actualiser
-        </Button>
+        <div className="flex space-x-2">
+          <AddOrderDialog onOrderAdded={fetchOrders} />
+          <ManualTestOrderStatus />
+          <Button onClick={fetchOrders} variant="outline" className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Actualiser
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
