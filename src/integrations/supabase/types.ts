@@ -1622,6 +1622,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_customer_segments: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_masked_error_report: {
         Args: { report_id: string }
         Returns: Json

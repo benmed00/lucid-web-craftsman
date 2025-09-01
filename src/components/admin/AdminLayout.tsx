@@ -20,8 +20,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useOrderNotifications } from "@/hooks/useOrderNotifications";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const AdminLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -29,6 +30,9 @@ const AdminLayout = () => {
   const location = useLocation();
   const { user: adminUser, isAuthenticated, isLoading } = useAdminAuth();
   const { signOut } = useAuth();
+  
+  // Initialize order notifications
+  useOrderNotifications();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

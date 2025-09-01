@@ -17,8 +17,11 @@ import {
   Filter,
   Eye,
   EyeOff,
-  ImageIcon
+  ImageIcon,
+  RefreshCw
 } from "lucide-react";
+import { ProductImageManager } from "@/components/admin/ProductImageManager";
+import { ProductFormWithImages } from "@/components/admin/ProductFormWithImages";
 import { ProductService } from "@/services/productService";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
@@ -38,11 +41,12 @@ const AdminProducts = () => {
   const [formData, setFormData] = useState<Partial<Product>>({});
 
   useEffect(() => {
-    loadProducts();
+    fetchProducts();
   }, []);
 
-  const loadProducts = async () => {
+  const fetchProducts = async () => {
     try {
+      setLoading(true);
       const data = await ProductService.getAllProducts();
       setProducts(data);
     } catch (error) {
@@ -216,16 +220,17 @@ const AdminProducts = () => {
           </p>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex space-x-2">
+          <ProductFormWithImages onProductAdded={fetchProducts} />
           <Link to="/admin/hero-image">
             <Button variant="outline" size="sm">
               <ImageIcon className="h-4 w-4 mr-2" />
               Gérer l'image principale
             </Button>
           </Link>
-          <Button onClick={handleNewProduct} className="bg-olive-700 hover:bg-olive-800">
-            <Plus className="h-4 w-4 mr-2" />
-            Ajouter un produit
+          <Button onClick={fetchProducts} variant="outline" className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Actualiser
           </Button>
         </div>
       </div>
@@ -336,10 +341,7 @@ const AdminProducts = () => {
               }
             </p>
             {(!searchQuery && filterCategory === "all") && (
-              <Button onClick={handleNewProduct} className="bg-olive-700 hover:bg-olive-800">
-                <Plus className="h-4 w-4 mr-2" />
-                Ajouter un produit
-              </Button>
+              <ProductFormWithImages onProductAdded={fetchProducts} />
             )}
           </CardContent>
         </Card>
