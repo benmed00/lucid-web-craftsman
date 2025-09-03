@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface AddClientDialogProps {
   onClientAdded: () => void;
@@ -15,6 +16,8 @@ interface AddClientDialogProps {
 export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -25,44 +28,81 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
     city: "",
     postal_code: "",
     country: "France",
-    bio: ""
+    bio: "",
+    avatar_url: ""
   });
+
+  const handleAvatarUpload = async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Error uploading avatar:', uploadError);
+        return null;
+      }
+
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      return null;
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: formData.password,
-        user_metadata: {
-          full_name: formData.full_name
-        },
-        email_confirm: true
+      let avatarUrl = formData.avatar_url;
+
+      // Upload avatar if selected
+      if (avatarFile) {
+        const uploadedUrl = await handleAvatarUpload(avatarFile);
+        if (uploadedUrl) {
+          avatarUrl = uploadedUrl;
+        }
+      }
+
+      // Call edge function to create user with admin privileges
+      const { data, error } = await supabase.functions.invoke('create-admin-user', {
+        body: {
+          email: formData.email,
+          password: formData.password,
+          userData: {
+            ...formData,
+            avatar_url: avatarUrl
+          }
+        }
       });
 
-      if (authError) throw authError;
-
-      // Create profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          full_name: formData.full_name,
-          phone: formData.phone,
-          address_line1: formData.address_line1,
-          address_line2: formData.address_line2,
-          city: formData.city,
-          postal_code: formData.postal_code,
-          country: formData.country,
-          bio: formData.bio
-        });
-
-      if (profileError) throw profileError;
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
 
       toast.success("Client créé avec succès");
+      
+      // Reset form
       setFormData({
         email: "",
         password: "",
@@ -73,8 +113,11 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
         city: "",
         postal_code: "",
         country: "France",
-        bio: ""
+        bio: "",
+        avatar_url: ""
       });
+      setAvatarFile(null);
+      setAvatarPreview(null);
       setOpen(false);
       onClientAdded();
     } catch (error: any) {
@@ -106,6 +149,36 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Avatar Upload Section */}
+          <div className="flex flex-col items-center space-y-4">
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={avatarPreview || ""} />
+                <AvatarFallback className="text-lg">
+                  {formData.full_name ? formData.full_name.charAt(0).toUpperCase() : "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <Label htmlFor="avatar" className="cursor-pointer">
+                  <div className="flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-accent">
+                    <Upload className="h-4 w-4" />
+                    Choisir une photo
+                  </div>
+                </Label>
+                <input
+                  id="avatar"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  JPG, PNG ou GIF (max 5MB)
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email *</Label>
