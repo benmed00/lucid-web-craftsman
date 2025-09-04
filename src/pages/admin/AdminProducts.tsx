@@ -518,8 +518,8 @@ const AdminProducts = () => {
 
       {/* Edit/Add Product Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl w-full max-h-[95vh] flex flex-col">
-          <DialogHeader className="flex-shrink-0">
+        <DialogContent className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0">
+          <DialogHeader className="flex-shrink-0 p-6 pb-4 border-b">
             <DialogTitle>
               {isNewProduct ? "Ajouter un nouveau produit" : "Modifier le produit"}
             </DialogTitle>
@@ -531,11 +531,11 @@ const AdminProducts = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto pr-2">
+          <div className="flex-1 overflow-y-auto p-6">
             <ProductForm />
           </div>
           
-          <div className="flex justify-end space-x-2 pt-4 border-t flex-shrink-0">
+          <div className="flex justify-end space-x-2 p-6 pt-4 border-t bg-background flex-shrink-0">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Annuler
             </Button>
