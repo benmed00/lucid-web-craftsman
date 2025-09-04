@@ -76,8 +76,20 @@ const AdminProducts = () => {
       details: product.details,
       care: product.care,
       is_new: product.is_new,
+      is_featured: product.is_featured,
+      is_active: product.is_active,
       artisan: product.artisan,
-      artisan_story: product.artisan_story
+      artisan_story: product.artisan_story,
+      material: product.material,
+      color: product.color,
+      dimensions_cm: product.dimensions_cm,
+      weight_grams: product.weight_grams,
+      stock_quantity: product.stock_quantity,
+      min_stock_level: product.min_stock_level,
+      short_description: product.short_description,
+      seo_title: product.seo_title,
+      seo_description: product.seo_description,
+      slug: product.slug
     });
     setIsNewProduct(false);
     setIsDialogOpen(true);
@@ -253,13 +265,104 @@ const AdminProducts = () => {
           />
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="new"
-            checked={formData.is_new || false}
-            onCheckedChange={(checked) => setFormData({...formData, is_new: checked})}
-          />
-          <Label htmlFor="new">Marquer comme nouveau</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="material">Matériau</Label>
+            <Input
+              id="material"
+              value={formData.material || ""}
+              onChange={(e) => setFormData({...formData, material: e.target.value})}
+              placeholder="Matériau principal"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="color">Couleur</Label>
+            <Input
+              id="color"
+              value={formData.color || ""}
+              onChange={(e) => setFormData({...formData, color: e.target.value})}
+              placeholder="Couleur principale"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="dimensions">Dimensions (cm)</Label>
+            <Input
+              id="dimensions"
+              value={formData.dimensions_cm || ""}
+              onChange={(e) => setFormData({...formData, dimensions_cm: e.target.value})}
+              placeholder="L x l x H"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="weight">Poids (g)</Label>
+            <Input
+              id="weight"
+              type="number"
+              value={formData.weight_grams || 0}
+              onChange={(e) => setFormData({...formData, weight_grams: Number(e.target.value)})}
+              placeholder="Poids en grammes"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="stock">Stock</Label>
+            <Input
+              id="stock"
+              type="number"
+              value={formData.stock_quantity || 0}
+              onChange={(e) => setFormData({...formData, stock_quantity: Number(e.target.value)})}
+              placeholder="Quantité en stock"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="min_stock">Stock minimum</Label>
+            <Input
+              id="min_stock"
+              type="number"
+              value={formData.min_stock_level || 5}
+              onChange={(e) => setFormData({...formData, min_stock_level: Number(e.target.value)})}
+              placeholder="Niveau de stock minimum"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex flex-col space-y-3">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="new"
+                checked={formData.is_new || false}
+                onCheckedChange={(checked) => setFormData({...formData, is_new: checked})}
+              />
+              <Label htmlFor="new">Marquer comme nouveau</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="featured"
+                checked={formData.is_featured || false}
+                onCheckedChange={(checked) => setFormData({...formData, is_featured: checked})}
+              />
+              <Label htmlFor="featured">Produit en vedette</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="active"
+                checked={formData.is_active !== false}
+                onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
+              />
+              <Label htmlFor="active">Produit actif</Label>
+            </div>
+          </div>
         </div>
       </div>
     );
