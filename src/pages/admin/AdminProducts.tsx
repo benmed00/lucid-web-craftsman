@@ -27,6 +27,7 @@ import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useAuditLog } from "@/hooks/useAuditLog";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -100,6 +101,49 @@ const AdminProducts = () => {
     setIsDialogOpen(true);
   };
 
+  const handleSaveProduct = async () => {
+    try {
+      if (!formData.name || !formData.price || !formData.category) {
+        toast.error("Veuillez remplir tous les champs obligatoires");
+        return;
+      }
+
+      const productData = {
+        ...formData,
+        images: formData.images || []
+      };
+
+      if (isNewProduct) {
+        // This shouldn't happen as we use ProductFormWithImages for new products
+        toast.info("Utilisez le bouton 'Ajouter un produit' pour créer de nouveaux produits");
+        return;
+      } else {
+        // Update existing product
+        const { data, error } = await supabase
+          .from('products')
+          .update(productData)
+          .eq('id', editingProduct?.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Update local state
+        setProducts(prev => prev.map(p => p.id === editingProduct?.id ? data : p));
+        
+        toast.success("Produit modifié avec succès");
+        logAction('UPDATE_PRODUCT', 'products', editingProduct?.id?.toString() || '');
+      }
+
+      setIsDialogOpen(false);
+      setFormData({});
+      setEditingProduct(null);
+    } catch (error) {
+      console.error('Error saving product:', error);
+      toast.error("Erreur lors de la sauvegarde du produit");
+    }
+  };
+
   const ProductForm = () => {
     return (
       <div className="space-y-4">
@@ -154,6 +198,17 @@ const AdminProducts = () => {
           </div>
         </div>
 
+        {/* Images Section */}
+        <div className="space-y-2">
+          <Label>Images du produit</Label>
+          <ProductImageManager
+            images={formData.images || []}
+            onImagesChange={(images) => setFormData({...formData, images})}
+            productId={editingProduct?.id}
+            maxImages={5}
+          />
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="description">Description</Label>
           <Textarea
@@ -184,6 +239,17 @@ const AdminProducts = () => {
             onChange={(e) => setFormData({...formData, care: e.target.value})}
             placeholder="Instructions d'entretien"
             rows={2}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="artisan_story">Histoire de l'artisan</Label>
+          <Textarea
+            id="artisan_story"
+            value={formData.artisan_story || ""}
+            onChange={(e) => setFormData({...formData, artisan_story: e.target.value})}
+            placeholder="L'histoire derrière la création..."
+            rows={3}
           />
         </div>
 
@@ -370,6 +436,7 @@ const AdminProducts = () => {
             </Button>
             <Button 
               className="bg-olive-700 hover:bg-olive-800"
+              onClick={handleSaveProduct}
             >
               {isNewProduct ? "Ajouter" : "Sauvegarder"}
             </Button>
