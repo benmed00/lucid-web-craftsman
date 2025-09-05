@@ -176,7 +176,7 @@ export const ProductFormWithImages = ({ onProductAdded }: ProductFormWithImagesP
           Nouveau produit
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-4xl max-h-[85vh] flex flex-col p-0 fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-50">
+      <DialogContent className="!fixed !inset-4 !top-4 !bottom-4 !left-4 !right-4 !translate-x-0 !translate-y-0 w-auto h-auto max-w-none max-h-none flex flex-col p-0 m-auto">
         <DialogHeader className="p-6 pb-4 border-b flex-shrink-0 bg-background">
           <DialogTitle>Créer un nouveau produit</DialogTitle>
           <DialogDescription>
