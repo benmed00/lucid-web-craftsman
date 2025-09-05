@@ -518,7 +518,7 @@ const AdminProducts = () => {
 
       {/* Edit/Add Product Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] p-0 flex flex-col overflow-hidden">
+        <DialogContent className="w-[95vw] max-w-4xl h-[85vh] p-0 flex flex-col overflow-hidden">
           <DialogHeader className="p-6 pb-4 border-b flex-shrink-0 bg-background">
             <DialogTitle>
               {isNewProduct ? "Ajouter un nouveau produit" : "Modifier le produit"}
