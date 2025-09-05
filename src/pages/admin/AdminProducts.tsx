@@ -518,7 +518,7 @@ const AdminProducts = () => {
 
       {/* Edit/Add Product Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="w-[95vw] max-w-5xl h-[90vh] flex flex-col p-0">
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[85vh] flex flex-col p-0 fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-50">
           <DialogHeader className="p-6 pb-4 border-b flex-shrink-0 bg-background">
             <DialogTitle>
               {isNewProduct ? "Ajouter un nouveau produit" : "Modifier le produit"}
@@ -527,11 +527,11 @@ const AdminProducts = () => {
               {isNewProduct 
                 ? "Remplissez les informations pour créer un nouveau produit."
                 : "Modifiez les informations du produit."
-               }
+                }
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-6 min-h-0">
             <ProductForm />
           </div>
           

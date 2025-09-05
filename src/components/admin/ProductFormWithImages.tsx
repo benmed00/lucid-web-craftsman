@@ -176,7 +176,7 @@ export const ProductFormWithImages = ({ onProductAdded }: ProductFormWithImagesP
           Nouveau produit
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-5xl h-[90vh] flex flex-col p-0">
+      <DialogContent className="w-[95vw] max-w-4xl max-h-[85vh] flex flex-col p-0 fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-50">
         <DialogHeader className="p-6 pb-4 border-b flex-shrink-0 bg-background">
           <DialogTitle>Créer un nouveau produit</DialogTitle>
           <DialogDescription>
@@ -184,8 +184,8 @@ export const ProductFormWithImages = ({ onProductAdded }: ProductFormWithImagesP
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 min-h-0">
+          <form onSubmit={handleSubmit} className="space-y-6" id="product-form">
             {/* Basic Information */}
           <Card>
             <CardHeader>
@@ -454,9 +454,9 @@ export const ProductFormWithImages = ({ onProductAdded }: ProductFormWithImagesP
           </Button>
           <Button 
             type="submit" 
+            form="product-form"
             disabled={loading} 
             className="gap-2 bg-olive-700 hover:bg-olive-800"
-            onClick={handleSubmit}
           >
             <Save className="h-4 w-4" />
             {loading ? "Création..." : "Créer le produit"}
