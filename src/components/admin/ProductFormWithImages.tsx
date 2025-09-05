@@ -176,16 +176,17 @@ export const ProductFormWithImages = ({ onProductAdded }: ProductFormWithImagesP
           Nouveau produit
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="w-[95vw] max-w-5xl h-[90vh] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-4 border-b flex-shrink-0 bg-background">
           <DialogTitle>Créer un nouveau produit</DialogTitle>
           <DialogDescription>
             Ajoutez un nouveau produit avec ses images et informations détaillées.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Basic Information */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Informations de base</CardTitle>
@@ -444,16 +445,23 @@ export const ProductFormWithImages = ({ onProductAdded }: ProductFormWithImagesP
             </CardContent>
           </Card>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={loading} className="gap-2">
-              <Save className="h-4 w-4" />
-              {loading ? "Création..." : "Créer le produit"}
-            </Button>
-          </div>
-        </form>
+          </form>
+        </div>
+
+        <div className="flex justify-end space-x-2 p-6 pt-4 border-t bg-background flex-shrink-0">
+          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            Annuler
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={loading} 
+            className="gap-2 bg-olive-700 hover:bg-olive-800"
+            onClick={handleSubmit}
+          >
+            <Save className="h-4 w-4" />
+            {loading ? "Création..." : "Créer le produit"}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
