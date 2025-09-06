@@ -26,19 +26,31 @@ const Footer = () => {
             <h3 className="font-serif text-lg font-medium mb-4">
               Boutique
             </h3>
-            <ul className="space-y-2">
+            <ul className="space-y-2" role="list">
               <li>
-                <a href="/products" className="text-stone-300 hover:text-olive-400 transition-colors">
+                <a 
+                  href="/products" 
+                  className="text-stone-300 hover:text-olive-400 transition-colors"
+                  aria-label="Voir tous nos produits artisanaux"
+                >
                   Tous les produits
                 </a>
               </li>
               <li>
-                <a href="/products?category=Sacs" className="text-stone-300 hover:text-olive-400 transition-colors">
+                <a 
+                  href="/products?category=Sacs" 
+                  className="text-stone-300 hover:text-olive-400 transition-colors"
+                  aria-label="Découvrir notre collection de sacs"
+                >
                   Sacs
                 </a>
               </li>
               <li>
-                <a href="/products?category=Chapeaux" className="text-stone-300 hover:text-olive-400 transition-colors">
+                <a 
+                  href="/products?category=Chapeaux" 
+                  className="text-stone-300 hover:text-olive-400 transition-colors"
+                  aria-label="Découvrir notre collection de chapeaux"
+                >
                   Chapeaux
                 </a>
               </li>
@@ -49,14 +61,22 @@ const Footer = () => {
             <h3 className="font-serif text-lg font-medium mb-4">
               À propos
             </h3>
-            <ul className="space-y-2">
+            <ul className="space-y-2" role="list">
               <li>
-                <a href="/about" className="text-stone-300 hover:text-olive-400 transition-colors">
+                <a 
+                  href="/about" 
+                  className="text-stone-300 hover:text-olive-400 transition-colors"
+                  aria-label="En savoir plus sur notre histoire et nos valeurs"
+                >
                   Notre histoire
                 </a>
               </li>
               <li>
-                <a href="/blog" className="text-stone-300 hover:text-olive-400 transition-colors">
+                <a 
+                  href="/blog" 
+                  className="text-stone-300 hover:text-olive-400 transition-colors"
+                  aria-label="Lire nos articles de blog sur l'artisanat"
+                >
                   Blog
                 </a>
               </li>
@@ -67,24 +87,40 @@ const Footer = () => {
             <h3 className="font-serif text-lg font-medium mb-4">
               Aide
             </h3>
-            <ul className="space-y-2">
+            <ul className="space-y-2" role="list">
               <li>
-                <a href="/contact" className="text-stone-300 hover:text-olive-400 transition-colors">
+                <a 
+                  href="/contact" 
+                  className="text-stone-300 hover:text-olive-400 transition-colors"
+                  aria-label="Nous contacter pour toute question"
+                >
                   Contact
                 </a>
               </li>
               <li>
-                <a href="/shipping" className="text-stone-300 hover:text-olive-400 transition-colors">
+                <a 
+                  href="/shipping" 
+                  className="text-stone-300 hover:text-olive-400 transition-colors"
+                  aria-label="Informations sur la livraison"
+                >
                   Livraison
                 </a>
               </li>
               <li>
-                <a href="/faq" className="text-stone-300 hover:text-olive-400 transition-colors">
+                <a 
+                  href="/faq" 
+                  className="text-stone-300 hover:text-olive-400 transition-colors"
+                  aria-label="Questions fréquemment posées"
+                >
                   FAQ
                 </a>
               </li>
               <li>
-                <a href="/cgv" className="text-stone-300 hover:text-olive-400 transition-colors">
+                <a 
+                  href="/cgv" 
+                  className="text-stone-300 hover:text-olive-400 transition-colors"
+                  aria-label="Lire nos conditions générales de vente"
+                >
                   CGV
                 </a>
               </li>

@@ -57,7 +57,7 @@ const Index = () => {
       {/* Navigation */}
       <Navigation />
 
-      <main className="flex-grow">
+      <main id="main-content" className="flex-grow">
         {/* Hero Section - Enhanced Mobile Responsiveness */}
         <section className="container mx-auto px-4 py-6 md:py-12 lg:py-24 flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
           {/* Left: Copy and CTA */}
@@ -239,7 +239,7 @@ const Index = () => {
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-serif text-2xl md:text-3xl text-white mb-4">Rejoignez Notre Newsletter</h2>
             <p className="text-sm md:text-base text-olive-100 mb-6 md:mb-8 leading-relaxed">Inscrivez-vous pour recevoir des mises à jour sur les nouveaux produits, les offres spéciales et les histoires de nos artisans.</p>
-            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" role="form">
               <label htmlFor="newsletter-email-index" className="sr-only">Votre adresse email</label>
               <input 
                 type="email"
@@ -248,7 +248,10 @@ const Index = () => {
                 placeholder="Votre adresse email" 
                 className="flex-grow px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-olive-300 text-base touch-manipulation min-h-[48px]"
                 aria-label="Adresse email pour la newsletter"
+                aria-describedby="newsletter-description"
+                required
               />
+              <span id="newsletter-description" className="sr-only">Inscrivez-vous pour recevoir nos actualités</span>
               <Button 
                 type="submit" 
                 className="bg-olive-900 hover:bg-olive-950 text-white transition-all duration-300 hover:scale-105 button-press hover-glow px-6 py-3 rounded-lg touch-manipulation min-h-[48px]"

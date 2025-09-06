@@ -46,7 +46,16 @@ const Navigation = () => {
 
 
   return (
-    <header className="header-nav-root">
+    <>
+      {/* Skip to main content - accessibility best practice */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-olive-700 text-white px-4 py-2 rounded-md z-50 focus:ring-2 focus:ring-olive-300"
+      >
+        Aller au contenu principal
+      </a>
+      
+      <header className="header-nav-root">
       <div className="header-nav-container">
         {/* Logo Section */}
         <div className="header-logo">
@@ -417,7 +426,8 @@ const Navigation = () => {
           )}
         </div>
       </div>
-    </header>
+      </header>
+    </>
   );
 };
 

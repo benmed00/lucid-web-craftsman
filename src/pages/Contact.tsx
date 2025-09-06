@@ -297,76 +297,88 @@ const Contact = () => {
                   </div>
                   
                   <CardContent className="p-8">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6" role="form">
                       <input type="hidden" name="csrf_token" value={csrfToken} />
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label htmlFor="firstName" className="text-stone-700 font-medium">
-                            Prénom *
-                          </Label>
-                          <Input
-                            id="firstName"
-                            name="contact-first-name"
-                            placeholder="Votre prénom"
-                            value={contactForm.firstName}
-                            onChange={(e) => setContactForm(prev => ({...prev, firstName: e.target.value}))}
-                            required
-                            maxLength={50}
-                            className="border-stone-300 focus:border-olive-500 focus:ring-olive-500/20"
-                          />
-                        </div>
+                      <fieldset className="space-y-6">
+                        <legend className="sr-only">Informations personnelles</legend>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label htmlFor="firstName" className="text-stone-700 font-medium">
+                              Prénom *
+                            </Label>
+                            <Input
+                              id="firstName"
+                              name="contact-first-name"
+                              placeholder="Votre prénom"
+                              value={contactForm.firstName}
+                              onChange={(e) => setContactForm(prev => ({...prev, firstName: e.target.value}))}
+                              required
+                              aria-required="true"
+                              maxLength={50}
+                              className="border-stone-300 focus:border-olive-500 focus:ring-olive-500/20"
+                            />
+                          </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="lastName" className="text-stone-700 font-medium">
-                            Nom *
-                          </Label>
-                          <Input 
-                            id="lastName"
-                            name="contact-last-name"
-                            placeholder="Votre nom"
-                            value={contactForm.lastName}
-                            onChange={(e) => setContactForm(prev => ({...prev, lastName: e.target.value}))}
-                            required
-                            maxLength={50}
-                            className="border-stone-300 focus:border-olive-500 focus:ring-olive-500/20"
-                          />
+                          <div className="space-y-2">
+                            <Label htmlFor="lastName" className="text-stone-700 font-medium">
+                              Nom *
+                            </Label>
+                            <Input 
+                              id="lastName"
+                              name="contact-last-name"
+                              placeholder="Votre nom"
+                              value={contactForm.lastName}
+                              onChange={(e) => setContactForm(prev => ({...prev, lastName: e.target.value}))}
+                              required
+                              aria-required="true"
+                              maxLength={50}
+                              className="border-stone-300 focus:border-olive-500 focus:ring-olive-500/20"
+                            />
+                          </div>
                         </div>
-                      </div>
+                      </fieldset>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label htmlFor="email" className="text-stone-700 font-medium">
-                            Email *
-                          </Label>
-                          <Input
-                            id="email"
-                            name="contact-email"
-                            type="email"
-                            placeholder="votre.email@exemple.com"
-                            value={contactForm.email}
-                            onChange={(e) => setContactForm(prev => ({...prev, email: e.target.value}))}
-                            required
-                            maxLength={255}
-                            className="border-stone-300 focus:border-olive-500 focus:ring-olive-500/20"
-                          />
-                        </div>
+                      <fieldset className="space-y-6">
+                        <legend className="sr-only">Coordonnées</legend>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label htmlFor="email" className="text-stone-700 font-medium">
+                              Email *
+                            </Label>
+                            <Input
+                              id="email"
+                              name="contact-email"
+                              type="email"
+                              placeholder="votre.email@exemple.com"
+                              value={contactForm.email}
+                              onChange={(e) => setContactForm(prev => ({...prev, email: e.target.value}))}
+                              required
+                              aria-required="true"
+                              aria-describedby="email-description"
+                              maxLength={255}
+                              className="border-stone-300 focus:border-olive-500 focus:ring-olive-500/20"
+                            />
+                            <p id="email-description" className="sr-only">Format requis: votre@email.com</p>
+                          </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="phone" className="text-stone-700 font-medium">
-                            Téléphone
-                          </Label>
-                          <Input
-                            id="phone"
-                            name="contact-phone"
-                            placeholder="Votre numéro de téléphone"
-                            value={contactForm.phone}
-                            onChange={(e) => setContactForm(prev => ({...prev, phone: e.target.value}))}
-                            maxLength={20}
-                            className="border-stone-300 focus:border-olive-500 focus:ring-olive-500/20"
-                          />
+                          <div className="space-y-2">
+                            <Label htmlFor="phone" className="text-stone-700 font-medium">
+                              Téléphone
+                            </Label>
+                            <Input
+                              id="phone"
+                              name="contact-phone"
+                              type="tel"
+                              placeholder="Votre numéro de téléphone"
+                              value={contactForm.phone}
+                              onChange={(e) => setContactForm(prev => ({...prev, phone: e.target.value}))}
+                              maxLength={20}
+                              className="border-stone-300 focus:border-olive-500 focus:ring-olive-500/20"
+                            />
+                          </div>
                         </div>
-                      </div>
+                      </fieldset>
 
                       <div className="space-y-2">
                         <Label htmlFor="company" className="text-stone-700 font-medium">
