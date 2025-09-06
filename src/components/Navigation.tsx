@@ -218,6 +218,9 @@ const Navigation = () => {
           className="md:hidden text-stone-700 p-3 rounded-xl hover:bg-stone-100 transition-all duration-200 active:scale-95 touch-manipulation"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-expanded={isMenuOpen}
+          aria-haspopup="true"
+          aria-controls="mobile-menu"
         >
           <div className="relative w-6 h-6">
             <span className={`absolute block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'rotate-45 top-3' : 'top-1'}`}></span>
@@ -254,11 +257,17 @@ const Navigation = () => {
         <div 
           className="md:hidden fixed inset-0 bg-black/50 z-40"
           onClick={() => setIsMenuOpen(false)}
+          aria-hidden="true"
         />
       )}
 
       {/* Mobile Menu */}
-      <div className={`md:hidden absolute top-full left-0 right-0 bg-white shadow-xl z-50 border-t border-stone-100 transform transition-transform duration-200 ease-out max-h-[90vh] overflow-y-auto ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'}`}>
+      <div 
+        id="mobile-menu"
+        className={`md:hidden absolute top-full left-0 right-0 bg-white shadow-xl z-50 border-t border-stone-100 transform transition-transform duration-200 ease-out max-h-[90vh] overflow-y-auto ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'}`}
+        aria-hidden={!isMenuOpen}
+        role="menu"
+      >
         <div className="flex flex-col space-y-3 p-6 pb-8">
           {/* Mobile Search */}
           <div className="mb-4">

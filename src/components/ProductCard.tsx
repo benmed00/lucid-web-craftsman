@@ -38,6 +38,9 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
     <Card 
       id={cardId}
       className="bg-white border border-stone-100 overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-2xl hover:scale-[1.02] hover:-translate-y-1 shadow-lg hover:border-olive-200"
+      role="article"
+      aria-labelledby={`product-title-${product.id}`}
+      aria-describedby={`product-price-${product.id} ${singleStockInfo?.isOutOfStock ? `product-stock-${product.id}` : ''}`}
     >
       <Link to={`/products/${product.id}`} className="block touch-manipulation">
         <div className="relative group/image">
@@ -145,15 +148,30 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
           {product.category}
         </p>
         <Link to={`/products/${product.id}`} className="touch-manipulation">
-          <h3 className="font-serif text-lg md:text-xl font-medium text-stone-800 mb-4 line-clamp-2 leading-tight hover:text-olive-700 transition-colors duration-200 pr-12">
+          <h3 
+            id={`product-title-${product.id}`}
+            className="font-serif text-lg md:text-xl font-medium text-stone-800 mb-4 line-clamp-2 leading-tight hover:text-olive-700 transition-colors duration-200 pr-12"
+          >
             {product.name}
           </h3>
         </Link>
         <div className="flex flex-col gap-4">
           <div className="relative">
-            <p className="text-stone-800 font-bold text-xl md:text-2xl whitespace-nowrap">
+            <p 
+              id={`product-price-${product.id}`}
+              className="text-stone-800 font-bold text-xl md:text-2xl whitespace-nowrap"
+              aria-label={`Prix: ${formatPrice(product.price)}`}
+            >
               {formatPrice(product.price)}
             </p>
+            {singleStockInfo?.isOutOfStock && (
+              <span 
+                id={`product-stock-${product.id}`}
+                className="sr-only"
+              >
+                Produit indisponible
+              </span>
+            )}
           </div>
           <TooltipWrapper 
             content={singleStockInfo?.isOutOfStock 
