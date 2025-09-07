@@ -43,22 +43,28 @@ export const ProductFilters = ({
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         {/* Search Bar */}
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400" size={20} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400" size={20} aria-hidden="true" />
           <Input
             type="text"
             placeholder="Rechercher des produits..."
             value={filters.searchQuery}
             onChange={(e) => onFiltersChange({ searchQuery: e.target.value })}
             className="pl-10 pr-4"
+            aria-label="Rechercher des produits"
+            aria-describedby="search-description"
           />
+          <div id="search-description" className="sr-only">
+            Entrez un mot-clé pour rechercher dans les produits
+          </div>
           {filters.searchQuery && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onClearFilter('searchQuery')}
               className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+              aria-label="Effacer la recherche"
             >
-              <X size={14} />
+              <X size={14} aria-hidden="true" />
             </Button>
           )}
         </div>
@@ -69,7 +75,7 @@ export const ProductFilters = ({
             value={filters.sortBy}
             onValueChange={(value: FilterOptions['sortBy']) => onFiltersChange({ sortBy: value })}
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-40" aria-label="Trier les produits">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -84,11 +90,14 @@ export const ProductFilters = ({
             variant="outline"
             onClick={() => setIsFiltersOpen(!isFiltersOpen)}
             className="flex items-center gap-2"
+            aria-expanded={isFiltersOpen}
+            aria-controls="filters-panel"
+            aria-label={`${isFiltersOpen ? 'Masquer' : 'Afficher'} les filtres${activeFiltersCount > 0 ? ` (${activeFiltersCount} actif${activeFiltersCount > 1 ? 's' : ''})` : ''}`}
           >
-            <SlidersHorizontal size={16} />
+            <SlidersHorizontal size={16} aria-hidden="true" />
             Filtres
             {activeFiltersCount > 0 && (
-              <Badge variant="secondary" className="ml-1">
+              <Badge variant="secondary" className="ml-1" aria-hidden="true">
                 {activeFiltersCount}
               </Badge>
             )}
@@ -98,7 +107,7 @@ export const ProductFilters = ({
 
       {/* Results Info */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-stone-600">
+        <p className="text-sm text-stone-600" aria-live="polite">
           {filteredCount === totalProducts ? (
             `${totalProducts} produits`
           ) : (
@@ -112,6 +121,7 @@ export const ProductFilters = ({
             size="sm"
             onClick={onResetFilters}
             className="text-stone-600 hover:text-stone-800"
+            aria-label={`Effacer tous les filtres (${activeFiltersCount} actif${activeFiltersCount > 1 ? 's' : ''})`}
           >
             Effacer tous les filtres
           </Button>
@@ -172,10 +182,10 @@ export const ProductFilters = ({
       {/* Collapsible Filters Panel */}
       <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
         <CollapsibleContent>
-          <Card className="mb-6">
+          <Card className="mb-6" id="filters-panel">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Filter size={18} />
+                <Filter size={18} aria-hidden="true" />
                 Filtres avancés
               </CardTitle>
             </CardHeader>

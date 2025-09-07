@@ -19,32 +19,49 @@ interface BlogCardProps {
 
 const BlogCard = ({ post }: BlogCardProps) => {
   return (
-    <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300">
+    <Card 
+      className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300"
+      role="article"
+      aria-labelledby={`blog-title-${post.id}`}
+      aria-describedby={`blog-excerpt-${post.id}`}
+    >
       <div className="aspect-w-16 aspect-h-9 w-full overflow-hidden">
         <BlogImage
           src={post.image}
-          alt={post.title}
+          alt={`Image de l'article: ${post.title}`}
           className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
         />
       </div>
       <CardContent className="p-6">
         <div className="flex items-center text-sm text-stone-500 mb-3">
-          <span>{post.date}</span>
-          <span className="mx-2">•</span>
-          <span>{post.category}</span>
+          <time dateTime={post.date}>{post.date}</time>
+          <span className="mx-2" aria-hidden="true">•</span>
+          <span className="text-stone-600">{post.category}</span>
         </div>
-        <Link to={`/blog/${post.id}`}>
-          <h3 className="font-serif text-xl font-medium text-stone-800 mb-3 hover:text-olive-700 transition-colors">
+        <Link to={`/blog/${post.id}`} aria-label={`Lire l'article complet: ${post.title}`}>
+          <h3 
+            id={`blog-title-${post.id}`}
+            className="font-serif text-xl font-medium text-stone-800 mb-3 hover:text-olive-700 transition-colors"
+          >
             {post.title}
           </h3>
         </Link>
-        <p className="text-stone-600 line-clamp-3">{post.excerpt}</p>
+        <p 
+          id={`blog-excerpt-${post.id}`}
+          className="text-stone-600 line-clamp-3"
+        >
+          {post.excerpt}
+        </p>
       </CardContent>
       <CardFooter className="px-6 pb-6 pt-0 flex justify-between items-center">
-        <span className="text-sm font-medium text-stone-600">{post.author}</span>
-        <Link to={`/blog/${post.id}`}>
-          <Button variant="ghost" className="text-olive-700 hover:text-olive-900 p-0">
-            Lire la suite <ArrowRight className="ml-1 h-4 w-4" />
+        <span className="text-sm font-medium text-stone-600">Par {post.author}</span>
+        <Link to={`/blog/${post.id}`} aria-label={`Lire la suite de l'article: ${post.title}`}>
+          <Button 
+            variant="ghost" 
+            className="text-olive-700 hover:text-olive-900 p-0"
+            aria-label={`Continuer la lecture: ${post.title}`}
+          >
+            Lire la suite <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
           </Button>
         </Link>
       </CardFooter>

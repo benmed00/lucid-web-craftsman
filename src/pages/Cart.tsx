@@ -114,9 +114,12 @@ const Cart = () => {
     return (
       <div className="min-h-screen bg-white">
         <Navigation />
-        <main className="container mx-auto px-4 py-16">
+        <main id="main-content" className="container mx-auto px-4 py-16">
           <div className="text-center">
-            <div className="w-24 h-24 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div 
+              className="w-24 h-24 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-6"
+              aria-hidden="true"
+            >
               <ShoppingBag className="h-12 w-12 text-stone-400" />
             </div>
             <h1 className="text-2xl font-serif text-stone-800 mb-4">Votre Panier est Vide</h1>
@@ -126,9 +129,10 @@ const Cart = () => {
                 className="bg-olive-700 hover:bg-olive-800 text-white px-8 py-3"
                 id="empty-cart-shop-button"
                 name="start-shopping-button"
+                aria-label="Commencer vos achats - Aller à la page produits"
               >
                 Commencer Vos Achats
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Button>
             </Link>
           </div>
@@ -141,15 +145,21 @@ const Cart = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
-      <main className="container mx-auto px-4 py-4 md:py-8 safe-area">
+      <main id="main-content" className="container mx-auto px-4 py-4 md:py-8 safe-area">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-serif text-stone-800 mb-2">Votre Panier</h1>
-          <p className="text-stone-600">{itemCount} article{itemCount > 1 ? 's' : ''} dans votre panier</p>
+          <p className="text-stone-600" aria-live="polite">
+            {itemCount} article{itemCount > 1 ? 's' : ''} dans votre panier
+          </p>
         </div>
 
         {stockIssues.length > 0 && (
-          <Alert className="mb-6 border-amber-200 bg-amber-50">
-            <AlertCircle className="h-4 w-4 text-amber-600" />
+          <Alert 
+            className="mb-6 border-amber-200 bg-amber-50"
+            role="alert"
+            aria-live="assertive"
+          >
+            <AlertCircle className="h-4 w-4 text-amber-600" aria-hidden="true" />
             <AlertDescription className="text-amber-800">
               Attention : Certains articles de votre panier ont un stock limité. Veuillez ajuster les quantités.
             </AlertDescription>
@@ -164,7 +174,13 @@ const Cart = () => {
               const hasStockIssue = stockIssues.find(issue => issue.productId === item.product.id);
               
               return (
-                <Card key={item.id} className={`transition-all duration-200 hover:shadow-lg cursor-pointer ${hasStockIssue ? 'border-amber-200 bg-amber-50' : ''}`}>
+                <Card 
+                  key={item.id} 
+                  className={`transition-all duration-200 hover:shadow-lg cursor-pointer ${hasStockIssue ? 'border-amber-200 bg-amber-50' : ''}`}
+                  role="article"
+                  aria-labelledby={`cart-item-${item.id}`}
+                  aria-describedby={`cart-item-details-${item.id}`}
+                >
                   <CardContent className="p-4 md:p-6">
                     <div className="flex gap-3 md:gap-4">
                       {/* Clickable product image and info */}
@@ -186,9 +202,17 @@ const Cart = () => {
                         <div className="flex-1">
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex-1 mr-2">
-                              <h3 className="font-medium text-stone-800 text-sm md:text-base leading-tight hover:text-olive-700 transition-colors">{item.product.name}</h3>
+                              <h3 
+                                id={`cart-item-${item.id}`}
+                                className="font-medium text-stone-800 text-sm md:text-base leading-tight hover:text-olive-700 transition-colors"
+                              >
+                                {item.product.name}
+                              </h3>
                               <p className="text-xs md:text-sm text-stone-600 mb-1">{item.product.category}</p>
-                              <p className="text-xs text-stone-500 line-clamp-2 mb-1">
+                              <p 
+                                id={`cart-item-details-${item.id}`}
+                                className="text-xs text-stone-500 line-clamp-2 mb-1"
+                              >
                                 {item.product.description || "Produit artisanal berbère fait main avec des matériaux naturels et traditionnels."}
                               </p>
                               {hasStockIssue && (
@@ -213,15 +237,17 @@ const Cart = () => {
                           className="text-stone-400 hover:text-red-500 p-2 touch-manipulation min-h-[44px] min-w-[44px] flex-shrink-0"
                           id={`cart-remove-${item.id}`}
                           name={`remove-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
+                          aria-label={`Retirer ${item.product.name} du panier`}
                         >
-                          <X className="h-4 w-4" />
+                          <X className="h-4 w-4" aria-hidden="true" />
+                          <span className="sr-only">Retirer du panier</span>
                         </Button>
                       </TooltipWrapper>
                     </div>
                     
-                    {/* Quantity and price controls */}
+                     {/* Quantity and price controls */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-4">
-                      <div className="flex items-center gap-2 md:gap-3">
+                      <div className="flex items-center gap-2 md:gap-3" role="group" aria-label={`Contrôles de quantité pour ${item.product.name}`}>
                         <TooltipWrapper content="Diminuer la quantité">
                           <Button
                             variant="outline"
@@ -231,11 +257,17 @@ const Cart = () => {
                             className="touch-manipulation min-h-[44px] min-w-[44px] p-2"
                             id={`cart-qty-minus-${item.id}`}
                             name={`quantity-decrease-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
+                            aria-label={`Diminuer la quantité de ${item.product.name}`}
                           >
-                            <Minus className="h-3 w-3 md:h-4 md:w-4" />
+                            <Minus className="h-3 w-3 md:h-4 md:w-4" aria-hidden="true" />
                           </Button>
                         </TooltipWrapper>
-                        <span className="w-8 md:w-10 text-center font-medium text-base">{item.quantity}</span>
+                        <span 
+                          className="w-8 md:w-10 text-center font-medium text-base"
+                          aria-label={`Quantité: ${item.quantity}`}
+                        >
+                          {item.quantity}
+                        </span>
                         <TooltipWrapper content="Augmenter la quantité">
                           <Button
                             variant="outline"
@@ -245,13 +277,19 @@ const Cart = () => {
                             className="touch-manipulation min-h-[44px] min-w-[44px] p-2"
                             id={`cart-qty-plus-${item.id}`}
                             name={`quantity-increase-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
+                            aria-label={`Augmenter la quantité de ${item.product.name}`}
                           >
-                            <Plus className="h-3 w-3 md:h-4 md:w-4" />
+                            <Plus className="h-3 w-3 md:h-4 md:w-4" aria-hidden="true" />
                           </Button>
                         </TooltipWrapper>
                       </div>
                       <div className="text-left sm:text-right w-full sm:w-auto">
-                        <p className="font-medium text-stone-800 text-base md:text-lg">{(item.product.price * item.quantity).toFixed(2)} €</p>
+                        <p 
+                          className="font-medium text-stone-800 text-base md:text-lg"
+                          aria-label={`Prix total: ${(item.product.price * item.quantity).toFixed(2)} euros`}
+                        >
+                          {(item.product.price * item.quantity).toFixed(2)} €
+                        </p>
                         <p className="text-xs md:text-sm text-stone-600">{item.product.price.toFixed(2)} € l'unité</p>
                       </div>
                     </div>
@@ -295,11 +333,11 @@ const Cart = () => {
                 </div>
 
                 {/* Shipping Calculator */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-stone-700 mb-2">
-                    <Truck className="inline h-4 w-4 mr-1" />
+                <fieldset className="mb-6">
+                  <legend className="block text-sm font-medium text-stone-700 mb-2">
+                    <Truck className="inline h-4 w-4 mr-1" aria-hidden="true" />
                     Calculer les frais de livraison
-                  </label>
+                  </legend>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -309,6 +347,8 @@ const Cart = () => {
                       className="flex-1 px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-500"
                       id="shipping-postal-code"
                       name="postal-code-input"
+                      aria-label="Entrez votre code postal pour calculer les frais de livraison"
+                      aria-describedby="shipping-description"
                     />
                     <TooltipWrapper content="Calculer les frais de livraison pour votre code postal">
                       <Button
@@ -318,12 +358,16 @@ const Cart = () => {
                         disabled={shippingLoading}
                         id="shipping-calculator-button"
                         name="calculate-shipping-costs"
+                        aria-label="Calculer les frais de livraison"
                       >
                         {shippingLoading ? 'Calcul...' : 'Calculer'}
                       </Button>
                     </TooltipWrapper>
                   </div>
-                </div>
+                  <p id="shipping-description" className="sr-only">
+                    Entrez votre code postal pour connaître les frais et délais de livraison
+                  </p>
+                </fieldset>
 
                 {/* Mobile-specific features */}
                 {isMobile && (

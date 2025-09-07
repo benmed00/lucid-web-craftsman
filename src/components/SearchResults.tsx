@@ -14,15 +14,19 @@ export const SearchResultsHeader = ({
   if (!searchQuery) return null;
 
   return (
-    <div className="mb-6 p-4 bg-stone-50 rounded-lg border">
+    <div 
+      className="mb-6 p-4 bg-stone-50 rounded-lg border"
+      role="region"
+      aria-label="Résultats de recherche"
+    >
       <div className="flex items-center gap-2 mb-2">
-        <Search size={18} className="text-olive-700" />
+        <Search size={18} className="text-olive-700" aria-hidden="true" />
         <h2 className="text-lg font-medium text-stone-800">
           Résultats de recherche
         </h2>
       </div>
       
-      <p className="text-stone-600">
+      <p className="text-stone-600" aria-live="polite">
         {totalResults === 0 ? (
           <>
             Aucun résultat trouvé pour <strong>"{searchQuery}"</strong>
