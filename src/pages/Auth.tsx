@@ -193,32 +193,42 @@ export default function Auth() {
 
           {/* Auth Method Selection */}
           <div className="mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <div className="grid grid-cols-2 gap-2 p-1.5 bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-xl shadow-sm">
-              <button
-                type="button"
-                onClick={() => setAuthMode('traditional')}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
-                  authMode === 'traditional'
-                    ? 'bg-olive-700 text-white shadow-lg transform scale-[1.02]'
-                    : 'text-stone-600 hover:text-olive-700 hover:bg-white/80'
-                }`}
+              <div 
+                className="grid grid-cols-2 gap-2 p-1.5 bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-xl shadow-sm"
+                role="tablist"
+                aria-label="Méthodes d'authentification"
               >
-                <Shield className="h-4 w-4" />
-                <span className="text-sm">Classique</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setAuthMode('otp')}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
-                  authMode === 'otp'
-                    ? 'bg-olive-700 text-white shadow-lg transform scale-[1.02]'
-                    : 'text-stone-600 hover:text-olive-700 hover:bg-white/80'
-                }`}
-              >
-                <Smartphone className="h-4 w-4" />
-                <span className="text-sm">Code sécurisé</span>
-              </button>
-            </div>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={authMode === 'traditional'}
+                  aria-controls="auth-panel"
+                  onClick={() => setAuthMode('traditional')}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
+                    authMode === 'traditional'
+                      ? 'bg-olive-700 text-white shadow-lg transform scale-[1.02]'
+                      : 'text-stone-600 hover:text-olive-700 hover:bg-white/80'
+                  }`}
+                >
+                  <Shield className="h-4 w-4" aria-hidden="true" />
+                  <span className="text-sm">Classique</span>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={authMode === 'otp'}
+                  aria-controls="auth-panel"
+                  onClick={() => setAuthMode('otp')}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
+                    authMode === 'otp'
+                      ? 'bg-olive-700 text-white shadow-lg transform scale-[1.02]'
+                      : 'text-stone-600 hover:text-olive-700 hover:bg-white/80'
+                  }`}
+                >
+                  <Smartphone className="h-4 w-4" aria-hidden="true" />
+                  <span className="text-sm">Code sécurisé</span>
+                </button>
+              </div>
           </div>
 
           {authMode === 'otp' ? (

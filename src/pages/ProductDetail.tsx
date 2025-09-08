@@ -378,13 +378,13 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
           {/* Main Product Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             {/* Image Gallery */}
-            <div className="space-y-4">
+            <section className="space-y-4" aria-label="Images du produit">
               {/* Main Image */}
               <div className="relative group">
                 <div className="aspect-square overflow-hidden rounded-xl bg-stone-100">
                   <ProductImage
                     src={product.images[selectedImage]}
-                    alt={`${product.name} - vue ${selectedImage + 1}`}
+                    alt={`${product.name} - vue ${selectedImage + 1} sur ${product.images.length}`}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     preload={true}
                   />
@@ -397,16 +397,18 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                         size="sm"
                         className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => handleImageChange('prev')}
+                        aria-label={`Image précédente (${selectedImage} sur ${product.images.length})`}
                       >
-                        <ChevronLeft className="h-4 w-4" />
+                        <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => handleImageChange('next')}
+                        aria-label={`Image suivante (${selectedImage + 2} sur ${product.images.length})`}
                       >
-                        <ChevronRight className="h-4 w-4" />
+                        <ChevronRight className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </>
                   )}
@@ -471,12 +473,12 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                   ))}
                 </div>
               )}
-            </div>
+            </section>
 
             {/* Product Information */}
-            <div className="space-y-6">
+            <section className="space-y-6" aria-label="Informations du produit">
               {/* Header */}
-              <div>
+              <header>
                 <div className="flex items-center gap-3 mb-3">
                   <Badge variant="outline" className="text-olive-700 border-olive-200">
                     {product.category}
@@ -493,7 +495,10 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                   )}
                 </div>
 
-                <h1 className="text-3xl lg:text-4xl font-serif text-stone-800 mb-4">
+                <h1 
+                  className="text-3xl lg:text-4xl font-serif text-stone-800 mb-4"
+                  id="product-title"
+                >
                   {product.name}
                 </h1>
 
@@ -527,7 +532,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     TVA incluse • Livraison calculée à l'étape suivante
                   </p>
                 </div>
-              </div>
+              </header>
 
               {/* Short Description */}
               <div>

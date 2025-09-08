@@ -114,24 +114,29 @@ const ProductShowcase = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+      <section 
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
+        aria-label="Produits en vedette"
+        role="region"
+      >
         {featuredProducts.map((product, index) => (
-          <div 
+          <article 
             key={product.id}
             className="animate-fade-in opacity-0"
             style={{ 
               animationDelay: `${index * 100}ms`,
               animationFillMode: 'forwards'
             }}
+            aria-labelledby={`product-${product.id}-name`}
           >
             <ProductCard
               product={product}
               onAddToCart={handleAddToCart}
               onQuickView={handleQuickView}
             />
-          </div>
+          </article>
         ))}
-      </div>
+      </section>
       
       <ProductQuickView
         product={quickViewProduct}

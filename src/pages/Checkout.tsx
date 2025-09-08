@@ -259,59 +259,77 @@ const Checkout = () => {
             {/* Form Section */}
             <div className="lg:col-span-2">
               {step === 1 && (
-                <div className="space-y-6 animate-fade-in">
-                  <h2 className="text-xl font-medium mb-4">Vos Coordonnées</h2>
+                <fieldset className="space-y-6 animate-fade-in">
+                  <legend className="text-xl font-medium mb-4">Vos Coordonnées</legend>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName">Prénom</Label>
+                      <Label htmlFor="firstName">Prénom *</Label>
                       <Input
                         id="firstName"
                         placeholder="Votre prénom"
                         value={formData.firstName}
                         onChange={handleInputChange}
+                        required
+                        aria-required="true"
+                        aria-describedby="firstName-error"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="lastName">Nom</Label>
+                      <Label htmlFor="lastName">Nom *</Label>
                       <Input
                         id="lastName"
                         placeholder="Votre nom"
                         value={formData.lastName}
                         onChange={handleInputChange}
+                        required
+                        aria-required="true"
+                        aria-describedby="lastName-error"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">Email *</Label>
                     <Input
                       id="email"
                       type="email"
                       placeholder="votre.email@exemple.com"
                       value={formData.email}
                       onChange={handleInputChange}
+                      required
+                      aria-required="true"
+                      aria-describedby="email-error"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Téléphone</Label>
+                    <Label htmlFor="phone">Téléphone (optionnel)</Label>
                     <Input
                       id="phone"
+                      type="tel"
                       placeholder="Votre numéro de téléphone"
                       value={formData.phone}
                       onChange={handleInputChange}
+                      aria-describedby="phone-description"
                     />
+                    <p id="phone-description" className="text-sm text-stone-500">
+                      Pour vous contacter en cas de problème avec votre commande
+                    </p>
                   </div>
 
                   <Button
                     className="w-full md:w-auto bg-olive-700 hover:bg-olive-800"
                     onClick={goToNextStep}
+                    aria-describedby="step1-instructions"
                   >
                     Continuer vers la livraison
                   </Button>
-                </div>
+                  <p id="step1-instructions" className="sr-only">
+                    Passer à l'étape suivante pour saisir votre adresse de livraison
+                  </p>
+                </fieldset>
               )}
 
               {step === 2 && (
