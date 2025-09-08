@@ -518,7 +518,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       ))}
                     </div>
                     <span className="text-sm text-stone-600">
-                      {productRating.toFixed(1)} ({reviewCount} avis)
+                      ({reviewCount} avis)
                     </span>
                   </div>
                 )}
@@ -542,217 +542,138 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                 {product.description.length > 200 && (
                   <button
                     onClick={() => setShowFullDescription(!showFullDescription)}
-                    className="text-olive-700 hover:text-olive-800 text-sm mt-2 font-medium"
+                    className="text-olive-700 text-sm hover:underline mt-2"
                   >
                     {showFullDescription ? 'Voir moins' : 'Voir plus'}
                   </button>
                 )}
-                {showFullDescription && (
-                  <div className="mt-4 text-stone-600 leading-relaxed">
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: sanitizeHtmlContent(product.description),
-                      }}
-                    />
-                  </div>
-                )}
               </div>
 
-              {/* Stock Status */}
-              {singleStockInfo && (
-                <Alert className={`${
-                  singleStockInfo.isOutOfStock 
-                    ? 'border-red-200 bg-red-50' 
-                    : singleStockInfo.isLow 
-                    ? 'border-amber-200 bg-amber-50'
-                    : 'border-green-200 bg-green-50'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    {singleStockInfo.isOutOfStock ? (
-                      <AlertTriangle className="h-5 w-5 text-red-600" />
-                    ) : singleStockInfo.isLow ? (
-                      <AlertTriangle className="h-5 w-5 text-amber-600" />
-                    ) : (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    )}
-                    <AlertDescription className={`font-medium ${
-                      singleStockInfo.isOutOfStock 
-                        ? 'text-red-800' 
-                        : singleStockInfo.isLow 
-                        ? 'text-amber-800'
-                        : 'text-green-800'
-                    }`}>
-                      {singleStockInfo.message}
-                    </AlertDescription>
-                  </div>
-                </Alert>
-              )}
-
-              {/* Quantity Selector */}
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-3">
-                  Quantité {singleStockInfo && `(maximum: ${singleStockInfo.maxQuantity})`}
-                </label>
+              {/* Quantity & Add to Cart */}
+              <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center border border-stone-300 rounded-lg">
+                  <div className="flex items-center border rounded-lg">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleQuantityChange(-1)}
                       disabled={quantity <= 1}
-                      className="h-10 w-10 p-0"
+                      aria-label="Diminuer la quantité"
                     >
                       <Minus className="h-4 w-4" />
                     </Button>
-                    <span className="px-4 py-2 min-w-[3rem] text-center font-medium">
+                    <span className="px-4 py-2 min-w-12 text-center">
                       {quantity}
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleQuantityChange(1)}
-                      disabled={singleStockInfo ? quantity >= singleStockInfo.maxQuantity : false}
-                      className="h-10 w-10 p-0"
+                      disabled={quantity >= (singleStockInfo?.maxQuantity || 99)}
+                      aria-label="Augmenter la quantité"
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="space-y-3">
-                <Button
-                  onClick={handleAddToCart}
-                  disabled={singleStockInfo?.isOutOfStock || !singleStockInfo?.canOrder}
-                  className="w-full h-12 bg-olive-700 hover:bg-olive-800 text-white font-medium disabled:opacity-50"
-                  size="lg"
-                >
-                  <ShoppingBag className="h-5 w-5 mr-2" />
-                  {singleStockInfo?.isOutOfStock ? 'Produit indisponible' : 'Ajouter au panier'}
-                </Button>
-
-                <div className="flex gap-3">
+                  
                   <WishlistButton
                     productId={product.id}
-                    className="flex-1 h-12"
-                    variant="outline"
                   />
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleAddToCart}
+                    className="flex-1 bg-olive-700 hover:bg-olive-800 text-white"
+                    disabled={singleStockInfo?.isOutOfStock}
+                  >
+                    <ShoppingBag className="h-4 w-4 mr-2" />
+                    {!singleStockInfo?.isOutOfStock ? 'Ajouter au panier' : 'Rupture de stock'}
+                  </Button>
                   
-                  <div className="relative">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="h-12 px-4"
-                      onClick={() => setShareMenuOpen(!shareMenuOpen)}
-                    >
-                      <Share2 className="h-5 w-5" />
-                    </Button>
-                    
-                    {shareMenuOpen && (
-                      <Card className="absolute top-full right-0 mt-2 z-10 p-3">
-                        <CardContent className="p-0">
-                          <div className="grid grid-cols-2 gap-2 min-w-[200px]">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleShare('native')}
-                              className="justify-start"
-                            >
-                              <Share2 className="h-4 w-4 mr-2" />
-                              Partager
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleShare('copy')}
-                              className="justify-start"
-                            >
-                              <Copy className="h-4 w-4 mr-2" />
-                              Copier
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleShare('facebook')}
-                              className="justify-start"
-                            >
-                              <Facebook className="h-4 w-4 mr-2" />
-                              Facebook
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleShare('whatsapp')}
-                              className="justify-start"
-                            >
-                              <MessageCircle className="h-4 w-4 mr-2" />
-                              WhatsApp
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
+                  <Dialog open={shareMenuOpen} onOpenChange={setShareMenuOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="icon">
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <div className="flex flex-col space-y-2">
+                        <h3 className="text-lg font-medium">Partager ce produit</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => handleShare('facebook')}
+                            className="w-full"
+                          >
+                            <Facebook className="h-4 w-4 mr-2" />
+                            Facebook
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleShare('twitter')}
+                            className="w-full"
+                          >
+                            <Twitter className="h-4 w-4 mr-2" />
+                            Twitter
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleShare('whatsapp')}
+                            className="w-full"
+                          >
+                            <MessageCircle className="h-4 w-4 mr-2" />
+                            WhatsApp
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleShare('copy')}
+                            className="w-full"
+                          >
+                            <Copy className="h-4 w-4 mr-2" />
+                            Copier
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
 
-              {/* Trust Badges */}
-              <div className="grid grid-cols-3 gap-4 py-6 border-t border-stone-200">
-                <div className="text-center">
-                  <Truck className="h-6 w-6 text-olive-600 mx-auto mb-2" />
-                  <p className="text-xs text-stone-600 font-medium">Livraison rapide</p>
-                  <p className="text-xs text-stone-500">2-5 jours</p>
-                </div>
-                <div className="text-center">
-                  <Shield className="h-6 w-6 text-olive-600 mx-auto mb-2" />
-                  <p className="text-xs text-stone-600 font-medium">Paiement sécurisé</p>
-                  <p className="text-xs text-stone-500">SSL & 3D Secure</p>
-                </div>
-                <div className="text-center">
-                  <RotateCcw className="h-6 w-6 text-olive-600 mx-auto mb-2" />
-                  <p className="text-xs text-stone-600 font-medium">Retours gratuits</p>
-                  <p className="text-xs text-stone-500">14 jours</p>
-                </div>
-              </div>
-
-              {/* Artisan Info */}
-              <Card className="bg-beige-50 border-beige-200">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-3">
-                    <Leaf className="h-6 w-6 text-olive-600 mt-0.5" />
-                    <div>
-                      <h3 className="font-medium text-stone-800 mb-2">
-                        Fait à la main par {product.artisan}
-                      </h3>
-                      {(product.artisan_story || product.artisanStory) && (
-                        <p className="text-sm text-stone-600 leading-relaxed">
-                          {product.artisan_story || product.artisanStory}
+              {/* Stock & Shipping Info */}
+              <div className="space-y-3">
+                {singleStockInfo && (
+                  <Alert>
+                    <AlertDescription className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span className="text-sm">
+                        {!singleStockInfo.isOutOfStock 
+                          ? `En stock • ${singleStockInfo.available} disponible(s)`
+                          : 'Rupture de stock'
+                        }
+                      </span>
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                <Alert>
+                  <AlertDescription className="flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-olive-600" />
+                    <div className="text-sm">
+                      <p className="font-medium">Livraison gratuite</p>
+                      <p className="text-stone-600">
+                        À partir de 50€ d'achat en France métropolitaine
+                      </p>
+                        {getShippingMessage && (
+                        <p className="text-stone-600 mt-1">
+                          {getShippingMessage()}
                         </p>
                       )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Shipping Info */}
-              <Alert className="border-blue-200 bg-blue-50">
-                <Truck className="h-5 w-5 text-blue-600" />
-                <AlertDescription className="text-blue-800">
-                  <div>
-                    <p className="font-medium mb-1">Informations de livraison</p>
-                    <p className="text-sm">
-                      {getShippingMessage() || '🚚 Livraison: 2-5 jours • France métropolitaine'}
-                    </p>
-                    {isNantesMetropole('44000') && (
-                      <p className="text-sm mt-1 font-medium">
-                        ✨ Livraison gratuite sur la métropole Nantaise !
-                      </p>
-                    )}
-                  </div>
-                </AlertDescription>
-              </Alert>
-            </div>
+                  </AlertDescription>
+                </Alert>
+              </div>
+            </section>
           </div>
 
           {/* Product Details Tabs */}
