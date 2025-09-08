@@ -1418,6 +1418,7 @@ export type Database = {
       }
       support_tickets_error_reports: {
         Row: {
+          assigned_to: string | null
           browser_info: Json | null
           created_at: string | null
           description: string
@@ -1427,13 +1428,18 @@ export type Database = {
           masked_email: string | null
           page_url: string | null
           priority: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
           screenshot_url: string | null
+          severity: string | null
           status: string | null
+          tags: string[] | null
           updated_at: string | null
           user_agent: string | null
           user_id: string | null
         }
         Insert: {
+          assigned_to?: string | null
           browser_info?: Json | null
           created_at?: string | null
           description: string
@@ -1443,13 +1449,18 @@ export type Database = {
           masked_email?: string | null
           page_url?: string | null
           priority?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
           screenshot_url?: string | null
+          severity?: string | null
           status?: string | null
+          tags?: string[] | null
           updated_at?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
         Update: {
+          assigned_to?: string | null
           browser_info?: Json | null
           created_at?: string | null
           description?: string
@@ -1459,8 +1470,12 @@ export type Database = {
           masked_email?: string | null
           page_url?: string | null
           priority?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
           screenshot_url?: string | null
+          severity?: string | null
           status?: string | null
+          tags?: string[] | null
           updated_at?: string | null
           user_agent?: string | null
           user_id?: string | null

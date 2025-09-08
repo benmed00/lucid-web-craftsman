@@ -16,7 +16,8 @@ import {
   Warehouse,
   Megaphone,
   User,
-  Image
+  Image,
+  AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -106,6 +107,11 @@ const AdminLayout = () => {
       icon: BarChart3,
       label: "Analyses",
       path: "/admin/analytics",
+    },
+    {
+      icon: AlertTriangle,
+      label: "Rapports d'erreurs",
+      path: "/admin/error-reports",
     },
     {
       icon: Settings,

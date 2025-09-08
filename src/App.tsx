@@ -53,6 +53,7 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminInventory from "./pages/admin/AdminInventory";
 import AdminMarketing from "./pages/admin/AdminMarketing";
 import AdminHeroImage from "./pages/admin/AdminHeroImage";
+import AdminErrorReports from "./pages/admin/AdminErrorReports";
 
 // Enhanced React Query configuration for optimized caching
 const queryClient = new QueryClient({
@@ -127,6 +128,7 @@ const App = () => {
               <Route path="customers" element={<AdminCustomers />} />
               <Route path="marketing" element={<AdminMarketing />} />
               <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="error-reports" element={<AdminErrorReports />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
