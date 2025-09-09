@@ -67,7 +67,7 @@ const AdminErrorReports: React.FC = () => {
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [errorTypeFilter, setErrorTypeFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [tagFilter, setTagFilter] = useState('');
+  const [tagFilter, setTagFilter] = useState('all');
 
   // Stats
   const [stats, setStats] = useState({
@@ -164,7 +164,7 @@ const AdminErrorReports: React.FC = () => {
     }
 
     // Tag filter
-    if (tagFilter) {
+    if (tagFilter && tagFilter !== 'all') {
       filtered = filtered.filter(report =>
         report.tags && report.tags.includes(tagFilter)
       );
@@ -410,7 +410,7 @@ const AdminErrorReports: React.FC = () => {
                   <SelectValue placeholder="Filter by tag" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Tags</SelectItem>
+                  <SelectItem value="all">All Tags</SelectItem>
                   {availableTags.map(tag => (
                     <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                   ))}
