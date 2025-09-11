@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import clsx from "clsx";
 import { useCartUI } from "../context/useCartUI";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
@@ -22,8 +22,7 @@ const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Memoize current path to prevent unnecessary re-renders
-  const currentPath = useMemo(() => location.pathname, [location.pathname]);
+  const currentPath = location.pathname;
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -80,64 +79,64 @@ const Navigation = () => {
               <Link
                 to="/"
                 className={clsx(
-                  "relative px-3 py-2 text-sm font-medium transition-colors duration-200",
+                  "relative px-4 py-2 text-sm font-medium transition-colors duration-150 hover:text-olive-700",
                   currentPath === "/" 
                     ? "text-olive-700 font-semibold" 
-                    : "text-stone-700 hover:text-olive-700"
+                    : "text-stone-700"
                 )}
                 aria-current={currentPath === "/" ? "page" : undefined}
               >
                 Accueil
                 {currentPath === "/" && (
-                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
                 )}
               </Link>
               
               <Link
                 to="/products"
                 className={clsx(
-                  "relative px-3 py-2 text-sm font-medium transition-colors duration-200",
+                  "relative px-4 py-2 text-sm font-medium transition-colors duration-150 hover:text-olive-700",
                   currentPath === "/products" 
                     ? "text-olive-700 font-semibold" 
-                    : "text-stone-700 hover:text-olive-700"
+                    : "text-stone-700"
                 )}
                 aria-current={currentPath === "/products" ? "page" : undefined}
               >
                 Boutique
                 {currentPath === "/products" && (
-                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
                 )}
               </Link>
               
               <Link
                 to="/blog"
                 className={clsx(
-                  "relative px-3 py-2 text-sm font-medium transition-colors duration-200",
+                  "relative px-4 py-2 text-sm font-medium transition-colors duration-150 hover:text-olive-700",
                   currentPath === "/blog" 
                     ? "text-olive-700 font-semibold" 
-                    : "text-stone-700 hover:text-olive-700"
+                    : "text-stone-700"
                 )}
                 aria-current={currentPath === "/blog" ? "page" : undefined}
               >
                 Blog
                 {currentPath === "/blog" && (
-                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
                 )}
               </Link>
               
               <Link
                 to="/contact"
                 className={clsx(
-                  "relative px-3 py-2 text-sm font-medium transition-colors duration-200",
+                  "relative px-4 py-2 text-sm font-medium transition-colors duration-150 hover:text-olive-700",
                   currentPath === "/contact" 
                     ? "text-olive-700 font-semibold" 
-                    : "text-stone-700 hover:text-olive-700"
+                    : "text-stone-700"
                 )}
                 aria-current={currentPath === "/contact" ? "page" : undefined}
               >
                 Contact
                 {currentPath === "/contact" && (
-                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
                 )}
               </Link>
             </nav>
@@ -460,5 +459,4 @@ const Navigation = () => {
   );
 };
 
-// Wrap in React.memo to prevent unnecessary re-renders
-export default React.memo(Navigation);
+export default Navigation;
