@@ -10,7 +10,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
-import "../styles/header-nav-fix.css";
+
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -55,189 +55,218 @@ const Navigation = () => {
         Aller au contenu principal
       </a>
       
-      <header className="header-nav-root">
-      <div className="header-nav-container">
-        {/* Logo Section */}
-        <div className="header-logo">
-          <Link to="/" className="group">
-            <div className="flex items-center space-x-2 md:space-x-3">
-              <div className="p-1.5 md:p-2 rounded-full bg-olive-700 group-hover:bg-olive-800 transition-all duration-300 shadow-md group-hover:shadow-lg">
-                <Leaf className="h-4 w-4 md:h-5 md:w-5 text-white drop-shadow-sm" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-serif text-lg md:text-xl font-semibold text-stone-800 leading-tight group-hover:text-olive-700 transition-colors">
-                  Rif Raw Straw
-                </span>
-                <span className="text-xs text-stone-500 leading-tight hidden sm:block group-hover:text-olive-600 transition-colors">
-                  Artisanat Berbère
-                </span>
-              </div>
+      <header className="sticky top-0 z-40 w-full bg-white border-b border-stone-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo Section */}
+            <div className="flex items-center">
+              <Link to="/" className="group flex items-center space-x-3">
+                <div className="p-2 rounded-full bg-olive-700 group-hover:bg-olive-800 transition-colors duration-200">
+                  <Leaf className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-serif text-xl font-semibold text-stone-800 group-hover:text-olive-700 transition-colors duration-200">
+                    Rif Raw Straw
+                  </span>
+                  <span className="text-xs text-stone-500 hidden sm:block group-hover:text-olive-600 transition-colors duration-200">
+                    Artisanat Berbère
+                  </span>
+                </div>
+              </Link>
             </div>
-          </Link>
-        </div>
 
-        {/* Desktop Navigation Links - Semantic Markup */}
-        <nav className="header-nav" role="navigation" aria-label="Navigation principale">
-          <ul>
-            <li>
+            {/* Desktop Navigation Links */}
+            <nav className="hidden md:flex items-center space-x-8" role="navigation" aria-label="Navigation principale">
               <Link
                 to="/"
+                className={clsx(
+                  "relative px-3 py-2 text-sm font-medium transition-colors duration-200",
+                  currentPath === "/" 
+                    ? "text-olive-700 font-semibold" 
+                    : "text-stone-700 hover:text-olive-700"
+                )}
                 aria-current={currentPath === "/" ? "page" : undefined}
               >
                 Accueil
+                {currentPath === "/" && (
+                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
+                )}
               </Link>
-            </li>
-            <li>
+              
               <Link
                 to="/products"
+                className={clsx(
+                  "relative px-3 py-2 text-sm font-medium transition-colors duration-200",
+                  currentPath === "/products" 
+                    ? "text-olive-700 font-semibold" 
+                    : "text-stone-700 hover:text-olive-700"
+                )}
                 aria-current={currentPath === "/products" ? "page" : undefined}
               >
                 Boutique
+                {currentPath === "/products" && (
+                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
+                )}
               </Link>
-            </li>
-            <li>
+              
               <Link
                 to="/blog"
+                className={clsx(
+                  "relative px-3 py-2 text-sm font-medium transition-colors duration-200",
+                  currentPath === "/blog" 
+                    ? "text-olive-700 font-semibold" 
+                    : "text-stone-700 hover:text-olive-700"
+                )}
                 aria-current={currentPath === "/blog" ? "page" : undefined}
               >
                 Blog
+                {currentPath === "/blog" && (
+                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
+                )}
               </Link>
-            </li>
-            <li>
+              
               <Link
                 to="/contact"
+                className={clsx(
+                  "relative px-3 py-2 text-sm font-medium transition-colors duration-200",
+                  currentPath === "/contact" 
+                    ? "text-olive-700 font-semibold" 
+                    : "text-stone-700 hover:text-olive-700"
+                )}
                 aria-current={currentPath === "/contact" ? "page" : undefined}
               >
                 Contact
+                {currentPath === "/contact" && (
+                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
+                )}
               </Link>
-            </li>
-          </ul>
-        </nav>
+            </nav>
 
-        {/* Actions Section */}
-        <div className="header-actions">
-        {/* Search Button - Desktop */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowSearch(!showSearch)}
-          className="relative hidden md:flex items-center gap-2 group"
-        >
-          <Search size={18} />
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-            Rechercher
-          </div>
-        </Button>
-
-        {/* Wishlist button - Desktop */}
-        {user && (
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className="relative hidden md:flex items-center gap-2"
-          >
-            <Link to="/wishlist">
-              <Heart size={18} />
-              {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
-          </Button>
-        )}
-
-        {/* Currency Selector - Desktop */}
-        <div className="hidden md:block">
-          <CurrencySelector />
-        </div>
-
-        <Link to="/cart" className="hidden md:block">
-          <Button
-            variant="outline"
-            className={clsx(
-              "border-stone-300 transition-colors flex items-center group relative",
-              itemCount >= 1
-                ? "bg-olive-700 text-white"
-                : "bg-white text-stone-700",
-              itemCount >= 1
-                ? "hover:bg-white hover:text-olive-700"
-                : "hover:bg-white hover:text-stone-900"
-            )}
-          >
-            <ShoppingBag className={clsx("h-4 w-4 transition-colors", itemCount >= 1 ? "text-white group-hover:text-olive-700" : "text-stone-700 group-hover:text-stone-900")} />
-            <span className="ml-2">({itemCount})</span>
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-              Panier
-            </div>
-          </Button>
-        </Link>
-
-        {/* Auth buttons - Desktop */}
-        <div className="hidden md:flex items-center gap-1 min-w-[200px] justify-end">
-          {isLoading ? (
-            <div className="flex items-center gap-1">
-              <div className="w-8 h-8 rounded bg-stone-200"></div>
-              <div className="w-8 h-8 rounded bg-stone-200"></div>
-              <div className="w-8 h-8 rounded bg-stone-200"></div>
-            </div>
-          ) : user ? (
-            <>
-              <Button variant="ghost" size="sm" asChild className="group relative">
-                <Link to="/orders" className="flex items-center p-2">
-                  <Package className="h-4 w-4" />
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    Mes Commandes
-                  </div>
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="group relative">
-                <Link to="/profile" className="flex items-center p-2">
-                  <User className="h-4 w-4" />
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    Mon Profil
-                  </div>
-                </Link>
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleSignOut} 
-                className="group relative flex items-center p-2"
-                id="nav-signout"
-                name="navigation-signout-button"
+            {/* Actions Section */}
+            <div className="flex items-center space-x-4">
+              {/* Search Button - Desktop */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSearch(!showSearch)}
+                className="relative hidden md:flex items-center gap-2 group"
               >
-                <LogOut className="h-4 w-4" />
+                <Search size={18} />
                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  Déconnexion
+                  Rechercher
                 </div>
               </Button>
-            </>
-          ) : (
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/auth" aria-label="Se connecter">Se connecter</Link>
-            </Button>
-          )}
-        </div>
-        </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden text-stone-700 p-3 rounded-xl hover:bg-stone-100 transition-all duration-200 active:scale-95 touch-manipulation"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
-          aria-expanded={isMenuOpen}
-          aria-haspopup="true"
-          aria-controls="mobile-menu"
-        >
-          <div className="relative w-6 h-6">
-            <span className={`absolute block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'rotate-45 top-3' : 'top-1'}`}></span>
-            <span className={`absolute block w-6 h-0.5 bg-current transition-opacity duration-300 top-3 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
-            <span className={`absolute block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? '-rotate-45 top-3' : 'top-5'}`}></span>
+              {/* Wishlist button - Desktop */}
+              {user && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="relative hidden md:flex items-center gap-2"
+                >
+                  <Link to="/wishlist">
+                    <Heart size={18} />
+                    {wishlistCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </Link>
+                </Button>
+              )}
+
+              {/* Currency Selector - Desktop */}
+              <div className="hidden md:block">
+                <CurrencySelector />
+              </div>
+
+              <Link to="/cart" className="hidden md:block">
+                <Button
+                  variant="outline"
+                  className={clsx(
+                    "border-stone-300 transition-colors flex items-center group relative",
+                    itemCount >= 1
+                      ? "bg-olive-700 text-white"
+                      : "bg-white text-stone-700",
+                    itemCount >= 1
+                      ? "hover:bg-white hover:text-olive-700"
+                      : "hover:bg-white hover:text-stone-900"
+                  )}
+                >
+                  <ShoppingBag className={clsx("h-4 w-4 transition-colors", itemCount >= 1 ? "text-white group-hover:text-olive-700" : "text-stone-700 group-hover:text-stone-900")} />
+                  <span className="ml-2">({itemCount})</span>
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Panier
+                  </div>
+                </Button>
+              </Link>
+
+              {/* Auth buttons - Desktop */}
+              <div className="hidden md:flex items-center gap-1">
+                {isLoading ? (
+                  <div className="flex items-center gap-1">
+                    <div className="w-8 h-8 rounded bg-stone-200"></div>
+                    <div className="w-8 h-8 rounded bg-stone-200"></div>
+                    <div className="w-8 h-8 rounded bg-stone-200"></div>
+                  </div>
+                ) : user ? (
+                  <>
+                    <Button variant="ghost" size="sm" asChild className="group relative">
+                      <Link to="/orders" className="flex items-center p-2">
+                        <Package className="h-4 w-4" />
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                          Mes Commandes
+                        </div>
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild className="group relative">
+                      <Link to="/profile" className="flex items-center p-2">
+                        <User className="h-4 w-4" />
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                          Mon Profil
+                        </div>
+                      </Link>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={handleSignOut} 
+                      className="group relative flex items-center p-2"
+                      id="nav-signout"
+                      name="navigation-signout-button"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        Déconnexion
+                      </div>
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/auth" aria-label="Se connecter">Se connecter</Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden text-stone-700 p-2 rounded-md hover:bg-stone-100 transition-colors duration-200"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-expanded={isMenuOpen}
+              aria-haspopup="true"
+              aria-controls="mobile-menu"
+            >
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
           </div>
-        </button>
-      </div>
+        </div>
 
       {/* Search Bar - Desktop Dropdown */}
       {showSearch && (
