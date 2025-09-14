@@ -57,37 +57,37 @@ const Navigation = () => {
       <header className="sticky top-0 z-40 w-full bg-white border-b border-stone-200 shadow-sm">
         <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 w-full min-w-0">
-            {/* Logo Section - Fixed width */}
-            <div className="flex items-center flex-shrink-0 w-48">
+            {/* Logo Section - Responsive width */}
+            <div className="flex items-center flex-shrink-0 min-w-0 lg:w-48">
               <Link 
                 to="/" 
-                className="group flex items-center space-x-3"
+                className="group flex items-center space-x-2 lg:space-x-3 min-w-0"
                 onClick={() => {
                   console.log('Logo clicked, navigating to home');
                   setIsMenuOpen(false);
                 }}
               >
-                <div className="p-2 rounded-full bg-olive-700 group-hover:bg-olive-800 transition-colors duration-200">
+                <div className="p-2 rounded-full bg-olive-700 group-hover:bg-olive-800 transition-colors duration-200 flex-shrink-0">
                   <Leaf className="h-5 w-5 text-white" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="font-serif text-xl font-semibold text-stone-800 group-hover:text-olive-700 transition-colors duration-200 whitespace-nowrap">
+                <div className="flex flex-col min-w-0 hidden sm:block">
+                  <span className="font-serif text-lg lg:text-xl font-semibold text-stone-800 group-hover:text-olive-700 transition-colors duration-200 whitespace-nowrap truncate">
                     Rif Raw Straw
                   </span>
-                  <span className="text-xs text-stone-500 hidden sm:block group-hover:text-olive-600 transition-colors duration-200 whitespace-nowrap">
+                  <span className="text-xs text-stone-500 hidden lg:block group-hover:text-olive-600 transition-colors duration-200 whitespace-nowrap">
                     Artisanat Berbère
                   </span>
                 </div>
               </Link>
             </div>
 
-            {/* Desktop Navigation Links - Fixed center section */}
-            <nav className="hidden md:flex items-center justify-center flex-1" role="navigation" aria-label="Navigation principale">
-              <div className="flex items-center space-x-8">
+            {/* Desktop Navigation Links - Responsive center section */}
+            <nav className="hidden md:flex items-center justify-center flex-1 px-4 min-w-0" role="navigation" aria-label="Navigation principale">
+              <div className="flex items-center space-x-4 lg:space-x-6 xl:space-x-8">
                 <Link
                   to="/"
                   className={clsx(
-                    "relative px-4 py-2 text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
+                    "relative px-2 lg:px-3 xl:px-4 py-2 text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/" 
                       ? "text-olive-700 font-semibold" 
                       : "text-stone-700"
@@ -104,7 +104,7 @@ const Navigation = () => {
                 <Link
                   to="/products"
                   className={clsx(
-                    "relative px-4 py-2 text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
+                    "relative px-2 lg:px-3 xl:px-4 py-2 text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/products" 
                       ? "text-olive-700 font-semibold" 
                       : "text-stone-700"
@@ -121,7 +121,7 @@ const Navigation = () => {
                 <Link
                   to="/blog"
                   className={clsx(
-                    "relative px-4 py-2 text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
+                    "relative px-2 lg:px-3 xl:px-4 py-2 text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/blog" 
                       ? "text-olive-700 font-semibold" 
                       : "text-stone-700"
@@ -138,7 +138,7 @@ const Navigation = () => {
                 <Link
                   to="/contact"
                   className={clsx(
-                    "relative px-4 py-2 text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
+                    "relative px-2 lg:px-3 xl:px-4 py-2 text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/contact" 
                       ? "text-olive-700 font-semibold" 
                       : "text-stone-700"
@@ -154,8 +154,8 @@ const Navigation = () => {
               </div>
             </nav>
 
-            {/* Actions Section - Fixed width */}
-            <div className="flex items-center space-x-4 flex-shrink-0 w-48 justify-end">
+            {/* Actions Section - Responsive width */}
+            <div className="flex items-center space-x-2 lg:space-x-3 xl:space-x-4 flex-shrink-0 justify-end min-w-0">
               {/* Search Button - Desktop */}
               <Button
                 variant="ghost"
