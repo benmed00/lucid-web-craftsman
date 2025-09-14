@@ -1665,6 +1665,10 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: boolean
       }
+      log_contact_message_access: {
+        Args: { message_id: string }
+        Returns: undefined
+      }
       log_security_event: {
         Args: {
           p_event_data?: Json
