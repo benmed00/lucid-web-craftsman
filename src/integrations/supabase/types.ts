@@ -1649,6 +1649,20 @@ export type Database = {
         Args: { payment_id: string }
         Returns: Json
       }
+      get_newsletter_subscriptions_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          consent_given: boolean
+          created_at: string
+          email: string
+          id: string
+          metadata: Json
+          source: string
+          status: string
+          tags: string[]
+          updated_at: string
+        }[]
+      }
       get_profile_completion_percentage: {
         Args: { user_uuid: string }
         Returns: number
@@ -1656,6 +1670,19 @@ export type Database = {
       get_security_setting: {
         Args: { setting_key: string }
         Returns: Json
+      }
+      get_user_newsletter_subscription: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          consent_given: boolean
+          created_at: string
+          email: string
+          id: string
+          source: string
+          status: string
+          tags: string[]
+          updated_at: string
+        }[]
       }
       init_loyalty_account: {
         Args: { user_uuid: string }
@@ -1694,6 +1721,10 @@ export type Database = {
       update_loyalty_tier: {
         Args: { user_uuid: string }
         Returns: undefined
+      }
+      user_owns_newsletter_subscription: {
+        Args: { subscription_email: string }
+        Returns: boolean
       }
     }
     Enums: {
