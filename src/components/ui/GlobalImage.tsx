@@ -79,21 +79,38 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
         </div>
       )}
 
-      {/* Main image */}
-      <img
-        ref={ref}
-        src={currentSrc}
-        alt={alt}
-        className={cn(
-          "w-full h-full object-cover transition-opacity duration-300",
-          isLoading ? "opacity-0" : "opacity-100",
-          className
+      {/* Main image with WebP support */}
+      <picture className="w-full h-full">
+        {/* WebP source for modern browsers */}
+        {currentSrc.includes('supabase.co/storage') && (
+          <source 
+            srcSet={`${currentSrc}?format=webp&quality=80`}
+            type="image/webp"
+          />
         )}
-        onLoad={handleLoad}
-        onError={handleError}
-        loading={preload ? "eager" : "lazy"}
-        {...props}
-      />
+        {currentSrc.startsWith('/assets/') && !currentSrc.includes('.webp') && (
+          <source 
+            srcSet={currentSrc.replace(/\.(jpg|jpeg|png)$/i, '.webp')}
+            type="image/webp"
+          />
+        )}
+        
+        {/* Fallback img element */}
+        <img
+          ref={ref}
+          src={currentSrc}
+          alt={alt}
+          className={cn(
+            "w-full h-full object-cover transition-opacity duration-300",
+            isLoading ? "opacity-0" : "opacity-100",
+            className
+          )}
+          onLoad={handleLoad}
+          onError={handleError}
+          loading={preload ? "eager" : "lazy"}
+          {...props}
+        />
+      </picture>
     </div>
   );
 });

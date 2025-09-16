@@ -27,9 +27,9 @@ class ImageService {
       "/placeholder.svg"
     ],
     instagram: [
-      "/assets/images/instagram/insta_image_1.jpg",
       "/assets/images/instagram/insta_image_2.webp",
-      "/assets/images/instagram/insta_image_3.jpg",
+      "/assets/images/instagram/insta_image_3.webp",
+      "/assets/images/instagram/insta_image_1.jpg",
       "/assets/images/instagram/insta_image_4.jpg",
       "/placeholder.svg"
     ],
@@ -157,23 +157,78 @@ class ImageService {
   }
 
   /**
-   * Get optimized image source with fallback cascade
+   * Check browser support for WebP format
+   */
+  private supportWebP(): boolean {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    return canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+  }
+
+  /**
+   * Generate WebP version URL for optimization
+   */
+  private getWebPVersion(src: string): string {
+    // For Supabase storage URLs, try to request WebP if supported
+    if (src.includes('supabase.co/storage') && this.supportWebP()) {
+      // Add WebP transformation for Supabase images
+      const url = new URL(src);
+      url.searchParams.set('format', 'webp');
+      url.searchParams.set('quality', '80');
+      return url.toString();
+    }
+    
+    // For local assets, try to find WebP equivalent
+    if (src.startsWith('/assets/') && this.supportWebP()) {
+      // Convert .jpg, .jpeg, .png to .webp
+      const webpSrc = src.replace(/\.(jpg|jpeg|png)$/i, '.webp');
+      return webpSrc;
+    }
+    
+    return src;
+  }
+
+  /**
+   * Get optimized image source with WebP preference and fallback cascade
    */
   async getOptimizedSource(originalSrc: string, category: ImageCategory = 'default'): Promise<string> {
     const normalizedSrc = this.normalizeUrl(originalSrc);
     
-    // Try original source first
+    // Try WebP version first if browser supports it
+    if (this.supportWebP()) {
+      const webpSrc = this.getWebPVersion(normalizedSrc);
+      if (webpSrc !== normalizedSrc) {
+        const isWebPValid = await this.checkImage(webpSrc);
+        if (isWebPValid) {
+          return webpSrc;
+        }
+      }
+    }
+    
+    // Try original source
     const isOriginalValid = await this.checkImage(normalizedSrc);
     if (isOriginalValid) {
       return normalizedSrc;
     }
 
-    // Try fallbacks in order
+    // Try fallbacks in order, with WebP preference
     const fallbacks = this.getFallbacks(category);
     for (const fallback of fallbacks) {
+      // Try WebP version of fallback first
+      if (this.supportWebP()) {
+        const webpFallback = this.getWebPVersion(fallback);
+        if (webpFallback !== fallback) {
+          const isWebPValid = await this.checkImage(webpFallback);
+          if (isWebPValid) {
+            return webpFallback;
+          }
+        }
+      }
+      
+      // Try original fallback
       const isValid = await this.checkImage(fallback);
       if (isValid) {
-        // Silent fallback for production
         return fallback;
       }
     }
