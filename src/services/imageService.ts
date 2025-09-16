@@ -27,8 +27,10 @@ class ImageService {
       "/placeholder.svg"
     ],
     instagram: [
+      "/assets/images/instagram/insta_image_1.webp",
       "/assets/images/instagram/insta_image_2.webp",
       "/assets/images/instagram/insta_image_3.webp",
+      "/assets/images/instagram/insta_image_4.webp",
       "/assets/images/instagram/insta_image_1.jpg",
       "/assets/images/instagram/insta_image_4.jpg",
       "/placeholder.svg"

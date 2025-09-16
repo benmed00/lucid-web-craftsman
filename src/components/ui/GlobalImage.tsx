@@ -18,6 +18,8 @@ interface GlobalImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement
   preload?: boolean;
   aspectRatio?: string;
   errorClassName?: string;
+  sizes?: string;
+  quality?: number;
 }
 
 export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
@@ -31,6 +33,8 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
   preload = false,
   aspectRatio,
   errorClassName,
+  sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
+  quality = 80,
   ...props
 }, ref) => {
   const { 
@@ -79,27 +83,33 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
         </div>
       )}
 
-      {/* Main image with WebP support */}
+      {/* Main image with WebP support and responsive sizing */}
       <picture className="w-full h-full">
-        {/* WebP source for modern browsers */}
+        {/* WebP source for modern browsers with quality optimization */}
         {currentSrc.includes('supabase.co/storage') && (
           <source 
-            srcSet={`${currentSrc}?format=webp&quality=80`}
+            srcSet={`${currentSrc}?format=webp&quality=${quality}&resize=1920x1080`}
             type="image/webp"
+            sizes={sizes}
           />
         )}
         {currentSrc.startsWith('/assets/') && !currentSrc.includes('.webp') && (
           <source 
             srcSet={currentSrc.replace(/\.(jpg|jpeg|png)$/i, '.webp')}
             type="image/webp"
+            sizes={sizes}
           />
         )}
         
-        {/* Fallback img element */}
+        {/* Fallback img element with responsive sizing */}
         <img
           ref={ref}
-          src={currentSrc}
+          src={currentSrc.includes('supabase.co/storage') ? 
+            `${currentSrc}?quality=${quality}&resize=1920x1080` : 
+            currentSrc
+          }
           alt={alt}
+          sizes={sizes}
           className={cn(
             "w-full h-full object-cover transition-opacity duration-300",
             isLoading ? "opacity-0" : "opacity-100",
@@ -129,6 +139,8 @@ export const ProductImage = forwardRef<HTMLImageElement, Omit<GlobalImageProps, 
       category="product" 
       preload={true}
       showRetryButton={true}
+      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+      quality={85}
       {...props} 
     />
   )
@@ -144,6 +156,8 @@ export const HeroImage = forwardRef<HTMLImageElement, Omit<GlobalImageProps, 'ca
       category="hero" 
       preload={true}
       showLoadingSpinner={true}
+      sizes="100vw"
+      quality={90}
       {...props} 
     />
   )
@@ -173,6 +187,8 @@ export const InstagramImage = forwardRef<HTMLImageElement, Omit<GlobalImageProps
       category="instagram" 
       preload={false}
       showLoadingSpinner={false}
+      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 300px"
+      quality={75}
       {...props} 
     />
   )
