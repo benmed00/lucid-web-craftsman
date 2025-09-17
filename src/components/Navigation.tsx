@@ -176,12 +176,12 @@ const Navigation = () => {
                   variant="ghost"
                   size="sm"
                   asChild
-                  className="relative hidden md:flex items-center gap-2"
+                  className="relative hidden md:flex items-center gap-2 w-8 h-8"
                 >
-                  <Link to="/wishlist">
-                    <Heart size={16} className="md:h-4 md:w-4" />
+                  <Link to="/wishlist" className="flex items-center justify-center">
+                    <Heart className="h-4 w-4" />
                     {wishlistCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 md:h-5 md:w-5 flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center min-w-[16px]">
                         {wishlistCount}
                       </span>
                     )}
