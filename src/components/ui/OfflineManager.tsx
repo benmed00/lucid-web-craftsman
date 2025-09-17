@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
@@ -101,22 +101,32 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
 
   return (
     <div className="min-h-screen">
-      {/* Offline Alert */}
+      {/* Offline Alert - Mobile optimized */}
       {showOfflineAlert && (
-        <Alert className="fixed top-0 left-0 right-0 z-50 rounded-none border-0 bg-amber-50 border-b border-amber-200">
+        <Alert className="fixed top-0 left-0 right-0 z-[60] rounded-none border-0 bg-amber-50 border-b border-amber-200">
           <WifiOff className="h-4 w-4 text-amber-600" />
           <AlertDescription className="flex-1 text-amber-800">
-            <div className="flex items-center justify-between">
-              <span>Mode hors ligne - Certaines fonctionnalités sont limitées</span>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={retryConnection}
-                className="text-amber-700 hover:text-amber-800 h-auto py-1 px-2"
-              >
-                <RefreshCw className="h-3 w-3 mr-1" />
-                Réessayer
-              </Button>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm">Mode hors ligne - Fonctionnalités limitées</span>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={retryConnection}
+                  className="text-amber-700 hover:text-amber-800 h-auto py-1 px-2 text-xs"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Réessayer
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowOfflineAlert(false)}
+                  className="text-amber-700 hover:text-amber-800 h-auto py-1 px-1"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
             </div>
           </AlertDescription>
         </Alert>

@@ -54,7 +54,7 @@ const Navigation = () => {
         Aller au contenu principal
       </a>
       
-      <header className="sticky top-0 z-40 w-full bg-white border-b border-stone-200 shadow-sm">
+      <header className="sticky top-0 z-50 w-full bg-white border-b border-stone-200 shadow-sm">
         <div className="w-full max-w-none px-3 sm:px-4 md:px-4 lg:px-6 xl:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-14 lg:h-16 w-full min-w-0">
             {/* Logo Section - Tablet optimized */}
@@ -294,7 +294,7 @@ const Navigation = () => {
 
       {/* Search Bar - Desktop Dropdown */}
       {showSearch && (
-        <div className="absolute top-full left-0 right-0 bg-white border-b border-stone-200 shadow-lg z-30 hidden md:block">
+        <div className="absolute top-full left-0 right-0 bg-white border-b border-stone-200 shadow-lg z-[45] hidden md:block">
           <div className="container mx-auto px-4 py-4">
             <form onSubmit={handleSearch} className="flex gap-2">
               <Input
@@ -317,7 +317,7 @@ const Navigation = () => {
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          className="md:hidden fixed inset-0 bg-black/50 z-[55]"
           onClick={() => setIsMenuOpen(false)}
           aria-hidden="true"
         />
@@ -326,7 +326,7 @@ const Navigation = () => {
       {/* Mobile Menu */}
       <div 
         id="mobile-menu"
-        className={`md:hidden absolute top-full left-0 right-0 bg-white shadow-xl z-50 border-t border-stone-100 transform transition-transform duration-200 ease-out max-h-[90vh] overflow-y-auto ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'}`}
+        className={`md:hidden absolute top-full left-0 right-0 bg-white shadow-xl z-[56] border-t border-stone-100 transform transition-transform duration-200 ease-out max-h-[90vh] overflow-y-auto ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'}`}
         aria-hidden={!isMenuOpen}
         role="menu"
       >
