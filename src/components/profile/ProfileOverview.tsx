@@ -164,9 +164,9 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex flex-col md:flex-row items-start gap-6 md:gap-8 min-w-0">
             {/* Avatar Section */}
-            <div className="flex flex-col items-center space-y-4">
+            <div className="flex flex-col items-center space-y-4 flex-shrink-0">
               <Avatar className="h-32 w-32">
                 <AvatarImage src={profile?.avatar_url || ''} alt="Avatar" />
                 <AvatarFallback className="text-2xl">
@@ -187,7 +187,7 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
             </div>
 
             {/* Profile Info */}
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-4 min-w-0">
               {isEditing ? (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

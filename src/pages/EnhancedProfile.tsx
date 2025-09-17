@@ -240,7 +240,7 @@ export default function EnhancedProfile() {
 
         {/* Profile Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full lg:w-auto lg:grid-cols-5 grid-cols-2 gap-1">
+          <TabsList className="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <UserIcon className="h-4 w-4" />
               <span className="hidden sm:inline">Vue d'ensemble</span>
@@ -268,11 +268,11 @@ export default function EnhancedProfile() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent value="overview" className="space-y-6 mt-4">
             <EnhancedProfileManager />
           </TabsContent>
 
-          <TabsContent value="personal">
+          <TabsContent value="personal" className="mt-4">
             <PersonalInfo 
               user={user} 
               profile={profile} 
@@ -280,15 +280,15 @@ export default function EnhancedProfile() {
             />
           </TabsContent>
 
-          <TabsContent value="loyalty">
+          <TabsContent value="loyalty" className="mt-4">
             <LoyaltyProgram user={user} />
           </TabsContent>
 
-          <TabsContent value="preferences">
+          <TabsContent value="preferences" className="mt-4">
             <PreferencesSettings user={user} />
           </TabsContent>
 
-          <TabsContent value="orders">
+          <TabsContent value="orders" className="mt-4">
             <OrderHistory user={user} />
           </TabsContent>
         </Tabs>
