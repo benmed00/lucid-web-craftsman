@@ -71,6 +71,49 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
     );
   }
 
+  // Enhanced image URL generation with error handling
+  const generateSafeImageUrl = (url: string, includeTransformations: boolean = true): string => {
+    if (!url.includes('supabase.co/storage')) {
+      return url;
+    }
+
+    try {
+      const urlObj = new URL(url);
+      
+      if (includeTransformations) {
+        // Only add conservative parameters that are widely supported
+        if (quality && quality !== 80 && quality <= 95) {
+          urlObj.searchParams.set('quality', quality.toString());
+        }
+      }
+      
+      return urlObj.toString();
+    } catch {
+      // If URL parsing fails, return original URL
+      return url;
+    }
+  };
+
+  const generateWebPUrl = (url: string): string => {
+    if (!url.includes('supabase.co/storage')) {
+      return url;
+    }
+
+    try {
+      const urlObj = new URL(url);
+      urlObj.searchParams.set('format', 'webp');
+      
+      // Use conservative quality for WebP
+      if (quality && quality <= 90) {
+        urlObj.searchParams.set('quality', Math.min(quality, 85).toString());
+      }
+      
+      return urlObj.toString();
+    } catch {
+      return url;
+    }
+  };
+
   return (
     <div className={cn("relative w-full h-full", aspectRatio && `aspect-${aspectRatio}`)}>
       {/* Loading spinner */}
@@ -85,16 +128,10 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
 
       {/* Main image with WebP support and responsive sizing */}
       <picture className="w-full h-full">
-        {/* WebP source for modern browsers with quality optimization */}
+        {/* WebP source for modern browsers with conservative optimization */}
         {currentSrc.includes('supabase.co/storage') && (
           <source 
-            srcSet={(() => {
-              const url = new URL(currentSrc);
-              url.searchParams.set('format', 'webp');
-              url.searchParams.set('quality', quality.toString());
-              url.searchParams.set('resize', '1920x1080');
-              return url.toString();
-            })()}
+            srcSet={generateWebPUrl(currentSrc)}
             type="image/webp"
             sizes={sizes}
           />
@@ -107,15 +144,10 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
           />
         )}
         
-        {/* Fallback img element with responsive sizing */}
+        {/* Fallback img element with safe URL generation */}
         <img
           ref={ref}
-          src={currentSrc.includes('supabase.co/storage') ? (() => {
-            const url = new URL(currentSrc);
-            url.searchParams.set('quality', quality.toString());
-            url.searchParams.set('resize', '1920x1080');
-            return url.toString();
-          })() : currentSrc}
+          src={generateSafeImageUrl(currentSrc)}
           alt={alt}
           sizes={sizes}
           className={cn(
