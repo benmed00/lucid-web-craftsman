@@ -170,18 +170,18 @@ const Navigation = () => {
                 </div>
               </Button>
 
-              {/* Wishlist button - Desktop only */}
+              {/* Wishlist button - Tablet and Desktop */}
               {user && (
                 <Button
                   variant="ghost"
                   size="sm"
                   asChild
-                  className="relative hidden lg:flex items-center gap-2"
+                  className="relative hidden md:flex items-center gap-2"
                 >
                   <Link to="/wishlist">
-                    <Heart size={18} />
+                    <Heart size={16} className="md:h-4 md:w-4" />
                     {wishlistCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 md:h-5 md:w-5 flex items-center justify-center">
                         {wishlistCount}
                       </span>
                     )}
