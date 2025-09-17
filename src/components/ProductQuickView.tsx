@@ -74,7 +74,8 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl md:w-full w-full max-h-[90vh] md:max-h-[95vh] overflow-y-auto p-0 m-0 md:m-6 fixed inset-0 md:inset-auto md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2">
+      <DialogContent className="max-w-4xl md:w-full w-full max-h-[90vh] md:max-h-[95vh] overflow-hidden p-0 m-0 md:m-6 fixed inset-0 md:inset-auto md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 z-50">
+        <div className="max-h-[90vh] md:max-h-[95vh] overflow-y-auto">
         <DialogDescription className="sr-only">
           Aperçu rapide du produit {product.name} - {product.description}
         </DialogDescription>
@@ -300,6 +301,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
               </div>
             </div>
           </div>
+        </div>
         </div>
       </DialogContent>
       
