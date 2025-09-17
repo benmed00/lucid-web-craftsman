@@ -216,7 +216,24 @@
         return originalConsoleWarn.apply(this, args);
       };
     </script>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <script>
+      // Defer non-critical scripts to reduce initial bundle size
+      const deferScript = (src, condition = true) => {
+        if (!condition) return;
+        
+        const script = document.createElement('script');
+        script.src = src;
+        script.defer = true;
+        document.head.appendChild(script);
+      };
+      
+      // Load GPT Engineer script only if needed
+      const shouldLoadGPTEngineer = window.location.search.includes('dev') || 
+                                    window.location.hostname === 'localhost';
+      if (shouldLoadGPTEngineer) {
+        deferScript('https://cdn.gpteng.co/gptengineer.js');
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

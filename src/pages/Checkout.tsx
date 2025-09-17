@@ -1,6 +1,6 @@
 import { ArrowLeft, CheckCircle, CreditCard } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Stripe, loadStripe } from "@stripe/stripe-js"; // Stripe is used by stripePromise type
+import { Stripe } from "@stripe/stripe-js"; // Type import only
 import { getCart } from "@/api/mockApiService"; // Removed updateCartItemQuantity
 import { useEffect, useState } from "react";
 
@@ -15,9 +15,10 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { stockService } from "@/services/stockService";
+import { useLazyStripe } from "@/components/performance/LazyStripe";
 
-// Initialize Stripe
-const _stripePromise: Promise<Stripe | null> = loadStripe(STRIPE_PUBLIC_KEY); // Prefixed stripePromise
+// Lazy initialize Stripe only when needed
+let _stripePromise: Promise<Stripe | null> | null = null;
 
 // When initializing Stripe
 // const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY!, {
@@ -35,6 +36,7 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useState([]);
+  const { loadStripe } = useLazyStripe(); // Use lazy Stripe loading
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
