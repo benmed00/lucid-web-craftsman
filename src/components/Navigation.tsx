@@ -155,23 +155,25 @@ const Navigation = () => {
               </div>
             </nav>
 
-            {/* Actions Section - Tablet optimized */}
-            <div className="flex items-center space-x-0.5 sm:space-x-1 md:space-x-1 lg:space-x-3 xl:space-x-4 flex-shrink-0 justify-end min-w-0">
-              {/* Search Button - Desktop */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSearch(!showSearch)}
-                className="relative hidden lg:flex items-center gap-2 group"
-              >
-                <Search size={18} />
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  Rechercher
-                </div>
-              </Button>
+            {/* Actions Section - Tablet optimized with fixed widths */}
+            <div className="flex items-center space-x-0.5 sm:space-x-1 md:space-x-1 lg:space-x-3 xl:space-x-4 flex-shrink-0 justify-end min-w-[120px] md:min-w-[140px] lg:min-w-[180px]">
+              {/* Search Button - Desktop (fixed width container) */}
+              <div className="hidden lg:flex w-10 h-8 items-center justify-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSearch(!showSearch)}
+                  className="relative flex items-center gap-2 group w-10 h-8"
+                >
+                  <Search size={18} />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Rechercher
+                  </div>
+                </Button>
+              </div>
 
-              {/* Wishlist button - Tablet and Desktop (stabilized width) */}
-              <div className="relative hidden md:flex items-center justify-center w-8 h-8">
+              {/* Wishlist button - Tablet and Desktop (fixed width container) */}
+              <div className="hidden md:flex w-8 h-8 items-center justify-center">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -184,7 +186,7 @@ const Navigation = () => {
                     aria-hidden={!user}
                     className={clsx(
                       "flex items-center justify-center w-8 h-8",
-                      !user && "pointer-events-none invisible"
+                      !user && "pointer-events-none opacity-30"
                     )}
                   >
                     <Heart className="h-4 w-4" />
