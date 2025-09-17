@@ -4,10 +4,11 @@ import { toast } from "sonner";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { useEffect, useState } from "react";
 import { ProductService } from "@/services/productService";
-import ProductCard from "./ProductCard";
+import ProductCard, { StockContext } from "./ProductCard";
 import { ProductQuickView } from "./ProductQuickView";
 import { Card, CardContent } from "@/components/ui/card";
-
+import { useStock } from "@/hooks/useStock";
+import { StockInfo } from "@/services/stockService";
 
 const ProductShowcase = () => {
   const { dispatch } = useCart();
@@ -15,6 +16,13 @@ const ProductShowcase = () => {
   const [loading, setLoading] = useState(true);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+
+  // Batch stock loading for all featured products
+  const productIds = featuredProducts.map(p => p.id);
+  const { stockInfo } = useStock({ 
+    productIds, 
+    enabled: productIds.length > 0 
+  });
 
   useEffect(() => {
     const loadFeaturedProducts = async () => {
@@ -113,7 +121,7 @@ const ProductShowcase = () => {
   }
 
   return (
-    <>
+    <StockContext.Provider value={stockInfo || {}}>
       <section 
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
         aria-label="Produits en vedette"
@@ -147,7 +155,7 @@ const ProductShowcase = () => {
         }}
         onAddToCart={handleQuickViewAddToCart}
       />
-    </>
+    </StockContext.Provider>
   );
 };
 

@@ -10,8 +10,12 @@ import { NativeShare } from "@/components/ui/NativeShare";
 import { TooltipWrapper } from "@/components/ui/TooltipWrapper";
 import { useStock } from "@/hooks/useStock";
 import { StockInfo } from "@/services/stockService";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext, createContext } from "react";
 import { useCurrency } from "@/context/CurrencyContext";
+
+// Create context for stock sharing - this will be provided by ProductShowcase
+const StockContext = createContext<Record<number, StockInfo>>({});
+const useStockContext = () => useContext(StockContext);
 
 interface ProductCardProps {
   product: Product;
@@ -20,7 +24,19 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) => {
-  const { stockInfo } = useStock({ productId: product.id });
+  // Try to get stock info from context first (for ProductShowcase)
+  const stockContext = useStockContext();
+  const contextStockInfo = stockContext[product.id];
+  
+  // Fallback to individual hook if not in context (for other components)
+  const { stockInfo: individualStockInfo } = useStock({ 
+    productId: product.id, 
+    enabled: !contextStockInfo 
+  });
+  
+  // Use context stock info if available, otherwise use individual
+  const stockInfo = contextStockInfo || individualStockInfo;
+  
   const [showShareDialog, setShowShareDialog] = useState(false);
   const { formatPrice } = useCurrency();
 
@@ -222,4 +238,5 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
   );
 };
 
+export { StockContext, useStockContext };
 export default ProductCard;
