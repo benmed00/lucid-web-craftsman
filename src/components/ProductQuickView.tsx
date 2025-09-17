@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Heart, Eye, Star, Minus, Plus, X } from 'lucide-react';
@@ -65,6 +65,10 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl w-[95vw] h-[95vh] p-0 overflow-hidden bg-white border-0 shadow-2xl">
+        <DialogHeader className="sr-only">
+          <DialogTitle>{product.name}</DialogTitle>
+          <DialogDescription>{product.short_description || product.description}</DialogDescription>
+        </DialogHeader>
         <div className="relative h-full flex flex-col lg:flex-row">
           {/* Close Button */}
           <Button
