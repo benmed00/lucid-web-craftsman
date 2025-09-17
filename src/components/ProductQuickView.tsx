@@ -40,7 +40,9 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
   const normalizeImage = (u?: string) => {
     if (!u) return '/assets/images/handmade_products.webp';
-    let s = u.replace(/^\s+|\s+$/g, '');
+    let s = u.trim();
+    // Keep absolute URLs (Supabase, CDN, etc.) intact
+    if (/^https?:\/\//i.test(s)) return s;
     // Remove wrong base prefix if present
     s = s.replace(/^\/lucid-web-craftsman/, '');
     if (!s.startsWith('/')) s = `/${s}`;
@@ -72,7 +74,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[95vh] w-[95vw] md:w-full overflow-y-auto p-0 m-2 md:m-6 fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2">
+      <DialogContent className="max-w-4xl md:w-full w-full max-h-[90vh] md:max-h-[95vh] overflow-y-auto p-0 m-0 md:m-6 fixed inset-0 md:inset-auto md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2">
         <DialogDescription className="sr-only">
           Aperçu rapide du produit {product.name} - {product.description}
         </DialogDescription>

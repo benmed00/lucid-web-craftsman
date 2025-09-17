@@ -104,7 +104,7 @@
           const cssLink = document.createElement('link');
           cssLink.rel = 'preload';
           cssLink.as = 'style';
-          cssLink.href = '/assets/index-CTRRF5Tz.css';
+          cssLink.href = '/src/index.css';
           cssLink.onload = function() {
             // Convert to stylesheet after preload
             this.onload = null;
@@ -127,7 +127,7 @@
           
           // Backup fallback
           const noscriptLink = document.createElement('noscript');
-          noscriptLink.innerHTML = '<link rel="stylesheet" href="/assets/index-CTRRF5Tz.css">';
+          noscriptLink.innerHTML = '<link rel="stylesheet" href="/src/index.css">';
           document.head.appendChild(noscriptLink);
         };
         
@@ -186,7 +186,7 @@
         
         // Fallback stylesheet for no-JS
         const noscriptFallback = document.createElement('noscript');
-        noscriptFallback.innerHTML = '<link rel="stylesheet" href="/assets/index-CTRRF5Tz.css">';
+        noscriptFallback.innerHTML = '<link rel="stylesheet" href="/src/index.css">';
         document.head.appendChild(noscriptFallback);
       })();
     </script>
