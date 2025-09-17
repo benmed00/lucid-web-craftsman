@@ -42,12 +42,12 @@ interface InstagramPost {
 const instagramPosts: InstagramPost[] = [
   {
     id: 1,
-    image: "/assets/images/instagram/insta_image_1.jpg",
+    image: "/assets/images/instagram/insta_image_1.webp",
     likes: 254,
   },
   {
     id: 2,
-    image: "/assets/images/instagram/insta_image_3.jpg",
+    image: "/assets/images/instagram/insta_image_3.webp",
     likes: 187,
   },
   {
@@ -57,7 +57,7 @@ const instagramPosts: InstagramPost[] = [
   },
   {
     id: 4,
-    image: "/assets/images/instagram/insta_image_4.jpg",
+    image: "/assets/images/instagram/insta_image_4.webp",
     likes: 201,
   },
 ];

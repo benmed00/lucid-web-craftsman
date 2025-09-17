@@ -14,15 +14,19 @@ export const optimizeImageUrl = (url: string): string => {
   const urlObj = new URL(url);
   const params = new URLSearchParams(urlObj.search);
   
-  // Sort parameters for consistent URLs
+  // Sort parameters for consistent URLs and prevent duplicates
   const sortedParams = new URLSearchParams();
-  Array.from(params.entries())
+  const paramMap = new Map<string, string>();
+  
+  // First pass: collect unique parameters (latest value wins)
+  Array.from(params.entries()).forEach(([key, value]) => {
+    paramMap.set(key, value);
+  });
+  
+  // Second pass: sort and add to final params
+  Array.from(paramMap.entries())
     .sort(([a], [b]) => a.localeCompare(b))
     .forEach(([key, value]) => {
-      // Deduplicate format parameters (prevent format=webp&format=webp)
-      if (key === 'format' && sortedParams.has('format')) {
-        return;
-      }
       sortedParams.append(key, value);
     });
   
