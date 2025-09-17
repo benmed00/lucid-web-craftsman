@@ -134,8 +134,8 @@
         // Ultra-aggressive deferring strategy to eliminate long tasks for FID
         const scheduleAfterPaint = (callback) => {
           // Use scheduler.postTask if available for better FID
-          if ('scheduler' in window && 'postTask' in (window as any).scheduler) {
-            (window as any).scheduler.postTask(callback, { priority: 'background' });
+          if ('scheduler' in window && 'postTask' in window.scheduler) {
+            window.scheduler.postTask(callback, { priority: 'background' });
             return;
           }
           
