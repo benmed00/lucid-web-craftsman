@@ -1,14 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { ShoppingCart, Heart, Eye, Star, Minus, Plus, X, ZoomIn } from 'lucide-react';
+import { ShoppingCart, Heart, Eye, Star, Minus, Plus, X } from 'lucide-react';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { toast } from 'sonner';
-import { MobileImageGallery } from '@/components/ui/MobileImageGallery';
-import { TooltipWrapper } from '@/components/ui/TooltipWrapper';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,49 +19,43 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [showMobileGallery, setShowMobileGallery] = useState(false);
-  const isMobile = useIsMobile();
   const { formatPrice } = useCurrency();
   const navigate = useNavigate();
 
-  // Reset state when product changes or popup opens
+  // Reset state when modal opens
   useEffect(() => {
     if (isOpen && product) {
       setSelectedImageIndex(0);
       setQuantity(1);
       setIsWishlisted(false);
-      setShowMobileGallery(false);
     }
   }, [isOpen, product?.id]);
 
-  const normalizeImage = (u?: string) => {
-    if (!u) return '/assets/images/handmade_products.webp';
-    let s = u.trim();
-    // Keep absolute URLs (Supabase, CDN, etc.) intact
-    if (/^https?:\/\//i.test(s)) return s;
-    // Remove wrong base prefix if present
-    s = s.replace(/^\/lucid-web-craftsman/, '');
-    if (!s.startsWith('/')) s = `/${s}`;
-    return s;
+  const normalizeImage = (url?: string) => {
+    if (!url) return '/assets/images/handmade_products.webp';
+    let cleanUrl = url.trim();
+    if (/^https?:\/\//i.test(cleanUrl)) return cleanUrl;
+    cleanUrl = cleanUrl.replace(/^\/lucid-web-craftsman/, '');
+    if (!cleanUrl.startsWith('/')) cleanUrl = `/${cleanUrl}`;
+    return cleanUrl;
   };
 
   const images = useMemo(() => {
-    const arr = (product?.images ?? []).map(normalizeImage).filter(Boolean);
-    return arr.length ? arr : ['/assets/images/handmade_products.webp'];
+    const imageArray = (product?.images ?? []).map(normalizeImage).filter(Boolean);
+    return imageArray.length ? imageArray : ['/assets/images/handmade_products.webp'];
   }, [product]);
 
   if (!product) return null;
+
   const handleAddToCart = () => {
     onAddToCart(product, quantity);
     toast.success(`${quantity}x ${product.name} ajouté au panier`);
   };
 
   const handleWishlist = () => {
-    setIsWishlisted((prev) => !prev);
+    setIsWishlisted(!isWishlisted);
     toast.success(!isWishlisted ? 'Ajouté aux favoris' : 'Retiré des favoris');
   };
-  const incrementQuantity = () => setQuantity(prev => prev + 1);
-  const decrementQuantity = () => setQuantity(prev => Math.max(1, prev - 1));
 
   const handleViewDetails = () => {
     navigate(`/products/${product.id}`);
@@ -74,90 +64,69 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-[92vw] sm:w-[95vw] max-h-[92vh] overflow-hidden p-0 bg-white rounded-none sm:rounded-lg shadow-xl border-0 sm:border">
-        <div className="h-auto sm:max-h-[90vh] overflow-y-auto overflow-x-hidden">
-        <DialogDescription className="sr-only">
-          Aperçu rapide du produit {product.name} - {product.description}
-        </DialogDescription>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-0 h-full">{/* Full height for mobile */}
-          {/* Images Section */}
-          <div className="relative bg-gray-50 flex-shrink-0 h-[48vh] lg:h-auto lg:max-h-[60vh] min-w-0">
-            <DialogHeader className="absolute top-3 right-3 z-20">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg h-10 w-10 border border-gray-200"
-              >
-                <X className="h-5 w-5 text-gray-700" />
-              </Button>
-            </DialogHeader>
+      <DialogContent className="max-w-6xl w-[95vw] h-[95vh] p-0 overflow-hidden bg-white border-0 shadow-2xl">
+        <div className="relative h-full flex flex-col lg:flex-row">
+          {/* Close Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg border border-gray-200"
+          >
+            <X className="h-5 w-5 text-gray-700" />
+          </Button>
+
+          {/* Image Section */}
+          <div className="relative lg:w-1/2 h-[50vh] lg:h-full bg-gradient-to-br from-gray-50 to-gray-100">
+            {/* New Badge */}
+            {(product.new || product.is_new) && (
+              <Badge className="absolute top-6 left-6 z-20 bg-emerald-600 text-white px-3 py-1 text-sm font-medium shadow-lg">
+                Nouveau
+              </Badge>
+            )}
 
             {/* Main Image */}
-              <div className="aspect-square lg:aspect-[4/3] bg-white relative overflow-hidden h-full lg:max-h-[60vh]">{/* Full height on mobile, capped on desktop */}
-                <img
-                  src={images[selectedImageIndex] || images[0]}
-                  alt={product.name}
-                  className="w-full h-full object-contain transition-transform duration-300 hover:scale-[1.02] cursor-pointer bg-white"
-                  onClick={() => isMobile && setShowMobileGallery(true)}
-                  onError={(e) => {
-                    if (selectedImageIndex !== 0 && images[0]) {
-                      e.currentTarget.src = images[0];
-                      setSelectedImageIndex(0);
-                    } else {
-                      e.currentTarget.src = '/assets/images/handmade_products.webp';
-                    }
-                  }}
-                />
-              {(product.new || product.is_new) && (
-                <Badge className="absolute top-4 left-4 bg-olive-700 text-white shadow-md text-xs font-medium px-2 py-1">
-                  Nouveau
-                </Badge>
-              )}
+            <div className="relative h-full overflow-hidden">
+              <img
+                src={images[selectedImageIndex]}
+                alt={product.name}
+                className="w-full h-full object-contain transition-all duration-500 hover:scale-105"
+                onError={(e) => {
+                  e.currentTarget.src = '/assets/images/handmade_products.webp';
+                }}
+              />
               
-              {/* Mobile Zoom Button */}
-              {isMobile && images.length > 0 && (
-                <TooltipWrapper content="Agrandir les images">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setShowMobileGallery(true)}
-                    className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg p-3 rounded-full h-12 w-12 border border-gray-200"
-                  >
-                    <ZoomIn className="h-5 w-5 text-gray-700" />
-                  </Button>
-                </TooltipWrapper>
-              )}
-              
-              {/* Image Navigation Dots */}
+              {/* Image Navigation */}
               {images.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 bg-black/30 backdrop-blur-sm rounded-full px-3 py-2">
-                  {images.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedImageIndex(index)}
-                      className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        index === selectedImageIndex 
-                          ? 'bg-white scale-125 shadow-sm' 
-                          : 'bg-white/70 hover:bg-white/90'
-                      }`}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-2 bg-black/20 backdrop-blur-sm rounded-full px-4 py-2">
+                    {images.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImageIndex(index)}
+                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                          index === selectedImageIndex 
+                            ? 'bg-white scale-125 shadow-lg' 
+                            : 'bg-white/60 hover:bg-white/80'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
               )}
             </div>
 
-            {/* Thumbnail Images - Hide on mobile to save space */}
-            {images.length > 1 && !isMobile && (
-              <div className="flex gap-2 p-3 bg-gray-50 border-t overflow-x-auto justify-center">
-                {images.slice(0, 4).map((image, index) => (
+            {/* Thumbnail Strip - Desktop Only */}
+            {images.length > 1 && (
+              <div className="hidden lg:flex absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t p-4 gap-3 overflow-x-auto">
+                {images.slice(0, 6).map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`w-14 h-14 rounded-md overflow-hidden border-2 transition-all flex-shrink-0 ${
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
                       index === selectedImageIndex 
-                        ? 'border-olive-700 shadow-sm' 
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-olive-600 shadow-lg scale-105' 
+                        : 'border-gray-200 hover:border-gray-300 hover:scale-102'
                     }`}
                   >
                     <img
@@ -173,154 +142,134 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
           </div>
 
           {/* Product Details Section */}
-          <div className="p-4 sm:p-6 lg:p-6 flex flex-col min-h-0 bg-white flex-1 overflow-y-auto">{/* Flexible content area */}
-            <DialogHeader className="text-left space-y-3 mb-4">
-              <Badge variant="outline" className="w-fit text-olive-700 border-olive-200 text-sm font-medium px-3 py-1">
-                {product.category}
-              </Badge>
-              
-              <DialogTitle className="text-xl sm:text-2xl lg:text-2xl font-bold text-gray-900 leading-tight">
-                {product.name}
-              </DialogTitle>
-              
-              {/* Rating */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 lg:h-4 lg:w-4 ${
-                        i < 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                      }`}
-                    />
-                  ))}
+          <div className="flex-1 flex flex-col h-[50vh] lg:h-full overflow-y-auto">
+            <div className="p-8 space-y-6">
+              {/* Header */}
+              <div className="space-y-4">
+                <Badge variant="outline" className="w-fit text-olive-700 border-olive-300 bg-olive-50 px-3 py-1 text-sm font-medium">
+                  {product.category}
+                </Badge>
+                
+                <h2 className="text-3xl font-bold text-gray-900 leading-tight">
+                  {product.name}
+                </h2>
+                
+                {/* Rating */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-5 w-5 ${
+                          i < 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm text-gray-600 font-medium">(24 avis)</span>
                 </div>
-                <span className="text-sm lg:text-sm text-gray-600 font-medium">(24 avis)</span>
+
+                <div className="text-4xl font-bold text-olive-700">{formatPrice(product.price)}</div>
               </div>
 
-              <div className="text-2xl sm:text-3xl lg:text-3xl font-bold text-olive-700">{formatPrice(product.price)}</div>
-            </DialogHeader>
+              {/* Description */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Description</h3>
+                <p className="text-gray-700 leading-relaxed">{product.description}</p>
+              </div>
 
-            <Separator className="my-4" />
-
-            {/* Description */}
-            <div className="mb-4 flex-1 min-h-0">
-              <p className="text-sm sm:text-base lg:text-base text-gray-700 leading-relaxed font-medium">
-                {product.description}
-              </p>
+              {/* Artisan Info */}
+              {product.artisan && (
+                <div className="bg-gradient-to-r from-olive-50 to-emerald-50 rounded-xl p-4 border border-olive-200">
+                  <h4 className="font-semibold text-olive-800 mb-2">Artisan</h4>
+                  <p className="text-olive-700 font-medium">{product.artisan}</p>
+                </div>
+              )}
             </div>
 
-            {/* Artisan Info */}
-            {product.artisan && (
-              <div className="mb-4 p-4 bg-olive-50 rounded-lg border border-olive-100">
-                <h4 className="font-semibold text-olive-800 mb-2 text-sm">Artisan</h4>
-                <p className="text-sm lg:text-sm text-olive-700 font-medium">{product.artisan}</p>
-              </div>
-            )}
-
-            <Separator className="my-4" />
-
-            {/* Quantity Selector and Actions */}
-            <div className="space-y-4 mt-auto">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
+            {/* Actions Section - Sticky Bottom */}
+            <div className="mt-auto bg-white border-t border-gray-100 p-8 space-y-6">
+              {/* Quantity Selector */}
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-900">
                   Quantité
                 </label>
-                <div className="flex items-center justify-center gap-4">
-                  <TooltipWrapper content="Diminuer la quantité">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={decrementQuantity}
-                      disabled={quantity <= 1}
-                      className="h-10 w-10 border-2 border-gray-300 hover:border-olive-600"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                  </TooltipWrapper>
-                  <span className="w-12 text-center font-bold text-lg text-gray-900">{quantity}</span>
-                  <TooltipWrapper content="Augmenter la quantité">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={incrementQuantity}
-                      className="h-10 w-10 border-2 border-gray-300 hover:border-olive-600"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </TooltipWrapper>
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                    className="h-12 w-12 border-2 border-gray-300 hover:border-olive-600 hover:bg-olive-50"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="w-16 text-center font-bold text-xl text-gray-900">{quantity}</span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="h-12 w-12 border-2 border-gray-300 hover:border-olive-600 hover:bg-olive-50"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-3">
-                <TooltipWrapper 
-                  content={`Ajouter ${quantity}x ${product.name} au panier pour ${formatPrice(product.price * quantity)}`}
+              <div className="space-y-4">
+                <Button
+                  onClick={handleAddToCart}
+                  className="w-full bg-olive-700 hover:bg-olive-800 text-white py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
                 >
+                  <ShoppingCart className="mr-3 h-5 w-5" />
+                  Ajouter au panier - {formatPrice(product.price * quantity)}
+                </Button>
+
+                <div className="grid grid-cols-2 gap-4">
                   <Button
-                    onClick={handleAddToCart}
-                    className="w-full bg-olive-700 hover:bg-olive-800 text-white py-4 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
+                    variant="outline"
+                    onClick={handleWishlist}
+                    className={`py-3 border-2 transition-all duration-300 ${
+                      isWishlisted 
+                        ? 'bg-red-50 text-red-600 border-red-300 hover:bg-red-100' 
+                        : 'border-gray-300 hover:border-olive-600 hover:bg-olive-50'
+                    }`}
                   >
-                    <ShoppingCart className="mr-3 h-5 w-5" />
-                    Ajouter au panier - {formatPrice(product.price * quantity)}
+                    <Heart className={`mr-2 h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
+                    Favoris
                   </Button>
-                </TooltipWrapper>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <TooltipWrapper 
-                    content={isWishlisted ? "Retirer des favoris" : "Ajouter aux favoris"}
+                  <Button
+                    variant="outline"
+                    onClick={handleViewDetails}
+                    className="py-3 border-2 border-gray-300 hover:border-olive-600 hover:bg-olive-50 transition-all duration-300"
                   >
-                    <Button
-                      variant="outline"
-                      onClick={handleWishlist}
-                      className={`${
-                        isWishlisted 
-                          ? 'bg-red-50 text-red-600 border-red-300 hover:bg-red-100' 
-                          : 'hover:bg-gray-50 border-gray-300'
-                      } text-sm font-medium py-3 border-2`}
-                    >
-                      <Heart className={`mr-2 h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
-                      Favoris
-                    </Button>
-                  </TooltipWrapper>
-
-                  <TooltipWrapper content="Voir toutes les informations du produit">
-                    <Button
-                      variant="outline"
-                      onClick={handleViewDetails}
-                      className="text-sm font-medium py-3 border-2 border-gray-300 hover:bg-gray-50"
-                    >
-                      <Eye className="mr-2 h-4 w-4" />
-                      Détails
-                    </Button>
-                  </TooltipWrapper>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Détails
+                  </Button>
                 </div>
               </div>
 
-              {/* Product Features */}
-              <div className="mt-4 pt-4 border-t text-sm text-gray-600 font-medium">
-                <div className="flex items-center justify-center gap-6">
-                  <span className="flex items-center">✓ Livraison gratuite</span>
-                  <span className="flex items-center">✓ Retours 30 jours</span>
+              {/* Features */}
+              <div className="pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-center gap-8 text-sm text-gray-600">
+                  <span className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                    Livraison gratuite
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                    Retours 30 jours
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        </div>
       </DialogContent>
-      
-      {/* Mobile Image Gallery */}
-      <MobileImageGallery
-        images={images}
-        productName={product.name}
-        isOpen={showMobileGallery}
-        onClose={() => setShowMobileGallery(false)}
-        initialIndex={selectedImageIndex}
-      />
     </Dialog>
   );
 };
 
-// Also export as default to handle any caching issues
 export default ProductQuickView;
