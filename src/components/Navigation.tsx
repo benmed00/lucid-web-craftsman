@@ -328,8 +328,14 @@ const Navigation = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1"
+                tabIndex={isMenuOpen ? 0 : -1}
               />
-              <Button type="submit" disabled={!searchQuery.trim()} size="sm">
+              <Button 
+                type="submit" 
+                disabled={!searchQuery.trim()} 
+                size="sm"
+                tabIndex={isMenuOpen ? 0 : -1}
+              >
                 <Search size={16} />
               </Button>
             </form>
@@ -339,6 +345,7 @@ const Navigation = () => {
             to="/"
             className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
             onClick={() => setIsMenuOpen(false)}
+            tabIndex={isMenuOpen ? 0 : -1}
           >
             <span className="text-2xl">🏠</span>
             <span className="text-lg">Accueil</span>
@@ -347,6 +354,7 @@ const Navigation = () => {
             to="/products"
             className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
             onClick={() => setIsMenuOpen(false)}
+            tabIndex={isMenuOpen ? 0 : -1}
           >
             <span className="text-2xl">🛍️</span>
             <span className="text-lg">Boutique</span>
@@ -355,6 +363,7 @@ const Navigation = () => {
             to="/blog"
             className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
             onClick={() => setIsMenuOpen(false)}
+            tabIndex={isMenuOpen ? 0 : -1}
           >
             <span className="text-2xl">📖</span>
             <span className="text-lg">Blog</span>
@@ -363,6 +372,7 @@ const Navigation = () => {
             to="/contact"
             className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
             onClick={() => setIsMenuOpen(false)}
+            tabIndex={isMenuOpen ? 0 : -1}
           >
             <span className="text-2xl">💬</span>
             <span className="text-lg">Contact</span>
@@ -372,7 +382,9 @@ const Navigation = () => {
           <div className="px-4 py-3">
             <div className="flex items-center justify-between">
               <span className="text-stone-700 font-medium">Devise:</span>
-              <CurrencySelector />
+              <div tabIndex={isMenuOpen ? 0 : -1}>
+                <CurrencySelector />
+              </div>
             </div>
           </div>
 
@@ -381,6 +393,7 @@ const Navigation = () => {
               to="/cart"
               className="w-full block"
               onClick={() => setIsMenuOpen(false)}
+              tabIndex={isMenuOpen ? 0 : -1}
             >
               <Button
                 className={clsx(
@@ -389,6 +402,7 @@ const Navigation = () => {
                     ? "bg-olive-700 text-white hover:bg-olive-800 shadow-olive-700/30"
                     : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                 )}
+                tabIndex={isMenuOpen ? 0 : -1}
               >
                 <ShoppingBag className="mr-3 h-5 w-5" /> 
                 <span className="font-medium">Panier {itemCount > 0 && `(${itemCount})`}</span>
@@ -405,6 +419,7 @@ const Navigation = () => {
                   to="/wishlist"
                   className="flex items-center justify-between py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors relative"
                   onClick={() => setIsMenuOpen(false)}
+                  tabIndex={isMenuOpen ? 0 : -1}
                 >
                   <span className="flex items-center">
                     <Heart size={20} className="mr-3" />
@@ -420,6 +435,7 @@ const Navigation = () => {
                    to="/orders"
                    className="flex items-center py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors"
                    onClick={() => setIsMenuOpen(false)}
+                   tabIndex={isMenuOpen ? 0 : -1}
                  >
                    <Package size={20} className="mr-3" />
                    Mes Commandes
@@ -428,6 +444,7 @@ const Navigation = () => {
                    to="/cart"
                    className="flex items-center py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors"
                    onClick={() => setIsMenuOpen(false)}
+                   tabIndex={isMenuOpen ? 0 : -1}
                  >
                    <ShoppingCart size={20} className="mr-3" />
                    Panier
@@ -437,7 +454,11 @@ const Navigation = () => {
 
             {user ? (
                 <div className="pt-4 mt-4 border-t border-stone-200 space-y-3">
-                  <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
+                  <Link 
+                    to="/profile" 
+                    onClick={() => setIsMenuOpen(false)}
+                    tabIndex={isMenuOpen ? 0 : -1}
+                  >
                     <div className="px-4 py-3 bg-olive-50 rounded-xl hover:bg-olive-100 active:bg-olive-200 transition-all duration-200 cursor-pointer">
                       <div className="flex items-center gap-3 text-olive-700 font-medium">
                         <User className="h-5 w-5" />
@@ -449,6 +470,7 @@ const Navigation = () => {
                     variant="outline" 
                     onClick={handleSignOut} 
                     className="w-full flex items-center justify-center gap-3 py-4 rounded-xl hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+                    tabIndex={isMenuOpen ? 0 : -1}
                   >
                     <LogOut className="h-5 w-5" />
                     <span className="font-medium">Déconnexion</span>
@@ -456,7 +478,12 @@ const Navigation = () => {
                 </div>
               ) : (
                 <div className="pt-4 mt-4 border-t border-stone-200">
-                  <Button variant="default" asChild className="w-full py-4 rounded-xl hover:shadow-lg active:scale-[0.98] transition-all duration-200">
+                  <Button 
+                    variant="default" 
+                    asChild 
+                    className="w-full py-4 rounded-xl hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+                    tabIndex={isMenuOpen ? 0 : -1}
+                  >
                     <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
                       <span className="font-medium">Se connecter</span>
                     </Link>
