@@ -1637,6 +1637,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      enhanced_log_contact_message_access: {
+        Args: { message_id: string }
+        Returns: undefined
+      }
       get_customer_segments: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -1694,6 +1698,10 @@ export type Database = {
       }
       log_contact_message_access: {
         Args: { message_id: string }
+        Returns: undefined
+      }
+      log_profile_access: {
+        Args: { accessed_profile_id: string }
         Returns: undefined
       }
       log_security_event: {
