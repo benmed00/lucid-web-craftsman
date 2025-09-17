@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,16 +40,28 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
   if (!product) return null;
 
+  const normalizeImage = (u?: string) => {
+    if (!u) return '/assets/images/handmade_products.webp';
+    let s = u.replace(/^\s+|\s+$/g, '');
+    // Remove wrong base prefix if present
+    s = s.replace(/^\/lucid-web-craftsman/, '');
+    if (!s.startsWith('/')) s = `/${s}`;
+    return s;
+  };
+
+  const images = useMemo(() => {
+    const arr = (product.images || []).map(normalizeImage).filter(Boolean);
+    return arr.length ? arr : ['/assets/images/handmade_products.webp'];
+  }, [product.images]);
   const handleAddToCart = () => {
     onAddToCart(product, quantity);
     toast.success(`${quantity}x ${product.name} ajouté au panier`);
   };
 
   const handleWishlist = () => {
-    setIsWishlisted(!isWishlisted);
-    toast.success(isWishlisted ? 'Retiré des favoris' : 'Ajouté aux favoris');
+    setIsWishlisted((prev) => !prev);
+    toast.success(!isWishlisted ? 'Ajouté aux favoris' : 'Retiré des favoris');
   };
-
   const incrementQuantity = () => setQuantity(prev => prev + 1);
   const decrementQuantity = () => setQuantity(prev => Math.max(1, prev - 1));
 
@@ -79,20 +91,21 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
             </DialogHeader>
 
             {/* Main Image */}
-            <div className="aspect-square bg-gray-100 relative overflow-hidden">
-              <img
-                src={product.images?.[selectedImageIndex] || product.images?.[0] || '/placeholder.svg'}
-                alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
-                onClick={() => isMobile && setShowMobileGallery(true)}
-                onError={(e) => {
-                  // Fallback to first image if selected image fails
-                  if (selectedImageIndex !== 0 && product.images?.[0]) {
-                    e.currentTarget.src = product.images[0];
-                    setSelectedImageIndex(0);
-                  }
-                }}
-              />
+              <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                <img
+                  src={images[selectedImageIndex] || images[0]}
+                  alt={product.name}
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
+                  onClick={() => isMobile && setShowMobileGallery(true)}
+                  onError={(e) => {
+                    if (selectedImageIndex !== 0 && images[0]) {
+                      e.currentTarget.src = images[0];
+                      setSelectedImageIndex(0);
+                    } else {
+                      e.currentTarget.src = '/assets/images/handmade_products.webp';
+                    }
+                  }}
+                />
               {(product.new || product.is_new) && (
                 <Badge className="absolute top-4 left-4 bg-olive-700 text-white">
                   Nouveau
@@ -100,7 +113,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
               )}
               
               {/* Mobile Zoom Button */}
-              {isMobile && product.images.length > 0 && (
+              {isMobile && images.length > 0 && (
                 <TooltipWrapper content="Agrandir les images">
                   <Button
                     variant="secondary"
@@ -114,9 +127,9 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
               )}
               
               {/* Image Navigation Dots */}
-              {product.images.length > 1 && (
+              {images.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                  {product.images.map((_, index) => (
+                  {images.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImageIndex(index)}
