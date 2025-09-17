@@ -85,11 +85,12 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
         const [baseUrl, ...queryParts] = url.split('?');
         const combinedParams = new URLSearchParams();
         
+        // Combine all query parameters, with later ones overriding earlier ones
         queryParts.forEach(part => {
           const params = new URLSearchParams(part);
           params.forEach((value, key) => {
             combinedParams.set(key, value);
-        });
+          });
         });
         
         cleanUrl = `${baseUrl}?${combinedParams.toString()}`;
@@ -102,11 +103,13 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
       const hasQuality = urlObj.searchParams.has('quality');
       
       // Only add transformations if needed and requested
-      if (includeTransformations && !hasFormat && !hasQuality) {
-        if (quality && quality !== 80 && quality <= 90) {
-          urlObj.searchParams.set('quality', Math.min(quality, 85).toString());
-        }
+      if (includeTransformations && !hasFormat) {
         urlObj.searchParams.set('format', 'webp');
+        
+        // Add quality only if not present and within reasonable range
+        if (!hasQuality && quality && quality <= 85) {
+          urlObj.searchParams.set('quality', Math.min(quality, 80).toString());
+        }
       }
       
       return urlObj.toString();
@@ -121,19 +124,21 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
     }
 
     try {
-      // Use the same deduplication logic
+      // Use the same deduplication logic first
       const cleanedUrl = generateSafeImageUrl(url, false);
       const urlObj = new URL(cleanedUrl);
       
-      // Don't generate WebP if already optimized
+      // Don't generate WebP if already optimized with format
       if (urlObj.searchParams.has('format')) {
         return cleanedUrl;
       }
       
+      // Add WebP format
       urlObj.searchParams.set('format', 'webp');
       
-      if (!urlObj.searchParams.has('quality') && quality && quality <= 85) {
-        urlObj.searchParams.set('quality', Math.min(quality, 80).toString());
+      // Add conservative quality if not present
+      if (!urlObj.searchParams.has('quality') && quality && quality <= 80) {
+        urlObj.searchParams.set('quality', '75');
       }
       
       return urlObj.toString();
@@ -163,6 +168,7 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
             sizes={sizes}
           />
         )}
+        {/* Static asset WebP conversion */}
         {currentSrc.startsWith('/assets/') && !currentSrc.includes('.webp') && (
           <source 
             srcSet={currentSrc.replace(/\.(jpg|jpeg|png)$/i, '.webp')}
