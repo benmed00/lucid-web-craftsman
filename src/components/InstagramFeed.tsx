@@ -107,28 +107,28 @@ const ImageWithFallback = ({ src, alt }: { src: string; alt: string }) => {
 
 const InstagramFeed = () => {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
       {instagramPosts.map((post) => (
         <a
           key={post.id}
           href="#"
-          className="block relative group overflow-hidden rounded-md aspect-square"
+          className="block relative group overflow-hidden rounded-lg aspect-square touch-manipulation hover:shadow-lg transition-all duration-300"
         >
           <ImageWithFallback
             src={post.image}
             alt={`Instagram post ${post.id}`}
           />
-          <div className="opacity-0 group-hover:opacity-100 absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center transition-opacity duration-300">
-            <div className="text-white flex items-center">
+          <div className="opacity-0 group-hover:opacity-100 absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-300">
+            <div className="text-white flex items-center text-sm sm:text-base">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-1"
+                className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
               </svg>
-              <span>{post.likes}</span>
+              <span className="font-medium">{post.likes}</span>
             </div>
           </div>
         </a>

@@ -53,25 +53,25 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
   return (
     <Card 
       id={cardId}
-      className="bg-white border border-stone-100 overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-2xl hover:scale-[1.02] hover:-translate-y-1 shadow-lg hover:border-olive-200"
+      className="bg-white border border-stone-100 overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-xl sm:rounded-2xl hover:scale-[1.01] sm:hover:scale-[1.02] hover:-translate-y-1 shadow-lg hover:border-olive-200 w-full max-w-sm mx-auto sm:max-w-none"
       role="article"
       aria-labelledby={`product-title-${product.id}`}
       aria-describedby={`product-price-${product.id} ${singleStockInfo?.isOutOfStock ? `product-stock-${product.id}` : ''}`}
     >
       <Link to={`/products/${product.id}`} className="block touch-manipulation">
         <div className="relative group/image">
-          <div className="aspect-[4/3] w-full overflow-hidden rounded-t-xl">
+          <div className="aspect-[4/3] sm:aspect-[3/4] md:aspect-[4/3] w-full overflow-hidden rounded-t-xl">
             <ProductImage
               src={product.images[0]}
               alt={product.name}
-              className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
+              className="object-cover w-full h-full group-hover:scale-105 sm:group-hover:scale-110 transition-transform duration-700"
               aspectRatio="4/3"
             />
           </div>
           
           {/* Quick View Button - repositioned to top-right of image */}
           {onQuickView && (
-            <div className="absolute top-3 right-3 z-20">
+            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20">
               <TooltipWrapper 
                 content={`Aperçu rapide de ${product.name}`}
                 side="left"
@@ -86,17 +86,17 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
                     e.stopPropagation();
                     onQuickView(product);
                   }}
-                  className="bg-white/95 backdrop-blur-sm hover:bg-white p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+                  className="bg-white/95 backdrop-blur-sm hover:bg-white p-2 sm:p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 touch-manipulation min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px]"
                   aria-label={`Aperçu rapide de ${product.name}`}
                 >
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Button>
               </TooltipWrapper>
             </div>
           )}
 
           {/* Share Button - Mobile Only */}
-          <div className="absolute top-16 right-3 z-10 md:hidden">
+          <div className="absolute top-12 right-2 sm:top-14 sm:right-3 z-10 md:hidden">
             <TooltipWrapper 
               content={`Partager ${product.name}`}
               side="left"
@@ -111,10 +111,10 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
                   e.stopPropagation();
                   setShowShareDialog(true);
                 }}
-                className="bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full touch-manipulation"
+                className="bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full touch-manipulation min-h-[36px] min-w-[36px] sm:min-h-[40px] sm:min-w-[40px]"
                 aria-label={`Partager ${product.name}`}
               >
-                <Share className="h-4 w-4" />
+                <Share className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
             </TooltipWrapper>
           </div>
@@ -145,10 +145,10 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
         </div>
       </Link>
       
-      <CardContent className="p-5 md:p-6 relative">
+      <CardContent className="p-4 sm:p-5 md:p-6 relative">
         {/* Wishlist button - repositioned to top-right of white section */}
         <div 
-          className="absolute -top-2 right-4 z-20"
+          className="absolute -top-2 right-3 sm:right-4 z-20"
           id={wishlistBtnId}
           data-name={`wishlist-${product.name.toLowerCase().replace(/\s+/g, '-')}`}
         >
@@ -156,17 +156,17 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
             productId={product.id}
             size="sm"
             variant="ghost"
-            className="bg-white border-2 border-stone-200 hover:bg-stone-50 p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+            className="bg-white border-2 border-stone-200 hover:bg-stone-50 p-2 sm:p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 touch-manipulation min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px]"
           />
         </div>
 
-        <p className="text-sm text-olive-700 font-medium mb-2 uppercase tracking-wide">
+        <p className="text-xs sm:text-sm text-olive-700 font-medium mb-2 uppercase tracking-wide">
           {product.category}
         </p>
         <Link to={`/products/${product.id}`} className="touch-manipulation">
           <h3 
             id={`product-title-${product.id}`}
-            className="font-serif text-lg md:text-xl font-medium text-stone-800 mb-4 line-clamp-2 leading-tight hover:text-olive-700 transition-colors duration-200 pr-12"
+            className="font-serif text-base sm:text-lg md:text-xl font-medium text-stone-800 mb-3 sm:mb-4 line-clamp-2 leading-tight hover:text-olive-700 transition-colors duration-200 pr-10 sm:pr-12"
           >
             {product.name}
           </h3>
@@ -175,7 +175,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
           <div className="relative">
             <p 
               id={`product-price-${product.id}`}
-              className="text-stone-800 font-bold text-xl md:text-2xl whitespace-nowrap"
+              className="text-stone-800 font-bold text-lg sm:text-xl md:text-2xl whitespace-nowrap"
               aria-label={`Prix: ${formatPrice(product.price)}`}
             >
               {formatPrice(product.price)}
@@ -206,14 +206,14 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
                 onAddToCart(product);
               }}
               disabled={singleStockInfo?.isOutOfStock}
-              className="w-full bg-olive-700 hover:bg-olive-800 text-white hover:text-white active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-4 touch-manipulation min-h-[52px] font-semibold text-base rounded-xl shadow-lg hover:shadow-xl disabled:hover:bg-olive-700 disabled:hover:shadow-lg group relative overflow-hidden border-0"
+              className="w-full bg-olive-700 hover:bg-olive-800 text-white hover:text-white active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-4 sm:px-6 py-3 sm:py-4 touch-manipulation min-h-[48px] sm:min-h-[52px] font-semibold text-sm sm:text-base rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl disabled:hover:bg-olive-700 disabled:hover:shadow-lg group relative overflow-hidden border-0"
               aria-label={singleStockInfo?.isOutOfStock 
                 ? `Indisponible - ${product.name}` 
                 : `Ajouter au panier - ${product.name} pour ${formatPrice(product.price)}`
               }
             >
               <div className="relative flex items-center justify-center gap-2 z-10">
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="font-medium">
                   {singleStockInfo?.isOutOfStock ? 'Indisponible' : 'Ajouter au panier'}
                 </span>

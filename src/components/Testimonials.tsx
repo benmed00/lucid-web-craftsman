@@ -29,21 +29,21 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       {testimonials.map((testimonial) => (
-        <Card key={testimonial.id} className="bg-white border-none shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex mb-4">
+        <Card key={testimonial.id} className="bg-white border-none shadow-sm hover:shadow-md transition-shadow duration-300">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex mb-3 sm:mb-4">
               {[...Array(testimonial.rating)].map((_, i) => (
-                <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
+                <Star key={i} className="h-4 w-4 sm:h-5 sm:w-5 fill-amber-400 text-amber-400" />
               ))}
             </div>
-            <p className="text-stone-600 mb-6 italic">"{testimonial.text}"</p>
+            <p className="text-stone-600 mb-4 sm:mb-6 italic text-sm sm:text-base leading-relaxed">"{testimonial.text}"</p>
             <div className="flex items-center">
-              <Avatar className="h-10 w-10 mr-3">
-                <AvatarFallback className="bg-olive-200 text-olive-800">{testimonial.avatar}</AvatarFallback>
+              <Avatar className="h-8 w-8 sm:h-10 sm:w-10 mr-2 sm:mr-3">
+                <AvatarFallback className="bg-olive-200 text-olive-800 text-xs sm:text-sm">{testimonial.avatar}</AvatarFallback>
               </Avatar>
-              <span className="font-medium text-stone-800">{testimonial.name}</span>
+              <span className="font-medium text-stone-800 text-sm sm:text-base">{testimonial.name}</span>
             </div>
           </CardContent>
         </Card>

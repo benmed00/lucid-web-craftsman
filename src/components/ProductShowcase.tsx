@@ -93,7 +93,7 @@ const ProductShowcase = () => {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
@@ -103,14 +103,14 @@ const ProductShowcase = () => {
               animationFillMode: 'forwards'
             }}
           >
-            <Card className="bg-white border-none overflow-hidden animate-pulse rounded-xl shadow-md">
-              <div className="aspect-[4/3] w-full bg-gradient-to-br from-gray-200 to-gray-100 rounded-t-xl"></div>
-              <CardContent className="p-5 space-y-4">
+            <Card className="bg-white border-none overflow-hidden animate-pulse rounded-xl shadow-md max-w-sm mx-auto sm:max-w-none">
+              <div className="aspect-[4/3] sm:aspect-[3/4] md:aspect-[4/3] w-full bg-gradient-to-br from-gray-200 to-gray-100 rounded-t-xl"></div>
+              <CardContent className="p-4 sm:p-5 space-y-3 sm:space-y-4">
                 <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-100 rounded-full w-2/3"></div>
-                <div className="h-5 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-4/5"></div>
-                <div className="space-y-3">
-                  <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-1/2"></div>
-                  <div className="h-12 bg-gradient-to-r from-gray-200 to-gray-100 rounded-lg w-full"></div>
+                <div className="h-4 sm:h-5 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-4/5"></div>
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="h-5 sm:h-6 bg-gradient-to-r from-gray-200 to-gray-100 rounded w-1/2"></div>
+                  <div className="h-10 sm:h-12 bg-gradient-to-r from-gray-200 to-gray-100 rounded-lg w-full"></div>
                 </div>
               </CardContent>
             </Card>
@@ -123,7 +123,7 @@ const ProductShowcase = () => {
   return (
     <StockContext.Provider value={stockInfo || {}}>
       <section 
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
         aria-label="Produits en vedette"
         role="region"
       >
