@@ -71,7 +71,7 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
     );
   }
 
-  // Enhanced image URL generation with error handling and deduplication
+  // Enhanced image URL generation with proper sizing and deduplication
   const generateSafeImageUrl = (url: string, includeTransformations: boolean = true): string => {
     if (!url.includes('supabase.co/storage')) {
       return url;
@@ -101,14 +101,33 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
       // Check existing parameters
       const hasFormat = urlObj.searchParams.has('format');
       const hasQuality = urlObj.searchParams.has('quality');
+      const hasResize = urlObj.searchParams.has('resize');
       
       // Only add transformations if needed and requested
-      if (includeTransformations && !hasFormat) {
-        urlObj.searchParams.set('format', 'webp');
+      if (includeTransformations) {
+        // Add WebP format if not present
+        if (!hasFormat) {
+          urlObj.searchParams.set('format', 'webp');
+        }
+        
+        // Add appropriate sizing based on category and quality
+        if (!hasResize) {
+          let targetSize = '800x600'; // Default responsive size
+          
+          if (category === 'hero') {
+            targetSize = '1200x800'; // Larger for hero images
+          } else if (category === 'product') {
+            targetSize = '600x450'; // Product card size
+          } else if (category === 'instagram') {
+            targetSize = '400x400'; // Instagram feed size
+          }
+          
+          urlObj.searchParams.set('resize', targetSize);
+        }
         
         // Add quality only if not present and within reasonable range
         if (!hasQuality && quality && quality <= 85) {
-          urlObj.searchParams.set('quality', Math.min(quality, 80).toString());
+          urlObj.searchParams.set('quality', Math.min(quality, 75).toString());
         }
       }
       
@@ -133,12 +152,27 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
         return cleanedUrl;
       }
       
-      // Add WebP format
+      // Add WebP format and appropriate sizing
       urlObj.searchParams.set('format', 'webp');
+      
+      // Add responsive sizing if not present
+      if (!urlObj.searchParams.has('resize')) {
+        let targetSize = '800x600';
+        
+        if (category === 'hero') {
+          targetSize = '1200x800';
+        } else if (category === 'product') {
+          targetSize = '600x450';
+        } else if (category === 'instagram') {
+          targetSize = '400x400';
+        }
+        
+        urlObj.searchParams.set('resize', targetSize);
+      }
       
       // Add conservative quality if not present
       if (!urlObj.searchParams.has('quality') && quality && quality <= 80) {
-        urlObj.searchParams.set('quality', '75');
+        urlObj.searchParams.set('quality', '70');
       }
       
       return urlObj.toString();
@@ -215,8 +249,8 @@ export const ProductImage = forwardRef<HTMLImageElement, Omit<GlobalImageProps, 
       category="product" 
       preload={true}
       showRetryButton={true}
-      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-      quality={75}
+      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 600px"
+      quality={70}
       {...props} 
     />
   )
@@ -232,7 +266,7 @@ export const HeroImage = forwardRef<HTMLImageElement, Omit<GlobalImageProps, 'ca
       category="hero" 
       preload={true}
       showLoadingSpinner={false}
-      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 632px"
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
       quality={75}
       {...props} 
     />
@@ -263,8 +297,8 @@ export const InstagramImage = forwardRef<HTMLImageElement, Omit<GlobalImageProps
       category="instagram" 
       preload={false}
       showLoadingSpinner={false}
-      sizes="(max-width: 640px) 50vw, 25vw"
-      quality={70}
+      sizes="(max-width: 640px) 50vw, 400px"
+      quality={65}
       {...props} 
     />
   )
