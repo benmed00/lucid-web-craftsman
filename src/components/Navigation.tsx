@@ -144,9 +144,9 @@ const Navigation = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowSearch(!showSearch)}
-                className="hidden md:flex items-center justify-center w-10 h-10 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation"
+                className="hidden md:flex items-center justify-center w-10 h-10 hover:bg-olive-50 hover:text-olive-700 rounded-lg transition-all duration-300 touch-manipulation text-stone-700"
               >
-                <Search size={18} />
+                <Search size={18} className="transition-colors" />
               </Button>
 
               {/* Wishlist button - Tablet & Desktop */}
@@ -154,11 +154,11 @@ const Navigation = () => {
                 <Link
                   to={user ? "/wishlist" : "#"}
                   className={clsx(
-                    "flex items-center justify-center w-full h-full",
+                    "flex items-center justify-center w-full h-full text-stone-700 hover:text-olive-700 transition-colors duration-300",
                     !user && "pointer-events-none opacity-30"
                   )}
                 >
-                  <Heart className="h-4 w-4" />
+                  <Heart className="h-4 w-4 transition-colors" />
                   {user && wishlistCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center min-w-[16px] font-medium">
                       {wishlistCount}
@@ -198,26 +198,26 @@ const Navigation = () => {
                 ) : user ? (
                   <>
                     <Button variant="ghost" size="sm" asChild className="group relative hidden lg:inline-flex hover:bg-olive-50 rounded-lg transition-all duration-300">
-                      <Link to="/orders" className="flex items-center justify-center w-10 h-10">
-                        <Package className="h-4 w-4" />
+                      <Link to="/orders" className="flex items-center justify-center w-10 h-10 text-stone-700 hover:text-olive-700 transition-colors duration-300">
+                        <Package className="h-4 w-4 transition-colors" />
                       </Link>
                     </Button>
                     <Button variant="ghost" size="sm" asChild className="group relative hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation">
-                      <Link to="/profile" className="flex items-center justify-center w-10 h-10">
-                        <User className="h-4 w-4" />
+                      <Link to="/profile" className="flex items-center justify-center w-10 h-10 text-stone-700 hover:text-olive-700 transition-colors duration-300">
+                        <User className="h-4 w-4 transition-colors" />
                       </Link>
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       onClick={handleSignOut} 
-                      className="group relative flex items-center justify-center w-10 h-10 hidden lg:inline-flex hover:bg-olive-50 rounded-lg transition-all duration-300"
+                      className="group relative flex items-center justify-center w-10 h-10 hidden lg:inline-flex hover:bg-olive-50 text-stone-700 hover:text-olive-700 rounded-lg transition-all duration-300"
                     >
-                      <LogOut className="h-4 w-4" />
+                      <LogOut className="h-4 w-4 transition-colors" />
                     </Button>
                   </>
                 ) : (
-                  <Button variant="ghost" size="sm" asChild className="text-sm px-3 py-2 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation font-medium whitespace-nowrap">
+                  <Button variant="ghost" size="sm" asChild className="text-sm px-3 py-2 hover:bg-olive-50 hover:text-olive-700 rounded-lg transition-all duration-300 touch-manipulation font-medium whitespace-nowrap">
                     <Link to="/auth" aria-label="Se connecter">Se connecter</Link>
                   </Button>
                 )}
@@ -225,14 +225,14 @@ const Navigation = () => {
 
               {/* Mobile Menu Button */}
               <button
-                className="md:hidden text-stone-700 p-1.5 sm:p-2 rounded-md hover:bg-stone-100 transition-colors duration-200 touch-manipulation"
+                className="md:hidden text-stone-700 hover:text-olive-700 p-1.5 sm:p-2 rounded-md hover:bg-olive-50 transition-all duration-300 touch-manipulation"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
                 aria-expanded={isMenuOpen}
                 aria-haspopup="true"
                 aria-controls="mobile-menu"
               >
-                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                {isMenuOpen ? <X className="h-6 w-6 transition-colors" /> : <Menu className="h-6 w-6 transition-colors" />}
               </button>
             </div>
           </div>
