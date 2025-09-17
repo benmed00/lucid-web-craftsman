@@ -170,24 +170,32 @@ const Navigation = () => {
                 </div>
               </Button>
 
-              {/* Wishlist button - Tablet and Desktop */}
-              {user && (
+              {/* Wishlist button - Tablet and Desktop (stabilized width) */}
+              <div className="relative hidden md:flex items-center justify-center w-8 h-8">
                 <Button
                   variant="ghost"
                   size="sm"
                   asChild
-                  className="relative hidden md:flex items-center gap-2 w-8 h-8"
+                  className="relative flex items-center justify-center w-8 h-8 p-0"
                 >
-                  <Link to="/wishlist" className="flex items-center justify-center">
+                  <Link
+                    to={user ? "/wishlist" : "#"}
+                    tabIndex={user ? 0 : -1}
+                    aria-hidden={!user}
+                    className={clsx(
+                      "flex items-center justify-center w-8 h-8",
+                      !user && "pointer-events-none invisible"
+                    )}
+                  >
                     <Heart className="h-4 w-4" />
-                    {wishlistCount > 0 && (
+                    {user && wishlistCount > 0 && (
                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center min-w-[16px]">
                         {wishlistCount}
                       </span>
                     )}
                   </Link>
                 </Button>
-              )}
+              </div>
 
               {/* Currency Selector - Desktop only */}
               <div className="hidden lg:block">
