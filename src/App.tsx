@@ -39,6 +39,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import TTIOptimizer from "@/components/performance/TTIOptimizer";
 
 
 // PWA Components - lazy loaded since not critical for initial render
@@ -76,23 +77,24 @@ const PageLoadingFallback = () => (
   </div>
 );
 
-// Enhanced React Query configuration for optimized caching
+// Optimized React Query configuration for better TTI
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 10, // 10 minutes - longer for better performance
-      gcTime: 1000 * 60 * 15, // 15 minutes cache retention
+      staleTime: 1000 * 60 * 15, // 15 minutes - longer for better performance
+      gcTime: 1000 * 60 * 20, // 20 minutes cache retention
       retry: (failureCount, error: any) => {
-        // Don't retry on auth errors
+        // Don't retry on auth errors to avoid unnecessary requests
         if (error?.status === 401 || error?.status === 403) return false;
-        return failureCount < 2; // Max 2 retries
+        return failureCount < 1; // Reduce retries to improve TTI
       },
       refetchOnWindowFocus: false,
       refetchOnMount: false,
-      refetchOnReconnect: true,
+      refetchOnReconnect: false, // Disable to reduce initial load
+      networkMode: 'offlineFirst', // Prefer cache for better performance
     },
     mutations: {
-      retry: 1,
+      retry: 0, // No retries for mutations to improve TTI
     },
   },
 });
@@ -167,10 +169,13 @@ const App = () => {
                     </Routes>
                     
                   </BrowserRouter>
-
+                  
                   {/* Système de notifications */}
                   <Toaster />
                   <Sonner richColors expand visibleToasts={3} />
+                  
+                  {/* TTI Optimizer - runs after everything else */}
+                  <TTIOptimizer />
 
                   {/* Devtools React Query (en développement seulement) */}
                   {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}

@@ -21,8 +21,9 @@
     <!-- Critical CSS optimization for render blocking fix -->
     <script>
       (function() {
-        // Create a style element for critical CSS to prevent render blocking
+        // Create critical CSS immediately to prevent FOUC
         const criticalCSS = document.createElement('style');
+        criticalCSS.id = 'critical-css';
         criticalCSS.textContent = `
           /* Enhanced Critical CSS for initial render - prevents FOUC */
           * { box-sizing: border-box; }
@@ -93,7 +94,7 @@
         `;
         document.head.appendChild(criticalCSS);
         
-        // Load full CSS asynchronously after critical styles
+        // Optimized CSS loading strategy to improve TTI
         let cssLoaded = false;
         const loadMainCSS = () => {
           if (cssLoaded) return;
@@ -102,37 +103,51 @@
           const cssLink = document.createElement('link');
           cssLink.rel = 'stylesheet';
           cssLink.href = '/assets/index-CTRRF5Tz.css';
+          cssLink.media = 'print'; // Load without blocking
           cssLink.onload = function() {
-            // Remove critical CSS once full CSS loads to avoid conflicts
+            this.media = 'all'; // Apply styles after load
+            // Keep critical CSS for a bit longer to ensure smooth transition
             setTimeout(() => {
-              if (criticalCSS.parentNode) {
-                criticalCSS.parentNode.removeChild(criticalCSS);
+              const critical = document.getElementById('critical-css');
+              if (critical && critical.parentNode) {
+                critical.parentNode.removeChild(critical);
               }
-            }, 100);
-          };
-          cssLink.onerror = function() {
-            // Fallback: try to load via media="print" trick
-            this.media = 'all';
+            }, 200);
           };
           document.head.appendChild(cssLink);
         };
         
-        // Load CSS after a short delay or on interaction
+        // Aggressive deferring strategy for better TTI
         if (document.readyState === 'loading') {
+          // Wait for DOM to be ready
           document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(loadMainCSS, 50);
+            // Use RAF to ensure we're not blocking painting
+            requestAnimationFrame(() => {
+              setTimeout(loadMainCSS, 0);
+            });
           });
         } else {
-          setTimeout(loadMainCSS, 50);
+          // Document already ready
+          requestAnimationFrame(() => {
+            setTimeout(loadMainCSS, 0);
+          });
         }
         
-        // Also load on first user interaction
-        ['scroll', 'mousedown', 'touchstart', 'keydown'].forEach(event => {
-          document.addEventListener(event, loadMainCSS, { once: true, passive: true });
+        // Load on any interaction but prioritize page readiness
+        const interactionEvents = ['scroll', 'mousedown', 'touchstart', 'keydown'];
+        const loadOnInteraction = () => {
+          loadMainCSS();
+          interactionEvents.forEach(event => {
+            document.removeEventListener(event, loadOnInteraction);
+          });
+        };
+        
+        interactionEvents.forEach(event => {
+          document.addEventListener(event, loadOnInteraction, { once: true, passive: true });
         });
         
-        // Fallback: ensure CSS loads within 2 seconds
-        setTimeout(loadMainCSS, 2000);
+        // Absolute fallback - ensure CSS loads eventually
+        setTimeout(loadMainCSS, 1000);
         
         // Fallback stylesheet for no-JS
         const noscriptFallback = document.createElement('noscript');
@@ -164,19 +179,33 @@
   <body>
     <div id="root"></div>
     
-    <!-- Service Worker enabled for cache optimization -->
+    <!-- Optimized Service Worker registration for better TTI -->
     <script>
-      // Clean up old service workers and caches before installing new ones
-      if ('serviceWorker' in navigator && 'caches' in window) {
-        // Clean up old caches first
-        caches.keys().then(function(names) {
-          for (let name of names) {
-            if (name.includes('v1') || name.includes('old')) {
-              caches.delete(name);
-            }
+      // Defer service worker registration to not block TTI
+      window.addEventListener('load', function() {
+        // Additional delay to ensure TTI is not impacted
+        setTimeout(function() {
+          if ('serviceWorker' in navigator && 'caches' in window) {
+            // Clean up old caches first
+            caches.keys().then(function(names) {
+              for (let name of names) {
+                if (name.includes('v1') || name.includes('old')) {
+                  caches.delete(name);
+                }
+              }
+            });
+            
+            // Register service worker
+            navigator.serviceWorker.register('/sw.js')
+              .then(function(registration) {
+                console.log('ServiceWorker registered');
+              })
+              .catch(function(error) {
+                console.log('ServiceWorker registration failed');
+              });
           }
-        });
-      }
+        }, 1000); // Delay to ensure TTI is not blocked
+      });
     </script>
     
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
@@ -265,22 +294,21 @@
       };
     </script>
     <script>
-      // Defer non-critical scripts to reduce initial bundle size
-      const deferScript = (src, condition = true) => {
-        if (!condition) return;
-        
-        const script = document.createElement('script');
-        script.src = src;
-        script.defer = true;
-        document.head.appendChild(script);
-      };
-      
-      // Load GPT Engineer script only if needed
-      const shouldLoadGPTEngineer = window.location.search.includes('dev') || 
-                                    window.location.hostname === 'localhost';
-      if (shouldLoadGPTEngineer) {
-        deferScript('https://cdn.gpteng.co/gptengineer.js');
-      }
+      // Ultra-deferred loading of non-critical scripts for optimal TTI
+      window.addEventListener('load', function() {
+        // Wait for everything to settle before loading optional scripts
+        setTimeout(function() {
+          const shouldLoadGPTEngineer = window.location.search.includes('dev') || 
+                                        window.location.hostname === 'localhost';
+          if (shouldLoadGPTEngineer) {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.gpteng.co/gptengineer.js';
+            script.type = 'module';
+            script.defer = true;
+            document.head.appendChild(script);
+          }
+        }, 2000); // Significant delay to not impact TTI
+      });
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
