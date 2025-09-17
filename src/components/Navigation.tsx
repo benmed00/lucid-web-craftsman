@@ -55,40 +55,40 @@ const Navigation = () => {
       </a>
       
       <header className="sticky top-0 z-40 w-full bg-white border-b border-stone-200 shadow-sm">
-        <div className="w-full max-w-none px-3 sm:px-4 md:px-6 lg:px-6 xl:px-8">
-          <div className="flex items-center justify-between h-14 sm:h-16 w-full min-w-0">
-            {/* Logo Section - More responsive width */}
-            <div className="flex items-center flex-shrink-0 min-w-0 md:max-w-[160px] lg:max-w-[180px] xl:w-48">
+        <div className="w-full max-w-none px-3 sm:px-4 md:px-4 lg:px-6 xl:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16 md:h-14 lg:h-16 w-full min-w-0">
+            {/* Logo Section - Tablet optimized */}
+            <div className="flex items-center flex-shrink-0 min-w-0 md:max-w-[140px] lg:max-w-[180px] xl:w-48">
               <Link 
                 to="/" 
-                className="group flex items-center space-x-1 sm:space-x-2 md:space-x-2 lg:space-x-3 min-w-0"
+                className="group flex items-center space-x-1 sm:space-x-2 md:space-x-1.5 lg:space-x-3 min-w-0"
                 aria-label="Retour à l'accueil"
                 onClick={() => {
                   console.log('Logo clicked, navigating to home');
                   setIsMenuOpen(false);
                 }}
               >
-                <div className="p-1.5 md:p-2 rounded-full bg-olive-700 group-hover:bg-olive-800 transition-colors duration-200 flex-shrink-0">
-                  <Leaf className="h-4 w-4 md:h-5 md:w-5 text-white" />
+                <div className="p-1.5 md:p-1.5 lg:p-2 rounded-full bg-olive-700 group-hover:bg-olive-800 transition-colors duration-200 flex-shrink-0">
+                  <Leaf className="h-4 w-4 md:h-4 md:w-4 lg:h-5 lg:w-5 text-white" />
                 </div>
                 <div className="flex flex-col min-w-0 hidden sm:block">
-                  <span className="font-serif text-sm md:text-base lg:text-lg xl:text-xl font-semibold text-stone-800 group-hover:text-olive-700 transition-colors duration-200 whitespace-nowrap truncate">
+                  <span className="font-serif text-sm md:text-sm lg:text-lg xl:text-xl font-semibold text-stone-800 group-hover:text-olive-700 transition-colors duration-200 whitespace-nowrap truncate">
                     Rif Raw Straw
                   </span>
-                  <span className="text-xs text-stone-500 hidden md:block lg:block group-hover:text-olive-600 transition-colors duration-200 whitespace-nowrap">
+                  <span className="text-xs text-stone-500 hidden lg:block group-hover:text-olive-600 transition-colors duration-200 whitespace-nowrap">
                     Artisanat Berbère
                   </span>
                 </div>
               </Link>
             </div>
 
-            {/* Desktop Navigation Links - Better tablet spacing */}
-            <nav className="hidden md:flex items-center justify-center flex-1 px-2 lg:px-4 min-w-0" role="navigation" aria-label="Navigation principale">
-              <div className="flex items-center space-x-1 md:space-x-2 lg:space-x-4 xl:space-x-6">
+            {/* Navigation Links - Tablet optimized */}
+            <nav className="hidden md:flex items-center justify-center flex-1 px-1 md:px-2 lg:px-4 min-w-0" role="navigation" aria-label="Navigation principale">
+              <div className="flex items-center space-x-0.5 md:space-x-1 lg:space-x-4 xl:space-x-6">
                 <Link
                   to="/"
                   className={clsx(
-                    "relative px-1 md:px-2 lg:px-3 xl:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
+                    "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/" 
                       ? "text-olive-700 font-semibold" 
                       : "text-stone-700"
@@ -105,7 +105,7 @@ const Navigation = () => {
                 <Link
                   to="/products"
                   className={clsx(
-                    "relative px-1 md:px-2 lg:px-3 xl:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
+                    "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/products" 
                       ? "text-olive-700 font-semibold" 
                       : "text-stone-700"
@@ -122,7 +122,7 @@ const Navigation = () => {
                 <Link
                   to="/blog"
                   className={clsx(
-                    "relative px-1 md:px-2 lg:px-3 xl:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
+                    "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/blog" 
                       ? "text-olive-700 font-semibold" 
                       : "text-stone-700"
@@ -139,7 +139,7 @@ const Navigation = () => {
                 <Link
                   to="/contact"
                   className={clsx(
-                    "relative px-1 md:px-2 lg:px-3 xl:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
+                    "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/contact" 
                       ? "text-olive-700 font-semibold" 
                       : "text-stone-700"
@@ -155,14 +155,14 @@ const Navigation = () => {
               </div>
             </nav>
 
-            {/* Actions Section - Better tablet spacing */}
-            <div className="flex items-center space-x-1 sm:space-x-1.5 md:space-x-2 lg:space-x-3 xl:space-x-4 flex-shrink-0 justify-end min-w-0">
+            {/* Actions Section - Tablet optimized */}
+            <div className="flex items-center space-x-0.5 sm:space-x-1 md:space-x-1 lg:space-x-3 xl:space-x-4 flex-shrink-0 justify-end min-w-0">
               {/* Search Button - Desktop */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowSearch(!showSearch)}
-                className="relative hidden md:flex items-center gap-2 group"
+                className="relative hidden lg:flex items-center gap-2 group"
               >
                 <Search size={18} />
                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -170,13 +170,13 @@ const Navigation = () => {
                 </div>
               </Button>
 
-              {/* Wishlist button - Desktop */}
+              {/* Wishlist button - Desktop only */}
               {user && (
                 <Button
                   variant="ghost"
                   size="sm"
                   asChild
-                  className="relative hidden md:flex items-center gap-2"
+                  className="relative hidden lg:flex items-center gap-2"
                 >
                   <Link to="/wishlist">
                     <Heart size={18} />
@@ -189,16 +189,17 @@ const Navigation = () => {
                 </Button>
               )}
 
-              {/* Currency Selector - Desktop */}
-              <div className="hidden md:block">
+              {/* Currency Selector - Desktop only */}
+              <div className="hidden lg:block">
                 <CurrencySelector />
               </div>
 
               <Link to="/cart" className="hidden md:block">
                 <Button
                   variant="outline"
+                  size="sm"
                   className={clsx(
-                    "border-stone-300 transition-colors flex items-center group relative",
+                    "border-stone-300 transition-colors flex items-center group relative text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2",
                     itemCount >= 1
                       ? "bg-olive-700 text-white"
                       : "bg-white text-stone-700",
@@ -207,35 +208,35 @@ const Navigation = () => {
                       : "hover:bg-white hover:text-stone-900"
                   )}
                 >
-                  <ShoppingBag className={clsx("h-4 w-4 transition-colors", itemCount >= 1 ? "text-white group-hover:text-olive-700" : "text-stone-700 group-hover:text-stone-900")} />
-                  <span className="ml-2">({itemCount})</span>
+                  <ShoppingBag className={clsx("h-3.5 w-3.5 md:h-4 md:w-4 transition-colors", itemCount >= 1 ? "text-white group-hover:text-olive-700" : "text-stone-700 group-hover:text-stone-900")} />
+                  <span className="ml-1.5 md:ml-2">({itemCount})</span>
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                     Panier
                   </div>
                 </Button>
               </Link>
 
-              {/* Auth buttons - Desktop */}
-              <div className="hidden md:flex items-center gap-1">
+              {/* Auth buttons - Simplified for tablet */}
+              <div className="hidden md:flex items-center gap-0.5 md:gap-1">
                 {isLoading ? (
-                  <div className="flex items-center gap-1">
-                    <div className="w-8 h-8 rounded bg-stone-200"></div>
-                    <div className="w-8 h-8 rounded bg-stone-200"></div>
-                    <div className="w-8 h-8 rounded bg-stone-200"></div>
+                  <div className="flex items-center gap-0.5">
+                    <div className="w-6 h-6 md:w-8 md:h-8 rounded bg-stone-200"></div>
+                    <div className="w-6 h-6 md:w-8 md:h-8 rounded bg-stone-200 hidden lg:block"></div>
+                    <div className="w-6 h-6 md:w-8 md:h-8 rounded bg-stone-200 hidden lg:block"></div>
                   </div>
                 ) : user ? (
                   <>
-                    <Button variant="ghost" size="sm" asChild className="group relative">
-                      <Link to="/orders" className="flex items-center p-2">
-                        <Package className="h-4 w-4" />
+                    <Button variant="ghost" size="sm" asChild className="group relative hidden lg:inline-flex">
+                      <Link to="/orders" className="flex items-center p-1.5 md:p-2">
+                        <Package className="h-3.5 w-3.5 md:h-4 md:w-4" />
                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                           Mes Commandes
                         </div>
                       </Link>
                     </Button>
                     <Button variant="ghost" size="sm" asChild className="group relative">
-                      <Link to="/profile" className="flex items-center p-2">
-                        <User className="h-4 w-4" />
+                      <Link to="/profile" className="flex items-center p-1.5 md:p-2">
+                        <User className="h-3.5 w-3.5 md:h-4 md:w-4" />
                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                           Mon Profil
                         </div>
@@ -245,18 +246,18 @@ const Navigation = () => {
                       variant="ghost" 
                       size="sm" 
                       onClick={handleSignOut} 
-                      className="group relative flex items-center p-2"
+                      className="group relative flex items-center p-1.5 md:p-2 hidden lg:inline-flex"
                       id="nav-signout"
                       name="navigation-signout-button"
                     >
-                      <LogOut className="h-4 w-4" />
+                      <LogOut className="h-3.5 w-3.5 md:h-4 md:w-4" />
                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                         Déconnexion
                       </div>
                     </Button>
                   </>
                 ) : (
-                  <Button variant="ghost" size="sm" asChild>
+                  <Button variant="ghost" size="sm" asChild className="text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2">
                     <Link to="/auth" aria-label="Se connecter">Se connecter</Link>
                   </Button>
                 )}
