@@ -6,6 +6,16 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#4f5f31" />
+    
+    <!-- Cache optimization meta tags for SEO performance -->
+    <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Resource hints for better caching and performance -->
+    <link rel="dns-prefetch" href="//xcvlijchkmhjonhfildm.supabase.co">
+    <link rel="dns-prefetch" href="//js.stripe.com">
+    <link rel="dns-prefetch" href="//m.stripe.network">
+    <link rel="preconnect" href="https://xcvlijchkmhjonhfildm.supabase.co" crossorigin>
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <title>Rif Raw Straw - Artisanat Berbère Authentique</title>
@@ -26,27 +36,19 @@
   <body>
     <div id="root"></div>
     
-    <!-- Service Worker DISABLED - Cache clearing -->
+    <!-- Service Worker enabled for cache optimization -->
     <script>
-      // Force clear all caches and service workers
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) {
-            registration.unregister();
-          }
-        });
-      }
-      
-      // Clear all caches
-      if ('caches' in window) {
+      // Clean up old service workers and caches before installing new ones
+      if ('serviceWorker' in navigator && 'caches' in window) {
+        // Clean up old caches first
         caches.keys().then(function(names) {
           for (let name of names) {
-            caches.delete(name);
+            if (name.includes('v1') || name.includes('old')) {
+              caches.delete(name);
+            }
           }
         });
       }
-      
-      // Force reload without cache complete
     </script>
     
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->

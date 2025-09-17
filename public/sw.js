@@ -1,4 +1,15 @@
-const CACHE_NAME = 'rif-raw-straw-v1';
+const CACHE_NAME = 'rif-raw-straw-v2';
+const STATIC_CACHE_NAME = 'rif-static-v2';
+const IMAGE_CACHE_NAME = 'rif-images-v2';
+
+// Cache durations for SEO optimization
+const CACHE_DURATIONS = {
+  STATIC_ASSETS: 30 * 24 * 60 * 60 * 1000, // 30 days for JS/CSS
+  IMAGES: 7 * 24 * 60 * 60 * 1000, // 7 days for images
+  API_RESPONSES: 60 * 60 * 1000, // 1 hour for API
+  HTML_PAGES: 24 * 60 * 60 * 1000 // 24 hours for HTML
+};
+
 const STATIC_CACHE_URLS = [
   '/',
   '/products',
@@ -50,82 +61,162 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event - Network First for API, Cache First for static assets
+// Fetch Event - Enhanced caching for SEO performance
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+  
+  // Skip non-http requests
+  if (!request.url.startsWith('http')) {
+    return;
+  }
+  
   const url = new URL(request.url);
-
-  // Skip cross-origin requests
-  if (url.origin !== location.origin) {
-    return;
-  }
-
-  // Handle API requests with Network First strategy
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      networkFirst(request)
-    );
-    return;
-  }
-
-  // Handle static assets with Cache First strategy
+  const cacheStrategy = getCacheStrategy(request.url);
+  
   event.respondWith(
-    cacheFirst(request)
+    cacheStrategy.strategy === 'cache-first'
+      ? enhancedCacheFirst(request, cacheStrategy.cacheName, cacheStrategy.duration)
+      : enhancedNetworkFirst(request, cacheStrategy.cacheName, cacheStrategy.duration)
   );
 });
 
-// Network First Strategy (for API calls)
-async function networkFirst(request) {
-  try {
-    const networkResponse = await fetch(request);
-    
-    if (networkResponse.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    console.log('Service Worker: Network failed, trying cache:', error);
-    const cachedResponse = await caches.match(request);
-    
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Return offline fallback for API requests
-    return new Response(
-      JSON.stringify({
-        offline: true,
-        message: 'Vous êtes hors ligne. Certaines fonctionnalités peuvent être limitées.'
-      }),
-      {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+// Determine cache strategy based on resource type
+function getCacheStrategy(url) {
+  // Static assets (JS, CSS, fonts)
+  if (url.match(/\.(js|css|woff|woff2|ttf|eot)$/)) {
+    return {
+      cacheName: STATIC_CACHE_NAME,
+      duration: CACHE_DURATIONS.STATIC_ASSETS,
+      strategy: 'cache-first'
+    };
   }
+  
+  // Images (including Supabase storage)
+  if (url.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/) || url.includes('supabase.co/storage')) {
+    return {
+      cacheName: IMAGE_CACHE_NAME,
+      duration: CACHE_DURATIONS.IMAGES,
+      strategy: 'cache-first'
+    };
+  }
+  
+  // API calls
+  if (url.includes('/api/') || url.includes('supabase.co')) {
+    return {
+      cacheName: CACHE_NAME,
+      duration: CACHE_DURATIONS.API_RESPONSES,
+      strategy: 'network-first'
+    };
+  }
+  
+  // External scripts (Stripe, etc.)
+  if (!url.includes(location.origin)) {
+    return {
+      cacheName: STATIC_CACHE_NAME,
+      duration: CACHE_DURATIONS.STATIC_ASSETS,
+      strategy: 'cache-first'
+    };
+  }
+  
+  // HTML pages
+  return {
+    cacheName: CACHE_NAME,
+    duration: CACHE_DURATIONS.HTML_PAGES,
+    strategy: 'network-first'
+  };
 }
 
-// Cache First Strategy (for static assets)
-async function cacheFirst(request) {
-  const cachedResponse = await caches.match(request);
+// Check if cached response is still fresh
+function isResponseFresh(response, duration) {
+  if (!response) return false;
   
-  if (cachedResponse) {
+  const cachedTime = response.headers.get('sw-cached-time');
+  if (!cachedTime) return false;
+  
+  const age = Date.now() - parseInt(cachedTime);
+  return age < duration;
+}
+
+// Enhanced Cache First Strategy with TTL
+async function enhancedCacheFirst(request, cacheName, duration) {
+  const cache = await caches.open(cacheName);
+  const cachedResponse = await cache.match(request);
+  
+  if (cachedResponse && isResponseFresh(cachedResponse, duration)) {
     return cachedResponse;
   }
   
   try {
     const networkResponse = await fetch(request);
-    
     if (networkResponse.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, networkResponse.clone());
+      // Clone response and add timestamp
+      const responseToCache = networkResponse.clone();
+      const responseWithTimestamp = new Response(responseToCache.body, {
+        status: responseToCache.status,
+        statusText: responseToCache.statusText,
+        headers: {
+          ...Object.fromEntries(responseToCache.headers.entries()),
+          'sw-cached-time': Date.now().toString(),
+          'cache-control': `public, max-age=${Math.floor(duration / 1000)}`
+        }
+      });
+      
+      cache.put(request, responseWithTimestamp);
     }
-    
     return networkResponse;
   } catch (error) {
-    console.log('Service Worker: Failed to fetch:', request.url, error);
+    // Return stale cache if network fails
+    return cachedResponse || new Response('Network error', { status: 503 });
+  }
+}
+
+// Enhanced Network First Strategy with TTL
+async function enhancedNetworkFirst(request, cacheName, duration) {
+  const cache = await caches.open(cacheName);
+  
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      // Clone response and add timestamp
+      const responseToCache = networkResponse.clone();
+      const responseWithTimestamp = new Response(responseToCache.body, {
+        status: responseToCache.status,
+        statusText: responseToCache.statusText,
+        headers: {
+          ...Object.fromEntries(responseToCache.headers.entries()),
+          'sw-cached-time': Date.now().toString(),
+          'cache-control': `public, max-age=${Math.floor(duration / 1000)}`
+        }
+      });
+      
+      cache.put(request, responseWithTimestamp);
+    }
+    return networkResponse;
+  } catch (error) {
+    // Fallback to cache
+    const cachedResponse = await cache.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    // Return offline fallback for API requests
+    if (request.url.includes('/api/')) {
+      return new Response(
+        JSON.stringify({
+          offline: true,
+          message: 'Vous êtes hors ligne. Certaines fonctionnalités peuvent être limitées.'
+        }),
+        {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
     
     // Return offline page for navigation requests
     if (request.mode === 'navigate') {

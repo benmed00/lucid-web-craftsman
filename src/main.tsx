@@ -5,6 +5,7 @@ import App from './App.tsx';
 import './index.css';
 import { initPerformanceOptimizations } from '@/utils/sitemapGenerator';
 import { setupProductionErrorSuppression } from './utils/errorSuppression';
+import { registerServiceWorker, addResourceHints, monitorCachePerformance } from './utils/cacheOptimization';
 
 // Declare global flag
 declare global {
@@ -20,6 +21,11 @@ setupProductionErrorSuppression();
 if (!window.__PERF_OPTIMIZED__) {
   window.__PERF_OPTIMIZED__ = true;
   initPerformanceOptimizations();
+  
+  // Initialize cache optimizations for SEO performance
+  addResourceHints();
+  registerServiceWorker();
+  monitorCachePerformance();
 }
 
 createRoot(document.getElementById("root")!).render(
