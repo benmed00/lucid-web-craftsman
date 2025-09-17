@@ -158,8 +158,10 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
           alt={alt}
           sizes={sizes}
           className={cn(
-            "w-full h-full object-cover transition-opacity duration-300",
-            isLoading ? "opacity-0" : "opacity-100",
+            "w-full h-full object-cover",
+            // Remove transition for hero images to optimize LCP
+            category === "hero" ? "" : "transition-opacity duration-300",
+            category === "hero" ? "opacity-100" : (isLoading ? "opacity-0" : "opacity-100"),
             className
           )}
           onLoad={handleLoad}
@@ -195,16 +197,16 @@ export const ProductImage = forwardRef<HTMLImageElement, Omit<GlobalImageProps, 
 
 ProductImage.displayName = "ProductImage";
 
-// Hero image with optimized settings
+// Hero image with optimized settings for LCP
 export const HeroImage = forwardRef<HTMLImageElement, Omit<GlobalImageProps, 'category'>>(
   (props, ref) => (
     <GlobalImage 
       ref={ref} 
       category="hero" 
       preload={true}
-      showLoadingSpinner={true}
-      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
-      quality={80}
+      showLoadingSpinner={false}
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 632px"
+      quality={75}
       {...props} 
     />
   )
