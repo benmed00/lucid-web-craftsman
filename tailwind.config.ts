@@ -84,6 +84,7 @@ export default {
 					100: 'hsl(var(--stone-100))',
 					200: 'hsl(var(--stone-200))',
 					300: 'hsl(var(--stone-300))',
+					400: 'hsl(var(--stone-400))',
 					600: 'hsl(var(--stone-600))',
 					700: 'hsl(var(--stone-700))',
 					800: 'hsl(var(--stone-800))',

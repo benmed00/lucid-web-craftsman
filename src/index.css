@@ -49,6 +49,7 @@
     --stone-100: 24 5% 96%;
     --stone-200: 24 5% 89%;
     --stone-300: 24 6% 83%;
+    --stone-400: 24 5% 32%;  /* Darker for better contrast */
     --stone-600: 24 5% 44%;
     --stone-700: 24 6% 38%;
     --stone-800: 24 6% 32%;

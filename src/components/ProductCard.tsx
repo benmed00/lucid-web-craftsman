@@ -118,7 +118,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
                 </Badge>
               )}
               {singleStockInfo.isLow && !singleStockInfo.isOutOfStock && (
-                <Badge className="absolute top-2 left-2 md:top-3 md:left-3 bg-amber-500 text-white border-none shadow-lg flex items-center gap-1 text-xs px-2 py-1 rounded-full">
+                <Badge className="absolute top-2 left-2 md:top-3 md:left-3 bg-amber-600 text-white border-none shadow-lg flex items-center gap-1 text-xs px-2 py-1 rounded-full">
                   <AlertTriangle className="h-3 w-3" />
                   <span className="hidden sm:inline">{singleStockInfo.message}</span>
                   <span className="sm:hidden">Il ne reste que {singleStockInfo.maxQuantity || 3} pièces</span>
