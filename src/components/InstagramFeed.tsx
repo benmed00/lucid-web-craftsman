@@ -47,7 +47,7 @@ const instagramPosts: InstagramPost[] = [
   },
   {
     id: 2,
-    image: "/assets/images/instagram/insta_image_3.webp",
+    image: "/assets/images/instagram/insta_image_3.webp", 
     likes: 187,
   },
   {
@@ -66,12 +66,24 @@ const ImageWithFallback = ({ src, alt }: { src: string; alt: string }) => {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Use fallback to jpg if webp fails
+  const fallbackSrc = src.replace('.webp', '.jpg');
+
   return (
     <div className="relative w-full h-full">
       {error ? (
-        <div className="bg-beige-100 w-full h-full flex items-center justify-center text-stone-500 text-sm">
-          Image non disponible
-        </div>
+        <img 
+          src={fallbackSrc} 
+          alt={alt} 
+          className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
+          onError={() => {
+            // If fallback also fails, show placeholder
+            const placeholder = document.createElement('div');
+            placeholder.className = "bg-beige-100 w-full h-full flex items-center justify-center text-stone-500 text-sm";
+            placeholder.textContent = "Image non disponible";
+          }}
+        />
       ) : (
         <>
           <img 
@@ -81,7 +93,8 @@ const ImageWithFallback = ({ src, alt }: { src: string; alt: string }) => {
             style={{ opacity: loading ? 0 : 1 }}
             onError={() => setError(true)} 
             onLoad={() => setLoading(false)}
-            loading="lazy" 
+            loading="lazy"
+            sizes="(max-width: 768px) 50vw, 25vw"
           />
           {loading && (
             <div className="absolute inset-0 bg-beige-100 animate-pulse" />

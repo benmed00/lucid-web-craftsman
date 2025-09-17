@@ -186,8 +186,8 @@ export const ProductImage = forwardRef<HTMLImageElement, Omit<GlobalImageProps, 
       category="product" 
       preload={true}
       showRetryButton={true}
-      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-      quality={85}
+      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+      quality={75}
       {...props} 
     />
   )
@@ -234,8 +234,8 @@ export const InstagramImage = forwardRef<HTMLImageElement, Omit<GlobalImageProps
       category="instagram" 
       preload={false}
       showLoadingSpinner={false}
-      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 300px"
-      quality={75}
+      sizes="(max-width: 640px) 50vw, 25vw"
+      quality={70}
       {...props} 
     />
   )
