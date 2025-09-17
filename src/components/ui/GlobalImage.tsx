@@ -88,7 +88,13 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
         {/* WebP source for modern browsers with quality optimization */}
         {currentSrc.includes('supabase.co/storage') && (
           <source 
-            srcSet={`${currentSrc}?format=webp&quality=${quality}&resize=1920x1080`}
+            srcSet={(() => {
+              const url = new URL(currentSrc);
+              url.searchParams.set('format', 'webp');
+              url.searchParams.set('quality', quality.toString());
+              url.searchParams.set('resize', '1920x1080');
+              return url.toString();
+            })()}
             type="image/webp"
             sizes={sizes}
           />
@@ -104,10 +110,12 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
         {/* Fallback img element with responsive sizing */}
         <img
           ref={ref}
-          src={currentSrc.includes('supabase.co/storage') ? 
-            `${currentSrc}?quality=${quality}&resize=1920x1080` : 
-            currentSrc
-          }
+          src={currentSrc.includes('supabase.co/storage') ? (() => {
+            const url = new URL(currentSrc);
+            url.searchParams.set('quality', quality.toString());
+            url.searchParams.set('resize', '1920x1080');
+            return url.toString();
+          })() : currentSrc}
           alt={alt}
           sizes={sizes}
           className={cn(
