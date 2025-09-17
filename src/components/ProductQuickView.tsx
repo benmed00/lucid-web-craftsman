@@ -74,27 +74,27 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-hidden p-0 bg-white rounded-lg shadow-xl">
-        <div className="h-full max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl w-[100vw] sm:w-[95vw] max-h-[100vh] sm:max-h-[90vh] overflow-hidden p-0 bg-white rounded-none sm:rounded-lg shadow-xl border-0 sm:border">
+        <div className="h-[100vh] sm:h-full sm:max-h-[90vh] overflow-y-auto">{/* Mobile: full height, Desktop: constrained */}
         <DialogDescription className="sr-only">
           Aperçu rapide du produit {product.name} - {product.description}
         </DialogDescription>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-0 h-full">{/* Full height for mobile */}
           {/* Images Section */}
-          <div className="relative bg-gray-50 flex-shrink-0">
-            <DialogHeader className="absolute top-2 right-2 z-20">
+          <div className="relative bg-gray-50 flex-shrink-0 h-[50vh] lg:h-auto">{/* Fixed height on mobile */}
+            <DialogHeader className="absolute top-3 right-3 z-20">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="rounded-full bg-white/90 backdrop-blur-sm hover:bg-white shadow-md h-8 w-8"
+                className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg h-10 w-10 border border-gray-200"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5 text-gray-700" />
               </Button>
             </DialogHeader>
 
             {/* Main Image */}
-              <div className="aspect-square lg:aspect-[4/3] bg-white relative overflow-hidden">
+              <div className="aspect-square lg:aspect-[4/3] bg-white relative overflow-hidden h-full">{/* Full height on mobile */}
                 <img
                   src={images[selectedImageIndex] || images[0]}
                   alt={product.name}
@@ -110,7 +110,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                   }}
                 />
               {(product.new || product.is_new) && (
-                <Badge className="absolute top-3 left-3 bg-olive-700 text-white shadow-sm">
+                <Badge className="absolute top-4 left-4 bg-olive-700 text-white shadow-md text-xs font-medium px-2 py-1">
                   Nouveau
                 </Badge>
               )}
@@ -122,24 +122,24 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                     variant="secondary"
                     size="sm"
                     onClick={() => setShowMobileGallery(true)}
-                    className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm hover:bg-white shadow-md p-2 rounded-full h-8 w-8"
+                    className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg p-3 rounded-full h-12 w-12 border border-gray-200"
                   >
-                    <ZoomIn className="h-3 w-3" />
+                    <ZoomIn className="h-5 w-5 text-gray-700" />
                   </Button>
                 </TooltipWrapper>
               )}
               
               {/* Image Navigation Dots */}
               {images.length > 1 && (
-                <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1.5">
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 bg-black/30 backdrop-blur-sm rounded-full px-3 py-2">
                   {images.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-all ${
+                      className={`w-2.5 h-2.5 rounded-full transition-all ${
                         index === selectedImageIndex 
                           ? 'bg-white scale-125 shadow-sm' 
-                          : 'bg-white/60 hover:bg-white/80'
+                          : 'bg-white/70 hover:bg-white/90'
                       }`}
                     />
                   ))}
@@ -172,13 +172,13 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
           </div>
 
           {/* Product Details Section */}
-          <div className="p-4 lg:p-6 flex flex-col min-h-0 bg-white">
-            <DialogHeader className="text-left space-y-2 mb-4">
-              <Badge variant="outline" className="w-fit text-olive-700 border-olive-200 text-xs">
+          <div className="p-4 sm:p-6 lg:p-6 flex flex-col min-h-0 bg-white flex-1 overflow-y-auto">{/* Flexible content area */}
+            <DialogHeader className="text-left space-y-3 mb-4">
+              <Badge variant="outline" className="w-fit text-olive-700 border-olive-200 text-sm font-medium px-3 py-1">
                 {product.category}
               </Badge>
               
-              <DialogTitle className="text-xl lg:text-2xl font-bold text-gray-900 leading-tight">
+              <DialogTitle className="text-xl sm:text-2xl lg:text-2xl font-bold text-gray-900 leading-tight">
                 {product.name}
               </DialogTitle>
               
@@ -188,84 +188,84 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`h-3 w-3 lg:h-4 lg:w-4 ${
+                      className={`h-4 w-4 lg:h-4 lg:w-4 ${
                         i < 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'
                       }`}
                     />
                   ))}
                 </div>
-                <span className="text-xs lg:text-sm text-gray-600">(24 avis)</span>
+                <span className="text-sm lg:text-sm text-gray-600 font-medium">(24 avis)</span>
               </div>
 
-              <div className="text-2xl lg:text-3xl font-bold text-olive-700">{formatPrice(product.price)}</div>
+              <div className="text-2xl sm:text-3xl lg:text-3xl font-bold text-olive-700">{formatPrice(product.price)}</div>
             </DialogHeader>
 
-            <Separator className="my-3" />
+            <Separator className="my-4" />
 
             {/* Description */}
-            <div className="mb-4 flex-1 min-h-0 overflow-y-auto">
-              <p className="text-sm lg:text-base text-gray-600 leading-relaxed">
+            <div className="mb-4 flex-1 min-h-0">
+              <p className="text-sm sm:text-base lg:text-base text-gray-700 leading-relaxed font-medium">
                 {product.description}
               </p>
             </div>
 
             {/* Artisan Info */}
             {product.artisan && (
-              <div className="mb-4 p-3 bg-olive-50 rounded-lg">
-                <h4 className="font-semibold text-olive-800 mb-1 text-sm">Artisan</h4>
-                <p className="text-xs lg:text-sm text-olive-700">{product.artisan}</p>
+              <div className="mb-4 p-4 bg-olive-50 rounded-lg border border-olive-100">
+                <h4 className="font-semibold text-olive-800 mb-2 text-sm">Artisan</h4>
+                <p className="text-sm lg:text-sm text-olive-700 font-medium">{product.artisan}</p>
               </div>
             )}
 
-            <Separator className="my-3" />
+            <Separator className="my-4" />
 
             {/* Quantity Selector and Actions */}
-            <div className="space-y-3 mt-auto">
+            <div className="space-y-4 mt-auto">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
                   Quantité
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center gap-4">
                   <TooltipWrapper content="Diminuer la quantité">
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={decrementQuantity}
                       disabled={quantity <= 1}
-                      className="h-8 w-8"
+                      className="h-10 w-10 border-2 border-gray-300 hover:border-olive-600"
                     >
-                      <Minus className="h-3 w-3" />
+                      <Minus className="h-4 w-4" />
                     </Button>
                   </TooltipWrapper>
-                  <span className="w-8 text-center font-medium text-sm">{quantity}</span>
+                  <span className="w-12 text-center font-bold text-lg text-gray-900">{quantity}</span>
                   <TooltipWrapper content="Augmenter la quantité">
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={incrementQuantity}
-                      className="h-8 w-8"
+                      className="h-10 w-10 border-2 border-gray-300 hover:border-olive-600"
                     >
-                      <Plus className="h-3 w-3" />
+                      <Plus className="h-4 w-4" />
                     </Button>
                   </TooltipWrapper>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <TooltipWrapper 
                   content={`Ajouter ${quantity}x ${product.name} au panier pour ${formatPrice(product.price * quantity)}`}
                 >
                   <Button
                     onClick={handleAddToCart}
-                    className="w-full bg-olive-700 hover:bg-olive-800 text-white py-2.5 text-sm"
+                    className="w-full bg-olive-700 hover:bg-olive-800 text-white py-4 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
-                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    <ShoppingCart className="mr-3 h-5 w-5" />
                     Ajouter au panier - {formatPrice(product.price * quantity)}
                   </Button>
                 </TooltipWrapper>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <TooltipWrapper 
                     content={isWishlisted ? "Retirer des favoris" : "Ajouter aux favoris"}
                   >
@@ -274,12 +274,12 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                       onClick={handleWishlist}
                       className={`${
                         isWishlisted 
-                          ? 'bg-red-50 text-red-600 border-red-200' 
-                          : 'hover:bg-gray-50'
-                      } text-xs lg:text-sm py-2`}
+                          ? 'bg-red-50 text-red-600 border-red-300 hover:bg-red-100' 
+                          : 'hover:bg-gray-50 border-gray-300'
+                      } text-sm font-medium py-3 border-2`}
                     >
-                      <Heart className={`mr-1.5 h-3 w-3 lg:h-4 lg:w-4 ${isWishlisted ? 'fill-current' : ''}`} />
-                      {isWishlisted ? 'Favoris' : 'Favoris'}
+                      <Heart className={`mr-2 h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
+                      Favoris
                     </Button>
                   </TooltipWrapper>
 
@@ -287,9 +287,9 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                     <Button
                       variant="outline"
                       onClick={handleViewDetails}
-                      className="text-xs lg:text-sm py-2"
+                      className="text-sm font-medium py-3 border-2 border-gray-300 hover:bg-gray-50"
                     >
-                      <Eye className="mr-1.5 h-3 w-3 lg:h-4 lg:w-4" />
+                      <Eye className="mr-2 h-4 w-4" />
                       Détails
                     </Button>
                   </TooltipWrapper>
@@ -297,12 +297,12 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
               </div>
 
               {/* Product Features */}
-              <div className="mt-3 pt-3 border-t text-xs text-gray-600">
-                <div className="flex items-center justify-center gap-4">
-                  <span>✓ Livraison gratuite</span>
-                  <span>✓ Retours 30 jours</span>
+              <div className="mt-4 pt-4 border-t text-sm text-gray-600 font-medium">
+                <div className="flex items-center justify-center gap-6">
+                  <span className="flex items-center">✓ Livraison gratuite</span>
+                  <span className="flex items-center">✓ Retours 30 jours</span>
                 </div>
-               </div>
+              </div>
             </div>
           </div>
         </div>
