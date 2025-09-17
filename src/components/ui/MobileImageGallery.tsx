@@ -23,6 +23,7 @@ export const MobileImageGallery = ({
   const startX = useRef(0);
   const currentX = useRef(0);
   const isDragging = useRef(false);
+  const containerWidth = useRef(0);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -31,6 +32,10 @@ export const MobileImageGallery = ({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      // Cache container width when gallery opens to prevent forced reflows
+      if (containerRef.current) {
+        containerWidth.current = containerRef.current.clientWidth;
+      }
     } else {
       document.body.style.overflow = '';
     }
@@ -52,8 +57,9 @@ export const MobileImageGallery = ({
     currentX.current = e.touches[0].clientX;
     const deltaX = currentX.current - startX.current;
     
-    if (containerRef.current) {
-      const translateX = -currentIndex * 100 + (deltaX / containerRef.current.clientWidth) * 100;
+    if (containerRef.current && containerWidth.current > 0) {
+      // Use cached width to avoid forced reflow
+      const translateX = -currentIndex * 100 + (deltaX / containerWidth.current) * 100;
       containerRef.current.style.transform = `translateX(${translateX}%)`;
     }
   };
