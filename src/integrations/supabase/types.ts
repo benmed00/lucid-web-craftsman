@@ -1637,13 +1637,36 @@ export type Database = {
         }
         Returns: boolean
       }
+      emergency_lockdown_contact_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       enhanced_log_contact_message_access: {
         Args: { message_id: string }
         Returns: undefined
       }
+      get_contact_message_details: {
+        Args: { message_id: string }
+        Returns: Json
+      }
       get_customer_segments: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_masked_contact_messages: {
+        Args: { limit_count?: number; offset_count?: number }
+        Returns: {
+          company: string
+          created_at: string
+          first_name_masked: string
+          id: string
+          last_name_masked: string
+          masked_email: string
+          masked_phone: string
+          message_preview: string
+          status: string
+          subject: string
+        }[]
       }
       get_masked_error_report: {
         Args: { report_id: string }
@@ -1725,6 +1748,19 @@ export type Database = {
       mask_email: {
         Args: { email: string }
         Returns: string
+      }
+      monitor_contact_data_security: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          current_value: string
+          recommendation: string
+          risk_level: string
+          security_metric: string
+        }[]
+      }
+      restore_contact_data_access: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       update_loyalty_tier: {
         Args: { user_uuid: string }
