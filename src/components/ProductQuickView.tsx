@@ -98,13 +98,13 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl w-[98vw] h-[98vh] p-0 overflow-hidden bg-white border-0 shadow-2xl animate-in fade-in-0 zoom-in-95 duration-300">
+      <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] sm:max-h-[85vh] p-0 bg-white border-0 shadow-2xl animate-in fade-in-0 zoom-in-95 duration-300 overflow-hidden">
         <DialogHeader className="sr-only">
           <DialogTitle>{product.name}</DialogTitle>
           <DialogDescription>{product.short_description || product.description}</DialogDescription>
         </DialogHeader>
         
-        <div className="relative h-full flex flex-col lg:flex-row">
+        <div className="relative flex flex-col lg:flex-row h-full min-h-0">
           {/* Close Button */}
           <Button
             variant="ghost"
@@ -116,7 +116,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
           </Button>
 
           {/* Image Section */}
-          <div className="relative lg:w-3/5 h-[45vh] lg:h-full bg-gradient-to-br from-gray-50 via-white to-gray-100">
+          <div className="relative lg:w-3/5 h-[40vh] sm:h-[45vh] lg:h-full bg-gradient-to-br from-gray-50 via-white to-gray-100 flex-shrink-0">
             {/* Badges */}
             <div className="absolute top-6 left-6 z-20 flex gap-2">
               {(product.new || product.is_new) && (
@@ -234,8 +234,8 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
           </div>
 
           {/* Product Details Section */}
-          <div className="flex-1 flex flex-col h-[55vh] lg:h-full overflow-y-auto lg:w-2/5">
-            <div className="p-6 lg:p-8 space-y-6">
+          <div className="flex-1 flex flex-col lg:w-2/5 min-h-0 overflow-y-auto">
+            <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
               {/* Header */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
