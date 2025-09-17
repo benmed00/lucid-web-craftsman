@@ -10,20 +10,20 @@ const defaultHeroImage: HeroImageData = {
 
 export const useHeroImage = () => {
   const [heroImageData, setHeroImageData] = useState<HeroImageData>(defaultHeroImage);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Start with false to show default image immediately
 
-  // Load hero image data on mount
+  // Load hero image data on mount - but don't show loading state
   useEffect(() => {
     const loadHeroImage = async () => {
       try {
-        setIsLoading(true);
         const data = await heroImageService.get();
-        setHeroImageData(data);
+        // Only update if we got different data than default
+        if (data.imageUrl !== defaultHeroImage.imageUrl) {
+          setHeroImageData(data);
+        }
       } catch (error) {
         console.error('Error loading hero image:', error);
-        setHeroImageData(defaultHeroImage);
-      } finally {
-        setIsLoading(false);
+        // Keep default image on error
       }
     };
 

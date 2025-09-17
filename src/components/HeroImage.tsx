@@ -6,14 +6,40 @@ import { HeroImage as HeroImageComponent } from "@/components/ui/GlobalImage";
 const HeroImage = () => {
   const { heroImageData, isLoading } = useHeroImage();
 
+  // Render default image immediately while loading data
   if (isLoading) {
     return (
-      <div className="relative rounded-lg overflow-hidden shadow-lg">
-        <AspectRatio ratio={4 / 5} className="bg-stone-100">
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olive-600"></div>
-          </div>
+      <div className="group relative rounded-lg overflow-hidden shadow-lg">
+        <AspectRatio
+          ratio={4 / 5}
+          className="bg-stone-100"
+        >
+          {/* Show default image immediately to optimize LCP */}
+          <HeroImageComponent
+            src="/assets/images/home_page_image.webp"
+            alt="Chapeau artisanal et sac traditionnel fait main - Artisanat authentique du Rif"
+            className="object-cover w-full h-full rounded-lg"
+            fallbackText="Produits artisanaux du Rif"
+            preload={true}
+            showLoadingSpinner={false}
+            showRetryButton={false}
+          />
         </AspectRatio>
+        
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent rounded-lg" />
+        
+        {/* Default content overlay */}
+        <div className="absolute bottom-6 left-6 right-6">
+          <div className="bg-white/95 backdrop-blur-sm px-6 py-4 rounded-lg shadow-lg">
+            <p className="text-sm font-medium text-stone-800 mb-1">
+              Artisanat Authentique du Rif
+            </p>
+            <p className="text-xs text-stone-600">
+              Chapeau tressé et sac naturel - Fait main avec amour
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
