@@ -24,67 +24,115 @@
         // Create a style element for critical CSS to prevent render blocking
         const criticalCSS = document.createElement('style');
         criticalCSS.textContent = `
-          /* Critical CSS for initial render - prevents FOUC */
-          body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+          /* Enhanced Critical CSS for initial render - prevents FOUC */
+          * { box-sizing: border-box; }
+          body { margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; }
           #root { min-height: 100vh; }
+          
+          /* Critical layout classes */
+          .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+          .flex { display: flex; }
+          .grid { display: grid; }
+          .hidden { display: none; }
+          .block { display: block; }
+          .relative { position: relative; }
+          .absolute { position: absolute; }
+          .fixed { position: fixed; }
+          .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+          .z-50 { z-index: 50; }
+          
+          /* Critical spacing */
+          .p-4 { padding: 1rem; }
+          .py-16 { padding-top: 4rem; padding-bottom: 4rem; }
+          .px-4 { padding-left: 1rem; padding-right: 1rem; }
+          .mx-auto { margin-left: auto; margin-right: auto; }
+          .mb-8 { margin-bottom: 2rem; }
+          .gap-4 { gap: 1rem; }
+          
+          /* Critical colors */
+          .bg-background { background-color: white; }
           .bg-stone-100 { background-color: rgb(245 245 244); }
           .text-stone-900 { color: rgb(28 25 23); }
+          .text-white { color: white; }
+          
+          /* Critical animations */
           .transition-opacity { transition: opacity 0.3s; }
           .opacity-0 { opacity: 0; }
           .opacity-100 { opacity: 1; }
           .animate-spin { animation: spin 1s linear infinite; }
           @keyframes spin { to { transform: rotate(360deg); } }
+          
+          /* Critical responsive grid */
+          .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+          @media (min-width: 768px) {
+            .md\\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .md\\:text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+          }
+          
+          /* Critical typography */
+          .font-serif { font-family: "Playfair Display", Georgia, serif; }
+          .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+          .text-center { text-align: center; }
+          
+          /* Critical image styles */
+          img { max-width: 100%; height: auto; }
+          .object-cover { object-fit: cover; }
+          .w-full { width: 100%; }
+          .h-full { height: 100%; }
+          .aspect-square { aspect-ratio: 1 / 1; }
+          .rounded-lg { border-radius: 0.5rem; }
+          
+          /* Hero section critical styles */
+          .min-h-screen { min-height: 100vh; }
+          .aspect-\\[4\\/3\\] { aspect-ratio: 4 / 3; }
+          
+          /* Navigation critical styles */
+          .justify-between { justify-content: space-between; }
+          .items-center { align-items: center; }
+          .space-x-8 > :not([hidden]) ~ :not([hidden]) { margin-left: 2rem; }
         `;
         document.head.appendChild(criticalCSS);
         
-        // Preload the full CSS bundle asynchronously
-        const cssLink = document.createElement('link');
-        cssLink.rel = 'preload';
-        cssLink.as = 'style';
-        cssLink.onload = function() {
-          this.onload = null;
-          this.rel = 'stylesheet';
-          // Remove critical CSS once full CSS loads
-          setTimeout(() => {
-            if (criticalCSS.parentNode) {
-              criticalCSS.parentNode.removeChild(criticalCSS);
-            }
-          }, 100);
+        // Load full CSS asynchronously after critical styles
+        let cssLoaded = false;
+        const loadMainCSS = () => {
+          if (cssLoaded) return;
+          cssLoaded = true;
+          
+          const cssLink = document.createElement('link');
+          cssLink.rel = 'stylesheet';
+          cssLink.href = '/assets/index-CTRRF5Tz.css';
+          cssLink.onload = function() {
+            // Remove critical CSS once full CSS loads to avoid conflicts
+            setTimeout(() => {
+              if (criticalCSS.parentNode) {
+                criticalCSS.parentNode.removeChild(criticalCSS);
+              }
+            }, 100);
+          };
+          cssLink.onerror = function() {
+            // Fallback: try to load via media="print" trick
+            this.media = 'all';
+          };
+          document.head.appendChild(cssLink);
         };
         
-        // Auto-detect the CSS file by scanning for Vite's pattern
-        const scripts = document.querySelectorAll('script[type="module"]');
-        let cssHref = null;
-        
-        // Check if we can find the CSS in a modulepreload
-        const modulePreloads = document.querySelectorAll('link[rel="modulepreload"]');
-        for (const link of modulePreloads) {
-          if (link.href && link.href.includes('.css')) {
-            cssHref = link.href;
-            break;
-          }
-        }
-        
-        // Fallback: scan for known patterns
-        if (!cssHref) {
-          const possibleCSS = [
-            '/assets/index-CTRRF5Tz.css',
-            '/assets/index.css'
-          ];
-          
-          for (const href of possibleCSS) {
-            // Test if the CSS exists
-            fetch(href, { method: 'HEAD' }).then(response => {
-              if (response.ok) {
-                cssLink.href = href;
-                document.head.appendChild(cssLink);
-              }
-            }).catch(() => {});
-          }
+        // Load CSS after a short delay or on interaction
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadMainCSS, 50);
+          });
         } else {
-          cssLink.href = cssHref;
-          document.head.appendChild(cssLink);
+          setTimeout(loadMainCSS, 50);
         }
+        
+        // Also load on first user interaction
+        ['scroll', 'mousedown', 'touchstart', 'keydown'].forEach(event => {
+          document.addEventListener(event, loadMainCSS, { once: true, passive: true });
+        });
+        
+        // Fallback: ensure CSS loads within 2 seconds
+        setTimeout(loadMainCSS, 2000);
         
         // Fallback stylesheet for no-JS
         const noscriptFallback = document.createElement('noscript');
