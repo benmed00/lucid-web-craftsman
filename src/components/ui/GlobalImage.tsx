@@ -71,22 +71,38 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
     );
   }
 
-  // Enhanced image URL generation with error handling
+  // Enhanced image URL generation with error handling and deduplication
   const generateSafeImageUrl = (url: string, includeTransformations: boolean = true): string => {
     if (!url.includes('supabase.co/storage')) {
       return url;
     }
 
     try {
-      const urlObj = new URL(url);
+      // Clean malformed URLs with duplicate query parameters
+      let cleanUrl = url;
+      const duplicatePattern = /(\?[^?]*)\?/g;
+      if (duplicatePattern.test(url)) {
+        const [baseUrl, ...queryParts] = url.split('?');
+        const combinedParams = new URLSearchParams();
+        
+        queryParts.forEach(part => {
+          const params = new URLSearchParams(part);
+          params.forEach((value, key) => {
+            combinedParams.set(key, value);
+        });
+        });
+        
+        cleanUrl = `${baseUrl}?${combinedParams.toString()}`;
+      }
       
-      // Clean up any duplicate parameters first
+      const urlObj = new URL(cleanUrl);
+      
+      // Check existing parameters
       const hasFormat = urlObj.searchParams.has('format');
       const hasQuality = urlObj.searchParams.has('quality');
       
-      // Only add transformations if the URL doesn't already have them AND we want to include them
+      // Only add transformations if needed and requested
       if (includeTransformations && !hasFormat && !hasQuality) {
-        // Only add conservative parameters that are widely supported
         if (quality && quality !== 80 && quality <= 90) {
           urlObj.searchParams.set('quality', Math.min(quality, 85).toString());
         }
@@ -95,7 +111,6 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
       
       return urlObj.toString();
     } catch {
-      // If URL parsing fails, return original URL
       return url;
     }
   };
@@ -106,16 +121,17 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
     }
 
     try {
-      const urlObj = new URL(url);
+      // Use the same deduplication logic
+      const cleanedUrl = generateSafeImageUrl(url, false);
+      const urlObj = new URL(cleanedUrl);
       
-      // Don't generate WebP if already has format parameter (avoid duplicates)
+      // Don't generate WebP if already optimized
       if (urlObj.searchParams.has('format')) {
-        return url; // Return original URL if already has format specified
+        return cleanedUrl;
       }
       
       urlObj.searchParams.set('format', 'webp');
       
-      // Use conservative quality for WebP only if not already set
       if (!urlObj.searchParams.has('quality') && quality && quality <= 85) {
         urlObj.searchParams.set('quality', Math.min(quality, 80).toString());
       }

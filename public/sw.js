@@ -2,11 +2,11 @@ const CACHE_NAME = 'rif-raw-straw-v2';
 const STATIC_CACHE_NAME = 'rif-static-v2';
 const IMAGE_CACHE_NAME = 'rif-images-v2';
 
-// Cache durations for SEO optimization
+// Enhanced cache durations for SEO optimization
 const CACHE_DURATIONS = {
-  STATIC_ASSETS: 30 * 24 * 60 * 60 * 1000, // 30 days for JS/CSS
-  IMAGES: 7 * 24 * 60 * 60 * 1000, // 7 days for images
-  API_RESPONSES: 60 * 60 * 1000, // 1 hour for API
+  STATIC_ASSETS: 365 * 24 * 60 * 60 * 1000, // 1 year for JS/CSS (immutable assets)
+  IMAGES: 30 * 24 * 60 * 60 * 1000, // 30 days for images  
+  API_RESPONSES: 5 * 60 * 1000, // 5 minutes for API
   HTML_PAGES: 24 * 60 * 60 * 1000 // 24 hours for HTML
 };
 
@@ -96,7 +96,7 @@ function getCacheStrategy(url) {
     };
   }
   
-  // Images (including Supabase storage)
+  // Images (including Supabase storage) - longer cache for better performance
   if (url.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/) || url.includes('supabase.co/storage')) {
     return {
       cacheName: IMAGE_CACHE_NAME,
@@ -162,7 +162,7 @@ async function enhancedCacheFirst(request, cacheName, duration) {
         headers: {
           ...Object.fromEntries(responseToCache.headers.entries()),
           'sw-cached-time': Date.now().toString(),
-          'cache-control': `public, max-age=${Math.floor(duration / 1000)}`
+          'cache-control': `public, max-age=${Math.floor(duration / 1000)}, immutable`
         }
       });
       
@@ -190,7 +190,7 @@ async function enhancedNetworkFirst(request, cacheName, duration) {
         headers: {
           ...Object.fromEntries(responseToCache.headers.entries()),
           'sw-cached-time': Date.now().toString(),
-          'cache-control': `public, max-age=${Math.floor(duration / 1000)}`
+          'cache-control': `public, max-age=${Math.floor(duration / 1000)}, immutable`
         }
       });
       
