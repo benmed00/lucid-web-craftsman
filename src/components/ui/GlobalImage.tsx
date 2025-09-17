@@ -80,11 +80,13 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
     try {
       const urlObj = new URL(url);
       
-      if (includeTransformations) {
+      // Only add transformations if the URL doesn't already have optimization parameters
+      if (includeTransformations && !urlObj.searchParams.has('quality') && !urlObj.searchParams.has('format')) {
         // Only add conservative parameters that are widely supported
-        if (quality && quality !== 80 && quality <= 95) {
-          urlObj.searchParams.set('quality', quality.toString());
+        if (quality && quality !== 80 && quality <= 90) {
+          urlObj.searchParams.set('quality', Math.min(quality, 85).toString());
         }
+        urlObj.searchParams.set('format', 'webp');
       }
       
       return urlObj.toString();
@@ -101,11 +103,17 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
 
     try {
       const urlObj = new URL(url);
+      
+      // Don't duplicate optimization parameters if they already exist
+      if (urlObj.searchParams.has('format')) {
+        return url; // Return original URL if already optimized
+      }
+      
       urlObj.searchParams.set('format', 'webp');
       
-      // Use conservative quality for WebP
-      if (quality && quality <= 90) {
-        urlObj.searchParams.set('quality', Math.min(quality, 85).toString());
+      // Use conservative quality for WebP only if not already set
+      if (!urlObj.searchParams.has('quality') && quality && quality <= 85) {
+        urlObj.searchParams.set('quality', Math.min(quality, 80).toString());
       }
       
       return urlObj.toString();
@@ -126,10 +134,9 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
         </div>
       )}
 
-      {/* Main image with WebP support and responsive sizing */}
+      {/* Only generate WebP source if the current source isn't already optimized */}
       <picture className="w-full h-full">
-        {/* WebP source for modern browsers with conservative optimization */}
-        {currentSrc.includes('supabase.co/storage') && (
+        {currentSrc.includes('supabase.co/storage') && !currentSrc.includes('format=webp') && (
           <source 
             srcSet={generateWebPUrl(currentSrc)}
             type="image/webp"
@@ -196,8 +203,8 @@ export const HeroImage = forwardRef<HTMLImageElement, Omit<GlobalImageProps, 'ca
       category="hero" 
       preload={true}
       showLoadingSpinner={true}
-      sizes="100vw"
-      quality={90}
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+      quality={80}
       {...props} 
     />
   )
