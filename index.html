@@ -17,6 +17,14 @@
     <link rel="dns-prefetch" href="//m.stripe.network">
     <link rel="preconnect" href="https://xcvlijchkmhjonhfildm.supabase.co" crossorigin>
     <link rel="preconnect" href="https://js.stripe.com" crossorigin>
+    <script>
+      // Remove any dev CSS links (/src/index.css) accidentally injected by cached HTML
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('link[rel="stylesheet"][href*="/src/index.css"]').forEach(function(el){
+          el.parentNode && el.parentNode.removeChild(el);
+        });
+      });
+    </script>
     
     <!-- Styles are handled by Vite via imports in src/main.tsx; removing custom loader to avoid MIME issues in production. -->
     <link rel="manifest" href="/manifest.json" />
