@@ -52,6 +52,7 @@ export const WishlistButton = React.forwardRef<HTMLButtonElement, WishlistButton
         size={showText ? 'default' : 'icon'}
         onClick={handleClick}
         disabled={loading}
+        aria-label={isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}
         className={cn(
           'transition-all duration-200',
           !showText && sizeClasses[size],

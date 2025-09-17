@@ -13,7 +13,10 @@ const CurrencySelector: React.FC = () => {
 
   return (
     <Select value={currency} onValueChange={(value: Currency) => setCurrency(value)}>
-      <SelectTrigger className="w-[140px] bg-white border-stone-200 hover:border-olive-300 transition-colors">
+      <SelectTrigger 
+        className="w-[140px] bg-white border-stone-200 hover:border-olive-300 transition-colors"
+        aria-label="Sélectionner la devise"
+      >
         <SelectValue>
           <div className="flex items-center gap-2">
             <span>{currencies.find(c => c.value === currency)?.flag}</span>
