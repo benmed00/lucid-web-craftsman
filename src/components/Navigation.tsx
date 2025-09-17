@@ -77,12 +77,12 @@ const Navigation = () => {
             </div>
 
             {/* Navigation Links - Desktop & Tablet */}
-            <nav className="hidden md:flex items-center justify-center flex-1 px-2 md:px-4 lg:px-4 min-w-0" role="navigation" aria-label="Navigation principale">
-              <div className="flex items-center space-x-1 md:space-x-3 lg:space-x-4 xl:space-x-6">
+            <nav className="hidden md:flex items-center justify-center flex-1 px-2 md:px-3 lg:px-4 min-w-0" role="navigation" aria-label="Navigation principale">
+              <div className="flex items-center justify-center space-x-0 md:space-x-1 lg:space-x-4 xl:space-x-6">
                 <Link
                   to="/"
                   className={clsx(
-                    "relative px-2 md:px-4 lg:px-3 xl:px-4 py-2 md:py-3 lg:py-2 text-sm md:text-base lg:text-sm font-medium transition-all duration-300 hover:text-olive-700 hover:bg-olive-50 rounded-lg md:rounded-xl lg:rounded-lg whitespace-nowrap touch-manipulation",
+                    "relative px-3 md:px-5 lg:px-3 xl:px-4 py-2 md:py-2.5 lg:py-2 text-sm md:text-sm lg:text-sm font-medium transition-all duration-300 hover:text-olive-700 hover:bg-olive-50 rounded-lg whitespace-nowrap touch-manipulation flex items-center justify-center min-w-[80px] md:min-w-[100px] lg:min-w-[80px]",
                     currentPath === "/" ? "text-olive-700 bg-olive-50" : "text-stone-700"
                   )}
                   aria-current={currentPath === "/" ? "page" : undefined}
@@ -96,7 +96,7 @@ const Navigation = () => {
                 <Link
                   to="/products"
                   className={clsx(
-                    "relative px-2 md:px-4 lg:px-3 xl:px-4 py-2 md:py-3 lg:py-2 text-sm md:text-base lg:text-sm font-medium transition-all duration-300 hover:text-olive-700 hover:bg-olive-50 rounded-lg md:rounded-xl lg:rounded-lg whitespace-nowrap touch-manipulation",
+                    "relative px-3 md:px-5 lg:px-3 xl:px-4 py-2 md:py-2.5 lg:py-2 text-sm md:text-sm lg:text-sm font-medium transition-all duration-300 hover:text-olive-700 hover:bg-olive-50 rounded-lg whitespace-nowrap touch-manipulation flex items-center justify-center min-w-[80px] md:min-w-[100px] lg:min-w-[80px]",
                     currentPath === "/products" ? "text-olive-700 bg-olive-50" : "text-stone-700"
                   )}
                   aria-current={currentPath === "/products" ? "page" : undefined}
@@ -110,7 +110,7 @@ const Navigation = () => {
                 <Link
                   to="/blog"
                   className={clsx(
-                    "relative px-2 md:px-4 lg:px-3 xl:px-4 py-2 md:py-3 lg:py-2 text-sm md:text-base lg:text-sm font-medium transition-all duration-300 hover:text-olive-700 hover:bg-olive-50 rounded-lg md:rounded-xl lg:rounded-lg whitespace-nowrap touch-manipulation",
+                    "relative px-3 md:px-5 lg:px-3 xl:px-4 py-2 md:py-2.5 lg:py-2 text-sm md:text-sm lg:text-sm font-medium transition-all duration-300 hover:text-olive-700 hover:bg-olive-50 rounded-lg whitespace-nowrap touch-manipulation flex items-center justify-center min-w-[80px] md:min-w-[100px] lg:min-w-[80px]",
                     currentPath === "/blog" ? "text-olive-700 bg-olive-50" : "text-stone-700"
                   )}
                   aria-current={currentPath === "/blog" ? "page" : undefined}
@@ -124,7 +124,7 @@ const Navigation = () => {
                 <Link
                   to="/contact"
                   className={clsx(
-                    "relative px-2 md:px-4 lg:px-3 xl:px-4 py-2 md:py-3 lg:py-2 text-sm md:text-base lg:text-sm font-medium transition-all duration-300 hover:text-olive-700 hover:bg-olive-50 rounded-lg md:rounded-xl lg:rounded-lg whitespace-nowrap touch-manipulation",
+                    "relative px-3 md:px-5 lg:px-3 xl:px-4 py-2 md:py-2.5 lg:py-2 text-sm md:text-sm lg:text-sm font-medium transition-all duration-300 hover:text-olive-700 hover:bg-olive-50 rounded-lg whitespace-nowrap touch-manipulation flex items-center justify-center min-w-[80px] md:min-w-[100px] lg:min-w-[80px]",
                     currentPath === "/contact" ? "text-olive-700 bg-olive-50" : "text-stone-700"
                   )}
                   aria-current={currentPath === "/contact" ? "page" : undefined}
@@ -138,32 +138,32 @@ const Navigation = () => {
             </nav>
 
             {/* Actions Section - Desktop & Tablet */}
-            <div className="flex items-center space-x-1 sm:space-x-1 md:space-x-2 lg:space-x-3 xl:space-x-4 flex-shrink-0 justify-end min-w-[140px] md:min-w-[180px] lg:min-w-[200px]">
+            <div className="flex items-center space-x-1 sm:space-x-1 md:space-x-1.5 lg:space-x-3 xl:space-x-4 flex-shrink-0 justify-end min-w-[140px] md:min-w-[200px] lg:min-w-[200px]">
               {/* Search Button - Tablet & Desktop */}
-              <div className="hidden md:flex w-10 md:w-12 lg:w-10 h-10 md:h-12 lg:h-8 items-center justify-center">
+              <div className="hidden md:flex w-10 md:w-10 lg:w-10 h-10 md:h-10 lg:h-8 items-center justify-center">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowSearch(!showSearch)}
-                  className="relative flex items-center gap-2 group w-10 md:w-12 lg:w-10 h-10 md:h-12 lg:h-8 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation"
+                  className="relative flex items-center gap-2 group w-10 md:w-10 lg:w-10 h-10 md:h-10 lg:h-8 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation"
                 >
-                  <Search size={18} className="md:w-5 md:h-5 lg:w-[18px] lg:h-[18px]" />
+                  <Search size={18} className="md:w-[18px] md:h-[18px] lg:w-[18px] lg:h-[18px]" />
                 </Button>
               </div>
 
               {/* Wishlist button - Tablet & Desktop */}
-              <div className="hidden md:flex w-10 md:w-12 lg:w-8 h-10 md:h-12 lg:h-8 items-center justify-center">
-                <Button variant="ghost" size="sm" asChild className="relative flex items-center justify-center w-10 md:w-12 lg:w-8 h-10 md:h-12 lg:h-8 p-0 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation">
+              <div className="hidden md:flex w-10 md:w-10 lg:w-8 h-10 md:h-10 lg:h-8 items-center justify-center">
+                <Button variant="ghost" size="sm" asChild className="relative flex items-center justify-center w-10 md:w-10 lg:w-8 h-10 md:h-10 lg:h-8 p-0 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation">
                   <Link
                     to={user ? "/wishlist" : "#"}
                     className={clsx(
-                      "flex items-center justify-center w-10 md:w-12 lg:w-8 h-10 md:h-12 lg:h-8",
+                      "flex items-center justify-center w-10 md:w-10 lg:w-8 h-10 md:h-10 lg:h-8",
                       !user && "pointer-events-none opacity-30"
                     )}
                   >
-                    <Heart className="h-4 w-4 md:h-5 md:w-5 lg:h-4 lg:w-4" />
+                    <Heart className="h-4 w-4 md:h-[18px] md:w-[18px] lg:h-4 lg:w-4" />
                     {user && wishlistCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 md:h-6 md:w-6 lg:h-4 lg:w-4 flex items-center justify-center min-w-[16px] font-medium">
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 md:h-5 md:w-5 lg:h-4 lg:w-4 flex items-center justify-center min-w-[16px] font-medium">
                         {wishlistCount}
                       </span>
                     )}
@@ -182,18 +182,18 @@ const Navigation = () => {
                   variant="outline"
                   size="sm"
                   className={clsx(
-                    "border-stone-300 transition-all duration-300 flex items-center group relative text-sm md:text-base lg:text-sm px-3 md:px-4 lg:px-3 py-2 md:py-3 lg:py-2 rounded-lg hover:shadow-md touch-manipulation",
+                    "border-stone-300 transition-all duration-300 flex items-center group relative text-sm md:text-sm lg:text-sm px-3 md:px-4 lg:px-3 py-2 md:py-2.5 lg:py-2 rounded-lg hover:shadow-md touch-manipulation font-medium",
                     itemCount >= 1 ? "bg-olive-700 text-white border-olive-700 shadow-md" : "bg-white text-stone-700 hover:bg-olive-50",
                     itemCount >= 1 ? "hover:bg-white hover:text-olive-700 hover:border-olive-700" : "hover:bg-olive-50 hover:text-olive-700 hover:border-olive-300"
                   )}
                 >
-                  <ShoppingBag className={clsx("h-4 w-4 md:h-5 md:w-5 lg:h-4 lg:w-4 transition-colors", itemCount >= 1 ? "text-white group-hover:text-olive-700" : "text-stone-700 group-hover:text-olive-700")} />
-                  <span className="ml-2 font-medium">({itemCount})</span>
+                  <ShoppingBag className={clsx("h-4 w-4 md:h-[18px] md:w-[18px] lg:h-4 lg:w-4 transition-colors mr-2", itemCount >= 1 ? "text-white group-hover:text-olive-700" : "text-stone-700 group-hover:text-olive-700")} />
+                  <span>({itemCount})</span>
                 </Button>
               </Link>
 
               {/* Auth buttons - Tablet & Desktop */}
-              <div className="hidden md:flex items-center gap-1 md:gap-2 lg:gap-1">
+              <div className="hidden md:flex items-center gap-1 md:gap-1.5 lg:gap-1">
                 {isLoading ? (
                   <div className="flex items-center gap-1">
                     <div className="w-8 h-8 md:w-10 md:h-10 lg:w-8 lg:h-8 rounded-lg bg-stone-200 animate-pulse"></div>
@@ -208,8 +208,8 @@ const Navigation = () => {
                       </Link>
                     </Button>
                     <Button variant="ghost" size="sm" asChild className="group relative hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation">
-                      <Link to="/profile" className="flex items-center p-2 md:p-3 lg:p-2">
-                        <User className="h-4 w-4 md:h-5 md:w-5 lg:h-4 lg:w-4" />
+                      <Link to="/profile" className="flex items-center p-2 md:p-2.5 lg:p-2">
+                        <User className="h-4 w-4 md:h-[18px] md:w-[18px] lg:h-4 lg:w-4" />
                       </Link>
                     </Button>
                     <Button 
@@ -222,7 +222,7 @@ const Navigation = () => {
                     </Button>
                   </>
                 ) : (
-                  <Button variant="ghost" size="sm" asChild className="text-sm md:text-base lg:text-sm px-3 md:px-4 lg:px-3 py-2 md:py-3 lg:py-2 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation">
+                  <Button variant="ghost" size="sm" asChild className="text-sm md:text-sm lg:text-sm px-3 md:px-4 lg:px-3 py-2 md:py-2.5 lg:py-2 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation font-medium">
                     <Link to="/auth" aria-label="Se connecter">Se connecter</Link>
                   </Button>
                 )}
