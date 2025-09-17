@@ -18,9 +18,80 @@
     <link rel="preconnect" href="https://xcvlijchkmhjonhfildm.supabase.co" crossorigin>
     <link rel="preconnect" href="https://js.stripe.com" crossorigin>
     
-    <!-- Critical CSS preload hint -->
-    <link rel="preload" href="/src/index.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/src/index.css"></noscript>
+    <!-- Critical CSS optimization for render blocking fix -->
+    <script>
+      (function() {
+        // Create a style element for critical CSS to prevent render blocking
+        const criticalCSS = document.createElement('style');
+        criticalCSS.textContent = `
+          /* Critical CSS for initial render - prevents FOUC */
+          body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+          #root { min-height: 100vh; }
+          .bg-stone-100 { background-color: rgb(245 245 244); }
+          .text-stone-900 { color: rgb(28 25 23); }
+          .transition-opacity { transition: opacity 0.3s; }
+          .opacity-0 { opacity: 0; }
+          .opacity-100 { opacity: 1; }
+          .animate-spin { animation: spin 1s linear infinite; }
+          @keyframes spin { to { transform: rotate(360deg); } }
+        `;
+        document.head.appendChild(criticalCSS);
+        
+        // Preload the full CSS bundle asynchronously
+        const cssLink = document.createElement('link');
+        cssLink.rel = 'preload';
+        cssLink.as = 'style';
+        cssLink.onload = function() {
+          this.onload = null;
+          this.rel = 'stylesheet';
+          // Remove critical CSS once full CSS loads
+          setTimeout(() => {
+            if (criticalCSS.parentNode) {
+              criticalCSS.parentNode.removeChild(criticalCSS);
+            }
+          }, 100);
+        };
+        
+        // Auto-detect the CSS file by scanning for Vite's pattern
+        const scripts = document.querySelectorAll('script[type="module"]');
+        let cssHref = null;
+        
+        // Check if we can find the CSS in a modulepreload
+        const modulePreloads = document.querySelectorAll('link[rel="modulepreload"]');
+        for (const link of modulePreloads) {
+          if (link.href && link.href.includes('.css')) {
+            cssHref = link.href;
+            break;
+          }
+        }
+        
+        // Fallback: scan for known patterns
+        if (!cssHref) {
+          const possibleCSS = [
+            '/assets/index-CTRRF5Tz.css',
+            '/assets/index.css'
+          ];
+          
+          for (const href of possibleCSS) {
+            // Test if the CSS exists
+            fetch(href, { method: 'HEAD' }).then(response => {
+              if (response.ok) {
+                cssLink.href = href;
+                document.head.appendChild(cssLink);
+              }
+            }).catch(() => {});
+          }
+        } else {
+          cssLink.href = cssHref;
+          document.head.appendChild(cssLink);
+        }
+        
+        // Fallback stylesheet for no-JS
+        const noscriptFallback = document.createElement('noscript');
+        noscriptFallback.innerHTML = '<link rel="stylesheet" href="/assets/index-CTRRF5Tz.css">';
+        document.head.appendChild(noscriptFallback);
+      })();
+    </script>
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     
