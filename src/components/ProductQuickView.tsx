@@ -341,7 +341,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <SheetContent side="bottom" className="h-[92vh] p-0 bg-white overflow-hidden rounded-t-xl">
+        <SheetContent side="bottom" className="h-[92vh] p-0 bg-white overflow-hidden rounded-t-xl [&>button]:hidden">
           {content}
         </SheetContent>
       </Sheet>
@@ -350,7 +350,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] sm:max-h-[85vh] p-0 bg-white border-0 shadow-2xl animate-in fade-in-0 zoom-in-95 duration-300 overflow-hidden">
+      <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] sm:max-h-[85vh] p-0 bg-white border-0 shadow-2xl animate-in fade-in-0 zoom-in-95 duration-300 overflow-hidden [&>button]:hidden">
         {content}
       </DialogContent>
     </Dialog>
