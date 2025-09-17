@@ -74,14 +74,14 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-[100vw] sm:w-[95vw] max-h-[100vh] sm:max-h-[90vh] overflow-hidden p-0 bg-white rounded-none sm:rounded-lg shadow-xl border-0 sm:border">
-        <div className="h-[100vh] sm:h-full sm:max-h-[90vh] overflow-y-auto">{/* Mobile: full height, Desktop: constrained */}
+      <DialogContent className="max-w-4xl w-[92vw] sm:w-[95vw] max-h-[92vh] overflow-hidden p-0 bg-white rounded-none sm:rounded-lg shadow-xl border-0 sm:border">
+        <div className="h-auto sm:max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogDescription className="sr-only">
           Aperçu rapide du produit {product.name} - {product.description}
         </DialogDescription>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-0 h-full">{/* Full height for mobile */}
           {/* Images Section */}
-          <div className="relative bg-gray-50 flex-shrink-0 h-[50vh] lg:h-auto">{/* Fixed height on mobile */}
+          <div className="relative bg-gray-50 flex-shrink-0 h-[48vh] lg:h-auto lg:max-h-[60vh] min-w-0">
             <DialogHeader className="absolute top-3 right-3 z-20">
               <Button
                 variant="ghost"
@@ -98,7 +98,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                 <img
                   src={images[selectedImageIndex] || images[0]}
                   alt={product.name}
-                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
+                  className="w-full h-full object-contain transition-transform duration-300 hover:scale-[1.02] cursor-pointer bg-white"
                   onClick={() => isMobile && setShowMobileGallery(true)}
                   onError={(e) => {
                     if (selectedImageIndex !== 0 && images[0]) {
@@ -149,7 +149,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
             {/* Thumbnail Images - Hide on mobile to save space */}
             {images.length > 1 && !isMobile && (
-              <div className="flex gap-2 p-3 bg-gray-50 border-t">
+              <div className="flex gap-2 p-3 bg-gray-50 border-t overflow-x-auto justify-center">
                 {images.slice(0, 4).map((image, index) => (
                   <button
                     key={index}
