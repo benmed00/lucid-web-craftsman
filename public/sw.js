@@ -1,6 +1,6 @@
-const CACHE_NAME = 'rif-raw-straw-v2';
-const STATIC_CACHE_NAME = 'rif-static-v2';
-const IMAGE_CACHE_NAME = 'rif-images-v2';
+const CACHE_NAME = 'rif-raw-straw-v3';
+const STATIC_CACHE_NAME = 'rif-static-v3';
+const IMAGE_CACHE_NAME = 'rif-images-v3';
 
 // Enhanced cache durations for SEO optimization
 const CACHE_DURATIONS = {

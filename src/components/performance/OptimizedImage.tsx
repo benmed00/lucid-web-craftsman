@@ -51,8 +51,13 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const generateWebPSrc = (originalSrc: string): string => {
     if (!webp || originalSrc.includes('.webp')) return originalSrc;
     
-    // For Supabase storage URLs, we can add format parameters
-    if (originalSrc.includes('supabase')) {
+    // For Supabase storage URLs: only transform when using the render endpoint
+    if (originalSrc.includes('supabase.co')) {
+      const isRenderEndpoint = originalSrc.includes('/render/image/');
+      if (!isRenderEndpoint) {
+        // Do not append params to /object URLs to avoid 400 responses
+        return originalSrc;
+      }
       const url = new URL(originalSrc);
       url.searchParams.set('format', 'webp');
       if (quality) url.searchParams.set('quality', quality.toString());
@@ -72,7 +77,12 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       return originalSrc;
     }
     
-    if (originalSrc.includes('supabase')) {
+    if (originalSrc.includes('supabase.co')) {
+      const isRenderEndpoint = originalSrc.includes('/render/image/');
+      if (!isRenderEndpoint) {
+        // Do not modify /object URLs to prevent 400 errors
+        return originalSrc;
+      }
       const url = new URL(originalSrc);
       if (quality && quality !== 85) url.searchParams.set('quality', quality.toString());
       if (width) url.searchParams.set('width', width.toString());
