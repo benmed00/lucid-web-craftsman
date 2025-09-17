@@ -2,20 +2,21 @@
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ProductService } from "@/services/productService";
 import ProductCard, { StockContext } from "./ProductCard";
 import { ProductQuickView } from "./ProductQuickView";
 import { Card, CardContent } from "@/components/ui/card";
 import { useStock } from "@/hooks/useStock";
 import { StockInfo } from "@/services/stockService";
+import { useSearchParams } from "react-router-dom";
 
 const ProductShowcase = () => {
   const { dispatch } = useCart();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
-  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Batch stock loading for all featured products
   const productIds = featuredProducts.map(p => p.id);
@@ -40,6 +41,19 @@ const ProductShowcase = () => {
     loadFeaturedProducts();
   }, []);
 
+  // Handle URL-based quick view state
+  useEffect(() => {
+    const productId = searchParams.get('product');
+    if (productId && featuredProducts.length > 0) {
+      const product = featuredProducts.find(p => p.id.toString() === productId);
+      if (product) {
+        setQuickViewProduct(product);
+      }
+    } else {
+      setQuickViewProduct(null);
+    }
+  }, [searchParams, featuredProducts]);
+
   const handleAddToCart = async (product: Product) => { // Made async
     try {
       // Call mock API service first
@@ -63,10 +77,17 @@ const ProductShowcase = () => {
 
   };
 
-  const handleQuickView = (product: Product) => {
-    setQuickViewProduct(product);
-    setIsQuickViewOpen(true);
-  };
+  const handleQuickView = useCallback((product: Product) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('product', product.id.toString());
+    setSearchParams(newSearchParams);
+  }, [searchParams, setSearchParams]);
+
+  const handleCloseQuickView = useCallback(() => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.delete('product');
+    setSearchParams(newSearchParams);
+  }, [searchParams, setSearchParams]);
 
   const handleQuickViewAddToCart = async (product: Product, quantity: number) => {
     try {
@@ -148,11 +169,8 @@ const ProductShowcase = () => {
       
       <ProductQuickView
         product={quickViewProduct}
-        isOpen={isQuickViewOpen}
-        onClose={() => {
-          setIsQuickViewOpen(false);
-          setQuickViewProduct(null);
-        }}
+        isOpen={!!quickViewProduct}
+        onClose={handleCloseQuickView}
         onAddToCart={handleQuickViewAddToCart}
       />
     </StockContext.Provider>
