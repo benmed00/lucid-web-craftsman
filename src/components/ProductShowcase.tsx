@@ -45,9 +45,18 @@ const ProductShowcase = () => {
   useEffect(() => {
     const productId = searchParams.get('product');
     if (productId && featuredProducts.length > 0) {
-      const product = featuredProducts.find(p => p.id.toString() === productId);
+      const productIdNum = parseInt(productId, 10);
+      const product = featuredProducts.find(p => p.id === productIdNum);
       if (product) {
         setQuickViewProduct(product);
+      } else {
+        // If product not found in featured, try to fetch it
+        ProductService.getAllProducts().then(allProducts => {
+          const foundProduct = allProducts.find(p => p.id === productIdNum);
+          if (foundProduct) {
+            setQuickViewProduct(foundProduct);
+          }
+        });
       }
     } else {
       setQuickViewProduct(null);

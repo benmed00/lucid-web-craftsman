@@ -279,6 +279,17 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                   {isWishlisted ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                 </Button>
               </TooltipWrapper>
+
+              <TooltipWrapper content="Voir toutes les informations du produit">
+                <Button
+                  variant="outline"
+                  onClick={handleViewDetails}
+                  className="w-full"
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  Voir le détail
+                </Button>
+              </TooltipWrapper>
             </div>
 
             {/* Product Features */}
