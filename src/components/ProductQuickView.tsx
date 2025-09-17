@@ -74,27 +74,27 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl md:w-full w-full max-h-[90vh] md:max-h-[95vh] overflow-hidden p-0 m-0 md:m-6 fixed inset-0 md:inset-auto md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 z-50">
-        <div className="max-h-[90vh] md:max-h-[95vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-hidden p-0 bg-white rounded-lg shadow-xl">
+        <div className="h-full max-h-[90vh] overflow-y-auto">
         <DialogDescription className="sr-only">
           Aperçu rapide du produit {product.name} - {product.description}
         </DialogDescription>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-0">
           {/* Images Section */}
-          <div className="relative">
-            <DialogHeader className="absolute top-4 right-4 z-10">
+          <div className="relative bg-gray-50 flex-shrink-0">
+            <DialogHeader className="absolute top-2 right-2 z-20">
               <Button
-                variant="secondary"
+                variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="rounded-full bg-white/80 backdrop-blur-sm hover:bg-white"
+                className="rounded-full bg-white/90 backdrop-blur-sm hover:bg-white shadow-md h-8 w-8"
               >
                 <X className="h-4 w-4" />
               </Button>
             </DialogHeader>
 
             {/* Main Image */}
-              <div className="aspect-square bg-gray-100 relative overflow-hidden">
+              <div className="aspect-square lg:aspect-[4/3] bg-white relative overflow-hidden">
                 <img
                   src={images[selectedImageIndex] || images[0]}
                   alt={product.name}
@@ -110,7 +110,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                   }}
                 />
               {(product.new || product.is_new) && (
-                <Badge className="absolute top-4 left-4 bg-olive-700 text-white">
+                <Badge className="absolute top-3 left-3 bg-olive-700 text-white shadow-sm">
                   Nouveau
                 </Badge>
               )}
@@ -122,23 +122,23 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                     variant="secondary"
                     size="sm"
                     onClick={() => setShowMobileGallery(true)}
-                    className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full"
+                    className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm hover:bg-white shadow-md p-2 rounded-full h-8 w-8"
                   >
-                    <ZoomIn className="h-4 w-4" />
+                    <ZoomIn className="h-3 w-3" />
                   </Button>
                 </TooltipWrapper>
               )}
               
               {/* Image Navigation Dots */}
               {images.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1.5">
                   {images.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImageIndex(index)}
                       className={`w-2 h-2 rounded-full transition-all ${
                         index === selectedImageIndex 
-                          ? 'bg-white scale-125' 
+                          ? 'bg-white scale-125 shadow-sm' 
                           : 'bg-white/60 hover:bg-white/80'
                       }`}
                     />
@@ -147,16 +147,16 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
               )}
             </div>
 
-            {/* Thumbnail Images */}
-            {images.length > 1 && (
-              <div className="flex gap-2 p-4 bg-gray-50">
+            {/* Thumbnail Images - Hide on mobile to save space */}
+            {images.length > 1 && !isMobile && (
+              <div className="flex gap-2 p-3 bg-gray-50 border-t">
                 {images.slice(0, 4).map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                    className={`w-14 h-14 rounded-md overflow-hidden border-2 transition-all flex-shrink-0 ${
                       index === selectedImageIndex 
-                        ? 'border-olive-700' 
+                        ? 'border-olive-700 shadow-sm' 
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -172,13 +172,13 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
           </div>
 
           {/* Product Details Section */}
-          <div className="p-6 flex flex-col">
-            <DialogHeader className="text-left space-y-3 mb-4">
-              <Badge variant="outline" className="w-fit text-olive-700 border-olive-200">
+          <div className="p-4 lg:p-6 flex flex-col min-h-0 bg-white">
+            <DialogHeader className="text-left space-y-2 mb-4">
+              <Badge variant="outline" className="w-fit text-olive-700 border-olive-200 text-xs">
                 {product.category}
               </Badge>
               
-              <DialogTitle className="text-2xl font-bold text-gray-900">
+              <DialogTitle className="text-xl lg:text-2xl font-bold text-gray-900 leading-tight">
                 {product.name}
               </DialogTitle>
               
@@ -188,117 +188,121 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`h-4 w-4 ${
+                      className={`h-3 w-3 lg:h-4 lg:w-4 ${
                         i < 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'
                       }`}
                     />
                   ))}
                 </div>
-                <span className="text-sm text-gray-600">(24 avis)</span>
+                <span className="text-xs lg:text-sm text-gray-600">(24 avis)</span>
               </div>
 
-              <div className="text-3xl font-bold text-olive-700 whitespace-nowrap">
-                {formatPrice(product.price)}
-              </div>
+              <div className="text-2xl lg:text-3xl font-bold text-olive-700">{formatPrice(product.price)}</div>
             </DialogHeader>
 
-            <Separator className="my-4" />
+            <Separator className="my-3" />
 
             {/* Description */}
-            <div className="mb-6">
-              <p className="text-gray-600 leading-relaxed">
+            <div className="mb-4 flex-1 min-h-0 overflow-y-auto">
+              <p className="text-sm lg:text-base text-gray-600 leading-relaxed">
                 {product.description}
               </p>
             </div>
 
             {/* Artisan Info */}
             {product.artisan && (
-              <div className="mb-6 p-4 bg-olive-50 rounded-lg">
-                <h4 className="font-semibold text-olive-800 mb-2">Artisan</h4>
-                <p className="text-sm text-olive-700">{product.artisan}</p>
+              <div className="mb-4 p-3 bg-olive-50 rounded-lg">
+                <h4 className="font-semibold text-olive-800 mb-1 text-sm">Artisan</h4>
+                <p className="text-xs lg:text-sm text-olive-700">{product.artisan}</p>
               </div>
             )}
 
-            <Separator className="my-4" />
+            <Separator className="my-3" />
 
-            {/* Quantity Selector */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Quantité
-              </label>
-              <div className="flex items-center gap-3">
-                <TooltipWrapper content="Diminuer la quantité">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={decrementQuantity}
-                    disabled={quantity <= 1}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                </TooltipWrapper>
-                <span className="w-12 text-center font-medium">{quantity}</span>
-                <TooltipWrapper content="Augmenter la quantité">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={incrementQuantity}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </TooltipWrapper>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
+            {/* Quantity Selector and Actions */}
             <div className="space-y-3 mt-auto">
-              <TooltipWrapper 
-                content={`Ajouter ${quantity}x ${product.name} au panier pour ${formatPrice(product.price * quantity)}`}
-              >
-                <Button
-                  onClick={handleAddToCart}
-                  className="w-full bg-olive-700 hover:bg-olive-800 text-white py-3"
-                >
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  Ajouter au panier - {formatPrice(product.price * quantity)}
-                </Button>
-              </TooltipWrapper>
-
-              <TooltipWrapper 
-                content={isWishlisted ? "Retirer des favoris" : "Ajouter aux favoris"}
-              >
-                <Button
-                  variant="outline"
-                  onClick={handleWishlist}
-                  className={`w-full ${
-                    isWishlisted 
-                      ? 'bg-red-50 text-red-600 border-red-200' 
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <Heart className={`mr-2 h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
-                  {isWishlisted ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                </Button>
-              </TooltipWrapper>
-
-              <TooltipWrapper content="Voir toutes les informations du produit">
-                <Button
-                  variant="outline"
-                  onClick={handleViewDetails}
-                  className="w-full"
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  Voir le détail
-                </Button>
-              </TooltipWrapper>
-            </div>
-
-            {/* Product Features */}
-            <div className="mt-6 text-sm text-gray-600">
-              <div className="flex items-center gap-4">
-                <span>✓ Livraison gratuite</span>
-                <span>✓ Retours 30 jours</span>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Quantité
+                </label>
+                <div className="flex items-center gap-3">
+                  <TooltipWrapper content="Diminuer la quantité">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={decrementQuantity}
+                      disabled={quantity <= 1}
+                      className="h-8 w-8"
+                    >
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                  </TooltipWrapper>
+                  <span className="w-8 text-center font-medium text-sm">{quantity}</span>
+                  <TooltipWrapper content="Augmenter la quantité">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={incrementQuantity}
+                      className="h-8 w-8"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </TooltipWrapper>
+                </div>
               </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                <TooltipWrapper 
+                  content={`Ajouter ${quantity}x ${product.name} au panier pour ${formatPrice(product.price * quantity)}`}
+                >
+                  <Button
+                    onClick={handleAddToCart}
+                    className="w-full bg-olive-700 hover:bg-olive-800 text-white py-2.5 text-sm"
+                  >
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    Ajouter au panier - {formatPrice(product.price * quantity)}
+                  </Button>
+                </TooltipWrapper>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <TooltipWrapper 
+                    content={isWishlisted ? "Retirer des favoris" : "Ajouter aux favoris"}
+                  >
+                    <Button
+                      variant="outline"
+                      onClick={handleWishlist}
+                      className={`${
+                        isWishlisted 
+                          ? 'bg-red-50 text-red-600 border-red-200' 
+                          : 'hover:bg-gray-50'
+                      } text-xs lg:text-sm py-2`}
+                    >
+                      <Heart className={`mr-1.5 h-3 w-3 lg:h-4 lg:w-4 ${isWishlisted ? 'fill-current' : ''}`} />
+                      {isWishlisted ? 'Favoris' : 'Favoris'}
+                    </Button>
+                  </TooltipWrapper>
+
+                  <TooltipWrapper content="Voir toutes les informations du produit">
+                    <Button
+                      variant="outline"
+                      onClick={handleViewDetails}
+                      className="text-xs lg:text-sm py-2"
+                    >
+                      <Eye className="mr-1.5 h-3 w-3 lg:h-4 lg:w-4" />
+                      Détails
+                    </Button>
+                  </TooltipWrapper>
+                </div>
+              </div>
+
+              {/* Product Features */}
+              <div className="mt-3 pt-3 border-t text-xs text-gray-600">
+                <div className="flex items-center justify-center gap-4">
+                  <span>✓ Livraison gratuite</span>
+                  <span>✓ Retours 30 jours</span>
+                </div>
+               </div>
             </div>
           </div>
         </div>
