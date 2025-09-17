@@ -94,47 +94,60 @@
         `;
         document.head.appendChild(criticalCSS);
         
-        // Optimized CSS loading strategy to improve TTI
+        // Ultra-optimized CSS loading strategy to minimize main-thread work
         let cssLoaded = false;
         const loadMainCSS = () => {
           if (cssLoaded) return;
           cssLoaded = true;
           
+          // Use preload + onload technique for fastest non-blocking CSS load
           const cssLink = document.createElement('link');
-          cssLink.rel = 'stylesheet';
+          cssLink.rel = 'preload';
+          cssLink.as = 'style';
           cssLink.href = '/assets/index-CTRRF5Tz.css';
-          cssLink.media = 'print'; // Load without blocking
           cssLink.onload = function() {
-            this.media = 'all'; // Apply styles after load
-            // Keep critical CSS for a bit longer to ensure smooth transition
+            // Convert to stylesheet after preload
+            this.onload = null;
+            this.rel = 'stylesheet';
+            this.media = 'all';
+            
+            // Gradual critical CSS removal to prevent FOUC
             setTimeout(() => {
               const critical = document.getElementById('critical-css');
               if (critical && critical.parentNode) {
-                critical.parentNode.removeChild(critical);
+                critical.style.transition = 'opacity 0.3s';
+                critical.style.opacity = '0';
+                setTimeout(() => {
+                  critical.parentNode.removeChild(critical);
+                }, 300);
               }
-            }, 200);
+            }, 500);
           };
           document.head.appendChild(cssLink);
+          
+          // Backup fallback
+          const noscriptLink = document.createElement('noscript');
+          noscriptLink.innerHTML = '<link rel="stylesheet" href="/assets/index-CTRRF5Tz.css">';
+          document.head.appendChild(noscriptLink);
         };
         
-        // Aggressive deferring strategy for better TTI
+        // More aggressive deferring strategy to minimize main-thread blocking
+        const scheduleAfterPaint = (callback) => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(callback);
+          });
+        };
+        
         if (document.readyState === 'loading') {
-          // Wait for DOM to be ready
           document.addEventListener('DOMContentLoaded', () => {
-            // Use RAF to ensure we're not blocking painting
-            requestAnimationFrame(() => {
-              setTimeout(loadMainCSS, 0);
-            });
+            scheduleAfterPaint(loadMainCSS);
           });
         } else {
-          // Document already ready
-          requestAnimationFrame(() => {
-            setTimeout(loadMainCSS, 0);
-          });
+          scheduleAfterPaint(loadMainCSS);
         }
         
-        // Load on any interaction but prioritize page readiness
-        const interactionEvents = ['scroll', 'mousedown', 'touchstart', 'keydown'];
+        // Load on any interaction with even more aggressive optimization
+        const interactionEvents = ['scroll', 'mousedown', 'touchstart', 'keydown', 'mousemove'];
         const loadOnInteraction = () => {
           loadMainCSS();
           interactionEvents.forEach(event => {
@@ -143,11 +156,15 @@
         };
         
         interactionEvents.forEach(event => {
-          document.addEventListener(event, loadOnInteraction, { once: true, passive: true });
+          document.addEventListener(event, loadOnInteraction, { 
+            once: true, 
+            passive: true,
+            capture: false 
+          });
         });
         
-        // Absolute fallback - ensure CSS loads eventually
-        setTimeout(loadMainCSS, 1000);
+        // Final failsafe with reduced timeout
+        setTimeout(loadMainCSS, 800);
         
         // Fallback stylesheet for no-JS
         const noscriptFallback = document.createElement('noscript');
@@ -317,20 +334,27 @@
       };
     </script>
     <script>
-      // Ultra-deferred loading of non-critical scripts for optimal TTI
+      // Ultra-optimized script loading to minimize main-thread work
       window.addEventListener('load', function() {
-        // Wait for everything to settle before loading optional scripts
+        // Significantly delayed loading to ensure main thread is free
         setTimeout(function() {
-          const shouldLoadGPTEngineer = window.location.search.includes('dev') || 
-                                        window.location.hostname === 'localhost';
-          if (shouldLoadGPTEngineer) {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.gpteng.co/gptengineer.js';
-            script.type = 'module';
-            script.defer = true;
-            document.head.appendChild(script);
+          // Check if we really need GPT Engineer (reduce unnecessary JS)
+          const isDev = window.location.search.includes('dev') || 
+                       window.location.hostname === 'localhost' ||
+                       window.location.hostname.includes('lovable');
+                       
+          if (isDev) {
+            // Load script in the most efficient way possible
+            requestIdleCallback(() => {
+              const script = document.createElement('script');
+              script.src = 'https://cdn.gpteng.co/gptengineer.js';
+              script.type = 'module';
+              script.async = true;
+              script.defer = true;
+              document.head.appendChild(script);
+            }, { timeout: 5000 });
           }
-        }, 2000); // Significant delay to not impact TTI
+        }, 3000); // Extended delay to minimize main-thread impact
       });
     </script>
     <script type="module" src="/src/main.tsx"></script>
