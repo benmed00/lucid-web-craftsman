@@ -80,8 +80,12 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
     try {
       const urlObj = new URL(url);
       
-      // Only add transformations if the URL doesn't already have optimization parameters
-      if (includeTransformations && !urlObj.searchParams.has('quality') && !urlObj.searchParams.has('format')) {
+      // Clean up any duplicate parameters first
+      const hasFormat = urlObj.searchParams.has('format');
+      const hasQuality = urlObj.searchParams.has('quality');
+      
+      // Only add transformations if the URL doesn't already have them AND we want to include them
+      if (includeTransformations && !hasFormat && !hasQuality) {
         // Only add conservative parameters that are widely supported
         if (quality && quality !== 80 && quality <= 90) {
           urlObj.searchParams.set('quality', Math.min(quality, 85).toString());
@@ -104,9 +108,9 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
     try {
       const urlObj = new URL(url);
       
-      // Don't duplicate optimization parameters if they already exist
+      // Don't generate WebP if already has format parameter (avoid duplicates)
       if (urlObj.searchParams.has('format')) {
-        return url; // Return original URL if already optimized
+        return url; // Return original URL if already has format specified
       }
       
       urlObj.searchParams.set('format', 'webp');

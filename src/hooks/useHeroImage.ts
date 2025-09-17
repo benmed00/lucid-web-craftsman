@@ -20,6 +20,21 @@ export const useHeroImage = () => {
         // Only update if we got different data than default
         if (data.imageUrl !== defaultHeroImage.imageUrl) {
           setHeroImageData(data);
+          
+          // Add dynamic preload for LCP optimization
+          if (data.imageUrl.includes('supabase.co/storage')) {
+            const preloadLink = document.createElement('link');
+            preloadLink.rel = 'preload';
+            preloadLink.as = 'image';
+            preloadLink.href = data.imageUrl;
+            preloadLink.setAttribute('fetchpriority', 'high');
+            
+            // Only add if not already present
+            const existingPreload = document.querySelector(`link[href="${data.imageUrl}"]`);
+            if (!existingPreload) {
+              document.head.appendChild(preloadLink);
+            }
+          }
         }
       } catch (error) {
         console.error('Error loading hero image:', error);
