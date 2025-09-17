@@ -94,7 +94,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
             </DialogHeader>
 
             {/* Main Image */}
-              <div className="aspect-square lg:aspect-[4/3] bg-white relative overflow-hidden h-full">{/* Full height on mobile */}
+              <div className="aspect-square lg:aspect-[4/3] bg-white relative overflow-hidden h-full lg:max-h-[60vh]">{/* Full height on mobile, capped on desktop */}
                 <img
                   src={images[selectedImageIndex] || images[0]}
                   alt={product.name}
@@ -164,6 +164,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                       src={image}
                       alt={`${product.name} ${index + 1}`}
                       className="w-full h-full object-cover"
+                      onError={(e) => { e.currentTarget.src = '/assets/images/handmade_products.webp'; }}
                     />
                   </button>
                 ))}
