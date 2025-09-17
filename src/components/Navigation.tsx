@@ -90,7 +90,7 @@ const Navigation = () => {
                   className={clsx(
                     "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/" 
-                      ? "text-olive-700 font-semibold" 
+                      ? "text-olive-700" 
                       : "text-stone-700"
                   )}
                   aria-current={currentPath === "/" ? "page" : undefined}
@@ -107,7 +107,7 @@ const Navigation = () => {
                   className={clsx(
                     "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/products" 
-                      ? "text-olive-700 font-semibold" 
+                      ? "text-olive-700" 
                       : "text-stone-700"
                   )}
                   aria-current={currentPath === "/products" ? "page" : undefined}
@@ -124,7 +124,7 @@ const Navigation = () => {
                   className={clsx(
                     "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/blog" 
-                      ? "text-olive-700 font-semibold" 
+                      ? "text-olive-700" 
                       : "text-stone-700"
                   )}
                   aria-current={currentPath === "/blog" ? "page" : undefined}
@@ -141,7 +141,7 @@ const Navigation = () => {
                   className={clsx(
                     "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/contact" 
-                      ? "text-olive-700 font-semibold" 
+                      ? "text-olive-700" 
                       : "text-stone-700"
                   )}
                   aria-current={currentPath === "/contact" ? "page" : undefined}

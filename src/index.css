@@ -349,6 +349,7 @@
 /* Smooth scrolling - disabled to prevent flickering */
 html {
   scroll-behavior: auto;
+  scrollbar-gutter: stable both-edges;
 }
 
 /* Loading skeleton */
