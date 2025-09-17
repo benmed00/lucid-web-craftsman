@@ -15,7 +15,21 @@
   --text-6xl: 3.75rem;  /* 60px */
 }
 
-/* Mobile-first spacing */
+/* Enhanced tablet breakpoints */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Tablet-specific typography adjustments */
+  :root {
+    --text-sm: 0.875rem;  /* 14px */
+    --text-base: 1rem;    /* 16px */
+    --text-lg: 1.125rem;  /* 18px */
+    --text-xl: 1.25rem;   /* 20px */
+    --text-2xl: 1.5rem;   /* 24px */
+    --text-3xl: 1.875rem; /* 30px */
+    --text-4xl: 2.25rem;  /* 36px */
+  }
+}
+
+/* Mobile-first spacing with tablet optimizations */
 .container {
   padding-left: 1rem;  /* 16px */
   padding-right: 1rem; /* 16px */
@@ -30,12 +44,19 @@
 
 @media (min-width: 768px) {
   .container {
+    padding-left: 1.5rem;  /* 24px - optimized for tablet */
+    padding-right: 1.5rem; /* 24px */
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
     padding-left: 2rem;  /* 32px */
     padding-right: 2rem; /* 32px */
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
   .container {
     padding-left: 2.5rem;  /* 40px */
     padding-right: 2.5rem; /* 40px */
@@ -76,6 +97,22 @@
   }
 }
 
+@media (min-width: 768px) and (max-width: 1023px) {
+  .responsive-grid-1-2-3-4 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  /* Tablet-specific grid for better spacing */
+  .tablet-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .tablet-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (min-width: 1024px) {
   .responsive-grid-1-2-3-4 {
     grid-template-columns: repeat(3, 1fr);
@@ -87,6 +124,22 @@
   .responsive-grid-1-2-3-4 {
     grid-template-columns: repeat(4, 1fr);
     gap: 2rem;
+  }
+}
+
+/* Enhanced tablet navigation */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .tablet-nav-spacing {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  .tablet-text-sm {
+    font-size: 0.875rem;
+  }
+  
+  .tablet-header-height {
+    height: 4rem; /* 64px */
   }
 }
 

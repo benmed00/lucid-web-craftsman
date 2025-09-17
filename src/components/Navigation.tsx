@@ -55,13 +55,13 @@ const Navigation = () => {
       </a>
       
       <header className="sticky top-0 z-40 w-full bg-white border-b border-stone-200 shadow-sm">
-        <div className="w-full max-w-none px-3 sm:px-4 lg:px-6 xl:px-8">
-          <div className="flex items-center justify-between h-16 w-full min-w-0">
+        <div className="w-full max-w-none px-3 sm:px-4 md:px-6 lg:px-6 xl:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16 w-full min-w-0">
             {/* Logo Section - More responsive width */}
-            <div className="flex items-center flex-shrink-0 min-w-0 md:max-w-[180px] lg:w-48">
+            <div className="flex items-center flex-shrink-0 min-w-0 md:max-w-[160px] lg:max-w-[180px] xl:w-48">
               <Link 
                 to="/" 
-                className="group flex items-center space-x-1 md:space-x-2 lg:space-x-3 min-w-0"
+                className="group flex items-center space-x-1 sm:space-x-2 md:space-x-2 lg:space-x-3 min-w-0"
                 aria-label="Retour à l'accueil"
                 onClick={() => {
                   console.log('Logo clicked, navigating to home');
@@ -72,10 +72,10 @@ const Navigation = () => {
                   <Leaf className="h-4 w-4 md:h-5 md:w-5 text-white" />
                 </div>
                 <div className="flex flex-col min-w-0 hidden sm:block">
-                  <span className="font-serif text-sm md:text-lg lg:text-xl font-semibold text-stone-800 group-hover:text-olive-700 transition-colors duration-200 whitespace-nowrap truncate">
+                  <span className="font-serif text-sm md:text-base lg:text-lg xl:text-xl font-semibold text-stone-800 group-hover:text-olive-700 transition-colors duration-200 whitespace-nowrap truncate">
                     Rif Raw Straw
                   </span>
-                  <span className="text-xs text-stone-500 hidden lg:block group-hover:text-olive-600 transition-colors duration-200 whitespace-nowrap">
+                  <span className="text-xs text-stone-500 hidden md:block lg:block group-hover:text-olive-600 transition-colors duration-200 whitespace-nowrap">
                     Artisanat Berbère
                   </span>
                 </div>
@@ -84,11 +84,11 @@ const Navigation = () => {
 
             {/* Desktop Navigation Links - Better tablet spacing */}
             <nav className="hidden md:flex items-center justify-center flex-1 px-2 lg:px-4 min-w-0" role="navigation" aria-label="Navigation principale">
-              <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-6 xl:space-x-8">
+              <div className="flex items-center space-x-1 md:space-x-2 lg:space-x-4 xl:space-x-6">
                 <Link
                   to="/"
                   className={clsx(
-                    "relative px-1.5 md:px-2 lg:px-3 xl:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
+                    "relative px-1 md:px-2 lg:px-3 xl:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/" 
                       ? "text-olive-700 font-semibold" 
                       : "text-stone-700"
@@ -105,7 +105,7 @@ const Navigation = () => {
                 <Link
                   to="/products"
                   className={clsx(
-                    "relative px-1.5 md:px-2 lg:px-3 xl:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
+                    "relative px-1 md:px-2 lg:px-3 xl:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/products" 
                       ? "text-olive-700 font-semibold" 
                       : "text-stone-700"
@@ -122,7 +122,7 @@ const Navigation = () => {
                 <Link
                   to="/blog"
                   className={clsx(
-                    "relative px-1.5 md:px-2 lg:px-3 xl:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
+                    "relative px-1 md:px-2 lg:px-3 xl:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/blog" 
                       ? "text-olive-700 font-semibold" 
                       : "text-stone-700"
@@ -139,7 +139,7 @@ const Navigation = () => {
                 <Link
                   to="/contact"
                   className={clsx(
-                    "relative px-1.5 md:px-2 lg:px-3 xl:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
+                    "relative px-1 md:px-2 lg:px-3 xl:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
                     currentPath === "/contact" 
                       ? "text-olive-700 font-semibold" 
                       : "text-stone-700"
@@ -156,7 +156,7 @@ const Navigation = () => {
             </nav>
 
             {/* Actions Section - Better tablet spacing */}
-            <div className="flex items-center space-x-1 md:space-x-2 lg:space-x-3 xl:space-x-4 flex-shrink-0 justify-end min-w-0">
+            <div className="flex items-center space-x-1 sm:space-x-1.5 md:space-x-2 lg:space-x-3 xl:space-x-4 flex-shrink-0 justify-end min-w-0">
               {/* Search Button - Desktop */}
               <Button
                 variant="ghost"
@@ -265,7 +265,7 @@ const Navigation = () => {
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden text-stone-700 p-2 rounded-md hover:bg-stone-100 transition-colors duration-200"
+              className="md:hidden text-stone-700 p-1.5 sm:p-2 rounded-md hover:bg-stone-100 transition-colors duration-200 touch-manipulation"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
               aria-expanded={isMenuOpen}
