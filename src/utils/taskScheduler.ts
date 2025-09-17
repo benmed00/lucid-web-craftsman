@@ -8,7 +8,7 @@ import React from 'react';
 class TaskScheduler {
   private taskQueue: Array<() => void> = [];
   private isRunning = false;
-  private frameDeadline = 5; // 5ms per frame to stay under 50ms threshold
+  private frameDeadline = 3; // Reduced to 3ms to prevent FID issues (well under 50ms)
 
   /**
    * Schedule a task to run in the next available time slot
@@ -64,15 +64,19 @@ class TaskScheduler {
     
     const runTasksInFrame = () => {
       const startTime = performance.now();
+      let tasksExecuted = 0;
+      const maxTasksPerFrame = 3; // Limit tasks per frame for better FID
       
       while (
         this.taskQueue.length > 0 && 
-        performance.now() - startTime < this.frameDeadline
+        performance.now() - startTime < this.frameDeadline &&
+        tasksExecuted < maxTasksPerFrame
       ) {
         const task = this.taskQueue.shift();
         if (task) {
           try {
             task();
+            tasksExecuted++;
           } catch (error) {
             console.error('Task execution error:', error);
           }
@@ -80,8 +84,12 @@ class TaskScheduler {
       }
 
       if (this.taskQueue.length > 0) {
-        // Use MessageChannel for faster scheduling than setTimeout
-        if (typeof MessageChannel !== 'undefined') {
+        // Use scheduler.postTask if available for better FID
+        if ('scheduler' in window && 'postTask' in (window as any).scheduler) {
+          (window as any).scheduler.postTask(runTasksInFrame, { 
+            priority: 'user-visible' 
+          });
+        } else if (typeof MessageChannel !== 'undefined') {
           const channel = new MessageChannel();
           channel.port2.onmessage = () => runTasksInFrame();
           channel.port1.postMessage(null);

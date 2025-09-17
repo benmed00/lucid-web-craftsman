@@ -7,6 +7,7 @@ import { lazy, Suspense, startTransition, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { taskScheduler } from "@/utils/taskScheduler";
 import { mainThreadOptimizer } from "@/utils/mainThreadOptimizer";
+import { inputResponsivenessOptimizer } from "@/utils/inputResponsivenessOptimizer";
 
 // Critical pages loaded immediately
 import Index from "./pages/Index";
@@ -118,21 +119,24 @@ const App = () => {
   useWebVitals();
 
   // Schedule non-critical initializations to avoid blocking main thread
-  // Optimize initializations to minimize main-thread work
+  // Ultra-optimized initializations to prevent FID issues
   useEffect(() => {
-    // Use task scheduler and web workers for heavy initialization work
-    taskScheduler.schedule(async () => {
-      // Process any heavy initialization in worker
-      try {
-        await mainThreadOptimizer.executeInWorker('COMPRESS_DATA', {
-          config: 'app_initialization',
-          timestamp: Date.now()
-        });
-        console.log('App initialized with minimal main-thread work');
-      } catch (error) {
-        console.log('App initialized with fallback processing');
-      }
-    });
+    // Use input responsiveness optimizer for FID-safe initialization
+    inputResponsivenessOptimizer.scheduleWhenIdle(async () => {
+      // Break initialization into tiny chunks to prevent long tasks
+      await inputResponsivenessOptimizer.executeWithYielding(async () => {
+        try {
+          // Process initialization data in small chunks
+          await mainThreadOptimizer.executeInWorker('COMPRESS_DATA', {
+            config: 'app_initialization',
+            timestamp: Date.now()
+          });
+          console.log('App initialized with FID optimization');
+        } catch (error) {
+          console.log('App initialized with fallback processing');
+        }
+      }, { priority: 'background' });
+    }, { timeout: 2000 });
   }, []);
 
   return (

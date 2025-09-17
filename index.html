@@ -131,23 +131,40 @@
           document.head.appendChild(noscriptLink);
         };
         
-        // More aggressive deferring strategy to minimize main-thread blocking
+        // Ultra-aggressive deferring strategy to eliminate long tasks for FID
         const scheduleAfterPaint = (callback) => {
+          // Use scheduler.postTask if available for better FID
+          if ('scheduler' in window && 'postTask' in (window as any).scheduler) {
+            (window as any).scheduler.postTask(callback, { priority: 'background' });
+            return;
+          }
+          
+          // Fallback to double RAF for ensuring paint completion
           requestAnimationFrame(() => {
             requestAnimationFrame(callback);
           });
         };
         
+        // Even more aggressive CSS loading to prevent input delay
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', () => {
-            scheduleAfterPaint(loadMainCSS);
+            // Triple-defer to ensure no blocking during critical loading phase
+            scheduleAfterPaint(() => {
+              setTimeout(() => {
+                scheduleAfterPaint(loadMainCSS);
+              }, 10);
+            });
           });
         } else {
-          scheduleAfterPaint(loadMainCSS);
+          scheduleAfterPaint(() => {
+            setTimeout(() => {
+              scheduleAfterPaint(loadMainCSS);
+            }, 10);
+          });
         }
         
-        // Load on any interaction with even more aggressive optimization
-        const interactionEvents = ['scroll', 'mousedown', 'touchstart', 'keydown', 'mousemove'];
+        // Load on any interaction with ultra-optimized event handling
+        const interactionEvents = ['mousedown', 'touchstart', 'keydown'];
         const loadOnInteraction = () => {
           loadMainCSS();
           interactionEvents.forEach(event => {
@@ -155,6 +172,7 @@
           });
         };
         
+        // Use passive listeners to prevent blocking input processing
         interactionEvents.forEach(event => {
           document.addEventListener(event, loadOnInteraction, { 
             once: true, 
@@ -163,8 +181,8 @@
           });
         });
         
-        // Final failsafe with reduced timeout
-        setTimeout(loadMainCSS, 800);
+        // Reduced timeout to prevent long blocking during critical phase
+        setTimeout(loadMainCSS, 600);
         
         // Fallback stylesheet for no-JS
         const noscriptFallback = document.createElement('noscript');
