@@ -1,6 +1,5 @@
-
 import React from "react";
-import { Leaf, Menu, ShoppingBag, X, User, LogOut, Heart, ShoppingCart, Package, Search } from "lucide-react";
+import { Leaf, Menu, ShoppingBag, X, User, LogOut, Heart, Package, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -10,7 +9,6 @@ import { useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
-
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,10 +41,9 @@ const Navigation = () => {
     }
   };
 
-
   return (
     <>
-      {/* Skip to main content - accessibility best practice */}
+      {/* Skip to main content */}
       <a 
         href="#main-content" 
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-olive-700 text-white px-4 py-2 rounded-md z-50 focus:ring-2 focus:ring-olive-300"
@@ -57,16 +54,13 @@ const Navigation = () => {
       <header className="sticky top-0 z-50 w-full bg-white border-b border-stone-200 shadow-sm">
         <div className="w-full max-w-none px-3 sm:px-4 md:px-4 lg:px-6 xl:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-14 lg:h-16 w-full min-w-0">
-            {/* Logo Section - Tablet optimized */}
+            {/* Logo Section */}
             <div className="flex items-center flex-shrink-0 min-w-0 md:max-w-[140px] lg:max-w-[180px] xl:w-48">
               <Link 
                 to="/" 
                 className="group flex items-center space-x-1 sm:space-x-2 md:space-x-1.5 lg:space-x-3 min-w-0"
                 aria-label="Retour à l'accueil"
-                onClick={() => {
-                  console.log('Logo clicked, navigating to home');
-                  setIsMenuOpen(false);
-                }}
+                onClick={() => setIsMenuOpen(false)}
               >
                 <div className="p-1.5 md:p-1.5 lg:p-2 rounded-full bg-olive-700 group-hover:bg-olive-800 transition-colors duration-200 flex-shrink-0">
                   <Leaf className="h-4 w-4 md:h-4 md:w-4 lg:h-5 lg:w-5 text-white" />
@@ -82,19 +76,16 @@ const Navigation = () => {
               </Link>
             </div>
 
-            {/* Navigation Links - Tablet optimized */}
+            {/* Navigation Links - Desktop */}
             <nav className="hidden md:flex items-center justify-center flex-1 px-1 md:px-2 lg:px-4 min-w-0" role="navigation" aria-label="Navigation principale">
               <div className="flex items-center space-x-0.5 md:space-x-1 lg:space-x-4 xl:space-x-6">
                 <Link
                   to="/"
                   className={clsx(
                     "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
-                    currentPath === "/" 
-                      ? "text-olive-700" 
-                      : "text-stone-700"
+                    currentPath === "/" ? "text-olive-700" : "text-stone-700"
                   )}
                   aria-current={currentPath === "/" ? "page" : undefined}
-                  onClick={() => console.log('Accueil clicked')}
                 >
                   Accueil
                   {currentPath === "/" && (
@@ -106,12 +97,9 @@ const Navigation = () => {
                   to="/products"
                   className={clsx(
                     "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
-                    currentPath === "/products" 
-                      ? "text-olive-700" 
-                      : "text-stone-700"
+                    currentPath === "/products" ? "text-olive-700" : "text-stone-700"
                   )}
                   aria-current={currentPath === "/products" ? "page" : undefined}
-                  onClick={() => console.log('Boutique clicked')}
                 >
                   Boutique
                   {currentPath === "/products" && (
@@ -123,12 +111,9 @@ const Navigation = () => {
                   to="/blog"
                   className={clsx(
                     "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
-                    currentPath === "/blog" 
-                      ? "text-olive-700" 
-                      : "text-stone-700"
+                    currentPath === "/blog" ? "text-olive-700" : "text-stone-700"
                   )}
                   aria-current={currentPath === "/blog" ? "page" : undefined}
-                  onClick={() => console.log('Blog clicked')}
                 >
                   Blog
                   {currentPath === "/blog" && (
@@ -140,12 +125,9 @@ const Navigation = () => {
                   to="/contact"
                   className={clsx(
                     "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
-                    currentPath === "/contact" 
-                      ? "text-olive-700" 
-                      : "text-stone-700"
+                    currentPath === "/contact" ? "text-olive-700" : "text-stone-700"
                   )}
                   aria-current={currentPath === "/contact" ? "page" : undefined}
-                  onClick={() => console.log('Contact clicked')}
                 >
                   Contact
                   {currentPath === "/contact" && (
@@ -155,9 +137,9 @@ const Navigation = () => {
               </div>
             </nav>
 
-            {/* Actions Section - Tablet optimized with fixed widths */}
+            {/* Actions Section - Desktop */}
             <div className="flex items-center space-x-0.5 sm:space-x-1 md:space-x-1 lg:space-x-3 xl:space-x-4 flex-shrink-0 justify-end min-w-[120px] md:min-w-[140px] lg:min-w-[180px]">
-              {/* Search Button - Desktop (fixed width container) */}
+              {/* Search Button - Desktop */}
               <div className="hidden lg:flex w-10 h-8 items-center justify-center">
                 <Button
                   variant="ghost"
@@ -166,24 +148,14 @@ const Navigation = () => {
                   className="relative flex items-center gap-2 group w-10 h-8"
                 >
                   <Search size={18} />
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    Rechercher
-                  </div>
                 </Button>
               </div>
 
-              {/* Wishlist button - Tablet and Desktop (fixed width container) */}
+              {/* Wishlist button - Desktop */}
               <div className="hidden md:flex w-8 h-8 items-center justify-center">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  className="relative flex items-center justify-center w-8 h-8 p-0"
-                >
+                <Button variant="ghost" size="sm" asChild className="relative flex items-center justify-center w-8 h-8 p-0">
                   <Link
                     to={user ? "/wishlist" : "#"}
-                    tabIndex={user ? 0 : -1}
-                    aria-hidden={!user}
                     className={clsx(
                       "flex items-center justify-center w-8 h-8",
                       !user && "pointer-events-none opacity-30"
@@ -199,34 +171,28 @@ const Navigation = () => {
                 </Button>
               </div>
 
-              {/* Currency Selector - Desktop only */}
+              {/* Currency Selector - Desktop */}
               <div className="hidden lg:block">
                 <CurrencySelector />
               </div>
 
+              {/* Cart Button - Desktop */}
               <Link to="/cart" className="hidden md:block">
                 <Button
                   variant="outline"
                   size="sm"
                   className={clsx(
                     "border-stone-300 transition-colors flex items-center group relative text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2",
-                    itemCount >= 1
-                      ? "bg-olive-700 text-white"
-                      : "bg-white text-stone-700",
-                    itemCount >= 1
-                      ? "hover:bg-white hover:text-olive-700"
-                      : "hover:bg-white hover:text-stone-900"
+                    itemCount >= 1 ? "bg-olive-700 text-white" : "bg-white text-stone-700",
+                    itemCount >= 1 ? "hover:bg-white hover:text-olive-700" : "hover:bg-white hover:text-stone-900"
                   )}
                 >
                   <ShoppingBag className={clsx("h-3.5 w-3.5 md:h-4 md:w-4 transition-colors", itemCount >= 1 ? "text-white group-hover:text-olive-700" : "text-stone-700 group-hover:text-stone-900")} />
                   <span className="ml-1.5 md:ml-2">({itemCount})</span>
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    Panier
-                  </div>
                 </Button>
               </Link>
 
-              {/* Auth buttons - Simplified for tablet */}
+              {/* Auth buttons - Desktop */}
               <div className="hidden md:flex items-center gap-0.5 md:gap-1">
                 {isLoading ? (
                   <div className="flex items-center gap-0.5">
@@ -239,17 +205,11 @@ const Navigation = () => {
                     <Button variant="ghost" size="sm" asChild className="group relative hidden lg:inline-flex">
                       <Link to="/orders" className="flex items-center p-1.5 md:p-2">
                         <Package className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                          Mes Commandes
-                        </div>
                       </Link>
                     </Button>
                     <Button variant="ghost" size="sm" asChild className="group relative">
                       <Link to="/profile" className="flex items-center p-1.5 md:p-2">
                         <User className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                          Mon Profil
-                        </div>
                       </Link>
                     </Button>
                     <Button 
@@ -257,13 +217,8 @@ const Navigation = () => {
                       size="sm" 
                       onClick={handleSignOut} 
                       className="group relative flex items-center p-1.5 md:p-2 hidden lg:inline-flex"
-                      id="nav-signout"
-                      name="navigation-signout-button"
                     >
                       <LogOut className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        Déconnexion
-                      </div>
                     </Button>
                   </>
                 ) : (
@@ -272,47 +227,44 @@ const Navigation = () => {
                   </Button>
                 )}
               </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                className="md:hidden text-stone-700 p-1.5 sm:p-2 rounded-md hover:bg-stone-100 transition-colors duration-200 touch-manipulation"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+                aria-expanded={isMenuOpen}
+                aria-haspopup="true"
+                aria-controls="mobile-menu"
+              >
+                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
             </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden text-stone-700 p-1.5 sm:p-2 rounded-md hover:bg-stone-100 transition-colors duration-200 touch-manipulation"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
-              aria-expanded={isMenuOpen}
-              aria-haspopup="true"
-              aria-controls="mobile-menu"
-            >
-              {isMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </button>
           </div>
         </div>
 
-      {/* Search Bar - Desktop Dropdown */}
-      {showSearch && (
-        <div className="absolute top-full left-0 right-0 bg-white border-b border-stone-200 shadow-lg z-[45] hidden md:block">
-          <div className="container mx-auto px-4 py-4">
-            <form onSubmit={handleSearch} className="flex gap-2">
-              <Input
-                type="text"
-                placeholder="Rechercher des produits..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1"
-                autoFocus
-              />
-              <Button type="submit" disabled={!searchQuery.trim()}>
-                <Search size={18} />
-                <span className="ml-2">Rechercher</span>
-              </Button>
-            </form>
+        {/* Search Bar - Desktop Dropdown */}
+        {showSearch && (
+          <div className="absolute top-full left-0 right-0 bg-white border-b border-stone-200 shadow-lg z-[45] hidden md:block">
+            <div className="container mx-auto px-4 py-4">
+              <form onSubmit={handleSearch} className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Rechercher des produits..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1"
+                  autoFocus
+                />
+                <Button type="submit" disabled={!searchQuery.trim()}>
+                  <Search size={18} />
+                  <span className="ml-2">Rechercher</span>
+                </Button>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </header>
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
@@ -323,29 +275,55 @@ const Navigation = () => {
         />
       )}
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Slide in from right */}
       <div 
         id="mobile-menu"
-        className={`md:hidden absolute top-full left-0 right-0 bg-white shadow-xl z-[56] border-t border-stone-100 transform transition-transform duration-200 ease-out max-h-[90vh] overflow-y-auto ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'}`}
+        className={`md:hidden fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-[56] transform transition-transform duration-300 ease-out ${
+          isMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
         aria-hidden={!isMenuOpen}
         role="menu"
       >
-        <div className="flex flex-col space-y-3 p-6 pb-8">
-          {/* Mobile Search */}
-          <div className="mb-4">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-stone-200">
+          <div className="flex items-center space-x-2">
+            <div className="p-2 rounded-full bg-olive-700">
+              <Leaf className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <span className="font-serif text-lg font-semibold text-stone-800">
+                Rif Raw Straw
+              </span>
+              <p className="text-sm text-stone-500">Artisanat Berbère</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            className="p-2 rounded-full hover:bg-stone-100 transition-colors"
+            aria-label="Fermer le menu"
+          >
+            <X className="h-5 w-5 text-stone-600" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-col h-full overflow-y-auto pb-6">
+          {/* Search Section */}
+          <div className="p-6 border-b border-stone-100">
             <form onSubmit={handleSearch} className="flex gap-2">
               <Input
                 type="text"
-                placeholder="Rechercher des produits..."
+                placeholder="Rechercher..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1"
+                className="flex-1 rounded-lg"
                 tabIndex={isMenuOpen ? 0 : -1}
               />
               <Button 
                 type="submit" 
                 disabled={!searchQuery.trim()} 
                 size="sm"
+                className="bg-olive-700 hover:bg-olive-800"
                 tabIndex={isMenuOpen ? 0 : -1}
               >
                 <Search size={16} />
@@ -353,45 +331,176 @@ const Navigation = () => {
             </form>
           </div>
 
-          <Link
-            to="/"
-            className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
-            onClick={() => setIsMenuOpen(false)}
-            tabIndex={isMenuOpen ? 0 : -1}
-          >
-            <span className="text-2xl">🏠</span>
-            <span className="text-lg">Accueil</span>
-          </Link>
-          <Link
-            to="/products"
-            className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
-            onClick={() => setIsMenuOpen(false)}
-            tabIndex={isMenuOpen ? 0 : -1}
-          >
-            <span className="text-2xl">🛍️</span>
-            <span className="text-lg">Boutique</span>
-          </Link>
-          <Link
-            to="/blog"
-            className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
-            onClick={() => setIsMenuOpen(false)}
-            tabIndex={isMenuOpen ? 0 : -1}
-          >
-            <span className="text-2xl">📖</span>
-            <span className="text-lg">Blog</span>
-          </Link>
-          <Link
-            to="/contact"
-            className="text-stone-700 hover:text-olive-700 hover:bg-olive-50 transition-colors duration-150 py-5 px-5 rounded-xl font-medium flex items-center gap-4 touch-manipulation min-h-[56px]"
-            onClick={() => setIsMenuOpen(false)}
-            tabIndex={isMenuOpen ? 0 : -1}
-          >
-            <span className="text-2xl">💬</span>
-            <span className="text-lg">Contact</span>
-          </Link>
+          {/* Navigation Links */}
+          <div className="px-6 py-4 space-y-2">
+            <Link
+              to="/"
+              className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 touch-manipulation ${
+                currentPath === "/" 
+                  ? "bg-olive-700 text-white" 
+                  : "text-stone-700 hover:bg-olive-50 hover:text-olive-700"
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+              tabIndex={isMenuOpen ? 0 : -1}
+            >
+              <div className={`p-2 rounded-lg ${currentPath === "/" ? "bg-white/20" : "bg-stone-100"}`}>
+                <Leaf className={`h-5 w-5 ${currentPath === "/" ? "text-white" : "text-olive-700"}`} />
+              </div>
+              <span className="font-medium text-lg">Accueil</span>
+            </Link>
 
-          {/* Currency Selector - Mobile */}
-          <div className="px-4 py-3">
+            <Link
+              to="/products"
+              className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 touch-manipulation ${
+                currentPath === "/products" 
+                  ? "bg-olive-700 text-white" 
+                  : "text-stone-700 hover:bg-olive-50 hover:text-olive-700"
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+              tabIndex={isMenuOpen ? 0 : -1}
+            >
+              <div className={`p-2 rounded-lg ${currentPath === "/products" ? "bg-white/20" : "bg-stone-100"}`}>
+                <ShoppingBag className={`h-5 w-5 ${currentPath === "/products" ? "text-white" : "text-olive-700"}`} />
+              </div>
+              <span className="font-medium text-lg">Boutique</span>
+            </Link>
+
+            <Link
+              to="/blog"
+              className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 touch-manipulation ${
+                currentPath === "/blog" 
+                  ? "bg-olive-700 text-white" 
+                  : "text-stone-700 hover:bg-olive-50 hover:text-olive-700"
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+              tabIndex={isMenuOpen ? 0 : -1}
+            >
+              <div className={`p-2 rounded-lg ${currentPath === "/blog" ? "bg-white/20" : "bg-stone-100"}`}>
+                <Package className={`h-5 w-5 ${currentPath === "/blog" ? "text-white" : "text-olive-700"}`} />
+              </div>
+              <span className="font-medium text-lg">Blog</span>
+            </Link>
+
+            <Link
+              to="/contact"
+              className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 touch-manipulation ${
+                currentPath === "/contact" 
+                  ? "bg-olive-700 text-white" 
+                  : "text-stone-700 hover:bg-olive-50 hover:text-olive-700"
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+              tabIndex={isMenuOpen ? 0 : -1}
+            >
+              <div className={`p-2 rounded-lg ${currentPath === "/contact" ? "bg-white/20" : "bg-stone-100"}`}>
+                <User className={`h-5 w-5 ${currentPath === "/contact" ? "text-white" : "text-olive-700"}`} />
+              </div>
+              <span className="font-medium text-lg">Contact</span>
+            </Link>
+          </div>
+
+          {/* User Actions Section */}
+          <div className="px-6 py-4 border-t border-stone-100">
+            {/* Cart Button */}
+            <Link
+              to="/cart"
+              className="block mb-4"
+              onClick={() => setIsMenuOpen(false)}
+              tabIndex={isMenuOpen ? 0 : -1}
+            >
+              <Button
+                className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-medium text-lg transition-all duration-200 ${
+                  itemCount >= 1
+                    ? "bg-olive-700 text-white hover:bg-olive-800 shadow-lg shadow-olive-700/30"
+                    : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                }`}
+                tabIndex={isMenuOpen ? 0 : -1}
+              >
+                <ShoppingBag className="h-5 w-5" />
+                <span>Panier {itemCount > 0 && `(${itemCount})`}</span>
+              </Button>
+            </Link>
+
+            {/* Auth Section */}
+            {!isLoading && (
+              <div className="space-y-3">
+                {user ? (
+                  <>
+                    {/* User Info */}
+                    <div className="flex items-center gap-3 p-3 bg-olive-50 rounded-lg">
+                      <div className="p-2 bg-olive-700 rounded-full">
+                        <User className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="text-sm font-medium text-olive-800">Connecté</span>
+                    </div>
+
+                    {/* User Menu Items */}
+                    <div className="space-y-2">
+                      <Link
+                        to="/profile"
+                        className="flex items-center gap-3 p-3 text-stone-700 hover:bg-stone-50 rounded-lg transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                        tabIndex={isMenuOpen ? 0 : -1}
+                      >
+                        <User className="h-5 w-5" />
+                        <span>Mon Profil</span>
+                      </Link>
+
+                      <Link
+                        to="/orders"
+                        className="flex items-center gap-3 p-3 text-stone-700 hover:bg-stone-50 rounded-lg transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                        tabIndex={isMenuOpen ? 0 : -1}
+                      >
+                        <Package className="h-5 w-5" />
+                        <span>Mes Commandes</span>
+                      </Link>
+
+                      <Link
+                        to="/wishlist"
+                        className="flex items-center justify-between p-3 text-stone-700 hover:bg-stone-50 rounded-lg transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                        tabIndex={isMenuOpen ? 0 : -1}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Heart className="h-5 w-5" />
+                          <span>Mes Favoris</span>
+                        </div>
+                        {wishlistCount > 0 && (
+                          <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {wishlistCount}
+                          </span>
+                        )}
+                      </Link>
+
+                      <button
+                        onClick={handleSignOut}
+                        className="flex items-center gap-3 w-full p-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        tabIndex={isMenuOpen ? 0 : -1}
+                      >
+                        <LogOut className="h-5 w-5" />
+                        <span>Déconnexion</span>
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <Button 
+                    variant="default" 
+                    asChild 
+                    className="w-full py-4 rounded-xl bg-olive-700 hover:bg-olive-800 text-white font-medium"
+                    tabIndex={isMenuOpen ? 0 : -1}
+                  >
+                    <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+                      <User className="mr-2 h-5 w-5" />
+                      Se connecter
+                    </Link>
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Currency Selector */}
+          <div className="px-6 py-4 border-t border-stone-100">
             <div className="flex items-center justify-between">
               <span className="text-stone-700 font-medium">Devise:</span>
               <div tabIndex={isMenuOpen ? 0 : -1}>
@@ -399,114 +508,8 @@ const Navigation = () => {
               </div>
             </div>
           </div>
-
-          <div className="pt-4 mt-4 border-t border-stone-200">
-            <Link
-              to="/cart"
-              className="w-full block"
-              onClick={() => setIsMenuOpen(false)}
-              tabIndex={isMenuOpen ? 0 : -1}
-            >
-              <Button
-                className={clsx(
-                  "w-full transition-all duration-200 flex items-center justify-center py-4 rounded-xl active:scale-[0.98] hover:shadow-lg",
-                  itemCount >= 1
-                    ? "bg-olive-700 text-white hover:bg-olive-800 shadow-olive-700/30"
-                    : "bg-stone-100 text-stone-700 hover:bg-stone-200"
-                )}
-                tabIndex={isMenuOpen ? 0 : -1}
-              >
-                <ShoppingBag className="mr-3 h-5 w-5" /> 
-                <span className="font-medium">Panier {itemCount > 0 && `(${itemCount})`}</span>
-              </Button>
-            </Link>
-          </div>
-
-          {/* Mobile auth buttons */}
-          {!isLoading && (
-            <>
-            {user && (
-              <>
-                <Link
-                  to="/wishlist"
-                  className="flex items-center justify-between py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors relative"
-                  onClick={() => setIsMenuOpen(false)}
-                  tabIndex={isMenuOpen ? 0 : -1}
-                >
-                  <span className="flex items-center">
-                    <Heart size={20} className="mr-3" />
-                    Mes Favoris
-                  </span>
-                  {wishlistCount > 0 && (
-                    <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {wishlistCount}
-                    </span>
-                  )}
-                </Link>
-                 <Link
-                   to="/orders"
-                   className="flex items-center py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors"
-                   onClick={() => setIsMenuOpen(false)}
-                   tabIndex={isMenuOpen ? 0 : -1}
-                 >
-                   <Package size={20} className="mr-3" />
-                   Mes Commandes
-                 </Link>
-                 <Link
-                   to="/cart"
-                   className="flex items-center py-3 px-4 text-stone-700 hover:bg-olive-50 rounded-lg transition-colors"
-                   onClick={() => setIsMenuOpen(false)}
-                   tabIndex={isMenuOpen ? 0 : -1}
-                 >
-                   <ShoppingCart size={20} className="mr-3" />
-                   Panier
-                 </Link>
-              </>
-            )}
-
-            {user ? (
-                <div className="pt-4 mt-4 border-t border-stone-200 space-y-3">
-                  <Link 
-                    to="/profile" 
-                    onClick={() => setIsMenuOpen(false)}
-                    tabIndex={isMenuOpen ? 0 : -1}
-                  >
-                    <div className="px-4 py-3 bg-olive-50 rounded-xl hover:bg-olive-100 active:bg-olive-200 transition-all duration-200 cursor-pointer">
-                      <div className="flex items-center gap-3 text-olive-700 font-medium">
-                        <User className="h-5 w-5" />
-                        <span>👤 Mon Profil</span>
-                      </div>
-                    </div>
-                  </Link>
-                  <Button 
-                    variant="outline" 
-                    onClick={handleSignOut} 
-                    className="w-full flex items-center justify-center gap-3 py-4 rounded-xl hover:shadow-lg active:scale-[0.98] transition-all duration-200"
-                    tabIndex={isMenuOpen ? 0 : -1}
-                  >
-                    <LogOut className="h-5 w-5" />
-                    <span className="font-medium">Déconnexion</span>
-                  </Button>
-                </div>
-              ) : (
-                <div className="pt-4 mt-4 border-t border-stone-200">
-                  <Button 
-                    variant="default" 
-                    asChild 
-                    className="w-full py-4 rounded-xl hover:shadow-lg active:scale-[0.98] transition-all duration-200"
-                    tabIndex={isMenuOpen ? 0 : -1}
-                  >
-                    <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
-                      <span className="font-medium">Se connecter</span>
-                    </Link>
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
         </div>
       </div>
-      </header>
     </>
   );
 };
