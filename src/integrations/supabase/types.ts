@@ -1698,10 +1698,10 @@ export type Database = {
       }
       log_security_event: {
         Args: {
-          p_event_data?: Json
-          p_event_type: string
-          p_severity?: string
-          p_user_id?: string
+          details?: Json
+          event_type: string
+          severity?: string
+          user_id?: string
         }
         Returns: undefined
       }
