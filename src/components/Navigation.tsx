@@ -52,118 +52,118 @@ const Navigation = () => {
       </a>
       
       <header className="sticky top-0 z-50 w-full bg-white border-b border-stone-200 shadow-sm">
-        <div className="w-full max-w-none px-3 sm:px-4 md:px-4 lg:px-6 xl:px-8">
-          <div className="flex items-center justify-between h-14 sm:h-16 md:h-14 lg:h-16 w-full min-w-0">
+        <div className="w-full max-w-none px-3 sm:px-4 md:px-6 lg:px-6 xl:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16 md:h-18 lg:h-16 w-full min-w-0">
             {/* Logo Section */}
-            <div className="flex items-center flex-shrink-0 min-w-0 md:max-w-[140px] lg:max-w-[180px] xl:w-48">
+            <div className="flex items-center flex-shrink-0 min-w-0 md:max-w-[160px] lg:max-w-[200px] xl:w-52">
               <Link 
                 to="/" 
-                className="group flex items-center space-x-1 sm:space-x-2 md:space-x-1.5 lg:space-x-3 min-w-0"
+                className="group flex items-center space-x-1 sm:space-x-2 md:space-x-2 lg:space-x-3 min-w-0"
                 aria-label="Retour à l'accueil"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <div className="p-1.5 md:p-1.5 lg:p-2 rounded-full bg-olive-700 group-hover:bg-olive-800 transition-colors duration-200 flex-shrink-0">
-                  <Leaf className="h-4 w-4 md:h-4 md:w-4 lg:h-5 lg:w-5 text-white" />
+                <div className="p-1.5 md:p-2 lg:p-2 rounded-full bg-olive-700 group-hover:bg-olive-800 transition-all duration-300 shadow-md group-hover:shadow-lg flex-shrink-0">
+                  <Leaf className="h-4 w-4 md:h-5 md:w-5 lg:h-5 lg:w-5 text-white" />
                 </div>
                 <div className="flex flex-col min-w-0 hidden sm:block">
-                  <span className="font-serif text-sm md:text-sm lg:text-lg xl:text-xl font-semibold text-stone-800 group-hover:text-olive-700 transition-colors duration-200 whitespace-nowrap truncate">
+                  <span className="font-serif text-sm md:text-base lg:text-lg xl:text-xl font-semibold text-stone-800 group-hover:text-olive-700 transition-colors duration-300 whitespace-nowrap truncate">
                     Rif Raw Straw
                   </span>
-                  <span className="text-xs text-stone-500 hidden lg:block group-hover:text-olive-600 transition-colors duration-200 whitespace-nowrap">
+                  <span className="text-xs md:text-xs lg:text-sm text-stone-500 hidden md:block group-hover:text-olive-600 transition-colors duration-300 whitespace-nowrap">
                     Artisanat Berbère
                   </span>
                 </div>
               </Link>
             </div>
 
-            {/* Navigation Links - Desktop */}
-            <nav className="hidden md:flex items-center justify-center flex-1 px-1 md:px-2 lg:px-4 min-w-0" role="navigation" aria-label="Navigation principale">
-              <div className="flex items-center space-x-0.5 md:space-x-1 lg:space-x-4 xl:space-x-6">
+            {/* Navigation Links - Desktop & Tablet */}
+            <nav className="hidden md:flex items-center justify-center flex-1 px-2 md:px-4 lg:px-4 min-w-0" role="navigation" aria-label="Navigation principale">
+              <div className="flex items-center space-x-1 md:space-x-3 lg:space-x-4 xl:space-x-6">
                 <Link
                   to="/"
                   className={clsx(
-                    "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
-                    currentPath === "/" ? "text-olive-700" : "text-stone-700"
+                    "relative px-2 md:px-4 lg:px-3 xl:px-4 py-2 md:py-3 lg:py-2 text-sm md:text-base lg:text-sm font-medium transition-all duration-300 hover:text-olive-700 hover:bg-olive-50 rounded-lg md:rounded-xl lg:rounded-lg whitespace-nowrap touch-manipulation",
+                    currentPath === "/" ? "text-olive-700 bg-olive-50" : "text-stone-700"
                   )}
                   aria-current={currentPath === "/" ? "page" : undefined}
                 >
                   Accueil
                   {currentPath === "/" && (
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
+                    <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-olive-700 rounded-full" />
                   )}
                 </Link>
                 
                 <Link
                   to="/products"
                   className={clsx(
-                    "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
-                    currentPath === "/products" ? "text-olive-700" : "text-stone-700"
+                    "relative px-2 md:px-4 lg:px-3 xl:px-4 py-2 md:py-3 lg:py-2 text-sm md:text-base lg:text-sm font-medium transition-all duration-300 hover:text-olive-700 hover:bg-olive-50 rounded-lg md:rounded-xl lg:rounded-lg whitespace-nowrap touch-manipulation",
+                    currentPath === "/products" ? "text-olive-700 bg-olive-50" : "text-stone-700"
                   )}
                   aria-current={currentPath === "/products" ? "page" : undefined}
                 >
                   Boutique
                   {currentPath === "/products" && (
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
+                    <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-olive-700 rounded-full" />
                   )}
                 </Link>
                 
                 <Link
                   to="/blog"
                   className={clsx(
-                    "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
-                    currentPath === "/blog" ? "text-olive-700" : "text-stone-700"
+                    "relative px-2 md:px-4 lg:px-3 xl:px-4 py-2 md:py-3 lg:py-2 text-sm md:text-base lg:text-sm font-medium transition-all duration-300 hover:text-olive-700 hover:bg-olive-50 rounded-lg md:rounded-xl lg:rounded-lg whitespace-nowrap touch-manipulation",
+                    currentPath === "/blog" ? "text-olive-700 bg-olive-50" : "text-stone-700"
                   )}
                   aria-current={currentPath === "/blog" ? "page" : undefined}
                 >
                   Blog
                   {currentPath === "/blog" && (
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
+                    <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-olive-700 rounded-full" />
                   )}
                 </Link>
                 
                 <Link
                   to="/contact"
                   className={clsx(
-                    "relative px-1 md:px-1.5 lg:px-3 xl:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-medium transition-colors duration-150 hover:text-olive-700 whitespace-nowrap",
-                    currentPath === "/contact" ? "text-olive-700" : "text-stone-700"
+                    "relative px-2 md:px-4 lg:px-3 xl:px-4 py-2 md:py-3 lg:py-2 text-sm md:text-base lg:text-sm font-medium transition-all duration-300 hover:text-olive-700 hover:bg-olive-50 rounded-lg md:rounded-xl lg:rounded-lg whitespace-nowrap touch-manipulation",
+                    currentPath === "/contact" ? "text-olive-700 bg-olive-50" : "text-stone-700"
                   )}
                   aria-current={currentPath === "/contact" ? "page" : undefined}
                 >
                   Contact
                   {currentPath === "/contact" && (
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-olive-700 rounded-full" />
+                    <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-olive-700 rounded-full" />
                   )}
                 </Link>
               </div>
             </nav>
 
-            {/* Actions Section - Desktop */}
-            <div className="flex items-center space-x-0.5 sm:space-x-1 md:space-x-1 lg:space-x-3 xl:space-x-4 flex-shrink-0 justify-end min-w-[120px] md:min-w-[140px] lg:min-w-[180px]">
-              {/* Search Button - Desktop */}
-              <div className="hidden lg:flex w-10 h-8 items-center justify-center">
+            {/* Actions Section - Desktop & Tablet */}
+            <div className="flex items-center space-x-1 sm:space-x-1 md:space-x-2 lg:space-x-3 xl:space-x-4 flex-shrink-0 justify-end min-w-[140px] md:min-w-[180px] lg:min-w-[200px]">
+              {/* Search Button - Tablet & Desktop */}
+              <div className="hidden md:flex w-10 md:w-12 lg:w-10 h-10 md:h-12 lg:h-8 items-center justify-center">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowSearch(!showSearch)}
-                  className="relative flex items-center gap-2 group w-10 h-8"
+                  className="relative flex items-center gap-2 group w-10 md:w-12 lg:w-10 h-10 md:h-12 lg:h-8 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation"
                 >
-                  <Search size={18} />
+                  <Search size={18} className="md:w-5 md:h-5 lg:w-[18px] lg:h-[18px]" />
                 </Button>
               </div>
 
-              {/* Wishlist button - Desktop */}
-              <div className="hidden md:flex w-8 h-8 items-center justify-center">
-                <Button variant="ghost" size="sm" asChild className="relative flex items-center justify-center w-8 h-8 p-0">
+              {/* Wishlist button - Tablet & Desktop */}
+              <div className="hidden md:flex w-10 md:w-12 lg:w-8 h-10 md:h-12 lg:h-8 items-center justify-center">
+                <Button variant="ghost" size="sm" asChild className="relative flex items-center justify-center w-10 md:w-12 lg:w-8 h-10 md:h-12 lg:h-8 p-0 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation">
                   <Link
                     to={user ? "/wishlist" : "#"}
                     className={clsx(
-                      "flex items-center justify-center w-8 h-8",
+                      "flex items-center justify-center w-10 md:w-12 lg:w-8 h-10 md:h-12 lg:h-8",
                       !user && "pointer-events-none opacity-30"
                     )}
                   >
-                    <Heart className="h-4 w-4" />
+                    <Heart className="h-4 w-4 md:h-5 md:w-5 lg:h-4 lg:w-4" />
                     {user && wishlistCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center min-w-[16px]">
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 md:h-6 md:w-6 lg:h-4 lg:w-4 flex items-center justify-center min-w-[16px] font-medium">
                         {wishlistCount}
                       </span>
                     )}
@@ -176,53 +176,53 @@ const Navigation = () => {
                 <CurrencySelector />
               </div>
 
-              {/* Cart Button - Desktop */}
+              {/* Cart Button - Tablet & Desktop */}
               <Link to="/cart" className="hidden md:block">
                 <Button
                   variant="outline"
                   size="sm"
                   className={clsx(
-                    "border-stone-300 transition-colors flex items-center group relative text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2",
-                    itemCount >= 1 ? "bg-olive-700 text-white" : "bg-white text-stone-700",
-                    itemCount >= 1 ? "hover:bg-white hover:text-olive-700" : "hover:bg-white hover:text-stone-900"
+                    "border-stone-300 transition-all duration-300 flex items-center group relative text-sm md:text-base lg:text-sm px-3 md:px-4 lg:px-3 py-2 md:py-3 lg:py-2 rounded-lg hover:shadow-md touch-manipulation",
+                    itemCount >= 1 ? "bg-olive-700 text-white border-olive-700 shadow-md" : "bg-white text-stone-700 hover:bg-olive-50",
+                    itemCount >= 1 ? "hover:bg-white hover:text-olive-700 hover:border-olive-700" : "hover:bg-olive-50 hover:text-olive-700 hover:border-olive-300"
                   )}
                 >
-                  <ShoppingBag className={clsx("h-3.5 w-3.5 md:h-4 md:w-4 transition-colors", itemCount >= 1 ? "text-white group-hover:text-olive-700" : "text-stone-700 group-hover:text-stone-900")} />
-                  <span className="ml-1.5 md:ml-2">({itemCount})</span>
+                  <ShoppingBag className={clsx("h-4 w-4 md:h-5 md:w-5 lg:h-4 lg:w-4 transition-colors", itemCount >= 1 ? "text-white group-hover:text-olive-700" : "text-stone-700 group-hover:text-olive-700")} />
+                  <span className="ml-2 font-medium">({itemCount})</span>
                 </Button>
               </Link>
 
-              {/* Auth buttons - Desktop */}
-              <div className="hidden md:flex items-center gap-0.5 md:gap-1">
+              {/* Auth buttons - Tablet & Desktop */}
+              <div className="hidden md:flex items-center gap-1 md:gap-2 lg:gap-1">
                 {isLoading ? (
-                  <div className="flex items-center gap-0.5">
-                    <div className="w-6 h-6 md:w-8 md:h-8 rounded bg-stone-200"></div>
-                    <div className="w-6 h-6 md:w-8 md:h-8 rounded bg-stone-200 hidden lg:block"></div>
-                    <div className="w-6 h-6 md:w-8 md:h-8 rounded bg-stone-200 hidden lg:block"></div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-8 h-8 md:w-10 md:h-10 lg:w-8 lg:h-8 rounded-lg bg-stone-200 animate-pulse"></div>
+                    <div className="w-8 h-8 md:w-10 md:h-10 lg:w-8 lg:h-8 rounded-lg bg-stone-200 animate-pulse hidden lg:block"></div>
+                    <div className="w-8 h-8 md:w-10 md:h-10 lg:w-8 lg:h-8 rounded-lg bg-stone-200 animate-pulse hidden lg:block"></div>
                   </div>
                 ) : user ? (
                   <>
-                    <Button variant="ghost" size="sm" asChild className="group relative hidden lg:inline-flex">
-                      <Link to="/orders" className="flex items-center p-1.5 md:p-2">
-                        <Package className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                    <Button variant="ghost" size="sm" asChild className="group relative hidden lg:inline-flex hover:bg-olive-50 rounded-lg transition-all duration-300">
+                      <Link to="/orders" className="flex items-center p-2">
+                        <Package className="h-4 w-4" />
                       </Link>
                     </Button>
-                    <Button variant="ghost" size="sm" asChild className="group relative">
-                      <Link to="/profile" className="flex items-center p-1.5 md:p-2">
-                        <User className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                    <Button variant="ghost" size="sm" asChild className="group relative hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation">
+                      <Link to="/profile" className="flex items-center p-2 md:p-3 lg:p-2">
+                        <User className="h-4 w-4 md:h-5 md:w-5 lg:h-4 lg:w-4" />
                       </Link>
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       onClick={handleSignOut} 
-                      className="group relative flex items-center p-1.5 md:p-2 hidden lg:inline-flex"
+                      className="group relative flex items-center p-2 hidden lg:inline-flex hover:bg-olive-50 rounded-lg transition-all duration-300"
                     >
-                      <LogOut className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                      <LogOut className="h-4 w-4" />
                     </Button>
                   </>
                 ) : (
-                  <Button variant="ghost" size="sm" asChild className="text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2">
+                  <Button variant="ghost" size="sm" asChild className="text-sm md:text-base lg:text-sm px-3 md:px-4 lg:px-3 py-2 md:py-3 lg:py-2 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation">
                     <Link to="/auth" aria-label="Se connecter">Se connecter</Link>
                   </Button>
                 )}
@@ -243,22 +243,26 @@ const Navigation = () => {
           </div>
         </div>
 
-        {/* Search Bar - Desktop Dropdown */}
+        {/* Search Bar - Desktop & Tablet Dropdown */}
         {showSearch && (
           <div className="absolute top-full left-0 right-0 bg-white border-b border-stone-200 shadow-lg z-[45] hidden md:block">
-            <div className="container mx-auto px-4 py-4">
-              <form onSubmit={handleSearch} className="flex gap-2">
+            <div className="container mx-auto px-4 md:px-6 lg:px-4 py-4 md:py-6 lg:py-4">
+              <form onSubmit={handleSearch} className="flex gap-3 md:gap-4 lg:gap-2">
                 <Input
                   type="text"
                   placeholder="Rechercher des produits..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1"
+                  className="flex-1 h-11 md:h-12 lg:h-11 text-base md:text-lg lg:text-base rounded-lg border-stone-300 focus:border-olive-500 focus:ring-olive-500 touch-manipulation"
                   autoFocus
                 />
-                <Button type="submit" disabled={!searchQuery.trim()}>
-                  <Search size={18} />
-                  <span className="ml-2">Rechercher</span>
+                <Button 
+                  type="submit" 
+                  disabled={!searchQuery.trim()}
+                  className="bg-olive-700 hover:bg-olive-800 px-4 md:px-6 lg:px-4 h-11 md:h-12 lg:h-11 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 touch-manipulation"
+                >
+                  <Search size={18} className="md:w-5 md:h-5 lg:w-[18px] lg:h-[18px]" />
+                  <span className="ml-2 text-base md:text-lg lg:text-base font-medium">Rechercher</span>
                 </Button>
               </form>
             </div>
