@@ -196,7 +196,7 @@ export default function EnhancedProfile() {
               </p>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button variant="outline" onClick={() => navigate('/')}>
                 <Home className="h-4 w-4 mr-2" />
                 Accueil

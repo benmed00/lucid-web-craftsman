@@ -156,7 +156,7 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <UserIcon className="h-5 w-5" />
@@ -263,11 +263,13 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
                     <h3 className="text-xl font-semibold">
                       {profile?.full_name || 'Nom non renseigné'}
                     </h3>
-                    <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
                       <Mail className="h-4 w-4" />
-                      {user.email}
+                      <span className="break-all">
+                        {user.email}
+                      </span>
                       {user.email_confirmed_at && (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs whitespace-nowrap">
                           <Shield className="h-3 w-3 mr-1" />
                           Vérifié
                         </Badge>
