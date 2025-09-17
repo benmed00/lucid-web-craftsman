@@ -89,13 +89,13 @@ const ProductShowcase = () => {
   const handleQuickView = useCallback((product: Product) => {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.set('product', product.id.toString());
-    setSearchParams(newSearchParams);
+    setSearchParams(newSearchParams, { replace: false });
   }, [searchParams, setSearchParams]);
 
   const handleCloseQuickView = useCallback(() => {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.delete('product');
-    setSearchParams(newSearchParams);
+    setSearchParams(newSearchParams, { replace: false });
   }, [searchParams, setSearchParams]);
 
   const handleQuickViewAddToCart = async (product: Product, quantity: number) => {

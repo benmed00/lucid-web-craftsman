@@ -73,6 +73,10 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
 
   // Enhanced image URL generation with proper sizing and deduplication
   const generateSafeImageUrl = (url: string, includeTransformations: boolean = true): string => {
+    // Do not transform Supabase storage URLs to avoid 400s in preview
+    if (url.includes('supabase.co/storage')) {
+      return url;
+    }
     if (!url.includes('supabase.co/storage')) {
       return url;
     }
@@ -101,7 +105,8 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
       // Check existing parameters
       const hasFormat = urlObj.searchParams.has('format');
       const hasQuality = urlObj.searchParams.has('quality');
-      const hasResize = urlObj.searchParams.has('resize');
+      const hasWidth = urlObj.searchParams.has('width');
+      const hasHeight = urlObj.searchParams.has('height');
       
       // Only add transformations if needed and requested
       if (includeTransformations) {
@@ -110,19 +115,14 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
           urlObj.searchParams.set('format', 'webp');
         }
         
-        // Add appropriate sizing based on category and quality
-        if (!hasResize) {
-          let targetSize = '800x600'; // Default responsive size
-          
-          if (category === 'hero') {
-            targetSize = '1200x800'; // Larger for hero images
-          } else if (category === 'product') {
-            targetSize = '600x450'; // Product card size
-          } else if (category === 'instagram') {
-            targetSize = '400x400'; // Instagram feed size
-          }
-          
-          urlObj.searchParams.set('resize', targetSize);
+        // Add appropriate sizing based on category
+        if (!hasWidth || !hasHeight) {
+          let width = 800, height = 600; // default
+          if (category === 'hero') { width = 1200; height = 800; }
+          else if (category === 'product') { width = 600; height = 450; }
+          else if (category === 'instagram') { width = 400; height = 400; }
+          urlObj.searchParams.set('width', String(width));
+          urlObj.searchParams.set('height', String(height));
         }
         
         // Add quality only if not present and within reasonable range
@@ -156,18 +156,13 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
       urlObj.searchParams.set('format', 'webp');
       
       // Add responsive sizing if not present
-      if (!urlObj.searchParams.has('resize')) {
-        let targetSize = '800x600';
-        
-        if (category === 'hero') {
-          targetSize = '1200x800';
-        } else if (category === 'product') {
-          targetSize = '600x450';
-        } else if (category === 'instagram') {
-          targetSize = '400x400';
-        }
-        
-        urlObj.searchParams.set('resize', targetSize);
+      if (!urlObj.searchParams.has('width') || !urlObj.searchParams.has('height')) {
+        let width = 800, height = 600;
+        if (category === 'hero') { width = 1200; height = 800; }
+        else if (category === 'product') { width = 600; height = 450; }
+        else if (category === 'instagram') { width = 400; height = 400; }
+        urlObj.searchParams.set('width', String(width));
+        urlObj.searchParams.set('height', String(height));
       }
       
       // Add conservative quality if not present
