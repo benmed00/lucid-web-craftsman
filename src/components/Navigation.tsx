@@ -62,6 +62,7 @@ const Navigation = () => {
               <Link 
                 to="/" 
                 className="group flex items-center space-x-1 md:space-x-2 lg:space-x-3 min-w-0"
+                aria-label="Retour à l'accueil"
                 onClick={() => {
                   console.log('Logo clicked, navigating to home');
                   setIsMenuOpen(false);
