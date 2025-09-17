@@ -38,8 +38,6 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
     }
   }, [isOpen, product?.id]);
 
-  if (!product) return null;
-
   const normalizeImage = (u?: string) => {
     if (!u) return '/assets/images/handmade_products.webp';
     let s = u.replace(/^\s+|\s+$/g, '');
@@ -50,9 +48,11 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
   };
 
   const images = useMemo(() => {
-    const arr = (product.images || []).map(normalizeImage).filter(Boolean);
+    const arr = (product?.images ?? []).map(normalizeImage).filter(Boolean);
     return arr.length ? arr : ['/assets/images/handmade_products.webp'];
-  }, [product.images]);
+  }, [product]);
+
+  if (!product) return null;
   const handleAddToCart = () => {
     onAddToCart(product, quantity);
     toast.success(`${quantity}x ${product.name} ajouté au panier`);
@@ -145,9 +145,9 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
             </div>
 
             {/* Thumbnail Images */}
-            {product.images.length > 1 && (
+            {images.length > 1 && (
               <div className="flex gap-2 p-4 bg-gray-50">
-                {product.images.slice(0, 4).map((image, index) => (
+                {images.slice(0, 4).map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImageIndex(index)}
@@ -292,7 +292,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
       
       {/* Mobile Image Gallery */}
       <MobileImageGallery
-        images={product.images}
+        images={images}
         productName={product.name}
         isOpen={showMobileGallery}
         onClose={() => setShowMobileGallery(false)}
