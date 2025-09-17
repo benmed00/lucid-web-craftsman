@@ -149,225 +149,192 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
       <Navigation />
-      <div className="py-6 sm:py-8 md:py-12 px-4 sm:px-6">
+      <div className="py-4 sm:py-6 md:py-8 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
+          
+          {/* Header */}
           <div className="text-center mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">Mon Profil</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Gérez vos informations personnelles, préférences et historique</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Mon Profil</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Gérez vos informations personnelles et préférences
+            </p>
           </div>
 
-          {/* Quick Actions - Mobile First */}
-          <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4 justify-center mb-6 sm:mb-8">
+          {/* Quick Actions */}
+          <div className="flex flex-wrap gap-2 sm:gap-3 justify-center mb-6 sm:mb-8">
             <Button
-              variant="outline"
+              variant="outline" 
               size="sm"
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2 touch-manipulation"
+              className="text-xs sm:text-sm"
             >
-              <User className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Accueil</span>
+              🏠 Accueil
             </Button>
             <Button
               variant="outline"
-              size="sm"
+              size="sm" 
               onClick={signOut}
-              className="flex items-center gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2 touch-manipulation"
+              className="text-xs sm:text-sm"
             >
-              <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Se déconnecter</span>
+              🚪 Se déconnecter
             </Button>
             <Button
               variant="destructive"
               size="sm"
               onClick={handleDeleteAccount}
               disabled={isLoading}
-              className="flex items-center gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2 touch-manipulation"
+              className="text-xs sm:text-sm"
             >
-              <span className="text-red-600 text-xs sm:text-sm">🗑️</span>
-              <span className="hidden sm:inline text-red-600">Supprimer le compte</span>
+              🗑️ Supprimer le compte
             </Button>
           </div>
 
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          {/* Main Content - Single Column Layout */}
+          <div className="space-y-6">
             
-            {/* Left Column - Profile Overview (Mobile: Full Width, Desktop: 1/3) */}
-            <div className="lg:col-span-1 space-y-4 sm:space-y-6">
-              
-              {/* Profile Overview Card */}
-              <Card className="shadow-lg">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                    <User className="h-4 w-4 sm:h-5 sm:w-5" />
-                    Vue d'ensemble
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Avatar Section */}
-                  <div className="flex flex-col items-center text-center space-y-3">
-                    <div className="relative">
-                      {avatarUrl ? (
-                        <img 
-                          src={avatarUrl} 
-                          alt="Photo de profil" 
-                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-4 border-stone-200"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-olive-100 flex items-center justify-center border-4 border-stone-200">
-                          <User className="h-6 w-6 sm:h-8 sm:w-8 text-olive-700" />
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-base sm:text-lg text-stone-800">
-                        {fullName || 'Utilisateur'}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-stone-600">{user.email}</p>
-                      <div className="flex items-center justify-center gap-2 mt-2">
-                        <span className="text-xs text-stone-500">Profil 17% complété</span>
-                        <span className="text-green-600 text-xs">✓ Vérifié</span>
+            {/* Profile Overview Card */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <User className="h-5 w-5" />
+                  Vue d'ensemble du profil
+                </CardTitle>
+                <CardDescription>
+                  Informations de base et statut du compte
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+                  {/* Avatar */}
+                  <div className="flex-shrink-0">
+                    {avatarUrl ? (
+                      <img 
+                        src={avatarUrl} 
+                        alt="Photo de profil" 
+                        className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-stone-200"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-olive-100 flex items-center justify-center border-4 border-stone-200">
+                        <User className="h-8 w-8 sm:h-10 sm:w-10 text-olive-700" />
                       </div>
-                    </div>
+                    )}
                   </div>
                   
-                  {/* Member Since */}
-                  <div className="pt-3 border-t border-stone-100">
-                    <div className="flex items-center gap-2 text-xs sm:text-sm">
-                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-stone-500" />
-                      <span className="text-stone-600">
-                        Membre depuis {new Date(user.created_at).toLocaleDateString('fr-FR', {
-                          year: 'numeric',
-                          month: 'short'
-                        })}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Quick Navigation */}
-              <Card className="shadow-lg lg:block">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base sm:text-lg">Navigation rapide</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <button className="w-full text-left p-2 sm:p-3 hover:bg-stone-50 rounded-lg transition-colors text-sm touch-manipulation">
-                    👤 Informations
-                  </button>
-                  <button className="w-full text-left p-2 sm:p-3 hover:bg-stone-50 rounded-lg transition-colors text-sm touch-manipulation">
-                    ⚙️ Préférences
-                  </button>
-                  <button className="w-full text-left p-2 sm:p-3 hover:bg-stone-50 rounded-lg transition-colors text-sm touch-manipulation">
-                    📦 Commandes
-                  </button>
-                  <button className="w-full text-left p-2 sm:p-3 hover:bg-stone-50 rounded-lg transition-colors text-sm touch-manipulation">
-                    🔒 Sécurité
-                  </button>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Column - Detailed Forms (Mobile: Full Width, Desktop: 2/3) */}
-            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-              
-              {/* Profile Edit Card */}
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                    <User className="h-4 w-4 sm:h-5 sm:w-5" />
-                    Vue d'ensemble du profil
-                  </CardTitle>
-                  <CardDescription className="text-sm">
-                    Gérez vos informations personnelles et préférences
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleUpdateProfile} className="space-y-4 sm:space-y-6">
-                    <input type="hidden" name="csrf_token" value={csrfToken} />
-
-                    {/* Avatar Upload */}
-                    <div className="space-y-3">
-                      <Label className="text-sm sm:text-base font-medium">Photo de profil</Label>
-                      <ImageUpload
-                        currentImage={avatarUrl || undefined}
-                        onImageUpload={async (file) => { await onAvatarImageUpload(file); }}
-                        onImageRemove={handleRemoveAvatar}
-                        title="Photo de profil"
-                        description="JPEG, PNG, WEBP (max 5MB)"
-                        acceptedTypes={['image/jpeg','image/png','image/webp']}
-                      />
-                    </div>
-
-                    {/* Personal Info Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="fullName" className="text-sm sm:text-base">Nom complet</Label>
-                        <Input
-                          id="fullName"
-                          type="text"
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          placeholder="Votre nom complet"
-                          maxLength={100}
-                          className="text-sm sm:text-base touch-manipulation min-h-[44px]"
-                        />
+                  {/* User Info */}
+                  <div className="text-center sm:text-left flex-1 min-w-0">
+                    <h3 className="text-xl sm:text-2xl font-semibold text-stone-800 mb-1">
+                      {fullName || 'Utilisateur'}
+                    </h3>
+                    <p className="text-sm sm:text-base text-stone-600 mb-3">{user.email}</p>
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-stone-500" />
+                        <span className="text-stone-600">
+                          Membre depuis {new Date(user.created_at).toLocaleDateString('fr-FR', {
+                            year: 'numeric',
+                            month: 'long'
+                          })}
+                        </span>
                       </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm sm:text-base">Email</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={user.email || ''}
-                          disabled
-                          className="bg-muted text-sm sm:text-base min-h-[44px]"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          L'email ne peut pas être modifié
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Bio */}
-                    <div className="space-y-2">
-                      <Label htmlFor="bio" className="text-sm sm:text-base">Bio</Label>
-                      <Textarea
-                        id="bio"
-                        value={bio}
-                        onChange={(e) => setBio(e.target.value)}
-                        rows={4}
-                        maxLength={500}
-                        placeholder="Décrivez-vous..."
-                        className="text-sm sm:text-base resize-none"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        {bio.length}/500 caractères
-                      </p>
-                    </div>
-
-                    {/* Account Verification Status */}
-                    <div className="bg-stone-50 p-3 sm:p-4 rounded-lg space-y-2">
-                      <h4 className="font-medium text-sm sm:text-base">État du compte</h4>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm">
-                        <Mail className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Email vérifié :</span>
-                        <span className={`font-medium ${user.email_confirmed_at ? 'text-green-600' : 'text-orange-600'}`}>
-                          {user.email_confirmed_at ? 'Oui ✓' : 'Non ⚠️'}
+                      
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded-full text-xs ${user.email_confirmed_at ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                          {user.email_confirmed_at ? '✓ Email vérifié' : '⚠️ Email non vérifié'}
                         </span>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                    <Button 
-                      type="submit" 
-                      disabled={isUpdating} 
-                      className="w-full touch-manipulation min-h-[48px] text-sm sm:text-base"
-                    >
-                      {isUpdating ? "Mise à jour..." : "Modifier le profil"}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </div>
+            {/* Edit Profile Card */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <User className="h-5 w-5" />
+                  Modifier le profil
+                </CardTitle>
+                <CardDescription>
+                  Mettez à jour vos informations personnelles
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleUpdateProfile} className="space-y-6">
+                  <input type="hidden" name="csrf_token" value={csrfToken} />
+
+                  {/* Avatar Upload */}
+                  <div className="space-y-3">
+                    <Label className="text-sm sm:text-base font-medium">Photo de profil</Label>
+                    <ImageUpload
+                      currentImage={avatarUrl || undefined}
+                      onImageUpload={async (file) => { await onAvatarImageUpload(file); }}
+                      onImageRemove={handleRemoveAvatar}
+                      title="Photo de profil"
+                      description="JPEG, PNG, WEBP (max 5MB)"
+                      acceptedTypes={['image/jpeg','image/png','image/webp']}
+                    />
+                  </div>
+
+                  {/* Form Fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName" className="text-sm sm:text-base">Nom complet</Label>
+                      <Input
+                        id="fullName"
+                        type="text"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Votre nom complet"
+                        maxLength={100}
+                        className="text-sm sm:text-base min-h-[44px]"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm sm:text-base">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={user.email || ''}
+                        disabled
+                        className="bg-muted text-sm sm:text-base min-h-[44px]"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        L'email ne peut pas être modifié
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Bio */}
+                  <div className="space-y-2">
+                    <Label htmlFor="bio" className="text-sm sm:text-base">Bio</Label>
+                    <Textarea
+                      id="bio"
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      rows={4}
+                      maxLength={500}
+                      placeholder="Décrivez-vous en quelques mots..."
+                      className="text-sm sm:text-base resize-none"
+                    />
+                    <p className="text-xs text-muted-foreground text-right">
+                      {bio.length}/500 caractères
+                    </p>
+                  </div>
+
+                  {/* Submit Button */}
+                  <Button 
+                    type="submit" 
+                    disabled={isUpdating} 
+                    className="w-full sm:w-auto min-h-[48px] text-sm sm:text-base px-8"
+                  >
+                    {isUpdating ? "Mise à jour..." : "Sauvegarder les modifications"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
