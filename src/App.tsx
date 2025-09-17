@@ -3,8 +3,9 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useWebVitals } from "@/hooks/useWebVitals";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, startTransition, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { taskScheduler } from "@/utils/taskScheduler";
 
 // Critical pages loaded immediately
 import Index from "./pages/Index";
@@ -105,6 +106,15 @@ const App = () => {
   // Initialize Web Vitals tracking
   useWebVitals();
 
+  // Schedule non-critical initializations to avoid blocking main thread
+  // Schedule non-critical initializations to avoid blocking main thread
+  useEffect(() => {
+    taskScheduler.schedule(() => {
+      // Any heavy initialization can be scheduled here
+      console.log('App initialized with task scheduling');
+    });
+  }, []);
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -181,12 +191,12 @@ const App = () => {
                   {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
                 </TooltipProvider>
               </CartProvider>
-                </CurrencyProvider>
-              </OfflineManager>
-            </Suspense>
-          </QueryClientProvider>
-        </ErrorBoundary>
-      );
+            </CurrencyProvider>
+          </OfflineManager>
+        </Suspense>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
 };
 
 // Composant de fallback pour les erreurs

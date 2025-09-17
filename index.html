@@ -237,7 +237,7 @@
         value: null
       });
       
-      // Enhanced fetch interceptor for problematic requests
+      // Enhanced fetch interceptor with task scheduling for better TBT
       if ('fetch' in window) {
         const originalFetch = window.fetch;
         window.fetch = function(...args) {
@@ -254,11 +254,26 @@
               return Promise.resolve(new Response('{}', { status: 204 }));
             }
           }
-          return originalFetch.apply(this, args);
+          
+          // Schedule network requests to avoid blocking main thread
+          return new Promise((resolve) => {
+            const scheduleRequest = () => {
+              originalFetch.apply(this, args).then(resolve).catch(resolve);
+            };
+            
+            // Use MessageChannel for faster scheduling if available
+            if (typeof MessageChannel !== 'undefined') {
+              const channel = new MessageChannel();
+              channel.port2.onmessage = scheduleRequest;
+              channel.port1.postMessage(null);
+            } else {
+              setTimeout(scheduleRequest, 0);
+            }
+          });
         };
       }
 
-      // Block postMessage spam
+      // Optimized postMessage handling to reduce TBT
       const originalPostMessage = window.postMessage;
       let postMessageCount = 0;
       const postMessageLimit = 10;
@@ -270,7 +285,15 @@
           // Silently drop excessive postMessage calls
           return;
         }
-        return originalPostMessage.apply(this, args);
+        
+        // Schedule postMessage to avoid blocking
+        if (typeof MessageChannel !== 'undefined') {
+          const channel = new MessageChannel();
+          channel.port2.onmessage = () => originalPostMessage.apply(this, args);
+          channel.port1.postMessage(null);
+        } else {
+          setTimeout(() => originalPostMessage.apply(this, args), 0);
+        }
       };
       
       // Reset counter periodically
