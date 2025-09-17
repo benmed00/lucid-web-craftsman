@@ -31,7 +31,7 @@ const Footer = () => {
                 <a 
                   href="/products" 
                   className="text-stone-300 hover:text-olive-400 transition-colors"
-                  aria-label="Voir tous nos produits artisanaux"
+                  aria-label="Tous les produits - Voir tous nos produits artisanaux"
                 >
                   Tous les produits
                 </a>
@@ -110,7 +110,7 @@ const Footer = () => {
                 <a 
                   href="/faq" 
                   className="text-stone-300 hover:text-olive-400 transition-colors"
-                  aria-label="Questions fréquemment posées"
+                  aria-label="FAQ - Questions fréquemment posées"
                 >
                   FAQ
                 </a>
@@ -119,7 +119,7 @@ const Footer = () => {
                 <a 
                   href="/cgv" 
                   className="text-stone-300 hover:text-olive-400 transition-colors"
-                  aria-label="Lire nos conditions générales de vente"
+                  aria-label="CGV - Lire nos conditions générales de vente"
                 >
                   CGV
                 </a>

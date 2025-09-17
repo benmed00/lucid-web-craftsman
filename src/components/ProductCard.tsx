@@ -192,8 +192,8 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
               disabled={singleStockInfo?.isOutOfStock}
               className="w-full bg-olive-700 hover:bg-olive-800 text-white hover:text-white active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-4 touch-manipulation min-h-[52px] font-semibold text-base rounded-xl shadow-lg hover:shadow-xl disabled:hover:bg-olive-700 disabled:hover:shadow-lg group relative overflow-hidden border-0"
               aria-label={singleStockInfo?.isOutOfStock 
-                ? `${product.name} est indisponible` 
-                : `Ajouter ${product.name} au panier pour ${formatPrice(product.price)}`
+                ? `Indisponible - ${product.name}` 
+                : `Ajouter au panier - ${product.name} pour ${formatPrice(product.price)}`
               }
             >
               <div className="relative flex items-center justify-center gap-2 z-10">
