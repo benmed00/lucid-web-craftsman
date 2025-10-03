@@ -150,7 +150,7 @@ const Navigation = () => {
               </Button>
 
               {/* Wishlist button - Tablet & Desktop */}
-              <Button variant="ghost" size="sm" asChild className="hidden md:flex items-center justify-center w-10 h-10 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation">
+              <Button variant="ghost" size="sm" asChild className="hidden md:flex relative items-center justify-center w-10 h-10 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation">
                 <Link
                   to={user ? "/wishlist" : "#"}
                   className={clsx(
