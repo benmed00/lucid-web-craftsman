@@ -19,7 +19,7 @@ const CartIcon = () => {
       <ShoppingBag className="text-white" />
       <span
         className={clsx(
-          "absolute -top-1 -right-1 bg-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold border",
+          "absolute top-0 right-0 bg-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold border transform translate-x-1/4 -translate-y-1/4",
           badgeTextColor,
           itemCount > 1 ? "border-olive-700" : "border-stone-700"
         )}
