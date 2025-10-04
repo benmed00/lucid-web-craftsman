@@ -5,7 +5,6 @@ import { useEffect } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import Navigation from "@/components/Navigation";
 import PageFooter from "@/components/PageFooter";
 import { useQuery } from "@tanstack/react-query";
 import { getBlogPostById } from "@/api/mockApiService";
@@ -57,8 +56,6 @@ const BlogPost = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navigation />
-
       {/* Article Header */}
       <div className="bg-beige-50 py-16">
         <div className="container mx-auto px-4">
