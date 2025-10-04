@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Leaf, Instagram } from "lucide-react"; // Removed ShoppingBag
-import Navigation from "@/components/Navigation";
+
 import Footer from "@/components/Footer";
 import ProductShowcase from "@/components/ProductShowcase";
 import Testimonials from "@/components/Testimonials";
@@ -55,7 +55,7 @@ const Index = () => {
       />
 
       {/* Navigation */}
-      <Navigation />
+      
 
       <main id="main-content" className="flex-grow">
         {/* Hero Section - Enhanced Mobile Responsiveness */}

@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import Navigation from "@/components/Navigation";
+
 import PageFooter from "@/components/PageFooter";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -83,7 +83,7 @@ const PaymentSuccess = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navigation />
+      
       
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-2xl mx-auto text-center">

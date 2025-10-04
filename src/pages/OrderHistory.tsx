@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import Navigation from '@/components/Navigation';
+
 import PageFooter from '@/components/PageFooter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -120,7 +120,6 @@ const OrderHistory = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-white">
-        <Navigation />
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-stone-800 mb-4">Connectez-vous pour voir vos commandes</h1>
@@ -134,7 +133,7 @@ const OrderHistory = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navigation />
+      
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">

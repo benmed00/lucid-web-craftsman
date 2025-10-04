@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useCart } from '@/context/CartContext';
-import Navigation from '@/components/Navigation';
+
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -113,7 +113,6 @@ const Cart = () => {
   if (cart.items.length === 0) {
     return (
       <div className="min-h-screen bg-white">
-        <Navigation />
         <main id="main-content" className="container mx-auto px-4 py-16">
           <div className="text-center">
             <div 
@@ -144,7 +143,7 @@ const Cart = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navigation />
+      
       <main id="main-content" className="container mx-auto px-4 py-4 md:py-8 safe-area">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-serif text-stone-800 mb-2">Votre Panier</h1>

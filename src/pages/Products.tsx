@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import Navigation from "@/components/Navigation";
+
 import PageFooter from "@/components/PageFooter";
 import ProductCard from "@/components/ProductCard";
 import ProductGridSkeleton from "@/components/ProductGridSkeleton";
@@ -148,7 +148,6 @@ const Products = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Navigation />
         
         {/* Hero Banner Skeleton */}
         <div className="bg-gradient-to-r from-olive-50 to-stone-50 py-8 md:py-12 lg:py-16">
@@ -193,7 +192,6 @@ const Products = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-white">
-        <Navigation />
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
             <h1 className="text-2xl font-serif text-stone-800 mb-4">
@@ -219,7 +217,7 @@ const Products = () => {
         url="/products"
         type="website"
       />
-      <Navigation />
+      
 
       {/* Hero Banner */}
       <div className="bg-gradient-to-r from-olive-50 to-stone-50 py-8 md:py-12 lg:py-16">

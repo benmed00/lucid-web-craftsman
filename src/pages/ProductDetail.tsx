@@ -37,7 +37,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 
 // Custom Components
-import Navigation from "@/components/Navigation";
+
 import PageFooter from "@/components/PageFooter";
 import SEOHelmet from "@/components/seo/SEOHelmet";
 import { ProductImage } from "@/components/ui/GlobalImage";
@@ -258,7 +258,6 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Navigation />
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb Skeleton */}
           <div className="mb-8">
@@ -298,7 +297,6 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   if (error || !product) {
     return (
       <div className="min-h-screen bg-white">
-        <Navigation />
         <div className="container mx-auto px-4 py-16 text-center">
           <div className="max-w-md mx-auto">
             <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
@@ -345,7 +343,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
       />
 
       <div className="min-h-screen bg-white">
-        <Navigation />
+        
 
         <main className="container mx-auto px-4 py-8">
           {/* Breadcrumbs */}

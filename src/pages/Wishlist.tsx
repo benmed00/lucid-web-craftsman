@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ProductImage } from '@/components/ui/GlobalImage';
 import SEOHelmet from '@/components/seo/SEOHelmet';
-import Navigation from '@/components/Navigation';
+
 import PageFooter from '@/components/PageFooter';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
@@ -97,7 +97,6 @@ const Wishlist = () => {
           description="Connectez-vous pour accéder à votre liste de favoris et retrouver vos créations artisanales préférées."
         />
         <div className="min-h-screen bg-white">
-          <Navigation />
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-2xl mx-auto text-center">
             <Heart className="w-16 h-16 text-stone-300 mx-auto mb-6" />
@@ -125,7 +124,7 @@ const Wishlist = () => {
         description={`Votre liste de favoris contient ${wishlistProducts.length} création${wishlistProducts.length > 1 ? 's' : ''} artisanale${wishlistProducts.length > 1 ? 's' : ''} du Rif marocain. Découvrez et commandez vos pièces préférées.`}
       />
       <div className="min-h-screen bg-white">
-        <Navigation />
+        
 
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">

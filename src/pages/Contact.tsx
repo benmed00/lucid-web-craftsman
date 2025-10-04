@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Navigation from "@/components/Navigation";
+
 import PageFooter from "@/components/PageFooter";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -127,7 +127,7 @@ const Contact = () => {
         url="/contact"
         type="website"
       />
-      <Navigation />
+      
 
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-olive-600 to-olive-800 text-white py-20">

@@ -1,4 +1,4 @@
-import Navigation from "@/components/Navigation";
+
 import PageFooter from "@/components/PageFooter";
 import SEOHelmet from "@/components/seo/SEOHelmet";
 
@@ -11,7 +11,7 @@ const Story = () => (
       url="/story"
       type="website"
     />
-    <Navigation />
+    
     <main className="flex-1 container mx-auto px-4 py-12">
       <div className="max-w-3xl mx-auto bg-beige-100 rounded-lg shadow p-8">
         <h1 className="text-3xl font-serif font-bold text-olive-700 mb-6">

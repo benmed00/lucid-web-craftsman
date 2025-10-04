@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Mail, Calendar } from 'lucide-react';
 import ImageUpload from '@/components/ui/ImageUpload';
 import { validateAndSanitizeName, sanitizeUserInput } from '@/utils/xssProtection';
-import Navigation from '@/components/Navigation';
+
 import PageFooter from '@/components/PageFooter';
 
 export default function Profile() {
@@ -148,7 +148,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 to-olive-50">
-      <Navigation />
+      
       <main className="pt-4 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           

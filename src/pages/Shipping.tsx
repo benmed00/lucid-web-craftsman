@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import Navigation from "@/components/Navigation";
+
 import PageFooter from "@/components/PageFooter";
 import SEOHelmet from "@/components/seo/SEOHelmet";
 
@@ -12,7 +12,7 @@ const Shipping = () => (
       url="/shipping"
       type="website"
     />
-    <Navigation />
+    
 
     <main className="flex-1 container mx-auto px-4 py-12">
       <h1 className="text-3xl font-serif font-semibold text-olive-700 mb-6">

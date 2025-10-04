@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 // import { Link } from "react-router-dom"; // Marked as unused
-import Navigation from "@/components/Navigation";
+
 import PageFooter from "@/components/PageFooter";
 import { STRIPE_PUBLIC_KEY } from "@/lib/stripe";
 import { Separator } from "@/components/ui/separator";
@@ -172,7 +172,6 @@ const Checkout = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Navigation />
         <div className="container mx-auto px-4 py-16">
           <h1 className="font-serif text-3xl md:text-4xl text-stone-800 mb-8 text-center">
             Paiement
@@ -188,7 +187,7 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navigation />
+      
 
       <div className="container mx-auto px-4 py-12">
         <h1 className="font-serif text-3xl md:text-4xl text-stone-800 mb-8 text-center">

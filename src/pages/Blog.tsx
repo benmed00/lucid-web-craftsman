@@ -7,7 +7,7 @@ import SEOHelmet from "@/components/seo/SEOHelmet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import Navigation from "@/components/Navigation";
+
 import PageFooter from "@/components/PageFooter";
 import { getBlogPosts } from "@/api/mockApiService";
 import { BlogImage } from "@/components/ui/GlobalImage";
@@ -39,7 +39,6 @@ const Blog = () => {
   if (loading) {
     return (
       <>
-        <Navigation />
         <BlogSkeleton />
         <PageFooter />
       </>
@@ -55,7 +54,7 @@ const Blog = () => {
         url="/blog"
         type="website"
       />
-      <Navigation />
+      
 
       {/* Page Header */}
       <div className="bg-beige-50 py-16">

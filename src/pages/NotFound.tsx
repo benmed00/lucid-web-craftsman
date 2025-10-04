@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 
-import Navigation from "../components/Navigation";
+
 import PageFooter from "../components/PageFooter";
 import { useEffect } from "react";
 
@@ -71,7 +71,7 @@ const NotFound = () => {
 
       {/* Entête */}
       <div className="relative z-10">
-        <Navigation />
+        
       </div>
 
       {/* Grid centrale */}
