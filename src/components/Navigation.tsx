@@ -10,9 +10,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
 
-// Ensure a single persistent navigation instance across routes
-let NAV_SINGLETON_MOUNTED = false;
-
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -44,11 +41,6 @@ const Navigation = () => {
     }
   };
 
-  // Prevent duplicate nav rendering across pages
-  if (typeof window !== "undefined" && document.querySelector('[data-global-header="true"]')) {
-    return null;
-  }
-
   return (
     <>
       {/* Skip to main content */}
@@ -59,7 +51,7 @@ const Navigation = () => {
         Aller au contenu principal
       </a>
       
-      <header data-global-header="true" className="sticky top-0 z-50 w-full bg-white border-b border-stone-200 shadow-sm">
+      <header className="sticky top-0 z-50 w-full bg-white border-b border-stone-200 shadow-sm">
         <div className="w-full max-w-none px-4 sm:px-4 md:px-6 lg:px-8 xl:px-12">
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-16 lg:h-16 w-full gap-2 md:gap-4">
             {/* Logo Section */}
