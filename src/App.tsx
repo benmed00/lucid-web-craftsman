@@ -50,6 +50,9 @@ const PWAInstallPrompt = lazy(() => import("@/components/ui/PWAInstallPrompt").t
 const OfflineManager = lazy(() => import("@/components/ui/OfflineManager").then(m => ({ default: m.OfflineManager })));
 const PushNotificationManager = lazy(() => import("@/components/ui/PushNotificationManager").then(m => ({ default: m.PushNotificationManager })));
 
+// Navigation (persistent across routes)
+import Navigation from "@/components/Navigation";
+
 // Admin imports - lazy loaded since admin pages are rarely accessed
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
@@ -152,6 +155,10 @@ const App = () => {
                       <PushNotificationManager />
                       <PWAInstallPrompt />
                     </Suspense>
+
+                    {/* Persistent Navigation across routes */}
+                    <Navigation />
+
                     <Routes>
                       {/* Critical routes loaded immediately */}
                       <Route path="/" element={<Index />} />
