@@ -77,8 +77,8 @@ const Navigation = () => {
             </div>
 
             {/* Navigation Links - Desktop & Tablet */}
-            <nav className="hidden md:flex items-center justify-center flex-1 max-w-md lg:max-w-lg xl:max-w-xl mx-4" role="navigation" aria-label="Navigation principale">
-              <div className="flex items-center justify-center space-x-1 lg:space-x-2">
+            <nav className="hidden md:flex items-center justify-center flex-1 max-w-md lg:max-w-lg xl:max-w-xl mx-2" role="navigation" aria-label="Navigation principale">
+              <div className="flex items-center justify-center space-x-2 lg:space-x-3">
                 <Link
                   to="/"
                   className={clsx(
@@ -138,7 +138,7 @@ const Navigation = () => {
             </nav>
 
             {/* Actions Section - Desktop & Tablet */}
-            <div className="flex items-center space-x-1 md:space-x-2 flex-shrink-0 w-auto md:w-48 lg:w-52 justify-end">
+            <div className="flex items-center gap-2 md:gap-3 flex-shrink-0 w-auto md:w-auto lg:w-auto justify-end">
               {/* Search Button - Tablet & Desktop */}
               <Button
                 variant="ghost"
@@ -189,7 +189,7 @@ const Navigation = () => {
               </Link>
 
               {/* Auth buttons - Tablet & Desktop */}
-              <div className="hidden md:flex items-center gap-1">
+              <div className="hidden md:flex items-center gap-2">
                 {isLoading ? (
                   <div className="flex items-center gap-1">
                     <div className="w-10 h-10 rounded-lg bg-stone-200 animate-pulse"></div>
