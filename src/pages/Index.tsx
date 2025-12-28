@@ -62,20 +62,20 @@ const Index = () => {
         <section className="container mx-auto px-4 py-6 sm:py-8 md:py-12 lg:py-16 xl:py-24 flex flex-col lg:flex-row items-center gap-6 sm:gap-8 md:gap-10 lg:gap-12">
           {/* Left: Copy and CTA */}
           <div className="lg:w-1/2 w-full text-center lg:text-left space-y-4 sm:space-y-5 md:space-y-6 hero-text-animation">
-            <Badge className="inline-flex items-center mb-3 sm:mb-4 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none animate-scale-in hover-glow px-3 py-2">
-              <span className="w-2 h-2 bg-olive-500 rounded-full mr-2"></span>
+            <Badge className="inline-flex items-center mb-3 sm:mb-4 bg-secondary text-secondary-foreground hover:bg-secondary/80 border-none animate-scale-in hover-glow px-3 py-2">
+              <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
               Artisanat Durable & Fait Main
             </Badge>
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-serif font-medium text-stone-800 animate-fade-in-up leading-tight">
-              Créé avec amour dans les <span className="text-olive-700">montagnes du Rif</span>
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-serif font-medium text-foreground animate-fade-in-up leading-tight">
+              Créé avec amour dans les <span className="text-primary">montagnes du Rif</span>
             </h1>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-stone-600 animate-fade-in-up leading-relaxed max-w-2xl mx-auto lg:mx-0" style={{ animationDelay: '0.3s' }}>
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground animate-fade-in-up leading-relaxed max-w-2xl mx-auto lg:mx-0" style={{ animationDelay: '0.3s' }}>
               Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-fade-in-up justify-center lg:justify-start" style={{ animationDelay: '0.5s' }}>
               <Link to="/products" className="group">
                 <Button 
-                  className="w-full sm:w-auto bg-olive-700 hover:bg-olive-800 text-white font-medium px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg button-press hover-glow text-sm sm:text-base md:text-lg touch-manipulation min-h-[44px] sm:min-h-[48px] md:min-h-[56px]"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg button-press hover-glow text-sm sm:text-base md:text-lg touch-manipulation min-h-[44px] sm:min-h-[48px] md:min-h-[56px]"
                   id="hero-discover-collection"
                   name="discover-collection-button"
                 >
@@ -86,7 +86,7 @@ const Index = () => {
               <Link to="/blog" className="group">
                 <Button 
                   variant="outline" 
-                  className="w-full sm:w-auto border-stone-300 text-stone-700 hover:bg-stone-50 px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 rounded-lg transition-all duration-300 hover:scale-105 hover:border-olive-300 button-press text-sm sm:text-base md:text-lg touch-manipulation min-h-[44px] sm:min-h-[48px] md:min-h-[56px]"
+                  className="w-full sm:w-auto border-border text-foreground hover:bg-muted px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 rounded-lg transition-all duration-300 hover:scale-105 hover:border-primary/50 button-press text-sm sm:text-base md:text-lg touch-manipulation min-h-[44px] sm:min-h-[48px] md:min-h-[56px]"
                   id="hero-our-story"
                   name="our-story-button"
                 >

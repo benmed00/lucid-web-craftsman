@@ -430,8 +430,8 @@ const Navigation = () => {
               <Button
                 className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-medium text-lg transition-all duration-200 ${
                   itemCount >= 1
-                    ? "bg-olive-700 text-white hover:bg-olive-800 shadow-lg shadow-olive-700/30"
-                    : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
                 }`}
                 tabIndex={isMenuOpen ? 0 : -1}
               >
@@ -446,18 +446,18 @@ const Navigation = () => {
                 {user ? (
                   <>
                     {/* User Info */}
-                    <div className="flex items-center gap-3 p-3 bg-olive-50 rounded-lg">
-                      <div className="p-2 bg-olive-700 rounded-full">
-                        <User className="h-4 w-4 text-white" />
+                    <div className="flex items-center gap-3 p-3 bg-secondary rounded-lg">
+                      <div className="p-2 bg-primary rounded-full">
+                        <User className="h-4 w-4 text-primary-foreground" />
                       </div>
-                      <span className="text-sm font-medium text-olive-800">Connecté</span>
+                      <span className="text-sm font-medium text-secondary-foreground">Connecté</span>
                     </div>
 
                     {/* User Menu Items */}
                     <div className="space-y-2">
                       <Link
                         to="/profile"
-                        className="flex items-center gap-3 p-3 text-stone-700 hover:bg-stone-50 rounded-lg transition-colors"
+                        className="flex items-center gap-3 p-3 text-foreground hover:bg-muted rounded-lg transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                         tabIndex={isMenuOpen ? 0 : -1}
                       >
@@ -467,7 +467,7 @@ const Navigation = () => {
 
                       <Link
                         to="/orders"
-                        className="flex items-center gap-3 p-3 text-stone-700 hover:bg-stone-50 rounded-lg transition-colors"
+                        className="flex items-center gap-3 p-3 text-foreground hover:bg-muted rounded-lg transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                         tabIndex={isMenuOpen ? 0 : -1}
                       >
@@ -477,7 +477,7 @@ const Navigation = () => {
 
                       <Link
                         to="/wishlist"
-                        className="flex items-center justify-between p-3 text-stone-700 hover:bg-stone-50 rounded-lg transition-colors"
+                        className="flex items-center justify-between p-3 text-foreground hover:bg-muted rounded-lg transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                         tabIndex={isMenuOpen ? 0 : -1}
                       >
@@ -486,7 +486,7 @@ const Navigation = () => {
                           <span>Mes Favoris</span>
                         </div>
                         {wishlistCount > 0 && (
-                          <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          <span className="bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
                             {wishlistCount}
                           </span>
                         )}
@@ -494,7 +494,7 @@ const Navigation = () => {
 
                       <button
                         onClick={handleSignOut}
-                        className="flex items-center gap-3 w-full p-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="flex items-center gap-3 w-full p-3 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                         tabIndex={isMenuOpen ? 0 : -1}
                       >
                         <LogOut className="h-5 w-5" />
@@ -506,7 +506,7 @@ const Navigation = () => {
                   <Button 
                     variant="default" 
                     asChild 
-                    className="w-full py-4 rounded-xl bg-olive-700 hover:bg-olive-800 text-white font-medium"
+                    className="w-full py-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                     tabIndex={isMenuOpen ? 0 : -1}
                   >
                     <Link to="/auth" onClick={() => setIsMenuOpen(false)}>

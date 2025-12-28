@@ -4,17 +4,17 @@ import { ErrorReportButton } from "./ui/ErrorReportButton";
 
 const Footer = () => {
   return (
-    <footer className="bg-stone-800 text-stone-50 py-8 sm:py-12">
+    <footer className="bg-card text-card-foreground border-t border-border py-8 sm:py-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center space-x-2 mb-4">
-              <Leaf className="h-4 w-4 sm:h-5 sm:w-5 text-olive-400" />
+              <Leaf className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               <span className="font-serif text-lg sm:text-xl font-medium">
                 Rif Raw Straw
               </span>
             </div>
-            <p className="text-stone-300 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
+            <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
               Sacs et chapeaux artisanaux confectionnés avec des matériaux durables et des techniques traditionnelles berbères.
             </p>
             
