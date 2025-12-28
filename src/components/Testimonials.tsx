@@ -31,19 +31,19 @@ const Testimonials = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       {testimonials.map((testimonial) => (
-        <Card key={testimonial.id} className="bg-white border-none shadow-sm hover:shadow-md transition-shadow duration-300">
+        <Card key={testimonial.id} className="bg-card border-none shadow-sm hover:shadow-md transition-shadow duration-300">
           <CardContent className="p-4 sm:p-6">
             <div className="flex mb-3 sm:mb-4">
               {[...Array(testimonial.rating)].map((_, i) => (
                 <Star key={i} className="h-4 w-4 sm:h-5 sm:w-5 fill-amber-400 text-amber-400" />
               ))}
             </div>
-            <p className="text-stone-600 mb-4 sm:mb-6 italic text-sm sm:text-base leading-relaxed">"{testimonial.text}"</p>
+            <p className="text-muted-foreground mb-4 sm:mb-6 italic text-sm sm:text-base leading-relaxed">"{testimonial.text}"</p>
             <div className="flex items-center">
               <Avatar className="h-8 w-8 sm:h-10 sm:w-10 mr-2 sm:mr-3">
-                <AvatarFallback className="bg-olive-200 text-olive-800 text-xs sm:text-sm">{testimonial.avatar}</AvatarFallback>
+                <AvatarFallback className="bg-primary/20 text-primary text-xs sm:text-sm">{testimonial.avatar}</AvatarFallback>
               </Avatar>
-              <span className="font-medium text-stone-800 text-sm sm:text-base">{testimonial.name}</span>
+              <span className="font-medium text-foreground text-sm sm:text-base">{testimonial.name}</span>
             </div>
           </CardContent>
         </Card>
