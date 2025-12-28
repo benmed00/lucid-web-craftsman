@@ -92,7 +92,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
         <button
           key={rating}
           onClick={() => onFiltersChange({ rating: rating === filters.rating ? 0 : rating })}
-          className="focus:outline-none"
+          className="focus:outline-none focus:ring-2 focus:ring-primary rounded"
         >
           <Star 
             className={`h-5 w-5 ${
@@ -118,7 +118,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Search Input with Autocomplete */}
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400" size={20} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
             <Input
               ref={searchInputRef}
               type="text"
@@ -142,7 +142,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
             
             {/* Search Suggestions Dropdown */}
             {showSuggestions && searchSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 z-50 bg-white border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
+              <div className="absolute top-full left-0 right-0 z-50 bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
                 <div className="p-2">
                   <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
                     <Sparkles className="h-3 w-3" />
@@ -152,14 +152,14 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
                     <button
                       key={index}
                       onClick={() => handleSuggestionSelect(suggestion)}
-                      className="w-full text-left px-3 py-2 hover:bg-stone-50 rounded-md text-sm"
+                      className="w-full text-left px-3 py-2 hover:bg-accent rounded-md text-sm text-foreground"
                     >
                       {suggestion}
                     </button>
                   ))}
                 </div>
                 {searchHistory.length > 0 && (
-                  <div className="border-t p-2">
+                  <div className="border-t border-border p-2">
                     <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       Recherches récentes
@@ -168,7 +168,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
                       <button
                         key={index}
                         onClick={() => handleSuggestionSelect(query)}
-                        className="w-full text-left px-3 py-2 hover:bg-stone-50 rounded-md text-sm text-stone-600"
+                        className="w-full text-left px-3 py-2 hover:bg-accent rounded-md text-sm text-muted-foreground"
                       >
                         {query}
                       </button>
@@ -219,12 +219,12 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
       {/* Results Info & Quick Actions */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <p className="text-sm text-stone-600 flex items-center gap-1">
-            {isLoading && <div className="h-4 w-4 animate-spin border-2 border-stone-400 border-t-transparent rounded-full" />}
+          <p className="text-sm text-muted-foreground flex items-center gap-1">
+            {isLoading && <div className="h-4 w-4 animate-spin border-2 border-muted-foreground border-t-transparent rounded-full" />}
             {filteredCount === totalProducts ? (
               <span>{totalProducts} produits</span>
             ) : (
-              <span><strong>{filteredCount}</strong> sur {totalProducts} produits</span>
+              <span><strong className="text-foreground">{filteredCount}</strong> sur {totalProducts} produits</span>
             )}
           </p>
           
@@ -241,7 +241,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
             variant="ghost"
             size="sm"
             onClick={onResetFilters}
-            className="text-stone-600 hover:text-stone-800"
+            className="text-muted-foreground hover:text-foreground"
           >
             Effacer tous les filtres
           </Button>
@@ -331,7 +331,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
       {/* Advanced Filters Panel */}
       <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
         <CollapsibleContent>
-          <Card className="border-stone-200">
+          <Card className="border-border">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Filter size={18} />
@@ -342,7 +342,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Categories */}
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium text-stone-700 flex items-center gap-2">
+                  <Label className="text-sm font-medium text-foreground flex items-center gap-2">
                     <Package className="h-4 w-4" />
                     Catégories
                   </Label>
@@ -366,7 +366,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
                         />
                         <Label 
                           htmlFor={category} 
-                          className="text-sm cursor-pointer text-stone-700 flex-1"
+                          className="text-sm cursor-pointer text-muted-foreground flex-1"
                         >
                           {category}
                         </Label>
@@ -379,7 +379,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
                 <div className="space-y-6">
                   {/* Price Range */}
                   <div className="space-y-3">
-                    <Label className="text-sm font-medium text-stone-700 flex items-center gap-2">
+                    <Label className="text-sm font-medium text-foreground flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" />
                       Prix: {filters.priceRange[0]}€ - {filters.priceRange[1]}€
                     </Label>
@@ -392,7 +392,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
                         step={5}
                         className="w-full"
                       />
-                      <div className="flex justify-between text-xs text-stone-500 mt-1">
+                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
                         <span>{availableOptions.priceRange.min}€</span>
                         <span>{availableOptions.priceRange.max}€</span>
                       </div>
@@ -401,7 +401,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
 
                   {/* Rating Filter */}
                   <div className="space-y-3">
-                    <Label className="text-sm font-medium text-stone-700 flex items-center gap-2">
+                    <Label className="text-sm font-medium text-foreground flex items-center gap-2">
                       <Star className="h-4 w-4" />
                       Note minimum
                     </Label>
@@ -414,7 +414,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
                   {/* Artisan Filter */}
                   {availableOptions.artisans.length > 0 && (
                     <div className="space-y-3">
-                      <Label className="text-sm font-medium text-stone-700 flex items-center gap-2">
+                      <Label className="text-sm font-medium text-foreground flex items-center gap-2">
                         <User className="h-4 w-4" />
                         Artisans
                       </Label>
@@ -438,7 +438,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
                             />
                             <Label 
                               htmlFor={`artisan-${artisan}`} 
-                              className="text-sm cursor-pointer text-stone-700 flex-1"
+                              className="text-sm cursor-pointer text-muted-foreground flex-1"
                             >
                               {artisan}
                             </Label>
