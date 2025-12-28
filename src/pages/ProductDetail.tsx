@@ -257,7 +257,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   // Loading State
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb Skeleton */}
           <div className="mb-8">
@@ -296,28 +296,28 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   // Error State
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16 text-center">
           <div className="max-w-md mx-auto">
-            <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-serif text-stone-800 mb-4">
+            <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
+            <h2 className="text-2xl font-serif text-foreground mb-4">
               {error || "Produit non trouvé"}
             </h2>
-            <p className="text-stone-600 mb-8">
+            <p className="text-muted-foreground mb-8">
               Le produit que vous recherchez n'existe pas ou n'est plus disponible.
             </p>
             <div className="space-x-4">
               <Button 
                 variant="outline" 
                 onClick={() => navigate(-1)}
-                className="border-stone-300"
+                className="border-border"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Retour
               </Button>
               <Button 
                 asChild
-                className="bg-olive-700 hover:bg-olive-800"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <Link to="/products">
                   Voir tous les produits
@@ -342,32 +342,32 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
         image={product.images[0]}
       />
 
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         
 
         <main className="container mx-auto px-4 py-8">
           {/* Breadcrumbs */}
           <nav className="mb-8" aria-label="Breadcrumb">
-            <ol className="flex items-center space-x-2 text-sm text-stone-500">
+            <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
               <li>
-                <Link to="/" className="hover:text-olive-700 transition-colors">
+                <Link to="/" className="hover:text-primary transition-colors">
                   Accueil
                 </Link>
               </li>
               <li>/</li>
               <li>
-                <Link to="/products" className="hover:text-olive-700 transition-colors">
+                <Link to="/products" className="hover:text-primary transition-colors">
                   Boutique
                 </Link>
               </li>
               <li>/</li>
               <li>
-                <Link to={`/products?category=${product.category}`} className="hover:text-olive-700 transition-colors">
+                <Link to={`/products?category=${product.category}`} className="hover:text-primary transition-colors">
                   {product.category}
                 </Link>
               </li>
               <li>/</li>
-              <li className="text-stone-700 font-medium" aria-current="page">
+              <li className="text-foreground font-medium" aria-current="page">
                 {product.name}
               </li>
             </ol>
@@ -379,7 +379,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
             <section className="space-y-4" aria-label="Images du produit">
               {/* Main Image */}
               <div className="relative group">
-                <div className="aspect-square overflow-hidden rounded-xl bg-stone-100">
+                <div className="aspect-square overflow-hidden rounded-xl bg-muted">
                   <ProductImage
                     src={product.images[selectedImage]}
                     alt={`${product.name} - vue ${selectedImage + 1} sur ${product.images.length}`}
@@ -393,7 +393,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => handleImageChange('prev')}
                         aria-label={`Image précédente (${selectedImage} sur ${product.images.length})`}
                       >
@@ -402,7 +402,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => handleImageChange('next')}
                         aria-label={`Image suivante (${selectedImage + 2} sur ${product.images.length})`}
                       >
@@ -417,7 +417,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="absolute top-4 right-4 bg-white/80 hover:bg-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-4 right-4 bg-background/80 hover:bg-background shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -439,7 +439,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       <button
                         key={index}
                         className={`w-2 h-2 rounded-full transition-colors ${
-                          index === selectedImage ? 'bg-white' : 'bg-white/50'
+                          index === selectedImage ? 'bg-primary-foreground' : 'bg-primary-foreground/50'
                         }`}
                         onClick={() => setSelectedImage(index)}
                         aria-label={`Voir l'image ${index + 1}`}
@@ -457,8 +457,8 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       key={index}
                       className={`aspect-square overflow-hidden rounded-lg border-2 transition-all ${
                         selectedImage === index
-                          ? 'border-olive-500 ring-2 ring-olive-200'
-                          : 'border-stone-200 hover:border-stone-300'
+                          ? 'border-primary ring-2 ring-primary/20'
+                          : 'border-border hover:border-muted-foreground'
                       }`}
                       onClick={() => setSelectedImage(index)}
                     >
@@ -478,23 +478,23 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
               {/* Header */}
               <header>
                 <div className="flex items-center gap-3 mb-3">
-                  <Badge variant="outline" className="text-olive-700 border-olive-200">
+                  <Badge variant="outline" className="text-primary border-primary/20">
                     {product.category}
                   </Badge>
                   {(product.new || product.is_new) && (
-                    <Badge className="bg-olive-600 text-white">
+                    <Badge className="bg-primary text-primary-foreground">
                       Nouveau
                     </Badge>
                   )}
                   {product.is_featured && (
-                    <Badge className="bg-amber-500 text-white">
+                    <Badge className="bg-accent text-accent-foreground">
                       ⭐ Coup de cœur
                     </Badge>
                   )}
                 </div>
 
                 <h1 
-                  className="text-3xl lg:text-4xl font-serif text-stone-800 mb-4"
+                  className="text-3xl lg:text-4xl font-serif text-foreground mb-4"
                   id="product-title"
                 >
                   {product.name}
@@ -510,12 +510,12 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                           className={`h-4 w-4 ${
                             i < Math.floor(productRating)
                               ? 'text-amber-400 fill-current'
-                              : 'text-stone-300'
+                              : 'text-muted-foreground'
                           }`}
                         />
                       ))}
                     </div>
-                    <span className="text-sm text-stone-600">
+                    <span className="text-sm text-muted-foreground">
                       ({reviewCount} avis)
                     </span>
                   </div>
@@ -523,10 +523,10 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
 
                 {/* Price */}
                 <div className="mb-6">
-                  <div className="text-3xl font-bold text-olive-700">
+                  <div className="text-3xl font-bold text-primary">
                     {formatPrice(product.price)}
                   </div>
-                  <p className="text-sm text-stone-600 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     TVA incluse • Livraison calculée à l'étape suivante
                   </p>
                 </div>
@@ -534,13 +534,13 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
 
               {/* Short Description */}
               <div>
-                <p className="text-stone-600 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {product.short_description || product.description}
                 </p>
                 {product.description.length > 200 && (
                   <button
                     onClick={() => setShowFullDescription(!showFullDescription)}
-                    className="text-olive-700 text-sm hover:underline mt-2"
+                    className="text-primary text-sm hover:underline mt-2"
                   >
                     {showFullDescription ? 'Voir moins' : 'Voir plus'}
                   </button>
@@ -582,7 +582,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                 <div className="flex gap-3">
                   <Button
                     onClick={handleAddToCart}
-                    className="flex-1 bg-olive-700 hover:bg-olive-800 text-white"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                     disabled={singleStockInfo?.isOutOfStock}
                   >
                     <ShoppingBag className="h-4 w-4 mr-2" />
@@ -656,14 +656,14 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                 
                 <Alert>
                   <AlertDescription className="flex items-center gap-2">
-                    <Truck className="h-4 w-4 text-olive-600" />
+                    <Truck className="h-4 w-4 text-primary" />
                     <div className="text-sm">
-                      <p className="font-medium">Livraison gratuite</p>
-                      <p className="text-stone-600">
+                      <p className="font-medium text-foreground">Livraison gratuite</p>
+                      <p className="text-muted-foreground">
                         À partir de 50€ d'achat en France métropolitaine
                       </p>
                         {getShippingMessage && (
-                        <p className="text-stone-600 mt-1">
+                        <p className="text-muted-foreground mt-1">
                           {getShippingMessage()}
                         </p>
                       )}
@@ -687,9 +687,9 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
               <TabsContent value="details" className="space-y-4">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-medium text-stone-800 mb-4">Description détaillée</h3>
+                    <h3 className="font-medium text-foreground mb-4">Description détaillée</h3>
                     <div
-                      className="prose prose-stone max-w-none text-stone-600"
+                      className="prose prose-stone dark:prose-invert max-w-none text-muted-foreground"
                       dangerouslySetInnerHTML={{
                         __html: sanitizeHtmlContent(product.details),
                       }}
@@ -701,36 +701,36 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
               <TabsContent value="specs" className="space-y-4">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-medium text-stone-800 mb-4">Caractéristiques techniques</h3>
+                    <h3 className="font-medium text-foreground mb-4">Caractéristiques techniques</h3>
                     <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {product.material && (
                         <>
-                          <dt className="font-medium text-stone-700">Matériau</dt>
-                          <dd className="text-stone-600">{product.material}</dd>
+                          <dt className="font-medium text-foreground">Matériau</dt>
+                          <dd className="text-muted-foreground">{product.material}</dd>
                         </>
                       )}
                       {product.color && (
                         <>
-                          <dt className="font-medium text-stone-700">Couleur</dt>
-                          <dd className="text-stone-600">{product.color}</dd>
+                          <dt className="font-medium text-foreground">Couleur</dt>
+                          <dd className="text-muted-foreground">{product.color}</dd>
                         </>
                       )}
                       {product.dimensions_cm && (
                         <>
-                          <dt className="font-medium text-stone-700">Dimensions</dt>
-                          <dd className="text-stone-600">{product.dimensions_cm}</dd>
+                          <dt className="font-medium text-foreground">Dimensions</dt>
+                          <dd className="text-muted-foreground">{product.dimensions_cm}</dd>
                         </>
                       )}
                       {product.weight_grams && (
                         <>
-                          <dt className="font-medium text-stone-700">Poids</dt>
-                          <dd className="text-stone-600">{product.weight_grams}g</dd>
+                          <dt className="font-medium text-foreground">Poids</dt>
+                          <dd className="text-muted-foreground">{product.weight_grams}g</dd>
                         </>
                       )}
-                      <dt className="font-medium text-stone-700">Artisan</dt>
-                      <dd className="text-stone-600">{product.artisan}</dd>
-                      <dt className="font-medium text-stone-700">Catégorie</dt>
-                      <dd className="text-stone-600">{product.category}</dd>
+                      <dt className="font-medium text-foreground">Artisan</dt>
+                      <dd className="text-muted-foreground">{product.artisan}</dd>
+                      <dt className="font-medium text-foreground">Catégorie</dt>
+                      <dd className="text-muted-foreground">{product.category}</dd>
                     </dl>
                   </CardContent>
                 </Card>
@@ -739,9 +739,9 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
               <TabsContent value="care" className="space-y-4">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-medium text-stone-800 mb-4">Instructions d'entretien</h3>
+                    <h3 className="font-medium text-foreground mb-4">Instructions d'entretien</h3>
                     <div
-                      className="prose prose-stone max-w-none text-stone-600"
+                      className="prose prose-stone dark:prose-invert max-w-none text-muted-foreground"
                       dangerouslySetInnerHTML={{
                         __html: sanitizeHtmlContent(product.care),
                       }}
@@ -753,21 +753,21 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
               <TabsContent value="shipping" className="space-y-4">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-medium text-stone-800 mb-4">Livraison et retours</h3>
+                    <h3 className="font-medium text-foreground mb-4">Livraison et retours</h3>
                     <div className="space-y-4">
                       <div>
-                        <h4 className="font-medium text-stone-700 mb-2">Délais de livraison</h4>
-                        <p className="text-stone-600">2-5 jours ouvrés en France métropolitaine</p>
+                        <h4 className="font-medium text-foreground mb-2">Délais de livraison</h4>
+                        <p className="text-muted-foreground">2-5 jours ouvrés en France métropolitaine</p>
                       </div>
                       <div>
-                        <h4 className="font-medium text-stone-700 mb-2">Frais de livraison</h4>
-                        <p className="text-stone-600">
+                        <h4 className="font-medium text-foreground mb-2">Frais de livraison</h4>
+                        <p className="text-muted-foreground">
                           Gratuite à partir de 50€ d'achat. Sinon 4,90€ en France métropolitaine.
                         </p>
                       </div>
                       <div>
-                        <h4 className="font-medium text-stone-700 mb-2">Retours</h4>
-                        <p className="text-stone-600">
+                        <h4 className="font-medium text-foreground mb-2">Retours</h4>
+                        <p className="text-muted-foreground">
                           Retours gratuits sous 14 jours. L'article doit être dans son état d'origine.
                         </p>
                       </div>

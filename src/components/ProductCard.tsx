@@ -206,7 +206,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
                 onAddToCart(product);
               }}
               disabled={singleStockInfo?.isOutOfStock}
-              className="w-full bg-olive-700 hover:bg-olive-800 text-white hover:text-white active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-4 sm:px-6 py-3 sm:py-4 touch-manipulation min-h-[48px] sm:min-h-[52px] font-semibold text-sm sm:text-base rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl disabled:hover:bg-olive-700 disabled:hover:shadow-lg group relative overflow-hidden border-0"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-4 sm:px-6 py-3 sm:py-4 touch-manipulation min-h-[48px] sm:min-h-[52px] font-semibold text-sm sm:text-base rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl disabled:hover:bg-primary disabled:hover:shadow-lg group relative overflow-hidden border-0"
               aria-label={singleStockInfo?.isOutOfStock 
                 ? `Indisponible - ${product.name}` 
                 : `Ajouter au panier - ${product.name} pour ${formatPrice(product.price)}`
@@ -220,7 +220,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
               </div>
               
               {/* Hover gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-olive-600 to-olive-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </Button>
           </TooltipWrapper>
         </div>
