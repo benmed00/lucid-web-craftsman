@@ -56,8 +56,8 @@ export const WishlistButton = React.forwardRef<HTMLButtonElement, WishlistButton
         className={cn(
           'transition-all duration-200',
           !showText && sizeClasses[size],
-          isFavorited && 'text-red-500 hover:text-red-600',
-          !isFavorited && 'text-stone-400 hover:text-stone-600',
+          isFavorited && 'text-status-error hover:text-status-error/80',
+          !isFavorited && 'text-muted-foreground hover:text-foreground',
           className
         )}
       >

@@ -394,8 +394,8 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                         <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${
                             transaction.points_change > 0 
-                              ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
-                              : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                              ? 'bg-status-success/10 text-status-success' 
+                              : 'bg-status-error/10 text-status-error'
                           }`}>
                             {transaction.points_change > 0 ? (
                               <Sparkles className="h-4 w-4" />
@@ -412,8 +412,8 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                         </div>
                         <div className={`text-lg font-semibold ${
                           transaction.points_change > 0 
-                            ? 'text-green-600 dark:text-green-400' 
-                            : 'text-red-600 dark:text-red-400'
+                            ? 'text-status-success' 
+                            : 'text-status-error'
                         }`}>
                           {transaction.points_change > 0 ? '+' : ''}{transaction.points_change}
                         </div>

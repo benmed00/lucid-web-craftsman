@@ -261,7 +261,7 @@ export default function Profile() {
                     {/* Status and Member Info */}
                     <div className="space-y-3">
                       <div className="flex justify-center">
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs ${user.email_confirmed_at ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'}`}>
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs ${user.email_confirmed_at ? 'bg-status-success/10 text-status-success' : 'bg-status-warning/10 text-status-warning'}`}>
                           {user.email_confirmed_at ? '✓ Vérifié' : '⚠️ Non vérifié'}
                         </span>
                       </div>
