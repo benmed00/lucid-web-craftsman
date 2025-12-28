@@ -175,7 +175,7 @@ const Cart = () => {
               return (
                 <Card 
                   key={item.id} 
-                  className={`transition-all duration-200 hover:shadow-lg cursor-pointer ${hasStockIssue ? 'border-amber-200 bg-amber-50' : ''}`}
+                  className={`transition-all duration-200 hover:shadow-lg cursor-pointer ${hasStockIssue ? 'border-amber-500/50 bg-amber-500/10' : ''}`}
                   role="article"
                   aria-labelledby={`cart-item-${item.id}`}
                   aria-describedby={`cart-item-details-${item.id}`}
@@ -316,7 +316,7 @@ const Cart = () => {
                         <span>Livraison</span>
                         <span>{calculation.is_free ? 'Gratuit' : `${calculation.cost.toFixed(2)} €`}</span>
                       </div>
-                      <div className="flex justify-between text-sm text-stone-600">
+                      <div className="flex justify-between text-sm text-muted-foreground">
                         <span>Délai de livraison</span>
                         <span>{calculation.delivery_estimate}</span>
                       </div>
