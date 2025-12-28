@@ -184,9 +184,13 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* Prevent layout shifts and optimize performance */
-    backface-visibility: hidden;
-    transform: translateZ(0);
+    /* 
+     * REMOVED: transform: translateZ(0) and backface-visibility: hidden
+     * These properties create a new containing block for position:fixed elements,
+     * causing dialogs/modals to be positioned relative to body instead of viewport.
+     * This broke all Radix UI dialogs and overlays.
+     * See: https://developer.mozilla.org/en-US/docs/Web/CSS/position#fixed
+     */
   }
   
   h1, h2, h3, h4, h5, h6 {
