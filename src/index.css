@@ -126,7 +126,6 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     /* Prevent layout shifts and optimize performance */
-    overflow-x: hidden;
     backface-visibility: hidden;
     transform: translateZ(0);
   }
@@ -359,7 +358,7 @@ html {
 }
 
 .skeleton {
-  @apply bg-gray-200 rounded;
+  @apply bg-muted rounded;
   position: relative;
   overflow: hidden;
 }
