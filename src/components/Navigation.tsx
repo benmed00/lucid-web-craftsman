@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import clsx from "clsx";
 import { useCartUI } from "../context/useCartUI";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
@@ -19,6 +19,18 @@ const Navigation = () => {
   const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Close mobile menu when resizing to desktop breakpoint (768px)
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768 && isMenuOpen) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMenuOpen]);
 
   const currentPath = location.pathname;
 
