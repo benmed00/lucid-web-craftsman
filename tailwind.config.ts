@@ -21,6 +21,17 @@ export default {
 			scale: {
 				'102': '1.02',
 			},
+			zIndex: {
+				'header': '40',
+				'dropdown': '45',
+				'floating': '40',
+				'overlay': '50',
+				'modal': '50',
+				'mobile-overlay': '55',
+				'mobile-menu': '56',
+				'mobile-toggle': '60',
+				'toast': '100',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

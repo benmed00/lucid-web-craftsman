@@ -11,15 +11,15 @@ const FloatingCartButton = () => {
   return (
     <Link 
       to="/cart" 
-      className="fixed bottom-6 right-6 z-50 md:hidden"
+      className="fixed bottom-6 right-6 z-40 md:hidden pb-[env(safe-area-inset-bottom)]"
       aria-label={`Voir le panier (${itemCount} article${itemCount > 1 ? 's' : ''})`}
     >
       <Button
         className={clsx(
           "h-14 w-14 rounded-full shadow-2xl border-2 transition-all duration-300 hover:scale-110 active:scale-95 touch-manipulation",
           itemCount > 0
-            ? "bg-olive-700 hover:bg-olive-800 text-white border-olive-600 shadow-olive-700/30"
-            : "bg-white hover:bg-gray-50 text-stone-700 border-stone-200 shadow-stone-400/30"
+            ? "bg-primary hover:bg-primary/90 text-primary-foreground border-primary/80 shadow-primary/30"
+            : "bg-background hover:bg-muted text-foreground border-border shadow-muted/30"
         )}
       >
         <div className="relative">
