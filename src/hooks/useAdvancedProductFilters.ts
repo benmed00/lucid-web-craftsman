@@ -1,9 +1,7 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useDeferredValue, useTransition } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { supabase } from '@/integrations/supabase/client';
-import { useOptimizedData } from '@/hooks/useOptimizedData';
-import { toast } from 'sonner';
 
 export interface AdvancedFilterOptions {
   searchQuery: string;
@@ -40,9 +38,7 @@ export const useAdvancedProductFilters = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [popularFilters, setPopularFilters] = useState<string[]>([]);
-  // isLoading should only be true during debounced search operations
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDebouncing, setIsDebouncing] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   // Initialize filters from URL parameters
   const getInitialFilters = (): AdvancedFilterOptions => ({
@@ -62,6 +58,9 @@ export const useAdvancedProductFilters = ({
   });
 
   const [filters, setFilters] = useState<AdvancedFilterOptions>(getInitialFilters);
+  
+  // Use deferred value for search query to avoid blocking UI during typing
+  const deferredSearchQuery = useDeferredValue(filters.searchQuery);
 
   // Extract available filter options from products
   const availableOptions = useMemo(() => {
@@ -85,11 +84,11 @@ export const useAdvancedProductFilters = ({
     };
   }, [products]);
 
-  // Advanced search with fuzzy matching and scoring
+  // Advanced search with fuzzy matching and scoring - uses deferred value
   const searchProducts = useMemo(() => {
-    if (!filters.searchQuery.trim()) return products;
+    if (!deferredSearchQuery.trim()) return products;
 
-    const searchTerms = filters.searchQuery.toLowerCase().split(' ').filter(Boolean);
+    const searchTerms = deferredSearchQuery.toLowerCase().split(' ').filter(Boolean);
     
     return products
       .map(product => {
@@ -103,7 +102,7 @@ export const useAdvancedProductFilters = ({
         ].filter(Boolean).join(' ').toLowerCase();
 
         // Exact phrase match (highest score)
-        if (searchableText.includes(filters.searchQuery.toLowerCase())) {
+        if (searchableText.includes(deferredSearchQuery.toLowerCase())) {
           score += 100;
         }
 
@@ -122,7 +121,7 @@ export const useAdvancedProductFilters = ({
         });
 
         // Boost for title matches
-        if (product.name.toLowerCase().includes(filters.searchQuery.toLowerCase())) {
+        if (product.name.toLowerCase().includes(deferredSearchQuery.toLowerCase())) {
           score += 50;
         }
 
@@ -131,7 +130,7 @@ export const useAdvancedProductFilters = ({
       .filter(({ score }) => score > 0)
       .sort((a, b) => b.score - a.score)
       .map(({ product }) => product);
-  }, [products, filters.searchQuery]);
+  }, [products, deferredSearchQuery]);
 
   // Apply all filters
   const filteredProducts = useMemo(() => {
@@ -251,29 +250,26 @@ export const useAdvancedProductFilters = ({
     }
   }, [enableAnalytics]);
 
-  // Debounced filter updates - fixed to avoid infinite loading
+  // Update filters with transition for non-urgent updates
   const updateFilters = useCallback(
-    async (newFilters: Partial<AdvancedFilterOptions>) => {
-      // Only show loading for search queries (debounced)
-      if (newFilters.searchQuery !== undefined && newFilters.searchQuery !== filters.searchQuery) {
-        setIsDebouncing(true);
-        await new Promise(resolve => setTimeout(resolve, debounceMs));
-        setIsDebouncing(false);
-      }
-
+    (newFilters: Partial<AdvancedFilterOptions>) => {
       const updatedFilters = { ...filters, ...newFilters };
-      setFilters(updatedFilters);
-      updateUrlParams(updatedFilters);
+      
+      // Use startTransition for filter changes to keep UI responsive
+      startTransition(() => {
+        setFilters(updatedFilters);
+        updateUrlParams(updatedFilters);
+      });
 
       // Track analytics (non-blocking)
       trackFilterUsage({
         searchQuery: updatedFilters.searchQuery,
         filters: newFilters,
-        resultCount: 0, // We don't need the exact count for analytics
+        resultCount: 0,
         timestamp: Date.now()
       });
     },
-    [filters, updateUrlParams, trackFilterUsage, debounceMs]
+    [filters, updateUrlParams, trackFilterUsage]
   );
 
   // Reset all filters
@@ -377,7 +373,8 @@ export const useAdvancedProductFilters = ({
     availableOptions,
     searchHistory,
     popularFilters,
-    isLoading: isDebouncing, // Only show loading during debounce, not permanently
+    isLoading: isPending, // Show loading during transitions
+    isSearchStale: deferredSearchQuery !== filters.searchQuery, // Indicates search is pending
     activeFiltersCount,
     updateFilters,
     resetFilters,
