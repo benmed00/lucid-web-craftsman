@@ -135,8 +135,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { subject, html } = getEmailContent(orderData.status, orderData);
 
+    // Use onboarding@resend.dev for testing, switch to commandes@rifrawstraw.com after domain verification
+    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "Rif Raw Straw <onboarding@resend.dev>";
+    
     const emailResponse = await resend.emails.send({
-      from: "Rif Raw Straw <commandes@rifrawstraw.com>",
+      from: fromEmail,
       to: [orderData.customer_email],
       subject: subject,
       html: html,
