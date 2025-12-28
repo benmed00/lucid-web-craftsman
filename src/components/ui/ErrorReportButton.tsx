@@ -121,7 +121,7 @@ export const ErrorReportButton = () => {
               id="error-type"
               value={form.errorType}
               onChange={(e) => setForm(prev => ({ ...prev, errorType: e.target.value }))}
-              className="w-full h-10 px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:border-olive-500 focus:ring-2 focus:ring-olive-500/20 bg-white"
+              className="w-full h-10 px-3 py-2 border border-border rounded-md focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-background"
             >
               <option value="bug_report">Bug / Erreur</option>
               <option value="ui_issue">Problème d'interface</option>

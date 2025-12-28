@@ -77,7 +77,7 @@ export const ReviewsOverview = ({ stats, className }: ReviewsOverviewProps) => {
               <div key={rating} className="flex items-center gap-3">
                 <div className="flex items-center gap-1 min-w-[80px]">
                   <span className="text-sm">{rating}</span>
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <Star className="w-4 h-4 fill-rating-star text-rating-star" />
                 </div>
                 <div className="flex-1">
                   <Progress value={percentage} className="h-2" />

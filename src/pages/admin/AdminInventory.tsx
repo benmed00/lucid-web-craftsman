@@ -271,7 +271,7 @@ const AdminInventory = () => {
                   <TableRow key={product.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-stone-100 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="w-12 h-12 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                           <img
                             src={product.images[0] || '/placeholder.svg'}
                             alt={product.name}

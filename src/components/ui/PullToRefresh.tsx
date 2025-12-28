@@ -34,15 +34,15 @@ export const PullToRefresh = ({
           opacity: isPulling ? 1 : 0,
         }}
       >
-        <div className="bg-white/95 backdrop-blur-sm rounded-full shadow-lg p-3 flex items-center justify-center min-w-[60px] min-h-[60px] border border-stone-200">
+        <div className="bg-background/95 backdrop-blur-sm rounded-full shadow-lg p-3 flex items-center justify-center min-w-[60px] min-h-[60px] border border-border">
           {isRefreshing ? (
             <RefreshCw 
-              className="h-5 w-5 text-olive-600 animate-spin" 
+              className="h-5 w-5 text-primary animate-spin" 
             />
           ) : (
             <ChevronDown 
-              className={`h-5 w-5 text-stone-600 transition-all duration-200 ${
-                shouldTrigger ? 'rotate-180 text-olive-600' : ''
+              className={`h-5 w-5 text-muted-foreground transition-all duration-200 ${
+                shouldTrigger ? 'rotate-180 text-primary' : ''
               }`}
               style={{
                 transform: `rotate(${pullProgress * 180}deg)`,

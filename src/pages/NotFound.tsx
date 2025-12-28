@@ -158,7 +158,7 @@ const NotFound = () => {
         {/* Bouton principal */}
         <Link
           to="/"
-          className="inline-block px-8 py-3 rounded-full font-bold text-lg shadow transition-all duration-200 border-2 border-[#bfae99] bg-[#e6dcc3] text-[#7d6e4a] hover:bg-[#bfae99] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#7d8c6a] focus:ring-offset-2"
+          className="inline-block px-8 py-3 rounded-full font-bold text-lg shadow transition-all duration-200 border-2 border-border bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           style={{
             letterSpacing: "0.04em",
           }}
