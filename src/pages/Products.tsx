@@ -358,36 +358,52 @@ const Products = () => {
             </div>
           ) : (
             <div className="space-y-8">
-              {/* Stale search indicator */}
-              {isSearchStale && (
-                <div className="flex items-center justify-center gap-2 text-muted-foreground py-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Recherche en cours...</span>
+              {/* Skeleton loader during search */}
+              {isSearchStale ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground py-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm">Recherche en cours...</span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
+                    {Array.from({ length: isMobile ? 4 : 8 }).map((_, index) => (
+                      <div 
+                        key={`skeleton-${index}`}
+                        className="animate-pulse"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <div className="bg-card rounded-lg overflow-hidden border border-border">
+                          <div className="aspect-square bg-muted" />
+                          <div className="p-3 md:p-4 space-y-3">
+                            <div className="h-4 bg-muted rounded w-3/4" />
+                            <div className="h-3 bg-muted rounded w-1/2" />
+                            <div className="h-5 bg-muted rounded w-1/3" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
+                  {(isMobile ? visibleProducts : filteredProducts).map((product, index) => (
+                    <div 
+                      key={product.id}
+                      className="animate-fade-in mobile-product-card"
+                      style={{ 
+                        animationDelay: `${Math.min(index * 50, 400)}ms`,
+                        animationFillMode: 'both'
+                      }}
+                    >
+                      <ProductCard
+                        product={product}
+                        onAddToCart={handleAddToCart}
+                        onQuickView={handleQuickView}
+                      />
+                    </div>
+                  ))}
                 </div>
               )}
-              
-              <div 
-                className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6 transition-opacity duration-200 ${
-                  isSearchStale ? 'opacity-50 pointer-events-none' : 'opacity-100'
-                }`}
-              >
-                {(isMobile ? visibleProducts : filteredProducts).map((product, index) => (
-                  <div 
-                    key={product.id}
-                    className="animate-fade-in mobile-product-card"
-                    style={{ 
-                      animationDelay: `${Math.min(index * 50, 400)}ms`,
-                      animationFillMode: 'both'
-                    }}
-                  >
-                    <ProductCard
-                      product={product}
-                      onAddToCart={handleAddToCart}
-                      onQuickView={handleQuickView}
-                    />
-                  </div>
-                ))}
-              </div>
 
                 {/* Infinite Scroll Sentinel and Loading */}
               {isMobile && hasMore && (
