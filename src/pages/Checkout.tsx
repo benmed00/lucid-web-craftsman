@@ -1,13 +1,11 @@
 import { ArrowLeft, CheckCircle, CreditCard } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Stripe } from "@stripe/stripe-js"; // Type import only
-import { getCart } from "@/api/mockApiService"; // Removed updateCartItemQuantity
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-// import { Link } from "react-router-dom"; // Marked as unused
 
 import PageFooter from "@/components/PageFooter";
 import { STRIPE_PUBLIC_KEY } from "@/lib/stripe";
@@ -16,27 +14,23 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { stockService } from "@/services/stockService";
 import { useLazyStripe } from "@/components/performance/LazyStripe";
+import { useCart } from "@/context/CartContext";
 
 // Lazy initialize Stripe only when needed
 let _stripePromise: Promise<Stripe | null> | null = null;
 
-// When initializing Stripe
-// const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY!, {
-//   betas: ['YOUR_BETA_FEATURES']
-// });
-
-// In your Stripe initialization code
-// const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY, {
-//   locale: 'fr',
-//   betas: ['YOUR_BETA_FEATURES']
-// });
-
 const Checkout = () => {
   const [step, setStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState("card");
-  const [loading, setLoading] = useState(true);
-  const [cartItems, setCartItems] = useState([]);
-  const { loadStripe } = useLazyStripe(); // Use lazy Stripe loading
+  const { loadStripe } = useLazyStripe();
+  const { cart } = useCart();
+  
+  // Convert cart state items to the format expected by checkout
+  const cartItems = cart.items.map(item => ({
+    product: item.product,
+    quantity: item.quantity
+  }));
+  
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -52,24 +46,7 @@ const Checkout = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchCart();
   }, [step]);
-
-  const fetchCart = async () => {
-    try {
-      const response = await getCart();
-      if (response.success && response.cart) {
-        setCartItems(response.cart.items || []);
-      } else {
-        setCartItems([]);
-      }
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching cart:", error);
-      toast.error("Erreur lors du chargement du panier");
-      setLoading(false);
-    }
-  };
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -169,7 +146,8 @@ const Checkout = () => {
   const shipping = subtotal > 0 ? 6.95 : 0;
   const total = subtotal + shipping;
 
-  if (loading) {
+  // Show empty cart message if no items
+  if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16">
@@ -177,7 +155,13 @@ const Checkout = () => {
             Paiement
           </h1>
           <div className="text-center">
-            <p className="text-muted-foreground">Chargement de votre commande...</p>
+            <p className="text-muted-foreground">Votre panier est vide</p>
+            <Button 
+              className="mt-4" 
+              onClick={() => window.location.href = '/products'}
+            >
+              Voir nos produits
+            </Button>
           </div>
         </div>
         <PageFooter />
@@ -539,8 +523,8 @@ const Checkout = () => {
 
                 {/* Order Items */}
                 <div className="space-y-4 mb-6">
-                  {cartItems.map((item) => (
-                    <div key={item.id} className="flex items-center">
+                  {cartItems.map((item, index) => (
+                    <div key={item.product.id || index} className="flex items-center">
                       <div className="w-16 h-16 rounded-md overflow-hidden mr-4 bg-background border border-border">
                         <img
                           src={item.product.images[0]}
