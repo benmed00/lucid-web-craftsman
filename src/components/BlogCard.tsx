@@ -33,32 +33,32 @@ const BlogCard = ({ post }: BlogCardProps) => {
         />
       </div>
       <CardContent className="p-6">
-        <div className="flex items-center text-sm text-stone-500 mb-3">
+        <div className="flex items-center text-sm text-muted-foreground mb-3">
           <time dateTime={post.date}>{post.date}</time>
           <span className="mx-2" aria-hidden="true">•</span>
-          <span className="text-stone-600">{post.category}</span>
+          <span className="text-muted-foreground">{post.category}</span>
         </div>
         <Link to={`/blog/${post.id}`} aria-label={`Lire l'article complet: ${post.title}`}>
           <h3 
             id={`blog-title-${post.id}`}
-            className="font-serif text-xl font-medium text-stone-800 mb-3 hover:text-olive-700 transition-colors"
+            className="font-serif text-xl font-medium text-foreground mb-3 hover:text-primary transition-colors"
           >
             {post.title}
           </h3>
         </Link>
         <p 
           id={`blog-excerpt-${post.id}`}
-          className="text-stone-600 line-clamp-3"
+          className="text-muted-foreground line-clamp-3"
         >
           {post.excerpt}
         </p>
       </CardContent>
       <CardFooter className="px-6 pb-6 pt-0 flex justify-between items-center">
-        <span className="text-sm font-medium text-stone-600">Par {post.author}</span>
+        <span className="text-sm font-medium text-muted-foreground">Par {post.author}</span>
         <Link to={`/blog/${post.id}`} aria-label={`Lire la suite de l'article: ${post.title}`}>
           <Button 
             variant="ghost" 
-            className="text-olive-700 hover:text-olive-900 p-0"
+            className="text-primary hover:text-primary/80 p-0"
             aria-label={`Continuer la lecture: ${post.title}`}
           >
             Lire la suite <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
