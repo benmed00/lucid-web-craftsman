@@ -172,22 +172,22 @@ class ImageService {
    * Generate WebP version URL for optimization
    */
   private getWebPVersion(src: string): string {
-    // For Supabase storage URLs, try to request WebP if supported
-    if (src.includes('supabase.co/storage') && this.supportWebP()) {
-      // Add WebP transformation for Supabase images
-      const url = new URL(src);
-      url.searchParams.set('format', 'webp');
-      url.searchParams.set('quality', '80');
-      return url.toString();
+    // For Supabase storage URLs: only transform when using the /render/image/ endpoint
+    // The /object endpoint does NOT support image transformation parameters
+    if (src.includes('supabase.co/storage')) {
+      const isRenderEndpoint = src.includes('/render/image/');
+      if (isRenderEndpoint && this.supportWebP()) {
+        const url = new URL(src);
+        url.searchParams.set('format', 'webp');
+        url.searchParams.set('quality', '80');
+        return url.toString();
+      }
+      // Return unmodified URL for /object endpoint to avoid 400 errors
+      return src;
     }
     
-    // For local assets, try to find WebP equivalent
-    if (src.startsWith('/assets/') && this.supportWebP()) {
-      // Convert .jpg, .jpeg, .png to .webp
-      const webpSrc = src.replace(/\.(jpg|jpeg|png)$/i, '.webp');
-      return webpSrc;
-    }
-    
+    // For local assets, don't auto-convert to webp since files may not exist
+    // The webp files need to actually be present in the assets folder
     return src;
   }
 

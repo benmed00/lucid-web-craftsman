@@ -66,8 +66,9 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       return url.toString();
     }
     
-    // For other sources, try to replace extension
-    return originalSrc.replace(/\.(jpg|jpeg|png)$/i, '.webp');
+    // For local assets, don't auto-convert to webp since files may not exist
+    // Return original to prevent 404 errors from missing webp files
+    return originalSrc;
   };
 
   // Generate optimized src with dimensions and quality
