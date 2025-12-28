@@ -47,21 +47,21 @@ const BlogPost = () => {
   const shouldRender = !isLoading && !error && post;
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
+    return <div className="min-h-screen bg-background flex items-center justify-center text-foreground">Chargement...</div>;
   }
   
   if (error || !post) {
-    return <div className="min-h-screen flex items-center justify-center">Article non trouvé</div>;
+    return <div className="min-h-screen bg-background flex items-center justify-center text-foreground">Article non trouvé</div>;
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Article Header */}
-      <div className="bg-beige-50 py-16">
+      <div className="bg-muted py-16">
         <div className="container mx-auto px-4">
           <Link 
             to="/blog" 
-            className="inline-flex items-center text-olive-700 hover:text-olive-900 mb-6"
+            className="inline-flex items-center text-primary hover:text-primary/80 mb-6"
           >
             ← Retour aux articles
           </Link>
@@ -97,43 +97,43 @@ const BlogPost = () => {
             />
           </div>
 
-          <div className="prose prose-stone lg:prose-lg max-w-none">
-            <p className="text-lg text-stone-700 mb-6">{post.excerpt}</p>
+          <div className="prose prose-stone dark:prose-invert lg:prose-lg max-w-none">
+            <p className="text-lg text-muted-foreground mb-6">{post.excerpt}</p>
             
-            <p className="text-stone-700 mb-6">
+            <p className="text-foreground mb-6">
               L'artisanat marocain est une richesse culturelle inestimable, transmise de génération en génération. 
               Dans les montagnes du Rif, les techniques ancestrales de tissage et de tressage sont préservées 
               avec soin par des communautés locales qui perpétuent un savoir-faire unique.
             </p>
 
-            <p className="text-stone-700 mb-6">
+            <p className="text-foreground mb-6">
               Chaque pièce raconte une histoire et porte en elle l'âme de l'artisan qui l'a créée. 
               Les motifs géométriques et les symboles berbères utilisés dans nos créations sont imprégnés 
               de significations et représentent une forme de communication visuelle ancrée dans la tradition.
             </p>
 
-            <h2 className="text-2xl font-serif mt-8 mb-4">La tradition au service de la modernité</h2>
+            <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">La tradition au service de la modernité</h2>
 
-            <p className="text-stone-700 mb-6">
+            <p className="text-foreground mb-6">
               Aujourd'hui, ces techniques ancestrales s'adaptent aux besoins contemporains tout en 
               préservant l'authenticité qui fait leur valeur. Nos artisans combinent leur expertise 
               traditionnelle avec des designs modernes pour créer des pièces à la fois intemporelles et actuelles.
             </p>
 
-            <p className="text-stone-700 mb-6">
+            <p className="text-foreground mb-6">
               En soutenant notre coopérative, vous contribuez directement à la préservation de ce 
               patrimoine culturel immatériel et à l'autonomisation économique des communautés artisanales du Rif.
             </p>
 
-            <h2 className="text-2xl font-serif mt-8 mb-4">Un impact social et environnemental</h2>
+            <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">Un impact social et environnemental</h2>
 
-            <p className="text-stone-700 mb-6">
+            <p className="text-foreground mb-6">
               Notre engagement ne se limite pas à la qualité de nos produits. Nous veillons également 
               à ce que chaque étape de production respecte l'environnement en utilisant des matériaux naturels 
               et des techniques à faible impact écologique.
             </p>
 
-            <p className="text-stone-700">
+            <p className="text-foreground">
               Les artisans qui collaborent avec nous bénéficient de conditions de travail justes et d'une 
               rémunération équitable, permettant ainsi de soutenir l'économie locale tout en préservant un 
               savoir-faire unique au monde.
@@ -141,16 +141,16 @@ const BlogPost = () => {
           </div>
 
           {/* Share Buttons */}
-          <div className="border-t border-stone-200 mt-12 pt-6">
-            <p className="text-stone-600 mb-3">Partager cet article :</p>
+          <div className="border-t border-border mt-12 pt-6">
+            <p className="text-muted-foreground mb-3">Partager cet article :</p>
             <div className="flex space-x-3">
-              <Button variant="outline" size="sm" className="border-stone-300 hover:bg-stone-50">
+              <Button variant="outline" size="sm" className="border-border hover:bg-muted">
                 Facebook
               </Button>
-              <Button variant="outline" size="sm" className="border-stone-300 hover:bg-stone-50">
+              <Button variant="outline" size="sm" className="border-border hover:bg-muted">
                 Twitter
               </Button>
-              <Button variant="outline" size="sm" className="border-stone-300 hover:bg-stone-50">
+              <Button variant="outline" size="sm" className="border-border hover:bg-muted">
                 LinkedIn
               </Button>
             </div>

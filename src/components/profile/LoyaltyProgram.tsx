@@ -131,10 +131,10 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
 
   const getTierInfo = (tier: string) => {
     const tiers = {
-      bronze: { name: 'Bronze', color: 'bg-orange-500', icon: Coins, textColor: 'text-orange-600' },
-      silver: { name: 'Argent', color: 'bg-gray-400', icon: Star, textColor: 'text-gray-600' },
-      gold: { name: 'Or', color: 'bg-yellow-500', icon: Trophy, textColor: 'text-yellow-600' },
-      platinum: { name: 'Platine', color: 'bg-purple-500', icon: Crown, textColor: 'text-purple-600' }
+      bronze: { name: 'Bronze', color: 'bg-orange-500', icon: Coins, textColor: 'text-orange-600 dark:text-orange-400' },
+      silver: { name: 'Argent', color: 'bg-gray-400', icon: Star, textColor: 'text-gray-600 dark:text-gray-400' },
+      gold: { name: 'Or', color: 'bg-yellow-500', icon: Trophy, textColor: 'text-yellow-600 dark:text-yellow-400' },
+      platinum: { name: 'Platine', color: 'bg-purple-500', icon: Crown, textColor: 'text-purple-600 dark:text-purple-400' }
     };
     return tiers[tier as keyof typeof tiers] || tiers.bronze;
   };
@@ -253,12 +253,12 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
             </div>
 
             {/* Current Tier */}
-            <div className="flex items-center justify-center gap-3 p-4 bg-white/50 rounded-lg">
+            <div className="flex items-center justify-center gap-3 p-4 bg-card/50 rounded-lg">
               <div className={`p-2 rounded-full ${tierInfo.color}`}>
                 <TierIcon className="h-6 w-6 text-white" />
               </div>
               <div>
-                <div className="font-semibold">Niveau {tierInfo.name}</div>
+                <div className="font-semibold text-foreground">Niveau {tierInfo.name}</div>
                 <div className="text-sm text-muted-foreground">
                   {loyaltyData.total_points_earned.toLocaleString()} points gagnés au total
                 </div>
@@ -281,14 +281,14 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
 
             {/* Quick Stats */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-white/50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
+              <div className="text-center p-3 bg-card/50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                   +{loyaltyData.total_points_earned.toLocaleString()}
                 </div>
                 <div className="text-xs text-muted-foreground">Points gagnés</div>
               </div>
-              <div className="text-center p-3 bg-white/50 rounded-lg">
-                <div className="text-2xl font-bold text-orange-600">
+              <div className="text-center p-3 bg-card/50 rounded-lg">
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                   -{loyaltyData.total_points_spent.toLocaleString()}
                 </div>
                 <div className="text-xs text-muted-foreground">Points dépensés</div>
@@ -327,14 +327,14 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                   const tierInfo = getTierInfo(reward.min_tier);
 
                   return (
-                    <div key={reward.id} className={`border rounded-lg p-4 ${canRedeem ? 'border-primary/20 bg-primary/5' : 'border-muted bg-muted/20'}`}>
+                    <div key={reward.id} className={`border rounded-lg p-4 ${canRedeem ? 'border-primary/20 bg-primary/5' : 'border-border bg-muted/20'}`}>
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
-                          <div className={`p-2 rounded-lg ${canRedeem ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
+                          <div className={`p-2 rounded-lg ${canRedeem ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                             <RewardIcon className="h-5 w-5" />
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-semibold">{reward.name}</h4>
+                            <h4 className="font-semibold text-foreground">{reward.name}</h4>
                             <p className="text-sm text-muted-foreground mb-2">
                               {reward.description}
                             </p>
@@ -392,10 +392,10 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                     <div key={transaction.id}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${
+                        <div className={`p-2 rounded-lg ${
                             transaction.points_change > 0 
-                              ? 'bg-green-100 text-green-600' 
-                              : 'bg-red-100 text-red-600'
+                              ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
+                              : 'bg-red-500/10 text-red-600 dark:text-red-400'
                           }`}>
                             {transaction.points_change > 0 ? (
                               <Sparkles className="h-4 w-4" />
@@ -404,7 +404,7 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                             )}
                           </div>
                           <div>
-                            <p className="font-medium">{transaction.description}</p>
+                            <p className="font-medium text-foreground">{transaction.description}</p>
                             <p className="text-xs text-muted-foreground">
                               {format(new Date(transaction.created_at), 'dd MMMM yyyy à HH:mm', { locale: fr })}
                             </p>
@@ -412,8 +412,8 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                         </div>
                         <div className={`text-lg font-semibold ${
                           transaction.points_change > 0 
-                            ? 'text-green-600' 
-                            : 'text-red-600'
+                            ? 'text-green-600 dark:text-green-400' 
+                            : 'text-red-600 dark:text-red-400'
                         }`}>
                           {transaction.points_change > 0 ? '+' : ''}{transaction.points_change}
                         </div>
