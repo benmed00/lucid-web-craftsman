@@ -112,20 +112,20 @@ const Cart = () => {
 
   if (cart.items.length === 0) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <main id="main-content" className="container mx-auto px-4 py-16">
           <div className="text-center">
             <div 
-              className="w-24 h-24 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-6"
+              className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6"
               aria-hidden="true"
             >
-              <ShoppingBag className="h-12 w-12 text-stone-400" />
+              <ShoppingBag className="h-12 w-12 text-muted-foreground" />
             </div>
-            <h1 className="text-2xl font-serif text-stone-800 mb-4">Votre Panier est Vide</h1>
-            <p className="text-stone-600 mb-8">Découvrez notre belle collection de produits artisanaux</p>
+            <h1 className="text-2xl font-serif text-foreground mb-4">Votre Panier est Vide</h1>
+            <p className="text-muted-foreground mb-8">Découvrez notre belle collection de produits artisanaux</p>
             <Link to="/products">
               <Button 
-                className="bg-olive-700 hover:bg-olive-800 text-white px-8 py-3"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3"
                 id="empty-cart-shop-button"
                 name="start-shopping-button"
                 aria-label="Commencer vos achats - Aller à la page produits"
@@ -142,24 +142,24 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       
       <main id="main-content" className="container mx-auto px-4 py-4 md:py-8 safe-area">
         <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-serif text-stone-800 mb-2">Votre Panier</h1>
-          <p className="text-stone-600" aria-live="polite">
+          <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-2">Votre Panier</h1>
+          <p className="text-muted-foreground" aria-live="polite">
             {itemCount} article{itemCount > 1 ? 's' : ''} dans votre panier
           </p>
         </div>
 
         {stockIssues.length > 0 && (
           <Alert 
-            className="mb-6 border-amber-200 bg-amber-50"
+            className="mb-6 border-destructive/50 bg-destructive/10"
             role="alert"
             aria-live="assertive"
           >
-            <AlertCircle className="h-4 w-4 text-amber-600" aria-hidden="true" />
-            <AlertDescription className="text-amber-800">
+            <AlertCircle className="h-4 w-4 text-destructive" aria-hidden="true" />
+            <AlertDescription className="text-destructive">
               Attention : Certains articles de votre panier ont un stock limité. Veuillez ajuster les quantités.
             </AlertDescription>
           </Alert>
@@ -188,7 +188,7 @@ const Cart = () => {
                         className="flex gap-3 md:gap-4 flex-1 hover:opacity-80 transition-opacity"
                       >
                         <TooltipWrapper content={`Voir les détails de ${item.product.name}`} disabled={isMobile}>
-                          <div className="w-20 h-20 md:w-24 md:h-24 bg-stone-100 rounded-lg overflow-hidden flex-shrink-0 hover:scale-105 transition-transform">
+                          <div className="w-20 h-20 md:w-24 md:h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0 hover:scale-105 transition-transform">
                             <img
                               src={item.product.images[0] || '/placeholder.svg'}
                               alt={item.product.name}
@@ -203,19 +203,19 @@ const Cart = () => {
                             <div className="flex-1 mr-2">
                               <h3 
                                 id={`cart-item-${item.id}`}
-                                className="font-medium text-stone-800 text-sm md:text-base leading-tight hover:text-olive-700 transition-colors"
+                                className="font-medium text-foreground text-sm md:text-base leading-tight hover:text-primary transition-colors"
                               >
                                 {item.product.name}
                               </h3>
-                              <p className="text-xs md:text-sm text-stone-600 mb-1">{item.product.category}</p>
+                              <p className="text-xs md:text-sm text-muted-foreground mb-1">{item.product.category}</p>
                               <p 
                                 id={`cart-item-details-${item.id}`}
-                                className="text-xs text-stone-500 line-clamp-2 mb-1"
+                                className="text-xs text-muted-foreground line-clamp-2 mb-1"
                               >
                                 {item.product.description || "Produit artisanal berbère fait main avec des matériaux naturels et traditionnels."}
                               </p>
                               {hasStockIssue && (
-                                <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-100 mt-1">
+                                <Badge variant="outline" className="text-destructive border-destructive/30 bg-destructive/10 mt-1">
                                   Stock limité ({productStock?.available} disponibles)
                                 </Badge>
                               )}
@@ -233,7 +233,7 @@ const Cart = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveItem(item.id)}
-                          className="text-stone-400 hover:text-red-500 p-2 touch-manipulation min-h-[44px] min-w-[44px] flex-shrink-0"
+                          className="text-muted-foreground hover:text-destructive p-2 touch-manipulation min-h-[44px] min-w-[44px] flex-shrink-0"
                           id={`cart-remove-${item.id}`}
                           name={`remove-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
                           aria-label={`Retirer ${item.product.name} du panier`}
@@ -284,12 +284,12 @@ const Cart = () => {
                       </div>
                       <div className="text-left sm:text-right w-full sm:w-auto">
                         <p 
-                          className="font-medium text-stone-800 text-base md:text-lg"
+                          className="font-medium text-foreground text-base md:text-lg"
                           aria-label={`Prix total: ${(item.product.price * item.quantity).toFixed(2)} euros`}
                         >
                           {(item.product.price * item.quantity).toFixed(2)} €
                         </p>
-                        <p className="text-xs md:text-sm text-stone-600">{item.product.price.toFixed(2)} € l'unité</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{item.product.price.toFixed(2)} € l'unité</p>
                       </div>
                     </div>
                   </CardContent>
@@ -302,7 +302,7 @@ const Cart = () => {
           <div className="lg:col-span-1">
             <Card className="lg:sticky lg:top-4">
               <CardContent className="p-4 md:p-6">
-                <h2 className="text-xl font-medium text-stone-800 mb-4">Résumé de Commande</h2>
+                <h2 className="text-xl font-medium text-foreground mb-4">Résumé de Commande</h2>
                 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
@@ -331,9 +331,8 @@ const Cart = () => {
                   </div>
                 </div>
 
-                {/* Shipping Calculator */}
                 <fieldset className="mb-6">
-                  <legend className="block text-sm font-medium text-stone-700 mb-2">
+                  <legend className="block text-sm font-medium text-foreground mb-2">
                     <Truck className="inline h-4 w-4 mr-1" aria-hidden="true" />
                     Calculer les frais de livraison
                   </legend>
@@ -343,7 +342,7 @@ const Cart = () => {
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
                       placeholder="Code postal"
-                      className="flex-1 px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-500"
+                      className="flex-1 px-3 py-2 border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                       id="shipping-postal-code"
                       name="postal-code-input"
                       aria-label="Entrez votre code postal pour calculer les frais de livraison"
@@ -394,7 +393,7 @@ const Cart = () => {
                 >
                   <Link to="/checkout">
                     <Button 
-                      className="w-full bg-olive-700 hover:bg-olive-800 text-white py-3 md:py-4 text-base md:text-lg font-medium touch-manipulation min-h-[48px] md:min-h-[56px] flex items-center justify-center"
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 md:py-4 text-base md:text-lg font-medium touch-manipulation min-h-[48px] md:min-h-[56px] flex items-center justify-center"
                       disabled={stockIssues.length > 0 || isCheckingOut}
                       id="cart-checkout-button"
                       name="proceed-to-checkout"
