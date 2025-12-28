@@ -108,25 +108,25 @@ const NewsletterSubscription = ({
     <>
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2">
-          <Mail className="h-5 w-5 text-olive-700" />
-          <h3 className={`font-medium ${variant === 'footer' ? 'text-white' : 'text-stone-800'}`}>
+          <Mail className="h-5 w-5 text-primary" />
+          <h3 className={`font-medium ${variant === 'footer' ? 'text-white' : 'text-foreground'}`}>
             {title}
           </h3>
         </div>
-        <p className={`text-sm ${variant === 'footer' ? 'text-stone-300' : 'text-stone-600'}`}>
+        <p className={`text-sm ${variant === 'footer' ? 'text-stone-300' : 'text-muted-foreground'}`}>
           {description}
         </p>
       </div>
 
       {isSubscribed ? (
         <div className={`flex items-center gap-2 p-3 rounded-lg ${
-          variant === 'footer' ? 'bg-white/10' : 'bg-green-50'
+          variant === 'footer' ? 'bg-white/10' : 'bg-green-500/10 dark:bg-green-500/20'
         }`}>
           <CheckCircle className={`h-5 w-5 ${
-            variant === 'footer' ? 'text-green-300' : 'text-green-600'
+            variant === 'footer' ? 'text-green-300' : 'text-green-600 dark:text-green-400'
           }`} />
           <span className={`text-sm font-medium ${
-            variant === 'footer' ? 'text-green-200' : 'text-green-800'
+            variant === 'footer' ? 'text-green-200' : 'text-green-800 dark:text-green-200'
           }`}>
             Inscription confirmée !
           </span>
@@ -136,7 +136,7 @@ const NewsletterSubscription = ({
           <div>
             <Label 
               htmlFor="newsletter-email" 
-              className={`sr-only ${variant === 'footer' ? 'text-white' : 'text-stone-700'}`}
+              className={`sr-only ${variant === 'footer' ? 'text-white' : 'text-foreground'}`}
             >
               Adresse email
             </Label>
@@ -150,7 +150,7 @@ const NewsletterSubscription = ({
                 required
                 className={`flex-1 ${variant === 'footer' 
                   ? 'bg-white/10 border-white/20 text-white placeholder:text-white/60' 
-                  : 'bg-white border-stone-300'
+                  : 'bg-background border-border'
                 }`}
                 disabled={isSubscribing}
               />
@@ -158,8 +158,8 @@ const NewsletterSubscription = ({
                 type="submit"
                 disabled={isSubscribing || !email.trim() || !consent}
                 className={`px-6 ${variant === 'footer'
-                  ? 'bg-white text-olive-700 hover:bg-white/90'
-                  : 'bg-olive-700 hover:bg-olive-800 text-white'
+                  ? 'bg-white text-primary hover:bg-white/90'
+                  : 'bg-primary hover:bg-primary/90 text-primary-foreground'
                 }`}
               >
                 {isSubscribing ? '...' : 'Abonner'}
@@ -172,17 +172,17 @@ const NewsletterSubscription = ({
               id="newsletter-consent"
               checked={consent}
               onCheckedChange={(checked) => setConsent(checked as boolean)}
-              className={variant === 'footer' ? 'border-white/40 data-[state=checked]:bg-white data-[state=checked]:text-olive-700' : ''}
+              className={variant === 'footer' ? 'border-white/40 data-[state=checked]:bg-white data-[state=checked]:text-primary' : ''}
             />
             <Label
               htmlFor="newsletter-consent"
               className={`text-xs leading-relaxed cursor-pointer ${
-                variant === 'footer' ? 'text-stone-300' : 'text-stone-600'
+                variant === 'footer' ? 'text-stone-300' : 'text-muted-foreground'
               }`}
             >
               J'accepte de recevoir la newsletter de Rif Raw Straw et confirme avoir lu la{' '}
               <a href="/privacy" className={`underline hover:no-underline ${
-                variant === 'footer' ? 'text-white' : 'text-olive-700'
+                variant === 'footer' ? 'text-white' : 'text-primary'
               }`}>
                 politique de confidentialité
               </a>
@@ -191,7 +191,7 @@ const NewsletterSubscription = ({
           </div>
 
           {variant !== 'footer' && (
-            <div className="flex items-start gap-2 text-xs text-stone-500">
+            <div className="flex items-start gap-2 text-xs text-muted-foreground">
               <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <p>
                 Vous pouvez vous désabonner à tout moment en cliquant sur le lien de désinscription 
@@ -216,7 +216,7 @@ const NewsletterSubscription = ({
 
   if (variant === 'inline') {
     return (
-      <div className="bg-olive-50 border border-olive-200 rounded-lg p-6">
+      <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
         {renderContent()}
       </div>
     );
