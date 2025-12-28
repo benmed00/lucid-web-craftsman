@@ -279,15 +279,15 @@ const Navigation = () => {
       {/* Mobile Menu - Slide in from right - responsive width */}
       <div 
         id="mobile-menu"
-        className={`md:hidden fixed top-0 right-0 h-full w-full max-w-[320px] sm:max-w-[380px] bg-white shadow-2xl z-[56] transform transition-transform duration-300 ease-out ${
+        className={`md:hidden fixed top-0 right-0 h-full w-full max-w-[320px] sm:max-w-[380px] bg-white shadow-2xl z-[56] transform transition-transform duration-300 ease-out flex flex-col ${
           isMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         {...(!isMenuOpen ? { 'aria-hidden': 'true' as const, tabIndex: -1 } : {})}
         role="menu"
         aria-label="Menu principal mobile"
       >
-        {/* Header - without close button since header hamburger transforms to X */}
-        <div className="flex items-center p-6 border-b border-stone-200">
+        {/* Header with close button */}
+        <div className="flex items-center justify-between p-6 border-b border-stone-200 flex-shrink-0">
           <div className="flex items-center space-x-2">
             <div className="p-2 rounded-full bg-olive-700">
               <Leaf className="h-5 w-5 text-white" />
@@ -299,10 +299,19 @@ const Navigation = () => {
               <p className="text-sm text-stone-500">Artisanat Berbère</p>
             </div>
           </div>
+          {/* Close button */}
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            className="p-2 rounded-lg text-stone-500 hover:text-stone-700 hover:bg-stone-100 transition-colors touch-manipulation"
+            aria-label="Fermer le menu"
+            tabIndex={isMenuOpen ? 0 : -1}
+          >
+            <X className="h-6 w-6" />
+          </button>
         </div>
 
-        {/* Content */}
-        <div className="flex flex-col h-full overflow-y-auto pb-6">
+        {/* Content - scrollable */}
+        <div className="flex-1 overflow-y-auto pb-6">
           {/* Search Section */}
           <div className="p-6 border-b border-stone-100">
             <form onSubmit={handleSearch} className="flex gap-2">
