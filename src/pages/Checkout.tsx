@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle, CreditCard } from "lucide-react";
+import { ArrowLeft, CheckCircle, CreditCard, Tag, Loader2, X } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Stripe } from "@stripe/stripe-js"; // Type import only
 import { useEffect, useState } from "react";
@@ -19,11 +19,27 @@ import { useCart } from "@/context/CartContext";
 // Lazy initialize Stripe only when needed
 let _stripePromise: Promise<Stripe | null> | null = null;
 
+// Discount coupon type
+interface DiscountCoupon {
+  id: string;
+  code: string;
+  type: string; // 'percentage' | 'fixed'
+  value: number;
+  minimum_order_amount: number | null;
+  maximum_discount_amount: number | null;
+}
+
 const Checkout = () => {
   const [step, setStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState("card");
   const { loadStripe } = useLazyStripe();
   const { cart } = useCart();
+  
+  // Promo code state
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(null);
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+  const [promoError, setPromoError] = useState("");
   
   // Convert cart state items to the format expected by checkout
   const cartItems = cart.items.map(item => ({
@@ -55,6 +71,95 @@ const Checkout = () => {
       ...prev,
       [id]: value,
     }));
+  };
+
+  // Validate and apply promo code
+  const validatePromoCode = async () => {
+    if (!promoCode.trim()) {
+      setPromoError("Veuillez entrer un code promo");
+      return;
+    }
+
+    setIsValidatingPromo(true);
+    setPromoError("");
+
+    try {
+      const { data, error } = await supabase
+        .from('discount_coupons')
+        .select('*')
+        .eq('code', promoCode.trim().toUpperCase())
+        .eq('is_active', true)
+        .single();
+
+      if (error || !data) {
+        setPromoError("Code promo invalide ou expiré");
+        setIsValidatingPromo(false);
+        return;
+      }
+
+      // Check validity dates
+      const now = new Date();
+      if (data.valid_from && new Date(data.valid_from) > now) {
+        setPromoError("Ce code promo n'est pas encore actif");
+        setIsValidatingPromo(false);
+        return;
+      }
+      if (data.valid_until && new Date(data.valid_until) < now) {
+        setPromoError("Ce code promo a expiré");
+        setIsValidatingPromo(false);
+        return;
+      }
+
+      // Check usage limit
+      if (data.usage_limit && data.usage_count >= data.usage_limit) {
+        setPromoError("Ce code promo a atteint sa limite d'utilisation");
+        setIsValidatingPromo(false);
+        return;
+      }
+
+      // Check minimum order amount
+      if (data.minimum_order_amount && subtotal < data.minimum_order_amount) {
+        setPromoError(`Commande minimum de ${data.minimum_order_amount.toFixed(2)} € requise`);
+        setIsValidatingPromo(false);
+        return;
+      }
+
+      // Apply coupon
+      setAppliedCoupon(data as DiscountCoupon);
+      setPromoCode("");
+      toast.success("Code promo appliqué !");
+    } catch (err) {
+      console.error("Error validating promo code:", err);
+      setPromoError("Erreur lors de la validation du code");
+    } finally {
+      setIsValidatingPromo(false);
+    }
+  };
+
+  // Remove applied coupon
+  const removePromoCode = () => {
+    setAppliedCoupon(null);
+    toast.info("Code promo retiré");
+  };
+
+  // Calculate discount amount
+  const calculateDiscount = (): number => {
+    if (!appliedCoupon) return 0;
+
+    let discount = 0;
+    if (appliedCoupon.type === 'percentage') {
+      discount = (subtotal * appliedCoupon.value) / 100;
+    } else {
+      discount = appliedCoupon.value;
+    }
+
+    // Apply maximum discount limit if set
+    if (appliedCoupon.maximum_discount_amount && discount > appliedCoupon.maximum_discount_amount) {
+      discount = appliedCoupon.maximum_discount_amount;
+    }
+
+    // Don't exceed subtotal
+    return Math.min(discount, subtotal);
   };
 
   // Navigate to next step if form is valid
@@ -116,7 +221,12 @@ const Checkout = () => {
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
           items: cartItems,
-          customerInfo: formData
+          customerInfo: formData,
+          discount: appliedCoupon ? {
+            couponId: appliedCoupon.id,
+            code: appliedCoupon.code,
+            amount: discount
+          } : null
         }
       });
 
@@ -143,8 +253,9 @@ const Checkout = () => {
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
+  const discount = calculateDiscount();
   const shipping = subtotal > 0 ? 6.95 : 0;
-  const total = subtotal + shipping;
+  const total = subtotal - discount + shipping;
 
   // Show empty cart message if no items
   if (cartItems.length === 0) {
@@ -549,12 +660,86 @@ const Checkout = () => {
 
                 <Separator className="my-4" />
 
+                {/* Promo Code Section */}
+                <div className="mb-4">
+                  <Label className="text-sm font-medium mb-2 flex items-center gap-1">
+                    <Tag className="h-4 w-4" />
+                    Code promo
+                  </Label>
+                  
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-md p-3 mt-2">
+                      <div>
+                        <span className="font-medium text-primary">{appliedCoupon.code}</span>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {appliedCoupon.type === 'percentage' 
+                            ? `-${appliedCoupon.value}%` 
+                            : `-${appliedCoupon.value.toFixed(2)} €`}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={removePromoCode}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2 mt-2">
+                      <Input
+                        placeholder="Entrez votre code"
+                        value={promoCode}
+                        onChange={(e) => {
+                          setPromoCode(e.target.value.toUpperCase());
+                          setPromoError("");
+                        }}
+                        className="flex-1 uppercase"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            validatePromoCode();
+                          }
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={validatePromoCode}
+                        disabled={isValidatingPromo || !promoCode.trim()}
+                        className="shrink-0"
+                      >
+                        {isValidatingPromo ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Appliquer"
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {promoError && (
+                    <p className="text-xs text-destructive mt-1">{promoError}</p>
+                  )}
+                </div>
+
+                <Separator className="my-4" />
+
                 {/* Order Totals */}
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Sous-total</span>
                     <span className="font-medium">{subtotal.toFixed(2)} €</span>
                   </div>
+                  
+                  {discount > 0 && (
+                    <div className="flex justify-between text-primary">
+                      <span>Réduction</span>
+                      <span className="font-medium">-{discount.toFixed(2)} €</span>
+                    </div>
+                  )}
+                  
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Frais de livraison</span>
                     <span className="font-medium">{shipping.toFixed(2)} €</span>
