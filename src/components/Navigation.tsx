@@ -9,6 +9,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -184,6 +185,9 @@ const Navigation = () => {
               <div className="hidden xl:block">
                 <CurrencySelector />
               </div>
+
+              {/* Theme Toggle - Desktop & Tablet */}
+              <ThemeToggle className="hidden md:flex" />
 
               {/* Cart Button - Tablet & Desktop */}
               <Link to="/cart" className="hidden md:block">
@@ -515,8 +519,15 @@ const Navigation = () => {
             )}
           </div>
 
-          {/* Currency Selector */}
-          <div className="px-6 py-4 border-t border-stone-100">
+          {/* Settings Section */}
+          <div className="px-6 py-4 border-t border-stone-100 space-y-4">
+            {/* Theme Toggle */}
+            <div className="flex items-center justify-between">
+              <span className="text-stone-700 font-medium">Thème:</span>
+              <ThemeToggle />
+            </div>
+            
+            {/* Currency Selector */}
             <div className="flex items-center justify-between">
               <span className="text-stone-700 font-medium">Devise:</span>
               <div tabIndex={isMenuOpen ? 0 : -1}>
