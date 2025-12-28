@@ -157,28 +157,28 @@ const Contact = () => {
 
         {/* Decorative floating cards */}
         <div className="absolute top-10 left-10 transform rotate-12 opacity-80 hidden lg:block">
-          <Card className="w-64 shadow-xl">
+          <Card className="w-64 shadow-xl bg-card">
             <CardContent className="p-4">
-              <h3 className="font-semibold text-stone-800 mb-2">Contact Général</h3>
-              <p className="text-sm text-stone-600">Questions sur nos produits artisanaux</p>
+              <h3 className="font-semibold text-foreground mb-2">Contact Général</h3>
+              <p className="text-sm text-muted-foreground">Questions sur nos produits artisanaux</p>
             </CardContent>
           </Card>
         </div>
 
         <div className="absolute top-32 right-16 transform -rotate-6 opacity-80 hidden lg:block">
-          <Card className="w-56 shadow-xl">
+          <Card className="w-56 shadow-xl bg-card">
             <CardContent className="p-4">
-              <h3 className="font-semibold text-stone-800 mb-2">Support Technique</h3>
-              <p className="text-sm text-stone-600">Aide pour vos commandes</p>
+              <h3 className="font-semibold text-foreground mb-2">Support Technique</h3>
+              <p className="text-sm text-muted-foreground">Aide pour vos commandes</p>
             </CardContent>
           </Card>
         </div>
 
         <div className="absolute bottom-10 left-1/4 transform rotate-3 opacity-80 hidden lg:block">
-          <Card className="w-48 shadow-xl">
+          <Card className="w-48 shadow-xl bg-card">
             <CardContent className="p-4">
-              <h3 className="font-semibold text-stone-800 mb-2">Partenariats</h3>
-              <p className="text-sm text-stone-600">Collaborations commerciales</p>
+              <h3 className="font-semibold text-foreground mb-2">Partenariats</h3>
+              <p className="text-sm text-muted-foreground">Collaborations commerciales</p>
             </CardContent>
           </Card>
         </div>
