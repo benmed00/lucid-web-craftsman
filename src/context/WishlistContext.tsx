@@ -81,6 +81,23 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
           onClick: () => {
             window.location.href = `/wishlist?highlight=${productId}`;
           }
+        },
+        cancel: {
+          label: 'Annuler',
+          onClick: async () => {
+            try {
+              await supabase
+                .from('wishlist')
+                .delete()
+                .eq('user_id', user.id)
+                .eq('product_id', productId);
+              
+              setWishlistItems(prev => prev.filter(item => item.product_id !== productId));
+              toast.success('Ajout annulé');
+            } catch (err) {
+              console.error('Error undoing wishlist add:', err);
+            }
+          }
         }
       });
       return true;
