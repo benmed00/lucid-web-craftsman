@@ -63,7 +63,7 @@ const Navigation = () => {
         Aller au contenu principal
       </a>
       
-      <header className="sticky top-0 z-50 w-full bg-white border-b border-stone-200 shadow-sm">
+      <header className="sticky top-0 z-header w-full bg-background border-b border-border shadow-sm">
         <div className="w-full max-w-none px-4 sm:px-4 md:px-6 lg:px-8 xl:px-12">
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-16 lg:h-16 w-full gap-2 md:gap-4">
             {/* Logo Section */}
@@ -237,7 +237,7 @@ const Navigation = () => {
               {/* Mobile Menu Button - z-index higher than menu panel when open */}
               <button
                 className={`md:hidden text-stone-700 hover:text-olive-700 p-1.5 sm:p-2 rounded-md hover:bg-olive-50 transition-all duration-300 touch-manipulation ${
-                  isMenuOpen ? 'relative z-[60]' : ''
+                  isMenuOpen ? 'relative z-mobile-toggle' : ''
                 }`}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
@@ -253,7 +253,7 @@ const Navigation = () => {
 
         {/* Search Bar - Desktop & Tablet Dropdown */}
         {showSearch && (
-          <div className="absolute top-full left-0 right-0 bg-white border-b border-stone-200 shadow-lg z-[45] hidden md:block">
+          <div className="absolute top-full left-0 right-0 bg-background border-b border-border shadow-lg z-dropdown hidden md:block">
             <div className="container mx-auto px-4 md:px-6 lg:px-4 py-4 md:py-6 lg:py-4">
               <form onSubmit={handleSearch} className="flex gap-3 md:gap-4 lg:gap-2">
                 <Input
@@ -281,7 +281,7 @@ const Navigation = () => {
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-black/50 z-[55]"
+          className="md:hidden fixed inset-0 bg-foreground/50 z-mobile-overlay"
           onClick={() => setIsMenuOpen(false)}
           aria-hidden="true"
         />
@@ -290,7 +290,7 @@ const Navigation = () => {
       {/* Mobile Menu - Slide in from right - responsive width */}
       <div 
         id="mobile-menu"
-        className={`md:hidden fixed top-0 right-0 h-full w-full max-w-[320px] sm:max-w-[380px] bg-white shadow-2xl z-[56] transform transition-transform duration-300 ease-out flex flex-col ${
+        className={`md:hidden fixed top-0 right-0 h-full w-full max-w-xs sm:max-w-sm bg-background shadow-2xl z-mobile-menu transform transition-transform duration-300 ease-out flex flex-col ${
           isMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         {...(!isMenuOpen ? { 'aria-hidden': 'true' as const, tabIndex: -1 } : {})}

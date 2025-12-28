@@ -111,13 +111,13 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="absolute top-4 right-4 z-50 h-11 w-11 rounded-full bg-white/95 backdrop-blur-md hover:bg-white shadow-xl border border-gray-200/50 transition-all duration-300 hover:scale-110"
+          className="absolute top-4 right-4 z-modal h-11 w-11 rounded-full bg-background/95 backdrop-blur-md hover:bg-background shadow-xl border border-border/50 transition-all duration-300 hover:scale-110"
         >
-          <X className="h-5 w-5 text-gray-700" />
+          <X className="h-5 w-5 text-muted-foreground" />
         </Button>
 
         {/* Image Section */}
-        <div className="relative lg:w-3/5 h-[40vh] sm:h-[45vh] lg:h-full bg-gradient-to-br from-gray-50 via-white to-gray-100 flex-shrink-0">
+        <div className="relative lg:w-3/5 h-[40vh] sm:h-[45vh] lg:h-full bg-gradient-to-br from-muted/50 via-background to-muted flex-shrink-0">
           {/* Badges */}
           <div className="absolute top-6 left-6 z-20 flex gap-2">
             {(product.new || product.is_new) && (
