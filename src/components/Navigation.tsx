@@ -150,19 +150,19 @@ const Navigation = () => {
             </nav>
 
             {/* Actions Section - Desktop & Tablet */}
-            <div className="flex items-center gap-2 md:gap-3 flex-shrink-0 w-auto md:w-auto lg:w-auto justify-end">
+            <div className="flex items-center gap-1 md:gap-2 lg:gap-2 xl:gap-3 flex-shrink-0 w-auto justify-end">
               {/* Search Button - Tablet & Desktop */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowSearch(!showSearch)}
-                className="hidden md:flex items-center justify-center w-10 h-10 hover:bg-olive-50 hover:text-olive-700 rounded-lg transition-all duration-300 touch-manipulation text-stone-700"
+                className="hidden md:flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hover:bg-olive-50 hover:text-olive-700 rounded-lg transition-all duration-300 touch-manipulation text-stone-700"
               >
                 <Search size={18} className="transition-colors" />
               </Button>
 
-              {/* Wishlist button - Tablet & Desktop */}
-              <Button variant="ghost" size="sm" asChild className="hidden md:flex relative items-center justify-center w-10 h-10 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation">
+              {/* Wishlist button - Desktop only (hidden on tablet for space) */}
+              <Button variant="ghost" size="sm" asChild className="hidden lg:flex relative items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation">
                 <Link
                   to={user ? "/wishlist" : "#"}
                   className={clsx(
@@ -179,8 +179,8 @@ const Navigation = () => {
                 </Link>
               </Button>
 
-              {/* Currency Selector - Desktop */}
-              <div className="hidden lg:block">
+              {/* Currency Selector - XL Desktop only */}
+              <div className="hidden xl:block">
                 <CurrencySelector />
               </div>
 
@@ -190,32 +190,31 @@ const Navigation = () => {
                   variant="outline"
                   size="sm"
                   className={clsx(
-                    "border-stone-300 transition-all duration-300 flex items-center group relative text-sm px-3 py-2 rounded-lg hover:shadow-md touch-manipulation font-medium whitespace-nowrap",
+                    "border-stone-300 transition-all duration-300 flex items-center group relative text-sm px-2 lg:px-3 py-2 rounded-lg hover:shadow-md touch-manipulation font-medium whitespace-nowrap",
                     itemCount >= 1 ? "bg-olive-700 text-white border-olive-700 shadow-md" : "bg-white text-stone-700 hover:bg-olive-50",
                     itemCount >= 1 ? "hover:bg-white hover:text-olive-700 hover:border-olive-700" : "hover:bg-olive-50 hover:text-olive-700 hover:border-olive-300"
                   )}
                 >
-                  <ShoppingBag className={clsx("h-4 w-4 transition-colors mr-2", itemCount >= 1 ? "text-white group-hover:text-olive-700" : "text-stone-700 group-hover:text-olive-700")} />
-                  <span>({itemCount})</span>
+                  <ShoppingBag className={clsx("h-4 w-4 transition-colors lg:mr-1", itemCount >= 1 ? "text-white group-hover:text-olive-700" : "text-stone-700 group-hover:text-olive-700")} />
+                  <span className="hidden lg:inline">({itemCount})</span>
                 </Button>
               </Link>
 
               {/* Auth buttons - Tablet & Desktop */}
-              <div className="hidden md:flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-1 lg:gap-2">
                 {isLoading ? (
                   <div className="flex items-center gap-1">
-                    <div className="w-10 h-10 rounded-lg bg-stone-200 animate-pulse"></div>
-                    <div className="w-10 h-10 rounded-lg bg-stone-200 animate-pulse hidden lg:block"></div>
+                    <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg bg-stone-200 animate-pulse"></div>
                   </div>
                 ) : user ? (
                   <>
-                    <Button variant="ghost" size="sm" asChild className="group relative hidden lg:inline-flex hover:bg-olive-50 rounded-lg transition-all duration-300">
-                      <Link to="/orders" className="flex items-center justify-center w-10 h-10 text-stone-700 hover:text-olive-700 transition-colors duration-300">
+                    <Button variant="ghost" size="sm" asChild className="group relative hidden xl:inline-flex hover:bg-olive-50 rounded-lg transition-all duration-300">
+                      <Link to="/orders" className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 text-stone-700 hover:text-olive-700 transition-colors duration-300">
                         <Package className="h-4 w-4 transition-colors" />
                       </Link>
                     </Button>
                     <Button variant="ghost" size="sm" asChild className="group relative hover:bg-olive-50 rounded-lg transition-all duration-300 touch-manipulation">
-                      <Link to="/profile" className="flex items-center justify-center w-10 h-10 text-stone-700 hover:text-olive-700 transition-colors duration-300">
+                      <Link to="/profile" className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 text-stone-700 hover:text-olive-700 transition-colors duration-300">
                         <User className="h-4 w-4 transition-colors" />
                       </Link>
                     </Button>
@@ -223,14 +222,14 @@ const Navigation = () => {
                       variant="ghost" 
                       size="sm" 
                       onClick={handleSignOut} 
-                      className="group relative flex items-center justify-center w-10 h-10 hidden lg:inline-flex hover:bg-olive-50 text-stone-700 hover:text-olive-700 rounded-lg transition-all duration-300"
+                      className="group relative flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hidden xl:inline-flex hover:bg-olive-50 text-stone-700 hover:text-olive-700 rounded-lg transition-all duration-300"
                     >
                       <LogOut className="h-4 w-4 transition-colors" />
                     </Button>
                   </>
                 ) : (
-                  <Button variant="ghost" size="sm" asChild className="text-sm px-3 py-2 hover:bg-olive-50 hover:text-olive-700 rounded-lg transition-all duration-300 touch-manipulation font-medium whitespace-nowrap">
-                    <Link to="/auth" aria-label="Se connecter">Se connecter</Link>
+                  <Button variant="ghost" size="sm" asChild className="text-xs lg:text-sm px-2 lg:px-3 py-2 hover:bg-olive-50 hover:text-olive-700 rounded-lg transition-all duration-300 touch-manipulation font-medium whitespace-nowrap">
+                    <Link to="/auth" aria-label="Se connecter">Connexion</Link>
                   </Button>
                 )}
               </div>
