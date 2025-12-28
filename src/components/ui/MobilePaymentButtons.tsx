@@ -197,7 +197,7 @@ export const MobilePaymentButtons = ({
           <Button
             onClick={handleGooglePay}
             disabled={disabled || isProcessing !== null}
-            className="relative h-12 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-medium rounded-md transition-all duration-200 disabled:opacity-50"
+            className="relative h-12 bg-card hover:bg-muted border border-border text-foreground font-medium rounded-md transition-all duration-200 disabled:opacity-50"
           >
             {isProcessing === 'google' ? (
               <Loader2 className="h-5 w-5 animate-spin" />

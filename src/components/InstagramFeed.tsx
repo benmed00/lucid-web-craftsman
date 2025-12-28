@@ -118,8 +118,8 @@ const InstagramFeed = () => {
             src={post.image}
             alt={`Instagram post ${post.id}`}
           />
-          <div className="opacity-0 group-hover:opacity-100 absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-300">
-            <div className="text-white flex items-center text-sm sm:text-base">
+          <div className="opacity-0 group-hover:opacity-100 absolute inset-0 bg-foreground/50 flex items-center justify-center transition-opacity duration-300">
+            <div className="text-background flex items-center text-sm sm:text-base">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2"
