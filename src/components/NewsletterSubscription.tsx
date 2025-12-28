@@ -109,24 +109,24 @@ const NewsletterSubscription = ({
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2">
           <Mail className="h-5 w-5 text-primary" />
-          <h3 className={`font-medium ${variant === 'footer' ? 'text-white' : 'text-foreground'}`}>
+          <h3 className={`font-medium ${variant === 'footer' ? 'text-foreground' : 'text-foreground'}`}>
             {title}
           </h3>
         </div>
-        <p className={`text-sm ${variant === 'footer' ? 'text-stone-300' : 'text-muted-foreground'}`}>
+        <p className={`text-sm ${variant === 'footer' ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
           {description}
         </p>
       </div>
 
       {isSubscribed ? (
         <div className={`flex items-center gap-2 p-3 rounded-lg ${
-          variant === 'footer' ? 'bg-white/10' : 'bg-green-500/10 dark:bg-green-500/20'
+          variant === 'footer' ? 'bg-status-success/10' : 'bg-status-success/10'
         }`}>
           <CheckCircle className={`h-5 w-5 ${
-            variant === 'footer' ? 'text-green-300' : 'text-green-600 dark:text-green-400'
+            variant === 'footer' ? 'text-status-success' : 'text-status-success'
           }`} />
           <span className={`text-sm font-medium ${
-            variant === 'footer' ? 'text-green-200' : 'text-green-800 dark:text-green-200'
+            variant === 'footer' ? 'text-status-success' : 'text-status-success'
           }`}>
             Inscription confirmée !
           </span>
@@ -148,19 +148,13 @@ const NewsletterSubscription = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className={`flex-1 ${variant === 'footer' 
-                  ? 'bg-white/10 border-white/20 text-white placeholder:text-white/60' 
-                  : 'bg-background border-border'
-                }`}
+                className="flex-1 bg-background border-border text-foreground placeholder:text-muted-foreground"
                 disabled={isSubscribing}
               />
               <Button
                 type="submit"
                 disabled={isSubscribing || !email.trim() || !consent}
-                className={`px-6 ${variant === 'footer'
-                  ? 'bg-white text-primary hover:bg-white/90'
-                  : 'bg-primary hover:bg-primary/90 text-primary-foreground'
-                }`}
+                className="px-6 bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {isSubscribing ? '...' : 'Abonner'}
               </Button>
@@ -172,18 +166,14 @@ const NewsletterSubscription = ({
               id="newsletter-consent"
               checked={consent}
               onCheckedChange={(checked) => setConsent(checked as boolean)}
-              className={variant === 'footer' ? 'border-white/40 data-[state=checked]:bg-white data-[state=checked]:text-primary' : ''}
+              className="border-border data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
             />
             <Label
               htmlFor="newsletter-consent"
-              className={`text-xs leading-relaxed cursor-pointer ${
-                variant === 'footer' ? 'text-stone-300' : 'text-muted-foreground'
-              }`}
+              className="text-xs leading-relaxed cursor-pointer text-muted-foreground"
             >
               J'accepte de recevoir la newsletter de Rif Raw Straw et confirme avoir lu la{' '}
-              <a href="/privacy" className={`underline hover:no-underline ${
-                variant === 'footer' ? 'text-white' : 'text-primary'
-              }`}>
+              <a href="/privacy" className="underline hover:no-underline text-primary">
                 politique de confidentialité
               </a>
               .

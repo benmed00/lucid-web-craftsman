@@ -36,15 +36,15 @@ class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
-                <div className="p-3 rounded-full bg-red-100">
-                  <AlertTriangle className="h-8 w-8 text-red-600" />
+                <div className="p-3 rounded-full bg-destructive/10">
+                  <AlertTriangle className="h-8 w-8 text-destructive" />
                 </div>
               </div>
-              <CardTitle className="text-xl text-stone-800">
+              <CardTitle className="text-xl text-foreground">
                 Une erreur s'est produite
               </CardTitle>
               <CardDescription>
@@ -53,8 +53,8 @@ class ErrorBoundary extends Component<Props, State> {
             </CardHeader>
             <CardContent className="space-y-4">
               {this.state.error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-800 font-mono">
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <p className="text-sm text-destructive font-mono">
                     {this.state.error.message}
                   </p>
                 </div>

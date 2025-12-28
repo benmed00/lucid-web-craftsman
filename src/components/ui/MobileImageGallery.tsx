@@ -152,7 +152,7 @@ export const MobileImageGallery = ({
               size="sm"
               onClick={goToPrevious}
               disabled={currentIndex === 0}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/10 p-3 rounded-full disabled:opacity-30 hidden sm:flex"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-background hover:bg-background/20 p-3 rounded-full disabled:opacity-30 hidden sm:flex"
             >
               <ChevronLeft className="h-6 w-6" />
             </Button>
@@ -161,7 +161,7 @@ export const MobileImageGallery = ({
               size="sm"
               onClick={goToNext}
               disabled={currentIndex === images.length - 1}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/10 p-3 rounded-full disabled:opacity-30 hidden sm:flex"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-background hover:bg-background/20 p-3 rounded-full disabled:opacity-30 hidden sm:flex"
             >
               <ChevronRight className="h-6 w-6" />
             </Button>
@@ -178,8 +178,8 @@ export const MobileImageGallery = ({
               onClick={() => setCurrentIndex(index)}
               className={`w-2 h-2 rounded-full transition-all duration-200 touch-manipulation ${
                 index === currentIndex 
-                  ? 'bg-white scale-125' 
-                  : 'bg-white/50 hover:bg-white/75'
+                  ? 'bg-primary scale-125' 
+                  : 'bg-primary/50 hover:bg-primary/75'
               }`}
               style={{ minWidth: '32px', minHeight: '32px' }}
             />

@@ -203,7 +203,7 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                     {stats.averageRating.toFixed(1)}
                   </span>
                 </div>
-                <span className="text-gray-600">
+                <span className="text-muted-foreground">
                   ({stats.totalReviews} avis)
                 </span>
               </div>
@@ -212,7 +212,7 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
             {user && (
               <Button 
                 onClick={() => setShowReviewForm(true)}
-                className="bg-olive-700 hover:bg-olive-800"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 Laisser un avis
               </Button>
@@ -228,10 +228,10 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                 {renderRatingDistribution()}
               </div>
               <div className="space-y-2">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   Basé sur {stats.totalReviews} avis vérifiés
                 </p>
-                <div className="flex items-center gap-2 text-sm text-green-600">
+                <div className="flex items-center gap-2 text-sm text-status-success">
                   <CheckCircle size={16} />
                   <span>Avis modérés et vérifiés</span>
                 </div>
@@ -277,7 +277,7 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                   rows={4}
                   maxLength={500}
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   {reviewForm.comment.length}/500 caractères
                 </p>
               </div>
@@ -286,7 +286,7 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                 <Button 
                   type="submit" 
                   disabled={submitting}
-                  className="bg-olive-700 hover:bg-olive-800"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {submitting ? 'Envoi...' : 'Publier l\'avis'}
                 </Button>
@@ -308,8 +308,8 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
         {reviews.length === 0 ? (
           <Card>
             <CardContent className="text-center py-8">
-              <div className="text-gray-500 mb-4">
-                <Star size={48} className="mx-auto mb-2 text-gray-300" />
+              <div className="text-muted-foreground mb-4">
+                <Star size={48} className="mx-auto mb-2 text-muted-foreground/50" />
                 <p>Aucun avis pour le moment</p>
                 <p className="text-sm">Soyez le premier à donner votre avis !</p>
               </div>
@@ -329,8 +329,8 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-olive-100 rounded-full flex items-center justify-center">
-                      <User size={20} className="text-olive-700" />
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                      <User size={20} className="text-primary" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -348,7 +348,7 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                         <div className="flex">
                           {renderStars(review.rating, false, 14)}
                         </div>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(review.created_at), { 
                             addSuffix: true, 
                             locale: fr 
@@ -364,17 +364,17 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                 )}
                 
                 {review.comment && (
-                  <p className="text-gray-700 mb-3 leading-relaxed">
+                  <p className="text-foreground mb-3 leading-relaxed">
                     {review.comment}
                   </p>
                 )}
                 
-                <div className="flex items-center gap-4 text-sm text-gray-500">
-                  <button className="flex items-center gap-1 hover:text-olive-700 transition-colors">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <button className="flex items-center gap-1 hover:text-primary transition-colors">
                     <ThumbsUp size={14} />
                     <span>Utile ({review.helpful_count})</span>
                   </button>
-                  <button className="flex items-center gap-1 hover:text-red-600 transition-colors">
+                  <button className="flex items-center gap-1 hover:text-destructive transition-colors">
                     <Flag size={14} />
                     <span>Signaler</span>
                   </button>

@@ -133,8 +133,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           className={cn(
             "relative border-2 border-dashed transition-all duration-200 cursor-pointer",
             isDragOver 
-              ? "border-olive-400 bg-olive-50" 
-              : "border-stone-300 hover:border-olive-300 hover:bg-stone-50",
+              ? "border-primary bg-primary/5" 
+              : "border-border hover:border-primary/50 hover:bg-muted/50",
             isUploading && "pointer-events-none opacity-50"
           )}
           onDrop={handleDrop}
@@ -154,7 +154,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             <div className="relative group">
               <div 
                 className={cn(
-                  "w-full bg-stone-100",
+                  "w-full bg-muted",
                   aspectRatio && `aspect-[${aspectRatio}]`
                 )}
               >
@@ -200,8 +200,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
               {/* Upload status overlay */}
               {isUploading && (
-                <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-                  <div className="flex items-center space-x-2 text-olive-700">
+                <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+                  <div className="flex items-center space-x-2 text-primary">
                     <Loader2 className="h-5 w-5 animate-spin" />
                     <span className="font-medium">Upload en cours...</span>
                   </div>
