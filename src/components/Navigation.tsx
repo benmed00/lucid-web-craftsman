@@ -33,8 +33,12 @@ const Navigation = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isMenuOpen]);
-
   const currentPath = location.pathname;
+
+  // Close search dropdown when route changes
+  useEffect(() => {
+    setShowSearch(false);
+  }, [location.pathname]);
 
   const handleSignOut = useCallback(async () => {
     try {

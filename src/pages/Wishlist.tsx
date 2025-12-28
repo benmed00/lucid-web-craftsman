@@ -232,10 +232,9 @@ const Wishlist = () => {
                           {/* Actions */}
                           <div className="flex flex-row sm:flex-col items-center gap-2 flex-shrink-0">
                             <Button
-                              variant="outline"
                               size="sm"
                               onClick={() => handleAddToCart(product)}
-                              className="hover:bg-primary/10 hover:border-primary/20 flex-1 sm:flex-none whitespace-nowrap"
+                              className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90 text-primary-foreground flex-1 sm:flex-none whitespace-nowrap"
                             >
                               Ajouter au panier
                             </Button>
