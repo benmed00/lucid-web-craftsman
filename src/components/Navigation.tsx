@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
 import ThemeToggle from "@/components/ThemeToggle";
+import { toast } from "sonner";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -168,21 +169,31 @@ const Navigation = () => {
               </Button>
 
               {/* Wishlist button - Desktop only (hidden on tablet for space) */}
-              <Button variant="ghost" size="sm" asChild className="hidden lg:flex relative items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hover:bg-primary/10 rounded-lg transition-all duration-300 touch-manipulation">
-                <Link
-                  to={user ? "/wishlist" : "#"}
-                  className={clsx(
-                    "flex items-center justify-center w-full h-full text-foreground hover:text-primary transition-colors duration-300",
-                    !user && "pointer-events-none opacity-30"
-                  )}
-                >
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="hidden lg:flex relative items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hover:bg-primary/10 rounded-lg transition-all duration-300 touch-manipulation"
+                onClick={() => {
+                  if (!user) return;
+                  if (currentPath === "/wishlist") {
+                    toast.info("Vous êtes déjà sur cette page", { duration: 2000 });
+                  } else {
+                    navigate("/wishlist");
+                  }
+                }}
+                disabled={!user}
+              >
+                <span className={clsx(
+                  "flex items-center justify-center w-full h-full text-foreground hover:text-primary transition-colors duration-300",
+                  !user && "opacity-30"
+                )}>
                   <Heart className="h-4 w-4 transition-colors" />
                   {user && wishlistCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center min-w-[16px] font-medium">
                       {wishlistCount}
                     </span>
                   )}
-                </Link>
+                </span>
               </Button>
 
               {/* Currency Selector - XL Desktop only */}
@@ -479,10 +490,16 @@ const Navigation = () => {
                         <span>Mes Commandes</span>
                       </Link>
 
-                      <Link
-                        to="/wishlist"
-                        className="flex items-center justify-between p-3 text-foreground hover:bg-muted rounded-lg transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
+                      <button
+                        className="flex items-center justify-between p-3 text-foreground hover:bg-muted rounded-lg transition-colors w-full"
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          if (currentPath === "/wishlist") {
+                            toast.info("Vous êtes déjà sur cette page", { duration: 2000 });
+                          } else {
+                            navigate("/wishlist");
+                          }
+                        }}
                         tabIndex={isMenuOpen ? 0 : -1}
                       >
                         <div className="flex items-center gap-3">
@@ -494,7 +511,7 @@ const Navigation = () => {
                             {wishlistCount}
                           </span>
                         )}
-                      </Link>
+                      </button>
 
                       <button
                         onClick={handleSignOut}
