@@ -119,11 +119,11 @@ const OrderHistory = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-stone-800 mb-4">Connectez-vous pour voir vos commandes</h1>
-            <p className="text-stone-600">Vous devez être connecté pour accéder à l'historique de vos commandes.</p>
+            <h1 className="text-2xl font-bold text-foreground mb-4">Connectez-vous pour voir vos commandes</h1>
+            <p className="text-muted-foreground">Vous devez être connecté pour accéder à l'historique de vos commandes.</p>
           </div>
         </div>
         <PageFooter />
@@ -132,17 +132,17 @@ const OrderHistory = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-serif font-bold text-stone-800 mb-2">
+              <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
                 Mes Commandes
               </h1>
-              <p className="text-stone-600">
+              <p className="text-muted-foreground">
                 Suivez l'état de vos commandes et consultez votre historique d'achats
               </p>
             </div>
@@ -159,19 +159,19 @@ const OrderHistory = () => {
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <RefreshCw className="h-8 w-8 animate-spin text-olive-600" />
+              <RefreshCw className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : orders.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
-                <Package className="h-12 w-12 text-stone-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-stone-800 mb-2">
+                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
                   Aucune commande trouvée
                 </h3>
-                <p className="text-stone-600 mb-6">
+                <p className="text-muted-foreground mb-6">
                   Vous n'avez pas encore passé de commande. Découvrez notre collection artisanale !
                 </p>
-                <Button asChild className="bg-olive-700 hover:bg-olive-800">
+                <Button asChild className="bg-primary hover:bg-primary/90">
                   <a href="/products">Découvrir nos produits</a>
                 </Button>
               </CardContent>
@@ -184,23 +184,23 @@ const OrderHistory = () => {
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-medium text-stone-800">
+                          <h3 className="font-medium text-foreground">
                             Commande #{order.id.slice(-8)}
                           </h3>
                           {getStatusBadge(order.status)}
                         </div>
                         
-                        <div className="text-sm text-stone-600 mb-3">
+                        <div className="text-sm text-muted-foreground mb-3">
                           <p>Passée le {format(new Date(order.created_at), 'dd MMMM yyyy à HH:mm', { locale: fr })}</p>
                           <p className="mt-1">{getStatusDescription(order.status)}</p>
                         </div>
 
                         <div className="flex items-center gap-4 text-sm">
-                          <span className="text-stone-600">
+                          <span className="text-muted-foreground">
                             {order.order_items.length} article{order.order_items.length > 1 ? 's' : ''}
                           </span>
                           <Separator orientation="vertical" className="h-4" />
-                          <span className="font-medium text-stone-800">
+                          <span className="font-medium text-foreground">
                             {(order.amount / 100).toFixed(2)} €
                           </span>
                         </div>
@@ -233,24 +233,24 @@ const OrderHistory = () => {
                           {selectedOrder && (
                             <div className="space-y-6">
                               <div>
-                                <h4 className="font-medium mb-3 text-stone-800">Articles commandés</h4>
+                                <h4 className="font-medium mb-3 text-foreground">Articles commandés</h4>
                                 <div className="space-y-3">
                                   {selectedOrder.order_items.map((item) => (
-                                    <div key={item.id} className="flex justify-between items-start p-3 bg-stone-50 rounded-lg">
+                                    <div key={item.id} className="flex justify-between items-start p-3 bg-muted rounded-lg">
                                       <div className="flex-1">
-                                        <div className="font-medium text-stone-800">
+                                        <div className="font-medium text-foreground">
                                           {item.product_snapshot?.name || 'Produit'}
                                         </div>
-                                        <div className="text-sm text-stone-600 mt-1">
+                                        <div className="text-sm text-muted-foreground mt-1">
                                           {item.unit_price.toFixed(2)} € × {item.quantity}
                                         </div>
                                         {item.product_snapshot?.description && (
-                                          <div className="text-xs text-stone-500 mt-1 line-clamp-2">
+                                          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                             {item.product_snapshot.description}
                                           </div>
                                         )}
                                       </div>
-                                      <div className="font-medium text-stone-800 ml-4">
+                                      <div className="font-medium text-foreground ml-4">
                                         {item.total_price.toFixed(2)} €
                                       </div>
                                     </div>
@@ -261,30 +261,30 @@ const OrderHistory = () => {
                               <Separator />
 
                               <div className="flex justify-between items-center">
-                                <span className="text-lg font-medium text-stone-800">Total</span>
-                                <span className="text-xl font-bold text-stone-800">
+                                <span className="text-lg font-medium text-foreground">Total</span>
+                                <span className="text-xl font-bold text-foreground">
                                   {(selectedOrder.amount / 100).toFixed(2)} €
                                 </span>
                               </div>
 
-                              <div className="bg-olive-50 p-4 rounded-lg">
-                                <h4 className="font-medium text-stone-800 mb-2">État de la commande</h4>
-                                <p className="text-stone-600">{getStatusDescription(selectedOrder.status)}</p>
+                              <div className="bg-primary/10 p-4 rounded-lg">
+                                <h4 className="font-medium text-foreground mb-2">État de la commande</h4>
+                                <p className="text-muted-foreground">{getStatusDescription(selectedOrder.status)}</p>
                                 
                                 {selectedOrder.stripe_session_id && (
-                                  <div className="mt-3 text-xs text-stone-500">
+                                  <div className="mt-3 text-xs text-muted-foreground">
                                     ID de session: {selectedOrder.stripe_session_id.slice(-12)}
                                   </div>
                                 )}
                               </div>
 
                               {(selectedOrder.status === 'shipped' || selectedOrder.status === 'delivered') && (
-                                <div className="bg-blue-50 p-4 rounded-lg">
-                                  <h4 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
+                                <div className="bg-blue-500/10 p-4 rounded-lg">
+                                  <h4 className="font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-2">
                                     <Truck className="h-4 w-4" />
                                     Information de livraison
                                   </h4>
-                                  <p className="text-blue-700">
+                                  <p className="text-blue-600 dark:text-blue-400">
                                     {selectedOrder.status === 'delivered' 
                                       ? 'Votre commande a été livrée avec succès.' 
                                       : 'Votre commande est en cours de livraison.'}
