@@ -80,7 +80,7 @@ const ImageWithFallback = ({ src, alt }: { src: string; alt: string }) => {
           onError={() => {
             // If fallback also fails, show placeholder
             const placeholder = document.createElement('div');
-            placeholder.className = "bg-beige-100 w-full h-full flex items-center justify-center text-stone-500 text-sm";
+            placeholder.className = "bg-muted w-full h-full flex items-center justify-center text-muted-foreground text-sm";
             placeholder.textContent = "Image non disponible";
           }}
         />
@@ -97,7 +97,7 @@ const ImageWithFallback = ({ src, alt }: { src: string; alt: string }) => {
             sizes="(max-width: 768px) 50vw, 25vw"
           />
           {loading && (
-            <div className="absolute inset-0 bg-beige-100 animate-pulse" />
+            <div className="absolute inset-0 bg-muted animate-pulse" />
           )}
         </>
       )}
