@@ -36,11 +36,11 @@ const Terms = () => (
             litige antérieur.
           </li>
         </ul>
-        <p className="text-stone-700">
+        <p className="text-muted-foreground">
           Pour toute question, contactez-nous via la page{" "}
           <a
             href="/contact"
-            className="text-olive-700 underline hover:text-olive-800"
+            className="text-primary underline hover:text-primary/80"
           >
             Contact
           </a>

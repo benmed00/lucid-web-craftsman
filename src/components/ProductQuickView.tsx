@@ -137,9 +137,9 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
             variant="ghost"
             size="icon"
             onClick={handleShare}
-            className="absolute top-6 right-6 z-20 h-11 w-11 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg border border-gray-200/50 transition-all duration-300 hover:scale-110"
+            className="absolute top-6 right-6 z-20 h-11 w-11 rounded-full bg-background/90 backdrop-blur-sm hover:bg-background shadow-lg border border-border/50 transition-all duration-300 hover:scale-110"
           >
-            <Share2 className="h-4 w-4 text-gray-700" />
+            <Share2 className="h-4 w-4 text-muted-foreground" />
           </Button>
 
           {/* Main Image */}

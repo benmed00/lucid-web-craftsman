@@ -8,9 +8,9 @@ import { useCart } from "./CartContext";
 export function useCartUI() {
     const { itemCount } = useCart(); // Get itemCount from CartContext
 
-    // Styling logic remains the same
-    const cartColor = itemCount > 0 ? "bg-olive-700" : "bg-stone-700"; // Adjusted condition slightly for empty cart
-    const badgeTextColor = itemCount > 0 ? "text-olive-700" : "text-stone-700"; // Adjusted condition slightly
+    // Use semantic tokens for dark mode compatibility
+    const cartColor = itemCount > 0 ? "bg-primary" : "bg-muted";
+    const badgeTextColor = itemCount > 0 ? "text-primary" : "text-muted-foreground";
 
     return { itemCount, cartColor, badgeTextColor };
 }

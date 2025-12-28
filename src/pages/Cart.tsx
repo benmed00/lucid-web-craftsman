@@ -420,26 +420,26 @@ const Cart = () => {
                 {/* Additional useful content for white space */}
                 <div className="mt-8 space-y-6 border-t pt-6">
                   {/* Shopping benefits */}
-                  <div className="bg-olive-50 rounded-lg p-4">
-                    <h3 className="font-medium text-olive-800 mb-3 flex items-center gap-2">
+                  <div className="bg-secondary rounded-lg p-4">
+                    <h3 className="font-medium text-secondary-foreground mb-3 flex items-center gap-2">
                       <Heart className="h-4 w-4" />
                       Pourquoi choisir Rif Raw Straw ?
                     </h3>
-                    <div className="space-y-2 text-sm text-olive-700">
+                    <div className="space-y-2 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
-                        <span className="text-green-600">✓</span>
+                        <span className="text-primary">✓</span>
                         <span>Artisanat authentique berbère</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-green-600">✓</span>
+                        <span className="text-primary">✓</span>
                         <span>Livraison gratuite dès 50€</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-green-600">✓</span>
+                        <span className="text-primary">✓</span>
                         <span>Retours sous 30 jours</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-green-600">✓</span>
+                        <span className="text-primary">✓</span>
                         <span>Support client réactif</span>
                       </div>
                     </div>

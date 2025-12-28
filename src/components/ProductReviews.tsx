@@ -178,10 +178,10 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-8 bg-gray-200 rounded animate-pulse" />
+        <div className="h-8 bg-muted rounded animate-pulse" />
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-24 bg-gray-200 rounded animate-pulse" />
+            <div key={i} className="h-24 bg-muted rounded animate-pulse" />
           ))}
         </div>
       </div>

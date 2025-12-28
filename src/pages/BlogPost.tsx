@@ -67,14 +67,14 @@ const BlogPost = () => {
           </Link>
           
           <div className="max-w-3xl mx-auto">
-            <Badge className="mb-2 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none">
+            <Badge className="mb-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 border-none">
               {post.category}
             </Badge>
-            <h1 className="font-serif text-3xl md:text-5xl text-stone-800 mb-4">
+            <h1 className="font-serif text-3xl md:text-5xl text-foreground mb-4">
               {post.title}
             </h1>
             
-            <div className="flex items-center gap-4 text-sm text-stone-500 mt-6">
+            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-6">
               <div className="flex items-center">
                 <CalendarIcon className="h-4 w-4 mr-1" /> {post.date}
               </div>
