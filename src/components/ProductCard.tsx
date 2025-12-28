@@ -53,7 +53,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
   return (
     <Card 
       id={cardId}
-      className="bg-white border border-stone-100 overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-xl sm:rounded-2xl hover:scale-[1.01] sm:hover:scale-[1.02] hover:-translate-y-1 shadow-lg hover:border-olive-200 w-full max-w-sm mx-auto sm:max-w-none"
+      className="bg-card border border-border overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-xl sm:rounded-2xl hover:scale-[1.01] sm:hover:scale-[1.02] hover:-translate-y-1 shadow-lg hover:border-primary/30 w-full max-w-sm mx-auto sm:max-w-none"
       role="article"
       aria-labelledby={`product-title-${product.id}`}
       aria-describedby={`product-price-${product.id} ${singleStockInfo?.isOutOfStock ? `product-stock-${product.id}` : ''}`}
@@ -86,7 +86,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
                     e.stopPropagation();
                     onQuickView(product);
                   }}
-                  className="bg-white/95 backdrop-blur-sm hover:bg-white p-2 sm:p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 touch-manipulation min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px]"
+                  className="bg-background/95 backdrop-blur-sm hover:bg-background text-foreground p-2 sm:p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 touch-manipulation min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px]"
                   aria-label={`Aperçu rapide de ${product.name}`}
                 >
                   <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -111,7 +111,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
                   e.stopPropagation();
                   setShowShareDialog(true);
                 }}
-                className="bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg p-2 rounded-full touch-manipulation min-h-[36px] min-w-[36px] sm:min-h-[40px] sm:min-w-[40px]"
+                className="bg-background/90 backdrop-blur-sm hover:bg-background text-foreground shadow-lg p-2 rounded-full touch-manipulation min-h-[36px] min-w-[36px] sm:min-h-[40px] sm:min-w-[40px]"
                 aria-label={`Partager ${product.name}`}
               >
                 <Share className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -156,17 +156,17 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
             productId={product.id}
             size="sm"
             variant="ghost"
-            className="bg-white border-2 border-stone-200 hover:bg-stone-50 p-2 sm:p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 touch-manipulation min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px]"
+            className="bg-card border-2 border-border hover:bg-muted p-2 sm:p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 touch-manipulation min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px]"
           />
         </div>
 
-        <p className="text-xs sm:text-sm text-olive-700 font-medium mb-2 uppercase tracking-wide">
+        <p className="text-xs sm:text-sm text-primary font-medium mb-2 uppercase tracking-wide">
           {product.category}
         </p>
         <Link to={`/products/${product.id}`} className="touch-manipulation">
           <h3 
             id={`product-title-${product.id}`}
-            className="font-serif text-base sm:text-lg md:text-xl font-medium text-stone-800 mb-3 sm:mb-4 line-clamp-2 leading-tight hover:text-olive-700 transition-colors duration-200 pr-10 sm:pr-12"
+            className="font-serif text-base sm:text-lg md:text-xl font-medium text-foreground mb-3 sm:mb-4 line-clamp-2 leading-tight hover:text-primary transition-colors duration-200 pr-10 sm:pr-12"
           >
             {product.name}
           </h3>
@@ -175,7 +175,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
           <div className="relative">
             <p 
               id={`product-price-${product.id}`}
-              className="text-stone-800 font-bold text-lg sm:text-xl md:text-2xl whitespace-nowrap"
+              className="text-foreground font-bold text-lg sm:text-xl md:text-2xl whitespace-nowrap"
               aria-label={`Prix: ${formatPrice(product.price)}`}
             >
               {formatPrice(product.price)}
