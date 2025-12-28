@@ -4,7 +4,7 @@ import { ErrorReportButton } from "./ui/ErrorReportButton";
 
 const Footer = () => {
   return (
-    <footer className="bg-stone-800 text-white py-8 sm:py-12">
+    <footer className="bg-stone-800 text-stone-50 py-8 sm:py-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           <div className="sm:col-span-2 lg:col-span-1">
