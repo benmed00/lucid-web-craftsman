@@ -1,16 +1,22 @@
 import { useCart } from "./CartContext";
-// import { useMemo } from "react"; // useMemo no longer needed for itemCount
 
 /**
- * Fournit la couleur du badge du panier et le nombre d'articles à partir du CartContext.
- * @returns {object} { itemCount, cartColor, badgeTextColor }
+ * Fournit les données UI du panier: couleur, compteur, état de synchronisation.
+ * @returns {object} { itemCount, cartColor, badgeTextColor, isSyncing, isOnline, pendingOperations }
  */
 export function useCartUI() {
-    const { itemCount } = useCart(); // Get itemCount from CartContext
+    const { itemCount, isSyncing, isOnline, pendingOperations } = useCart();
 
     // Use semantic tokens for dark mode compatibility
     const cartColor = itemCount > 0 ? "bg-primary" : "bg-muted";
     const badgeTextColor = itemCount > 0 ? "text-primary" : "text-muted-foreground";
 
-    return { itemCount, cartColor, badgeTextColor };
+    return { 
+        itemCount, 
+        cartColor, 
+        badgeTextColor, 
+        isSyncing, 
+        isOnline, 
+        pendingOperations 
+    };
 }
