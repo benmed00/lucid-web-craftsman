@@ -12,7 +12,7 @@ const HeroImage = () => {
       <div className="group relative rounded-lg overflow-hidden shadow-lg">
         <AspectRatio
           ratio={4 / 5}
-          className="bg-stone-100"
+          className="bg-muted"
         >
           {/* Show default image immediately to optimize LCP */}
           <HeroImageComponent
@@ -31,11 +31,11 @@ const HeroImage = () => {
         
         {/* Default content overlay */}
         <div className="absolute bottom-6 left-6 right-6">
-          <div className="bg-white/95 backdrop-blur-sm px-6 py-4 rounded-lg shadow-lg">
-            <p className="text-sm font-medium text-stone-800 mb-1">
+          <div className="bg-card/95 backdrop-blur-sm px-6 py-4 rounded-lg shadow-lg border border-border/50">
+            <p className="text-sm font-medium text-foreground mb-1">
               Artisanat Authentique du Rif
             </p>
-            <p className="text-xs text-stone-600">
+            <p className="text-xs text-muted-foreground">
               Chapeau tressé et sac naturel - Fait main avec amour
             </p>
           </div>
@@ -48,7 +48,7 @@ const HeroImage = () => {
     <div className="group relative rounded-lg overflow-hidden shadow-lg">
       <AspectRatio
         ratio={4 / 5}
-        className="bg-stone-100"
+        className="bg-muted"
       >
         {/* Main hero image with advanced loading and fallback */}
         <HeroImageComponent
@@ -74,11 +74,11 @@ const HeroImage = () => {
       
       {/* Content overlay - fades on hover */}
       <div className="absolute bottom-6 left-6 right-6 group-hover:opacity-0 transition-opacity duration-700 ease-in-out">
-        <div className="bg-white/95 backdrop-blur-sm px-6 py-4 rounded-lg shadow-lg">
-          <p className="text-sm font-medium text-stone-800 mb-1">
+        <div className="bg-card/95 backdrop-blur-sm px-6 py-4 rounded-lg shadow-lg border border-border/50">
+          <p className="text-sm font-medium text-foreground mb-1">
             {heroImageData.title}
           </p>
-          <p className="text-xs text-stone-600">
+          <p className="text-xs text-muted-foreground">
             {heroImageData.subtitle}
           </p>
         </div>
