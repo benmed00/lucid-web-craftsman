@@ -73,6 +73,7 @@ const AdminErrorReports: React.FC = () => {
   const [errorTypeFilter, setErrorTypeFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [tagFilter, setTagFilter] = useState('all');
+  const [screenshotFilter, setScreenshotFilter] = useState<string>('all');
 
   // Stats
   const [stats, setStats] = useState({
@@ -95,7 +96,7 @@ const AdminErrorReports: React.FC = () => {
 
   useEffect(() => {
     filterReports();
-  }, [reports, statusFilter, priorityFilter, severityFilter, errorTypeFilter, searchQuery, tagFilter]);
+  }, [reports, statusFilter, priorityFilter, severityFilter, errorTypeFilter, searchQuery, tagFilter, screenshotFilter]);
 
   const fetchErrorReports = async () => {
     try {
@@ -173,6 +174,13 @@ const AdminErrorReports: React.FC = () => {
       filtered = filtered.filter(report =>
         report.tags && report.tags.includes(tagFilter)
       );
+    }
+
+    // Screenshot filter
+    if (screenshotFilter === 'with') {
+      filtered = filtered.filter(report => report.screenshot_url);
+    } else if (screenshotFilter === 'without') {
+      filtered = filtered.filter(report => !report.screenshot_url);
     }
 
     setFilteredReports(filtered);
@@ -390,7 +398,7 @@ const AdminErrorReports: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Error Type</label>
               <Select value={errorTypeFilter} onValueChange={setErrorTypeFilter}>
@@ -419,6 +427,23 @@ const AdminErrorReports: React.FC = () => {
                   {availableTags.map(tag => (
                     <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                <Image className="h-4 w-4" />
+                Screenshot
+              </label>
+              <Select value={screenshotFilter} onValueChange={setScreenshotFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Reports</SelectItem>
+                  <SelectItem value="with">With Screenshot</SelectItem>
+                  <SelectItem value="without">Without Screenshot</SelectItem>
                 </SelectContent>
               </Select>
             </div>
