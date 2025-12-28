@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AlertTriangle, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -82,7 +82,7 @@ export const ErrorReportButton = () => {
         <Button
           variant="outline"
           size="sm"
-          className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100 hover:border-red-300"
+          className="bg-status-error/10 border-status-error/20 text-status-error hover:bg-status-error/20 hover:border-status-error/30"
         >
           <AlertTriangle className="h-4 w-4 mr-2" />
           Signaler un problème
@@ -93,13 +93,13 @@ export const ErrorReportButton = () => {
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <AlertTriangle className="h-5 w-5 text-status-error" />
               Signaler un problème
             </DialogTitle>
           </div>
-          <p className="text-sm text-stone-600 mt-2">
+          <DialogDescription className="text-sm text-muted-foreground mt-2">
             Aidez-nous à améliorer l'application en signalant les bugs ou problèmes que vous rencontrez.
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -155,7 +155,7 @@ export const ErrorReportButton = () => {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-status-error hover:bg-status-error/90 text-background"
             >
               {isSubmitting ? (
                 <>
