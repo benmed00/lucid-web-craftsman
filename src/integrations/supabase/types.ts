@@ -52,7 +52,7 @@ export type Database = {
           action: string
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_values: Json | null
           old_values: Json | null
           resource_id: string | null
@@ -65,7 +65,7 @@ export type Database = {
           action: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           resource_id?: string | null
@@ -78,7 +78,7 @@ export type Database = {
           action?: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           resource_id?: string | null
@@ -241,7 +241,7 @@ export type Database = {
           email: string
           first_name: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           last_name: string
           message: string
           phone: string | null
@@ -256,7 +256,7 @@ export type Database = {
           email: string
           first_name: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           last_name: string
           message: string
           phone?: string | null
@@ -271,7 +271,7 @@ export type Database = {
           email?: string
           first_name?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           last_name?: string
           message?: string
           phone?: string | null
@@ -797,7 +797,7 @@ export type Database = {
           created_at: string | null
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           product_id: number | null
           referrer: string | null
@@ -811,7 +811,7 @@ export type Database = {
           created_at?: string | null
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           product_id?: number | null
           referrer?: string | null
@@ -825,7 +825,7 @@ export type Database = {
           created_at?: string | null
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           product_id?: number | null
           referrer?: string | null
@@ -1158,7 +1158,7 @@ export type Database = {
           event_data: Json
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           resolution_notes: string | null
           resolved_at: string | null
           severity: string
@@ -1171,7 +1171,7 @@ export type Database = {
           event_data: Json
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           resolution_notes?: string | null
           resolved_at?: string | null
           severity?: string
@@ -1184,7 +1184,7 @@ export type Database = {
           event_data?: Json
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           resolution_notes?: string | null
           resolved_at?: string | null
           severity?: string
@@ -1649,14 +1649,8 @@ export type Database = {
         }
         Returns: undefined
       }
-      anonymize_sensitive_data: {
-        Args: { input_data: Json }
-        Returns: Json
-      }
-      archive_old_payment_data: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      anonymize_sensitive_data: { Args: { input_data: Json }; Returns: Json }
+      archive_old_payment_data: { Args: never; Returns: undefined }
       can_access_support_ticket: {
         Args: { ticket_id: string }
         Returns: boolean
@@ -1670,10 +1664,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      emergency_lockdown_contact_data: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      emergency_lockdown_contact_data: { Args: never; Returns: undefined }
       enhanced_log_contact_message_access: {
         Args: { message_id: string }
         Returns: undefined
@@ -1682,10 +1673,7 @@ export type Database = {
         Args: { message_id: string }
         Returns: Json
       }
-      get_customer_segments: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_customer_segments: { Args: never; Returns: Json }
       get_masked_contact_messages: {
         Args: { limit_count?: number; offset_count?: number }
         Returns: {
@@ -1701,16 +1689,10 @@ export type Database = {
           subject: string
         }[]
       }
-      get_masked_error_report: {
-        Args: { report_id: string }
-        Returns: Json
-      }
-      get_masked_payment_info: {
-        Args: { payment_id: string }
-        Returns: Json
-      }
+      get_masked_error_report: { Args: { report_id: string }; Returns: Json }
+      get_masked_payment_info: { Args: { payment_id: string }; Returns: Json }
       get_newsletter_subscriptions_admin: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           consent_given: boolean
           created_at: string
@@ -1727,12 +1709,9 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: number
       }
-      get_security_setting: {
-        Args: { setting_key: string }
-        Returns: Json
-      }
+      get_security_setting: { Args: { setting_key: string }; Returns: Json }
       get_user_newsletter_subscription: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           consent_given: boolean
           created_at: string
@@ -1751,18 +1730,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      init_loyalty_account: {
-        Args: { user_uuid: string }
-        Returns: undefined
-      }
-      is_admin_user: {
-        Args: { user_uuid: string }
-        Returns: boolean
-      }
-      is_user_admin: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      init_loyalty_account: { Args: { user_uuid: string }; Returns: undefined }
+      is_admin_user: { Args: { user_uuid: string }; Returns: boolean }
+      is_user_admin: { Args: { _user_id: string }; Returns: boolean }
       log_contact_message_access: {
         Args: { message_id: string }
         Returns: undefined
@@ -1789,12 +1759,9 @@ export type Database = {
         }
         Returns: undefined
       }
-      mask_email: {
-        Args: { email: string }
-        Returns: string
-      }
+      mask_email: { Args: { email: string }; Returns: string }
       monitor_contact_data_security: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           current_value: string
           recommendation: string
@@ -1802,14 +1769,8 @@ export type Database = {
           security_metric: string
         }[]
       }
-      restore_contact_data_access: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      update_loyalty_tier: {
-        Args: { user_uuid: string }
-        Returns: undefined
-      }
+      restore_contact_data_access: { Args: never; Returns: undefined }
+      update_loyalty_tier: { Args: { user_uuid: string }; Returns: undefined }
       user_owns_newsletter_subscription: {
         Args: { subscription_email: string }
         Returns: boolean
