@@ -50,6 +50,16 @@ const Navigation = () => {
     }
   }, [signOut]);
 
+  // Smart navigation with "already on page" feedback
+  const handleNavClick = useCallback((targetPath: string, e?: React.MouseEvent) => {
+    if (currentPath === targetPath) {
+      e?.preventDefault();
+      toast.info("Vous êtes déjà sur cette page", { duration: 2000 });
+      return false;
+    }
+    return true;
+  }, [currentPath]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -100,6 +110,7 @@ const Navigation = () => {
               <div className="flex items-center justify-center space-x-2 lg:space-x-3">
                 <Link
                   to="/"
+                  onClick={(e) => handleNavClick("/", e)}
                   className={clsx(
                     "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center",
                     currentPath === "/" ? "text-primary bg-primary/10" : "text-foreground"
@@ -114,6 +125,7 @@ const Navigation = () => {
                 
                 <Link
                   to="/products"
+                  onClick={(e) => handleNavClick("/products", e)}
                   className={clsx(
                     "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center",
                     currentPath === "/products" ? "text-primary bg-primary/10" : "text-foreground"
@@ -128,6 +140,7 @@ const Navigation = () => {
                 
                 <Link
                   to="/blog"
+                  onClick={(e) => handleNavClick("/blog", e)}
                   className={clsx(
                     "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center",
                     currentPath === "/blog" ? "text-primary bg-primary/10" : "text-foreground"
@@ -142,6 +155,7 @@ const Navigation = () => {
                 
                 <Link
                   to="/contact"
+                  onClick={(e) => handleNavClick("/contact", e)}
                   className={clsx(
                     "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center",
                     currentPath === "/contact" ? "text-primary bg-primary/10" : "text-foreground"
@@ -375,7 +389,10 @@ const Navigation = () => {
                   ? "bg-primary text-primary-foreground" 
                   : "text-foreground hover:bg-primary/10 hover:text-primary"
               }`}
-              onClick={() => setIsMenuOpen(false)}
+              onClick={(e) => {
+                if (!handleNavClick("/", e)) return;
+                setIsMenuOpen(false);
+              }}
               tabIndex={isMenuOpen ? 0 : -1}
             >
               <div className={`p-2 rounded-lg ${currentPath === "/" ? "bg-primary-foreground/20" : "bg-muted"}`}>
@@ -391,7 +408,10 @@ const Navigation = () => {
                   ? "bg-primary text-primary-foreground" 
                   : "text-foreground hover:bg-primary/10 hover:text-primary"
               }`}
-              onClick={() => setIsMenuOpen(false)}
+              onClick={(e) => {
+                if (!handleNavClick("/products", e)) return;
+                setIsMenuOpen(false);
+              }}
               tabIndex={isMenuOpen ? 0 : -1}
             >
               <div className={`p-2 rounded-lg ${currentPath === "/products" ? "bg-primary-foreground/20" : "bg-muted"}`}>
@@ -407,7 +427,10 @@ const Navigation = () => {
                   ? "bg-primary text-primary-foreground" 
                   : "text-foreground hover:bg-primary/10 hover:text-primary"
               }`}
-              onClick={() => setIsMenuOpen(false)}
+              onClick={(e) => {
+                if (!handleNavClick("/blog", e)) return;
+                setIsMenuOpen(false);
+              }}
               tabIndex={isMenuOpen ? 0 : -1}
             >
               <div className={`p-2 rounded-lg ${currentPath === "/blog" ? "bg-primary-foreground/20" : "bg-muted"}`}>
@@ -423,7 +446,10 @@ const Navigation = () => {
                   ? "bg-primary text-primary-foreground" 
                   : "text-foreground hover:bg-primary/10 hover:text-primary"
               }`}
-              onClick={() => setIsMenuOpen(false)}
+              onClick={(e) => {
+                if (!handleNavClick("/contact", e)) return;
+                setIsMenuOpen(false);
+              }}
               tabIndex={isMenuOpen ? 0 : -1}
             >
               <div className={`p-2 rounded-lg ${currentPath === "/contact" ? "bg-primary-foreground/20" : "bg-muted"}`}>
