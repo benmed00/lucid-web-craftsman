@@ -160,14 +160,14 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
           return (
             <div key={rating} className="flex items-center gap-2 text-sm">
               <span className="w-2">{rating}</span>
-              <Star size={14} className="fill-yellow-400 text-yellow-400" />
-              <div className="flex-1 bg-gray-200 rounded-full h-2">
+              <Star size={14} className="fill-amber-400 text-amber-400" />
+              <div className="flex-1 bg-muted rounded-full h-2">
                 <div 
-                  className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
+                  className="bg-amber-400 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${percentage}%` }}
                 />
               </div>
-              <span className="w-8 text-right text-gray-600">{count}</span>
+              <span className="w-8 text-right text-muted-foreground">{count}</span>
             </div>
           );
         })}

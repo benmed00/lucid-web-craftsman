@@ -255,24 +255,24 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
             {/* Description */}
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-gray-900">Description</h3>
-              <p className="text-gray-700 leading-relaxed text-sm lg:text-base">{product.description}</p>
+              <h3 className="text-lg font-semibold text-foreground">Description</h3>
+              <p className="text-muted-foreground leading-relaxed text-sm lg:text-base">{product.description}</p>
             </div>
 
             {/* Features Grid */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <Package className="h-5 w-5 text-olive-600" />
+              <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                <Package className="h-5 w-5 text-primary" />
                 <div>
-                  <div className="text-sm font-medium text-gray-900">Fait main</div>
-                  <div className="text-xs text-gray-600">Artisanat authentique</div>
+                  <div className="text-sm font-medium text-foreground">Fait main</div>
+                  <div className="text-xs text-muted-foreground">Artisanat authentique</div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <Shield className="h-5 w-5 text-olive-600" />
+              <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                <Shield className="h-5 w-5 text-primary" />
                 <div>
-                  <div className="text-sm font-medium text-gray-900">Qualité premium</div>
-                  <div className="text-xs text-gray-600">Matériaux nobles</div>
+                  <div className="text-sm font-medium text-foreground">Qualité premium</div>
+                  <div className="text-xs text-muted-foreground">Matériaux nobles</div>
                 </div>
               </div>
             </div>

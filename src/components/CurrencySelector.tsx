@@ -14,7 +14,7 @@ const CurrencySelector: React.FC = () => {
   return (
     <Select value={currency} onValueChange={(value: Currency) => setCurrency(value)}>
       <SelectTrigger 
-        className="w-[140px] bg-white border-stone-200 hover:border-olive-300 transition-colors"
+        className="w-[140px] bg-background border-border hover:border-primary/50 transition-colors"
         aria-label="Sélectionner la devise"
       >
         <SelectValue>
