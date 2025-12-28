@@ -142,8 +142,8 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
         size={size}
         className={`${
           i < rating
-            ? 'fill-yellow-400 text-yellow-400'
-            : 'text-gray-300'
+            ? 'fill-rating-star text-rating-star'
+            : 'text-rating-empty'
         } ${interactive ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
         onClick={interactive ? () => setReviewForm(prev => ({ ...prev, rating: i + 1 })) : undefined}
       />

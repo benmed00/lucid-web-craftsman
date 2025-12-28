@@ -107,8 +107,8 @@ export const AdminReviews = () => {
           key={star}
           className={`w-4 h-4 ${
             star <= rating
-              ? 'fill-yellow-400 text-yellow-400'
-              : 'text-gray-200'
+              ? 'fill-rating-star text-rating-star'
+              : 'text-rating-empty'
           }`}
         />
       ))}

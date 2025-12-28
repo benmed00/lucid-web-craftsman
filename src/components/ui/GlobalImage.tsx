@@ -51,7 +51,7 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
     return (
       <div 
         className={cn(
-          "flex flex-col items-center justify-center bg-stone-100 text-stone-500 text-sm p-4",
+          "flex flex-col items-center justify-center bg-muted text-muted-foreground text-sm p-4",
           aspectRatio && `aspect-${aspectRatio}`,
           errorClassName || className
         )}
@@ -61,7 +61,7 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
           {showRetryButton && (
             <button 
               onClick={retry}
-              className="text-xs text-olive-600 hover:text-olive-700 underline"
+              className="text-xs text-primary hover:text-primary/80 underline"
             >
               Réessayer
             </button>

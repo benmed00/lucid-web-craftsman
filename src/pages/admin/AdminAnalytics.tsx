@@ -394,18 +394,18 @@ const AdminAnalytics = () => {
           <CardContent>
             <div className="space-y-4">
               {analytics.topProducts.map((product, index) => (
-                <div key={product.id} className="flex items-center justify-between p-3 border border-stone-200 rounded-lg">
+                <div key={product.id} className="flex items-center justify-between p-3 border border-border rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="flex items-center justify-center w-8 h-8 bg-olive-100 rounded-full">
-                      <span className="text-olive-700 font-semibold text-sm">{index + 1}</span>
+                    <div className="flex items-center justify-center w-8 h-8 bg-secondary rounded-full">
+                      <span className="text-primary font-semibold text-sm">{index + 1}</span>
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-stone-800 line-clamp-1">{product.name}</p>
-                      <p className="text-sm text-stone-600">{product.sales} ventes</p>
+                      <p className="font-medium text-foreground line-clamp-1">{product.name}</p>
+                      <p className="text-sm text-muted-foreground">{product.sales} ventes</p>
                     </div>
                    </div>
                    <div className="text-right">
-                     <p className="font-semibold text-olive-700">{product.revenue.toFixed(2)}€</p>
+                     <p className="font-semibold text-primary">{product.revenue.toFixed(2)}€</p>
                    </div>
                 </div>
               ))}

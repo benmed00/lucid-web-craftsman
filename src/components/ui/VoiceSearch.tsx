@@ -131,7 +131,7 @@ export const VoiceSearch = ({
           placeholder={placeholder}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pl-10 pr-20 h-12 bg-white border-stone-300 focus:border-olive-500 focus:ring-olive-500 rounded-xl"
+          className="pl-10 pr-20 h-12 bg-background border-border focus:border-primary focus:ring-primary rounded-xl"
         />
         
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -141,7 +141,7 @@ export const VoiceSearch = ({
               variant="ghost"
               size="sm"
               onClick={clearSearch}
-              className="h-8 w-8 p-0 hover:bg-stone-100 rounded-full"
+              className="h-8 w-8 p-0 hover:bg-muted rounded-full"
             >
               <X className="h-4 w-4 text-stone-400" />
             </Button>
