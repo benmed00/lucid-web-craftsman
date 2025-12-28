@@ -276,10 +276,10 @@ const Navigation = () => {
         />
       )}
 
-      {/* Mobile Menu - Slide in from right */}
+      {/* Mobile Menu - Slide in from right - responsive width */}
       <div 
         id="mobile-menu"
-        className={`md:hidden fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-[56] transform transition-transform duration-300 ease-out ${
+        className={`md:hidden fixed top-0 right-0 h-full w-full max-w-[320px] sm:max-w-[380px] bg-white shadow-2xl z-[56] transform transition-transform duration-300 ease-out ${
           isMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         {...(!isMenuOpen ? { 'aria-hidden': 'true' as const, tabIndex: -1 } : {})}
