@@ -66,6 +66,22 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Rating stars
+				rating: {
+					star: 'hsl(var(--rating-star))',
+					empty: 'hsl(var(--rating-star-empty))'
+				},
+				// Status colors
+				status: {
+					success: 'hsl(var(--status-success))',
+					'success-foreground': 'hsl(var(--status-success-foreground))',
+					warning: 'hsl(var(--status-warning))',
+					'warning-foreground': 'hsl(var(--status-warning-foreground))',
+					error: 'hsl(var(--status-error))',
+					'error-foreground': 'hsl(var(--status-error-foreground))',
+					info: 'hsl(var(--status-info))',
+					'info-foreground': 'hsl(var(--status-info-foreground))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -96,6 +112,7 @@ export default {
 					200: 'hsl(var(--stone-200))',
 					300: 'hsl(var(--stone-300))',
 					400: 'hsl(var(--stone-400))',
+					500: 'hsl(var(--stone-500))',
 					600: 'hsl(var(--stone-600))',
 					700: 'hsl(var(--stone-700))',
 					800: 'hsl(var(--stone-800))',
