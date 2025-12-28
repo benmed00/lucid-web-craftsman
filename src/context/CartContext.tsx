@@ -24,6 +24,15 @@ export type CartAction =
   | { type: "CLEAR_CART" }
   | { type: "HYDRATE"; payload: CartState };
 
+// Offline queue operation types
+type QueueOperation = {
+  id: string;
+  type: "ADD" | "REMOVE" | "UPDATE" | "CLEAR";
+  productId?: number;
+  quantity?: number;
+  timestamp: number;
+};
+
 // Context type
 interface CartContextType {
   cart: CartState;
@@ -36,6 +45,9 @@ interface CartContextType {
   updateItemQuantity: (id: number, quantity: number) => void;
   isSyncing: boolean;
   isAuthenticated: boolean;
+  isOnline: boolean;
+  pendingOperations: number;
+  syncNow: () => Promise<void>;
 }
 
 // Create context
@@ -106,6 +118,14 @@ const initialState: CartState = {
   totalPrice: 0,
 };
 
+// Queue storage key
+const OFFLINE_QUEUE_KEY = "cart_offline_queue";
+
+// Helper to generate unique IDs
+function generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
 // Helper to load products for cart items
 async function loadProductsForCartItems(items: { id: number; quantity: number }[]): Promise<CartItem[]> {
   const cartItems = await Promise.all(
@@ -133,8 +153,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, dispatch] = useReducer(cartReducer, initialState);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [offlineQueue, setOfflineQueue] = useState<QueueOperation[]>([]);
   const isInitialized = useRef(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const syncInProgressRef = useRef(false);
 
   const itemCount: number = useMemo(
     () => cart.items.reduce((sum, item) => sum + item.quantity, 0),
@@ -149,6 +172,68 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       ),
     [cart.items]
   );
+
+  // Load offline queue from localStorage
+  useEffect(() => {
+    try {
+      const savedQueue = localStorage.getItem(OFFLINE_QUEUE_KEY);
+      if (savedQueue) {
+        setOfflineQueue(JSON.parse(savedQueue));
+      }
+    } catch (e) {
+      console.error("Failed to load offline queue:", e);
+    }
+  }, []);
+
+  // Save offline queue to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(offlineQueue));
+    } catch (e) {
+      console.error("Failed to save offline queue:", e);
+    }
+  }, [offlineQueue]);
+
+  // Monitor online status
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast.success("Connexion rétablie", {
+        description: "Synchronisation du panier en cours..."
+      });
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast.warning("Mode hors-ligne", {
+        description: "Les modifications seront synchronisées à la reconnexion"
+      });
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Add operation to queue
+  const addToQueue = useCallback((operation: Omit<QueueOperation, 'id' | 'timestamp'>) => {
+    const newOperation: QueueOperation = {
+      ...operation,
+      id: generateId(),
+      timestamp: Date.now()
+    };
+    setOfflineQueue(prev => [...prev, newOperation]);
+  }, []);
+
+  // Clear queue
+  const clearQueue = useCallback(() => {
+    setOfflineQueue([]);
+    localStorage.removeItem(OFFLINE_QUEUE_KEY);
+  }, []);
 
   // Load cart from localStorage
   const loadLocalCart = useCallback(async (): Promise<CartItem[]> => {
@@ -175,6 +260,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Load cart from Supabase
   const loadSupabaseCart = useCallback(async (userId: string): Promise<CartItem[]> => {
+    if (!isOnline) return [];
+    
     try {
       const { data, error } = await supabase
         .from('cart_items')
@@ -194,10 +281,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       console.error("Error loading cart from Supabase:", error);
       return [];
     }
-  }, []);
+  }, [isOnline]);
 
   // Save cart to Supabase
   const saveToSupabase = useCallback(async (userId: string, items: CartItem[]) => {
+    if (!isOnline) {
+      // Queue the full sync for when we're back online
+      return false;
+    }
+
     setIsSyncing(true);
     try {
       // Clear existing cart items
@@ -220,14 +312,75 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         
         if (error) throw error;
       }
+      
+      return true;
     } catch (error) {
       console.error("Failed to save cart to Supabase:", error);
       // Fallback to localStorage
       localStorage.setItem("cart", JSON.stringify({ items }));
+      return false;
     } finally {
       setIsSyncing(false);
     }
-  }, []);
+  }, [isOnline]);
+
+  // Process offline queue
+  const processOfflineQueue = useCallback(async (userId: string) => {
+    if (offlineQueue.length === 0 || syncInProgressRef.current) return;
+    
+    syncInProgressRef.current = true;
+    setIsSyncing(true);
+
+    try {
+      // Save current cart state to Supabase (which includes all queued operations)
+      const success = await saveToSupabase(userId, cart.items);
+      
+      if (success) {
+        clearQueue();
+        toast.success("Panier synchronisé", {
+          description: `${offlineQueue.length} opération(s) synchronisée(s)`
+        });
+      }
+    } catch (error) {
+      console.error("Error processing offline queue:", error);
+    } finally {
+      syncInProgressRef.current = false;
+      setIsSyncing(false);
+    }
+  }, [offlineQueue, cart.items, saveToSupabase, clearQueue]);
+
+  // Sync when coming back online
+  useEffect(() => {
+    if (isOnline && isAuthenticated && offlineQueue.length > 0) {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          processOfflineQueue(user.id);
+        }
+      });
+    }
+  }, [isOnline, isAuthenticated, offlineQueue.length, processOfflineQueue]);
+
+  // Manual sync function
+  const syncNow = useCallback(async () => {
+    if (!isOnline) {
+      toast.error("Synchronisation impossible", {
+        description: "Vous êtes actuellement hors-ligne"
+      });
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setIsSyncing(true);
+      try {
+        await saveToSupabase(user.id, cart.items);
+        clearQueue();
+        toast.success("Panier synchronisé");
+      } finally {
+        setIsSyncing(false);
+      }
+    }
+  }, [isOnline, cart.items, saveToSupabase, clearQueue]);
 
   // Merge local cart with Supabase cart on login
   const mergeCartsOnLogin = useCallback(async (userId: string) => {
@@ -267,7 +420,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         });
         
         // Save merged cart to Supabase
-        await saveToSupabase(userId, mergedItems);
+        if (isOnline) {
+          await saveToSupabase(userId, mergedItems);
+        }
         
         // Clear localStorage after successful merge
         localStorage.removeItem("cart");
@@ -281,7 +436,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsSyncing(false);
     }
-  }, [loadLocalCart, loadSupabaseCart, saveToSupabase]);
+  }, [loadLocalCart, loadSupabaseCart, saveToSupabase, isOnline]);
 
   // Initial load
   useEffect(() => {
@@ -336,7 +491,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        await saveToSupabase(user.id, cart.items);
+        if (isOnline) {
+          await saveToSupabase(user.id, cart.items);
+        } else {
+          // Save locally when offline
+          localStorage.setItem("cart", JSON.stringify({ items: cart.items }));
+        }
       } else {
         localStorage.setItem("cart", JSON.stringify({ items: cart.items }));
       }
@@ -347,7 +507,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [cart.items, saveToSupabase]);
+  }, [cart.items, saveToSupabase, isOnline]);
 
   // Handle auth state changes
   useEffect(() => {
@@ -362,21 +522,42 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setIsAuthenticated(false);
         dispatch({ type: "CLEAR_CART" });
         localStorage.removeItem("cart");
+        clearQueue();
         isInitialized.current = false;
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [mergeCartsOnLogin]);
+  }, [mergeCartsOnLogin, clearQueue]);
 
-  // Helper functions
-  const clearCart = useCallback(() => dispatch({ type: "CLEAR_CART" }), []);
-  const addItem = useCallback((product: any, quantity: number) => 
-    dispatch({ type: "ADD_ITEM", payload: product, quantity }), []);
-  const removeItem = useCallback((itemId: number) => 
-    dispatch({ type: "REMOVE_ITEM", payload: itemId }), []);
-  const updateItemQuantity = useCallback((id: number, quantity: number) => 
-    dispatch({ type: "UPDATE_ITEM_QUANTITY", payload: { id, quantity } }), []);
+  // Helper functions with offline queue support
+  const clearCart = useCallback(() => {
+    dispatch({ type: "CLEAR_CART" });
+    if (!isOnline && isAuthenticated) {
+      addToQueue({ type: "CLEAR" });
+    }
+  }, [isOnline, isAuthenticated, addToQueue]);
+
+  const addItem = useCallback((product: any, quantity: number) => {
+    dispatch({ type: "ADD_ITEM", payload: product, quantity });
+    if (!isOnline && isAuthenticated) {
+      addToQueue({ type: "ADD", productId: product.id, quantity });
+    }
+  }, [isOnline, isAuthenticated, addToQueue]);
+
+  const removeItem = useCallback((itemId: number) => {
+    dispatch({ type: "REMOVE_ITEM", payload: itemId });
+    if (!isOnline && isAuthenticated) {
+      addToQueue({ type: "REMOVE", productId: itemId });
+    }
+  }, [isOnline, isAuthenticated, addToQueue]);
+
+  const updateItemQuantity = useCallback((id: number, quantity: number) => {
+    dispatch({ type: "UPDATE_ITEM_QUANTITY", payload: { id, quantity } });
+    if (!isOnline && isAuthenticated) {
+      addToQueue({ type: "UPDATE", productId: id, quantity });
+    }
+  }, [isOnline, isAuthenticated, addToQueue]);
 
   return (
     <CartContext.Provider value={{ 
@@ -389,7 +570,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removeItem,
       updateItemQuantity,
       isSyncing,
-      isAuthenticated
+      isAuthenticated,
+      isOnline,
+      pendingOperations: offlineQueue.length,
+      syncNow
     }}>
       {children}
     </CartContext.Provider>
