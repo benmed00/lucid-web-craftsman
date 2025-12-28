@@ -47,6 +47,7 @@ const Products = () => {
     availableOptions,
     searchHistory,
     isLoading: filterLoading,
+    isSearchStale,
     updateFilters,
     resetFilters,
     clearFilter,
@@ -357,7 +358,19 @@ const Products = () => {
             </div>
           ) : (
             <div className="space-y-8">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
+              {/* Stale search indicator */}
+              {isSearchStale && (
+                <div className="flex items-center justify-center gap-2 text-muted-foreground py-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm">Recherche en cours...</span>
+                </div>
+              )}
+              
+              <div 
+                className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6 transition-opacity duration-200 ${
+                  isSearchStale ? 'opacity-50 pointer-events-none' : 'opacity-100'
+                }`}
+              >
                 {(isMobile ? visibleProducts : filteredProducts).map((product, index) => (
                   <div 
                     key={product.id}
