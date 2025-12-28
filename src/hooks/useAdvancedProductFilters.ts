@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useDeferredValue, useTransition } from 
 import { useSearchParams } from 'react-router-dom';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { supabase } from '@/integrations/supabase/client';
+import { useCachedProductSearch } from './useCachedProductSearch';
 
 export interface AdvancedFilterOptions {
   searchQuery: string;
@@ -61,12 +62,32 @@ export const useAdvancedProductFilters = ({
   
   // Use deferred value for search query to avoid blocking UI during typing
   const deferredSearchQuery = useDeferredValue(filters.searchQuery);
+  
+  // Create deferred filters for cached search
+  const deferredFilters = useMemo(() => ({
+    ...filters,
+    searchQuery: deferredSearchQuery
+  }), [filters, deferredSearchQuery]);
+
+  // Use cached product search with React Query
+  const {
+    filteredProducts,
+    isLoading: isCacheLoading,
+    isFetching,
+    isStale,
+    prefetchRelatedSearch,
+    getCacheStats
+  } = useCachedProductSearch({
+    products,
+    filters: deferredFilters,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    cacheTime: 10 * 60 * 1000 // 10 minutes before garbage collection
+  });
 
   // Extract available filter options from products
   const availableOptions = useMemo(() => {
     const categories = [...new Set(products.map(p => p.category))];
     const artisans = [...new Set(products.map(p => p.artisan).filter(Boolean))];
-    // Note: materials and colors are not available in the current Product interface
     const materials: string[] = [];
     const colors: string[] = [];
     
@@ -83,116 +104,6 @@ export const useAdvancedProductFilters = ({
       priceRange
     };
   }, [products]);
-
-  // Advanced search with fuzzy matching and scoring - uses deferred value
-  const searchProducts = useMemo(() => {
-    if (!deferredSearchQuery.trim()) return products;
-
-    const searchTerms = deferredSearchQuery.toLowerCase().split(' ').filter(Boolean);
-    
-    return products
-      .map(product => {
-        let score = 0;
-        const searchableText = [
-          product.name,
-          product.description,
-          product.details,
-          product.category,
-          product.artisan
-        ].filter(Boolean).join(' ').toLowerCase();
-
-        // Exact phrase match (highest score)
-        if (searchableText.includes(deferredSearchQuery.toLowerCase())) {
-          score += 100;
-        }
-
-        // Individual term matches
-        searchTerms.forEach(term => {
-          if (searchableText.includes(term)) {
-            score += 10;
-          }
-          // Partial matches for typo tolerance
-          const words = searchableText.split(' ');
-          words.forEach(word => {
-            if (word.includes(term) || term.includes(word)) {
-              score += 5;
-            }
-          });
-        });
-
-        // Boost for title matches
-        if (product.name.toLowerCase().includes(deferredSearchQuery.toLowerCase())) {
-          score += 50;
-        }
-
-        return { product, score };
-      })
-      .filter(({ score }) => score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map(({ product }) => product);
-  }, [products, deferredSearchQuery]);
-
-  // Apply all filters
-  const filteredProducts = useMemo(() => {
-    let filtered = searchProducts;
-
-    // Category filter
-    if (filters.category.length > 0) {
-      filtered = filtered.filter(p => filters.category.includes(p.category));
-    }
-
-    // Price range filter
-    filtered = filtered.filter(p => 
-      p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]
-    );
-
-    // New products filter
-    if (filters.isNew) {
-      filtered = filtered.filter(p => p.new || p.is_new);
-    }
-
-    // Stock filter (simplified - assuming all products are in stock for now)
-    if (filters.inStock) {
-      // Note: stock_quantity not available in current Product interface
-      // For now, we'll assume all products are in stock unless we add stock data
-      filtered = filtered; // No filtering for stock
-    }
-
-    // Artisan filter
-    if (filters.artisan.length > 0) {
-      filtered = filtered.filter(p => p.artisan && filters.artisan.includes(p.artisan));
-    }
-
-    // Material filter (not available in current interface)
-    // Skip material filtering for now
-    
-    // Color filter (not available in current interface)  
-    // Skip color filtering for now
-
-    // Rating filter (not available in current interface)
-    // Skip rating filtering for now
-
-    // Apply sorting
-    return filtered.sort((a, b) => {
-      switch (filters.sortBy) {
-        case 'price-asc':
-          return a.price - b.price;
-        case 'price-desc':
-          return b.price - a.price;
-        case 'newest':
-          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-        case 'popularity':
-          // Simplified popularity based on name (since rating_count not available)
-          return b.name.length - a.name.length;
-        case 'rating':
-          // No rating data available, fallback to alphabetical
-          return a.name.localeCompare(b.name);
-        case 'name':
-        default:
-          return a.name.localeCompare(b.name);
-      }
-    });
-  }, [searchProducts, filters]);
 
   // Update URL parameters
   const updateUrlParams = useCallback((newFilters: AdvancedFilterOptions) => {
@@ -261,6 +172,11 @@ export const useAdvancedProductFilters = ({
         updateUrlParams(updatedFilters);
       });
 
+      // Prefetch related searches for better UX
+      if (newFilters.searchQuery && newFilters.searchQuery.length > 2) {
+        prefetchRelatedSearch(newFilters.searchQuery);
+      }
+
       // Track analytics (non-blocking)
       trackFilterUsage({
         searchQuery: updatedFilters.searchQuery,
@@ -269,7 +185,7 @@ export const useAdvancedProductFilters = ({
         timestamp: Date.now()
       });
     },
-    [filters, updateUrlParams, trackFilterUsage]
+    [filters, updateUrlParams, trackFilterUsage, prefetchRelatedSearch]
   );
 
   // Reset all filters
@@ -373,13 +289,15 @@ export const useAdvancedProductFilters = ({
     availableOptions,
     searchHistory,
     popularFilters,
-    isLoading: isPending, // Show loading during transitions
-    isSearchStale: deferredSearchQuery !== filters.searchQuery, // Indicates search is pending
+    isLoading: isPending || isCacheLoading,
+    isFetching,
+    isSearchStale: deferredSearchQuery !== filters.searchQuery || isStale,
     activeFiltersCount,
     updateFilters,
     resetFilters,
     clearFilter,
     getSearchSuggestions,
+    getCacheStats,
     totalProducts: products.length,
     filteredCount: filteredProducts.length,
   };
