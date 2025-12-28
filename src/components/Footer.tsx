@@ -30,7 +30,7 @@ const Footer = () => {
               <li>
                 <a 
                   href="/products" 
-                  className="text-stone-300 hover:text-olive-400 transition-colors text-sm sm:text-base block py-1 touch-manipulation"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label="Tous les produits - Voir tous nos produits artisanaux"
                 >
                   Tous les produits
@@ -39,7 +39,7 @@ const Footer = () => {
               <li>
                 <a 
                   href="/products?category=Sacs" 
-                  className="text-stone-300 hover:text-olive-400 transition-colors text-sm sm:text-base block py-1 touch-manipulation"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label="Découvrir notre collection de sacs"
                 >
                   Sacs
@@ -48,7 +48,7 @@ const Footer = () => {
               <li>
                 <a 
                   href="/products?category=Chapeaux" 
-                  className="text-stone-300 hover:text-olive-400 transition-colors text-sm sm:text-base block py-1 touch-manipulation"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label="Découvrir notre collection de chapeaux"
                 >
                   Chapeaux
@@ -65,7 +65,7 @@ const Footer = () => {
               <li>
                 <a 
                   href="/about" 
-                  className="text-stone-300 hover:text-olive-400 transition-colors text-sm sm:text-base block py-1 touch-manipulation"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label="En savoir plus sur notre histoire et nos valeurs"
                 >
                   Notre histoire
@@ -74,7 +74,7 @@ const Footer = () => {
               <li>
                 <a 
                   href="/blog" 
-                  className="text-stone-300 hover:text-olive-400 transition-colors text-sm sm:text-base block py-1 touch-manipulation"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label="Lire nos articles de blog sur l'artisanat"
                 >
                   Blog
@@ -91,7 +91,7 @@ const Footer = () => {
               <li>
                 <a 
                   href="/contact" 
-                  className="text-stone-300 hover:text-olive-400 transition-colors text-sm sm:text-base block py-1 touch-manipulation"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label="Nous contacter pour toute question"
                 >
                   Contact
@@ -100,7 +100,7 @@ const Footer = () => {
               <li>
                 <a 
                   href="/shipping" 
-                  className="text-stone-300 hover:text-olive-400 transition-colors text-sm sm:text-base block py-1 touch-manipulation"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label="Informations sur la livraison"
                 >
                   Livraison
@@ -109,7 +109,7 @@ const Footer = () => {
               <li>
                 <a 
                   href="/faq" 
-                  className="text-stone-300 hover:text-olive-400 transition-colors text-sm sm:text-base block py-1 touch-manipulation"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label="FAQ - Questions fréquemment posées"
                 >
                   FAQ
@@ -118,7 +118,7 @@ const Footer = () => {
               <li>
                 <a 
                   href="/cgv" 
-                  className="text-stone-300 hover:text-olive-400 transition-colors text-sm sm:text-base block py-1 touch-manipulation"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label="CGV - Lire nos conditions générales de vente"
                 >
                   CGV
@@ -128,8 +128,8 @@ const Footer = () => {
           </div>
         </div>
         
-        <div className="border-t border-stone-600 mt-8 sm:mt-12 pt-4 sm:pt-6 text-center sm:text-left sm:flex sm:justify-between sm:items-center">
-          <p className="text-stone-300 text-sm sm:text-base">© 2024 Rif Raw Straw. Tous droits réservés.</p>
+        <div className="border-t border-border mt-8 sm:mt-12 pt-4 sm:pt-6 text-center sm:text-left sm:flex sm:justify-between sm:items-center">
+          <p className="text-muted-foreground text-sm sm:text-base">© 2024 Rif Raw Straw. Tous droits réservés.</p>
           <div className="mt-3 sm:mt-0">
             <ErrorReportButton />
           </div>
