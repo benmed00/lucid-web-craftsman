@@ -147,17 +147,17 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 to-olive-50">
+    <div className="min-h-screen bg-background">
       
       <main className="pt-4 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-800 mb-3">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
               Mon Profil
             </h1>
-            <p className="text-sm sm:text-base text-stone-600 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
               Gérez vos informations personnelles, préférences et historique
             </p>
           </div>
@@ -202,33 +202,33 @@ export default function Profile() {
             {/* Left Column - Profile Overview */}
             <div className="space-y-6">
               {/* Profile Card with Tab-like navigation */}
-              <Card className="shadow-lg border-0 bg-white">
+              <Card className="shadow-lg border-0 bg-card">
                 {/* Tab Navigation */}
-                <div className="grid grid-cols-2 border-b border-stone-100">
-                  <div className="flex items-center justify-center gap-2 p-4 bg-olive-50 border-r border-stone-100">
-                    <User className="h-4 w-4 text-olive-700" />
-                    <span className="text-sm font-medium text-olive-700">Profil</span>
+                <div className="grid grid-cols-2 border-b border-border">
+                  <div className="flex items-center justify-center gap-2 p-4 bg-primary/10 border-r border-border">
+                    <User className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium text-primary">Profil</span>
                   </div>
-                  <div className="flex items-center justify-center gap-2 p-4 bg-stone-50">
-                    <Mail className="h-4 w-4 text-stone-500" />
-                    <span className="text-sm font-medium text-stone-500">Infos</span>
+                  <div className="flex items-center justify-center gap-2 p-4 bg-muted">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground">Infos</span>
                   </div>
                 </div>
 
                 {/* Additional Tab Row */}
-                <div className="grid grid-cols-2 border-b border-stone-100">
-                  <div className="flex items-center justify-center gap-2 p-3 bg-stone-50 border-r border-stone-100">
-                    <Calendar className="h-4 w-4 text-stone-500" />
-                    <span className="text-sm font-medium text-stone-500">Points</span>
+                <div className="grid grid-cols-2 border-b border-border">
+                  <div className="flex items-center justify-center gap-2 p-3 bg-muted border-r border-border">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground">Points</span>
                   </div>
-                  <div className="flex items-center justify-center gap-2 p-3 bg-stone-50">
-                    <User className="h-4 w-4 text-stone-500" />
-                    <span className="text-sm font-medium text-stone-500">Préfs</span>
+                  <div className="flex items-center justify-center gap-2 p-3 bg-muted">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground">Préfs</span>
                   </div>
                 </div>
 
                 <CardHeader className="text-center pb-4">
-                  <CardTitle className="text-lg font-semibold text-stone-800 mb-2">
+                  <CardTitle className="text-lg font-semibold text-foreground mb-2">
                     Vue d'ensemble du profil
                   </CardTitle>
                 </CardHeader>
@@ -240,33 +240,33 @@ export default function Profile() {
                       <img 
                         src={avatarUrl} 
                         alt="Photo de profil" 
-                        className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-stone-200 shadow-lg"
+                        className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-border shadow-lg"
                       />
                     ) : (
-                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-olive-100 flex items-center justify-center border-4 border-stone-200 shadow-lg">
-                        <User className="h-10 w-10 sm:h-12 sm:w-12 text-olive-700" />
+                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-primary/10 flex items-center justify-center border-4 border-border shadow-lg">
+                        <User className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
                       </div>
                     )}
                   </div>
                   
                   {/* User Info - Centered */}
                   <div className="space-y-3">
-                    <h3 className="text-xl sm:text-2xl font-bold text-stone-800">
+                    <h3 className="text-xl sm:text-2xl font-bold text-foreground">
                       {fullName || 'Benyakoub Mohammed'}
                     </h3>
-                    <p className="text-sm sm:text-base text-stone-600 break-all">
+                    <p className="text-sm sm:text-base text-muted-foreground break-all">
                       {user.email}
                     </p>
                     
                     {/* Status and Member Info */}
                     <div className="space-y-3">
                       <div className="flex justify-center">
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs ${user.email_confirmed_at ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs ${user.email_confirmed_at ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'}`}>
                           {user.email_confirmed_at ? '✓ Vérifié' : '⚠️ Non vérifié'}
                         </span>
                       </div>
                       
-                      <div className="flex items-center justify-center gap-2 text-sm text-stone-600">
+                      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>
                           Membre depuis {new Date(user.created_at).toLocaleDateString('fr-FR', {
@@ -281,7 +281,7 @@ export default function Profile() {
                     <div className="pt-4">
                       <Button 
                         variant="default"
-                        className="bg-olive-700 hover:bg-olive-800 text-white px-6 py-2 rounded-xl font-medium"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-xl font-medium"
                       >
                         Modifier le profil
                       </Button>
@@ -293,13 +293,13 @@ export default function Profile() {
 
             {/* Right Column - Edit Profile */}
             <div className="space-y-6">
-              <Card className="shadow-lg border-0 bg-white">
+              <Card className="shadow-lg border-0 bg-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                     <User className="h-5 w-5" />
                     Modifier le profil
                   </CardTitle>
-                  <CardDescription className="text-stone-600">
+                  <CardDescription className="text-muted-foreground">
                     Mettez à jour vos informations personnelles
                   </CardDescription>
                 </CardHeader>
@@ -309,7 +309,7 @@ export default function Profile() {
 
                     {/* Avatar Upload */}
                     <div className="space-y-3">
-                      <Label className="text-sm font-medium text-stone-700">Photo de profil</Label>
+                      <Label className="text-sm font-medium text-foreground">Photo de profil</Label>
                       <ImageUpload
                         currentImage={avatarUrl || undefined}
                         onImageUpload={async (file) => { await onAvatarImageUpload(file); }}
@@ -323,7 +323,7 @@ export default function Profile() {
                     {/* Form Fields */}
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="fullName" className="text-sm font-medium text-stone-700">
+                        <Label htmlFor="fullName" className="text-sm font-medium text-foreground">
                           Nom complet
                         </Label>
                         <Input
@@ -333,12 +333,12 @@ export default function Profile() {
                           onChange={(e) => setFullName(e.target.value)}
                           placeholder="Votre nom complet"
                           maxLength={100}
-                          className="text-sm min-h-[48px] border-stone-200 rounded-lg"
+                          className="text-sm min-h-[48px] border-border rounded-lg"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-medium text-stone-700">
+                        <Label htmlFor="email" className="text-sm font-medium text-foreground">
                           Email
                         </Label>
                         <Input
@@ -346,9 +346,9 @@ export default function Profile() {
                           type="email"
                           value={user.email || ''}
                           disabled
-                          className="bg-stone-100 text-sm min-h-[48px] border-stone-200 rounded-lg"
+                          className="bg-muted text-sm min-h-[48px] border-border rounded-lg"
                         />
-                        <p className="text-xs text-stone-500">
+                        <p className="text-xs text-muted-foreground">
                           L'email ne peut pas être modifié
                         </p>
                       </div>
@@ -356,7 +356,7 @@ export default function Profile() {
 
                     {/* Bio */}
                     <div className="space-y-2">
-                      <Label htmlFor="bio" className="text-sm font-medium text-stone-700">
+                      <Label htmlFor="bio" className="text-sm font-medium text-foreground">
                         Bio
                       </Label>
                       <Textarea
@@ -366,9 +366,9 @@ export default function Profile() {
                         rows={4}
                         maxLength={500}
                         placeholder="Décrivez-vous en quelques mots..."
-                        className="text-sm resize-none border-stone-200 rounded-lg"
+                        className="text-sm resize-none border-border rounded-lg"
                       />
-                      <p className="text-xs text-stone-500 text-right">
+                      <p className="text-xs text-muted-foreground text-right">
                         {bio.length}/500 caractères
                       </p>
                     </div>
@@ -377,7 +377,7 @@ export default function Profile() {
                     <Button 
                       type="submit" 
                       disabled={isUpdating} 
-                      className="w-full bg-olive-700 hover:bg-olive-800 text-white min-h-[48px] text-sm font-medium rounded-lg"
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground min-h-[48px] text-sm font-medium rounded-lg"
                     >
                       {isUpdating ? "Mise à jour..." : "Sauvegarder les modifications"}
                     </Button>
@@ -389,19 +389,19 @@ export default function Profile() {
 
           {/* Contact Section - Full Width */}
           <div className="mt-8">
-            <Card className="shadow-lg border-0 bg-white">
+            <Card className="shadow-lg border-0 bg-card">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-stone-800">
+                <CardTitle className="text-lg font-semibold text-foreground">
                   Contact
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2 text-sm text-stone-600">
+                <div className="space-y-2 text-sm text-muted-foreground">
                   <p>
-                    <span className="font-medium">Email:</span> contact@rifstraw.com
+                    <span className="font-medium text-foreground">Email:</span> contact@rifstraw.com
                   </p>
                   <p>
-                    <span className="font-medium">Téléphone:</span> +33 1 23 45 67 89
+                    <span className="font-medium text-foreground">Téléphone:</span> +33 1 23 45 67 89
                   </p>
                 </div>
               </CardContent>
