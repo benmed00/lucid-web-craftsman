@@ -74,6 +74,11 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
       if (data) {
         setWishlistItems(prev => [data, ...prev]);
       }
+
+      // Haptic feedback on mobile
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
       
       toast.success('Produit ajouté aux favoris', {
         action: {
