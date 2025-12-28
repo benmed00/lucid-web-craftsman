@@ -12,7 +12,9 @@ import {
   Clock,
   ChevronDown,
   Sparkles,
-  Target
+  Target,
+  Trash2,
+  Database
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +29,11 @@ import { Separator } from '@/components/ui/separator';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { AdvancedFilterOptions } from '@/hooks/useAdvancedProductFilters';
+
+interface CacheStats {
+  cachedQueries: number;
+  totalCacheSize: number;
+}
 
 interface AdvancedProductFiltersProps {
   filters: AdvancedFilterOptions;
@@ -46,6 +53,8 @@ interface AdvancedProductFiltersProps {
   onResetFilters: () => void;
   onClearFilter: (filterType: keyof AdvancedFilterOptions) => void;
   getSearchSuggestions: (query: string) => string[];
+  onClearCache?: () => void;
+  cacheStats?: CacheStats;
 }
 
 export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
@@ -59,7 +68,9 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
   onFiltersChange,
   onResetFilters,
   onClearFilter,
-  getSearchSuggestions
+  getSearchSuggestions,
+  onClearCache,
+  cacheStats
 }) => {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -244,6 +255,23 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
             className="text-muted-foreground hover:text-foreground"
           >
             Effacer tous les filtres
+          </Button>
+        )}
+        
+        {/* Cache Clear Button */}
+        {onClearCache && cacheStats && cacheStats.cachedQueries > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClearCache}
+            className="text-muted-foreground hover:text-foreground flex items-center gap-1"
+            title={`${cacheStats.cachedQueries} requêtes en cache`}
+          >
+            <Database className="h-3 w-3" />
+            <span className="hidden sm:inline">Vider cache</span>
+            <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full">
+              {cacheStats.cachedQueries}
+            </span>
           </Button>
         )}
       </div>

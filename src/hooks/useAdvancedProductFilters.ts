@@ -76,7 +76,8 @@ export const useAdvancedProductFilters = ({
     isFetching,
     isStale,
     prefetchRelatedSearch,
-    getCacheStats
+    getCacheStats,
+    invalidateCache
   } = useCachedProductSearch({
     products,
     filters: deferredFilters,
@@ -298,6 +299,7 @@ export const useAdvancedProductFilters = ({
     clearFilter,
     getSearchSuggestions,
     getCacheStats,
+    invalidateCache,
     totalProducts: products.length,
     filteredCount: filteredProducts.length,
   };

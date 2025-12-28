@@ -40,7 +40,7 @@ const Products = () => {
   const { dispatch } = useCart();
   const isMobile = useIsMobile();
 
-  // Enhanced filters hook with analytics
+  // Enhanced filters hook with analytics and cache
   const {
     filters,
     filteredProducts,
@@ -54,12 +54,22 @@ const Products = () => {
     getSearchSuggestions,
     activeFiltersCount,
     totalProducts: totalProductsCount,
-    filteredCount
+    filteredCount,
+    getCacheStats,
+    invalidateCache
   } = useAdvancedProductFilters({ 
     products,
     enableAnalytics: true,
     debounceMs: 300
   });
+
+  // Get cache statistics
+  const cacheStats = getCacheStats?.();
+
+  const handleClearCache = () => {
+    invalidateCache?.();
+    toast.success("Cache de recherche vidé");
+  };
 
   // Infinite scroll for mobile with better performance  
   const {
@@ -264,6 +274,8 @@ const Products = () => {
           onResetFilters={resetFilters}
           onClearFilter={clearFilter}
           getSearchSuggestions={getSearchSuggestions}
+          onClearCache={handleClearCache}
+          cacheStats={cacheStats}
         />
 
         {/* Analytics Toggle for Power Users */}
@@ -284,7 +296,7 @@ const Products = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ProductAnalytics />
+                  <ProductAnalytics cacheStats={cacheStats} />
                 </CardContent>
               </Card>
             </CollapsibleContent>

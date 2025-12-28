@@ -11,10 +11,16 @@ import {
   Users,
   Target,
   Clock,
-  Star
+  Star,
+  Database
 } from 'lucide-react';
 import { useOptimizedData } from '@/hooks/useOptimizedData';
 import { supabase } from '@/integrations/supabase/client';
+
+interface CacheStats {
+  cachedQueries: number;
+  totalCacheSize: number;
+}
 
 interface SearchAnalytics {
   totalSearches: number;
@@ -25,13 +31,17 @@ interface SearchAnalytics {
   peakSearchHours: Array<{ hour: number; count: number }>;
 }
 
+interface ProductAnalyticsProps {
+  cacheStats?: CacheStats;
+}
+
 interface ProductPerformance {
   mostViewed: Array<{ id: number; name: string; views: number }>;
   bestConverting: Array<{ id: number; name: string; conversion: number }>;
   trending: Array<{ id: number; name: string; trend: number }>;
 }
 
-export const ProductAnalytics: React.FC = () => {
+export const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ cacheStats }) => {
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('7d');
 
   // Fetch search analytics
@@ -202,7 +212,23 @@ export const ProductAnalytics: React.FC = () => {
       </div>
 
       {/* Analytics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Cache Stats Card */}
+        {cacheStats && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Cache actif</CardTitle>
+              <Database className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">{cacheStats.cachedQueries}</div>
+              <p className="text-xs text-muted-foreground">
+                requêtes en cache ({cacheStats.totalCacheSize} produits)
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Total Searches */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -245,6 +271,10 @@ export const ProductAnalytics: React.FC = () => {
             </p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Second Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
         {/* Popular Search Terms */}
         <Card className="md:col-span-2">
