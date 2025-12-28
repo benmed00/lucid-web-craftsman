@@ -147,13 +147,13 @@ const Products = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         
         {/* Hero Banner Skeleton */}
-        <div className="bg-gradient-to-r from-olive-50 to-stone-50 py-8 md:py-12 lg:py-16">
+        <div className="bg-gradient-to-r from-secondary to-muted py-8 md:py-12 lg:py-16">
           <div className="container mx-auto px-4 text-center animate-pulse">
-            <div className="h-8 md:h-10 lg:h-12 bg-stone-200 rounded w-80 mx-auto mb-3 md:mb-4"></div>
-            <div className="h-5 md:h-6 bg-stone-200 rounded w-96 mx-auto max-w-2xl"></div>
+            <div className="h-8 md:h-10 lg:h-12 bg-muted-foreground/20 rounded w-80 mx-auto mb-3 md:mb-4"></div>
+            <div className="h-5 md:h-6 bg-muted-foreground/20 rounded w-96 mx-auto max-w-2xl"></div>
           </div>
         </div>
 
@@ -161,22 +161,22 @@ const Products = () => {
           {/* Mobile Features Skeleton */}
           {isMobile && (
             <div className="space-y-6 mb-6 animate-pulse">
-              <div className="h-12 bg-stone-200 rounded-xl"></div>
-              <div className="h-20 bg-stone-200 rounded-xl"></div>
+              <div className="h-12 bg-muted rounded-xl"></div>
+              <div className="h-20 bg-muted rounded-xl"></div>
             </div>
           )}
 
           {/* Advanced Filters Skeleton */}
           <div className="mb-8 space-y-4 animate-pulse">
             <div className="flex gap-4">
-              <div className="h-12 bg-stone-200 rounded flex-1"></div>
-              <div className="h-12 bg-stone-200 rounded w-48"></div>
-              <div className="h-12 bg-stone-200 rounded w-32"></div>
+              <div className="h-12 bg-muted rounded flex-1"></div>
+              <div className="h-12 bg-muted rounded w-48"></div>
+              <div className="h-12 bg-muted rounded w-32"></div>
             </div>
             <div className="flex gap-2">
-              <div className="h-6 bg-stone-200 rounded w-20"></div>
-              <div className="h-6 bg-stone-200 rounded w-24"></div>
-              <div className="h-6 bg-stone-200 rounded w-28"></div>
+              <div className="h-6 bg-muted rounded w-20"></div>
+              <div className="h-6 bg-muted rounded w-24"></div>
+              <div className="h-6 bg-muted rounded w-28"></div>
             </div>
           </div>
 
@@ -191,13 +191,13 @@ const Products = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
-            <h1 className="text-2xl font-serif text-stone-800 mb-4">
+            <h1 className="text-2xl font-serif text-foreground mb-4">
               Erreur de chargement
             </h1>
-            <p className="text-stone-600 mb-8">{error}</p>
+            <p className="text-muted-foreground mb-8">{error}</p>
             <Button onClick={() => window.location.reload()}>
               Réessayer
             </Button>
@@ -209,7 +209,7 @@ const Products = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <SEOHelmet
         title="Nos Créations Artisanales - Sacs et Chapeaux Berbères | Rif Raw Straw"
         description="Découvrez notre collection unique d'accessoires berbères, confectionnés à la main par des artisans passionnés des montagnes du Rif."
@@ -220,12 +220,12 @@ const Products = () => {
       
 
       {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-olive-50 to-stone-50 py-8 md:py-12 lg:py-16">
+      <div className="bg-gradient-to-r from-secondary to-muted py-8 md:py-12 lg:py-16">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl text-stone-800 mb-3 md:mb-4 leading-tight">
+          <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground mb-3 md:mb-4 leading-tight">
             Nos Créations Artisanales
           </h1>
-          <p className="text-base md:text-lg text-stone-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Découvrez notre collection unique d'accessoires berbères, 
             confectionnés à la main par des artisans passionnés.
           </p>
@@ -341,10 +341,10 @@ const Products = () => {
             <div className="text-center py-16">
               <div className="mb-8">
                 <div className="text-6xl mb-4">🔍</div>
-                <h2 className="font-serif text-2xl text-stone-800 mb-4">
+                <h2 className="font-serif text-2xl text-foreground mb-4">
                   Aucun produit trouvé
                 </h2>
-                <p className="text-stone-600 mb-6">
+                <p className="text-muted-foreground mb-6">
                   {filters.searchQuery 
                     ? `Aucun produit ne correspond à "${filters.searchQuery}". Essayez avec d'autres mots-clés.`
                     : "Aucun produit ne correspond à vos critères. Essayez de modifier vos filtres."
@@ -376,11 +376,11 @@ const Products = () => {
                 ))}
               </div>
 
-              {/* Infinite Scroll Sentinel and Loading */}
+                {/* Infinite Scroll Sentinel and Loading */}
               {isMobile && hasMore && (
                 <div ref={sentinelRef} className="flex justify-center py-8">
                   {isLoadingMore && (
-                    <div className="flex items-center space-x-2 text-stone-600">
+                    <div className="flex items-center space-x-2 text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <span className="text-sm">Chargement...</span>
                     </div>
@@ -393,14 +393,14 @@ const Products = () => {
 
         {/* CTA Section */}
         {filteredProducts.length > 0 && (
-          <div className="text-center py-16 border-t border-stone-200">
-            <h2 className="font-serif text-2xl text-stone-800 mb-4">
+          <div className="text-center py-16 border-t border-border">
+            <h2 className="font-serif text-2xl text-foreground mb-4">
               Vous ne trouvez pas ce que vous cherchez ?
             </h2>
-            <p className="text-stone-600 mb-6">
+            <p className="text-muted-foreground mb-6">
               Contactez-nous pour une création personnalisée selon vos goûts.
             </p>
-            <Button asChild className="bg-olive-700 hover:bg-olive-800">
+            <Button asChild className="bg-primary hover:bg-primary/90">
               <Link to="/contact" className="inline-flex items-center">
                 Nous contacter
                 <ArrowRight className="ml-2 h-4 w-4" />

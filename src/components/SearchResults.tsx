@@ -15,33 +15,33 @@ export const SearchResultsHeader = ({
 
   return (
     <div 
-      className="mb-6 p-4 bg-stone-50 rounded-lg border"
+      className="mb-6 p-4 bg-secondary rounded-lg border border-border"
       role="region"
       aria-label="Résultats de recherche"
     >
       <div className="flex items-center gap-2 mb-2">
-        <Search size={18} className="text-olive-700" aria-hidden="true" />
-        <h2 className="text-lg font-medium text-stone-800">
+        <Search size={18} className="text-primary" aria-hidden="true" />
+        <h2 className="text-lg font-medium text-foreground">
           Résultats de recherche
         </h2>
       </div>
       
-      <p className="text-stone-600" aria-live="polite">
+      <p className="text-muted-foreground" aria-live="polite">
         {totalResults === 0 ? (
           <>
-            Aucun résultat trouvé pour <strong>"{searchQuery}"</strong>
+            Aucun résultat trouvé pour <strong className="text-foreground">"{searchQuery}"</strong>
           </>
         ) : totalResults === 1 ? (
           <>
-            1 résultat trouvé pour <strong>"{searchQuery}"</strong>
+            1 résultat trouvé pour <strong className="text-foreground">"{searchQuery}"</strong>
           </>
         ) : showingCount === totalResults ? (
           <>
-            {totalResults} résultats trouvés pour <strong>"{searchQuery}"</strong>
+            {totalResults} résultats trouvés pour <strong className="text-foreground">"{searchQuery}"</strong>
           </>
         ) : (
           <>
-            Affichage de {showingCount} sur {totalResults} résultats pour <strong>"{searchQuery}"</strong>
+            Affichage de {showingCount} sur {totalResults} résultats pour <strong className="text-foreground">"{searchQuery}"</strong>
           </>
         )}
       </p>
@@ -70,7 +70,7 @@ export const HighlightText = ({ text, query, className = '' }: HighlightTextProp
           key={index}
           className={
             part.toLowerCase() === query.toLowerCase() 
-              ? 'bg-yellow-200 px-1 rounded font-medium' 
+              ? 'bg-primary/20 text-foreground px-1 rounded font-medium' 
               : ''
           }
         >
