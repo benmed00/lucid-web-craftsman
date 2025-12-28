@@ -16,12 +16,12 @@ const CartIcon = () => {
       )}
       aria-label={`Panier (${itemCount})`}
     >
-      <ShoppingBag className="text-white" />
+      <ShoppingBag className="text-primary-foreground" />
       <span
         className={clsx(
-          "absolute top-0 right-0 bg-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold border transform translate-x-1/4 -translate-y-1/4",
+          "absolute top-0 right-0 bg-background text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold border transform translate-x-1/4 -translate-y-1/4",
           badgeTextColor,
-          itemCount > 1 ? "border-olive-700" : "border-stone-700"
+          itemCount > 1 ? "border-primary" : "border-muted-foreground"
         )}
         style={{ minWidth: 20 }}
         aria-live="polite"

@@ -25,7 +25,7 @@ const FloatingCartButton = () => {
         <div className="relative">
           <ShoppingBag className="h-6 w-6" />
           {itemCount > 0 && (
-            <div className="absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-lg">
+            <div className="absolute -top-3 -right-3 bg-destructive text-destructive-foreground text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-lg">
               {itemCount > 99 ? '99+' : itemCount}
             </div>
           )}
