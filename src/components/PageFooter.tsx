@@ -6,13 +6,13 @@ import { Link } from "react-router-dom";
 
 const PageFooter = () => {
   return (
-    <footer className="bg-olive-900 text-white py-16">
+    <footer className="bg-secondary py-16">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* About Section */}
           <div>
-            <h3 className="font-serif text-xl mb-4">Artisan</h3>
-            <p className="text-olive-100 mb-4">
+            <h3 className="font-serif text-xl mb-4 text-foreground">Artisan</h3>
+            <p className="text-muted-foreground mb-4">
               Sacs et accessoires artisanaux fabriqués à la main dans les
               montagnes du Rif au Maroc, perpétuant des traditions ancestrales
               avec des matériaux durables.
@@ -20,19 +20,19 @@ const PageFooter = () => {
             <div className="flex space-x-4">
               <a
                 href="https://instagram.com"
-                className="text-olive-200 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Instagram className="h-5 w-5" />
               </a>
               <a
                 href="https://facebook.com"
-                className="text-olive-200 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Facebook className="h-5 w-5" />
               </a>
               <a
                 href="https://twitter.com"
-                className="text-olive-200 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Twitter className="h-5 w-5" />
               </a>
@@ -41,12 +41,12 @@ const PageFooter = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-serif text-xl mb-4">Liens Rapides</h3>
+            <h3 className="font-serif text-xl mb-4 text-foreground">Liens Rapides</h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   to="/products"
-                  className="text-olive-200 hover:text-white transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Boutique
                 </Link>
@@ -54,7 +54,7 @@ const PageFooter = () => {
               <li>
                 <Link
                   to="/blog"
-                  className="text-olive-200 hover:text-white transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Blog
                 </Link>
@@ -62,7 +62,7 @@ const PageFooter = () => {
               <li>
                 <Link
                   to="/contact"
-                  className="text-olive-200 hover:text-white transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Contact
                 </Link>
@@ -70,7 +70,7 @@ const PageFooter = () => {
               <li>
                 <Link
                   to="/about"
-                  className="text-olive-200 hover:text-white transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Notre Histoire
                 </Link>
@@ -80,12 +80,12 @@ const PageFooter = () => {
 
           {/* Information */}
           <div>
-            <h3 className="font-serif text-xl mb-4">Information</h3>
+            <h3 className="font-serif text-xl mb-4 text-foreground">Information</h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   to="/shipping"
-                  className="text-olive-200 hover:text-white transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Livraison
                 </Link>
@@ -93,7 +93,7 @@ const PageFooter = () => {
               <li>
                 <Link
                   to="/returns"
-                  className="text-olive-200 hover:text-white transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Retours
                 </Link>
@@ -101,7 +101,7 @@ const PageFooter = () => {
               <li>
                 <Link
                   to="/faq"
-                  className="text-olive-200 hover:text-white transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   FAQ
                 </Link>
@@ -109,7 +109,7 @@ const PageFooter = () => {
               <li>
                 <Link
                   to="/cgv"
-                  className="text-olive-200 hover:text-white transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Conditions Générales
                 </Link>
@@ -119,8 +119,8 @@ const PageFooter = () => {
 
           {/* Newsletter */}
           <div>
-            <h3 className="font-serif text-xl mb-4">Newsletter</h3>
-            <p className="text-olive-200 mb-4">
+            <h3 className="font-serif text-xl mb-4 text-foreground">Newsletter</h3>
+            <p className="text-muted-foreground mb-4">
               Inscrivez-vous pour recevoir nos actualités et offres spéciales.
             </p>
             <form className="space-y-2">
@@ -129,17 +129,17 @@ const PageFooter = () => {
                 type="email"
                 id="newsletter-email-footer"
                 placeholder="Votre email"
-                className="bg-olive-800 border-olive-700 focus:border-olive-500 text-white placeholder:text-olive-400"
+                className="bg-background border-border focus:border-primary text-foreground placeholder:text-muted-foreground"
                 aria-label="Adresse email pour la newsletter"
               />
-              <Button type="submit" className="w-full bg-beige-400 hover:bg-beige-500 text-olive-900">
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                 S'abonner
               </Button>
             </form>
           </div>
         </div>
 
-        <div className="border-t border-olive-800 mt-10 pt-6 text-center text-olive-300 text-sm">
+        <div className="border-t border-border mt-10 pt-6 text-center text-muted-foreground text-sm">
           <p>
             &copy; {new Date().getFullYear()} Artisan. Tous droits réservés.
           </p>

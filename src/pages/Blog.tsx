@@ -46,7 +46,7 @@ const Blog = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <SEOHelmet
         title="Journal de l'Artisanat - Blog | Rif Raw Straw"
         description="Découvrez les histoires derrière nos créations, rencontrez nos artisans, et plongez dans la richesse de l'artisanat marocain."
@@ -57,16 +57,16 @@ const Blog = () => {
       
 
       {/* Page Header */}
-      <div className="bg-beige-50 py-16">
+      <div className="bg-secondary py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <Badge className="mb-2 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none">
+            <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none">
               Notre Blog
             </Badge>
-            <h1 className="font-serif text-4xl md:text-5xl text-stone-800 mb-4">
+            <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
               Journal de l'Artisanat
             </h1>
-            <p className="text-stone-600 md:text-lg">
+            <p className="text-muted-foreground md:text-lg">
               Découvrez les histoires derrière nos créations, rencontrez nos
               artisans, et plongez dans la richesse de l'artisanat marocain.
             </p>
@@ -78,7 +78,7 @@ const Blog = () => {
       {featuredPosts.length > 0 && (
         <section className="py-16">
           <div className="container mx-auto px-4">
-            <h2 className="font-serif text-3xl text-stone-800 mb-8">
+            <h2 className="font-serif text-3xl text-foreground mb-8">
               Articles à la Une
             </h2>
 
@@ -86,7 +86,7 @@ const Blog = () => {
               {featuredPosts.map((post) => (
                 <Card
                   key={post.id}
-                  className="overflow-hidden border-none shadow-md hover-scale"
+                  className="overflow-hidden border-none shadow-md hover-scale bg-card"
                 >
                   <div className="aspect-ratio aspect-w-1 aspect-h-1 md:aspect-w-16 md:aspect-h-9">
                     <BlogImage
@@ -96,7 +96,7 @@ const Blog = () => {
                     />
                   </div>
                   <CardContent className="p-6">
-                    <div className="flex items-center gap-4 text-sm text-stone-500 mb-3">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                       <div className="flex items-center">
                         <CalendarIcon className="h-4 w-4 mr-1" /> {post.date}
                       </div>
@@ -105,19 +105,19 @@ const Blog = () => {
                       </div>
                     </div>
 
-                    <Badge className="mb-2 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none">
+                    <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none">
                       {post.category}
                     </Badge>
 
-                    <h3 className="font-serif text-2xl text-stone-800 mb-3">
+                    <h3 className="font-serif text-2xl text-foreground mb-3">
                       {post.title}
                     </h3>
-                    <p className="text-stone-600 mb-6">{post.excerpt}</p>
+                    <p className="text-muted-foreground mb-6">{post.excerpt}</p>
 
                     <Link to={`/blog/${post.id}`}>
                       <Button
                         variant="outline"
-                        className="border-olive-300 hover:bg-olive-50 hover:text-olive-800"
+                        className="border-border hover:bg-muted hover:text-foreground"
                       >
                         Lire la suite
                       </Button>
@@ -131,9 +131,9 @@ const Blog = () => {
       )}
 
       {/* Latest Articles */}
-      <section className="py-16 bg-stone-50">
+      <section className="py-16 bg-secondary">
         <div className="container mx-auto px-4">
-          <h2 className="font-serif text-3xl text-stone-800 mb-8">
+          <h2 className="font-serif text-3xl text-foreground mb-8">
             Derniers Articles
           </h2>
 
@@ -141,7 +141,7 @@ const Blog = () => {
             {regularPosts.map((post) => (
               <Card
                 key={post.id}
-                className="overflow-hidden border-none shadow-sm hover-scale"
+                className="overflow-hidden border-none shadow-sm hover-scale bg-card"
               >
                 <div className="aspect-ratio aspect-w-1 aspect-h-1 md:aspect-w-4 md:aspect-h-3">
                   <BlogImage
@@ -151,25 +151,25 @@ const Blog = () => {
                   />
                 </div>
                 <CardContent className="p-6">
-                  <div className="flex items-center gap-4 text-xs text-stone-500 mb-3">
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
                     <div className="flex items-center">
                       <CalendarIcon className="h-3 w-3 mr-1" /> {post.date}
                     </div>
                   </div>
 
-                  <Badge className="mb-2 bg-olive-100 text-olive-800 hover:bg-olive-200 border-none text-xs">
+                  <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none text-xs">
                     {post.category}
                   </Badge>
 
-                  <h3 className="font-serif text-xl text-stone-800 mb-3">
+                  <h3 className="font-serif text-xl text-foreground mb-3">
                     {post.title}
                   </h3>
-                  <p className="text-stone-600 text-sm mb-6">{post.excerpt}</p>
+                  <p className="text-muted-foreground text-sm mb-6">{post.excerpt}</p>
 
                   <Link to={`/blog/${post.id}`}>
                     <Button
                       variant="link"
-                      className="p-0 h-auto text-olive-700 hover:text-olive-900"
+                      className="p-0 h-auto text-primary hover:text-primary/80"
                     >
                       Lire la suite
                     </Button>

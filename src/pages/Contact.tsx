@@ -119,7 +119,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-olive-50 to-stone-100">
+    <div className="min-h-screen bg-background">
       <SEOHelmet
         title="Nous Contacter - Rif Raw Straw"
         description="Contactez notre équipe d'experts pour toute question sur nos produits artisanaux berbères. Réponse sous 24h."
@@ -193,8 +193,8 @@ const Contact = () => {
               {/* Left Sidebar - Contact Info */}
               <div className="lg:col-span-2 space-y-8">
                 <div>
-                  <h2 className="font-serif text-3xl text-stone-800 mb-6">Nous Contacter</h2>
-                  <p className="text-stone-600 text-lg leading-relaxed">
+                  <h2 className="font-serif text-3xl text-foreground mb-6">Nous Contacter</h2>
+                  <p className="text-muted-foreground text-lg leading-relaxed">
                     Notre équipe d'experts est là pour vous accompagner dans tous vos projets 
                     d'artisanat berbère authentique.
                   </p>
@@ -202,62 +202,62 @@ const Contact = () => {
 
                 {/* Contact Information Cards */}
                 <div className="space-y-4">
-                  <Card className="border-l-4 border-l-olive-600 shadow-sm hover:shadow-md transition-shadow">
+                  <Card className="border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow bg-card">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="p-3 bg-olive-100 rounded-lg">
-                          <Mail className="h-6 w-6 text-olive-600" />
+                        <div className="p-3 bg-primary/10 rounded-lg">
+                          <Mail className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-stone-800 mb-2">Email</h3>
-                          <p className="text-stone-600">contact@rifstraw.com</p>
-                          <p className="text-sm text-stone-500">Réponse sous 24h</p>
+                          <h3 className="font-semibold text-foreground mb-2">Email</h3>
+                          <p className="text-muted-foreground">contact@rifstraw.com</p>
+                          <p className="text-sm text-muted-foreground">Réponse sous 24h</p>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-l-4 border-l-olive-600 shadow-sm hover:shadow-md transition-shadow">
+                  <Card className="border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow bg-card">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="p-3 bg-olive-100 rounded-lg">
-                          <Phone className="h-6 w-6 text-olive-600" />
+                        <div className="p-3 bg-primary/10 rounded-lg">
+                          <Phone className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-stone-800 mb-2">Téléphone</h3>
-                          <p className="text-stone-600">+33 1 23 45 67 89</p>
-                          <p className="text-sm text-stone-500">Lun-Ven 9h-18h</p>
+                          <h3 className="font-semibold text-foreground mb-2">Téléphone</h3>
+                          <p className="text-muted-foreground">+33 1 23 45 67 89</p>
+                          <p className="text-sm text-muted-foreground">Lun-Ven 9h-18h</p>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-l-4 border-l-olive-600 shadow-sm hover:shadow-md transition-shadow">
+                  <Card className="border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow bg-card">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="p-3 bg-olive-100 rounded-lg">
-                          <MapPin className="h-6 w-6 text-olive-600" />
+                        <div className="p-3 bg-primary/10 rounded-lg">
+                          <MapPin className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-stone-800 mb-2">Adresse</h3>
-                          <p className="text-stone-600">123 Rue de l'Artisan</p>
-                          <p className="text-stone-600">75001 Paris, France</p>
+                          <h3 className="font-semibold text-foreground mb-2">Adresse</h3>
+                          <p className="text-muted-foreground">123 Rue de l'Artisan</p>
+                          <p className="text-muted-foreground">75001 Paris, France</p>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-l-4 border-l-olive-600 shadow-sm hover:shadow-md transition-shadow">
+                  <Card className="border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow bg-card">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="p-3 bg-olive-100 rounded-lg">
-                          <Clock className="h-6 w-6 text-olive-600" />
+                        <div className="p-3 bg-primary/10 rounded-lg">
+                          <Clock className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-stone-800 mb-2">Horaires</h3>
-                          <p className="text-stone-600">Lundi - Vendredi: 9h - 18h</p>
-                          <p className="text-stone-600">Samedi: 10h - 16h</p>
-                          <p className="text-stone-600">Dimanche: Fermé</p>
+                          <h3 className="font-semibold text-foreground mb-2">Horaires</h3>
+                          <p className="text-muted-foreground">Lundi - Vendredi: 9h - 18h</p>
+                          <p className="text-muted-foreground">Samedi: 10h - 16h</p>
+                          <p className="text-muted-foreground">Dimanche: Fermé</p>
                         </div>
                       </div>
                     </CardContent>
@@ -265,24 +265,24 @@ const Contact = () => {
                 </div>
 
                 {/* Services Section */}
-                <div className="bg-olive-50 rounded-xl p-6">
-                  <h3 className="font-serif text-xl text-stone-800 mb-4">Nos Services</h3>
+                <div className="bg-secondary rounded-xl p-6">
+                  <h3 className="font-serif text-xl text-foreground mb-4">Nos Services</h3>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <Package className="h-5 w-5 text-olive-600" />
-                      <span className="text-stone-700">Commandes personnalisées</span>
+                      <Package className="h-5 w-5 text-primary" />
+                      <span className="text-muted-foreground">Commandes personnalisées</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <User className="h-5 w-5 text-olive-600" />
-                      <span className="text-stone-700">Conseil d'expert</span>
+                      <User className="h-5 w-5 text-primary" />
+                      <span className="text-muted-foreground">Conseil d'expert</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Building className="h-5 w-5 text-olive-600" />
-                      <span className="text-stone-700">Solutions B2B</span>
+                      <Building className="h-5 w-5 text-primary" />
+                      <span className="text-muted-foreground">Solutions B2B</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Globe className="h-5 w-5 text-olive-600" />
-                      <span className="text-stone-700">Livraison internationale</span>
+                      <Globe className="h-5 w-5 text-primary" />
+                      <span className="text-muted-foreground">Livraison internationale</span>
                     </div>
                   </div>
                 </div>
@@ -290,10 +290,10 @@ const Contact = () => {
 
               {/* Right Side - Contact Form */}
               <div className="lg:col-span-3">
-                <Card className="shadow-xl border-0 overflow-hidden">
-                  <div className="bg-gradient-to-r from-olive-600 to-olive-700 p-6">
-                    <h2 className="font-serif text-2xl text-white mb-2">Envoyez-nous un Message</h2>
-                    <p className="text-olive-100">Nous répondons généralement sous 2-4 heures</p>
+                <Card className="shadow-xl border-0 overflow-hidden bg-card">
+                  <div className="bg-gradient-to-r from-primary to-primary/80 p-6">
+                    <h2 className="font-serif text-2xl text-primary-foreground mb-2">Envoyez-nous un Message</h2>
+                    <p className="text-primary-foreground/80">Nous répondons généralement sous 2-4 heures</p>
                   </div>
                   
                   <CardContent className="p-8">
@@ -304,7 +304,7 @@ const Contact = () => {
                         <legend className="sr-only">Informations personnelles</legend>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <Label htmlFor="firstName" className="text-stone-700 font-medium">
+                            <Label htmlFor="firstName" className="text-foreground font-medium">
                               Prénom *
                             </Label>
                             <Input
@@ -316,12 +316,12 @@ const Contact = () => {
                               required
                               aria-required="true"
                               maxLength={50}
-                              className="border-stone-300 focus:border-olive-500 focus:ring-olive-500/20"
+                              className="border-border focus:border-primary focus:ring-primary/20 bg-background"
                             />
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="lastName" className="text-stone-700 font-medium">
+                            <Label htmlFor="lastName" className="text-foreground font-medium">
                               Nom *
                             </Label>
                             <Input 
@@ -333,7 +333,7 @@ const Contact = () => {
                               required
                               aria-required="true"
                               maxLength={50}
-                              className="border-stone-300 focus:border-olive-500 focus:ring-olive-500/20"
+                              className="border-border focus:border-primary focus:ring-primary/20 bg-background"
                             />
                           </div>
                         </div>
@@ -343,7 +343,7 @@ const Contact = () => {
                         <legend className="sr-only">Coordonnées</legend>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <Label htmlFor="email" className="text-stone-700 font-medium">
+                            <Label htmlFor="email" className="text-foreground font-medium">
                               Email *
                             </Label>
                             <Input
@@ -357,13 +357,13 @@ const Contact = () => {
                               aria-required="true"
                               aria-describedby="email-description"
                               maxLength={255}
-                              className="border-stone-300 focus:border-olive-500 focus:ring-olive-500/20"
+                              className="border-border focus:border-primary focus:ring-primary/20 bg-background"
                             />
                             <p id="email-description" className="sr-only">Format requis: votre@email.com</p>
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="phone" className="text-stone-700 font-medium">
+                            <Label htmlFor="phone" className="text-foreground font-medium">
                               Téléphone
                             </Label>
                             <Input
@@ -374,14 +374,14 @@ const Contact = () => {
                               value={contactForm.phone}
                               onChange={(e) => setContactForm(prev => ({...prev, phone: e.target.value}))}
                               maxLength={20}
-                              className="border-stone-300 focus:border-olive-500 focus:ring-olive-500/20"
+                              className="border-border focus:border-primary focus:ring-primary/20 bg-background"
                             />
                           </div>
                         </div>
                       </fieldset>
 
                       <div className="space-y-2">
-                        <Label htmlFor="company" className="text-stone-700 font-medium">
+                        <Label htmlFor="company" className="text-foreground font-medium">
                           Entreprise (optionnel)
                         </Label>
                         <Input
@@ -391,18 +391,18 @@ const Contact = () => {
                           value={contactForm.company}
                           onChange={(e) => setContactForm(prev => ({...prev, company: e.target.value}))}
                           maxLength={100}
-                          className="border-stone-300 focus:border-olive-500 focus:ring-olive-500/20"
+                          className="border-border focus:border-primary focus:ring-primary/20 bg-background"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="subject" className="text-stone-700 font-medium">
+                        <Label htmlFor="subject" className="text-foreground font-medium">
                           Sujet *
                         </Label>
                         <select
                           id="subject"
                           name="contact-subject"
-                          className="w-full h-11 px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:border-olive-500 focus:ring-2 focus:ring-olive-500/20 bg-white"
+                          className="w-full h-11 px-3 py-2 border border-border rounded-md focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-background text-foreground"
                           value={contactForm.subject}
                           onChange={(e) => setContactForm(prev => ({...prev, subject: e.target.value}))}
                           required
@@ -419,7 +419,7 @@ const Contact = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="message" className="text-stone-700 font-medium">
+                        <Label htmlFor="message" className="text-foreground font-medium">
                           Message *
                         </Label>
                         <textarea
@@ -429,15 +429,15 @@ const Contact = () => {
                           placeholder="Décrivez votre demande en détail..."
                           value={contactForm.message}
                           onChange={(e) => setContactForm(prev => ({...prev, message: e.target.value}))}
-                          className="w-full px-3 py-3 text-base border border-stone-300 rounded-md focus:outline-none focus:border-olive-500 focus:ring-2 focus:ring-olive-500/20 resize-none"
+                          className="w-full px-3 py-3 text-base border border-border rounded-md focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none bg-background text-foreground"
                           required
                           maxLength={2000}
                         ></textarea>
                         <div className="flex justify-between items-center">
-                          <p className="text-sm text-stone-500">
+                          <p className="text-sm text-muted-foreground">
                             {contactForm.message.length}/2000 caractères
                           </p>
-                          <p className="text-xs text-stone-400">
+                          <p className="text-xs text-muted-foreground">
                             Minimum 20 caractères requis
                           </p>
                         </div>
@@ -455,7 +455,7 @@ const Contact = () => {
                       </Button>
                       
                       <div className="text-center pt-4">
-                        <p className="text-sm text-stone-500 leading-relaxed">
+                        <p className="text-sm text-muted-foreground leading-relaxed">
                           En soumettant ce formulaire, vous acceptez que nous traitions vos données 
                           conformément à notre politique de confidentialité.
                         </p>
@@ -470,23 +470,23 @@ const Contact = () => {
       </section>
 
       {/* Map Section */}
-      <section className="py-16 bg-stone-50">
+      <section className="py-16 bg-secondary">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-8">
-            <h2 className="font-serif text-3xl text-stone-800 mb-4">Notre Localisation</h2>
-            <p className="text-stone-600 text-lg">
+            <h2 className="font-serif text-3xl text-foreground mb-4">Notre Localisation</h2>
+            <p className="text-muted-foreground text-lg">
               Visitez notre showroom pour découvrir nos créations artisanales
             </p>
           </div>
           
-          <Card className="max-w-4xl mx-auto shadow-xl overflow-hidden">
-            <div className="aspect-video bg-gradient-to-br from-olive-100 to-stone-200 flex items-center justify-center">
+          <Card className="max-w-4xl mx-auto shadow-xl overflow-hidden bg-card">
+            <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary flex items-center justify-center">
               <div className="text-center">
-                <MapPin className="h-16 w-16 text-olive-600 mx-auto mb-4" />
-                <h3 className="font-serif text-2xl text-stone-800 mb-2">Plan Interactif</h3>
-                <p className="text-stone-600">123 Rue de l'Artisan, 75001 Paris</p>
+                <MapPin className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h3 className="font-serif text-2xl text-foreground mb-2">Plan Interactif</h3>
+                <p className="text-muted-foreground">123 Rue de l'Artisan, 75001 Paris</p>
                 <Button 
-                  className="mt-4 bg-olive-600 hover:bg-olive-700"
+                  className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground"
                   id="contact-map-directions"
                   name="get-directions-button"
                 >
