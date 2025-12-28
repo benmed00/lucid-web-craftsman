@@ -26,7 +26,10 @@ import {
   MoreVertical,
   Edit,
   Trash2,
-  Eye
+  Eye,
+  Image,
+  ZoomIn,
+  ExternalLink
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -60,6 +63,8 @@ const AdminErrorReports: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<ErrorReport | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showScreenshotModal, setShowScreenshotModal] = useState(false);
+  const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -438,25 +443,51 @@ const AdminErrorReports: React.FC = () => {
               {filteredReports.map((report) => (
                 <Card key={report.id} className="border-l-4" style={{borderLeftColor: getSeverityColor(report.severity).replace('bg-', '')}}>
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-start justify-between gap-4">
+                      {/* Screenshot thumbnail */}
+                      {report.screenshot_url && (
+                        <div 
+                          className="flex-shrink-0 w-20 h-20 rounded border border-border overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all group relative"
+                          onClick={() => {
+                            setSelectedScreenshot(report.screenshot_url || null);
+                            setShowScreenshotModal(true);
+                          }}
+                        >
+                          <img 
+                            src={report.screenshot_url} 
+                            alt="Screenshot" 
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                            <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
                           {getStatusIcon(report.status)}
                           <Badge variant="outline">{report.error_type}</Badge>
                           <Badge className={getSeverityColor(report.severity)}>
                             {report.severity}
                           </Badge>
                           <Badge variant="secondary">{report.priority}</Badge>
+                          {report.screenshot_url && (
+                            <Badge variant="outline" className="text-status-info border-status-info/30">
+                              <Image className="h-3 w-3 mr-1" />
+                              Screenshot
+                            </Badge>
+                          )}
                         </div>
                         
-                        <h3 className="font-medium text-gray-900 mb-1">
+                        <h3 className="font-medium text-foreground mb-1">
                           {report.description.length > 100 
                             ? `${report.description.substring(0, 100)}...`
                             : report.description
                           }
                         </h3>
                         
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2 flex-wrap">
                           <div className="flex items-center gap-1">
                             <User className="h-4 w-4" />
                             {report.email}
@@ -485,7 +516,7 @@ const AdminErrorReports: React.FC = () => {
                         )}
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-shrink-0">
                         <Button
                           variant="outline"
                           size="sm"
@@ -567,19 +598,51 @@ const AdminErrorReports: React.FC = () => {
                 
                 <div>
                   <h4 className="font-medium mb-2">Description</h4>
-                  <div className="p-3 bg-gray-50 rounded text-sm">
+                  <div className="p-3 bg-muted rounded text-sm">
                     {selectedReport.description}
                   </div>
                 </div>
                 
                 {selectedReport.screenshot_url && (
                   <div>
-                    <h4 className="font-medium mb-2">Screenshot</h4>
-                    <img 
-                      src={selectedReport.screenshot_url} 
-                      alt="Error screenshot" 
-                      className="max-w-full h-auto border rounded"
-                    />
+                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                      <Image className="h-4 w-4" />
+                      Capture d'écran
+                    </h4>
+                    <div className="relative group">
+                      <img 
+                        src={selectedReport.screenshot_url} 
+                        alt="Error screenshot" 
+                        className="max-w-full h-auto border border-border rounded cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => {
+                          setSelectedScreenshot(selectedReport.screenshot_url || null);
+                          setShowScreenshotModal(true);
+                        }}
+                      />
+                      <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => {
+                            setSelectedScreenshot(selectedReport.screenshot_url || null);
+                            setShowScreenshotModal(true);
+                          }}
+                        >
+                          <ZoomIn className="h-4 w-4 mr-1" />
+                          Agrandir
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          asChild
+                        >
+                          <a href={selectedReport.screenshot_url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-4 w-4 mr-1" />
+                            Ouvrir
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </TabsContent>
@@ -671,6 +734,36 @@ const AdminErrorReports: React.FC = () => {
                 </div>
               </TabsContent>
             </Tabs>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Screenshot Zoom Modal */}
+      <Dialog open={showScreenshotModal} onOpenChange={setShowScreenshotModal}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-2">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Capture d'écran</DialogTitle>
+          </DialogHeader>
+          {selectedScreenshot && (
+            <div className="relative">
+              <img 
+                src={selectedScreenshot} 
+                alt="Screenshot zoomed" 
+                className="w-full h-auto max-h-[80vh] object-contain rounded"
+              />
+              <div className="absolute top-2 right-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  asChild
+                >
+                  <a href={selectedScreenshot} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-1" />
+                    Ouvrir dans un nouvel onglet
+                  </a>
+                </Button>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>
