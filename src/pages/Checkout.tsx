@@ -171,13 +171,13 @@ const Checkout = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16">
-          <h1 className="font-serif text-3xl md:text-4xl text-stone-800 mb-8 text-center">
+          <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-8 text-center">
             Paiement
           </h1>
           <div className="text-center">
-            <p>Chargement de votre commande...</p>
+            <p className="text-muted-foreground">Chargement de votre commande...</p>
           </div>
         </div>
         <PageFooter />
@@ -186,11 +186,11 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       
 
       <div className="container mx-auto px-4 py-12">
-        <h1 className="font-serif text-3xl md:text-4xl text-stone-800 mb-8 text-center">
+        <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-8 text-center">
           Paiement
         </h1>
 
@@ -201,8 +201,8 @@ const Checkout = () => {
               <div
                 className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center ${
                   step >= 1
-                    ? "bg-olive-700 text-white"
-                    : "bg-stone-200 text-stone-500"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
                 }`}
               >
                 1
@@ -213,7 +213,7 @@ const Checkout = () => {
             <div className="w-full max-w-[100px] flex items-center">
               <div
                 className={`h-1 w-full ${
-                  step >= 2 ? "bg-olive-700" : "bg-stone-200"
+                  step >= 2 ? "bg-primary" : "bg-muted"
                 }`}
               ></div>
             </div>
@@ -222,8 +222,8 @@ const Checkout = () => {
               <div
                 className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center ${
                   step >= 2
-                    ? "bg-olive-700 text-white"
-                    : "bg-stone-200 text-stone-500"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
                 }`}
               >
                 2
@@ -234,7 +234,7 @@ const Checkout = () => {
             <div className="w-full max-w-[100px] flex items-center">
               <div
                 className={`h-1 w-full ${
-                  step >= 3 ? "bg-olive-700" : "bg-stone-200"
+                  step >= 3 ? "bg-primary" : "bg-muted"
                 }`}
               ></div>
             </div>
@@ -243,8 +243,8 @@ const Checkout = () => {
               <div
                 className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center ${
                   step >= 3
-                    ? "bg-olive-700 text-white"
-                    : "bg-stone-200 text-stone-500"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
                 }`}
               >
                 3
@@ -315,13 +315,13 @@ const Checkout = () => {
                       onChange={handleInputChange}
                       aria-describedby="phone-description"
                     />
-                    <p id="phone-description" className="text-sm text-stone-500">
+                    <p id="phone-description" className="text-sm text-muted-foreground">
                       Pour vous contacter en cas de problème avec votre commande
                     </p>
                   </div>
 
                   <Button
-                    className="w-full md:w-auto bg-olive-700 hover:bg-olive-800"
+                    className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
                     onClick={goToNextStep}
                     aria-describedby="step1-instructions"
                   >
@@ -337,7 +337,7 @@ const Checkout = () => {
                 <div className="space-y-6 animate-fade-in">
                   <div className="flex items-center mb-6">
                     <button
-                      className="text-olive-700 hover:text-olive-900 flex items-center"
+                      className="text-primary hover:text-primary/80 flex items-center"
                       onClick={() => setStep(1)}
                     >
                       <ArrowLeft className="h-4 w-4 mr-1" /> Retour
@@ -395,7 +395,7 @@ const Checkout = () => {
                     <Label htmlFor="country">Pays</Label>
                     <select
                       id="country"
-                      className="w-full h-10 px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:border-olive-400"
+                      className="w-full h-10 px-3 py-2 border border-border bg-background text-foreground rounded-md focus:outline-none focus:border-primary"
                       value={formData.country}
                       onChange={handleInputChange}
                     >
@@ -408,7 +408,7 @@ const Checkout = () => {
                   </div>
 
                   <Button
-                    className="w-full md:w-auto bg-olive-700 hover:bg-olive-800"
+                    className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
                     onClick={goToNextStep}
                   >
                     Continuer vers le paiement
@@ -420,7 +420,7 @@ const Checkout = () => {
                 <div className="space-y-6 animate-fade-in">
                   <div className="flex items-center mb-6">
                     <button
-                      className="text-olive-700 hover:text-olive-900 flex items-center"
+                      className="text-primary hover:text-primary/80 flex items-center"
                       onClick={() => setStep(2)}
                     >
                       <ArrowLeft className="h-4 w-4 mr-1" /> Retour
@@ -438,8 +438,8 @@ const Checkout = () => {
                     <div
                       className={`border rounded-lg p-4 ${
                         paymentMethod === "card"
-                          ? "border-olive-500 bg-olive-50"
-                          : "border-stone-200"
+                          ? "border-primary bg-primary/5"
+                          : "border-border"
                       }`}
                     >
                       <div className="flex items-start">
@@ -456,7 +456,7 @@ const Checkout = () => {
                             <CreditCard className="mr-2 h-5 w-5" /> Carte de
                             crédit
                           </Label>
-                          <p className="text-sm text-stone-500 mt-1">
+                          <p className="text-sm text-muted-foreground mt-1">
                             Visa, Mastercard, American Express
                           </p>
 
@@ -504,8 +504,8 @@ const Checkout = () => {
                     <div
                       className={`border rounded-lg p-4 ${
                         paymentMethod === "paypal"
-                          ? "border-olive-500 bg-olive-50"
-                          : "border-stone-200"
+                          ? "border-primary bg-primary/5"
+                          : "border-border"
                       }`}
                     >
                       <div className="flex items-center">
@@ -518,7 +518,7 @@ const Checkout = () => {
                   </RadioGroup>
 
                   <Button
-                    className="w-full md:w-auto bg-olive-700 hover:bg-olive-800"
+                    className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
                     onClick={handlePayment}
                     disabled={isProcessing}
                   >
@@ -532,8 +532,8 @@ const Checkout = () => {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="border rounded-lg p-6 bg-stone-50 sticky top-8">
-                <h3 className="font-serif text-xl text-stone-800 mb-4">
+              <div className="border border-border rounded-lg p-6 bg-secondary sticky top-8">
+                <h3 className="font-serif text-xl text-foreground mb-4">
                   Récapitulatif de la commande
                 </h3>
 
@@ -541,7 +541,7 @@ const Checkout = () => {
                 <div className="space-y-4 mb-6">
                   {cartItems.map((item) => (
                     <div key={item.id} className="flex items-center">
-                      <div className="w-16 h-16 rounded-md overflow-hidden mr-4 bg-white border">
+                      <div className="w-16 h-16 rounded-md overflow-hidden mr-4 bg-background border border-border">
                         <img
                           src={item.product.images[0]}
                           alt={item.product.name}
@@ -549,14 +549,14 @@ const Checkout = () => {
                         />
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-sm font-medium text-stone-800">
+                        <h4 className="text-sm font-medium text-foreground">
                           {item.product.name}
                         </h4>
-                        <div className="text-xs text-stone-500 mt-1">
+                        <div className="text-xs text-muted-foreground mt-1">
                           Quantité: {item.quantity}
                         </div>
                       </div>
-                      <div className="text-olive-700 font-medium">
+                      <div className="text-primary font-medium">
                         {item.product.price} €
                       </div>
                     </div>
@@ -568,26 +568,26 @@ const Checkout = () => {
                 {/* Order Totals */}
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
-                    <span className="text-stone-600">Sous-total</span>
+                    <span className="text-muted-foreground">Sous-total</span>
                     <span className="font-medium">{subtotal.toFixed(2)} €</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-stone-600">Frais de livraison</span>
+                    <span className="text-muted-foreground">Frais de livraison</span>
                     <span className="font-medium">{shipping.toFixed(2)} €</span>
                   </div>
                   <Separator className="my-2" />
                   <div className="flex justify-between text-lg">
                     <span className="font-medium">Total</span>
-                    <span className="font-medium text-olive-700">
+                    <span className="font-medium text-primary">
                       {total.toFixed(2)} €
                     </span>
                   </div>
                 </div>
 
                 {/* Trust Badges */}
-                <div className="bg-white p-3 rounded-md border mt-6">
-                  <div className="flex items-center justify-center space-x-2 text-sm text-stone-600">
-                    <CheckCircle className="h-4 w-4 text-olive-700" />
+                <div className="bg-background p-3 rounded-md border border-border mt-6">
+                  <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+                    <CheckCircle className="h-4 w-4 text-primary" />
                     <span>Paiement 100% sécurisé</span>
                   </div>
                 </div>

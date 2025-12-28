@@ -96,17 +96,17 @@ const Wishlist = () => {
           title="Mes Favoris - Connectez-vous"
           description="Connectez-vous pour accéder à votre liste de favoris et retrouver vos créations artisanales préférées."
         />
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-2xl mx-auto text-center">
-            <Heart className="w-16 h-16 text-stone-300 mx-auto mb-6" />
-            <h1 className="font-serif text-3xl md:text-4xl text-stone-800 mb-4">
+            <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
+            <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
               Mes Favoris
             </h1>
-            <p className="text-stone-600 mb-8">
+            <p className="text-muted-foreground mb-8">
               Vous devez être connecté pour voir vos favoris.
             </p>
-            <Button asChild className="bg-olive-700 hover:bg-olive-800">
+            <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
               <Link to="/auth">Se connecter</Link>
             </Button>
           </div>
@@ -123,7 +123,7 @@ const Wishlist = () => {
         title={`Mes Favoris (${wishlistProducts.length}) - Artisanat Berbère`}
         description={`Votre liste de favoris contient ${wishlistProducts.length} création${wishlistProducts.length > 1 ? 's' : ''} artisanale${wishlistProducts.length > 1 ? 's' : ''} du Rif marocain. Découvrez et commandez vos pièces préférées.`}
       />
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         
 
       <div className="container mx-auto px-4 py-12">
@@ -131,12 +131,12 @@ const Wishlist = () => {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center">
-              <Heart className="w-8 h-8 text-red-500 mr-3" />
+              <Heart className="w-8 h-8 text-destructive mr-3" />
               <div>
-                <h1 className="font-serif text-3xl md:text-4xl text-stone-800">
+                <h1 className="font-serif text-3xl md:text-4xl text-foreground">
                   Mes Favoris
                 </h1>
-                <p className="text-stone-600 mt-1">
+                <p className="text-muted-foreground mt-1">
                   {wishlistItems.length} produit{wishlistItems.length > 1 ? 's' : ''} sauvegardé{wishlistItems.length > 1 ? 's' : ''}
                 </p>
               </div>
@@ -149,11 +149,11 @@ const Wishlist = () => {
                 <Card key={i} className="animate-pulse">
                   <CardContent className="p-6">
                     <div className="flex gap-4">
-                      <div className="w-20 h-20 bg-stone-200 rounded-lg"></div>
+                      <div className="w-20 h-20 bg-muted rounded-lg"></div>
                       <div className="flex-1 space-y-2">
-                        <div className="h-6 bg-stone-200 rounded w-3/4"></div>
-                        <div className="h-4 bg-stone-200 rounded w-1/2"></div>
-                        <div className="h-4 bg-stone-200 rounded w-1/4"></div>
+                        <div className="h-6 bg-muted rounded w-3/4"></div>
+                        <div className="h-4 bg-muted rounded w-1/2"></div>
+                        <div className="h-4 bg-muted rounded w-1/4"></div>
                       </div>
                     </div>
                   </CardContent>
@@ -163,15 +163,15 @@ const Wishlist = () => {
           ) : wishlistProducts.length === 0 ? (
             <div className="text-center py-16 animate-fade-in">
               <div className="animate-gentle-bounce">
-                <Heart className="w-16 h-16 text-stone-300 mx-auto mb-6" />
+                <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
               </div>
-              <h2 className="font-serif text-2xl text-stone-800 mb-4">
+              <h2 className="font-serif text-2xl text-foreground mb-4">
                 Votre liste de favoris est vide
               </h2>
-              <p className="text-stone-600 mb-8 max-w-md mx-auto">
+              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
                 Découvrez nos créations artisanales uniques et ajoutez vos pièces préférées à vos favoris pour les retrouver facilement.
               </p>
-              <Button asChild className="bg-olive-700 hover:bg-olive-800 shadow-lg hover:shadow-xl transition-all duration-200">
+              <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200">
                 <Link to="/products">✨ Découvrir nos produits</Link>
               </Button>
             </div>
@@ -206,25 +206,25 @@ const Wishlist = () => {
                           <div className="flex-1 min-w-0">
                             <Link 
                               to={`/products/${product.id}`}
-                              className="hover:text-olive-700 transition-colors"
+                              className="hover:text-primary transition-colors"
                             >
-                              <h3 className="font-medium text-lg text-stone-800 mb-2 line-clamp-2">
+                              <h3 className="font-medium text-lg text-foreground mb-2 line-clamp-2">
                                 {product.name}
                               </h3>
                             </Link>
                             
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-stone-600 mb-3">
-                              <span className="bg-stone-100 px-2 py-1 rounded text-xs">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-muted-foreground mb-3">
+                              <span className="bg-muted px-2 py-1 rounded text-xs">
                                 {product.category}
                               </span>
                               <span className="text-xs sm:text-sm">Par {product.artisan}</span>
                             </div>
 
-                            <p className="text-stone-600 text-sm mb-4 line-clamp-2 overflow-hidden hidden sm:block">
+                            <p className="text-muted-foreground text-sm mb-4 line-clamp-2 overflow-hidden hidden sm:block">
                               {product.description}
                             </p>
 
-                            <div className="text-xl sm:text-2xl font-semibold text-olive-700 mb-4">
+                            <div className="text-xl sm:text-2xl font-semibold text-primary mb-4">
                               {formatPrice(product.price)}
                             </div>
                           </div>
@@ -235,7 +235,7 @@ const Wishlist = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => handleAddToCart(product)}
-                              className="hover:bg-olive-50 hover:border-olive-200 flex-1 sm:flex-none whitespace-nowrap"
+                              className="hover:bg-primary/10 hover:border-primary/20 flex-1 sm:flex-none whitespace-nowrap"
                             >
                               Ajouter au panier
                             </Button>
@@ -244,7 +244,7 @@ const Wishlist = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleRemoveFromWishlist(product.id)}
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                              className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 flex-shrink-0"
                               aria-label="Retirer des favoris"
                             >
                               <Trash2 size={16} />
@@ -260,7 +260,7 @@ const Wishlist = () => {
               <Separator className="my-8" />
               
               <div className="text-center">
-                <p className="text-stone-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   Continuez votre shopping pour découvrir d'autres créations
                 </p>
                 <Button asChild variant="outline">
