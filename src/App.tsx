@@ -38,6 +38,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 import { CartProvider } from "@/context/CartContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { WishlistProvider } from "@/context/WishlistContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -151,7 +152,8 @@ const App = () => {
             <OfflineManager>
               <CurrencyProvider>
                 <CartProvider>
-                  <TooltipProvider delayDuration={300}>
+                  <WishlistProvider>
+                    <TooltipProvider delayDuration={300}>
                     <BrowserRouter basename={basePath}>
                       <Suspense fallback={null}>
                         <PushNotificationManager />
@@ -222,7 +224,8 @@ const App = () => {
 
                     {/* Devtools React Query (en développement seulement) */}
                     {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-                  </TooltipProvider>
+                    </TooltipProvider>
+                  </WishlistProvider>
                 </CartProvider>
               </CurrencyProvider>
             </OfflineManager>
