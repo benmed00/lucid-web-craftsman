@@ -381,10 +381,10 @@ const AdminProducts = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-serif font-semibold text-stone-800">
+          <h2 className="text-2xl font-serif font-semibold text-foreground">
             Gestion des produits
           </h2>
-          <p className="text-stone-600">
+          <p className="text-muted-foreground">
             {products.length} produits dans votre catalogue
           </p>
         </div>
@@ -410,7 +410,7 @@ const AdminProducts = () => {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-stone-400" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Rechercher par nom ou artisan..."
                   value={searchQuery}
@@ -463,19 +463,19 @@ const AdminProducts = () => {
               <div className="space-y-2">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="font-medium text-stone-800 line-clamp-2">
+                    <h3 className="font-medium text-foreground line-clamp-2">
                       {product.name}
                     </h3>
-                    <p className="text-sm text-stone-600">{product.artisan}</p>
+                    <p className="text-sm text-muted-foreground">{product.artisan}</p>
                   </div>
-                  <p className="font-semibold text-olive-700">{product.price}€</p>
+                  <p className="font-semibold text-primary">{product.price}€</p>
                 </div>
                 
                 <Badge variant="outline" className="text-xs">
                   {product.category}
                 </Badge>
                 
-                <p className="text-sm text-stone-600 line-clamp-2">
+                <p className="text-sm text-muted-foreground line-clamp-2">
                   {product.description}
                 </p>
               </div>
