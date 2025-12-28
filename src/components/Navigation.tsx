@@ -280,8 +280,9 @@ const Navigation = () => {
         className={`md:hidden fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-[56] transform transition-transform duration-300 ease-out ${
           isMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
-        aria-hidden={!isMenuOpen}
+        {...(!isMenuOpen ? { 'aria-hidden': 'true' as const, tabIndex: -1 } : {})}
         role="menu"
+        aria-label="Menu principal mobile"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-stone-200">
@@ -300,6 +301,7 @@ const Navigation = () => {
             onClick={() => setIsMenuOpen(false)}
             className="p-2 rounded-full hover:bg-stone-100 transition-colors"
             aria-label="Fermer le menu"
+            tabIndex={isMenuOpen ? 0 : -1}
           >
             <X className="h-5 w-5 text-stone-600" />
           </button>

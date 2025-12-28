@@ -190,21 +190,18 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
 
       {/* Only generate WebP source if the current source isn't already optimized */}
       <picture className="w-full h-full">
-        {currentSrc.includes('supabase.co/storage') && !currentSrc.includes('format=webp') && (
+        {/* Only add WebP source for Supabase /render/image/ endpoint which supports transformation */}
+        {currentSrc.includes('supabase.co/storage') && 
+         currentSrc.includes('/render/image/') && 
+         !currentSrc.includes('format=webp') && (
           <source 
             srcSet={generateWebPUrl(currentSrc)}
             type="image/webp"
             sizes={sizes}
           />
         )}
-        {/* Static asset WebP conversion */}
-        {currentSrc.startsWith('/assets/') && !currentSrc.includes('.webp') && (
-          <source 
-            srcSet={currentSrc.replace(/\.(jpg|jpeg|png)$/i, '.webp')}
-            type="image/webp"
-            sizes={sizes}
-          />
-        )}
+        {/* Static asset WebP conversion - only if the image already ends with .webp */}
+        {/* We don't auto-convert jpg/png since webp versions may not exist */}
         
         {/* Fallback img element with safe URL generation */}
         <img
