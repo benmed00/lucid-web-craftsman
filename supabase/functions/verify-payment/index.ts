@@ -196,6 +196,48 @@ serve(async (req) => {
       // Non-fatal error, continue
     }
 
+    // Send order confirmation email
+    try {
+      const customerEmail = session.customer_details?.email;
+      const customerName = session.customer_details?.name || session.metadata?.customer_name || 'Client';
+      
+      if (customerEmail) {
+        logStep("Sending order confirmation email", { email: customerEmail });
+        
+        // Call the email edge function
+        const emailResponse = await fetch(
+          `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-order-notification`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+            },
+            body: JSON.stringify({
+              order_id: orderData.id,
+              status: 'paid',
+              customer_email: customerEmail,
+              customer_name: customerName,
+              order_total: orderData.amount / 100, // Convert from cents
+              currency: orderData.currency?.toUpperCase() || 'EUR'
+            })
+          }
+        );
+
+        if (emailResponse.ok) {
+          logStep("Order confirmation email sent successfully");
+        } else {
+          const emailError = await emailResponse.text();
+          logStep("Warning: Failed to send confirmation email", { error: emailError });
+        }
+      } else {
+        logStep("Warning: No customer email found, skipping notification");
+      }
+    } catch (emailError) {
+      logStep("Warning: Error sending confirmation email", { error: emailError.message });
+      // Non-fatal error, continue
+    }
+
     logStep("Payment verification completed", {
       orderId: orderData.id,
       stockUpdatesCount: stockUpdates.length
