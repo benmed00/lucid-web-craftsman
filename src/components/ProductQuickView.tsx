@@ -228,7 +228,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                 )}
               </div>
               
-              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
+              <h2 className="text-2xl lg:text-3xl font-bold text-foreground leading-tight">
                 {product.name}
               </h2>
               
@@ -239,16 +239,16 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                     <Star
                       key={i}
                       className={`h-4 w-4 ${
-                        i < 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                        i < 4 ? 'text-yellow-400 fill-current' : 'text-muted-foreground'
                       }`}
                     />
                   ))}
                 </div>
-                <span className="text-sm text-gray-600 font-medium">(24 avis)</span>
-                <span className="text-sm text-emerald-600 font-medium">Très bien noté</span>
+                <span className="text-sm text-muted-foreground font-medium">(24 avis)</span>
+                <span className="text-sm text-primary font-medium">Très bien noté</span>
               </div>
 
-              <div className="text-3xl lg:text-4xl font-bold text-olive-700">{formatPrice(product.price)}</div>
+              <div className="text-3xl lg:text-4xl font-bold text-primary">{formatPrice(product.price)}</div>
             </div>
 
             <Separator />
@@ -279,11 +279,11 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
             {/* Artisan Info */}
             {product.artisan && (
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex items-start gap-3">
-                <div className="mt-0.5 h-2 w-2 rounded-full bg-emerald-500" />
+              <div className="rounded-xl border border-primary/30 bg-primary/10 p-4 flex items-start gap-3">
+                <div className="mt-0.5 h-2 w-2 rounded-full bg-primary" />
                 <div className="text-sm">
-                  <div className="font-medium text-emerald-800">Artisan: {product.artisan}</div>
-                  <div className="text-emerald-700/80">Créé avec passion et savoir-faire traditionnel</div>
+                  <div className="font-medium text-foreground">Artisan: {product.artisan}</div>
+                  <div className="text-primary">Créé avec passion et savoir-faire traditionnel</div>
                 </div>
               </div>
             )}
@@ -291,12 +291,12 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
             {/* Quantity and Actions */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-gray-900">Quantité</span>
+                <span className="text-sm font-medium text-foreground">Quantité</span>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="icon" onClick={() => setQuantity((q) => Math.max(1, q - 1))} aria-label="Diminuer la quantité">
                     <Minus className="h-4 w-4" />
                   </Button>
-                  <div className="w-10 text-center font-medium">{quantity}</div>
+                  <div className="w-10 text-center font-medium text-foreground">{quantity}</div>
                   <Button variant="outline" size="icon" onClick={() => setQuantity((q) => q + 1)} aria-label="Augmenter la quantité">
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -320,14 +320,14 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
             </div>
 
             {/* Features */}
-            <div className="pt-4 border-t border-gray-100">
-              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+            <div className="pt-4 border-t border-border">
+              <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <Truck className="h-4 w-4 text-emerald-500" />
+                  <Truck className="h-4 w-4 text-primary" />
                   Livraison gratuite
                 </div>
                 <div className="flex items-center gap-2">
-                  <RotateCcw className="h-4 w-4 text-emerald-500" />
+                  <RotateCcw className="h-4 w-4 text-primary" />
                   Retours 30 jours
                 </div>
               </div>
@@ -341,7 +341,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <SheetContent side="bottom" className="h-[92vh] p-0 bg-white overflow-hidden rounded-t-xl [&>button]:hidden">
+        <SheetContent side="bottom" className="h-[92vh] p-0 bg-background overflow-hidden rounded-t-xl [&>button]:hidden">
           {content}
         </SheetContent>
       </Sheet>
@@ -350,7 +350,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] sm:max-h-[85vh] p-0 bg-white border-0 shadow-2xl animate-in fade-in-0 zoom-in-95 duration-300 overflow-hidden [&>button]:hidden">
+      <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] sm:max-h-[85vh] p-0 bg-background border-0 shadow-2xl animate-in fade-in-0 zoom-in-95 duration-300 overflow-hidden [&>button]:hidden">
         {content}
       </DialogContent>
     </Dialog>
