@@ -223,9 +223,11 @@ const Navigation = () => {
                 )}
               </div>
 
-              {/* Mobile Menu Button */}
+              {/* Mobile Menu Button - z-index higher than menu panel when open */}
               <button
-                className="md:hidden text-stone-700 hover:text-olive-700 p-1.5 sm:p-2 rounded-md hover:bg-olive-50 transition-all duration-300 touch-manipulation"
+                className={`md:hidden text-stone-700 hover:text-olive-700 p-1.5 sm:p-2 rounded-md hover:bg-olive-50 transition-all duration-300 touch-manipulation ${
+                  isMenuOpen ? 'relative z-[60]' : ''
+                }`}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
                 aria-expanded={isMenuOpen}
@@ -284,8 +286,8 @@ const Navigation = () => {
         role="menu"
         aria-label="Menu principal mobile"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-stone-200">
+        {/* Header - without close button since header hamburger transforms to X */}
+        <div className="flex items-center p-6 border-b border-stone-200">
           <div className="flex items-center space-x-2">
             <div className="p-2 rounded-full bg-olive-700">
               <Leaf className="h-5 w-5 text-white" />
@@ -297,14 +299,6 @@ const Navigation = () => {
               <p className="text-sm text-stone-500">Artisanat Berbère</p>
             </div>
           </div>
-          <button
-            onClick={() => setIsMenuOpen(false)}
-            className="p-2 rounded-full hover:bg-stone-100 transition-colors"
-            aria-label="Fermer le menu"
-            tabIndex={isMenuOpen ? 0 : -1}
-          >
-            <X className="h-5 w-5 text-stone-600" />
-          </button>
         </div>
 
         {/* Content */}
