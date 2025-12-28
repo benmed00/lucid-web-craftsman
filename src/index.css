@@ -16,6 +16,23 @@
 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
+    
+    /* Surface overlay for modals/dialogs */
+    --surface-overlay: 0 0% 100%;
+    
+    /* Rating stars */
+    --rating-star: 45 93% 47%;
+    --rating-star-empty: 0 0% 85%;
+    
+    /* Status colors */
+    --status-success: 142 76% 36%;
+    --status-success-foreground: 0 0% 100%;
+    --status-warning: 38 92% 50%;
+    --status-warning-foreground: 0 0% 0%;
+    --status-error: 0 84% 60%;
+    --status-error-foreground: 0 0% 100%;
+    --status-info: 217 91% 60%;
+    --status-info-foreground: 0 0% 100%;
 
     --primary: 84 29% 32%;
     --primary-foreground: 210 40% 98%;
@@ -52,7 +69,8 @@
     --stone-100: 24 5% 96%;
     --stone-200: 24 5% 89%;
     --stone-300: 24 6% 83%;
-    --stone-400: 24 5% 32%;  /* Darker for better contrast */
+    --stone-400: 24 5% 64%;
+    --stone-500: 24 5% 50%;  /* Added missing token */
     --stone-600: 24 5% 44%;
     --stone-700: 24 6% 38%;
     --stone-800: 24 6% 32%;
@@ -86,6 +104,23 @@
 
     --popover: 222.2 84% 6%;
     --popover-foreground: 210 40% 98%;
+    
+    /* Surface overlay for modals/dialogs - dark */
+    --surface-overlay: 222.2 84% 6%;
+    
+    /* Rating stars - dark */
+    --rating-star: 45 93% 47%;
+    --rating-star-empty: 217 32% 25%;
+    
+    /* Status colors - dark */
+    --status-success: 142 70% 45%;
+    --status-success-foreground: 0 0% 100%;
+    --status-warning: 38 92% 50%;
+    --status-warning-foreground: 0 0% 0%;
+    --status-error: 0 62% 50%;
+    --status-error-foreground: 0 0% 100%;
+    --status-info: 217 91% 60%;
+    --status-info-foreground: 0 0% 100%;
 
     --primary: 84 29% 55%;
     --primary-foreground: 222.2 47.4% 11.2%;
@@ -121,7 +156,8 @@
     --stone-100: 24 6% 18%;
     --stone-200: 24 5% 25%;
     --stone-300: 24 6% 35%;
-    --stone-400: 24 5% 55%;
+    --stone-400: 24 5% 45%;
+    --stone-500: 24 5% 55%;  /* Added missing token */
     --stone-600: 24 5% 65%;
     --stone-700: 24 6% 75%;
     --stone-800: 24 6% 85%;
@@ -471,14 +507,7 @@ input, textarea, select {
   }
 }
 
-/* Mobile-optimized animations */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+/* Note: prefers-reduced-motion is already handled in @layer base */
 
 /* Custom scrollbar styles */
 ::-webkit-scrollbar {
