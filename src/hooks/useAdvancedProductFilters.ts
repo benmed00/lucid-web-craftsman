@@ -40,7 +40,9 @@ export const useAdvancedProductFilters = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [popularFilters, setPopularFilters] = useState<string[]>([]);
+  // isLoading should only be true during debounced search operations
   const [isLoading, setIsLoading] = useState(false);
+  const [isDebouncing, setIsDebouncing] = useState(false);
 
   // Initialize filters from URL parameters
   const getInitialFilters = (): AdvancedFilterOptions => ({
@@ -249,31 +251,29 @@ export const useAdvancedProductFilters = ({
     }
   }, [enableAnalytics]);
 
-  // Debounced filter updates
+  // Debounced filter updates - fixed to avoid infinite loading
   const updateFilters = useCallback(
     async (newFilters: Partial<AdvancedFilterOptions>) => {
-      setIsLoading(true);
-      
-      // Simulate debounce for search queries
-      if (newFilters.searchQuery !== undefined) {
+      // Only show loading for search queries (debounced)
+      if (newFilters.searchQuery !== undefined && newFilters.searchQuery !== filters.searchQuery) {
+        setIsDebouncing(true);
         await new Promise(resolve => setTimeout(resolve, debounceMs));
+        setIsDebouncing(false);
       }
 
       const updatedFilters = { ...filters, ...newFilters };
       setFilters(updatedFilters);
       updateUrlParams(updatedFilters);
 
-      // Track analytics
-      await trackFilterUsage({
+      // Track analytics (non-blocking)
+      trackFilterUsage({
         searchQuery: updatedFilters.searchQuery,
         filters: newFilters,
-        resultCount: filteredProducts.length,
+        resultCount: 0, // We don't need the exact count for analytics
         timestamp: Date.now()
       });
-
-      setIsLoading(false);
     },
-    [filters, updateUrlParams, trackFilterUsage, filteredProducts.length, debounceMs]
+    [filters, updateUrlParams, trackFilterUsage, debounceMs]
   );
 
   // Reset all filters
@@ -377,7 +377,7 @@ export const useAdvancedProductFilters = ({
     availableOptions,
     searchHistory,
     popularFilters,
-    isLoading,
+    isLoading: isDebouncing, // Only show loading during debounce, not permanently
     activeFiltersCount,
     updateFilters,
     resetFilters,
