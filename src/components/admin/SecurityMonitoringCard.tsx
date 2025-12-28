@@ -157,15 +157,15 @@ export const SecurityMonitoringCard = () => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return 'bg-red-500 text-white';
+        return 'bg-status-error text-background';
       case 'high':
-        return 'bg-orange-500 text-white';
+        return 'bg-status-warning text-background';
       case 'medium':
-        return 'bg-yellow-500 text-white';
+        return 'bg-status-warning/80 text-background';
       case 'low':
-        return 'bg-blue-500 text-white';
+        return 'bg-status-info text-background';
       default:
-        return 'bg-gray-500 text-white';
+        return 'bg-muted-foreground text-background';
     }
   };
 
@@ -203,21 +203,21 @@ export const SecurityMonitoringCard = () => {
       <CardContent>
         {/* Security Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <div className="text-2xl font-bold text-gray-900">{stats.totalEvents}</div>
-            <div className="text-sm text-gray-600">Total événements</div>
+          <div className="text-center p-3 bg-muted rounded-lg">
+            <div className="text-2xl font-bold text-foreground">{stats.totalEvents}</div>
+            <div className="text-sm text-muted-foreground">Total événements</div>
           </div>
-          <div className="text-center p-3 bg-red-50 rounded-lg">
-            <div className="text-2xl font-bold text-red-600">{stats.criticalEvents}</div>
-            <div className="text-sm text-red-600">Critiques</div>
+          <div className="text-center p-3 bg-status-error/10 rounded-lg">
+            <div className="text-2xl font-bold text-status-error">{stats.criticalEvents}</div>
+            <div className="text-sm text-status-error">Critiques</div>
           </div>
-          <div className="text-center p-3 bg-orange-50 rounded-lg">
-            <div className="text-2xl font-bold text-orange-600">{stats.unresolvedEvents}</div>
-            <div className="text-sm text-orange-600">Non résolus</div>
+          <div className="text-center p-3 bg-status-warning/10 rounded-lg">
+            <div className="text-2xl font-bold text-status-warning">{stats.unresolvedEvents}</div>
+            <div className="text-sm text-status-warning">Non résolus</div>
           </div>
-          <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{stats.todayEvents}</div>
-            <div className="text-sm text-blue-600">Aujourd'hui</div>
+          <div className="text-center p-3 bg-status-info/10 rounded-lg">
+            <div className="text-2xl font-bold text-status-info">{stats.todayEvents}</div>
+            <div className="text-sm text-status-info">Aujourd'hui</div>
           </div>
         </div>
 
@@ -235,13 +235,13 @@ export const SecurityMonitoringCard = () => {
 
           <TabsContent value="security-events" className="space-y-4">
             {securityEvents.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-muted-foreground">
                 Aucun événement de sécurité détecté
               </div>
             ) : (
               <div className="space-y-3">
                 {securityEvents.map((event) => (
-                  <div key={event.id} className="border rounded-lg p-4">
+                  <div key={event.id} className="border border-border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">
                         <Badge className={getSeverityColor(event.severity)}>
@@ -249,7 +249,7 @@ export const SecurityMonitoringCard = () => {
                         </Badge>
                         <span className="font-medium">{event.event_type}</span>
                         {event.resolved_at && (
-                          <Badge variant="outline" className="text-green-600 border-green-300">
+                          <Badge variant="outline" className="text-status-success border-status-success/30">
                             Résolu
                           </Badge>
                         )}
@@ -264,7 +264,7 @@ export const SecurityMonitoringCard = () => {
                         </Button>
                       )}
                     </div>
-                    <div className="text-sm text-gray-600 space-y-1">
+                    <div className="text-sm text-muted-foreground space-y-1">
                       <div className="flex items-center gap-4">
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
@@ -282,7 +282,7 @@ export const SecurityMonitoringCard = () => {
                         )}
                       </div>
                       {event.event_data && (
-                        <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
+                        <div className="mt-2 p-2 bg-muted rounded text-xs">
                           <pre className="whitespace-pre-wrap">
                             {JSON.stringify(event.event_data, null, 2)}
                           </pre>
@@ -297,27 +297,27 @@ export const SecurityMonitoringCard = () => {
 
           <TabsContent value="audit-logs" className="space-y-4">
             {auditLogs.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-muted-foreground">
                 Aucun log d'audit disponible
               </div>
             ) : (
               <div className="space-y-3">
                 {auditLogs.map((log) => (
-                  <div key={log.id} className="border rounded-lg p-4">
+                  <div key={log.id} className="border border-border rounded-lg p-4">
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{log.action}</Badge>
                         {log.resource_type && (
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-muted-foreground">
                             {log.resource_type}
                           </span>
                         )}
                       </div>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-muted-foreground">
                         {formatDate(log.created_at)}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-600 space-y-1">
+                    <div className="text-sm text-muted-foreground space-y-1">
                       <div className="flex items-center gap-4">
                         <span className="flex items-center gap-1">
                           <Eye className="h-3 w-3" />
@@ -335,10 +335,10 @@ export const SecurityMonitoringCard = () => {
                       </div>
                       {(log.old_values || log.new_values) && (
                         <details className="mt-2">
-                          <summary className="cursor-pointer text-xs text-gray-500">
+                          <summary className="cursor-pointer text-xs text-muted-foreground">
                             Voir les détails des modifications
                           </summary>
-                          <div className="mt-2 p-2 bg-gray-50 rounded text-xs space-y-2">
+                          <div className="mt-2 p-2 bg-muted rounded text-xs space-y-2">
                             {log.old_values && (
                               <div>
                                 <strong>Anciennes valeurs:</strong>

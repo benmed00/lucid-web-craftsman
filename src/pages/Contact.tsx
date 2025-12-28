@@ -130,21 +130,21 @@ const Contact = () => {
       
 
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-olive-600 to-olive-800 text-white py-20">
-        <div className="absolute inset-0 bg-black/10"></div>
+      <div className="relative bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-20">
+        <div className="absolute inset-0 bg-foreground/10"></div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="font-serif text-4xl md:text-6xl mb-6 leading-tight">
               PROFITEER/VANK/HICORIA/HLD\FISS
             </h1>
-            <p className="text-xl md:text-2xl text-olive-100 mb-8 leading-relaxed">
+            <p className="text-xl md:text-2xl text-primary-foreground/80 mb-8 leading-relaxed">
               Questions pertinentes et d'expertise. Contrôlez vos questions.
               Solutions développées commerciales spécialisées à l'entreprise.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
                       <Button 
                         size="lg" 
-                        className="bg-olive-700 text-white hover:bg-olive-800 px-8 py-3 text-lg font-semibold"
+                        className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 px-8 py-3 text-lg font-semibold"
                         id="contact-hero-button"
                         name="start-contact-discussion"
                       >

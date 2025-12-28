@@ -165,7 +165,7 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
               {imageItems.filter(item => !item.uploading).length}/{maxImages}
             </Badge>
             {hasUploading && (
-              <Badge variant="outline" className="text-xs text-amber-600 border-amber-300 bg-amber-50">
+              <Badge variant="outline" className="text-xs text-status-warning border-status-warning/30 bg-status-warning/10">
                 {uploadingCount} en cours...
               </Badge>
             )}
@@ -180,8 +180,8 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
                   key={index}
                   className={cn(
                     "relative group aspect-square rounded-lg overflow-hidden border-2 transition-all",
-                    dragOverIndex === index ? "border-olive-400 bg-olive-50" : "border-stone-200",
-                    index === 0 ? "ring-2 ring-olive-400" : ""
+                    dragOverIndex === index ? "border-primary bg-primary/5" : "border-border",
+                    index === 0 ? "ring-2 ring-primary" : ""
                   )}
                   draggable={!item.uploading}
                   onDragStart={(e) => handleDragStart(e, index)}
@@ -198,17 +198,17 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
 
                   {/* Upload overlay */}
                   {item.uploading && (
-                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
                       <div className="flex flex-col items-center space-y-2">
-                        <Loader2 className="h-6 w-6 animate-spin text-olive-600" />
-                        <span className="text-xs text-olive-600 font-medium">Upload...</span>
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        <span className="text-xs text-primary font-medium">Upload...</span>
                       </div>
                     </div>
                   )}
 
                   {/* Actions overlay */}
                   {!item.uploading && (
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                       <div className="flex space-x-1">
                         <Button
                           size="sm"
@@ -248,7 +248,7 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
 
                   {/* Primary image indicator */}
                   {index === 0 && (
-                    <Badge className="absolute top-2 left-2 bg-olive-600 text-white text-xs">
+                    <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs">
                       Principale
                     </Badge>
                   )}
@@ -270,15 +270,15 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
           )}
 
           {/* Help text */}
-          <div className="text-sm text-stone-500 space-y-1">
+          <div className="text-sm text-muted-foreground space-y-1">
             <p>• La première image sera utilisée comme image principale</p>
             <p>• Glissez-déposez pour réorganiser l'ordre des images</p>
             <p>• Formats supportés: JPG, PNG, WebP (max 5MB chacune)</p>
             <p>• Les images sont automatiquement optimisées</p>
             {hasUploading && (
-              <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <Loader2 className="h-4 w-4 animate-spin text-amber-600" />
-                <span className="text-amber-700 font-medium">
+              <div className="flex items-center gap-2 p-3 bg-status-warning/10 border border-status-warning/20 rounded-lg">
+                <Loader2 className="h-4 w-4 animate-spin text-status-warning" />
+                <span className="text-status-warning font-medium">
                   {uploadingCount} image{uploadingCount > 1 ? 's' : ''} en cours d'upload... Attendez avant de sauvegarder.
                 </span>
               </div>
