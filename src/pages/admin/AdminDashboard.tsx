@@ -177,12 +177,12 @@ const AdminDashboard = () => {
 
   const getStatusColor = (status: string): string => {
     switch (status) {
-      case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "processing": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "shipped": return "bg-purple-100 text-purple-800 border-purple-200";
-      case "delivered": return "bg-green-100 text-green-800 border-green-200";
-      case "cancelled": return "bg-red-100 text-red-800 border-red-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
+      case "pending": return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20";
+      case "processing": return "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20";
+      case "shipped": return "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20";
+      case "delivered": return "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20";
+      case "cancelled": return "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20";
+      default: return "bg-muted text-muted-foreground border-border";
     }
   };
 
@@ -209,7 +209,7 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-stone-600">Chargement du tableau de bord...</div>
+        <div className="text-muted-foreground">Chargement du tableau de bord...</div>
       </div>
     );
   }
@@ -218,77 +218,77 @@ const AdminDashboard = () => {
     <div className="space-y-8">
       {/* Welcome Section */}
       <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-serif font-bold text-stone-800">
+        <h1 className="text-3xl font-serif font-bold text-foreground">
           Tableau de bord
         </h1>
-        <p className="text-stone-600">
+        <p className="text-muted-foreground">
           Bienvenue dans votre espace d'administration. Voici un aperçu de votre activité.
         </p>
       </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-stone-200">
+        <Card className="border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-stone-600">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Produits Total
             </CardTitle>
-            <Package className="h-4 w-4 text-olive-600" />
+            <Package className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-stone-800">{stats.totalProducts}</div>
-              <p className="text-xs text-stone-500">
+            <div className="text-2xl font-bold text-foreground">{stats.totalProducts}</div>
+              <p className="text-xs text-muted-foreground">
                 {stats.activeProducts} actifs • {stats.lowStockProducts} stock faible
               </p>
           </CardContent>
         </Card>
 
-        <Card className="border-stone-200">
+        <Card className="border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-stone-600">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Commandes Total
             </CardTitle>
-            <ShoppingCart className="h-4 w-4 text-olive-600" />
+            <ShoppingCart className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-stone-800">{stats.totalOrders}</div>
-            <p className="text-xs text-stone-500">
+            <div className="text-2xl font-bold text-foreground">{stats.totalOrders}</div>
+            <p className="text-xs text-muted-foreground">
               {stats.pendingOrders} en attente
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-stone-200">
+        <Card className="border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-stone-600">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Chiffre d'affaires
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-olive-600" />
+            <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-stone-800">
+            <div className="text-2xl font-bold text-foreground">
               €{stats.totalRevenue.toFixed(2)}
             </div>
-            <p className="text-xs text-stone-500 flex items-center">
-              <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
+            <p className="text-xs text-muted-foreground flex items-center">
+              <TrendingUp className="h-3 w-3 mr-1 text-green-600 dark:text-green-400" />
               +12% ce mois
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-stone-200">
+        <Card className="border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-stone-600">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Panier Moyen
             </CardTitle>
-            <BarChart3 className="h-4 w-4 text-olive-600" />
+            <BarChart3 className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-stone-800">
+            <div className="text-2xl font-bold text-foreground">
               €{stats.avgOrderValue.toFixed(2)}
             </div>
-            <p className="text-xs text-stone-500 flex items-center">
-              <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
+            <p className="text-xs text-muted-foreground flex items-center">
+              <TrendingUp className="h-3 w-3 mr-1 text-green-600 dark:text-green-400" />
               +5% ce mois
             </p>
           </CardContent>
@@ -299,9 +299,9 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Orders */}
         <div className="lg:col-span-2">
-          <Card className="border-stone-200">
+          <Card className="border-border">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg font-semibold text-stone-800">
+              <CardTitle className="text-lg font-semibold text-foreground">
                 Commandes Récentes
               </CardTitle>
               <Link to="/admin/orders">
@@ -314,17 +314,17 @@ const AdminDashboard = () => {
             <CardContent>
               <div className="space-y-4">
                 {orders.length === 0 ? (
-                  <div className="text-center py-8 text-stone-500">
+                  <div className="text-center py-8 text-muted-foreground">
                     Aucune commande trouvée
                   </div>
                 ) : (
                   orders.slice(0, 5).map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-3 rounded-lg border border-stone-100">
+                    <div key={order.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3">
                           <div>
-                            <p className="font-medium text-stone-800">#{order.id.slice(-8)}</p>
-                            <p className="text-sm text-stone-500">
+                            <p className="font-medium text-foreground">#{order.id.slice(-8)}</p>
+                            <p className="text-sm text-muted-foreground">
                               {order.profiles?.full_name || 'Client anonyme'}
                             </p>
                           </div>
@@ -334,7 +334,7 @@ const AdminDashboard = () => {
                         <Badge className={getStatusColor(order.status)}>
                           {getStatusText(order.status)}
                         </Badge>
-                        <p className="font-semibold text-stone-800">
+                        <p className="font-semibold text-foreground">
                           €{(order.amount / 100).toFixed(2)}
                         </p>
                       </div>
@@ -348,9 +348,9 @@ const AdminDashboard = () => {
 
         {/* Recent Activity */}
         <div>
-          <Card className="border-stone-200">
+          <Card className="border-border">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-stone-800">
+              <CardTitle className="text-lg font-semibold text-foreground">
                 Activité Récente
               </CardTitle>
             </CardHeader>
@@ -360,12 +360,12 @@ const AdminDashboard = () => {
                   const Icon = getActivityIcon(activity.type);
                   return (
                     <div key={index} className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 p-2 rounded-full bg-olive-100">
-                        <Icon className="h-3 w-3 text-olive-600" />
+                      <div className="flex-shrink-0 p-2 rounded-full bg-primary/10">
+                        <Icon className="h-3 w-3 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-stone-800">{activity.message}</p>
-                        <p className="text-xs text-stone-500">{activity.time}</p>
+                        <p className="text-sm text-foreground">{activity.message}</p>
+                        <p className="text-xs text-muted-foreground">{activity.time}</p>
                       </div>
                     </div>
                   );
@@ -377,9 +377,9 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <Card className="border-stone-200">
+      <Card className="border-border">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-stone-800">
+          <CardTitle className="text-lg font-semibold text-foreground">
             Actions Rapides
           </CardTitle>
         </CardHeader>
@@ -390,7 +390,7 @@ const AdminDashboard = () => {
                 <Plus className="h-5 w-5 mr-3" />
                 <div className="text-left">
                   <div className="font-medium">Ajouter un produit</div>
-                  <div className="text-sm text-stone-500">Créer un nouveau produit</div>
+                  <div className="text-sm text-muted-foreground">Créer un nouveau produit</div>
                 </div>
               </Button>
             </Link>
@@ -400,7 +400,7 @@ const AdminDashboard = () => {
                 <ShoppingCart className="h-5 w-5 mr-3" />
                 <div className="text-left">
                   <div className="font-medium">Voir les commandes</div>
-                  <div className="text-sm text-stone-500">Gérer les commandes clients</div>
+                  <div className="text-sm text-muted-foreground">Gérer les commandes clients</div>
                 </div>
               </Button>
             </Link>
@@ -410,7 +410,7 @@ const AdminDashboard = () => {
                 <Settings className="h-5 w-5 mr-3" />
                 <div className="text-left">
                   <div className="font-medium">Paramètres</div>
-                  <div className="text-sm text-stone-500">Configurer la boutique</div>
+                  <div className="text-sm text-muted-foreground">Configurer la boutique</div>
                 </div>
               </Button>
             </Link>
@@ -422,9 +422,9 @@ const AdminDashboard = () => {
       <SecurityStatusCard />
 
       {/* Business Insights */}
-      <Card className="border-stone-200">
+      <Card className="border-border">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-stone-800">
+          <CardTitle className="text-lg font-semibold text-foreground">
             Aperçus Business
           </CardTitle>
         </CardHeader>
@@ -432,30 +432,30 @@ const AdminDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <TrendingUp className="h-4 w-4 text-green-600" />
-                <h4 className="font-medium text-stone-800">Croissance des ventes</h4>
+                <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <h4 className="font-medium text-foreground">Croissance des ventes</h4>
               </div>
-              <p className="text-sm text-stone-600">
+              <p className="text-sm text-muted-foreground">
                 Les ventes ont augmenté de 15% ce mois par rapport au mois dernier.
               </p>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <Package className="h-4 w-4 text-blue-600" />
-                <h4 className="font-medium text-stone-800">Produits populaires</h4>
+                <Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <h4 className="font-medium text-foreground">Produits populaires</h4>
               </div>
-              <p className="text-sm text-stone-600">
+              <p className="text-sm text-muted-foreground">
                 Les chapeaux représentent 45% des ventes totales ce mois.
               </p>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <Users className="h-4 w-4 text-purple-600" />
-                <h4 className="font-medium text-stone-800">Total clients</h4>
+                <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <h4 className="font-medium text-foreground">Total clients</h4>
               </div>
-              <p className="text-sm text-stone-600">
+              <p className="text-sm text-muted-foreground">
                 {stats.totalCustomers} client{stats.totalCustomers > 1 ? 's' : ''} inscrit{stats.totalCustomers > 1 ? 's' : ''} dans la boutique.
               </p>
             </div>

@@ -54,10 +54,10 @@ const AdminLayout = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olive-600 mx-auto mb-4"></div>
-          <p className="text-stone-600">Chargement...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Chargement...</p>
         </div>
       </div>
     );
@@ -121,29 +121,29 @@ const AdminLayout = () => {
   ];
 
   const Sidebar = ({ className }: { className?: string }) => (
-    <div className={cn("bg-white border-r border-stone-200 h-full", className)}>
-      <div className="p-6 border-b border-stone-200">
+    <div className={cn("bg-card border-r border-border h-full", className)}>
+      <div className="p-6 border-b border-border">
         <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-olive-100">
-            <Leaf className="h-5 w-5 text-olive-600" />
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Leaf className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">
-            <h2 className="font-serif text-lg font-semibold text-stone-800">
+            <h2 className="font-serif text-lg font-semibold text-foreground">
               Admin Panel
             </h2>
-            <p className="text-xs text-stone-500">Rif Raw Straw</p>
+            <p className="text-xs text-muted-foreground">Rif Raw Straw</p>
           </div>
         </div>
         
         {adminUser && (
-          <div className="mt-4 p-3 bg-stone-50 rounded-lg">
+          <div className="mt-4 p-3 bg-muted rounded-lg">
             <div className="flex items-center space-x-2">
-              <User className="h-4 w-4 text-stone-500" />
+              <User className="h-4 w-4 text-muted-foreground" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-stone-800 truncate">
+                <p className="text-sm font-medium text-foreground truncate">
                   {adminUser.name}
                 </p>
-                <p className="text-xs text-stone-500 truncate">
+                <p className="text-xs text-muted-foreground truncate">
                   {adminUser.email}
                 </p>
               </div>
@@ -168,8 +168,8 @@ const AdminLayout = () => {
               className={cn(
                 "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
                 isActive 
-                  ? "bg-olive-50 text-olive-700 border border-olive-200" 
-                  : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+                  ? "bg-primary/10 text-primary border border-primary/20" 
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
               <Icon className="h-4 w-4" />
@@ -183,7 +183,7 @@ const AdminLayout = () => {
         <Button
           onClick={handleLogout}
           variant="outline"
-          className="w-full justify-start text-stone-600 border-stone-300"
+          className="w-full justify-start text-muted-foreground border-border"
         >
           <LogOut className="h-4 w-4 mr-3" />
           Déconnexion
@@ -193,7 +193,7 @@ const AdminLayout = () => {
   );
 
   return (
-    <div className="min-h-screen bg-stone-50 flex">
+    <div className="min-h-screen bg-background flex">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block w-64 relative">
         <Sidebar />
@@ -209,7 +209,7 @@ const AdminLayout = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-white border-b border-stone-200 px-6 py-4">
+        <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Sheet>
@@ -226,10 +226,10 @@ const AdminLayout = () => {
               </Sheet>
               
               <div>
-                <h1 className="text-xl font-semibold text-stone-800">
+                <h1 className="text-xl font-semibold text-foreground">
                   Administration
                 </h1>
-                <p className="text-sm text-stone-500">
+                <p className="text-sm text-muted-foreground">
                   Gestion de votre boutique artisanale
                 </p>
               </div>

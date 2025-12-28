@@ -146,7 +146,7 @@ const AdminOrders = () => {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
-          <RefreshCw className="h-8 w-8 animate-spin text-olive-600" />
+          <RefreshCw className="h-8 w-8 animate-spin text-primary" />
         </div>
       </div>
     );
@@ -203,8 +203,8 @@ const AdminOrders = () => {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-stone-800">Gestion des Commandes</h1>
-          <p className="text-stone-600">Gérez toutes les commandes de votre boutique</p>
+          <h1 className="text-2xl font-bold text-foreground">Gestion des Commandes</h1>
+          <p className="text-muted-foreground">Gérez toutes les commandes de votre boutique</p>
         </div>
         <div className="flex space-x-2">
           <AddOrderDialog onOrderAdded={fetchOrders} />
@@ -222,12 +222,12 @@ const AdminOrders = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-stone-600">En attente</p>
-                <p className="text-2xl font-bold text-yellow-600">
+                <p className="text-sm text-muted-foreground">En attente</p>
+                <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                   {orders.filter(o => o.status === "pending").length}
                 </p>
               </div>
-              <Clock className="h-8 w-8 text-yellow-600" />
+              <Clock className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
             </div>
           </CardContent>
         </Card>
@@ -236,12 +236,12 @@ const AdminOrders = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-stone-600">Expédiées</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-sm text-muted-foreground">Expédiées</p>
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {orders.filter(o => o.status === "shipped").length}
                 </p>
               </div>
-              <Truck className="h-8 w-8 text-blue-600" />
+              <Truck className="h-8 w-8 text-blue-600 dark:text-blue-400" />
             </div>
           </CardContent>
         </Card>
@@ -250,12 +250,12 @@ const AdminOrders = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-stone-600">Terminées</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-sm text-muted-foreground">Terminées</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {orders.filter(o => o.status === "completed").length}
                 </p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
           </CardContent>
         </Card>
@@ -264,12 +264,12 @@ const AdminOrders = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-stone-600">Chiffre d'affaires</p>
-                <p className="text-2xl font-bold text-olive-600">
+                <p className="text-sm text-muted-foreground">Chiffre d'affaires</p>
+                <p className="text-2xl font-bold text-primary">
                   {(totalRevenue / 100).toFixed(2)} €
                 </p>
               </div>
-              <Package className="h-8 w-8 text-olive-600" />
+              <Package className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
@@ -281,7 +281,7 @@ const AdminOrders = () => {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-stone-400" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Rechercher par numéro, nom ou email..."
                   value={searchTerm}
@@ -312,32 +312,32 @@ const AdminOrders = () => {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-stone-50 border-b border-stone-200">
+              <thead className="bg-muted border-b border-border">
                 <tr>
-                  <th className="text-left p-4 font-medium text-stone-700">Commande</th>
-                  <th className="text-left p-4 font-medium text-stone-700">Client</th>
-                  <th className="text-left p-4 font-medium text-stone-700">Date</th>
-                  <th className="text-left p-4 font-medium text-stone-700">Total</th>
-                  <th className="text-left p-4 font-medium text-stone-700">Statut</th>
-                  <th className="text-left p-4 font-medium text-stone-700">Paiement</th>
-                  <th className="text-left p-4 font-medium text-stone-700">Actions</th>
+                  <th className="text-left p-4 font-medium text-foreground">Commande</th>
+                  <th className="text-left p-4 font-medium text-foreground">Client</th>
+                  <th className="text-left p-4 font-medium text-foreground">Date</th>
+                  <th className="text-left p-4 font-medium text-foreground">Total</th>
+                  <th className="text-left p-4 font-medium text-foreground">Statut</th>
+                  <th className="text-left p-4 font-medium text-foreground">Paiement</th>
+                  <th className="text-left p-4 font-medium text-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredOrders.map((order) => (
-                  <tr key={order.id} className="border-b border-stone-200 hover:bg-stone-50">
+                  <tr key={order.id} className="border-b border-border hover:bg-muted/50">
                     <td className="p-4">
                       <div>
-                        <p className="font-medium">{order.id.slice(-8)}</p>
-                        <p className="text-sm text-stone-600">
+                        <p className="font-medium text-foreground">{order.id.slice(-8)}</p>
+                        <p className="text-sm text-muted-foreground">
                           {order.order_items.length} article{order.order_items.length > 1 ? 's' : ''}
                         </p>
                       </div>
                     </td>
                     <td className="p-4">
                       <div>
-                        <p className="font-medium">Client #{order.user_id?.slice(-8) || 'Invité'}</p>
-                        <p className="text-sm text-stone-600">{order.stripe_session_id?.slice(-8) || 'N/A'}</p>
+                        <p className="font-medium text-foreground">Client #{order.user_id?.slice(-8) || 'Invité'}</p>
+                        <p className="text-sm text-muted-foreground">{order.stripe_session_id?.slice(-8) || 'N/A'}</p>
                       </div>
                     </td>
                     <td className="p-4">
@@ -377,11 +377,11 @@ const AdminOrders = () => {
 
           {filteredOrders.length === 0 && (
             <div className="p-12 text-center">
-              <ShoppingCart className="h-12 w-12 text-stone-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-stone-800 mb-2">
+              <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 Aucune commande trouvée
               </h3>
-              <p className="text-stone-600">
+              <p className="text-muted-foreground">
                 {searchTerm || statusFilter !== "all" 
                   ? "Aucune commande ne correspond à vos critères de recherche."
                   : "Vous n'avez pas encore reçu de commandes."
