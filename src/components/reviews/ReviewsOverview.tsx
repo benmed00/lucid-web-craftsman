@@ -19,8 +19,8 @@ const StarRating = ({ rating, size = 'md' }: { rating: number; size?: 'sm' | 'md
             size === 'sm' ? 'w-4 h-4' :
             size === 'md' ? 'w-5 h-5' : 'w-6 h-6',
             star <= Math.round(rating)
-              ? 'fill-yellow-400 text-yellow-400'
-              : 'text-gray-200'
+              ? 'fill-rating-star text-rating-star'
+              : 'text-rating-empty'
           )}
         />
       ))}

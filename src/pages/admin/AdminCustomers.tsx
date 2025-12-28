@@ -315,11 +315,11 @@ const AdminCustomers = () => {
               </thead>
               <tbody>
                 {filteredCustomers.map((customer) => (
-                  <tr key={customer.id} className="border-b border-stone-200 hover:bg-stone-50">
+                  <tr key={customer.id} className="border-b border-border hover:bg-muted/50">
                     <td className="p-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-olive-100 rounded-full flex items-center justify-center">
-                          <span className="text-olive-700 font-medium">
+                        <div className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center">
+                          <span className="text-primary font-medium">
                             {(customer.full_name || 'Client')
                               .split(' ')
                               .map(n => n[0])

@@ -81,8 +81,8 @@ export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProp
                     className={cn(
                       "w-8 h-8 transition-colors",
                       star <= (hoverRating || rating)
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "text-gray-300"
+                        ? "fill-rating-star text-rating-star"
+                        : "text-rating-empty"
                     )}
                   />
                 </button>
