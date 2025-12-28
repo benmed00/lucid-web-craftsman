@@ -103,9 +103,9 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
     <div className="min-h-screen">
       {/* Offline Alert - Mobile optimized */}
       {showOfflineAlert && (
-        <Alert className="fixed top-0 left-0 right-0 z-[60] rounded-none border-0 bg-amber-50 border-b border-amber-200">
-          <WifiOff className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="flex-1 text-amber-800">
+        <Alert className="fixed top-0 left-0 right-0 z-[60] rounded-none border-0 bg-status-warning/10 border-b border-status-warning/20">
+          <WifiOff className="h-4 w-4 text-status-warning" />
+          <AlertDescription className="flex-1 text-status-warning">
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm">Mode hors ligne - Fonctionnalités limitées</span>
               <div className="flex items-center gap-2">
@@ -113,7 +113,7 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
                   size="sm"
                   variant="ghost"
                   onClick={retryConnection}
-                  className="text-amber-700 hover:text-amber-800 h-auto py-1 px-2 text-xs"
+                  className="text-status-warning hover:text-status-warning/80 h-auto py-1 px-2 text-xs"
                 >
                   <RefreshCw className="h-3 w-3 mr-1" />
                   Réessayer
@@ -122,7 +122,7 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
                   size="sm"
                   variant="ghost"
                   onClick={() => setShowOfflineAlert(false)}
-                  className="text-amber-700 hover:text-amber-800 h-auto py-1 px-1"
+                  className="text-status-warning hover:text-status-warning/80 h-auto py-1 px-1"
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -136,7 +136,7 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
       <div className={`fixed top-4 right-4 z-40 transition-all duration-300 ${
         isOnline ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}>
-        <div className="bg-red-500 text-white px-3 py-2 rounded-full text-sm flex items-center shadow-lg">
+        <div className="bg-status-error text-background px-3 py-2 rounded-full text-sm flex items-center shadow-lg">
           <WifiOff className="h-4 w-4 mr-2" />
           Hors ligne
         </div>

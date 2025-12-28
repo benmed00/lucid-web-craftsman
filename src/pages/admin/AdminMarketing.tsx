@@ -545,29 +545,29 @@ const AdminMarketing = () => {
               </div>
             ) : (
               marketingData.coupons.map((coupon) => (
-                <div key={coupon.id} className="p-4 border border-stone-200 rounded-lg">
+                <div key={coupon.id} className="p-4 border border-border rounded-lg">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <h4 className="font-medium text-stone-800">
-                          Code: <span className="font-mono bg-stone-100 px-2 py-1 rounded">{coupon.code}</span>
+                        <h4 className="font-medium text-foreground">
+                          Code: <span className="font-mono bg-muted px-2 py-1 rounded">{coupon.code}</span>
                         </h4>
-                        <Badge className={coupon.is_active ? "bg-green-100 text-green-800 border-green-200" : "bg-stone-100 text-stone-800 border-stone-200"}>
+                        <Badge className={coupon.is_active ? "bg-status-success/10 text-status-success border-status-success/20" : "bg-muted text-muted-foreground border-border"}>
                           {coupon.is_active ? "Actif" : "Inactif"}
                         </Badge>
                       </div>
                       
                       <div className="space-y-1">
-                        <p className="text-sm text-stone-600">
+                        <p className="text-sm text-muted-foreground">
                           {coupon.type === 'percentage' ? `${coupon.value}% de réduction` : `${coupon.value}€ de réduction`}
                           {coupon.minimum_order_amount && ` • Minimum ${coupon.minimum_order_amount}€`}
                         </p>
-                        <p className="text-sm text-stone-600">
+                        <p className="text-sm text-muted-foreground">
                           Utilisé {coupon.usage_count} fois
                           {coupon.usage_limit && ` / ${coupon.usage_limit}`}
                         </p>
                         {coupon.valid_until && (
-                          <p className="text-sm text-stone-600">
+                          <p className="text-sm text-muted-foreground">
                             Expire le: {new Date(coupon.valid_until).toLocaleDateString('fr-FR')}
                           </p>
                         )}
@@ -578,7 +578,7 @@ const AdminMarketing = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteCoupon(coupon.id)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-status-error hover:text-status-error/80"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -595,7 +595,7 @@ const AdminMarketing = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
+            <TrendingUp className="h-5 w-5 mr-2 text-status-success" />
             Insights marketing
           </CardTitle>
           <CardDescription>
@@ -604,32 +604,32 @@ const AdminMarketing = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h4 className="font-semibold text-green-800 mb-2">💰 Opportunité de vente</h4>
-              <p className="text-sm text-green-700">
+            <div className="p-4 bg-status-success/10 border border-status-success/20 rounded-lg">
+              <h4 className="font-semibold text-status-success mb-2">💰 Opportunité de vente</h4>
+              <p className="text-sm text-status-success/80">
                 {marketingData.segments.find(s => s.id === 'at_risk')?.count || 0} clients n'ont pas commandé récemment. 
                 Une promotion ciblée pourrait les reconquérir.
               </p>
             </div>
 
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="font-semibold text-blue-800 mb-2">📧 Performance email</h4>
-              <p className="text-sm text-blue-700">
+            <div className="p-4 bg-status-info/10 border border-status-info/20 rounded-lg">
+              <h4 className="font-semibold text-status-info mb-2">📧 Performance email</h4>
+              <p className="text-sm text-status-info/80">
                 Votre base de {marketingData.newsletters.length} abonnés est prête pour vos campagnes !
               </p>
             </div>
 
-            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-              <h4 className="font-semibold text-purple-800 mb-2">🎯 Segmentation</h4>
-              <p className="text-sm text-purple-700">
+            <div className="p-4 bg-accent/10 border border-accent/20 rounded-lg">
+              <h4 className="font-semibold text-accent mb-2">🎯 Segmentation</h4>
+              <p className="text-sm text-accent/80">
                 {marketingData.segments.find(s => s.id === 'returning')?.count || 0} clients fidèles. 
                 Créez des offres exclusives pour les récompenser.
               </p>
             </div>
 
-            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-              <h4 className="font-semibold text-orange-800 mb-2">🆕 Nouveaux clients</h4>
-              <p className="text-sm text-orange-700">
+            <div className="p-4 bg-status-warning/10 border border-status-warning/20 rounded-lg">
+              <h4 className="font-semibold text-status-warning mb-2">🆕 Nouveaux clients</h4>
+              <p className="text-sm text-status-warning/80">
                 {marketingData.segments.find(s => s.id === 'new')?.count || 0} nouveaux clients ce mois ! 
                 Pensez à un email de bienvenue avec une offre spéciale.
               </p>

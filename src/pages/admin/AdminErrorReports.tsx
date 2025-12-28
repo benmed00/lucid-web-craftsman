@@ -217,20 +217,20 @@ const AdminErrorReports: React.FC = () => {
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical': return 'bg-red-500';
-      case 'high': return 'bg-orange-500';
-      case 'medium': return 'bg-yellow-500';
-      case 'low': return 'bg-blue-500';
-      default: return 'bg-gray-500';
+      case 'critical': return 'bg-status-error';
+      case 'high': return 'bg-status-warning';
+      case 'medium': return 'bg-status-warning/80';
+      case 'low': return 'bg-status-info';
+      default: return 'bg-muted-foreground';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'open': return <AlertCircle className="h-4 w-4 text-red-500" />;
-      case 'in_progress': return <Clock className="h-4 w-4 text-yellow-500" />;
-      case 'resolved': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      default: return <XCircle className="h-4 w-4 text-gray-500" />;
+      case 'open': return <AlertCircle className="h-4 w-4 text-status-error" />;
+      case 'in_progress': return <Clock className="h-4 w-4 text-status-warning" />;
+      case 'resolved': return <CheckCircle className="h-4 w-4 text-status-success" />;
+      default: return <XCircle className="h-4 w-4 text-muted-foreground" />;
     }
   };
 

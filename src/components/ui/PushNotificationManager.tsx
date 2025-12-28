@@ -93,9 +93,9 @@ export const PushNotificationManager = () => {
 
   return (
     <div className="fixed top-4 left-4 right-4 z-50 animate-fade-in">
-      <Alert className="bg-blue-50 border-blue-200">
-        <Bell className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-800">
+      <Alert className="bg-status-info/10 border-status-info/20">
+        <Bell className="h-4 w-4 text-status-info" />
+        <AlertDescription className="text-status-info">
           <div className="flex items-center justify-between">
             <div className="flex-1 pr-4">
               <p className="font-medium mb-1">Restez informé</p>
@@ -106,7 +106,7 @@ export const PushNotificationManager = () => {
               <Button
                 size="sm"
                 onClick={requestPermission}
-                className="bg-blue-600 hover:bg-blue-700 text-white h-8"
+                className="bg-status-info hover:bg-status-info/90 text-background h-8"
               >
                 Activer
               </Button>
@@ -115,7 +115,7 @@ export const PushNotificationManager = () => {
                 size="sm"
                 variant="ghost"
                 onClick={dismissPrompt}
-                className="text-blue-600 hover:text-blue-700 h-8 w-8 p-0"
+                className="text-status-info hover:text-status-info/80 h-8 w-8 p-0"
               >
                 <X className="h-4 w-4" />
               </Button>
