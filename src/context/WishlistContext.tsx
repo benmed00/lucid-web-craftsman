@@ -75,7 +75,14 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         setWishlistItems(prev => [data, ...prev]);
       }
       
-      toast.success('Produit ajouté aux favoris');
+      toast.success('Produit ajouté aux favoris', {
+        action: {
+          label: 'Voir mes favoris',
+          onClick: () => {
+            window.location.href = `/wishlist?highlight=${productId}`;
+          }
+        }
+      });
       return true;
     } catch (error) {
       console.error('Error adding to wishlist:', error);

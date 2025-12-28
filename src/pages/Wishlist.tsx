@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Heart, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,6 +28,40 @@ const Wishlist = () => {
   const { formatPrice } = useCurrency();
   const [wishlistProducts, setWishlistProducts] = useState<WishlistProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [highlightedProductId, setHighlightedProductId] = useState<number | null>(null);
+  const productRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
+  // Handle highlight param from URL
+  useEffect(() => {
+    const highlightParam = searchParams.get('highlight');
+    if (highlightParam) {
+      const productId = parseInt(highlightParam, 10);
+      if (!isNaN(productId)) {
+        setHighlightedProductId(productId);
+        // Clean URL after reading the param
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [searchParams, setSearchParams]);
+
+  // Scroll to highlighted product when products are loaded
+  useEffect(() => {
+    if (highlightedProductId && wishlistProducts.length > 0 && !loadingProducts) {
+      const productElement = productRefs.current.get(highlightedProductId);
+      if (productElement) {
+        // Small delay to ensure DOM is ready
+        setTimeout(() => {
+          productElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+        
+        // Remove highlight after animation (3 seconds)
+        setTimeout(() => {
+          setHighlightedProductId(null);
+        }, 3000);
+      }
+    }
+  }, [highlightedProductId, wishlistProducts, loadingProducts]);
 
   // Fetch products from database when wishlist items change
   useEffect(() => {
@@ -178,11 +212,20 @@ const Wishlist = () => {
           ) : (
             <div className="space-y-4 animate-fade-in">
               {wishlistProducts.map((product, index) => (
-                <Card 
-                  key={product.id} 
-                  className="hover:shadow-md transition-all duration-200 animate-fade-in-up"
-                  style={{ animationDelay: `${index * 100}ms` }}
+                <div
+                  key={product.id}
+                  ref={(el) => {
+                    if (el) productRefs.current.set(product.id, el);
+                  }}
                 >
+                  <Card 
+                    className={`hover:shadow-md transition-all duration-200 animate-fade-in-up ${
+                      highlightedProductId === product.id 
+                        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg animate-pulse' 
+                        : ''
+                    }`}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
                   <CardContent className="p-4 md:p-6">
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                       {/* Product Image */}
@@ -254,6 +297,7 @@ const Wishlist = () => {
                     </div>
                   </CardContent>
                 </Card>
+                </div>
               ))}
 
               <Separator className="my-8" />
