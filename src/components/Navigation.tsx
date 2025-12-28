@@ -20,10 +20,11 @@ const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Close mobile menu when resizing to desktop breakpoint (768px)
+  // Close mobile menu when resizing to desktop breakpoint (md = 768px)
   useEffect(() => {
+    const MD_BREAKPOINT = 768; // Tailwind md breakpoint
     const handleResize = () => {
-      if (window.innerWidth >= 768 && isMenuOpen) {
+      if (window.innerWidth >= MD_BREAKPOINT && isMenuOpen) {
         setIsMenuOpen(false);
       }
     };
