@@ -180,12 +180,12 @@ const Blog = () => {
           </div>
 
           {/* Newsletter */}
-          <div className="mt-16 bg-olive-700 rounded-lg p-8 md:p-12">
+          <div className="mt-16 bg-primary rounded-lg p-8 md:p-12">
             <div className="max-w-3xl mx-auto text-center">
-              <h3 className="font-serif text-2xl text-white mb-3">
+              <h3 className="font-serif text-2xl text-primary-foreground mb-3">
                 Abonnez-vous à notre newsletter
               </h3>
-              <p className="text-olive-100 mb-6">
+              <p className="text-primary-foreground/80 mb-6">
                 Ne manquez aucun article, recevez nos dernières histoires et
                 nouvelles collections directement dans votre boîte mail.
               </p>
@@ -194,9 +194,9 @@ const Blog = () => {
                 <input
                   type="email"
                   placeholder="Votre adresse email"
-                  className="flex-grow px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-300"
+                  className="flex-grow px-4 py-3 rounded-md bg-background text-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
-                <Button className="bg-olive-900 hover:bg-olive-950 text-white">
+                <Button className="bg-background text-foreground hover:bg-muted">
                   S'abonner
                 </Button>
               </form>
