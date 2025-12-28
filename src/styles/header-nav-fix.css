@@ -14,8 +14,8 @@
   top: 0;
   z-index: 40;
   width: 100%;
-  background: white;
-  border-bottom: 1px solid hsl(var(--stone-200));
+  background: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--border));
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
   
   /* Prevent any layout changes */
@@ -31,7 +31,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
-  height: 80px; /* Fixed height prevents layout shift */
+  height: 64px; /* Aligned with Navigation.tsx h-16 */
   
   /* Performance optimization */
   contain: layout style;
@@ -44,7 +44,7 @@
 .header-nav {
   display: none;
   align-items: center;
-  height: 80px;
+  height: 64px;
 }
 
 @media (min-width: 768px) {
@@ -60,7 +60,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  height: 80px;
+  height: 64px;
 }
 
 .header-nav a {
@@ -81,7 +81,7 @@
   white-space: nowrap;
   
   /* Color transitions only - NEVER transition layout properties */
-  color: hsl(var(--stone-700));
+  color: hsl(var(--foreground));
   transition: color 0.15s ease-out;
   
   /* CRITICAL: Prevent any movement or shifts */
@@ -98,7 +98,7 @@
 }
 
 .header-nav a:hover {
-  color: hsl(var(--stone-900));
+  color: hsl(var(--primary));
 }
 
 /* =================================================================
@@ -125,7 +125,7 @@
   transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   
   /* Visual styling */
-  background: hsl(var(--olive-700));
+  background: hsl(var(--primary));
   border-radius: 1px;
   
   /* Layer management */
@@ -157,24 +157,24 @@
 
 /* REQUIREMENT: aria-current="page" handling */
 .header-nav a[aria-current="page"] {
-  color: hsl(var(--olive-800));
+  color: hsl(var(--primary));
   font-weight: 600;
 }
 
 .header-nav a[aria-current="page"]::after {
   transform: scaleX(1);
-  background: hsl(var(--olive-800));
+  background: hsl(var(--primary));
 }
 
 /* Alternative active class support */
 .header-nav a.is-active {
-  color: hsl(var(--olive-800));
+  color: hsl(var(--primary));
   font-weight: 600;
 }
 
 .header-nav a.is-active::after {
   transform: scaleX(1);
-  background: hsl(var(--olive-800));
+  background: hsl(var(--primary));
 }
 
 /* =================================================================

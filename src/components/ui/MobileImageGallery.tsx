@@ -104,19 +104,19 @@ export const MobileImageGallery = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black">
+    <div className="fixed inset-0 z-modal bg-foreground">
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/50 to-transparent p-4 safe-area">
+      <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-foreground/50 to-transparent p-4 safe-area">
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="text-white hover:bg-white/10 p-2 rounded-full"
+            className="text-background hover:bg-background/10 p-2 rounded-full"
           >
             <X className="h-5 w-5" />
           </Button>
-          <div className="text-white text-sm font-medium">
+          <div className="text-background text-sm font-medium">
             {currentIndex + 1} / {images.length}
           </div>
         </div>
