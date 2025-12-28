@@ -164,7 +164,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
               <>
                 <button
                   onClick={prevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow border border-gray-200/60 flex items-center justify-center"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-background/90 hover:bg-background shadow border border-border flex items-center justify-center"
                   aria-label="Image précédente"
                 >
                   <span className="sr-only">Précédente</span>
@@ -172,7 +172,7 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                 </button>
                 <button
                   onClick={nextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow border border-gray-200/60 flex items-center justify-center"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-background/90 hover:bg-background shadow border border-border flex items-center justify-center"
                   aria-label="Image suivante"
                 >
                   <span className="sr-only">Suivante</span>
@@ -183,15 +183,15 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
             {/* Thumbnails - Desktop */}
             {images.length > 1 && (
-              <div className="hidden lg:flex absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t p-4 gap-3 overflow-x-auto">
+              <div className="hidden lg:flex absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4 gap-3 overflow-x-auto">
                 {images.slice(0, 6).map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImageIndex(index)}
                     className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all duration-300 ${
                       index === selectedImageIndex 
-                        ? 'border-olive-600 shadow-lg scale-105 ring-2 ring-olive-200' 
-                        : 'border-gray-200 hover:border-gray-300 hover:scale-102'
+                        ? 'border-primary shadow-lg scale-105 ring-2 ring-primary/20' 
+                        : 'border-border hover:border-muted-foreground hover:scale-102'
                     }`}
                   >
                     <img
@@ -206,8 +206,8 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
             )}
 
             {/* Zoom Indicator */}
-            <div className="absolute bottom-8 right-8 bg-black/30 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-              <ZoomIn className="h-4 w-4 text-white" />
+            <div className="absolute bottom-8 right-8 bg-foreground/30 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+              <ZoomIn className="h-4 w-4 text-background" />
             </div>
           </div>
         </div>
@@ -218,11 +218,11 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
             {/* Header */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Badge variant="outline" className="text-olive-700 border-olive-300 bg-olive-50 px-3 py-1.5 text-sm font-medium">
+                <Badge variant="outline" className="text-primary border-primary/30 bg-primary/5 px-3 py-1.5 text-sm font-medium">
                   {product.category}
                 </Badge>
                 {product.artisan && (
-                  <Badge variant="outline" className="text-blue-700 border-blue-300 bg-blue-50 px-3 py-1.5 text-sm font-medium">
+                  <Badge variant="outline" className="text-accent border-accent/30 bg-accent/5 px-3 py-1.5 text-sm font-medium">
                     Fait main
                   </Badge>
                 )}

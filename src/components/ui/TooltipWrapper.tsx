@@ -30,7 +30,7 @@ export const TooltipWrapper = ({
         </TooltipTrigger>
         <TooltipContent 
           side={side}
-          className="bg-stone-800 text-white text-xs px-2 py-1 rounded-md shadow-lg border border-stone-600 font-normal max-w-xs z-50 animate-in fade-in-50 zoom-in-95 duration-200"
+          className="bg-popover text-popover-foreground text-xs px-2 py-1 rounded-md shadow-lg border border-border font-normal max-w-xs z-50 animate-in fade-in-50 zoom-in-95 duration-200"
           sideOffset={6}
           avoidCollisions={true}
           collisionPadding={8}

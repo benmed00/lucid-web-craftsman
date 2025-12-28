@@ -135,15 +135,15 @@ export const MobilePromotions = ({ cartTotal = 0, onPromotionApply }: MobileProm
   const getPromotionColor = (type: Promotion['type']) => {
     switch (type) {
       case 'flash_sale':
-        return 'bg-red-100 text-red-700 border-red-200';
+        return 'bg-status-error/10 text-status-error border-status-error/20';
       case 'discount':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
+        return 'bg-status-info/10 text-status-info border-status-info/20';
       case 'gift':
-        return 'bg-purple-100 text-purple-700 border-purple-200';
+        return 'bg-accent/10 text-accent border-accent/20';
       case 'free_shipping':
-        return 'bg-green-100 text-green-700 border-green-200';
+        return 'bg-status-success/10 text-status-success border-status-success/20';
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 

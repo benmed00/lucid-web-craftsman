@@ -226,7 +226,7 @@ const AdminHeroImage = () => {
           <Button 
             onClick={handleSave}
             disabled={!hasChanges || isSaving}
-            className="bg-olive-700 hover:bg-olive-800"
+            className="bg-primary hover:bg-primary/90"
           >
             {isSaving ? (
               <>

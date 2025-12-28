@@ -160,10 +160,10 @@ export const MobilePaymentButtons = ({
     <div className="space-y-3">
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-stone-200" />
+          <span className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-stone-500">Paiement express</span>
+          <span className="bg-background px-2 text-muted-foreground">Paiement express</span>
         </div>
       </div>
 
@@ -173,7 +173,7 @@ export const MobilePaymentButtons = ({
           <Button
             onClick={handleApplePay}
             disabled={disabled || isProcessing !== null}
-            className="relative h-12 bg-black hover:bg-gray-800 text-white font-medium rounded-md transition-all duration-200 disabled:opacity-50"
+            className="relative h-12 bg-foreground hover:bg-foreground/90 text-background font-medium rounded-md transition-all duration-200 disabled:opacity-50"
           >
             {isProcessing === 'apple' ? (
               <Loader2 className="h-5 w-5 animate-spin" />

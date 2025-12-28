@@ -106,18 +106,18 @@ export const PWAInstallPrompt = ({ onInstall, onDismiss }: PWAInstallPromptProps
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-40 animate-fade-in">
-      <Card className="bg-white border border-olive-200 shadow-lg">
+      <Card className="bg-card border border-border shadow-lg">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 bg-olive-100 p-2 rounded-full">
-              <Smartphone className="h-5 w-5 text-olive-700" />
+            <div className="flex-shrink-0 bg-secondary p-2 rounded-full">
+              <Smartphone className="h-5 w-5 text-primary" />
             </div>
             
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-stone-800 text-sm mb-1">
+              <h3 className="font-semibold text-foreground text-sm mb-1">
                 Installer l'application
               </h3>
-              <p className="text-stone-600 text-xs leading-relaxed mb-3">
+              <p className="text-muted-foreground text-xs leading-relaxed mb-3">
                 Ajoutez Rif Raw Straw à votre écran d'accueil pour un accès rapide et une expérience optimisée.
               </p>
               
@@ -125,7 +125,7 @@ export const PWAInstallPrompt = ({ onInstall, onDismiss }: PWAInstallPromptProps
                 <Button
                   size="sm"
                   onClick={handleInstallClick}
-                  className="bg-olive-700 hover:bg-olive-800 text-white text-xs px-3 py-2 h-auto"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-3 py-2 h-auto"
                 >
                   <Download className="h-3 w-3 mr-1.5" />
                   Installer
@@ -135,7 +135,7 @@ export const PWAInstallPrompt = ({ onInstall, onDismiss }: PWAInstallPromptProps
                   size="sm"
                   variant="ghost"
                   onClick={handleDismiss}
-                  className="text-stone-600 hover:text-stone-800 text-xs px-3 py-2 h-auto"
+                  className="text-muted-foreground hover:text-foreground text-xs px-3 py-2 h-auto"
                 >
                   Plus tard
                 </Button>
@@ -146,7 +146,7 @@ export const PWAInstallPrompt = ({ onInstall, onDismiss }: PWAInstallPromptProps
               size="sm"
               variant="ghost"
               onClick={handleDismiss}
-              className="flex-shrink-0 p-1 h-auto w-auto text-stone-400 hover:text-stone-600"
+              className="flex-shrink-0 p-1 h-auto w-auto text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4" />
             </Button>
