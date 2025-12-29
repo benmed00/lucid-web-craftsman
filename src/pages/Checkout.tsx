@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle, CreditCard, Tag, Loader2, X } from "lucide-react";
+import { ArrowLeft, CheckCircle, CreditCard, Tag, Loader2, X, Truck } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Stripe } from "@stripe/stripe-js"; // Type import only
 import { useEffect, useState } from "react";
@@ -27,6 +27,12 @@ interface DiscountCoupon {
   value: number;
   minimum_order_amount: number | null;
   maximum_discount_amount: number | null;
+  includes_free_shipping?: boolean;
+}
+
+interface FreeShippingSettings {
+  amount: number;
+  enabled: boolean;
 }
 
 const Checkout = () => {
@@ -40,6 +46,12 @@ const Checkout = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(null);
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
   const [promoError, setPromoError] = useState("");
+  
+  // Free shipping settings
+  const [freeShippingSettings, setFreeShippingSettings] = useState<FreeShippingSettings>({
+    amount: 100,
+    enabled: true
+  });
   
   // Convert cart state items to the format expected by checkout
   const cartItems = cart.items.map(item => ({
@@ -59,6 +71,28 @@ const Checkout = () => {
     country: "FR",
   });
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Fetch free shipping settings
+  useEffect(() => {
+    const fetchFreeShippingSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('app_settings')
+          .select('setting_value')
+          .eq('setting_key', 'free_shipping_threshold')
+          .maybeSingle();
+
+        if (!error && data?.setting_value) {
+          const settings = data.setting_value as unknown as FreeShippingSettings;
+          setFreeShippingSettings(settings);
+        }
+      } catch (error) {
+        console.error("Error fetching free shipping settings:", error);
+      }
+    };
+    
+    fetchFreeShippingSettings();
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -254,7 +288,16 @@ const Checkout = () => {
     0
   );
   const discount = calculateDiscount();
-  const shipping = subtotal > 0 ? 6.95 : 0;
+  
+  // Check if free shipping applies
+  const hasFreeShipping = 
+    // Coupon includes free shipping
+    appliedCoupon?.includes_free_shipping ||
+    // Or subtotal exceeds threshold
+    (freeShippingSettings.enabled && subtotal >= freeShippingSettings.amount);
+  
+  const shippingCost = 6.95;
+  const shipping = hasFreeShipping ? 0 : (subtotal > 0 ? shippingCost : 0);
   const total = subtotal - discount + shipping;
 
   // Show empty cart message if no items
@@ -742,8 +785,26 @@ const Checkout = () => {
                   
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Frais de livraison</span>
-                    <span className="font-medium">{shipping.toFixed(2)} €</span>
+                    {hasFreeShipping ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground line-through text-sm">{shippingCost.toFixed(2)} €</span>
+                        <span className="font-medium text-primary flex items-center gap-1">
+                          <Truck className="h-3 w-3" />
+                          Gratuit
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="font-medium">{shipping.toFixed(2)} €</span>
+                    )}
                   </div>
+                  
+                  {/* Free shipping progress hint */}
+                  {!hasFreeShipping && freeShippingSettings.enabled && subtotal > 0 && (
+                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded-md">
+                      <Truck className="h-3 w-3 inline mr-1" />
+                      Plus que {(freeShippingSettings.amount - subtotal).toFixed(2)} € pour la livraison gratuite !
+                    </div>
+                  )}
                   <Separator className="my-2" />
                   <div className="flex justify-between text-lg">
                     <span className="font-medium">Total</span>
