@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -40,11 +41,13 @@ import {
   Loader2,
   Copy,
   Check,
+  List,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import PromoCodeStats from "@/components/admin/PromoCodeStats";
 
 interface DiscountCoupon {
   id: string;
@@ -549,47 +552,65 @@ const AdminPromoCodes = () => {
         </Dialog>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total codes</CardTitle>
-            <Tag className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{coupons.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Actifs</CardTitle>
-            <Check className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeCoupons}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Utilisations</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalUsage}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Seuil livraison gratuite</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {freeShippingSettings.enabled ? `${freeShippingSettings.amount} €` : "Désactivé"}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Tabs for Stats and List */}
+      <Tabs defaultValue="list" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="list" className="gap-2">
+            <List className="h-4 w-4" />
+            Liste des codes
+          </TabsTrigger>
+          <TabsTrigger value="stats" className="gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Statistiques détaillées
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="stats" className="space-y-6">
+          <PromoCodeStats coupons={coupons} />
+        </TabsContent>
+
+        <TabsContent value="list" className="space-y-6">
+          {/* Stats Cards */}
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total codes</CardTitle>
+                <Tag className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{coupons.length}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Actifs</CardTitle>
+                <Check className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{activeCoupons}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Utilisations</CardTitle>
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalUsage}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Seuil livraison gratuite</CardTitle>
+                <Truck className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {freeShippingSettings.enabled ? `${freeShippingSettings.amount} €` : "Désactivé"}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
       {/* Free Shipping Settings */}
       <Card>
@@ -766,6 +787,8 @@ const AdminPromoCodes = () => {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
