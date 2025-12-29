@@ -17,7 +17,8 @@ import {
   Megaphone,
   User,
   Image,
-  AlertTriangle
+  AlertTriangle,
+  Tag
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -102,6 +103,11 @@ const AdminLayout = () => {
       icon: Megaphone,
       label: "Marketing",
       path: "/admin/marketing",
+    },
+    {
+      icon: Tag,
+      label: "Codes Promo",
+      path: "/admin/promo-codes",
     },
     {
       icon: BarChart3,

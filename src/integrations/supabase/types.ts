@@ -47,6 +47,33 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -290,6 +317,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           id: string
+          includes_free_shipping: boolean | null
           is_active: boolean | null
           maximum_discount_amount: number | null
           minimum_order_amount: number | null
@@ -309,6 +337,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          includes_free_shipping?: boolean | null
           is_active?: boolean | null
           maximum_discount_amount?: number | null
           minimum_order_amount?: number | null
@@ -328,6 +357,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          includes_free_shipping?: boolean | null
           is_active?: boolean | null
           maximum_discount_amount?: number | null
           minimum_order_amount?: number | null
