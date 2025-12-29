@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.send-order-notification-improved]
 verify_jwt = false
+
+[functions.check-promo-alerts]
+verify_jwt = false

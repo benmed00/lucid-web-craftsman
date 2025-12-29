@@ -48,6 +48,8 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import PromoCodeStats from "@/components/admin/PromoCodeStats";
+import PromoCodeExport from "@/components/admin/PromoCodeExport";
+import PromoAlertChecker from "@/components/admin/PromoAlertChecker";
 
 interface DiscountCoupon {
   id: string;
@@ -370,21 +372,24 @@ const AdminPromoCodes = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold">Codes Promo</h1>
           <p className="text-muted-foreground">Gérez vos codes promotionnels et réductions</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) resetForm();
-        }}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nouveau code
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2 flex-wrap">
+          <PromoCodeExport coupons={coupons} />
+          <PromoAlertChecker />
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) resetForm();
+          }}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Nouveau code
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>
@@ -550,6 +555,7 @@ const AdminPromoCodes = () => {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Tabs for Stats and List */}
