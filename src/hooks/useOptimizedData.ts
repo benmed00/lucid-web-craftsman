@@ -1,77 +1,16 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import cache, { CacheTTL, CacheTags, createCacheKey } from '@/lib/cache/UnifiedCache';
 
 // Export the generic hook
 export { useOptimizedQuery as useOptimizedData };
 
-// Generic cache implementation with TTL
-class DataCache {
-  private cache = new Map<string, { 
-    data: any; 
-    timestamp: number; 
-    ttl: number; 
-    stale?: boolean;
-  }>();
-  
-  private defaultTTL = 10 * 60 * 1000; // 10 minutes
-  private staleTime = 5 * 60 * 1000; // 5 minutes
-
-  set(key: string, data: any, ttl = this.defaultTTL) {
-    this.cache.set(key, { 
-      data, 
-      timestamp: Date.now(), 
-      ttl,
-      stale: false 
-    });
-  }
-
-  get(key: string) {
-    const item = this.cache.get(key);
-    if (!item) return { data: null, isStale: false };
-    
-    const now = Date.now();
-    const age = now - item.timestamp;
-    
-    // Mark as stale but still usable
-    if (age > this.staleTime && age <= item.ttl) {
-      item.stale = true;
-      return { data: item.data, isStale: true };
-    }
-    
-    // Expired - remove from cache
-    if (age > item.ttl) {
-      this.cache.delete(key);
-      return { data: null, isStale: false };
-    }
-    
-    return { data: item.data, isStale: false };
-  }
-
-  invalidate(keyPattern?: string) {
-    if (!keyPattern) {
-      this.cache.clear();
-      return;
-    }
-    
-    const keysToDelete: string[] = [];
-    this.cache.forEach((_, key) => {
-      if (key.includes(keyPattern)) {
-        keysToDelete.push(key);
-      }
-    });
-    
-    keysToDelete.forEach(key => this.cache.delete(key));
-  }
-
-  getStats() {
-    return {
-      size: this.cache.size,
-      keys: Array.from(this.cache.keys()),
-    };
-  }
-}
-
-const dataCache = new DataCache();
+// Re-export cache utilities for backward compatibility
+export const cacheUtils = {
+  invalidate: (pattern?: string) => cache.invalidate(pattern),
+  getStats: () => cache.getStats(),
+  clear: () => cache.invalidate(),
+};
 
 interface QueryOptions {
   enableCache?: boolean;
@@ -79,6 +18,7 @@ interface QueryOptions {
   staleTime?: number;
   refetchOnWindowFocus?: boolean;
   retry?: number;
+  tags?: string[];
 }
 
 interface QueryState<T> {
@@ -90,7 +30,7 @@ interface QueryState<T> {
   refetch: () => Promise<void>;
 }
 
-// Generic optimized data fetching hook
+// Generic optimized data fetching hook using UnifiedCache
 export function useOptimizedQuery<T>(
   queryKey: string,
   queryFn: () => Promise<T>,
@@ -98,9 +38,11 @@ export function useOptimizedQuery<T>(
 ): QueryState<T> {
   const {
     enableCache = true,
-    cacheTime = 10 * 60 * 1000, // 10 minutes
+    cacheTime = CacheTTL.MEDIUM,
+    staleTime = CacheTTL.SHORT,
     refetchOnWindowFocus = false,
     retry = 1,
+    tags = [],
   } = options;
 
   const [state, setState] = useState<QueryState<T>>({
@@ -114,10 +56,10 @@ export function useOptimizedQuery<T>(
 
   const fetchData = useCallback(async (forceRefresh = false) => {
     try {
-      // Check cache first
+      // Check unified cache first
       if (enableCache && !forceRefresh) {
-        const cached = dataCache.get(queryKey);
-        if (cached.data) {
+        const cached = cache.get<T>(queryKey);
+        if (cached.data !== null) {
           setState(prev => ({
             ...prev,
             data: cached.data,
@@ -144,9 +86,9 @@ export function useOptimizedQuery<T>(
         try {
           const data = await queryFn();
           
-          // Cache the result
+          // Cache the result using unified cache
           if (enableCache) {
-            dataCache.set(queryKey, data, cacheTime);
+            cache.set(queryKey, data, { ttl: cacheTime, staleTime, tags });
           }
 
           setState(prev => ({
@@ -183,7 +125,7 @@ export function useOptimizedQuery<T>(
         error: error as Error,
       }));
     }
-  }, [queryKey, queryFn, enableCache, cacheTime, retry]);
+  }, [queryKey, queryFn, enableCache, cacheTime, staleTime, retry, tags]);
 
   const refetch = useCallback(() => fetchData(true), [fetchData]);
 
@@ -219,7 +161,7 @@ export function useOptimizedProducts(filters?: {
   search?: string;
   limit?: number;
 }) {
-  const queryKey = `products_${JSON.stringify(filters || {})}`;
+  const queryKey = createCacheKey('products', JSON.stringify(filters || {}));
   
   const queryFn = useCallback(async () => {
     let query = supabase
@@ -252,14 +194,16 @@ export function useOptimizedProducts(filters?: {
   }, [filters]);
 
   return useOptimizedQuery(queryKey, queryFn, {
-    cacheTime: 15 * 60 * 1000, // Cache products for 15 minutes
+    cacheTime: CacheTTL.LONG,
+    staleTime: CacheTTL.MEDIUM,
     refetchOnWindowFocus: true,
+    tags: [CacheTags.PRODUCTS],
   });
 }
 
 // Optimized orders hook
 export function useOptimizedOrders(userId?: string) {
-  const queryKey = `orders_${userId}`;
+  const queryKey = createCacheKey('orders', userId);
   
   const queryFn = useCallback(async () => {
     if (!userId) return [];
@@ -280,13 +224,14 @@ export function useOptimizedOrders(userId?: string) {
 
   return useOptimizedQuery(queryKey, queryFn, {
     enableCache: !!userId,
-    cacheTime: 5 * 60 * 1000, // Cache orders for 5 minutes
+    cacheTime: CacheTTL.SHORT,
+    tags: [CacheTags.ORDERS],
   });
 }
 
 // Optimized cart hook with real-time updates
 export function useOptimizedCart(userId?: string) {
-  const queryKey = `cart_${userId}`;
+  const queryKey = createCacheKey('cart', userId);
   
   const queryFn = useCallback(async () => {
     if (!userId) return [];
@@ -305,8 +250,9 @@ export function useOptimizedCart(userId?: string) {
 
   const result = useOptimizedQuery(queryKey, queryFn, {
     enableCache: !!userId,
-    cacheTime: 2 * 60 * 1000, // Cache cart for 2 minutes
+    cacheTime: CacheTTL.SHORT,
     refetchOnWindowFocus: true,
+    tags: [CacheTags.CART],
   });
 
   // Set up real-time subscription for cart changes
@@ -322,7 +268,7 @@ export function useOptimizedCart(userId?: string) {
         filter: `user_id=eq.${userId}`,
       }, () => {
         // Invalidate cache and refetch
-        dataCache.invalidate(`cart_${userId}`);
+        cache.invalidate(queryKey);
         result.refetch();
       })
       .subscribe();
@@ -330,44 +276,39 @@ export function useOptimizedCart(userId?: string) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [userId, result]);
+  }, [userId, queryKey, result]);
 
   return result;
 }
 
-// Cache management utilities
-export const cacheUtils = {
-  invalidate: (pattern?: string) => dataCache.invalidate(pattern),
-  getStats: () => dataCache.getStats(),
-  clear: () => dataCache.invalidate(),
-};
-
 // Prefetch utility for performance
 export const prefetchData = {
-  products: (filters?: any) => {
-    const queryKey = `products_${JSON.stringify(filters || {})}`;
-    // Prefetch in background without updating UI
-    setTimeout(async () => {
-      try {
-        const cached = dataCache.get(queryKey);
-        if (!cached.data) {
-          let query = supabase
-            .from('products')
-            .select('*')
-            .eq('is_active', true);
+  products: async (filters?: Record<string, unknown>) => {
+    const queryKey = createCacheKey('products', JSON.stringify(filters || {}));
+    
+    // Only prefetch if not already cached
+    const cached = cache.get(queryKey);
+    if (cached.data) return;
 
-          if (filters?.category) {
-            query = query.eq('category', filters.category);
-          }
-          
-          const { data } = await query.limit(20);
-          if (data) {
-            dataCache.set(queryKey, data);
-          }
-        }
-      } catch (error) {
-        console.warn('Prefetch failed:', error);
+    try {
+      let query = supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true);
+
+      if (filters?.category) {
+        query = query.eq('category', filters.category as string);
       }
-    }, 100);
+      
+      const { data } = await query.limit(20);
+      if (data) {
+        cache.set(queryKey, data, { 
+          ttl: CacheTTL.LONG, 
+          tags: [CacheTags.PRODUCTS] 
+        });
+      }
+    } catch (error) {
+      console.warn('Prefetch failed:', error);
+    }
   },
 };
