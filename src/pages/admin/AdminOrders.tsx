@@ -17,6 +17,8 @@ import { AddOrderDialog } from "@/components/admin/AddOrderDialog";
 import { ManualTestOrderStatus } from "@/components/admin/ManualTestOrderStatus";
 import { TestOrderEmailButton } from "@/components/admin/TestOrderEmailButton";
 import { TestShippingEmailButton } from "@/components/admin/TestShippingEmailButton";
+import { TestDeliveryEmailButton } from "@/components/admin/TestDeliveryEmailButton";
+import { TestCancellationEmailButton } from "@/components/admin/TestCancellationEmailButton";
 import { SendShippingEmailButton } from "@/components/admin/SendShippingEmailButton";
 import { SendDeliveryEmailButton } from "@/components/admin/SendDeliveryEmailButton";
 import { SendCancellationEmailButton } from "@/components/admin/SendCancellationEmailButton";
@@ -333,6 +335,8 @@ const AdminOrders = () => {
           <ManualTestOrderStatus />
           <TestOrderEmailButton />
           <TestShippingEmailButton />
+          <TestDeliveryEmailButton />
+          <TestCancellationEmailButton />
           <Button onClick={fetchOrders} variant="outline" className="gap-2">
             <RefreshCw className="h-4 w-4" />
             Actualiser
