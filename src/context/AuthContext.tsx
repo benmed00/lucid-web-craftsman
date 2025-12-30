@@ -4,6 +4,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { User, Session, AuthOtpResponse } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { initializeWishlistStore } from '@/stores';
 
 // ============= Auth State Cleanup Utility =============
 export const cleanupAuthState = () => {
@@ -168,12 +169,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Defer profile loading to prevent deadlocks
         if (event === 'SIGNED_IN' && session?.user) {
+          // Initialize wishlist store with user ID
+          initializeWishlistStore(session.user.id);
+          
           setTimeout(() => {
             if (isMounted) {
               loadUserProfile(session.user.id);
             }
           }, 0);
         } else if (event === 'SIGNED_OUT') {
+          // Clear wishlist store
+          initializeWishlistStore(null);
+          
           profileCache.invalidate();
           setAuthState(prev => ({ ...prev, profile: null }));
         }
@@ -195,6 +202,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }));
 
           if (session?.user) {
+            // Initialize wishlist store with existing session
+            initializeWishlistStore(session.user.id);
             loadUserProfile(session.user.id);
           }
         }
