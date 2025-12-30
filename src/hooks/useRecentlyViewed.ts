@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
+import { safeGetItem, safeSetItem, safeRemoveItem, StorageKeys, StorageTTL } from '@/lib/storage/safeStorage';
 
 const MAX_RECENTLY_VIEWED = 10;
-const STORAGE_KEY = 'recentlyViewedProducts';
 
 interface UseRecentlyViewedReturn {
   recentlyViewed: Product[];
@@ -13,23 +13,21 @@ interface UseRecentlyViewedReturn {
 export const useRecentlyViewed = (): UseRecentlyViewedReturn => {
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
 
-  // Load from localStorage on mount
+  // Load from storage on mount (using safeStorage)
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setRecentlyViewed(parsed);
-      } catch (error) {
-        console.error('Error loading recently viewed products:', error);
-      }
+    const stored = safeGetItem<Product[]>(StorageKeys.RECENTLY_VIEWED);
+    if (stored && Array.isArray(stored)) {
+      setRecentlyViewed(stored);
     }
   }, []);
 
-  // Save to localStorage when state changes
+  // Save to storage when state changes (using safeStorage)
   useEffect(() => {
     if (recentlyViewed.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(recentlyViewed));
+      safeSetItem(StorageKeys.RECENTLY_VIEWED, recentlyViewed, { 
+        ttl: StorageTTL.MONTH,
+        maxSize: 50 * 1024 // 50KB max for recently viewed
+      });
     }
   }, [recentlyViewed]);
 
@@ -46,7 +44,7 @@ export const useRecentlyViewed = (): UseRecentlyViewedReturn => {
 
   const clearRecentlyViewed = useCallback(() => {
     setRecentlyViewed([]);
-    localStorage.removeItem(STORAGE_KEY);
+    safeRemoveItem(StorageKeys.RECENTLY_VIEWED);
   }, []);
 
   return {

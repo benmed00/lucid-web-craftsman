@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { supabase } from "@/integrations/supabase/client";
 import { ProductService } from "@/services/productService";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
+import { safeGetItem, safeSetItem, safeRemoveItem, StorageKeys, StorageTTL } from "@/lib/storage/safeStorage";
 import { toast } from "sonner";
 
 // Types
@@ -119,9 +120,6 @@ const initialState: CartState = {
   totalPrice: 0,
 };
 
-// Queue storage key
-const OFFLINE_QUEUE_KEY = "cart_offline_queue";
-
 // Helper to generate unique IDs
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -174,24 +172,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [cart.items]
   );
 
-  // Load offline queue from localStorage
+  // Load offline queue from storage (using safeStorage)
   useEffect(() => {
-    try {
-      const savedQueue = localStorage.getItem(OFFLINE_QUEUE_KEY);
-      if (savedQueue) {
-        setOfflineQueue(JSON.parse(savedQueue));
-      }
-    } catch (e) {
-      console.error("Failed to load offline queue:", e);
+    const savedQueue = safeGetItem<QueueOperation[]>(StorageKeys.CART_OFFLINE_QUEUE);
+    if (savedQueue && Array.isArray(savedQueue)) {
+      setOfflineQueue(savedQueue);
     }
   }, []);
 
-  // Save offline queue to localStorage
+  // Save offline queue to storage (using safeStorage)
   useEffect(() => {
-    try {
-      localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(offlineQueue));
-    } catch (e) {
-      console.error("Failed to save offline queue:", e);
+    if (offlineQueue.length > 0) {
+      safeSetItem(StorageKeys.CART_OFFLINE_QUEUE, offlineQueue, { ttl: StorageTTL.WEEK });
+    } else {
+      safeRemoveItem(StorageKeys.CART_OFFLINE_QUEUE);
     }
   }, [offlineQueue]);
 
@@ -233,28 +227,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Clear queue
   const clearQueue = useCallback(() => {
     setOfflineQueue([]);
-    localStorage.removeItem(OFFLINE_QUEUE_KEY);
+    safeRemoveItem(StorageKeys.CART_OFFLINE_QUEUE);
   }, []);
 
-  // Load cart from localStorage
+  // Load cart from storage (using safeStorage)
   const loadLocalCart = useCallback(async (): Promise<CartItem[]> => {
-    const savedCart = localStorage.getItem("cart");
+    const savedCart = safeGetItem<{ items: Array<{ id: number; quantity: number }> } | Array<{ id: number; quantity: number }>>(StorageKeys.CART);
     if (!savedCart) return [];
     
     try {
-      const parsedCart = JSON.parse(savedCart);
-      const items = Array.isArray(parsedCart) ? parsedCart : parsedCart?.items || [];
+      const items = Array.isArray(savedCart) ? savedCart : savedCart?.items || [];
       
       if (items.length === 0) return [];
       
-      const itemsToLoad = items.map((item: any) => ({
+      const itemsToLoad = items.map((item) => ({
         id: item.id,
         quantity: item.quantity
       }));
       
       return await loadProductsForCartItems(itemsToLoad);
     } catch (e) {
-      console.error("Failed to parse cart from localStorage", e);
+      console.error("Failed to parse cart from storage", e);
       return [];
     }
   }, []);
@@ -317,38 +310,127 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return true;
     } catch (error) {
       console.error("Failed to save cart to Supabase:", error);
-      // Fallback to localStorage
-      localStorage.setItem("cart", JSON.stringify({ items }));
+      // Fallback to safeStorage
+      safeSetItem(StorageKeys.CART, { items }, { ttl: StorageTTL.WEEK });
       return false;
     } finally {
       setIsSyncing(false);
     }
   }, [isOnline]);
 
-  // Process offline queue
+  // Process offline queue - replay operations individually
   const processOfflineQueue = useCallback(async (userId: string) => {
     if (offlineQueue.length === 0 || syncInProgressRef.current) return;
     
     syncInProgressRef.current = true;
     setIsSyncing(true);
+    
+    const operationsCount = offlineQueue.length;
+    let successCount = 0;
+    let failedOperations: QueueOperation[] = [];
 
     try {
-      // Save current cart state to Supabase (which includes all queued operations)
-      const success = await saveToSupabase(userId, cart.items);
+      // Sort operations by timestamp to replay in order
+      const sortedQueue = [...offlineQueue].sort((a, b) => a.timestamp - b.timestamp);
       
-      if (success) {
+      for (const operation of sortedQueue) {
+        try {
+          switch (operation.type) {
+            case "ADD":
+              if (operation.productId && operation.quantity) {
+                // Upsert: add or update quantity
+                const { data: existing } = await supabase
+                  .from('cart_items')
+                  .select('quantity')
+                  .eq('user_id', userId)
+                  .eq('product_id', operation.productId)
+                  .single();
+                
+                if (existing) {
+                  await supabase
+                    .from('cart_items')
+                    .update({ quantity: existing.quantity + operation.quantity })
+                    .eq('user_id', userId)
+                    .eq('product_id', operation.productId);
+                } else {
+                  await supabase
+                    .from('cart_items')
+                    .insert({
+                      user_id: userId,
+                      product_id: operation.productId,
+                      quantity: operation.quantity
+                    });
+                }
+                successCount++;
+              }
+              break;
+              
+            case "REMOVE":
+              if (operation.productId) {
+                await supabase
+                  .from('cart_items')
+                  .delete()
+                  .eq('user_id', userId)
+                  .eq('product_id', operation.productId);
+                successCount++;
+              }
+              break;
+              
+            case "UPDATE":
+              if (operation.productId && operation.quantity !== undefined) {
+                if (operation.quantity <= 0) {
+                  await supabase
+                    .from('cart_items')
+                    .delete()
+                    .eq('user_id', userId)
+                    .eq('product_id', operation.productId);
+                } else {
+                  await supabase
+                    .from('cart_items')
+                    .update({ quantity: operation.quantity })
+                    .eq('user_id', userId)
+                    .eq('product_id', operation.productId);
+                }
+                successCount++;
+              }
+              break;
+              
+            case "CLEAR":
+              await supabase
+                .from('cart_items')
+                .delete()
+                .eq('user_id', userId);
+              successCount++;
+              break;
+          }
+        } catch (opError) {
+          console.error(`Failed to replay operation ${operation.id}:`, opError);
+          failedOperations.push(operation);
+        }
+      }
+      
+      // Update queue with only failed operations
+      if (failedOperations.length > 0) {
+        setOfflineQueue(failedOperations);
+        toast.warning("Synchronisation partielle", {
+          description: `${successCount}/${operationsCount} opération(s) synchronisée(s). ${failedOperations.length} en attente.`
+        });
+      } else {
         clearQueue();
         toast.success("Panier synchronisé", {
-          description: `${offlineQueue.length} opération(s) synchronisée(s)`
+          description: `${successCount} opération(s) synchronisée(s)`
         });
       }
     } catch (error) {
       console.error("Error processing offline queue:", error);
+      toast.error("Erreur de synchronisation", {
+        description: "Réessayez plus tard"
+      });
     } finally {
       syncInProgressRef.current = false;
       setIsSyncing(false);
     }
-  }, [offlineQueue, cart.items, saveToSupabase, clearQueue]);
+  }, [offlineQueue, clearQueue]);
 
   // Sync when coming back online
   useEffect(() => {
@@ -425,8 +507,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           await saveToSupabase(userId, mergedItems);
         }
         
-        // Clear localStorage after successful merge
-        localStorage.removeItem("cart");
+        // Clear storage after successful merge
+        safeRemoveItem(StorageKeys.CART);
         
         if (hasNewItems && localCart.length > 0) {
           toast.success("Votre panier local a été synchronisé avec votre compte");
@@ -496,10 +578,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           await saveToSupabase(user.id, cart.items);
         } else {
           // Save locally when offline
-          localStorage.setItem("cart", JSON.stringify({ items: cart.items }));
+          safeSetItem(StorageKeys.CART, { items: cart.items }, { ttl: StorageTTL.WEEK });
         }
       } else {
-        localStorage.setItem("cart", JSON.stringify({ items: cart.items }));
+        safeSetItem(StorageKeys.CART, { items: cart.items }, { ttl: StorageTTL.WEEK });
       }
     }, 500);
     
@@ -522,7 +604,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       } else if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
         dispatch({ type: "CLEAR_CART" });
-        localStorage.removeItem("cart");
+        safeRemoveItem(StorageKeys.CART);
         clearQueue();
         isInitialized.current = false;
       }
