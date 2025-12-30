@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
-import { useCart } from '@/context/CartContext';
+import { useCart } from '@/stores';
 
 interface QuickReorderProps {
   userId?: string;
@@ -22,7 +22,7 @@ interface OrderItem {
 export const QuickReorder = ({ userId }: QuickReorderProps) => {
   const [recentItems, setRecentItems] = useState<OrderItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { dispatch } = useCart();
+  const { addItem } = useCart();
 
   useEffect(() => {
     loadRecentOrders();
@@ -81,11 +81,7 @@ export const QuickReorder = ({ userId }: QuickReorderProps) => {
 
   const handleQuickReorder = async (item: OrderItem) => {
     try {
-      dispatch({
-        type: 'ADD_ITEM',
-        payload: item.product,
-        quantity: item.quantity,
-      });
+      addItem(item.product, item.quantity);
 
       toast({
         title: "Ajouté au panier",
@@ -103,11 +99,7 @@ export const QuickReorder = ({ userId }: QuickReorderProps) => {
   const handleReorderAll = async () => {
     try {
       for (const item of recentItems) {
-        dispatch({
-          type: 'ADD_ITEM',
-          payload: item.product,
-          quantity: item.quantity,
-        });
+        addItem(item.product, item.quantity);
       }
 
       toast({
