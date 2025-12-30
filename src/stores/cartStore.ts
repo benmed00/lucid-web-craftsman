@@ -421,7 +421,8 @@ export const useCartStore = create<CartState>()(
                 data.map((item) => ({ id: item.product_id as number, quantity: item.quantity }))
               ) : [];
 
-              // Merge carts
+              // Merge carts - use MAX quantity, not ADD (to prevent quantity inflation)
+              const { maxQuantityPerItem } = getCartLimits();
               const mergedMap = new Map<number, CartItem>();
               
               supabaseItems.forEach((item) => mergedMap.set(item.id, item));
@@ -431,14 +432,24 @@ export const useCartStore = create<CartState>()(
               currentItems.forEach((item) => {
                 const existing = mergedMap.get(item.id);
                 if (existing) {
-                  existing.quantity += item.quantity;
+                  // Take MAX, not ADD, to prevent quantity inflation bug
+                  existing.quantity = Math.min(
+                    Math.max(existing.quantity, item.quantity),
+                    maxQuantityPerItem
+                  );
                 } else {
+                  // Cap new items at max limit
+                  item.quantity = Math.min(item.quantity, maxQuantityPerItem);
                   mergedMap.set(item.id, item);
                   hasNewItems = true;
                 }
               });
 
-              const mergedItems = Array.from(mergedMap.values());
+              // Ensure all merged items respect max quantity limit
+              const mergedItems = Array.from(mergedMap.values()).map(item => ({
+                ...item,
+                quantity: Math.min(item.quantity, maxQuantityPerItem)
+              }));
               set({ items: mergedItems });
 
               // Save merged cart
