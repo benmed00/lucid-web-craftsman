@@ -1,3 +1,2 @@
-// Re-export from context for backwards compatibility
-export { useWishlistContext as useWishlist } from '@/context/WishlistContext';
-export type { WishlistItem } from '@/context/WishlistContext';
+// Re-export from Zustand store for backwards compatibility
+export { useWishlist, type WishlistItem } from '@/stores';
