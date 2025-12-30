@@ -26,6 +26,7 @@ import {
 } from "@/utils/checkoutValidation";
 import { sanitizeUserInput } from "@/utils/xssProtection";
 import { useCsrfToken } from "@/hooks/useCsrfToken";
+import { useBusinessRules } from "@/hooks/useBusinessRules";
 import CheckoutProgress from "@/components/checkout/CheckoutProgress";
 import FormFieldWithValidation from "@/components/checkout/FormFieldWithValidation";
 import StepSummary from "@/components/checkout/StepSummary";
@@ -57,6 +58,7 @@ const Checkout = () => {
   const { loadStripe } = useLazyStripe();
   const { cart } = useCart();
   const { getCsrfHeaders, regenerateToken } = useCsrfToken();
+  const { rules: businessRules } = useBusinessRules();
   
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
@@ -345,6 +347,21 @@ const Checkout = () => {
       if (honeypot) {
         console.warn("Bot detected via honeypot");
         toast.error("Une erreur est survenue. Veuillez réessayer.");
+        setIsProcessing(false);
+        return;
+      }
+
+      // Validate order amount against business rules
+      const { minOrderAmount, maxOrderAmount, highValueThreshold } = businessRules.cart;
+      
+      if (minOrderAmount > 0 && subtotal < minOrderAmount) {
+        toast.error(`Le montant minimum de commande est de ${minOrderAmount.toFixed(2)} €`);
+        setIsProcessing(false);
+        return;
+      }
+      
+      if (maxOrderAmount > 0 && subtotal > maxOrderAmount) {
+        toast.error(`Le montant maximum de commande est de ${maxOrderAmount.toFixed(2)} €. Contactez-nous pour les commandes importantes.`);
         setIsProcessing(false);
         return;
       }
