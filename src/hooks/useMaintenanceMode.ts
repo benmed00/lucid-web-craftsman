@@ -15,11 +15,14 @@ export const useMaintenanceMode = () => {
   useEffect(() => {
     const checkMaintenanceMode = async () => {
       try {
+        console.log('Checking maintenance mode...');
         const { data, error } = await supabase
           .from('app_settings')
           .select('setting_value')
           .eq('setting_key', 'display_settings')
           .maybeSingle();
+
+        console.log('Maintenance mode data:', data, 'error:', error);
 
         if (error && error.code !== 'PGRST116') {
           console.error('Error checking maintenance mode:', error);
@@ -27,6 +30,7 @@ export const useMaintenanceMode = () => {
 
         if (data?.setting_value) {
           const settings = data.setting_value as unknown as DisplaySettings;
+          console.log('Maintenance mode setting:', settings?.maintenanceMode);
           setIsMaintenanceMode(settings?.maintenanceMode ?? false);
         }
       } catch (error) {
