@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface DisplaySettings {
   maintenanceMode?: boolean;
   maintenanceReturnTime?: string;
+  maintenanceMessage?: string;
   showOutOfStock?: boolean;
   enableReviews?: boolean;
   showPrices?: boolean;
@@ -12,6 +13,7 @@ interface DisplaySettings {
 export const useMaintenanceMode = () => {
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [maintenanceReturnTime, setMaintenanceReturnTime] = useState<string | null>(null);
+  const [maintenanceMessage, setMaintenanceMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -35,6 +37,7 @@ export const useMaintenanceMode = () => {
           console.log('Maintenance mode setting:', settings?.maintenanceMode);
           setIsMaintenanceMode(settings?.maintenanceMode ?? false);
           setMaintenanceReturnTime(settings?.maintenanceReturnTime ?? null);
+          setMaintenanceMessage(settings?.maintenanceMessage ?? null);
         }
       } catch (error) {
         console.error('Error checking maintenance mode:', error);
@@ -61,6 +64,7 @@ export const useMaintenanceMode = () => {
             const settings = payload.new.setting_value as unknown as DisplaySettings;
             setIsMaintenanceMode(settings?.maintenanceMode ?? false);
             setMaintenanceReturnTime(settings?.maintenanceReturnTime ?? null);
+            setMaintenanceMessage(settings?.maintenanceMessage ?? null);
           }
         }
       )
@@ -71,5 +75,5 @@ export const useMaintenanceMode = () => {
     };
   }, []);
 
-  return { isMaintenanceMode, maintenanceReturnTime, isLoading };
+  return { isMaintenanceMode, maintenanceReturnTime, maintenanceMessage, isLoading };
 };

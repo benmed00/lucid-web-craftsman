@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const Maintenance = () => {
-  const { maintenanceReturnTime } = useMaintenanceMode();
+  const { maintenanceReturnTime, maintenanceMessage } = useMaintenanceMode();
 
   const formatReturnTime = (dateStr: string | null) => {
     if (!dateStr) return null;
@@ -18,6 +18,7 @@ const Maintenance = () => {
   };
 
   const formattedReturnTime = formatReturnTime(maintenanceReturnTime);
+  const defaultMessage = "Nous effectuons actuellement des travaux de maintenance pour améliorer votre expérience.";
 
   return (
     <div 
@@ -46,7 +47,7 @@ const Maintenance = () => {
             Site en maintenance
           </h1>
           <p style={{ color: '#57534e' }}>
-            Nous effectuons actuellement des travaux de maintenance pour améliorer votre expérience.
+            {maintenanceMessage || defaultMessage}
           </p>
         </div>
 
