@@ -7,12 +7,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ProductImage } from '@/components/ui/GlobalImage';
 import SEOHelmet from '@/components/seo/SEOHelmet';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { RemainingSlots } from '@/components/ui/RemainingSlots';
 
 import PageFooter from '@/components/PageFooter';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
 import { ProductService } from '@/services/productService';
 import { useCart, useCurrency } from '@/stores';
+import { useBusinessRules } from '@/hooks/useBusinessRules';
 import { toast } from 'sonner';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 
@@ -25,6 +28,7 @@ const Wishlist = () => {
   const { user } = useAuth();
   const { addItem } = useCart();
   const { formatPrice } = useCurrency();
+  const { rules } = useBusinessRules();
   const [wishlistProducts, setWishlistProducts] = useState<WishlistProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -165,9 +169,16 @@ const Wishlist = () => {
                 <h1 className="font-serif text-3xl md:text-4xl text-foreground">
                   Mes Favoris
                 </h1>
-                <p className="text-muted-foreground mt-1">
-                  {wishlistItems.length} produit{wishlistItems.length > 1 ? 's' : ''} sauvegardé{wishlistItems.length > 1 ? 's' : ''}
-                </p>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <p className="text-muted-foreground">
+                    {wishlistItems.length} produit{wishlistItems.length > 1 ? 's' : ''} sauvegardé{wishlistItems.length > 1 ? 's' : ''}
+                  </p>
+                  <RemainingSlots 
+                    current={wishlistItems.length} 
+                    max={rules.wishlist.maxItems} 
+                    label="favoris"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -277,15 +288,22 @@ const Wishlist = () => {
                               Ajouter au panier
                             </Button>
                             
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoveFromWishlist(product.id)}
-                              className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 flex-shrink-0"
-                              aria-label="Retirer des favoris"
-                            >
-                              <Trash2 size={16} />
-                            </Button>
+                            <ConfirmDialog
+                              trigger={
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 flex-shrink-0"
+                                  aria-label="Retirer des favoris"
+                                >
+                                  <Trash2 size={16} />
+                                </Button>
+                              }
+                              title="Retirer des favoris"
+                              description={`Voulez-vous retirer "${product.name}" de vos favoris ?`}
+                              confirmLabel="Retirer"
+                              onConfirm={() => handleRemoveFromWishlist(product.id)}
+                            />
                           </div>
                         </div>
                       </div>
