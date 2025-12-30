@@ -34,5 +34,11 @@ export {
   type Currency
 } from './currencyStore';
 
-// Future stores:
-// export { useThemeStore } from './themeStore';
+export {
+  useThemeStore,
+  useTheme,
+  initializeThemeStore,
+  selectTheme,
+  selectResolvedTheme,
+  type Theme
+} from './themeStore';

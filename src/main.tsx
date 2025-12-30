@@ -6,7 +6,7 @@ import './index.css';
 import { initPerformanceOptimizations } from '@/utils/sitemapGenerator';
 import { setupProductionErrorSuppression } from './utils/errorSuppression';
 import { registerServiceWorker, addResourceHints, monitorCachePerformance } from './utils/cacheOptimization';
-import { initializeCartStore, initializeWishlistStore, initializeCurrencyStore } from '@/stores';
+import { initializeCartStore, initializeCurrencyStore, initializeThemeStore } from '@/stores';
 
 // Declare global flag
 declare global {
@@ -31,6 +31,7 @@ if (!window.__PERF_OPTIMIZED__) {
   // Initialize Zustand stores
   initializeCartStore();
   initializeCurrencyStore();
+  initializeThemeStore();
 }
 
 createRoot(document.getElementById("root")!).render(
