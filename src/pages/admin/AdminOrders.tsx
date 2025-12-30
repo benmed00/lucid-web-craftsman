@@ -16,6 +16,7 @@ import { fr } from 'date-fns/locale';
 import { AddOrderDialog } from "@/components/admin/AddOrderDialog";
 import { ManualTestOrderStatus } from "@/components/admin/ManualTestOrderStatus";
 import { TestOrderEmailButton } from "@/components/admin/TestOrderEmailButton";
+import { SendShippingEmailButton } from "@/components/admin/SendShippingEmailButton";
 
 interface OrderItem {
   id: string;
@@ -180,20 +181,30 @@ const AdminOrders = () => {
             <span className="font-medium">Total:</span>
             <span className="font-bold">{(selectedOrder.amount / 100).toFixed(2)} €</span>
           </div>
-          <div>
-            <h4 className="font-medium mb-2">Changer le statut:</h4>
-            <Select value={selectedOrder.status} onValueChange={(status) => updateOrderStatus(selectedOrder.id, status)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">En attente</SelectItem>
-                <SelectItem value="paid">Payée</SelectItem>
-                <SelectItem value="processing">En cours</SelectItem>
-                <SelectItem value="shipped">Expédiée</SelectItem>
-                <SelectItem value="delivered">Livrée</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <h4 className="font-medium mb-2">Changer le statut:</h4>
+              <Select value={selectedOrder.status} onValueChange={(status) => updateOrderStatus(selectedOrder.id, status)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">En attente</SelectItem>
+                  <SelectItem value="paid">Payée</SelectItem>
+                  <SelectItem value="processing">En cours</SelectItem>
+                  <SelectItem value="shipped">Expédiée</SelectItem>
+                  <SelectItem value="delivered">Livrée</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {(selectedOrder.status === 'shipped' || selectedOrder.status === 'processing') && (
+              <div className="pt-6">
+                <SendShippingEmailButton 
+                  orderId={selectedOrder.id}
+                  orderItems={selectedOrder.order_items}
+                />
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>
