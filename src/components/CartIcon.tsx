@@ -1,6 +1,6 @@
 import { ShoppingBag, Loader2, WifiOff, CloudOff } from "lucide-react";
 import clsx from "clsx";
-import { useCartUI } from "./useCartUI";
+import { useCartUI } from "@/context/useCartUI";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /**
