@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { SecurityMonitoringCard } from "@/components/admin/SecurityMonitoringCard";
+import { SecurityAlertsCard } from "@/components/admin/SecurityAlertsCard";
 import { RateLimitsConfig } from "@/components/admin/RateLimitsConfig";
 import { BusinessRulesConfig } from "@/components/admin/BusinessRulesConfig";
 import { 
@@ -871,6 +872,9 @@ const AdminSettings = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Security Alerts */}
+      <SecurityAlertsCard />
 
       {/* Security Monitoring */}
       <SecurityMonitoringCard />
