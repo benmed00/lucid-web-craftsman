@@ -1,6 +1,6 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCurrency, Currency } from '@/context/CurrencyContext';
+import { useCurrency, Currency } from '@/stores';
 
 const CurrencySelector: React.FC = () => {
   const { currency, setCurrency } = useCurrency();

@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { ShoppingCart, Heart, Eye, Star, Minus, Plus, X, ZoomIn, Share2, Package, Truck, RotateCcw, Shield } from 'lucide-react';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { toast } from 'sonner';
-import { useCurrency } from '@/context/CurrencyContext';
+import { useCurrency } from '@/stores';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 

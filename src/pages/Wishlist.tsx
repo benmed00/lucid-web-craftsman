@@ -13,7 +13,7 @@ import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
 import { ProductService } from '@/services/productService';
 import { useCart } from '@/context/CartContext';
-import { useCurrency } from '@/context/CurrencyContext';
+import { useCurrency } from '@/stores';
 import { toast } from 'sonner';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 

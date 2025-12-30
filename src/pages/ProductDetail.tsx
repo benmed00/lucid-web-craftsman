@@ -49,7 +49,7 @@ import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
 // Services & Hooks
 import { ProductService } from "@/services/productService";
 import { useCart } from "@/context/CartContext";
-import { useCurrency } from "@/context/CurrencyContext";
+import { useCurrency } from "@/stores";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useStock } from "@/hooks/useStock";

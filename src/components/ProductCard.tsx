@@ -11,7 +11,7 @@ import { TooltipWrapper } from "@/components/ui/TooltipWrapper";
 import { useStock } from "@/hooks/useStock";
 import { StockInfo } from "@/services/stockService";
 import { useEffect, useState, useContext, createContext } from "react";
-import { useCurrency } from "@/context/CurrencyContext";
+import { useCurrency } from "@/stores";
 
 // Create context for stock sharing - this will be provided by ProductShowcase
 const StockContext = createContext<Record<number, StockInfo>>({});
