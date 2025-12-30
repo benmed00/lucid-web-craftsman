@@ -87,11 +87,20 @@ function sanitizeQuantity(quantity: number): number {
 }
 
 async function loadProductsForCartItems(items: { id: number; quantity: number }[]): Promise<CartItem[]> {
+  const { maxQuantityPerItem } = getCartLimits();
+  
   const cartItems = await Promise.all(
     items.map(async (item) => {
       try {
-        // Validate quantity to prevent corrupted data issues
-        const sanitizedQuantity = sanitizeQuantity(item.quantity);
+        // Validate and ENFORCE quantity limits to fix corrupted data
+        let sanitizedQuantity = sanitizeQuantity(item.quantity);
+        
+        // Force max limit on load - this fixes old corrupted data
+        if (sanitizedQuantity > maxQuantityPerItem) {
+          console.warn(`Cart item ${item.id} had quantity ${item.quantity}, enforcing limit of ${maxQuantityPerItem}`);
+          sanitizedQuantity = maxQuantityPerItem;
+        }
+        
         if (sanitizedQuantity <= 0) {
           console.warn(`Skipping cart item ${item.id} with invalid quantity:`, item.quantity);
           return null;
