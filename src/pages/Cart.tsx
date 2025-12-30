@@ -7,7 +7,7 @@ import SEOHelmet from '@/components/seo/SEOHelmet';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Minus, Plus, X, ShoppingBag, ArrowRight, Truck, AlertCircle, CreditCard, Heart, Share2, Clock, Phone, Mail } from 'lucide-react';
+import { Minus, Plus, X, ShoppingBag, ArrowRight, Truck, AlertCircle, CreditCard, Heart, Share2, Clock, Phone, Mail, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useShipping } from '@/hooks/useShipping';
 import { useStock } from '@/hooks/useStock';
@@ -19,6 +19,8 @@ import { MobilePaymentButtons } from '@/components/ui/MobilePaymentButtons';
 import { LocationBasedFeatures } from '@/components/ui/LocationBasedFeatures';
 import { TooltipWrapper } from '@/components/ui/TooltipWrapper';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { RemainingSlots } from '@/components/ui/RemainingSlots';
 
 const Cart = () => {
   const { cart, itemCount, totalPrice, clearCart, updateItemQuantity, removeItem } = useCart();
@@ -171,10 +173,38 @@ const Cart = () => {
       
       <main id="main-content" className="container mx-auto px-4 py-4 md:py-8 safe-area">
         <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-2">Votre Panier</h1>
-          <p className="text-muted-foreground" aria-live="polite">
-            {itemCount} article{itemCount > 1 ? 's' : ''} dans votre panier
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-2">Votre Panier</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-muted-foreground" aria-live="polite">
+                  {itemCount} article{itemCount > 1 ? 's' : ''} dans votre panier
+                </p>
+                <RemainingSlots 
+                  current={cart.items.length} 
+                  max={rules.cart.maxProductTypes} 
+                  label="produits différents"
+                />
+              </div>
+            </div>
+            {cart.items.length > 0 && (
+              <ConfirmDialog
+                trigger={
+                  <Button variant="outline" size="sm" className="gap-2 text-muted-foreground hover:text-destructive hover:border-destructive">
+                    <Trash2 className="h-4 w-4" />
+                    Vider le panier
+                  </Button>
+                }
+                title="Vider le panier"
+                description="Êtes-vous sûr de vouloir supprimer tous les articles de votre panier ? Cette action est irréversible."
+                confirmLabel="Oui, vider le panier"
+                onConfirm={() => {
+                  clearCart();
+                  toast.success('Panier vidé');
+                }}
+              />
+            )}
+          </div>
         </div>
 
         {stockIssues.length > 0 && (
@@ -283,24 +313,26 @@ const Cart = () => {
                         </div>
                       </Link>
                       
-                      {/* Remove button */}
-                      <TooltipWrapper 
-                        content={`Retirer ${item.product.name} du panier`}
-                        side="left"
-                      >
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveItem(item.id)}
-                          className="text-muted-foreground hover:text-destructive p-2 touch-manipulation min-h-[44px] min-w-[44px] flex-shrink-0"
-                          id={`cart-remove-${item.id}`}
-                          name={`remove-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
-                          aria-label={`Retirer ${item.product.name} du panier`}
-                        >
-                          <X className="h-4 w-4" aria-hidden="true" />
-                          <span className="sr-only">Retirer du panier</span>
-                        </Button>
-                      </TooltipWrapper>
+                      {/* Remove button with confirmation */}
+                      <ConfirmDialog
+                        trigger={
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-destructive p-2 touch-manipulation min-h-[44px] min-w-[44px] flex-shrink-0"
+                            id={`cart-remove-${item.id}`}
+                            name={`remove-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
+                            aria-label={`Retirer ${item.product.name} du panier`}
+                          >
+                            <X className="h-4 w-4" aria-hidden="true" />
+                            <span className="sr-only">Retirer du panier</span>
+                          </Button>
+                        }
+                        title="Retirer du panier"
+                        description={`Voulez-vous retirer "${item.product.name}" de votre panier ?`}
+                        confirmLabel="Retirer"
+                        onConfirm={() => handleRemoveItem(item.id)}
+                      />
                     </div>
                     
                      {/* Quantity and price controls */}

@@ -472,8 +472,8 @@ const Checkout = () => {
         url="/checkout"
         type="website"
       />
-      <div className="container mx-auto px-4 py-12">
-        <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-8 text-center">
+      <div className="container mx-auto px-4 py-6 md:py-12 pb-24 md:pb-12">
+        <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground mb-4 md:mb-8 text-center">
           Paiement sécurisé
         </h1>
 
@@ -482,7 +482,7 @@ const Checkout = () => {
 
         {/* Main Checkout Container */}
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-12">
             {/* Form Section */}
             <div className="lg:col-span-2">
               {step === 1 && (
@@ -610,7 +610,7 @@ const Checkout = () => {
                   />
 
                   <Button
-                    className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+                    className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground gap-2 min-h-[48px] text-base"
                     onClick={goToNextStep}
                     aria-describedby="step1-instructions"
                   >
@@ -772,7 +772,7 @@ const Checkout = () => {
                   </div>
 
                   <Button
-                    className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+                    className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground gap-2 min-h-[48px] text-base"
                     onClick={goToNextStep}
                   >
                     Continuer vers le paiement
@@ -1023,6 +1023,49 @@ const Checkout = () => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Mobile sticky bottom bar for navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4 md:hidden safe-area z-50">
+        <div className="flex items-center justify-between gap-4">
+          {step > 1 ? (
+            <Button
+              variant="outline"
+              className="flex-1 min-h-[48px]"
+              onClick={() => handleEditStep(step - 1)}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Retour
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              className="flex-1 min-h-[48px]"
+              onClick={() => window.history.back()}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Panier
+            </Button>
+          )}
+          
+          {step < 3 ? (
+            <Button
+              className="flex-1 min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground"
+              onClick={goToNextStep}
+            >
+              Continuer
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          ) : (
+            <Button
+              className="flex-1 min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground"
+              onClick={handlePayment}
+              disabled={isProcessing}
+            >
+              {isProcessing ? "Traitement..." : `Payer ${total.toFixed(2)} €`}
+            </Button>
+          )}
         </div>
       </div>
 
