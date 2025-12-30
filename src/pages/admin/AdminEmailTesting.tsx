@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,12 +22,16 @@ import {
   RefreshCw,
   Clock,
   AlertTriangle,
-  History
+  History,
+  RotateCcw,
+  BarChart3,
+  TrendingUp
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format } from 'date-fns';
+import { format, subDays, startOfDay, eachDayOfInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } from 'recharts';
 
 interface EmailTemplate {
   id: string;
@@ -164,6 +168,7 @@ const AdminEmailTesting = () => {
   const [testEmail, setTestEmail] = useState('');
   const [sendingStates, setSendingStates] = useState<Record<string, boolean>>({});
   const [previewStates, setPreviewStates] = useState<Record<string, boolean>>({});
+  const [retryingStates, setRetryingStates] = useState<Record<string, boolean>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
@@ -171,6 +176,58 @@ const AdminEmailTesting = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewTitle, setPreviewTitle] = useState('');
   const [activeTab, setActiveTab] = useState('templates');
+
+  // Analytics data calculations
+  const analyticsData = useMemo(() => {
+    const last7Days = eachDayOfInterval({
+      start: subDays(new Date(), 6),
+      end: new Date()
+    });
+
+    const dailyStats = last7Days.map(day => {
+      const dayStart = startOfDay(day);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+
+      const dayLogs = emailLogs.filter(log => {
+        const logDate = new Date(log.created_at);
+        return logDate >= dayStart && logDate < dayEnd;
+      });
+
+      return {
+        date: format(day, 'dd/MM', { locale: fr }),
+        fullDate: format(day, 'EEEE dd MMM', { locale: fr }),
+        sent: dayLogs.filter(l => l.status === 'sent').length,
+        failed: dayLogs.filter(l => l.status === 'failed').length,
+        total: dayLogs.length
+      };
+    });
+
+    const templateStats = emailTemplates.map(template => {
+      const templateLogs = emailLogs.filter(log => 
+        log.template_name === template.functionName.replace('send-', '')
+      );
+      return {
+        name: template.name.split(' ')[0],
+        fullName: template.name,
+        sent: templateLogs.filter(l => l.status === 'sent').length,
+        failed: templateLogs.filter(l => l.status === 'failed').length,
+        total: templateLogs.length
+      };
+    });
+
+    const pieData = [
+      { name: 'Envoyés', value: emailLogs.filter(l => l.status === 'sent').length, color: '#22c55e' },
+      { name: 'Échecs', value: emailLogs.filter(l => l.status === 'failed').length, color: '#ef4444' },
+      { name: 'En attente', value: emailLogs.filter(l => l.status === 'pending').length, color: '#f59e0b' }
+    ].filter(d => d.value > 0);
+
+    const successRate = emailLogs.length > 0 
+      ? Math.round((emailLogs.filter(l => l.status === 'sent').length / emailLogs.length) * 100)
+      : 0;
+
+    return { dailyStats, templateStats, pieData, successRate };
+  }, [emailLogs]);
 
   const fetchEmailLogs = async () => {
     setLoadingLogs(true);
@@ -265,6 +322,54 @@ const AdminEmailTesting = () => {
       toast.error(`Erreur: ${error.message}`);
     } finally {
       setSendingStates(prev => ({ ...prev, [template.id]: false }));
+    }
+  };
+
+  const retryFailedEmail = async (log: EmailLog) => {
+    setRetryingStates(prev => ({ ...prev, [log.id]: true }));
+
+    try {
+      // Find the template for this log
+      const templateName = log.template_name;
+      const template = emailTemplates.find(t => 
+        t.functionName.includes(templateName.split('-')[0]) || 
+        t.functionName === `send-${templateName}`
+      );
+
+      if (!template) {
+        throw new Error('Template non trouvé');
+      }
+
+      // Get metadata from the log or use default test data
+      const retryData = log.metadata && typeof log.metadata === 'object' 
+        ? { 
+            ...log.metadata, 
+            customerEmail: log.recipient_email,
+            orderId: log.order_id || `RETRY-${Date.now().toString().slice(-8)}`
+          }
+        : {
+            ...template.testData,
+            customerEmail: log.recipient_email,
+            orderId: log.order_id || `RETRY-${Date.now().toString().slice(-8)}`
+          };
+
+      const { data, error } = await supabase.functions.invoke(template.functionName, {
+        body: retryData
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success(`Email renvoyé avec succès à ${log.recipient_email}`);
+        setTimeout(fetchEmailLogs, 1000);
+      } else {
+        throw new Error(data?.error || 'Erreur inconnue');
+      }
+    } catch (error: any) {
+      console.error('Error retrying email:', error);
+      toast.error(`Erreur lors du renvoi: ${error.message}`);
+    } finally {
+      setRetryingStates(prev => ({ ...prev, [log.id]: false }));
     }
   };
 
@@ -365,14 +470,18 @@ const AdminEmailTesting = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="templates" className="gap-2">
             <Mail className="h-4 w-4" />
-            Templates ({emailTemplates.length})
+            Templates
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Analytics
           </TabsTrigger>
           <TabsTrigger value="history" className="gap-2">
             <History className="h-4 w-4" />
-            Historique ({emailLogs.length})
+            Historique
           </TabsTrigger>
         </TabsList>
 
@@ -462,6 +571,198 @@ const AdminEmailTesting = () => {
           </div>
         </TabsContent>
 
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="mt-4 space-y-4">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Total envoyés</p>
+                    <p className="text-2xl font-bold text-green-600">{sentCount}</p>
+                  </div>
+                  <CheckCircle className="h-8 w-8 text-green-600/20" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Échecs</p>
+                    <p className="text-2xl font-bold text-red-600">{failedCount}</p>
+                  </div>
+                  <XCircle className="h-8 w-8 text-red-600/20" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Taux de succès</p>
+                    <p className="text-2xl font-bold">{analyticsData.successRate}%</p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-primary/20" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Total</p>
+                    <p className="text-2xl font-bold">{emailLogs.length}</p>
+                  </div>
+                  <Mail className="h-8 w-8 text-muted-foreground/20" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Daily Trend Chart */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Emails sur 7 jours</CardTitle>
+                <CardDescription>Évolution des envois et échecs</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[250px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={analyticsData.dailyStats}>
+                      <defs>
+                        <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorFailed" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 12 }}
+                        className="text-muted-foreground"
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 12 }}
+                        className="text-muted-foreground"
+                        allowDecimals={false}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }}
+                        labelFormatter={(label, payload) => {
+                          const item = payload?.[0]?.payload;
+                          return item?.fullDate || label;
+                        }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="sent" 
+                        stroke="#22c55e" 
+                        fill="url(#colorSent)" 
+                        name="Envoyés"
+                        strokeWidth={2}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="failed" 
+                        stroke="#ef4444" 
+                        fill="url(#colorFailed)" 
+                        name="Échecs"
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Template Distribution */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Par template</CardTitle>
+                <CardDescription>Distribution des emails par type</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[250px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={analyticsData.templateStats} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis 
+                        type="number" 
+                        tick={{ fontSize: 12 }}
+                        allowDecimals={false}
+                      />
+                      <YAxis 
+                        type="category" 
+                        dataKey="name" 
+                        tick={{ fontSize: 11 }}
+                        width={80}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }}
+                        labelFormatter={(label, payload) => {
+                          const item = payload?.[0]?.payload;
+                          return item?.fullName || label;
+                        }}
+                      />
+                      <Legend />
+                      <Bar dataKey="sent" fill="#22c55e" name="Envoyés" radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="failed" fill="#ef4444" name="Échecs" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Status Pie Chart */}
+          {analyticsData.pieData.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Répartition des statuts</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[200px] flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={analyticsData.pieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={80}
+                        paddingAngle={2}
+                        dataKey="value"
+                        label={({ name, value }) => `${name}: ${value}`}
+                      >
+                        {analyticsData.pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
         <TabsContent value="history" className="mt-4">
           <Card>
             <CardHeader className="pb-3">
@@ -502,7 +803,8 @@ const AdminEmailTesting = () => {
                         <TableHead>Destinataire</TableHead>
                         <TableHead>Commande</TableHead>
                         <TableHead>Statut</TableHead>
-                        <TableHead className="text-right">Date</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -543,11 +845,29 @@ const AdminEmailTesting = () => {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
+                          <TableCell>
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
                               <Clock className="h-3 w-3" />
                               {format(new Date(log.created_at), 'dd/MM HH:mm', { locale: fr })}
                             </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {log.status === 'failed' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => retryFailedEmail(log)}
+                                disabled={retryingStates[log.id]}
+                                className="gap-1 h-7 text-xs"
+                              >
+                                {retryingStates[log.id] ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <RotateCcw className="h-3 w-3" />
+                                )}
+                                Réessayer
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
