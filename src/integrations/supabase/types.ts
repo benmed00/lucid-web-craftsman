@@ -1897,6 +1897,7 @@ export type Database = {
       }
       init_loyalty_account: { Args: { user_uuid: string }; Returns: undefined }
       is_admin_user: { Args: { user_uuid: string }; Returns: boolean }
+      is_authenticated_user: { Args: never; Returns: boolean }
       is_user_admin: { Args: { _user_id: string }; Returns: boolean }
       log_contact_message_access: {
         Args: { message_id: string }
