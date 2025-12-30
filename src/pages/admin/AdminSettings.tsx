@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,80 +12,315 @@ import {
   Settings, 
   Save,
   Shield,
-  Bell,
   Mail,
   Globe,
   Palette,
   Download,
   Upload,
   Trash2,
-  Eye,
-  EyeOff
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+interface SiteSettings {
+  siteName: string;
+  siteDescription: string;
+  contactEmail: string;
+  contactPhone: string;
+  address: string;
+  currency: string;
+  taxRate: number;
+  shippingCost: number;
+  freeShippingThreshold: number;
+}
+
+interface EmailSettings {
+  orderConfirmation: boolean;
+  shipmentNotification: boolean;
+  promotionalEmails: boolean;
+  weeklyReport: boolean;
+}
+
+interface SecuritySettings {
+  twoFactorAuth: boolean;
+  sessionTimeout: number;
+  allowMultipleLogins: boolean;
+}
+
+interface DisplaySettings {
+  maintenanceMode: boolean;
+  showOutOfStock: boolean;
+  enableReviews: boolean;
+  showPrices: boolean;
+}
+
+const defaultSiteSettings: SiteSettings = {
+  siteName: "Rif Raw Straw",
+  siteDescription: "Artisanat berbère authentique du Rif marocain",
+  contactEmail: "contact@rifrawstraw.com",
+  contactPhone: "+33 1 23 45 67 89",
+  address: "Paris, France",
+  currency: "EUR",
+  taxRate: 20,
+  shippingCost: 5.90,
+  freeShippingThreshold: 80
+};
+
+const defaultEmailSettings: EmailSettings = {
+  orderConfirmation: true,
+  shipmentNotification: true,
+  promotionalEmails: false,
+  weeklyReport: true
+};
+
+const defaultSecuritySettings: SecuritySettings = {
+  twoFactorAuth: false,
+  sessionTimeout: 60,
+  allowMultipleLogins: false
+};
+
+const defaultDisplaySettings: DisplaySettings = {
+  maintenanceMode: false,
+  showOutOfStock: true,
+  enableReviews: true,
+  showPrices: true
+};
 
 const AdminSettings = () => {
-  const [siteSettings, setSiteSettings] = useState({
-    siteName: "Rif Raw Straw",
-    siteDescription: "Artisanat berbère authentique du Rif marocain",
-    contactEmail: "contact@rifrawstraw.com",
-    contactPhone: "+33 1 23 45 67 89",
-    address: "Paris, France",
-    currency: "EUR",
-    taxRate: 20,
-    shippingCost: 5.90,
-    freeShippingThreshold: 80
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState<string | null>(null);
+  
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(defaultSiteSettings);
+  const [emailSettings, setEmailSettings] = useState<EmailSettings>(defaultEmailSettings);
+  const [securitySettings, setSecuritySettings] = useState<SecuritySettings>(defaultSecuritySettings);
+  const [displaySettings, setDisplaySettings] = useState<DisplaySettings>(defaultDisplaySettings);
 
-  const [emailSettings, setEmailSettings] = useState({
-    orderConfirmation: true,
-    shipmentNotification: true,
-    promotionalEmails: false,
-    weeklyReport: true
-  });
+  // Load settings from Supabase on mount
+  useEffect(() => {
+    loadAllSettings();
+  }, []);
 
-  const [securitySettings, setSecuritySettings] = useState({
-    twoFactorAuth: false,
-    sessionTimeout: 60,
-    allowMultipleLogins: false
-  });
+  const loadAllSettings = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('setting_key, setting_value');
 
-  const [displaySettings, setDisplaySettings] = useState({
-    maintenanceMode: false,
-    showOutOfStock: true,
-    enableReviews: true,
-    showPrices: true
-  });
+      if (error) throw error;
 
-  const handleSaveSiteSettings = () => {
-    // Save to Supabase
-    toast.success("Paramètres du site sauvegardés");
+      if (data) {
+        data.forEach((setting) => {
+          const value = setting.setting_value as Record<string, unknown>;
+          
+          switch (setting.setting_key) {
+            case 'site_settings':
+              setSiteSettings({ ...defaultSiteSettings, ...(value as unknown as Partial<SiteSettings>) });
+              break;
+            case 'email_settings':
+              setEmailSettings({ ...defaultEmailSettings, ...(value as unknown as Partial<EmailSettings>) });
+              break;
+            case 'security_settings':
+              setSecuritySettings({ ...defaultSecuritySettings, ...(value as unknown as Partial<SecuritySettings>) });
+              break;
+            case 'display_settings':
+              setDisplaySettings({ ...defaultDisplaySettings, ...(value as unknown as Partial<DisplaySettings>) });
+              break;
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      toast.error("Erreur lors du chargement des paramètres");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSaveEmailSettings = () => {
-    // Save to Supabase
-    toast.success("Paramètres email sauvegardés");
+  const saveSetting = async (key: string, value: unknown) => {
+    // Check if setting exists
+    const { data: existing } = await supabase
+      .from('app_settings')
+      .select('id')
+      .eq('setting_key', key)
+      .single();
+
+    const jsonValue = JSON.parse(JSON.stringify(value));
+
+    if (existing) {
+      // Update existing
+      const { error } = await supabase
+        .from('app_settings')
+        .update({
+          setting_value: jsonValue,
+          updated_at: new Date().toISOString()
+        })
+        .eq('setting_key', key);
+
+      if (error) throw error;
+    } else {
+      // Insert new
+      const { error } = await supabase
+        .from('app_settings')
+        .insert([{
+          setting_key: key,
+          setting_value: jsonValue,
+          description: `${key} configuration`
+        }]);
+
+      if (error) throw error;
+    }
   };
 
-  const handleSaveSecuritySettings = () => {
-    // Save to Supabase
-    toast.success("Paramètres de sécurité sauvegardés");
+  const handleSaveSiteSettings = async () => {
+    setIsSaving('site');
+    try {
+      await saveSetting('site_settings', siteSettings);
+      toast.success("Paramètres du site sauvegardés");
+    } catch (error) {
+      console.error('Error saving site settings:', error);
+      toast.error("Erreur lors de la sauvegarde");
+    } finally {
+      setIsSaving(null);
+    }
   };
 
-  const handleSaveDisplaySettings = () => {
-    // Save to Supabase
-    toast.success("Paramètres d'affichage sauvegardés");
+  const handleSaveEmailSettings = async () => {
+    setIsSaving('email');
+    try {
+      await saveSetting('email_settings', emailSettings);
+      toast.success("Paramètres email sauvegardés");
+    } catch (error) {
+      console.error('Error saving email settings:', error);
+      toast.error("Erreur lors de la sauvegarde");
+    } finally {
+      setIsSaving(null);
+    }
   };
 
-  const handleExportData = () => {
-    // Export data logic
-    toast.success("Export des données en cours...");
+  const handleSaveSecuritySettings = async () => {
+    setIsSaving('security');
+    try {
+      await saveSetting('security_settings', securitySettings);
+      toast.success("Paramètres de sécurité sauvegardés");
+    } catch (error) {
+      console.error('Error saving security settings:', error);
+      toast.error("Erreur lors de la sauvegarde");
+    } finally {
+      setIsSaving(null);
+    }
+  };
+
+  const handleSaveDisplaySettings = async () => {
+    setIsSaving('display');
+    try {
+      await saveSetting('display_settings', displaySettings);
+      toast.success("Paramètres d'affichage sauvegardés");
+    } catch (error) {
+      console.error('Error saving display settings:', error);
+      toast.error("Erreur lors de la sauvegarde");
+    } finally {
+      setIsSaving(null);
+    }
+  };
+
+  const handleExportData = async () => {
+    try {
+      // Export all settings as JSON
+      const exportData = {
+        site_settings: siteSettings,
+        email_settings: emailSettings,
+        security_settings: securitySettings,
+        display_settings: displaySettings,
+        exported_at: new Date().toISOString()
+      };
+      
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rifrawstraw-settings-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success("Export des paramètres terminé");
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      toast.error("Erreur lors de l'export");
+    }
   };
 
   const handleImportData = () => {
-    // Import data logic
-    toast.success("Import des données démarré...");
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        
+        if (data.site_settings) {
+          setSiteSettings({ ...defaultSiteSettings, ...data.site_settings });
+          await saveSetting('site_settings', { ...defaultSiteSettings, ...data.site_settings });
+        }
+        if (data.email_settings) {
+          setEmailSettings({ ...defaultEmailSettings, ...data.email_settings });
+          await saveSetting('email_settings', { ...defaultEmailSettings, ...data.email_settings });
+        }
+        if (data.security_settings) {
+          setSecuritySettings({ ...defaultSecuritySettings, ...data.security_settings });
+          await saveSetting('security_settings', { ...defaultSecuritySettings, ...data.security_settings });
+        }
+        if (data.display_settings) {
+          setDisplaySettings({ ...defaultDisplaySettings, ...data.display_settings });
+          await saveSetting('display_settings', { ...defaultDisplaySettings, ...data.display_settings });
+        }
+        
+        toast.success("Import des paramètres terminé");
+      } catch (error) {
+        console.error('Error importing data:', error);
+        toast.error("Erreur lors de l'import - format invalide");
+      }
+    };
+    input.click();
   };
+
+  const handleResetSettings = async () => {
+    if (!confirm("Êtes-vous sûr de vouloir réinitialiser tous les paramètres ?")) return;
+    
+    try {
+      setSiteSettings(defaultSiteSettings);
+      setEmailSettings(defaultEmailSettings);
+      setSecuritySettings(defaultSecuritySettings);
+      setDisplaySettings(defaultDisplaySettings);
+      
+      await Promise.all([
+        saveSetting('site_settings', defaultSiteSettings),
+        saveSetting('email_settings', defaultEmailSettings),
+        saveSetting('security_settings', defaultSecuritySettings),
+        saveSetting('display_settings', defaultDisplaySettings)
+      ]);
+      
+      toast.success("Paramètres réinitialisés");
+    } catch (error) {
+      console.error('Error resetting settings:', error);
+      toast.error("Erreur lors de la réinitialisation");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-olive-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -196,8 +431,16 @@ const AdminSettings = () => {
               />
             </div>
 
-            <Button onClick={handleSaveSiteSettings} className="w-full bg-olive-700 hover:bg-olive-800">
-              <Save className="h-4 w-4 mr-2" />
+            <Button 
+              onClick={handleSaveSiteSettings} 
+              className="w-full bg-olive-700 hover:bg-olive-800"
+              disabled={isSaving === 'site'}
+            >
+              {isSaving === 'site' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
               Sauvegarder
             </Button>
           </CardContent>
@@ -277,8 +520,16 @@ const AdminSettings = () => {
               </div>
             </div>
 
-            <Button onClick={handleSaveEmailSettings} className="w-full bg-blue-700 hover:bg-blue-800">
-              <Save className="h-4 w-4 mr-2" />
+            <Button 
+              onClick={handleSaveEmailSettings} 
+              className="w-full bg-blue-700 hover:bg-blue-800"
+              disabled={isSaving === 'email'}
+            >
+              {isSaving === 'email' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
               Sauvegarder
             </Button>
           </CardContent>
@@ -338,8 +589,16 @@ const AdminSettings = () => {
               </div>
             </div>
 
-            <Button onClick={handleSaveSecuritySettings} className="w-full bg-red-700 hover:bg-red-800">
-              <Save className="h-4 w-4 mr-2" />
+            <Button 
+              onClick={handleSaveSecuritySettings} 
+              className="w-full bg-red-700 hover:bg-red-800"
+              disabled={isSaving === 'security'}
+            >
+              {isSaving === 'security' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
               Sauvegarder
             </Button>
           </CardContent>
@@ -424,8 +683,16 @@ const AdminSettings = () => {
               </div>
             </div>
 
-            <Button onClick={handleSaveDisplaySettings} className="w-full bg-purple-700 hover:bg-purple-800">
-              <Save className="h-4 w-4 mr-2" />
+            <Button 
+              onClick={handleSaveDisplaySettings} 
+              className="w-full bg-purple-700 hover:bg-purple-800"
+              disabled={isSaving === 'display'}
+            >
+              {isSaving === 'display' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
               Sauvegarder
             </Button>
           </CardContent>
@@ -462,7 +729,11 @@ const AdminSettings = () => {
               </div>
             </Button>
 
-            <Button variant="outline" className="h-20 text-red-600 hover:text-red-700 hover:bg-red-50">
+            <Button 
+              onClick={handleResetSettings} 
+              variant="outline" 
+              className="h-20 text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
               <div className="text-center">
                 <Trash2 className="h-6 w-6 mb-2 mx-auto" />
                 <span>Réinitialiser</span>
