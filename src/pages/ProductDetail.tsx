@@ -48,8 +48,7 @@ import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
 
 // Services & Hooks
 import { ProductService } from "@/services/productService";
-import { useCart } from "@/context/CartContext";
-import { useCurrency } from "@/stores";
+import { useCart, useCurrency } from "@/stores";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useStock } from "@/hooks/useStock";
@@ -72,7 +71,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   
   // Auth & Cart
   const { user } = useAuth();
-  const { dispatch } = useCart();
+  const { addItem } = useCart();
   const { formatPrice } = useCurrency();
   
   // Product State
@@ -179,11 +178,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
 
     try {
       // Update global cart state directly
-      dispatch({
-        type: "ADD_ITEM",
-        payload: product,
-        quantity,
-      });
+      addItem(product, quantity);
 
       // Show success message
       toast.success(`${quantity} × ${product.name} ajouté au panier`);

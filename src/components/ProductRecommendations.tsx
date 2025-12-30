@@ -1,6 +1,6 @@
 import { useProductRecommendations } from '@/hooks/useProductRecommendations';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
-import { useCart } from '@/context/CartContext';
+import { useCart } from '@/stores';
 import { toast } from 'sonner';
 import ProductCard from './ProductCard';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -23,7 +23,7 @@ export const ProductRecommendations = ({
   onQuickView 
 }: ProductRecommendationsProps) => {
   const { recentlyViewed } = useRecentlyViewed();
-  const { dispatch } = useCart();
+  const { addItem } = useCart();
 
   const recommendations = useProductRecommendations({
     currentProduct,
@@ -37,11 +37,7 @@ export const ProductRecommendations = ({
       const response = await import("@/api/mockApiService").then(api => api.addToCart(product, 1));
 
       if (response.success) {
-        dispatch({
-          type: "ADD_ITEM",
-          payload: product,
-          quantity: 1,
-        });
+        addItem(product, 1);
         toast.success(`${product.name} ajouté au panier`);
       } else {
         toast.error("Impossible d'ajouter le produit au panier");

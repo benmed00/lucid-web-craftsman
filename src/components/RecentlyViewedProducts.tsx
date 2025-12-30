@@ -1,5 +1,5 @@
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
-import { useCart } from '@/context/CartContext';
+import { useCart } from '@/stores';
 import { toast } from 'sonner';
 import ProductCard from './ProductCard';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -13,18 +13,14 @@ interface RecentlyViewedProductsProps {
 
 export const RecentlyViewedProducts = ({ onQuickView }: RecentlyViewedProductsProps) => {
   const { recentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
-  const { dispatch } = useCart();
+  const { addItem } = useCart();
 
   const handleAddToCart = async (product: Product) => {
     try {
       const response = await import("@/api/mockApiService").then(api => api.addToCart(product, 1));
 
       if (response.success) {
-        dispatch({
-          type: "ADD_ITEM",
-          payload: product,
-          quantity: 1,
-        });
+        addItem(product, 1);
         toast.success(`${product.name} ajouté au panier`);
       } else {
         toast.error("Impossible d'ajouter le produit au panier");
