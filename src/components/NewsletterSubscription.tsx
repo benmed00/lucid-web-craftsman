@@ -40,64 +40,50 @@ const NewsletterSubscription = ({
     setIsSubscribing(true);
 
     try {
-      // Check if email already exists
-      const { data: existing } = await supabase
+      const normalizedEmail = email.trim().toLowerCase();
+      
+      // Use upsert to handle both new subscriptions and reactivations
+      // This avoids needing SELECT permission which anonymous users don't have
+      const { error } = await supabase
         .from('newsletter_subscriptions')
-        .select('id, status')
-        .eq('email', email.trim().toLowerCase())
-        .maybeSingle();
+        .upsert({
+          email: normalizedEmail,
+          status: 'active',
+          consent_given: true,
+          consent_date: new Date().toISOString(),
+          source: variant,
+          double_opt_in: false,
+          confirmed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          metadata: {
+            subscription_variant: variant,
+            user_agent: navigator.userAgent,
+            timestamp: Date.now()
+          }
+        }, {
+          onConflict: 'email',
+          ignoreDuplicates: false
+        });
 
-      if (existing) {
-        if (existing.status === 'active') {
-          toast.error('Cette adresse email est déjà abonnée à notre newsletter');
-          setIsSubscribing(false);
-          return;
+      if (error) {
+        // Check if it's a duplicate error (email already active)
+        if (error.code === '23505') {
+          toast.info('Cette adresse email est déjà abonnée à notre newsletter');
         } else {
-          // Reactivate subscription
-          const { error } = await supabase
-            .from('newsletter_subscriptions')
-            .update({
-              status: 'active',
-              consent_given: true,
-              consent_date: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', existing.id);
-
-          if (error) throw error;
+          throw error;
         }
       } else {
-        // Create new subscription
-        const { error } = await supabase
-          .from('newsletter_subscriptions')
-          .insert({
-            email: email.trim().toLowerCase(),
-            status: 'active',
-            consent_given: true,
-            consent_date: new Date().toISOString(),
-            source: variant,
-            double_opt_in: false, // Simple opt-in for now
-            confirmed_at: new Date().toISOString(),
-            metadata: {
-              subscription_variant: variant,
-              user_agent: navigator.userAgent,
-              timestamp: Date.now()
-            }
-          });
-
-        if (error) throw error;
+        setIsSubscribed(true);
+        setEmail('');
+        setConsent(false);
+        toast.success('Merci ! Vous êtes maintenant abonné à notre newsletter.');
+        
+        // Reset success state after 5 seconds
+        setTimeout(() => setIsSubscribed(false), 5000);
       }
 
-      setIsSubscribed(true);
-      setEmail('');
-      setConsent(false);
-      toast.success('Merci ! Vous êtes maintenant abonné à notre newsletter.');
-      
-      // Reset success state after 5 seconds
-      setTimeout(() => setIsSubscribed(false), 5000);
-
     } catch (error) {
-      // Silent error handling for production
+      console.error('Newsletter subscription error:', error);
       toast.error('Une erreur est survenue. Veuillez réessayer.');
     } finally {
       setIsSubscribing(false);
