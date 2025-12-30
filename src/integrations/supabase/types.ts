@@ -1400,6 +1400,60 @@ export type Database = {
         }
         Relationships: []
       }
+      security_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_resolved: boolean | null
+          metadata: Json | null
+          notified_at: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          source_ip: unknown
+          title: string
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          notified_at?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          source_ip?: unknown
+          title: string
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          notified_at?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          source_ip?: unknown
+          title?: string
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       security_config: {
         Row: {
           created_at: string | null
@@ -2029,6 +2083,20 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_pending_security_alerts: {
+        Args: never
+        Returns: {
+          alert_type: string
+          created_at: string
+          description: string
+          id: string
+          metadata: Json
+          severity: string
+          source_ip: unknown
+          title: string
+          user_id: string
+        }[]
+      }
       get_profile_completion_percentage: {
         Args: { user_uuid: string }
         Returns: number
@@ -2082,6 +2150,10 @@ export type Database = {
           p_metadata?: Json
           p_user_id: string
         }
+        Returns: undefined
+      }
+      mark_alerts_notified: {
+        Args: { alert_ids: string[] }
         Returns: undefined
       }
       mask_email: { Args: { email: string }; Returns: string }
