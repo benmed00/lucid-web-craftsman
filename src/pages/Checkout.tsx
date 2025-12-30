@@ -1,7 +1,7 @@
-import { ArrowLeft, CheckCircle, CreditCard, Tag, Loader2, X, Truck, AlertCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, CreditCard, Tag, Loader2, X, Truck, AlertCircle, ArrowRight } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Stripe } from "@stripe/stripe-js"; // Type import only
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,10 @@ import {
 } from "@/utils/checkoutValidation";
 import { sanitizeUserInput } from "@/utils/xssProtection";
 import { useCsrfToken } from "@/hooks/useCsrfToken";
+import CheckoutProgress from "@/components/checkout/CheckoutProgress";
+import FormFieldWithValidation from "@/components/checkout/FormFieldWithValidation";
+import StepSummary from "@/components/checkout/StepSummary";
+import PaymentButton from "@/components/checkout/PaymentButton";
 
 // Lazy initialize Stripe only when needed
 let _stripePromise: Promise<Stripe | null> | null = null;
@@ -47,6 +51,7 @@ interface FreeShippingSettings {
 
 const Checkout = () => {
   const [step, setStep] = useState(1);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [paymentMethod, setPaymentMethod] = useState("card");
   const { loadStripe } = useLazyStripe();
   const { cart } = useCart();
@@ -96,6 +101,22 @@ const Checkout = () => {
   
   // Honeypot field for anti-bot protection
   const [honeypot, setHoneypot] = useState("");
+
+  // Memoized customer and shipping data for summary
+  const customerData = useMemo(() => ({
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    email: formData.email,
+    phone: formData.phone,
+  }), [formData.firstName, formData.lastName, formData.email, formData.phone]);
+
+  const shippingData = useMemo(() => ({
+    address: formData.address,
+    addressComplement: formData.addressComplement,
+    postalCode: formData.postalCode,
+    city: formData.city,
+    country: formData.country,
+  }), [formData.address, formData.addressComplement, formData.postalCode, formData.city, formData.country]);
 
   // Fetch free shipping settings
   useEffect(() => {
@@ -269,6 +290,9 @@ const Checkout = () => {
         phone: validation.data!.phone || '',
       }));
       
+      // Mark step as completed
+      setCompletedSteps(prev => prev.includes(1) ? prev : [...prev, 1]);
+      
     } else if (step === 2) {
       // Validate shipping address with Zod
       const validation = validateShippingAddress({
@@ -295,11 +319,21 @@ const Checkout = () => {
         city: validation.data!.city,
         country: validation.data!.country,
       }));
+      
+      // Mark step as completed
+      setCompletedSteps(prev => prev.includes(2) ? prev : [...prev, 2]);
     }
     
     // Proceed to next step
     setStep(step + 1);
   }, [step, formData, honeypot]);
+
+  // Handle editing a previous step
+  const handleEditStep = useCallback((targetStep: number) => {
+    // Remove completion status for this step and subsequent steps
+    setCompletedSteps(prev => prev.filter(s => s < targetStep));
+    setStep(targetStep);
+  }, []);
 
   // Process payment with full validation
   const handlePayment = async () => {
@@ -423,72 +457,13 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      
-
       <div className="container mx-auto px-4 py-12">
         <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-8 text-center">
-          Paiement
+          Paiement sécurisé
         </h1>
 
-        {/* Checkout Steps */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <div className="flex justify-between">
-            <div className="flex-1 text-center">
-              <div
-                className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center ${
-                  step >= 1
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                1
-              </div>
-              <div className="mt-2 text-sm font-medium">Information</div>
-            </div>
-
-            <div className="w-full max-w-[100px] flex items-center">
-              <div
-                className={`h-1 w-full ${
-                  step >= 2 ? "bg-primary" : "bg-muted"
-                }`}
-              ></div>
-            </div>
-
-            <div className="flex-1 text-center">
-              <div
-                className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center ${
-                  step >= 2
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                2
-              </div>
-              <div className="mt-2 text-sm font-medium">Livraison</div>
-            </div>
-
-            <div className="w-full max-w-[100px] flex items-center">
-              <div
-                className={`h-1 w-full ${
-                  step >= 3 ? "bg-primary" : "bg-muted"
-                }`}
-              ></div>
-            </div>
-
-            <div className="flex-1 text-center">
-              <div
-                className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center ${
-                  step >= 3
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                3
-              </div>
-              <div className="mt-2 text-sm font-medium">Paiement</div>
-            </div>
-          </div>
-        </div>
+        {/* Enhanced Checkout Progress */}
+        <CheckoutProgress currentStep={step} completedSteps={completedSteps} />
 
         {/* Main Checkout Container */}
         <div className="max-w-6xl mx-auto">
@@ -514,101 +489,118 @@ const Checkout = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">Prénom *</Label>
-                      <Input
-                        id="firstName"
-                        placeholder="Votre prénom"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        required
-                        aria-required="true"
-                        aria-invalid={!!formErrors.firstName}
-                        aria-describedby={formErrors.firstName ? "firstName-error" : undefined}
-                        className={formErrors.firstName ? "border-destructive" : ""}
-                      />
-                      {formErrors.firstName && (
-                        <p id="firstName-error" className="text-xs text-destructive flex items-center gap-1">
-                          <AlertCircle className="h-3 w-3" />
-                          {formErrors.firstName}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Nom *</Label>
-                      <Input
-                        id="lastName"
-                        placeholder="Votre nom"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        required
-                        aria-required="true"
-                        aria-invalid={!!formErrors.lastName}
-                        aria-describedby={formErrors.lastName ? "lastName-error" : undefined}
-                        className={formErrors.lastName ? "border-destructive" : ""}
-                      />
-                      {formErrors.lastName && (
-                        <p id="lastName-error" className="text-xs text-destructive flex items-center gap-1">
-                          <AlertCircle className="h-3 w-3" />
-                          {formErrors.lastName}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="votre.email@exemple.com"
-                      value={formData.email}
-                      onChange={handleInputChange}
+                    <FormFieldWithValidation
+                      id="firstName"
+                      label="Prénom"
+                      value={formData.firstName}
+                      onChange={(value) => {
+                        setFormData(prev => ({ ...prev, firstName: value }));
+                        setFormErrors(prev => {
+                          const newErrors = { ...prev };
+                          delete newErrors.firstName;
+                          return newErrors;
+                        });
+                      }}
+                      error={formErrors.firstName}
+                      placeholder="Votre prénom"
                       required
-                      aria-required="true"
-                      aria-invalid={!!formErrors.email}
-                      aria-describedby={formErrors.email ? "email-error" : undefined}
-                      className={formErrors.email ? "border-destructive" : ""}
+                      autoComplete="given-name"
+                      maxLength={50}
+                      validate={(value) => {
+                        if (value.length < 2) return "Le prénom doit contenir au moins 2 caractères";
+                        if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value)) return "Caractères non autorisés";
+                        return null;
+                      }}
                     />
-                    {formErrors.email && (
-                      <p id="email-error" className="text-xs text-destructive flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3" />
-                        {formErrors.email}
-                      </p>
-                    )}
+
+                    <FormFieldWithValidation
+                      id="lastName"
+                      label="Nom"
+                      value={formData.lastName}
+                      onChange={(value) => {
+                        setFormData(prev => ({ ...prev, lastName: value }));
+                        setFormErrors(prev => {
+                          const newErrors = { ...prev };
+                          delete newErrors.lastName;
+                          return newErrors;
+                        });
+                      }}
+                      error={formErrors.lastName}
+                      placeholder="Votre nom"
+                      required
+                      autoComplete="family-name"
+                      maxLength={50}
+                      validate={(value) => {
+                        if (value.length < 2) return "Le nom doit contenir au moins 2 caractères";
+                        if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value)) return "Caractères non autorisés";
+                        return null;
+                      }}
+                    />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Téléphone (optionnel)</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="Votre numéro de téléphone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      aria-invalid={!!formErrors.phone}
-                      aria-describedby={formErrors.phone ? "phone-error" : "phone-description"}
-                      className={formErrors.phone ? "border-destructive" : ""}
-                    />
-                    {formErrors.phone ? (
-                      <p id="phone-error" className="text-xs text-destructive flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3" />
-                        {formErrors.phone}
-                      </p>
-                    ) : (
-                      <p id="phone-description" className="text-sm text-muted-foreground">
-                        Pour vous contacter en cas de problème avec votre commande
-                      </p>
-                    )}
-                  </div>
+                  <FormFieldWithValidation
+                    id="email"
+                    label="Email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(value) => {
+                      setFormData(prev => ({ ...prev, email: value }));
+                      setFormErrors(prev => {
+                        const newErrors = { ...prev };
+                        delete newErrors.email;
+                        return newErrors;
+                      });
+                    }}
+                    error={formErrors.email}
+                    placeholder="votre.email@exemple.com"
+                    required
+                    autoComplete="email"
+                    maxLength={254}
+                    helpText="Nous vous enverrons la confirmation de commande à cette adresse"
+                    validate={(value) => {
+                      if (!value.includes('@')) return "Adresse email invalide";
+                      if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
+                        return "Format d'email invalide";
+                      }
+                      return null;
+                    }}
+                  />
+
+                  <FormFieldWithValidation
+                    id="phone"
+                    label="Téléphone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(value) => {
+                      setFormData(prev => ({ ...prev, phone: value }));
+                      setFormErrors(prev => {
+                        const newErrors = { ...prev };
+                        delete newErrors.phone;
+                        return newErrors;
+                      });
+                    }}
+                    error={formErrors.phone}
+                    placeholder="+33 6 12 34 56 78"
+                    autoComplete="tel"
+                    maxLength={20}
+                    helpText="Pour vous contacter en cas de problème avec votre commande"
+                    showSuccessState={false}
+                    validate={(value) => {
+                      if (!value) return null; // Optional field
+                      if (!/^[\+]?[(]?[0-9]{1,4}[)]?[-\s\./0-9]*$/.test(value)) {
+                        return "Format de téléphone invalide";
+                      }
+                      return null;
+                    }}
+                  />
 
                   <Button
-                    className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
+                    className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
                     onClick={goToNextStep}
                     aria-describedby="step1-instructions"
                   >
                     Continuer vers la livraison
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                   <p id="step1-instructions" className="sr-only">
                     Passer à l'étape suivante pour saisir votre adresse de livraison
@@ -618,10 +610,17 @@ const Checkout = () => {
 
               {step === 2 && (
                 <div className="space-y-6 animate-fade-in">
-                  <div className="flex items-center mb-6">
+                  {/* Step summary */}
+                  <StepSummary
+                    step={step}
+                    customerData={customerData}
+                    onEditStep={handleEditStep}
+                  />
+
+                  <div className="flex items-center mb-2">
                     <button
-                      className="text-primary hover:text-primary/80 flex items-center"
-                      onClick={() => setStep(1)}
+                      className="text-primary hover:text-primary/80 flex items-center text-sm"
+                      onClick={() => handleEditStep(1)}
                     >
                       <ArrowLeft className="h-4 w-4 mr-1" /> Retour
                     </button>
@@ -630,106 +629,124 @@ const Checkout = () => {
                     </h2>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Adresse *</Label>
-                    <Input
-                      id="address"
-                      placeholder="Numéro et nom de rue"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      required
-                      aria-required="true"
-                      aria-invalid={!!formErrors.address}
-                      aria-describedby={formErrors.address ? "address-error" : undefined}
-                      className={formErrors.address ? "border-destructive" : ""}
-                    />
-                    {formErrors.address && (
-                      <p id="address-error" className="text-xs text-destructive flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3" />
-                        {formErrors.address}
-                      </p>
-                    )}
-                  </div>
+                  <FormFieldWithValidation
+                    id="address"
+                    label="Adresse"
+                    value={formData.address}
+                    onChange={(value) => {
+                      setFormData(prev => ({ ...prev, address: value }));
+                      setFormErrors(prev => {
+                        const newErrors = { ...prev };
+                        delete newErrors.address;
+                        return newErrors;
+                      });
+                    }}
+                    error={formErrors.address}
+                    placeholder="Numéro et nom de rue"
+                    required
+                    autoComplete="street-address"
+                    maxLength={200}
+                    validate={(value) => {
+                      if (value.length < 5) return "L'adresse doit contenir au moins 5 caractères";
+                      return null;
+                    }}
+                  />
 
-                  <div className="space-y-2">
-                    <Label htmlFor="addressComplement">
-                      Complément d'adresse (optionnel)
-                    </Label>
-                    <Input
-                      id="addressComplement"
-                      placeholder="Appartement, étage, etc."
-                      value={formData.addressComplement}
-                      onChange={handleInputChange}
-                      aria-invalid={!!formErrors.addressComplement}
-                      className={formErrors.addressComplement ? "border-destructive" : ""}
-                    />
-                    {formErrors.addressComplement && (
-                      <p className="text-xs text-destructive flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3" />
-                        {formErrors.addressComplement}
-                      </p>
-                    )}
-                  </div>
+                  <FormFieldWithValidation
+                    id="addressComplement"
+                    label="Complément d'adresse"
+                    value={formData.addressComplement}
+                    onChange={(value) => {
+                      setFormData(prev => ({ ...prev, addressComplement: value }));
+                      setFormErrors(prev => {
+                        const newErrors = { ...prev };
+                        delete newErrors.addressComplement;
+                        return newErrors;
+                      });
+                    }}
+                    error={formErrors.addressComplement}
+                    placeholder="Appartement, étage, code d'entrée..."
+                    autoComplete="address-line2"
+                    maxLength={100}
+                    showSuccessState={false}
+                  />
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="postalCode">Code postal *</Label>
-                      <Input
-                        id="postalCode"
-                        placeholder="Code postal"
-                        value={formData.postalCode}
-                        onChange={handleInputChange}
-                        required
-                        aria-required="true"
-                        aria-invalid={!!formErrors.postalCode}
-                        aria-describedby={formErrors.postalCode ? "postalCode-error" : undefined}
-                        className={formErrors.postalCode ? "border-destructive" : ""}
-                      />
-                      {formErrors.postalCode && (
-                        <p id="postalCode-error" className="text-xs text-destructive flex items-center gap-1">
-                          <AlertCircle className="h-3 w-3" />
-                          {formErrors.postalCode}
-                        </p>
-                      )}
-                    </div>
+                    <FormFieldWithValidation
+                      id="postalCode"
+                      label="Code postal"
+                      value={formData.postalCode}
+                      onChange={(value) => {
+                        setFormData(prev => ({ ...prev, postalCode: value }));
+                        setFormErrors(prev => {
+                          const newErrors = { ...prev };
+                          delete newErrors.postalCode;
+                          return newErrors;
+                        });
+                      }}
+                      error={formErrors.postalCode}
+                      placeholder="75001"
+                      required
+                      autoComplete="postal-code"
+                      maxLength={10}
+                      validate={(value) => {
+                        const countryPatterns: Record<string, RegExp> = {
+                          FR: /^\d{5}$/,
+                          BE: /^\d{4}$/,
+                          CH: /^\d{4}$/,
+                          MC: /^\d{5}$/,
+                          LU: /^\d{4}$/,
+                        };
+                        const pattern = countryPatterns[formData.country];
+                        if (pattern && !pattern.test(value)) {
+                          return `Code postal invalide pour ${formData.country === 'FR' ? 'la France' : formData.country}`;
+                        }
+                        return null;
+                      }}
+                    />
 
-                    <div className="md:col-span-2 space-y-2">
-                      <Label htmlFor="city">Ville *</Label>
-                      <Input
+                    <div className="md:col-span-2">
+                      <FormFieldWithValidation
                         id="city"
-                        placeholder="Ville"
+                        label="Ville"
                         value={formData.city}
-                        onChange={handleInputChange}
+                        onChange={(value) => {
+                          setFormData(prev => ({ ...prev, city: value }));
+                          setFormErrors(prev => {
+                            const newErrors = { ...prev };
+                            delete newErrors.city;
+                            return newErrors;
+                          });
+                        }}
+                        error={formErrors.city}
+                        placeholder="Paris"
                         required
-                        aria-required="true"
-                        aria-invalid={!!formErrors.city}
-                        aria-describedby={formErrors.city ? "city-error" : undefined}
-                        className={formErrors.city ? "border-destructive" : ""}
+                        autoComplete="address-level2"
+                        maxLength={100}
+                        validate={(value) => {
+                          if (value.length < 2) return "La ville doit contenir au moins 2 caractères";
+                          if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value)) return "Caractères non autorisés";
+                          return null;
+                        }}
                       />
-                      {formErrors.city && (
-                        <p id="city-error" className="text-xs text-destructive flex items-center gap-1">
-                          <AlertCircle className="h-3 w-3" />
-                          {formErrors.city}
-                        </p>
-                      )}
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="country">Pays</Label>
+                    <Label htmlFor="country">Pays *</Label>
                     <select
                       id="country"
-                      className={`w-full h-10 px-3 py-2 border bg-background text-foreground rounded-md focus:outline-none focus:border-primary ${
+                      className={`w-full h-10 px-3 py-2 border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors ${
                         formErrors.country ? "border-destructive" : "border-border"
                       }`}
                       value={formData.country}
                       onChange={handleInputChange}
                     >
-                      <option value="FR">France</option>
-                      <option value="BE">Belgique</option>
-                      <option value="CH">Suisse</option>
-                      <option value="MC">Monaco</option>
-                      <option value="LU">Luxembourg</option>
+                      <option value="FR">🇫🇷 France</option>
+                      <option value="BE">🇧🇪 Belgique</option>
+                      <option value="CH">🇨🇭 Suisse</option>
+                      <option value="MC">🇲🇨 Monaco</option>
+                      <option value="LU">🇱🇺 Luxembourg</option>
                     </select>
                     {formErrors.country && (
                       <p className="text-xs text-destructive flex items-center gap-1">
@@ -740,20 +757,29 @@ const Checkout = () => {
                   </div>
 
                   <Button
-                    className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
+                    className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
                     onClick={goToNextStep}
                   >
                     Continuer vers le paiement
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
               )}
 
               {step === 3 && (
                 <div className="space-y-6 animate-fade-in">
-                  <div className="flex items-center mb-6">
+                  {/* Step summaries */}
+                  <StepSummary
+                    step={step}
+                    customerData={customerData}
+                    shippingData={shippingData}
+                    onEditStep={handleEditStep}
+                  />
+
+                  <div className="flex items-center mb-2">
                     <button
-                      className="text-primary hover:text-primary/80 flex items-center"
-                      onClick={() => setStep(2)}
+                      className="text-primary hover:text-primary/80 flex items-center text-sm"
+                      onClick={() => handleEditStep(2)}
                     >
                       <ArrowLeft className="h-4 w-4 mr-1" /> Retour
                     </button>
@@ -768,11 +794,12 @@ const Checkout = () => {
                     className="space-y-4"
                   >
                     <div
-                      className={`border rounded-lg p-4 ${
+                      className={`border rounded-lg p-4 transition-all cursor-pointer ${
                         paymentMethod === "card"
-                          ? "border-primary bg-primary/5"
-                          : "border-border"
+                          ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                          : "border-border hover:border-primary/50"
                       }`}
+                      onClick={() => setPaymentMethod("card")}
                     >
                       <div className="flex items-start">
                         <RadioGroupItem
@@ -780,84 +807,47 @@ const Checkout = () => {
                           id="card"
                           className="mt-1"
                         />
-                        <div className="ml-2">
+                        <div className="ml-3 flex-1">
                           <Label
                             htmlFor="card"
-                            className="text-lg flex items-center"
+                            className="text-lg flex items-center cursor-pointer"
                           >
-                            <CreditCard className="mr-2 h-5 w-5" /> Carte de
-                            crédit
+                            <CreditCard className="mr-2 h-5 w-5" /> Carte bancaire
                           </Label>
                           <p className="text-sm text-muted-foreground mt-1">
                             Visa, Mastercard, American Express
                           </p>
-
                           {paymentMethod === "card" && (
-                            <div className="mt-4 space-y-4 animate-fade-in">
-                              <div className="space-y-2">
-                                <Label htmlFor="cardNumber">
-                                  Numéro de carte
-                                </Label>
-                                <Input
-                                  id="cardNumber"
-                                  placeholder="1234 5678 9012 3456"
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="expiry">
-                                    Date d'expiration
-                                  </Label>
-                                  <Input id="expiry" placeholder="MM/AA" />
-                                </div>
-
-                                <div className="space-y-2">
-                                  <Label htmlFor="cvc">CVC</Label>
-                                  <Input id="cvc" placeholder="123" />
-                                </div>
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label htmlFor="nameOnCard">
-                                  Nom sur la carte
-                                </Label>
-                                <Input
-                                  id="nameOnCard"
-                                  placeholder="Nom complet"
-                                />
-                              </div>
-                            </div>
+                            <p className="text-xs text-primary mt-2 animate-fade-in">
+                              Vous serez redirigé vers notre page de paiement sécurisée Stripe
+                            </p>
                           )}
                         </div>
                       </div>
                     </div>
 
                     <div
-                      className={`border rounded-lg p-4 ${
+                      className={`border rounded-lg p-4 transition-all cursor-pointer ${
                         paymentMethod === "paypal"
-                          ? "border-primary bg-primary/5"
-                          : "border-border"
+                          ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                          : "border-border hover:border-primary/50"
                       }`}
+                      onClick={() => setPaymentMethod("paypal")}
                     >
                       <div className="flex items-center">
                         <RadioGroupItem value="paypal" id="paypal" />
-                        <Label htmlFor="paypal" className="ml-2 text-lg">
+                        <Label htmlFor="paypal" className="ml-3 text-lg cursor-pointer">
                           PayPal
                         </Label>
                       </div>
                     </div>
                   </RadioGroup>
 
-                  <Button
-                    className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
+                  <PaymentButton
+                    total={total}
+                    isProcessing={isProcessing}
                     onClick={handlePayment}
-                    disabled={isProcessing}
-                  >
-                    {isProcessing
-                      ? "Traitement en cours..."
-                      : `Payer ${total.toFixed(2)} €`}
-                  </Button>
+                  />
                 </div>
               )}
             </div>
