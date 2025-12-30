@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import Navigation from './Navigation';
 
 // Mock the hooks
-vi.mock('../context/useCartUI', () => ({
+vi.mock('@/context/useCartUI', () => ({
   useCartUI: () => ({ itemCount: 0 })
 }));
 
