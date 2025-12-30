@@ -462,6 +462,38 @@ export const useCartStore = create<CartState>()(
               safeRemoveItem(name as keyof typeof StorageKeys);
             },
           },
+          // On rehydration, load products for stored items
+          onRehydrateStorage: () => {
+            return async (state, error) => {
+              if (error) {
+                console.error('Cart rehydration error:', error);
+                return;
+              }
+              
+              if (state && state.items && state.items.length > 0) {
+                // Check if items need product data loaded
+                const itemsNeedingProducts = state.items.filter(item => !item.product);
+                
+                if (itemsNeedingProducts.length > 0) {
+                  console.log('Rehydrating cart: loading products for', itemsNeedingProducts.length, 'items');
+                  
+                  try {
+                    const reloadedItems = await loadProductsForCartItems(
+                      itemsNeedingProducts.map(item => ({ id: item.id, quantity: item.quantity }))
+                    );
+                    
+                    // Merge with any items that already had product data
+                    const existingValidItems = state.items.filter(item => item.product);
+                    const mergedItems = [...existingValidItems, ...reloadedItems];
+                    
+                    useCartStore.setState({ items: mergedItems });
+                  } catch (err) {
+                    console.error('Failed to reload products during rehydration:', err);
+                  }
+                }
+              }
+            };
+          },
         }
       )
     ),
@@ -470,13 +502,15 @@ export const useCartStore = create<CartState>()(
 );
 
 // Selectors (optimized re-renders)
-export const selectCartItems = (state: CartState) => state.items;
+// CRITICAL: Selectors must filter out items without valid product data
+export const selectCartItems = (state: CartState) => 
+  state.items.filter(item => item?.product?.id != null);
 export const selectItemCount = (state: CartState) => 
-  state.items.reduce((sum, item) => sum + item.quantity, 0);
+  state.items.filter(item => item?.product?.id != null).reduce((sum, item) => sum + item.quantity, 0);
 export const selectTotalPrice = (state: CartState) =>
-  state.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  state.items.filter(item => item?.product?.id != null).reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 export const selectIsInCart = (productId: number) => (state: CartState) =>
-  state.items.some((item) => item.id === productId);
+  state.items.some((item) => item.id === productId && item?.product?.id != null);
 export const selectPendingOperations = (state: CartState) => state.offlineQueue.length;
 
 // Initialize store (call once in app)
@@ -564,7 +598,7 @@ export function initializeCartStore() {
 
 // Compatibility hook (same API as useCart)
 export function useCart() {
-  const items = useCartStore((state) => state.items);
+  const rawItems = useCartStore((state) => state.items);
   const isOnline = useCartStore((state) => state.isOnline);
   const isAuthenticated = useCartStore((state) => state.isAuthenticated);
   const isSyncing = useCartStore((state) => state.isSyncing);
@@ -576,12 +610,16 @@ export function useCart() {
   const clearCart = useCartStore((state) => state.clearCart);
   const syncNow = useCartStore((state) => state.syncNow);
 
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce((sum, item) => sum + (item.product?.price ?? 0) * item.quantity, 0);
+  // CRITICAL FIX: Only count items that have valid product data
+  // Items may be hydrated from localStorage without product objects
+  const validItems = rawItems.filter(item => item?.product?.id != null);
+  
+  const itemCount = validItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = validItems.reduce((sum, item) => sum + (item.product.price ?? 0) * item.quantity, 0);
 
   return {
-    cart: { items, totalPrice },
-    items,
+    cart: { items: validItems, totalPrice },
+    items: validItems,
     itemCount,
     totalPrice,
     isOnline,
