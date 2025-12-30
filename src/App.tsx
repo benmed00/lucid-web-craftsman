@@ -71,6 +71,7 @@ const AdminHeroImage = lazy(() => import("./pages/admin/AdminHeroImage"));
 const AdminErrorReports = lazy(() => import("./pages/admin/AdminErrorReports"));
 const AdminPromoCodes = lazy(() => import("./pages/admin/AdminPromoCodes"));
 const AdminEmailTesting = lazy(() => import("./pages/admin/AdminEmailTesting"));
+const AdminReviews = lazy(() => import("./pages/admin/AdminReviews").then(m => ({ default: m.AdminReviews })));
 
 // Loading fallback component
 const PageLoadingFallback = () => (
@@ -219,6 +220,7 @@ const App = () => {
                   <Route path="analytics" element={<Suspense fallback={<PageLoadingFallback />}><AdminAnalytics /></Suspense>} />
                   <Route path="error-reports" element={<Suspense fallback={<PageLoadingFallback />}><AdminErrorReports /></Suspense>} />
                   <Route path="email-testing" element={<Suspense fallback={<PageLoadingFallback />}><AdminEmailTesting /></Suspense>} />
+                  <Route path="reviews" element={<Suspense fallback={<PageLoadingFallback />}><AdminReviews /></Suspense>} />
                   <Route path="settings" element={<Suspense fallback={<PageLoadingFallback />}><AdminSettings /></Suspense>} />
                 </Route>
 
