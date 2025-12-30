@@ -20,7 +20,7 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const { signIn, user } = useAuth();
   const { isAuthenticated: isAdminAuthenticated, isLoading: adminLoading } = useAdminAuth();
-  const csrfToken = useCsrfToken();
+  const { csrfToken } = useCsrfToken();
 
   // Redirect if already authenticated as admin
   useEffect(() => {

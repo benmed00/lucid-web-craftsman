@@ -4,13 +4,74 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-csrf-token, x-csrf-nonce, x-csrf-hash",
 };
 
 // Helper logging function
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-PAYMENT] ${step}${detailsStr}`);
+};
+
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+const MAX_PAYMENT_ATTEMPTS = 3;
+
+// In-memory rate limiting (per instance - for production use Redis/DB)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+// Check rate limit for payment attempts
+const checkRateLimit = (identifier: string): { allowed: boolean; remaining: number } => {
+  const now = Date.now();
+  const record = rateLimitStore.get(identifier);
+  
+  if (!record || now > record.resetTime) {
+    rateLimitStore.set(identifier, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: MAX_PAYMENT_ATTEMPTS - 1 };
+  }
+  
+  if (record.count >= MAX_PAYMENT_ATTEMPTS) {
+    return { allowed: false, remaining: 0 };
+  }
+  
+  record.count++;
+  return { allowed: true, remaining: MAX_PAYMENT_ATTEMPTS - record.count };
+};
+
+// Verify CSRF token hash
+const verifyCsrfToken = async (token: string, nonce: string, hash: string): Promise<boolean> => {
+  if (!token || !nonce || !hash) {
+    return false;
+  }
+  
+  try {
+    const data = new TextEncoder().encode(`${token}:${nonce}`);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const computedHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    return computedHash === hash;
+  } catch {
+    return false;
+  }
+};
+
+// Sanitize string input
+const sanitizeString = (input: string | undefined | null): string => {
+  if (!input) return '';
+  return input
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .trim()
+    .substring(0, 500); // Limit length
+};
+
+// Validate email format
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email) && email.length <= 254;
 };
 
 serve(async (req) => {
@@ -34,13 +95,71 @@ serve(async (req) => {
   try {
     logStep("Function started");
     
-    const { items, customerInfo } = await req.json();
+    // Extract client identifier for rate limiting
+    const clientIP = req.headers.get("x-forwarded-for")?.split(',')[0]?.trim() || 
+                     req.headers.get("cf-connecting-ip") || 
+                     "unknown";
     
+    // Check rate limit
+    const rateLimitResult = checkRateLimit(clientIP);
+    if (!rateLimitResult.allowed) {
+      logStep("Rate limit exceeded", { clientIP });
+      return new Response(
+        JSON.stringify({ error: "Trop de tentatives de paiement. Veuillez réessayer dans 5 minutes." }),
+        {
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json",
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(Math.ceil(RATE_LIMIT_WINDOW_MS / 1000))
+          },
+          status: 429,
+        }
+      );
+    }
+    
+    // Verify CSRF token
+    const csrfToken = req.headers.get("x-csrf-token");
+    const csrfNonce = req.headers.get("x-csrf-nonce");
+    const csrfHash = req.headers.get("x-csrf-hash");
+    
+    // CSRF verification (optional for now, log warnings)
+    if (csrfToken && csrfNonce && csrfHash) {
+      const csrfValid = await verifyCsrfToken(csrfToken, csrfNonce, csrfHash);
+      if (!csrfValid) {
+        logStep("CSRF verification failed", { hasToken: !!csrfToken });
+        return new Response(
+          JSON.stringify({ error: "Requête invalide. Veuillez rafraîchir la page et réessayer." }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 403,
+          }
+        );
+      }
+      logStep("CSRF verification passed");
+    } else {
+      logStep("CSRF headers missing - allowing request with warning");
+    }
+    
+    const { items, customerInfo, discount } = await req.json();
+    
+    // Validate items
     if (!items || !Array.isArray(items) || items.length === 0) {
       throw new Error("No items provided for payment");
     }
+    
+    if (items.length > 50) {
+      throw new Error("Too many items in order");
+    }
+    
+    // Validate and sanitize customer info
+    if (customerInfo) {
+      if (customerInfo.email && !isValidEmail(customerInfo.email)) {
+        throw new Error("Invalid email format");
+      }
+    }
 
-    logStep("Received order data", { itemCount: items.length });
+    logStep("Received order data", { itemCount: items.length, hasDiscount: !!discount });
 
     // Get authenticated user (optional for guest checkout)
     let user = null;

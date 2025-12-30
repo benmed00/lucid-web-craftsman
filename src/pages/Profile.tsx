@@ -24,7 +24,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, signOut } = useAuth();
-  const csrfToken = useCsrfToken();
+  const { csrfToken } = useCsrfToken();
 
   // Redirect if not authenticated
   useEffect(() => {
