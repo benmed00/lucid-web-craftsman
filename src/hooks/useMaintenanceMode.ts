@@ -19,7 +19,7 @@ export const useMaintenanceMode = () => {
           .from('app_settings')
           .select('setting_value')
           .eq('setting_key', 'display_settings')
-          .single();
+          .maybeSingle();
 
         if (error && error.code !== 'PGRST116') {
           console.error('Error checking maintenance mode:', error);
