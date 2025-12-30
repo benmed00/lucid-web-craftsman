@@ -16,6 +16,7 @@ import { fr } from 'date-fns/locale';
 import { AddOrderDialog } from "@/components/admin/AddOrderDialog";
 import { ManualTestOrderStatus } from "@/components/admin/ManualTestOrderStatus";
 import { TestOrderEmailButton } from "@/components/admin/TestOrderEmailButton";
+import { TestShippingEmailButton } from "@/components/admin/TestShippingEmailButton";
 import { SendShippingEmailButton } from "@/components/admin/SendShippingEmailButton";
 
 interface OrderItem {
@@ -46,6 +47,8 @@ const AdminOrders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [shippingDialogOpen, setShippingDialogOpen] = useState(false);
+  const [pendingShippedOrder, setPendingShippedOrder] = useState<Order | null>(null);
 
   const fetchOrders = async () => {
     try {
@@ -89,7 +92,17 @@ const AdminOrders = () => {
     }
   }, [user]);
 
-  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+  const updateOrderStatus = async (orderId: string, newStatus: string, skipShippingPrompt = false) => {
+    // If changing to shipped, prompt for shipping notification
+    if (newStatus === 'shipped' && !skipShippingPrompt) {
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        setPendingShippedOrder(order);
+        setShippingDialogOpen(true);
+        return;
+      }
+    }
+
     try {
       const { error } = await supabase
         .from('orders')
@@ -107,6 +120,26 @@ const AdminOrders = () => {
       console.error('Error updating order status:', error);
       toast.error('Erreur lors de la mise à jour');
     }
+  };
+
+  const handleShippingDialogClose = () => {
+    setShippingDialogOpen(false);
+    setPendingShippedOrder(null);
+  };
+
+  const handleShippingEmailSent = () => {
+    if (pendingShippedOrder) {
+      // Update status after email is sent
+      updateOrderStatus(pendingShippedOrder.id, 'shipped', true);
+    }
+    handleShippingDialogClose();
+  };
+
+  const handleSkipShippingEmail = () => {
+    if (pendingShippedOrder) {
+      updateOrderStatus(pendingShippedOrder.id, 'shipped', true);
+    }
+    handleShippingDialogClose();
   };
 
   const getStatusBadge = (status: string) => {
@@ -218,10 +251,11 @@ const AdminOrders = () => {
           <h1 className="text-2xl font-bold text-foreground">Gestion des Commandes</h1>
           <p className="text-muted-foreground">Gérez toutes les commandes de votre boutique</p>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex flex-wrap gap-2">
           <AddOrderDialog onOrderAdded={fetchOrders} />
           <ManualTestOrderStatus />
           <TestOrderEmailButton />
+          <TestShippingEmailButton />
           <Button onClick={fetchOrders} variant="outline" className="gap-2">
             <RefreshCw className="h-4 w-4" />
             Actualiser
@@ -404,6 +438,34 @@ const AdminOrders = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Shipping Notification Dialog - triggered when changing status to shipped */}
+      <Dialog open={shippingDialogOpen} onOpenChange={setShippingDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Envoyer une notification d'expédition ?</DialogTitle>
+            <DialogDescription>
+              Voulez-vous envoyer un email au client pour l'informer que sa commande a été expédiée ?
+            </DialogDescription>
+          </DialogHeader>
+          
+          {pendingShippedOrder && (
+            <div className="py-4">
+              <SendShippingEmailButton 
+                orderId={pendingShippedOrder.id}
+                orderItems={pendingShippedOrder.order_items}
+                onEmailSent={handleShippingEmailSent}
+              />
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleSkipShippingEmail}>
+              Passer (ne pas envoyer)
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
