@@ -26,8 +26,11 @@ const Cart = () => {
   const { calculation, loading: shippingLoading, loadZones } = useShipping({ postalCode, orderAmount: totalPrice });
   const isMobile = useIsMobile();
   
+  // Filter out any corrupted cart items (missing product data)
+  const validCartItems = cart.items.filter(item => item?.product?.id != null);
+  
   // Get all product IDs from cart for bulk stock checking
-  const productIds = cart.items.map(item => item.product.id);
+  const productIds = validCartItems.map(item => item.product.id);
   const { stockInfo, canOrderQuantity } = useStock({ productIds, enabled: productIds.length > 0 });
 
   const handlePaymentSuccess = (paymentMethod: string) => {
@@ -49,7 +52,7 @@ const Cart = () => {
     const issues: { productId: number; available: number; requested: number }[] = [];
     
     if (stockInfo && typeof stockInfo === 'object') {
-      cart.items.forEach(item => {
+      validCartItems.forEach(item => {
         const productStock = stockInfo[item.product.id];
         if (productStock && productStock.isOutOfStock) {
           issues.push({
@@ -62,7 +65,7 @@ const Cart = () => {
     }
     
     return issues;
-  }, [cart.items, stockInfo]);
+  }, [validCartItems, stockInfo]);
 
   const handleQuantityChange = async (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) {
@@ -111,7 +114,7 @@ const Cart = () => {
   const shippingCost = calculation?.cost || 0;
   const total = subtotal + shippingCost;
 
-  if (cart.items.length === 0) {
+  if (validCartItems.length === 0) {
     return (
       <div className="min-h-screen bg-background">
         <SEOHelmet
@@ -183,7 +186,7 @@ const Cart = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-3 md:space-y-4">
-            {cart.items.map((item) => {
+            {validCartItems.map((item) => {
               const productStock = stockInfo && typeof stockInfo === 'object' ? stockInfo[item.product.id] : null;
               const hasStockIssue = stockIssues.find(issue => issue.productId === item.product.id);
               
