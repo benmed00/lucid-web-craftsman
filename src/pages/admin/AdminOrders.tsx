@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { AddOrderDialog } from "@/components/admin/AddOrderDialog";
 import { ManualTestOrderStatus } from "@/components/admin/ManualTestOrderStatus";
+import { TestOrderEmailButton } from "@/components/admin/TestOrderEmailButton";
 
 interface OrderItem {
   id: string;
@@ -209,6 +210,7 @@ const AdminOrders = () => {
         <div className="flex space-x-2">
           <AddOrderDialog onOrderAdded={fetchOrders} />
           <ManualTestOrderStatus />
+          <TestOrderEmailButton />
           <Button onClick={fetchOrders} variant="outline" className="gap-2">
             <RefreshCw className="h-4 w-4" />
             Actualiser
