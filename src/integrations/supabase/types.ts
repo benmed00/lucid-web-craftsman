@@ -1938,6 +1938,7 @@ export type Database = {
         Returns: undefined
       }
       mask_email: { Args: { email: string }; Returns: string }
+      monitor_audit_log_integrity: { Args: never; Returns: Json }
       monitor_contact_data_security: {
         Args: never
         Returns: {
