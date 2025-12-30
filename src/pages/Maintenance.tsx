@@ -1,6 +1,24 @@
-import { Wrench, Clock, Mail } from "lucide-react";
+import { Wrench, Clock, Mail, Calendar } from "lucide-react";
+import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 const Maintenance = () => {
+  const { maintenanceReturnTime } = useMaintenanceMode();
+
+  const formatReturnTime = (dateStr: string | null) => {
+    if (!dateStr) return null;
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return null;
+      return format(date, "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr });
+    } catch {
+      return null;
+    }
+  };
+
+  const formattedReturnTime = formatReturnTime(maintenanceReturnTime);
+
   return (
     <div 
       className="min-h-screen flex items-center justify-center p-4"
@@ -35,8 +53,29 @@ const Maintenance = () => {
         {/* Estimated time */}
         <div className="flex items-center justify-center gap-2" style={{ color: '#78716c' }}>
           <Clock className="h-4 w-4" />
-          <span className="text-sm">Nous serons de retour très bientôt</span>
+          <span className="text-sm">
+            {formattedReturnTime 
+              ? `Retour prévu : ${formattedReturnTime}`
+              : "Nous serons de retour très bientôt"
+            }
+          </span>
         </div>
+
+        {/* Return time card if available */}
+        {formattedReturnTime && (
+          <div 
+            className="rounded-lg p-4 flex items-center justify-center gap-3"
+            style={{ 
+              backgroundColor: '#ecfccb',
+              border: '1px solid #bef264'
+            }}
+          >
+            <Calendar className="h-5 w-5" style={{ color: '#65a30d' }} />
+            <span className="text-sm font-medium" style={{ color: '#3f6212' }}>
+              {formattedReturnTime}
+            </span>
+          </div>
+        )}
 
         {/* Contact info */}
         <div 
