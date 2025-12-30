@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@4.0.0";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 import * as React from 'npm:react@18.3.1';
 import { renderAsync } from 'npm:@react-email/components@0.0.22';
 import { CancellationEmail } from './_templates/cancellation-email.tsx';
@@ -11,25 +12,57 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Initialize Supabase client for logging
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
 interface CancellationRequest {
   orderId: string;
   customerEmail: string;
   customerName: string;
-  isRefund: boolean;
+  isRefund?: boolean;
   reason?: string;
   refundAmount?: number;
+  orderAmount?: number;
   currency?: string;
   items: Array<{
     name: string;
     quantity: number;
-    price: number;
+    price?: number;
   }>;
   refundMethod?: string;
   refundDelay?: string;
+  previewOnly?: boolean;
 }
 
 const logStep = (step: string, details?: any) => {
   console.log(`[send-cancellation-email] ${step}`, details ? JSON.stringify(details) : '');
+};
+
+const logEmailToDatabase = async (
+  templateName: string,
+  recipientEmail: string,
+  recipientName: string | null,
+  orderId: string | null,
+  status: string,
+  errorMessage: string | null,
+  metadata: any
+) => {
+  try {
+    await supabase.from('email_logs').insert({
+      template_name: templateName,
+      recipient_email: recipientEmail,
+      recipient_name: recipientName,
+      order_id: orderId,
+      status: status,
+      error_message: errorMessage,
+      metadata: metadata,
+      sent_at: status === 'sent' ? new Date().toISOString() : null
+    });
+  } catch (error) {
+    console.error('Failed to log email:', error);
+  }
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -42,11 +75,15 @@ const handler = async (req: Request): Promise<Response> => {
     
     const data: CancellationRequest = await req.json();
     
+    // Handle both isRefund and refundAmount to determine if it's a refund
+    const isRefund = data.isRefund ?? (data.refundAmount !== undefined && data.refundAmount > 0);
+    
     logStep('Received cancellation data', {
       orderId: data.orderId,
       customerEmail: data.customerEmail,
-      isRefund: data.isRefund,
-      refundAmount: data.refundAmount
+      isRefund: isRefund,
+      refundAmount: data.refundAmount,
+      previewOnly: data.previewOnly
     });
 
     if (!data.orderId || !data.customerEmail || !data.customerName) {
@@ -67,7 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
         orderNumber: data.orderId.slice(-8).toUpperCase(),
         cancellationDate: cancellationDate,
         reason: data.reason,
-        isRefund: data.isRefund,
+        isRefund: isRefund,
         refundAmount: data.refundAmount,
         currency: data.currency || 'EUR',
         items: data.items || [],
@@ -78,8 +115,23 @@ const handler = async (req: Request): Promise<Response> => {
 
     logStep('Email template rendered successfully');
 
+    // If preview only, return the HTML without sending
+    if (data.previewOnly) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          previewHtml: html,
+          message: 'Email preview generated'
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "Rif Raw Straw <onboarding@resend.dev>";
-    const subject = data.isRefund 
+    const subject = isRefund 
       ? `Remboursement de votre commande #${data.orderId.slice(-8).toUpperCase()} 💰`
       : `Annulation de votre commande #${data.orderId.slice(-8).toUpperCase()}`;
     
@@ -94,6 +146,17 @@ const handler = async (req: Request): Promise<Response> => {
 
     logStep('Email sent successfully', { emailId: emailResponse.data?.id });
 
+    // Log successful email
+    await logEmailToDatabase(
+      isRefund ? 'refund-notification' : 'cancellation-notification',
+      data.customerEmail,
+      data.customerName,
+      data.orderId,
+      'sent',
+      null,
+      { emailId: emailResponse.data?.id, isRefund, refundAmount: data.refundAmount }
+    );
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -107,6 +170,18 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     logStep('Error sending cancellation email', { error: error.message });
+
+    // Log failed email
+    const body = await req.clone().json().catch(() => ({}));
+    await logEmailToDatabase(
+      'cancellation-notification',
+      body.customerEmail || 'unknown',
+      body.customerName || null,
+      body.orderId || null,
+      'failed',
+      error.message,
+      {}
+    );
     
     return new Response(
       JSON.stringify({ success: false, error: error.message }),

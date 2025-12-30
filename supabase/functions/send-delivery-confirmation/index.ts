@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@4.0.0";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 import * as React from 'npm:react@18.3.1';
 import { renderAsync } from 'npm:@react-email/components@0.0.22';
 import { DeliveryConfirmationEmail } from './_templates/delivery-confirmation.tsx';
@@ -11,6 +12,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Initialize Supabase client for logging
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
 interface DeliveryConfirmationRequest {
   orderId: string;
   customerEmail: string;
@@ -21,10 +27,36 @@ interface DeliveryConfirmationRequest {
     quantity: number;
   }>;
   reviewUrl?: string;
+  previewOnly?: boolean;
 }
 
 const logStep = (step: string, details?: any) => {
   console.log(`[send-delivery-confirmation] ${step}`, details ? JSON.stringify(details) : '');
+};
+
+const logEmailToDatabase = async (
+  templateName: string,
+  recipientEmail: string,
+  recipientName: string | null,
+  orderId: string | null,
+  status: string,
+  errorMessage: string | null,
+  metadata: any
+) => {
+  try {
+    await supabase.from('email_logs').insert({
+      template_name: templateName,
+      recipient_email: recipientEmail,
+      recipient_name: recipientName,
+      order_id: orderId,
+      status: status,
+      error_message: errorMessage,
+      metadata: metadata,
+      sent_at: status === 'sent' ? new Date().toISOString() : null
+    });
+  } catch (error) {
+    console.error('Failed to log email:', error);
+  }
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -40,7 +72,8 @@ const handler = async (req: Request): Promise<Response> => {
     logStep('Received delivery data', {
       orderId: data.orderId,
       customerEmail: data.customerEmail,
-      itemCount: data.items?.length || 0
+      itemCount: data.items?.length || 0,
+      previewOnly: data.previewOnly
     });
 
     if (!data.orderId || !data.customerEmail || !data.customerName) {
@@ -67,6 +100,21 @@ const handler = async (req: Request): Promise<Response> => {
 
     logStep('Email template rendered successfully');
 
+    // If preview only, return the HTML without sending
+    if (data.previewOnly) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          previewHtml: html,
+          message: 'Email preview generated'
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "Rif Raw Straw <onboarding@resend.dev>";
     
     logStep('Sending email', { to: data.customerEmail, from: fromEmail });
@@ -79,6 +127,17 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     logStep('Email sent successfully', { emailId: emailResponse.data?.id });
+
+    // Log successful email
+    await logEmailToDatabase(
+      'delivery-confirmation',
+      data.customerEmail,
+      data.customerName,
+      data.orderId,
+      'sent',
+      null,
+      { emailId: emailResponse.data?.id, itemCount: data.items?.length || 0 }
+    );
 
     return new Response(
       JSON.stringify({
@@ -93,6 +152,18 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     logStep('Error sending delivery confirmation', { error: error.message });
+
+    // Log failed email
+    const body = await req.clone().json().catch(() => ({}));
+    await logEmailToDatabase(
+      'delivery-confirmation',
+      body.customerEmail || 'unknown',
+      body.customerName || null,
+      body.orderId || null,
+      'failed',
+      error.message,
+      {}
+    );
     
     return new Response(
       JSON.stringify({ success: false, error: error.message }),

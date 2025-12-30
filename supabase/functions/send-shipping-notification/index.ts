@@ -12,6 +12,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Initialize Supabase client for logging
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
 interface ShippingNotificationRequest {
   orderId: string;
   customerEmail: string;
@@ -31,10 +36,36 @@ interface ShippingNotificationRequest {
     quantity: number;
     image?: string;
   }>;
+  previewOnly?: boolean;
 }
 
 const logStep = (step: string, details?: any) => {
   console.log(`[send-shipping-notification] ${step}`, details ? JSON.stringify(details) : '');
+};
+
+const logEmailToDatabase = async (
+  templateName: string,
+  recipientEmail: string,
+  recipientName: string | null,
+  orderId: string | null,
+  status: string,
+  errorMessage: string | null,
+  metadata: any
+) => {
+  try {
+    await supabase.from('email_logs').insert({
+      template_name: templateName,
+      recipient_email: recipientEmail,
+      recipient_name: recipientName,
+      order_id: orderId,
+      status: status,
+      error_message: errorMessage,
+      metadata: metadata,
+      sent_at: status === 'sent' ? new Date().toISOString() : null
+    });
+  } catch (error) {
+    console.error('Failed to log email:', error);
+  }
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -52,7 +83,8 @@ const handler = async (req: Request): Promise<Response> => {
       orderId: data.orderId,
       customerEmail: data.customerEmail,
       trackingNumber: data.trackingNumber,
-      carrier: data.carrier
+      carrier: data.carrier,
+      previewOnly: data.previewOnly
     });
 
     // Validate required fields
@@ -83,6 +115,21 @@ const handler = async (req: Request): Promise<Response> => {
 
     logStep('Email template rendered successfully');
 
+    // If preview only, return the HTML without sending
+    if (data.previewOnly) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          previewHtml: html,
+          message: 'Email preview generated'
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     // Send email via Resend
     const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "Rif Raw Straw <onboarding@resend.dev>";
     
@@ -96,6 +143,17 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     logStep('Email sent successfully', { emailId: emailResponse.data?.id });
+
+    // Log successful email
+    await logEmailToDatabase(
+      'shipping-notification',
+      data.customerEmail,
+      data.customerName,
+      data.orderId,
+      'sent',
+      null,
+      { emailId: emailResponse.data?.id, trackingNumber: data.trackingNumber, carrier: data.carrier }
+    );
 
     return new Response(
       JSON.stringify({
@@ -113,6 +171,18 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     logStep('Error sending shipping notification', { error: error.message });
+
+    // Log failed email
+    const body = await req.clone().json().catch(() => ({}));
+    await logEmailToDatabase(
+      'shipping-notification',
+      body.customerEmail || 'unknown',
+      body.customerName || null,
+      body.orderId || null,
+      'failed',
+      error.message,
+      {}
+    );
     
     return new Response(
       JSON.stringify({
