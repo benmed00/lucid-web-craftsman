@@ -372,6 +372,60 @@ export type Database = {
         }
         Relationships: []
       }
+      email_ab_tests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          name: string
+          split_percentage: number
+          status: string
+          template_name: string
+          updated_at: string
+          variant_a_opens: number
+          variant_a_sent: number
+          variant_a_subject: string | null
+          variant_b_opens: number
+          variant_b_sent: number
+          variant_b_subject: string | null
+          winner: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          split_percentage?: number
+          status?: string
+          template_name: string
+          updated_at?: string
+          variant_a_opens?: number
+          variant_a_sent?: number
+          variant_a_subject?: string | null
+          variant_b_opens?: number
+          variant_b_sent?: number
+          variant_b_subject?: string | null
+          winner?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          split_percentage?: number
+          status?: string
+          template_name?: string
+          updated_at?: string
+          variant_a_opens?: number
+          variant_a_sent?: number
+          variant_a_subject?: string | null
+          variant_b_opens?: number
+          variant_b_sent?: number
+          variant_b_subject?: string | null
+          winner?: string | null
+        }
+        Relationships: []
+      }
       email_logs: {
         Row: {
           created_at: string
@@ -1187,6 +1241,48 @@ export type Database = {
           id?: string
           identifier?: string
           window_start?: string
+        }
+        Relationships: []
+      }
+      scheduled_emails: {
+        Row: {
+          created_at: string
+          email_data: Json
+          error_message: string | null
+          id: string
+          recipient_email: string
+          recipient_name: string | null
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email_data?: Json
+          error_message?: string | null
+          id?: string
+          recipient_email: string
+          recipient_name?: string | null
+          scheduled_for: string
+          sent_at?: string | null
+          status?: string
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email_data?: Json
+          error_message?: string | null
+          id?: string
+          recipient_email?: string
+          recipient_name?: string | null
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          template_name?: string
+          updated_at?: string
         }
         Relationships: []
       }
