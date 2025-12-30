@@ -13,7 +13,26 @@ export {
   type CartItem 
 } from './cartStore';
 
-// Future stores will be exported here:
-// export { useWishlistStore } from './wishlistStore';
-// export { useCurrencyStore } from './currencyStore';
+export {
+  useWishlistStore,
+  useWishlist,
+  initializeWishlistStore,
+  selectWishlistItems,
+  selectWishlistCount,
+  selectWishlistLoading,
+  selectIsInWishlist,
+  type WishlistItem
+} from './wishlistStore';
+
+export {
+  useCurrencyStore,
+  useCurrency,
+  initializeCurrencyStore,
+  selectCurrency,
+  selectIsLoading,
+  selectLastUpdated,
+  type Currency
+} from './currencyStore';
+
+// Future stores:
 // export { useThemeStore } from './themeStore';
