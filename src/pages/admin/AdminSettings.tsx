@@ -18,10 +18,31 @@ import {
   Download,
   Upload,
   Trash2,
-  Loader2
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+// Validation schemas
+const siteSettingsSchema = z.object({
+  siteName: z.string().min(1, "Le nom du site est requis").max(100, "Maximum 100 caractères"),
+  siteDescription: z.string().max(500, "Maximum 500 caractères"),
+  contactEmail: z.string().email("Format d'email invalide").max(255, "Maximum 255 caractères"),
+  contactPhone: z.string().max(20, "Maximum 20 caractères"),
+  address: z.string().max(200, "Maximum 200 caractères"),
+  currency: z.string().min(1, "Devise requise"),
+  taxRate: z.number().min(0, "Le taux doit être positif").max(100, "Maximum 100%"),
+  shippingCost: z.number().min(0, "Les frais de port ne peuvent pas être négatifs"),
+  freeShippingThreshold: z.number().min(0, "Le seuil doit être positif")
+});
+
+const securitySettingsSchema = z.object({
+  twoFactorAuth: z.boolean(),
+  sessionTimeout: z.number().min(5, "Minimum 5 minutes").max(1440, "Maximum 24 heures"),
+  allowMultipleLogins: z.boolean()
+});
 
 interface SiteSettings {
   siteName: string;
@@ -53,6 +74,11 @@ interface DisplaySettings {
   showOutOfStock: boolean;
   enableReviews: boolean;
   showPrices: boolean;
+}
+
+interface ValidationErrors {
+  site: Record<string, string>;
+  security: Record<string, string>;
 }
 
 const defaultSiteSettings: SiteSettings = {
@@ -90,6 +116,10 @@ const defaultDisplaySettings: DisplaySettings = {
 const AdminSettings = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({
+    site: {},
+    security: {}
+  });
   
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(defaultSiteSettings);
   const [emailSettings, setEmailSettings] = useState<EmailSettings>(defaultEmailSettings);
@@ -173,7 +203,42 @@ const AdminSettings = () => {
     }
   };
 
+  const validateSiteSettings = (): boolean => {
+    const result = siteSettingsSchema.safeParse(siteSettings);
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as string;
+        errors[field] = err.message;
+      });
+      setValidationErrors(prev => ({ ...prev, site: errors }));
+      return false;
+    }
+    setValidationErrors(prev => ({ ...prev, site: {} }));
+    return true;
+  };
+
+  const validateSecuritySettings = (): boolean => {
+    const result = securitySettingsSchema.safeParse(securitySettings);
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as string;
+        errors[field] = err.message;
+      });
+      setValidationErrors(prev => ({ ...prev, security: errors }));
+      return false;
+    }
+    setValidationErrors(prev => ({ ...prev, security: {} }));
+    return true;
+  };
+
   const handleSaveSiteSettings = async () => {
+    if (!validateSiteSettings()) {
+      toast.error("Veuillez corriger les erreurs de validation");
+      return;
+    }
+
     setIsSaving('site');
     try {
       await saveSetting('site_settings', siteSettings);
@@ -200,6 +265,11 @@ const AdminSettings = () => {
   };
 
   const handleSaveSecuritySettings = async () => {
+    if (!validateSecuritySettings()) {
+      toast.error("Veuillez corriger les erreurs de validation");
+      return;
+    }
+
     setIsSaving('security');
     try {
       await saveSetting('security_settings', securitySettings);
@@ -353,7 +423,14 @@ const AdminSettings = () => {
                 id="siteName"
                 value={siteSettings.siteName}
                 onChange={(e) => setSiteSettings({...siteSettings, siteName: e.target.value})}
+                className={validationErrors.site.siteName ? "border-red-500" : ""}
               />
+              {validationErrors.site.siteName && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {validationErrors.site.siteName}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -363,7 +440,14 @@ const AdminSettings = () => {
                 value={siteSettings.siteDescription}
                 onChange={(e) => setSiteSettings({...siteSettings, siteDescription: e.target.value})}
                 rows={3}
+                className={validationErrors.site.siteDescription ? "border-red-500" : ""}
               />
+              {validationErrors.site.siteDescription && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {validationErrors.site.siteDescription}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -374,7 +458,14 @@ const AdminSettings = () => {
                   type="email"
                   value={siteSettings.contactEmail}
                   onChange={(e) => setSiteSettings({...siteSettings, contactEmail: e.target.value})}
+                  className={validationErrors.site.contactEmail ? "border-red-500" : ""}
                 />
+                {validationErrors.site.contactEmail && (
+                  <p className="text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {validationErrors.site.contactEmail}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -383,7 +474,14 @@ const AdminSettings = () => {
                   id="contactPhone"
                   value={siteSettings.contactPhone}
                   onChange={(e) => setSiteSettings({...siteSettings, contactPhone: e.target.value})}
+                  className={validationErrors.site.contactPhone ? "border-red-500" : ""}
                 />
+                {validationErrors.site.contactPhone && (
+                  <p className="text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {validationErrors.site.contactPhone}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -404,9 +502,18 @@ const AdminSettings = () => {
                 <Input
                   id="taxRate"
                   type="number"
+                  min="0"
+                  max="100"
                   value={siteSettings.taxRate}
                   onChange={(e) => setSiteSettings({...siteSettings, taxRate: Number(e.target.value)})}
+                  className={validationErrors.site.taxRate ? "border-red-500" : ""}
                 />
+                {validationErrors.site.taxRate && (
+                  <p className="text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {validationErrors.site.taxRate}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -414,10 +521,18 @@ const AdminSettings = () => {
                 <Input
                   id="shippingCost"
                   type="number"
+                  min="0"
                   step="0.01"
                   value={siteSettings.shippingCost}
                   onChange={(e) => setSiteSettings({...siteSettings, shippingCost: Number(e.target.value)})}
+                  className={validationErrors.site.shippingCost ? "border-red-500" : ""}
                 />
+                {validationErrors.site.shippingCost && (
+                  <p className="text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {validationErrors.site.shippingCost}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -426,9 +541,17 @@ const AdminSettings = () => {
               <Input
                 id="freeShippingThreshold"
                 type="number"
+                min="0"
                 value={siteSettings.freeShippingThreshold}
                 onChange={(e) => setSiteSettings({...siteSettings, freeShippingThreshold: Number(e.target.value)})}
+                className={validationErrors.site.freeShippingThreshold ? "border-red-500" : ""}
               />
+              {validationErrors.site.freeShippingThreshold && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {validationErrors.site.freeShippingThreshold}
+                </p>
+              )}
             </div>
 
             <Button 
@@ -568,9 +691,18 @@ const AdminSettings = () => {
                 <Input
                   id="sessionTimeout"
                   type="number"
+                  min="5"
+                  max="1440"
                   value={securitySettings.sessionTimeout}
                   onChange={(e) => setSecuritySettings({...securitySettings, sessionTimeout: Number(e.target.value)})}
+                  className={validationErrors.security.sessionTimeout ? "border-red-500" : ""}
                 />
+                {validationErrors.security.sessionTimeout && (
+                  <p className="text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {validationErrors.security.sessionTimeout}
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center justify-between">
