@@ -206,6 +206,13 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_cart_items_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
         ]
       }
       categories: {
@@ -254,6 +261,13 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_categories_parent"
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "categories"
@@ -463,7 +477,15 @@ export type Database = {
           status?: string
           template_name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_email_logs_order"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hero_images: {
         Row: {
@@ -575,6 +597,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_loyalty_redemptions_order"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_loyalty_redemptions_reward"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "loyalty_rewards"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "loyalty_redemptions_reward_id_fkey"
             columns: ["reward_id"]
@@ -800,6 +836,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_order_items_order"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_order_items_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "order_items_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -905,6 +955,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_payments_order"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "payments_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -958,6 +1015,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_product_analytics_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "product_analytics_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -986,6 +1050,20 @@ export type Database = {
           product_id?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_product_categories_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_product_categories_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_categories_category_id_fkey"
             columns: ["category_id"]
@@ -1046,6 +1124,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_product_reviews_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_reviews_product_id_fkey"
             columns: ["product_id"]
@@ -1390,6 +1475,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_shipments_order"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shipments_order_id_fkey"
             columns: ["order_id"]
@@ -1758,30 +1850,9 @@ export type Database = {
           product_id?: number
           user_id?: string | null
         }
-        Relationships: []
-      }
-      wishlists: {
-        Row: {
-          created_at: string | null
-          id: string
-          product_id: number | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          product_id?: number | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          product_id?: number | null
-          user_id?: string | null
-        }
         Relationships: [
           {
-            foreignKeyName: "wishlists_product_id_fkey"
+            foreignKeyName: "fk_wishlist_product"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
