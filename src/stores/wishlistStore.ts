@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector, devtools } from 'zustand/middleware';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getBusinessRules } from '@/hooks/useBusinessRules';
 
 // ============= Types =============
 export interface WishlistItem {
@@ -12,6 +13,14 @@ export interface WishlistItem {
   user_id: string;
   product_id: number;
   created_at: string;
+}
+
+// Get current limits from business rules
+function getWishlistLimits() {
+  const rules = getBusinessRules();
+  return {
+    maxItems: rules.wishlist.maxItems
+  };
 }
 
 interface WishlistState {
@@ -82,6 +91,7 @@ export const useWishlistStore = create<WishlistState>()(
 
       addToWishlist: async (productId) => {
         const { userId, items } = get();
+        const { maxItems } = getWishlistLimits();
         
         if (!userId) {
           toast.error('Vous devez être connecté pour ajouter aux favoris');
@@ -91,6 +101,14 @@ export const useWishlistStore = create<WishlistState>()(
         // Check if already in wishlist
         if (items.some(item => item.product_id === productId)) {
           return true;
+        }
+
+        // Check max items limit
+        if (items.length >= maxItems) {
+          toast.warning('Limite de favoris atteinte', {
+            description: `Maximum ${maxItems} produits dans vos favoris. Retirez un produit pour en ajouter un nouveau.`,
+          });
+          return false;
         }
 
         try {

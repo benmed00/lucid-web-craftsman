@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { SecurityMonitoringCard } from "@/components/admin/SecurityMonitoringCard";
 import { RateLimitsConfig } from "@/components/admin/RateLimitsConfig";
+import { BusinessRulesConfig } from "@/components/admin/BusinessRulesConfig";
 import { 
   Settings, 
   Save,
@@ -917,6 +918,9 @@ const AdminSettings = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Business Rules Configuration */}
+      <BusinessRulesConfig />
     </div>
   );
 };
