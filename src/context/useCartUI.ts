@@ -1,4 +1,4 @@
-import { useCart } from "./CartContext";
+import { useCart } from "@/stores";
 
 /**
  * Fournit les données UI du panier: couleur, compteur, état de synchronisation.

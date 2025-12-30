@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { stockService } from "@/services/stockService";
 import { useLazyStripe } from "@/components/performance/LazyStripe";
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/stores";
 import { 
   validateCustomerInfo, 
   validateShippingAddress, 

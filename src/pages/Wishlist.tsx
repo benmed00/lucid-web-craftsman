@@ -12,8 +12,7 @@ import PageFooter from '@/components/PageFooter';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
 import { ProductService } from '@/services/productService';
-import { useCart } from '@/context/CartContext';
-import { useCurrency } from '@/stores';
+import { useCart, useCurrency } from '@/stores';
 import { toast } from 'sonner';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 
@@ -24,7 +23,7 @@ interface WishlistProduct extends Product {
 const Wishlist = () => {
   const { wishlistItems, loading, removeFromWishlist } = useWishlist();
   const { user } = useAuth();
-  const { dispatch } = useCart();
+  const { addItem } = useCart();
   const { formatPrice } = useCurrency();
   const [wishlistProducts, setWishlistProducts] = useState<WishlistProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
@@ -111,17 +110,13 @@ const Wishlist = () => {
 
   const handleAddToCart = useCallback((product: WishlistProduct) => {
     try {
-      dispatch({
-        type: "ADD_ITEM",
-        payload: product,
-        quantity: 1
-      });
+      addItem(product, 1);
       toast.success("Produit ajouté au panier");
     } catch (error) {
       console.error('Failed to add to cart:', error);
       toast.error('Erreur lors de l\'ajout au panier');
     }
-  }, [dispatch]);
+  }, [addItem]);
 
   if (!user) {
     return (

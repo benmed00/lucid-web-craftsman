@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useCart } from '@/context/CartContext';
+import { useCart } from '@/stores';
 
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ import { TooltipWrapper } from '@/components/ui/TooltipWrapper';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Cart = () => {
-  const { cart, dispatch, itemCount, totalPrice } = useCart();
+  const { cart, itemCount, totalPrice, clearCart, updateItemQuantity, removeItem } = useCart();
   const [postalCode, setPostalCode] = useState('');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const { calculation, loading: shippingLoading, loadZones } = useShipping({ postalCode, orderAmount: totalPrice });
@@ -32,7 +32,7 @@ const Cart = () => {
   const handlePaymentSuccess = (paymentMethod: string) => {
     toast.success(`Paiement réussi via ${paymentMethod}`);
     // Clear cart and redirect
-    dispatch({ type: "CLEAR_CART" });
+    clearCart();
     setTimeout(() => {
       window.location.href = "/payment-success";
     }, 1500);
@@ -72,7 +72,7 @@ const Cart = () => {
     try {
       const response = await updateCartItemQuantity(itemId, newQuantity);
       if (response.success) {
-        dispatch({ type: "UPDATE_ITEM_QUANTITY", payload: { id: itemId, quantity: newQuantity } });
+        updateItemQuantity(itemId, newQuantity);
         toast.success("Quantité mise à jour");
       } else {
         toast.error("Erreur lors de la mise à jour de la quantité");
@@ -87,7 +87,7 @@ const Cart = () => {
     try {
       const response = await removeFromCartAPI(itemId);
       if (response.success) {
-        dispatch({ type: "REMOVE_ITEM", payload: itemId });
+        removeItem(itemId);
         toast.success("Produit retiré du panier");
       } else {
         toast.error("Erreur lors de la suppression du produit");
