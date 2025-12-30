@@ -3,13 +3,14 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductService } from "@/services/productService";
+import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
 
 // Types
 export type CartItem = {
   id: number;
   quantity: number;
-  product: any;
+  product: Product;
 };
 
 export type CartState = {
@@ -18,7 +19,7 @@ export type CartState = {
 };
 
 export type CartAction =
-  | { type: "ADD_ITEM"; payload: any; quantity: number }
+  | { type: "ADD_ITEM"; payload: Product; quantity: number }
   | { type: "REMOVE_ITEM"; payload: number }
   | { type: "UPDATE_ITEM_QUANTITY"; payload: { id: number; quantity: number } }
   | { type: "CLEAR_CART" }
@@ -40,7 +41,7 @@ interface CartContextType {
   itemCount: number;
   totalPrice: number;
   clearCart: () => void;
-  addItem: (product: any, quantity: number) => void;
+  addItem: (product: Product, quantity: number) => void;
   removeItem: (itemId: number) => void;
   updateItemQuantity: (id: number, quantity: number) => void;
   isSyncing: boolean;
@@ -538,7 +539,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isOnline, isAuthenticated, addToQueue]);
 
-  const addItem = useCallback((product: any, quantity: number) => {
+  const addItem = useCallback((product: Product, quantity: number) => {
     dispatch({ type: "ADD_ITEM", payload: product, quantity });
     if (!isOnline && isAuthenticated) {
       addToQueue({ type: "ADD", productId: product.id, quantity });
