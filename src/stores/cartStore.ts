@@ -73,9 +73,11 @@ function getCartLimits() {
   };
 }
 
-// Export for use in UI components
-export const MAX_CART_QUANTITY = 10; // Default, will be overridden by business rules
-export const HIGH_VALUE_ORDER_THRESHOLD = 1000; // Default
+// Note: MAX_CART_QUANTITY and HIGH_VALUE_ORDER_THRESHOLD are now dynamically loaded
+// from business rules via useBusinessRules hook. The exports below are kept for 
+// backward compatibility but components should use the hook instead.
+export const MAX_CART_QUANTITY = 10; // Deprecated: use getBusinessRules().cart.maxQuantityPerItem
+export const HIGH_VALUE_ORDER_THRESHOLD = 1000; // Deprecated: use getBusinessRules().cart.highValueThreshold
 
 // Validate and sanitize quantity
 function sanitizeQuantity(quantity: number): number {
