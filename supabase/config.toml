@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.send-cancellation-email]
 verify_jwt = false
+
+[functions.process-scheduled-emails]
+verify_jwt = false

@@ -25,13 +25,17 @@ import {
   History,
   RotateCcw,
   BarChart3,
-  TrendingUp
+  TrendingUp,
+  FlaskConical,
+  Calendar
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, subDays, startOfDay, eachDayOfInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } from 'recharts';
+import EmailScheduler from '@/components/admin/EmailScheduler';
+import EmailABTesting from '@/components/admin/EmailABTesting';
 
 interface EmailTemplate {
   id: string;
@@ -470,18 +474,26 @@ const AdminEmailTesting = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="templates" className="gap-2">
             <Mail className="h-4 w-4" />
-            Templates
+            <span className="hidden sm:inline">Templates</span>
           </TabsTrigger>
           <TabsTrigger value="analytics" className="gap-2">
             <BarChart3 className="h-4 w-4" />
-            Analytics
+            <span className="hidden sm:inline">Analytics</span>
           </TabsTrigger>
           <TabsTrigger value="history" className="gap-2">
             <History className="h-4 w-4" />
-            Historique
+            <span className="hidden sm:inline">Historique</span>
+          </TabsTrigger>
+          <TabsTrigger value="scheduling" className="gap-2">
+            <Calendar className="h-4 w-4" />
+            <span className="hidden sm:inline">Planification</span>
+          </TabsTrigger>
+          <TabsTrigger value="abtesting" className="gap-2">
+            <FlaskConical className="h-4 w-4" />
+            <span className="hidden sm:inline">A/B Tests</span>
           </TabsTrigger>
         </TabsList>
 
@@ -877,6 +889,16 @@ const AdminEmailTesting = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Scheduling Tab */}
+        <TabsContent value="scheduling" className="mt-4">
+          <EmailScheduler />
+        </TabsContent>
+
+        {/* A/B Testing Tab */}
+        <TabsContent value="abtesting" className="mt-4">
+          <EmailABTesting />
         </TabsContent>
       </Tabs>
 
