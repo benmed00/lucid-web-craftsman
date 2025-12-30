@@ -1834,6 +1834,18 @@ export type Database = {
         Args: { message_id: string }
         Returns: undefined
       }
+      get_admin_access_metrics: { Args: never; Returns: Json }
+      get_admin_users_secure: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          last_login: string
+          name: string
+          role: string
+        }[]
+      }
       get_contact_message_details: {
         Args: { message_id: string }
         Returns: Json
