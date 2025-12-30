@@ -25,7 +25,7 @@ import { VoiceSearch } from "@/components/ui/VoiceSearch";
 import { MobilePromotions } from "@/components/ui/MobilePromotions";
 
 import { ProductService } from "@/services/productService";
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/stores";
 import { useAdvancedProductFilters } from "@/hooks/useAdvancedProductFilters";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
@@ -37,7 +37,7 @@ const Products = () => {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
   
-  const { dispatch } = useCart();
+  const { addItem } = useCart();
   const isMobile = useIsMobile();
 
   // Enhanced filters hook with analytics and cache
@@ -123,11 +123,7 @@ const Products = () => {
       event.stopPropagation();
     }
     
-    dispatch({
-      type: "ADD_ITEM",
-      payload: product,
-      quantity: 1,
-    });
+    addItem(product, 1);
 
     toast.success(`${product.name} ajouté au panier`, {
       duration: 2000,
@@ -143,11 +139,7 @@ const Products = () => {
   };
 
   const handleQuickViewAddToCart = (product: Product, quantity: number) => {
-    dispatch({
-      type: "ADD_ITEM",
-      payload: product,
-      quantity: quantity,
-    });
+    addItem(product, quantity);
 
     toast.success(`${product.name} ajouté au panier (${quantity}x)`, {
       duration: 2000,

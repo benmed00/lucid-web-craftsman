@@ -1,5 +1,5 @@
 
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/stores";
 import { toast } from "sonner";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { useEffect, useState, useCallback } from "react";
@@ -12,7 +12,7 @@ import { StockInfo } from "@/services/stockService";
 import { useSearchParams } from "react-router-dom";
 
 const ProductShowcase = () => {
-  const { dispatch } = useCart();
+  const { addItem } = useCart();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
@@ -69,12 +69,8 @@ const ProductShowcase = () => {
       const response = await import("@/api/mockApiService").then(api => api.addToCart(product, 1));
 
       if (response.success) {
-        // Then dispatch action to update context state
-        dispatch({
-          type: "ADD_ITEM",
-          payload: product,
-          quantity: 1,
-        });
+        // Use direct action instead of dispatch
+        addItem(product, 1);
         toast.success(`${product.name} ajouté au panier`);
       } else {
         toast.error("Impossible d'ajouter le produit au panier (API error)");
@@ -104,14 +100,8 @@ const ProductShowcase = () => {
       const response = await import("@/api/mockApiService").then(api => api.addToCart(product, quantity));
 
       if (response.success) {
-        // Then dispatch action to update context state
-        for (let i = 0; i < quantity; i++) {
-          dispatch({
-            type: "ADD_ITEM",
-            payload: product,
-            quantity: 1,
-          });
-        }
+        // Use direct action instead of dispatch
+        addItem(product, quantity);
       } else {
         toast.error("Impossible d'ajouter le produit au panier (API error)");
       }
