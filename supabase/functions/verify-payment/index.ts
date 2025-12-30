@@ -196,17 +196,52 @@ serve(async (req) => {
       // Non-fatal error, continue
     }
 
-    // Send order confirmation email
+    // Send order confirmation email with React Email template
     try {
       const customerEmail = session.customer_details?.email;
       const customerName = session.customer_details?.name || session.metadata?.customer_name || 'Client';
+      const shippingDetails = session.shipping_details || session.customer_details;
       
       if (customerEmail) {
-        logStep("Sending order confirmation email", { email: customerEmail });
+        logStep("Sending enhanced order confirmation email", { email: customerEmail });
         
-        // Call the email edge function
+        // Get product details for email
+        const productIds = orderData.order_items.map((item: any) => item.product_id);
+        const { data: products } = await supabaseService
+          .from('products')
+          .select('id, name, images, price')
+          .in('id', productIds);
+
+        const productMap = new Map(products?.map((p: any) => [p.id, p]) || []);
+        
+        // Build items array for email
+        const emailItems = orderData.order_items.map((item: any) => {
+          const product = productMap.get(item.product_id);
+          return {
+            name: product?.name || `Product #${item.product_id}`,
+            quantity: item.quantity,
+            price: item.unit_price / 100, // Convert from cents
+            image: product?.images?.[0] || undefined
+          };
+        });
+
+        // Calculate totals
+        const subtotal = emailItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+        const total = orderData.amount / 100;
+        const shipping = total - subtotal > 0 ? total - subtotal : 0;
+        
+        // Build shipping address
+        const shippingAddress = {
+          address: shippingDetails?.address?.line1 || session.metadata?.address || '',
+          city: shippingDetails?.address?.city || session.metadata?.city || '',
+          postalCode: shippingDetails?.address?.postal_code || session.metadata?.postalCode || '',
+          country: shippingDetails?.address?.country === 'FR' ? 'France' : 
+                   shippingDetails?.address?.country || session.metadata?.country || 'France'
+        };
+
+        // Call the enhanced email edge function
         const emailResponse = await fetch(
-          `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-order-notification`,
+          `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-order-confirmation`,
           {
             method: 'POST',
             headers: {
@@ -214,18 +249,22 @@ serve(async (req) => {
               'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
             },
             body: JSON.stringify({
-              order_id: orderData.id,
-              status: 'paid',
-              customer_email: customerEmail,
-              customer_name: customerName,
-              order_total: orderData.amount / 100, // Convert from cents
-              currency: orderData.currency?.toUpperCase() || 'EUR'
+              orderId: orderData.id,
+              customerEmail: customerEmail,
+              customerName: customerName,
+              items: emailItems,
+              subtotal: subtotal,
+              shipping: shipping,
+              discount: 0,
+              total: total,
+              currency: orderData.currency?.toUpperCase() || 'EUR',
+              shippingAddress: shippingAddress
             })
           }
         );
 
         if (emailResponse.ok) {
-          logStep("Order confirmation email sent successfully");
+          logStep("Enhanced order confirmation email sent successfully");
         } else {
           const emailError = await emailResponse.text();
           logStep("Warning: Failed to send confirmation email", { error: emailError });
