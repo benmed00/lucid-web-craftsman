@@ -10,6 +10,8 @@ export {
   selectTotalPrice,
   selectIsInCart,
   selectPendingOperations,
+  MAX_CART_QUANTITY,
+  HIGH_VALUE_ORDER_THRESHOLD,
   type CartItem 
 } from './cartStore';
 

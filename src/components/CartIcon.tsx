@@ -22,7 +22,7 @@ const CartIcon = () => {
           >
             <ShoppingBag className="text-primary-foreground" />
             
-            {/* Item count badge - cap display at 99+ for very large values */}
+            {/* Item count badge - cap display at 10+ for max limit */}
             <span
               className={clsx(
                 "absolute top-0 right-0 bg-background text-xs rounded-full flex items-center justify-center font-semibold border transform translate-x-1/4 -translate-y-1/4",
