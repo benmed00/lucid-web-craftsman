@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useCart, MAX_CART_QUANTITY, HIGH_VALUE_ORDER_THRESHOLD } from '@/stores';
+import { useCart } from '@/stores';
+import { useBusinessRules } from '@/hooks/useBusinessRules';
 
 import Footer from '@/components/Footer';
 import SEOHelmet from '@/components/seo/SEOHelmet';
@@ -21,10 +22,16 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 const Cart = () => {
   const { cart, itemCount, totalPrice, clearCart, updateItemQuantity, removeItem } = useCart();
+  const { rules } = useBusinessRules();
   const [postalCode, setPostalCode] = useState('');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const { calculation, loading: shippingLoading, loadZones } = useShipping({ postalCode, orderAmount: totalPrice });
   const isMobile = useIsMobile();
+  
+  // Dynamic business rules
+  const maxQuantityPerItem = rules.cart.maxQuantityPerItem;
+  const highValueThreshold = rules.cart.highValueThreshold;
+  const vipPhone = rules.contact.vipPhone;
   
   // cart.items from useCart() already filters out invalid items (missing product data)
   // No additional filtering needed here
@@ -184,7 +191,7 @@ const Cart = () => {
         )}
 
         {/* High-value order VIP contact message */}
-        {totalPrice >= HIGH_VALUE_ORDER_THRESHOLD && (
+        {totalPrice >= highValueThreshold && (
           <Alert 
             className="mb-6 border-primary/50 bg-primary/10"
             role="status"
@@ -193,7 +200,7 @@ const Cart = () => {
             <AlertTitle className="text-primary font-medium">Commande VIP détectée</AlertTitle>
             <AlertDescription className="text-foreground mt-2">
               <p className="mb-3">
-                Pour les commandes supérieures à {HIGH_VALUE_ORDER_THRESHOLD}€, nous vous offrons une 
+                Pour les commandes supérieures à {highValueThreshold}€, nous vous offrons une 
                 <strong> expérience personnalisée, rapide et fiable</strong>.
               </p>
               <p className="mb-4 text-muted-foreground">
@@ -206,7 +213,7 @@ const Cart = () => {
                     Nous contacter
                   </Button>
                 </Link>
-                <a href="tel:+33600000000">
+                <a href={`tel:${vipPhone}`}>
                   <Button variant="default" size="sm" className="gap-2">
                     <Phone className="h-4 w-4" />
                     Appeler maintenant
@@ -319,15 +326,15 @@ const Cart = () => {
                         >
                           {item.quantity}
                         </span>
-                        <TooltipWrapper content={item.quantity >= MAX_CART_QUANTITY 
-                          ? `Maximum ${MAX_CART_QUANTITY} par article. Contactez-nous pour plus.`
+                        <TooltipWrapper content={item.quantity >= maxQuantityPerItem 
+                          ? `Maximum ${maxQuantityPerItem} par article. Contactez-nous pour plus.`
                           : "Augmenter la quantité"
                         }>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                            disabled={(productStock && item.quantity >= productStock.available) || item.quantity >= MAX_CART_QUANTITY}
+                            disabled={(productStock && item.quantity >= productStock.available) || item.quantity >= maxQuantityPerItem}
                             className="touch-manipulation min-h-[44px] min-w-[44px] p-2"
                             id={`cart-qty-plus-${item.id}`}
                             name={`quantity-increase-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
@@ -336,7 +343,7 @@ const Cart = () => {
                             <Plus className="h-3 w-3 md:h-4 md:w-4" aria-hidden="true" />
                           </Button>
                         </TooltipWrapper>
-                        {item.quantity >= MAX_CART_QUANTITY && (
+                        {item.quantity >= maxQuantityPerItem && (
                           <span className="text-xs text-muted-foreground ml-1">max</span>
                         )}
                       </div>

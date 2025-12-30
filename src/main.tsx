@@ -7,6 +7,7 @@ import { initPerformanceOptimizations } from '@/utils/sitemapGenerator';
 import { setupProductionErrorSuppression } from './utils/errorSuppression';
 import { registerServiceWorker, addResourceHints, monitorCachePerformance } from './utils/cacheOptimization';
 import { initializeCartStore, initializeCurrencyStore, initializeThemeStore } from '@/stores';
+import { initializeBusinessRules } from '@/hooks/useBusinessRules';
 
 // Declare global flag
 declare global {
@@ -27,6 +28,9 @@ if (!window.__PERF_OPTIMIZED__) {
   addResourceHints();
   registerServiceWorker();
   monitorCachePerformance();
+  
+  // Initialize business rules first (async, non-blocking)
+  initializeBusinessRules().catch(console.warn);
   
   // Initialize Zustand stores
   initializeCartStore();
