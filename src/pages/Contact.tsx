@@ -135,11 +135,11 @@ const Contact = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="font-serif text-4xl md:text-6xl mb-6 leading-tight">
-              PROFITEER/VANK/HICORIA/HLD\FISS
+              Parlons Ensemble
             </h1>
             <p className="text-xl md:text-2xl text-primary-foreground/80 mb-8 leading-relaxed">
-              Questions pertinentes et d'expertise. Contrôlez vos questions.
-              Solutions développées commerciales spécialisées à l'entreprise.
+              Des questions sur nos produits artisanaux ? Une commande personnalisée ? 
+              Notre équipe est à votre écoute pour vous accompagner.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
                       <Button 
