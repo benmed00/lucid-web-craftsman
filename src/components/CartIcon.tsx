@@ -22,17 +22,18 @@ const CartIcon = () => {
           >
             <ShoppingBag className="text-primary-foreground" />
             
-            {/* Item count badge */}
+            {/* Item count badge - cap display at 99+ for very large values */}
             <span
               className={clsx(
-                "absolute top-0 right-0 bg-background text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold border transform translate-x-1/4 -translate-y-1/4",
+                "absolute top-0 right-0 bg-background text-xs rounded-full flex items-center justify-center font-semibold border transform translate-x-1/4 -translate-y-1/4",
                 badgeTextColor,
-                itemCount > 1 ? "border-primary" : "border-muted-foreground"
+                itemCount > 1 ? "border-primary" : "border-muted-foreground",
+                itemCount > 99 ? "h-5 px-1" : "h-5 w-5"
               )}
               style={{ minWidth: 20 }}
               aria-live="polite"
             >
-              {itemCount}
+              {itemCount > 99 ? '99+' : itemCount}
             </span>
 
             {/* Sync indicator */}
