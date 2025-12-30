@@ -72,6 +72,7 @@ interface SecuritySettings {
 interface DisplaySettings {
   maintenanceMode: boolean;
   maintenanceReturnTime: string;
+  maintenanceMessage: string;
   showOutOfStock: boolean;
   enableReviews: boolean;
   showPrices: boolean;
@@ -110,6 +111,7 @@ const defaultSecuritySettings: SecuritySettings = {
 const defaultDisplaySettings: DisplaySettings = {
   maintenanceMode: false,
   maintenanceReturnTime: '',
+  maintenanceMessage: '',
   showOutOfStock: true,
   enableReviews: true,
   showPrices: true
@@ -772,20 +774,37 @@ const AdminSettings = () => {
               </div>
 
               {displaySettings.maintenanceMode && (
-                <div className="space-y-2 pl-4 border-l-2 border-destructive/20">
-                  <Label htmlFor="maintenanceReturnTime">Heure de retour estimée</Label>
-                  <Input
-                    id="maintenanceReturnTime"
-                    type="datetime-local"
-                    value={displaySettings.maintenanceReturnTime}
-                    onChange={(e) => 
-                      setDisplaySettings({...displaySettings, maintenanceReturnTime: e.target.value})
-                    }
-                    className="max-w-xs"
-                  />
-                  <p className="text-sm text-stone-600">
-                    Affichée sur la page de maintenance
-                  </p>
+                <div className="space-y-4 pl-4 border-l-2 border-destructive/20">
+                  <div className="space-y-2">
+                    <Label htmlFor="maintenanceReturnTime">Heure de retour estimée</Label>
+                    <Input
+                      id="maintenanceReturnTime"
+                      type="datetime-local"
+                      value={displaySettings.maintenanceReturnTime}
+                      onChange={(e) => 
+                        setDisplaySettings({...displaySettings, maintenanceReturnTime: e.target.value})
+                      }
+                      className="max-w-xs"
+                    />
+                    <p className="text-sm text-stone-600">
+                      Affichée sur la page de maintenance
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="maintenanceMessage">Message personnalisé</Label>
+                    <Textarea
+                      id="maintenanceMessage"
+                      placeholder="Message optionnel à afficher sur la page de maintenance..."
+                      value={displaySettings.maintenanceMessage}
+                      onChange={(e) => 
+                        setDisplaySettings({...displaySettings, maintenanceMessage: e.target.value})
+                      }
+                      rows={3}
+                    />
+                    <p className="text-sm text-stone-600">
+                      Laissez vide pour utiliser le message par défaut
+                    </p>
+                  </div>
                 </div>
               )}
 
