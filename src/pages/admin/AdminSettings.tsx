@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { SecurityMonitoringCard } from "@/components/admin/SecurityMonitoringCard";
+import { RateLimitsConfig } from "@/components/admin/RateLimitsConfig";
 import { 
   Settings, 
   Save,
@@ -872,6 +873,9 @@ const AdminSettings = () => {
 
       {/* Security Monitoring */}
       <SecurityMonitoringCard />
+
+      {/* Rate Limits Configuration */}
+      <RateLimitsConfig />
 
       {/* Data Management */}
       <Card>

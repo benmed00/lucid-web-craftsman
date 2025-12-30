@@ -62,13 +62,29 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
+// Max quantity limit for validation
+const MAX_CART_QUANTITY = 99;
+
+// Validate and sanitize quantity
+function sanitizeQuantity(quantity: number): number {
+  if (!Number.isFinite(quantity) || quantity <= 0) return 0;
+  return Math.min(Math.floor(quantity), MAX_CART_QUANTITY);
+}
+
 async function loadProductsForCartItems(items: { id: number; quantity: number }[]): Promise<CartItem[]> {
   const cartItems = await Promise.all(
     items.map(async (item) => {
       try {
+        // Validate quantity to prevent corrupted data issues
+        const sanitizedQuantity = sanitizeQuantity(item.quantity);
+        if (sanitizedQuantity <= 0) {
+          console.warn(`Skipping cart item ${item.id} with invalid quantity:`, item.quantity);
+          return null;
+        }
+        
         const product = await ProductService.getProductById(item.id);
         if (product) {
-          return { id: item.id, quantity: item.quantity, product };
+          return { id: item.id, quantity: sanitizedQuantity, product };
         }
         return null;
       } catch (error) {
@@ -97,27 +113,32 @@ export const useCartStore = create<CartState>()(
 
           // Actions
           addItem: (product, quantity = 1) => {
+            // Validate quantity - max 99 per item
+            const MAX_QUANTITY = 99;
+            const safeQuantity = Math.min(Math.max(1, Math.floor(quantity)), MAX_QUANTITY);
+            
             set((state) => {
               const existingIndex = state.items.findIndex((item) => item.id === product.id);
               
               if (existingIndex > -1) {
                 const newItems = [...state.items];
+                const newQuantity = Math.min(newItems[existingIndex].quantity + safeQuantity, MAX_QUANTITY);
                 newItems[existingIndex] = {
                   ...newItems[existingIndex],
-                  quantity: newItems[existingIndex].quantity + quantity,
+                  quantity: newQuantity,
                 };
                 return { items: newItems };
               }
               
               return {
-                items: [...state.items, { id: product.id, quantity, product }],
+                items: [...state.items, { id: product.id, quantity: safeQuantity, product }],
               };
             });
 
             // Queue for offline sync
             const { isOnline, isAuthenticated, _addToQueue } = get();
             if (!isOnline && isAuthenticated) {
-              _addToQueue({ type: 'ADD', productId: product.id, quantity });
+              _addToQueue({ type: 'ADD', productId: product.id, quantity: safeQuantity });
             }
 
             // Trigger debounced save
@@ -138,20 +159,24 @@ export const useCartStore = create<CartState>()(
           },
 
           updateQuantity: (productId, quantity) => {
+            // Validate quantity - max 99 per item
+            const MAX_QUANTITY = 99;
+            const safeQuantity = Math.min(Math.max(0, Math.floor(quantity)), MAX_QUANTITY);
+            
             set((state) => {
-              if (quantity <= 0) {
+              if (safeQuantity <= 0) {
                 return { items: state.items.filter((item) => item.id !== productId) };
               }
               return {
                 items: state.items.map((item) =>
-                  item.id === productId ? { ...item, quantity } : item
+                  item.id === productId ? { ...item, quantity: safeQuantity } : item
                 ),
               };
             });
 
             const { isOnline, isAuthenticated, _addToQueue } = get();
             if (!isOnline && isAuthenticated) {
-              _addToQueue({ type: 'UPDATE', productId, quantity });
+              _addToQueue({ type: 'UPDATE', productId, quantity: safeQuantity });
             }
 
             get()._debouncedSave?.();
