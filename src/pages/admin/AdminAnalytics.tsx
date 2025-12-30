@@ -11,7 +11,6 @@ import {
   Package,
   Users,
   ShoppingCart,
-  Eye,
   Calendar,
   BarChart3,
   PieChart,
@@ -20,6 +19,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface AnalyticsData {
   overview: {
@@ -51,6 +52,7 @@ const AdminAnalytics = () => {
   const [timeRange, setTimeRange] = useState("30d");
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     fetchAnalytics();
@@ -181,7 +183,7 @@ const AdminAnalytics = () => {
       const recentActivity = (currentOrders || [])
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 4)
-        .map((order, index) => {
+        .map((order) => {
           const hoursAgo = Math.floor((Date.now() - new Date(order.created_at).getTime()) / (1000 * 60 * 60));
           return {
             type: "order",
@@ -212,7 +214,7 @@ const AdminAnalytics = () => {
   };
 
   const getGrowthColor = (growth: number) => {
-    return growth >= 0 ? "text-green-600" : "text-red-600";
+    return growth >= 0 ? "text-success" : "text-destructive";
   };
 
   const getGrowthIcon = (growth: number) => {
@@ -221,16 +223,94 @@ const AdminAnalytics = () => {
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case "order": return <ShoppingCart className="h-4 w-4 text-blue-600" />;
-      case "customer": return <Users className="h-4 w-4 text-green-600" />;
-      case "product": return <Package className="h-4 w-4 text-orange-600" />;
-      default: return <BarChart3 className="h-4 w-4 text-stone-600" />;
+      case "order": return <ShoppingCart className="h-4 w-4 text-primary" />;
+      case "customer": return <Users className="h-4 w-4 text-success" />;
+      case "product": return <Package className="h-4 w-4 text-warning" />;
+      default: return <BarChart3 className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
-  const exportReport = () => {
-    console.log("Exporting analytics report...");
-    toast.success("Fonctionnalité d'export bientôt disponible");
+  const exportReport = async () => {
+    if (!analytics) return;
+    
+    setExporting(true);
+    try {
+      const timeRangeLabel = {
+        "7d": "7 jours",
+        "30d": "30 jours",
+        "90d": "3 mois",
+        "1y": "1 an"
+      }[timeRange] || timeRange;
+
+      // Build CSV content
+      const headers = ["Métrique", "Valeur actuelle", "Valeur précédente", "Croissance (%)"];
+      
+      const overviewRows = [
+        ["Chiffre d'affaires (€)", analytics.overview.revenue.current.toFixed(2), analytics.overview.revenue.previous.toFixed(2), analytics.overview.revenue.growth.toFixed(1)],
+        ["Nombre de commandes", analytics.overview.orders.current.toString(), analytics.overview.orders.previous.toString(), analytics.overview.orders.growth.toFixed(1)],
+        ["Nouveaux clients", analytics.overview.customers.current.toString(), analytics.overview.customers.previous.toString(), analytics.overview.customers.growth.toFixed(1)],
+        ["Panier moyen (€)", analytics.overview.avgOrder.current.toFixed(2), analytics.overview.avgOrder.previous.toFixed(2), analytics.overview.avgOrder.growth.toFixed(1)],
+      ];
+
+      const productHeaders = ["", "", "", ""];
+      const productTitleRow = ["", "", "", ""];
+      const topProductsHeaders = ["Produit", "Ventes", "Revenu (€)", ""];
+      const topProductsRows = analytics.topProducts.map(p => [p.name, p.sales.toString(), p.revenue.toFixed(2), ""]);
+
+      const categoryHeaders = ["Catégorie", "Ventes", "Pourcentage (%)", ""];
+      const categoryRows = analytics.salesByCategory.map(c => [c.category, c.sales.toString(), c.percentage.toString(), ""]);
+
+      const allRows = [
+        [`Rapport d'analyses - Période: ${timeRangeLabel}`],
+        [`Exporté le: ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr })}`],
+        [],
+        ["=== APERÇU GÉNÉRAL ==="],
+        headers,
+        ...overviewRows,
+        [],
+        ["=== PRODUITS LES PLUS VENDUS ==="],
+        topProductsHeaders,
+        ...topProductsRows,
+        [],
+        ["=== VENTES PAR CATÉGORIE ==="],
+        categoryHeaders,
+        ...categoryRows,
+      ];
+
+      // Convert to CSV
+      const csvContent = allRows
+        .map(row => 
+          row.map(cell => {
+            const cellStr = String(cell ?? "");
+            if (cellStr.includes(",") || cellStr.includes('"') || cellStr.includes("\n")) {
+              return `"${cellStr.replace(/"/g, '""')}"`;
+            }
+            return cellStr;
+          }).join(",")
+        )
+        .join("\n");
+
+      // Add BOM for Excel UTF-8 compatibility
+      const BOM = "\uFEFF";
+      const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
+
+      // Download
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `rapport-analytics-${format(new Date(), "yyyy-MM-dd")}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Rapport exporté avec succès");
+    } catch (error) {
+      console.error("Error exporting report:", error);
+      toast.error("Erreur lors de l'export du rapport");
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (loading) {
@@ -270,7 +350,7 @@ const AdminAnalytics = () => {
   if (!analytics) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-stone-600">Aucune donnée disponible</p>
+        <p className="text-muted-foreground">Aucune donnée disponible</p>
       </div>
     );
   }
@@ -280,10 +360,10 @@ const AdminAnalytics = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-serif font-semibold text-stone-800">
+          <h2 className="text-2xl font-serif font-semibold text-foreground">
             Analyses et statistiques
           </h2>
-          <p className="text-stone-600">
+          <p className="text-muted-foreground">
             Aperçu des performances de votre boutique
           </p>
         </div>
@@ -301,9 +381,9 @@ const AdminAnalytics = () => {
             </SelectContent>
           </Select>
           
-          <Button variant="outline" onClick={exportReport}>
+          <Button variant="outline" onClick={exportReport} disabled={exporting}>
             <Download className="h-4 w-4 mr-2" />
-            Exporter
+            {exporting ? "Export..." : "Exporter"}
           </Button>
         </div>
       </div>
@@ -313,7 +393,7 @@ const AdminAnalytics = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Chiffre d'affaires</CardTitle>
-            <DollarSign className="h-4 w-4 text-olive-600" />
+            <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.overview.revenue.current.toFixed(2)}€</div>
@@ -322,7 +402,7 @@ const AdminAnalytics = () => {
               <span className="ml-1">
                 {analytics.overview.revenue.growth > 0 ? "+" : ""}{analytics.overview.revenue.growth.toFixed(1)}%
               </span>
-              <span className="text-stone-600 ml-1">vs période précédente</span>
+              <span className="text-muted-foreground ml-1">vs période précédente</span>
             </div>
           </CardContent>
         </Card>
@@ -330,7 +410,7 @@ const AdminAnalytics = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Commandes</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-blue-600" />
+            <ShoppingCart className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.overview.orders.current}</div>
@@ -339,7 +419,7 @@ const AdminAnalytics = () => {
               <span className="ml-1">
                 {analytics.overview.orders.growth > 0 ? "+" : ""}{analytics.overview.orders.growth.toFixed(1)}%
               </span>
-              <span className="text-stone-600 ml-1">vs période précédente</span>
+              <span className="text-muted-foreground ml-1">vs période précédente</span>
             </div>
           </CardContent>
         </Card>
@@ -347,7 +427,7 @@ const AdminAnalytics = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Nouveaux clients</CardTitle>
-            <Users className="h-4 w-4 text-green-600" />
+            <Users className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.overview.customers.current}</div>
@@ -356,7 +436,7 @@ const AdminAnalytics = () => {
               <span className="ml-1">
                 {analytics.overview.customers.growth > 0 ? "+" : ""}{analytics.overview.customers.growth.toFixed(1)}%
               </span>
-              <span className="text-stone-600 ml-1">vs période précédente</span>
+              <span className="text-muted-foreground ml-1">vs période précédente</span>
             </div>
           </CardContent>
         </Card>
@@ -364,7 +444,7 @@ const AdminAnalytics = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Panier moyen</CardTitle>
-            <Package className="h-4 w-4 text-purple-600" />
+            <Package className="h-4 w-4 text-accent-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.overview.avgOrder.current.toFixed(2)}€</div>
@@ -373,7 +453,7 @@ const AdminAnalytics = () => {
               <span className="ml-1">
                 {analytics.overview.avgOrder.growth > 0 ? "+" : ""}{analytics.overview.avgOrder.growth.toFixed(1)}%
               </span>
-              <span className="text-stone-600 ml-1">vs période précédente</span>
+              <span className="text-muted-foreground ml-1">vs période précédente</span>
             </div>
           </CardContent>
         </Card>
@@ -384,7 +464,7 @@ const AdminAnalytics = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <BarChart3 className="h-5 w-5 mr-2 text-olive-600" />
+              <BarChart3 className="h-5 w-5 mr-2 text-primary" />
               Produits les plus vendus
             </CardTitle>
             <CardDescription>
@@ -417,7 +497,7 @@ const AdminAnalytics = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <PieChart className="h-5 w-5 mr-2 text-blue-600" />
+              <PieChart className="h-5 w-5 mr-2 text-primary" />
               Ventes par catégorie
             </CardTitle>
             <CardDescription>
@@ -429,8 +509,8 @@ const AdminAnalytics = () => {
               {analytics.salesByCategory.map((category) => (
                 <div key={category.category} className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium">{category.category}</span>
-                    <span className="text-sm font-semibold">{category.sales} ventes ({category.percentage}%)</span>
+                    <span className="font-medium text-foreground">{category.category}</span>
+                    <span className="text-sm font-semibold text-foreground">{category.sales} ventes ({category.percentage}%)</span>
                   </div>
                   <Progress value={category.percentage} className="h-2" />
                 </div>
@@ -444,7 +524,7 @@ const AdminAnalytics = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <Calendar className="h-5 w-5 mr-2 text-purple-600" />
+            <Calendar className="h-5 w-5 mr-2 text-primary" />
             Activité récente
           </CardTitle>
           <CardDescription>
@@ -454,17 +534,17 @@ const AdminAnalytics = () => {
         <CardContent>
           <div className="space-y-4">
             {analytics.recentActivity.map((activity, index) => (
-              <div key={index} className="flex items-center space-x-4 p-3 border border-stone-200 rounded-lg">
-                <div className="p-2 bg-stone-100 rounded-lg">
+              <div key={index} className="flex items-center space-x-4 p-3 border border-border rounded-lg">
+                <div className="p-2 bg-secondary rounded-lg">
                   {getActivityIcon(activity.type)}
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-stone-800">{activity.description}</p>
-                  <p className="text-sm text-stone-600">{activity.time}</p>
+                  <p className="font-medium text-foreground">{activity.description}</p>
+                  <p className="text-sm text-muted-foreground">{activity.time}</p>
                 </div>
                  {activity.amount && (
                    <div className="text-right">
-                     <p className="font-semibold text-olive-700">{activity.amount.toFixed(2)}€</p>
+                     <p className="font-semibold text-primary">{activity.amount.toFixed(2)}€</p>
                    </div>
                  )}
               </div>
@@ -477,7 +557,7 @@ const AdminAnalytics = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
+            <TrendingUp className="h-5 w-5 mr-2 text-success" />
             Insights et recommandations
           </CardTitle>
           <CardDescription>
@@ -487,48 +567,48 @@ const AdminAnalytics = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {analytics.overview.revenue.growth > 0 && (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="p-4 bg-success/10 border border-success/20 rounded-lg">
                 <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <h4 className="font-semibold text-green-800">Forte croissance</h4>
+                  <div className="w-2 h-2 bg-success rounded-full"></div>
+                  <h4 className="font-semibold text-success">Forte croissance</h4>
                 </div>
-                <p className="text-sm text-green-700">
+                <p className="text-sm text-success/80">
                   Vos ventes ont augmenté de {analytics.overview.revenue.growth.toFixed(1)}% sur la période. Excellent travail !
                 </p>
               </div>
             )}
 
             {analytics.salesByCategory.length > 0 && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
                 <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <h4 className="font-semibold text-blue-800">Catégorie populaire</h4>
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <h4 className="font-semibold text-primary">Catégorie populaire</h4>
                 </div>
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-primary/80">
                   {analytics.salesByCategory[0]?.category} représente {analytics.salesByCategory[0]?.percentage}% des ventes.
                 </p>
               </div>
             )}
 
             {analytics.overview.avgOrder.growth < 0 && (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
                 <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                  <h4 className="font-semibold text-yellow-800">Attention</h4>
+                  <div className="w-2 h-2 bg-warning rounded-full"></div>
+                  <h4 className="font-semibold text-warning">Attention</h4>
                 </div>
-                <p className="text-sm text-yellow-700">
+                <p className="text-sm text-warning/80">
                   Le panier moyen a diminué de {Math.abs(analytics.overview.avgOrder.growth).toFixed(1)}%. Pensez à proposer des produits complémentaires.
                 </p>
               </div>
             )}
 
             {analytics.overview.customers.growth > 0 && (
-              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="p-4 bg-accent/50 border border-accent rounded-lg">
                 <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  <h4 className="font-semibold text-purple-800">Fidélisation</h4>
+                  <div className="w-2 h-2 bg-accent-foreground rounded-full"></div>
+                  <h4 className="font-semibold text-accent-foreground">Fidélisation</h4>
                 </div>
-                <p className="text-sm text-purple-700">
+                <p className="text-sm text-accent-foreground/80">
                   {analytics.overview.customers.growth.toFixed(1)}% de nouveaux clients. Excellent taux d'acquisition !
                 </p>
               </div>
