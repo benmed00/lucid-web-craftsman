@@ -18,7 +18,8 @@ import {
   User,
   Image,
   AlertTriangle,
-  Tag
+  Tag,
+  Mail
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -118,6 +119,11 @@ const AdminLayout = () => {
       icon: AlertTriangle,
       label: "Rapports d'erreurs",
       path: "/admin/error-reports",
+    },
+    {
+      icon: Mail,
+      label: "Tests Emails",
+      path: "/admin/email-testing",
     },
     {
       icon: Settings,
