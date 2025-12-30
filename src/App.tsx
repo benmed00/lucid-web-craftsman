@@ -37,6 +37,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Essential context providers
+import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -89,34 +90,20 @@ const PageLoadingFallback = () => (
   </div>
 );
 
-// Ultra-optimized React Query configuration for minimal main-thread work
+// Optimized React Query configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 20, // 20 minutes - longer for better performance
-      gcTime: 1000 * 60 * 30, // 30 minutes cache retention
-      retry: false, // No retries to reduce main-thread work
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 10, // 10 minutes cache retention
+      retry: 1,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
-      refetchOnReconnect: false,
+      refetchOnReconnect: true,
       networkMode: 'offlineFirst',
-      // Use web worker for data processing when possible
-      select: (data: any) => {
-        // For large datasets, process in worker
-        if (Array.isArray(data) && data.length > 100) {
-          return mainThreadOptimizer.executeInWorker('PROCESS_PRODUCT_DATA', data);
-        }
-        return data;
-      },
     },
     mutations: {
       retry: 0,
-      // Use optimistic updates to reduce main-thread work
-      onMutate: async (variables) => {
-        // Cancel any outgoing refetches to reduce work
-        await queryClient.cancelQueries();
-        return { previousData: queryClient.getQueryData(['key']) };
-      },
     },
   },
 });
@@ -181,11 +168,12 @@ const App = () => {
         <QueryClientProvider client={queryClient}>
           <Suspense fallback={<div className="min-h-screen bg-background" />}>
             <OfflineManager>
-              <CurrencyProvider>
-                <CartProvider>
-                  <WishlistProvider>
-                    <TooltipProvider delayDuration={300}>
-                    <BrowserRouter basename={basePath}>
+              <AuthProvider>
+                <CurrencyProvider>
+                  <CartProvider>
+                    <WishlistProvider>
+                      <TooltipProvider delayDuration={300}>
+                      <BrowserRouter basename={basePath}>
                       <MaintenanceWrapper>
                         <Suspense fallback={null}>
                           <PushNotificationManager />
@@ -260,7 +248,8 @@ const App = () => {
                   </WishlistProvider>
                 </CartProvider>
               </CurrencyProvider>
-            </OfflineManager>
+            </AuthProvider>
+          </OfflineManager>
           </Suspense>
         </QueryClientProvider>
       </ThemeProvider>
