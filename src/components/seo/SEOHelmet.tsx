@@ -52,37 +52,71 @@ const SEOHelmet = ({
     };
 
     if (type === 'product' && product) {
+      const stockQuantity = product.stock_quantity ?? 0;
+      const isInStock = stockQuantity > 0;
+      const ratingValue = product.rating_average ?? 4.8;
+      const reviewCount = product.rating_count ?? 0;
+      
       return {
         "@context": "https://schema.org",
         "@type": "Product",
         "name": product.name,
-        "description": product.description,
+        "description": product.description?.substring(0, 500),
         "image": product.images.map(img => img.startsWith('http') ? img : `${siteUrl}${img}`),
         "sku": product.id.toString(),
+        "mpn": `RRS-${product.id}`,
         "category": product.category,
+        "material": product.material || "Fibres naturelles",
         "brand": {
           "@type": "Brand",
           "name": "Rif Raw Straw"
         },
         "manufacturer": {
           "@type": "Organization",
-          "name": product.artisan
+          "name": product.artisan || "Artisan du Rif"
         },
         "offers": {
           "@type": "Offer",
           "price": product.price,
           "priceCurrency": "EUR",
-          "availability": "https://schema.org/InStock",
+          "availability": isInStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "itemCondition": "https://schema.org/NewCondition",
           "seller": {
             "@type": "Organization",
             "name": "Rif Raw Straw"
+          },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingDestination": {
+              "@type": "DefinedRegion",
+              "addressCountry": ["FR", "BE", "CH", "LU"]
+            },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": {
+                "@type": "QuantitativeValue",
+                "minValue": 1,
+                "maxValue": 3,
+                "unitCode": "DAY"
+              },
+              "transitTime": {
+                "@type": "QuantitativeValue",
+                "minValue": 2,
+                "maxValue": 5,
+                "unitCode": "DAY"
+              }
+            }
           }
         },
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": "4.8",
-          "reviewCount": "127"
-        }
+        ...(reviewCount > 0 && {
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": ratingValue.toFixed(1),
+            "reviewCount": reviewCount,
+            "bestRating": "5",
+            "worstRating": "1"
+          }
+        })
       };
     }
 

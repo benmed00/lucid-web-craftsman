@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import PageFooter from "@/components/PageFooter";
+import SEOHelmet from "@/components/seo/SEOHelmet";
 import { STRIPE_PUBLIC_KEY } from "@/lib/stripe";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
@@ -436,6 +437,13 @@ const Checkout = () => {
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-background">
+        <SEOHelmet
+          title="Paiement - Rif Raw Straw"
+          description="Finalisez votre commande de produits artisanaux berbères en toute sécurité."
+          keywords={["paiement", "checkout", "commande sécurisée"]}
+          url="/checkout"
+          type="website"
+        />
         <div className="container mx-auto px-4 py-16">
           <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-8 text-center">
             Paiement
@@ -457,6 +465,13 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHelmet
+        title="Paiement Sécurisé - Rif Raw Straw"
+        description="Finalisez votre commande de produits artisanaux berbères. Paiement sécurisé par Stripe. Livraison en France et international."
+        keywords={["paiement sécurisé", "checkout", "commande", "artisanat berbère"]}
+        url="/checkout"
+        type="website"
+      />
       <div className="container mx-auto px-4 py-12">
         <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-8 text-center">
           Paiement sécurisé

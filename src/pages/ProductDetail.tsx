@@ -333,8 +333,24 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
     <>
       <SEOHelmet 
         title={`${product.name} - ${product.category} fait main par ${product.artisan}`}
-        description={product.short_description || product.description}
+        description={product.short_description || product.description?.substring(0, 155)}
         image={product.images[0]}
+        url={`/products/${product.id}`}
+        type="product"
+        product={{
+          ...product,
+          stock_quantity: singleStockInfo?.available ?? product.stock_quantity ?? 0,
+          rating_average: productRating,
+          rating_count: reviewCount
+        }}
+        keywords={[
+          product.name,
+          product.category,
+          product.artisan,
+          "artisanat berbère",
+          "fait main",
+          product.material || "fibres naturelles"
+        ]}
       />
 
       <div className="min-h-screen bg-background">

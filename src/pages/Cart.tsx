@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useCart } from '@/stores';
 
 import Footer from '@/components/Footer';
+import SEOHelmet from '@/components/seo/SEOHelmet';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -113,6 +114,13 @@ const Cart = () => {
   if (cart.items.length === 0) {
     return (
       <div className="min-h-screen bg-background">
+        <SEOHelmet
+          title="Votre Panier - Rif Raw Straw"
+          description="Consultez et modifiez votre panier d'achats. Finalisez votre commande de produits artisanaux berbères."
+          keywords={["panier", "achat", "commande", "artisanat berbère"]}
+          url="/cart"
+          type="website"
+        />
         <main id="main-content" className="container mx-auto px-4 py-16">
           <div className="text-center">
             <div 
@@ -143,6 +151,13 @@ const Cart = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHelmet
+        title={`Votre Panier (${itemCount}) - Rif Raw Straw`}
+        description="Consultez et modifiez votre panier d'achats. Finalisez votre commande de produits artisanaux berbères faits main."
+        keywords={["panier", "achat", "commande", "artisanat berbère"]}
+        url="/cart"
+        type="website"
+      />
       
       <main id="main-content" className="container mx-auto px-4 py-4 md:py-8 safe-area">
         <div className="mb-6 md:mb-8">
