@@ -70,16 +70,19 @@ export const BusinessRulesConfig: React.FC = () => {
       // First check if the setting exists
       const { data: existing } = await supabase
         .from('app_settings')
-        .select('id')
+        .select('id, setting_value')
         .eq('setting_key', 'business_rules')
         .single();
+
+      const oldRules = existing?.setting_value as Partial<BusinessRules> | null;
+      const newRulesJson = JSON.parse(JSON.stringify(rules));
 
       if (existing) {
         // Update existing
         const { error: updateError } = await supabase
           .from('app_settings')
           .update({
-            setting_value: JSON.parse(JSON.stringify(rules)),
+            setting_value: newRulesJson,
             description: 'Business rules for cart, wishlist, and checkout. Configurable from admin dashboard.',
             updated_at: new Date().toISOString()
           })
@@ -92,12 +95,23 @@ export const BusinessRulesConfig: React.FC = () => {
           .from('app_settings')
           .insert([{
             setting_key: 'business_rules',
-            setting_value: JSON.parse(JSON.stringify(rules)),
+            setting_value: newRulesJson,
             description: 'Business rules for cart, wishlist, and checkout. Configurable from admin dashboard.'
           }]);
 
         if (insertError) throw insertError;
       }
+
+      // Log the change in audit_logs for compliance
+      const { data: userData } = await supabase.auth.getUser();
+      await supabase.from('audit_logs').insert({
+        user_id: userData.user?.id,
+        action: 'BUSINESS_RULES_UPDATED',
+        resource_type: 'app_settings',
+        resource_id: 'business_rules',
+        old_values: oldRules ? JSON.parse(JSON.stringify(oldRules)) : null,
+        new_values: newRulesJson
+      });
 
       // Clear cache so new values are loaded
       clearBusinessRulesCache();
