@@ -131,15 +131,23 @@ const MaintenanceWrapper = ({ children }: { children: React.ReactNode }) => {
   // Allow admin routes even in maintenance mode
   const isAdminRoute = location.pathname.startsWith('/admin');
   
+  // Show a minimal loading state while checking maintenance mode
   if (isLoading) {
     return <div className="min-h-screen bg-background" />;
   }
   
+  // If in maintenance mode and not an admin route, show maintenance page WITHOUT navigation
   if (isMaintenanceMode && !isAdminRoute) {
     return <Maintenance />;
   }
   
-  return <>{children}</>;
+  // Normal operation: show navigation + children
+  return (
+    <>
+      <Navigation />
+      {children}
+    </>
+  );
 };
 
 const App = () => {
@@ -184,8 +192,6 @@ const App = () => {
                           <PWAInstallPrompt />
                         </Suspense>
 
-                        {/* Persistent Navigation across routes */}
-                        <Navigation />
 
                         <Routes>
                         {/* Critical routes loaded immediately */}
