@@ -31,7 +31,7 @@ export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signIn, signUp, user, isLoading: authLoading } = useOptimizedAuth();
-  const csrfToken = useCsrfToken();
+  const { csrfToken } = useCsrfToken();
 
   // Redirect if already authenticated
   useEffect(() => {

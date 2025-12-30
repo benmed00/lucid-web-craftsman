@@ -24,6 +24,7 @@ import {
   type CheckoutFormData
 } from "@/utils/checkoutValidation";
 import { sanitizeUserInput } from "@/utils/xssProtection";
+import { useCsrfToken } from "@/hooks/useCsrfToken";
 
 // Lazy initialize Stripe only when needed
 let _stripePromise: Promise<Stripe | null> | null = null;
@@ -49,6 +50,7 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const { loadStripe } = useLazyStripe();
   const { cart } = useCart();
+  const { getCsrfHeaders, regenerateToken } = useCsrfToken();
   
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
@@ -343,6 +345,9 @@ const Checkout = () => {
         return;
       }
 
+      // Get CSRF headers for secure request
+      const csrfHeaders = await getCsrfHeaders();
+      
       // Call Supabase edge function to create Stripe checkout session with sanitized data
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
@@ -353,7 +358,8 @@ const Checkout = () => {
             code: sanitizeUserInput(appliedCoupon.code),
             amount: discount
           } : null
-        }
+        },
+        headers: csrfHeaders
       });
 
       if (error) {

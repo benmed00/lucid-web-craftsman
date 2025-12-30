@@ -42,7 +42,7 @@ const Contact = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const csrfToken = useCsrfToken();
+  const { csrfToken } = useCsrfToken();
 
   useEffect(() => {
     window.scrollTo(0, 0);
