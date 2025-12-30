@@ -1,17 +1,17 @@
 import React, { useState, useMemo } from 'react';
-import { useCart } from '@/stores';
+import { useCart, MAX_CART_QUANTITY, HIGH_VALUE_ORDER_THRESHOLD } from '@/stores';
 
 import Footer from '@/components/Footer';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Minus, Plus, X, ShoppingBag, ArrowRight, Truck, AlertCircle, CreditCard, Heart, Share2, Clock } from 'lucide-react';
+import { Minus, Plus, X, ShoppingBag, ArrowRight, Truck, AlertCircle, CreditCard, Heart, Share2, Clock, Phone, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useShipping } from '@/hooks/useShipping';
 import { useStock } from '@/hooks/useStock';
 import { toast } from 'sonner';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { removeFromCart as removeFromCartAPI, updateCartItemQuantity } from '@/api/mockApiService';
 import FloatingCartButton from '@/components/ui/FloatingCartButton';
 import { MobilePaymentButtons } from '@/components/ui/MobilePaymentButtons';
@@ -183,6 +183,40 @@ const Cart = () => {
           </Alert>
         )}
 
+        {/* High-value order VIP contact message */}
+        {totalPrice >= HIGH_VALUE_ORDER_THRESHOLD && (
+          <Alert 
+            className="mb-6 border-primary/50 bg-primary/10"
+            role="status"
+          >
+            <Heart className="h-4 w-4 text-primary" aria-hidden="true" />
+            <AlertTitle className="text-primary font-medium">Commande VIP détectée</AlertTitle>
+            <AlertDescription className="text-foreground mt-2">
+              <p className="mb-3">
+                Pour les commandes supérieures à {HIGH_VALUE_ORDER_THRESHOLD}€, nous vous offrons une 
+                <strong> expérience personnalisée, rapide et fiable</strong>.
+              </p>
+              <p className="mb-4 text-muted-foreground">
+                Contactez-nous directement pour bénéficier d'un accompagnement dédié et de conditions privilégiées.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link to="/contact">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Mail className="h-4 w-4" />
+                    Nous contacter
+                  </Button>
+                </Link>
+                <a href="tel:+33600000000">
+                  <Button variant="default" size="sm" className="gap-2">
+                    <Phone className="h-4 w-4" />
+                    Appeler maintenant
+                  </Button>
+                </a>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-3 md:space-y-4">
@@ -285,12 +319,15 @@ const Cart = () => {
                         >
                           {item.quantity}
                         </span>
-                        <TooltipWrapper content="Augmenter la quantité">
+                        <TooltipWrapper content={item.quantity >= MAX_CART_QUANTITY 
+                          ? `Maximum ${MAX_CART_QUANTITY} par article. Contactez-nous pour plus.`
+                          : "Augmenter la quantité"
+                        }>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                            disabled={productStock && item.quantity >= productStock.available}
+                            disabled={(productStock && item.quantity >= productStock.available) || item.quantity >= MAX_CART_QUANTITY}
                             className="touch-manipulation min-h-[44px] min-w-[44px] p-2"
                             id={`cart-qty-plus-${item.id}`}
                             name={`quantity-increase-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
@@ -299,6 +336,9 @@ const Cart = () => {
                             <Plus className="h-3 w-3 md:h-4 md:w-4" aria-hidden="true" />
                           </Button>
                         </TooltipWrapper>
+                        {item.quantity >= MAX_CART_QUANTITY && (
+                          <span className="text-xs text-muted-foreground ml-1">max</span>
+                        )}
                       </div>
                       <div className="text-left sm:text-right w-full sm:w-auto">
                         <p 

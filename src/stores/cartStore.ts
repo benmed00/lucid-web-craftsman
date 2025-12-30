@@ -62,8 +62,10 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-// Max quantity limit for validation
-const MAX_CART_QUANTITY = 99;
+// Max quantity limit for validation - business rule: max 10 per item
+// For larger orders, customers should contact directly
+export const MAX_CART_QUANTITY = 10;
+export const HIGH_VALUE_ORDER_THRESHOLD = 1000; // EUR
 
 // Validate and sanitize quantity
 function sanitizeQuantity(quantity: number): number {
@@ -113,16 +115,24 @@ export const useCartStore = create<CartState>()(
 
           // Actions
           addItem: (product, quantity = 1) => {
-            // Validate quantity - max 99 per item
-            const MAX_QUANTITY = 99;
-            const safeQuantity = Math.min(Math.max(1, Math.floor(quantity)), MAX_QUANTITY);
+            // Validate quantity - max 10 per item (business rule)
+            const safeQuantity = Math.min(Math.max(1, Math.floor(quantity)), MAX_CART_QUANTITY);
             
             set((state) => {
               const existingIndex = state.items.findIndex((item) => item.id === product.id);
               
               if (existingIndex > -1) {
                 const newItems = [...state.items];
-                const newQuantity = Math.min(newItems[existingIndex].quantity + safeQuantity, MAX_QUANTITY);
+                const currentQty = newItems[existingIndex].quantity;
+                const newQuantity = Math.min(currentQty + safeQuantity, MAX_CART_QUANTITY);
+                
+                // Show message if max reached
+                if (currentQty + safeQuantity > MAX_CART_QUANTITY) {
+                  toast.info('Quantité maximum atteinte', {
+                    description: `Maximum ${MAX_CART_QUANTITY} par article. Pour des commandes plus importantes, contactez-nous directement.`,
+                  });
+                }
+                
                 newItems[existingIndex] = {
                   ...newItems[existingIndex],
                   quantity: newQuantity,
@@ -159,9 +169,15 @@ export const useCartStore = create<CartState>()(
           },
 
           updateQuantity: (productId, quantity) => {
-            // Validate quantity - max 99 per item
-            const MAX_QUANTITY = 99;
-            const safeQuantity = Math.min(Math.max(0, Math.floor(quantity)), MAX_QUANTITY);
+            // Validate quantity - max 10 per item (business rule)
+            const safeQuantity = Math.min(Math.max(0, Math.floor(quantity)), MAX_CART_QUANTITY);
+            
+            // Show message if trying to exceed max
+            if (quantity > MAX_CART_QUANTITY) {
+              toast.info('Quantité maximum atteinte', {
+                description: `Maximum ${MAX_CART_QUANTITY} par article. Pour des commandes plus importantes, contactez-nous directement.`,
+              });
+            }
             
             set((state) => {
               if (safeQuantity <= 0) {
