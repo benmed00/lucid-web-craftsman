@@ -28,6 +28,8 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { supabase } from "@/integrations/supabase/client";
+import { usePagination } from "@/hooks/usePagination";
+import TablePagination from "@/components/admin/TablePagination";
 
 const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -64,6 +66,19 @@ const AdminProducts = () => {
     const matchesCategory = filterCategory === "all" || product.category.toLowerCase() === filterCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
+
+  // Pagination
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems: paginatedProducts,
+    startIndex,
+    endIndex,
+    totalItems,
+    itemsPerPage,
+    goToPage,
+    setItemsPerPage,
+  } = usePagination({ items: filteredProducts, itemsPerPage: 12 });
 
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
@@ -440,9 +455,21 @@ const AdminProducts = () => {
         </CardContent>
       </Card>
 
+      {/* Pagination Info */}
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        itemsPerPage={itemsPerPage}
+        onPageChange={goToPage}
+        onItemsPerPageChange={setItemsPerPage}
+      />
+
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map((product) => (
+        {paginatedProducts.map((product) => (
           <Card key={product.id} className="group hover:shadow-lg transition-shadow">
             <CardHeader className="p-0">
               <div className="relative h-48 overflow-hidden rounded-t-lg">
@@ -453,7 +480,7 @@ const AdminProducts = () => {
                 />
                 <div className="absolute top-2 right-2 flex gap-2">
                   {product.is_new && (
-                    <Badge className="bg-olive-700 text-white">Nouveau</Badge>
+                    <Badge className="bg-primary text-primary-foreground">Nouveau</Badge>
                   )}
                 </div>
               </div>
@@ -496,54 +523,62 @@ const AdminProducts = () => {
         ))}
       </div>
 
+      {/* No products found */}
       {filteredProducts.length === 0 && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Package className="h-12 w-12 text-stone-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-stone-800 mb-2">
+        <Card className="py-12">
+          <CardContent className="text-center">
+            <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">
               Aucun produit trouvé
             </h3>
-            <p className="text-stone-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               {searchQuery || filterCategory !== "all" 
-                ? "Aucun produit ne correspond à vos critères de recherche."
-                : "Commencez par ajouter votre premier produit."
-              }
+                ? "Essayez de modifier vos critères de recherche"
+                : "Commencez par ajouter votre premier produit"}
             </p>
-            {(!searchQuery && filterCategory === "all") && (
+            {!searchQuery && filterCategory === "all" && (
               <ProductFormWithImages onProductAdded={fetchProducts} />
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Edit/Add Product Dialog */}
+      {/* Bottom Pagination */}
+      {filteredProducts.length > 0 && (
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          itemsPerPage={itemsPerPage}
+          onPageChange={goToPage}
+          onItemsPerPageChange={setItemsPerPage}
+        />
+      )}
+
+      {/* Edit Product Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="w-[95vw] max-w-6xl h-[95vh] flex flex-col p-0 overflow-hidden">
-          <DialogHeader className="p-6 pb-4 border-b flex-shrink-0 bg-background">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
             <DialogTitle>
-              {isNewProduct ? "Ajouter un nouveau produit" : "Modifier le produit"}
+              {isNewProduct ? "Ajouter un produit" : "Modifier le produit"}
             </DialogTitle>
             <DialogDescription>
               {isNewProduct 
-                ? "Remplissez les informations pour créer un nouveau produit."
-                : "Modifiez les informations du produit."
-                }
+                ? "Remplissez les informations du nouveau produit"
+                : "Modifiez les informations du produit"}
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto p-6 min-h-0">
-            <ProductForm />
-          </div>
+          <ProductForm />
           
-          <div className="flex justify-end space-x-2 p-6 pt-4 border-t bg-background flex-shrink-0">
+          <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Annuler
             </Button>
-            <Button 
-              className="bg-olive-700 hover:bg-olive-800"
-              onClick={handleSaveProduct}
-            >
-              {isNewProduct ? "Ajouter" : "Sauvegarder"}
+            <Button onClick={handleSaveProduct}>
+              {isNewProduct ? "Créer" : "Enregistrer"}
             </Button>
           </div>
         </DialogContent>

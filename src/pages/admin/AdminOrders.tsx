@@ -22,6 +22,8 @@ import { TestCancellationEmailButton } from "@/components/admin/TestCancellation
 import { SendShippingEmailButton } from "@/components/admin/SendShippingEmailButton";
 import { SendDeliveryEmailButton } from "@/components/admin/SendDeliveryEmailButton";
 import { SendCancellationEmailButton } from "@/components/admin/SendCancellationEmailButton";
+import { usePagination } from "@/hooks/usePagination";
+import TablePagination from "@/components/admin/TablePagination";
 
 interface OrderItem {
   id: string;
@@ -44,6 +46,7 @@ interface Order {
   order_items: OrderItem[];
   payments?: any[];
 }
+
 const AdminOrders = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -100,6 +103,70 @@ const AdminOrders = () => {
     }
   }, [user]);
 
+  // Real-time subscription for orders
+  useEffect(() => {
+    const channel = supabase
+      .channel('orders-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders'
+        },
+        (payload) => {
+          console.log('Order change detected:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            // Fetch the new order with related data
+            fetchOrderById(payload.new.id);
+            toast.info('Nouvelle commande reçue!');
+          } else if (payload.eventType === 'UPDATE') {
+            setOrders(prev => prev.map(order => 
+              order.id === payload.new.id 
+                ? { ...order, ...payload.new }
+                : order
+            ));
+          } else if (payload.eventType === 'DELETE') {
+            setOrders(prev => prev.filter(order => order.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchOrderById = async (orderId: string) => {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          id,
+          product_id,
+          quantity,
+          unit_price,
+          total_price,
+          product_snapshot
+        ),
+        payments (
+          id,
+          status,
+          amount,
+          processed_at
+        )
+      `)
+      .eq('id', orderId)
+      .single();
+
+    if (!error && data) {
+      setOrders(prev => [data as Order, ...prev]);
+    }
+  };
+
   const updateOrderStatus = async (orderId: string, newStatus: string, skipPrompt = false) => {
     const order = orders.find(o => o.id === orderId);
     
@@ -150,7 +217,6 @@ const AdminOrders = () => {
 
   const handleShippingEmailSent = () => {
     if (pendingShippedOrder) {
-      // Update status after email is sent
       updateOrderStatus(pendingShippedOrder.id, 'shipped', true);
     }
     handleShippingDialogClose();
@@ -191,7 +257,6 @@ const AdminOrders = () => {
 
   const handleCancellationEmailSent = () => {
     if (pendingCancelledOrder) {
-      // Determine status based on context - default to cancelled
       updateOrderStatus(pendingCancelledOrder.id, pendingCancelledOrder.status === 'refunded' ? 'refunded' : 'cancelled', true);
     }
     handleCancellationDialogClose();
@@ -231,6 +296,19 @@ const AdminOrders = () => {
     
     return matchesSearch && matchesStatus;
   });
+
+  // Pagination
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems: paginatedOrders,
+    startIndex,
+    endIndex,
+    totalItems,
+    itemsPerPage,
+    goToPage,
+    setItemsPerPage,
+  } = usePagination({ items: filteredOrders, itemsPerPage: 10 });
 
   const totalRevenue = orders
     .filter(order => order.status === 'paid' || order.status === 'processing' || order.status === 'shipped' || order.status === 'delivered')
@@ -351,11 +429,11 @@ const AdminOrders = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">En attente</p>
-                <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                <p className="text-2xl font-bold text-warning">
                   {orders.filter(o => o.status === "pending").length}
                 </p>
               </div>
-              <Clock className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
+              <Clock className="h-8 w-8 text-warning" />
             </div>
           </CardContent>
         </Card>
@@ -365,11 +443,11 @@ const AdminOrders = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Expédiées</p>
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                <p className="text-2xl font-bold text-primary">
                   {orders.filter(o => o.status === "shipped").length}
                 </p>
               </div>
-              <Truck className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              <Truck className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
@@ -379,11 +457,11 @@ const AdminOrders = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Terminées</p>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {orders.filter(o => o.status === "completed").length}
+                <p className="text-2xl font-bold text-success">
+                  {orders.filter(o => o.status === "delivered").length}
                 </p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+              <CheckCircle className="h-8 w-8 text-success" />
             </div>
           </CardContent>
         </Card>
@@ -427,8 +505,11 @@ const AdminOrders = () => {
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
                 <SelectItem value="pending">En attente</SelectItem>
+                <SelectItem value="paid">Payée</SelectItem>
+                <SelectItem value="processing">En cours</SelectItem>
                 <SelectItem value="shipped">Expédiées</SelectItem>
-                <SelectItem value="completed">Terminées</SelectItem>
+                <SelectItem value="delivered">Livrées</SelectItem>
+                <SelectItem value="cancelled">Annulées</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -452,7 +533,7 @@ const AdminOrders = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.map((order) => (
+                {paginatedOrders.map((order) => (
                   <tr key={order.id} className="border-b border-border hover:bg-muted/50">
                     <td className="p-4">
                       <div>
@@ -463,30 +544,36 @@ const AdminOrders = () => {
                       </div>
                     </td>
                     <td className="p-4">
-                      <div>
-                        <p className="font-medium text-foreground">Client #{order.user_id?.slice(-8) || 'Invité'}</p>
-                        <p className="text-sm text-muted-foreground">{order.stripe_session_id?.slice(-8) || 'N/A'}</p>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <p className="text-sm">
-                        {format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                      <p className="text-sm text-muted-foreground">
+                        {order.user_id ? order.user_id.slice(-8) : 'Invité'}
                       </p>
                     </td>
                     <td className="p-4">
-                      <p className="font-semibold">{(order.amount / 100).toFixed(2)} €</p>
+                      <p className="text-sm text-foreground">
+                        {format(new Date(order.created_at), 'dd/MM/yyyy', { locale: fr })}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(order.created_at), 'HH:mm', { locale: fr })}
+                      </p>
+                    </td>
+                    <td className="p-4">
+                      <p className="font-medium text-foreground">
+                        {(order.amount / 100).toFixed(2)} €
+                      </p>
                     </td>
                     <td className="p-4">
                       {getStatusBadge(order.status)}
                     </td>
                     <td className="p-4">
-                      <Badge variant="default">Stripe</Badge>
+                      <Badge variant={order.payments?.some(p => p.status === 'completed') ? 'default' : 'outline'}>
+                        {order.payments?.some(p => p.status === 'completed') ? 'Payé' : 'En attente'}
+                      </Badge>
                     </td>
                     <td className="p-4">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
+                          <Button 
+                            variant="outline" 
                             size="sm"
                             onClick={() => setSelectedOrder(order)}
                           >
@@ -503,92 +590,78 @@ const AdminOrders = () => {
             </table>
           </div>
 
-          {filteredOrders.length === 0 && (
-            <div className="p-12 text-center">
-              <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">
-                Aucune commande trouvée
-              </h3>
-              <p className="text-muted-foreground">
-                {searchTerm || statusFilter !== "all" 
-                  ? "Aucune commande ne correspond à vos critères de recherche."
-                  : "Vous n'avez pas encore reçu de commandes."
-                }
-              </p>
-            </div>
-          )}
+          {/* Pagination */}
+          <div className="px-4">
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              itemsPerPage={itemsPerPage}
+              onPageChange={goToPage}
+              onItemsPerPageChange={setItemsPerPage}
+            />
+          </div>
         </CardContent>
       </Card>
 
-      {/* Shipping Notification Dialog */}
+      {/* Shipping notification dialog */}
       <Dialog open={shippingDialogOpen} onOpenChange={setShippingDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Envoyer une notification d'expédition ?</DialogTitle>
+            <DialogTitle>Envoyer une notification d'expédition?</DialogTitle>
             <DialogDescription>
-              Voulez-vous envoyer un email au client pour l'informer que sa commande a été expédiée ?
+              Voulez-vous envoyer un email de notification d'expédition au client?
             </DialogDescription>
           </DialogHeader>
-          {pendingShippedOrder && (
-            <div className="py-4">
-              <SendShippingEmailButton 
-                orderId={pendingShippedOrder.id}
-                orderItems={pendingShippedOrder.order_items}
-                onEmailSent={handleShippingEmailSent}
-              />
-            </div>
-          )}
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleSkipShippingEmail}>Passer</Button>
+            <Button variant="outline" onClick={handleSkipShippingEmail}>
+              Non, mettre à jour seulement
+            </Button>
+            <Button onClick={handleShippingEmailSent}>
+              Oui, envoyer
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Delivery Notification Dialog */}
+      {/* Delivery notification dialog */}
       <Dialog open={deliveryDialogOpen} onOpenChange={setDeliveryDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmer la livraison ?</DialogTitle>
+            <DialogTitle>Envoyer une confirmation de livraison?</DialogTitle>
             <DialogDescription>
-              Voulez-vous envoyer un email au client pour confirmer la livraison ?
+              Voulez-vous envoyer un email de confirmation de livraison au client?
             </DialogDescription>
           </DialogHeader>
-          {pendingDeliveredOrder && (
-            <div className="py-4">
-              <SendDeliveryEmailButton 
-                orderId={pendingDeliveredOrder.id}
-                orderItems={pendingDeliveredOrder.order_items}
-                onEmailSent={handleDeliveryEmailSent}
-              />
-            </div>
-          )}
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleSkipDeliveryEmail}>Passer</Button>
+            <Button variant="outline" onClick={handleSkipDeliveryEmail}>
+              Non, mettre à jour seulement
+            </Button>
+            <Button onClick={handleDeliveryEmailSent}>
+              Oui, envoyer
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Cancellation Notification Dialog */}
+      {/* Cancellation notification dialog */}
       <Dialog open={cancellationDialogOpen} onOpenChange={setCancellationDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Notifier l'annulation ?</DialogTitle>
+            <DialogTitle>Envoyer une notification d'annulation?</DialogTitle>
             <DialogDescription>
-              Voulez-vous envoyer un email au client concernant l'annulation/remboursement ?
+              Voulez-vous envoyer un email de notification d'annulation au client?
             </DialogDescription>
           </DialogHeader>
-          {pendingCancelledOrder && (
-            <div className="py-4">
-              <SendCancellationEmailButton 
-                orderId={pendingCancelledOrder.id}
-                orderAmount={pendingCancelledOrder.amount}
-                orderItems={pendingCancelledOrder.order_items}
-                onEmailSent={handleCancellationEmailSent}
-              />
-            </div>
-          )}
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => handleSkipCancellationEmail('cancelled')}>Passer</Button>
+            <Button variant="outline" onClick={() => handleSkipCancellationEmail('cancelled')}>
+              Non, annuler seulement
+            </Button>
+            <Button onClick={handleCancellationEmailSent}>
+              Oui, envoyer
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
