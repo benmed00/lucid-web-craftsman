@@ -1,8 +1,9 @@
 // File_name: src/App.tsx
 
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useWebVitals } from "@/hooks/useWebVitals";
+import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
 import { lazy, Suspense, startTransition, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { taskScheduler } from "@/utils/taskScheduler";
@@ -13,6 +14,7 @@ import { inputResponsivenessOptimizer } from "@/utils/inputResponsivenessOptimiz
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
+import Maintenance from "./pages/Maintenance";
 
 // Non-critical pages lazy loaded
 const About = lazy(() => import("./pages/About"));
@@ -121,6 +123,25 @@ const queryClient = new QueryClient({
 
 const basePath: string = "/";
 
+// Wrapper component to handle maintenance mode check inside Router context
+const MaintenanceWrapper = ({ children }: { children: React.ReactNode }) => {
+  const { isMaintenanceMode, isLoading } = useMaintenanceMode();
+  const location = useLocation();
+  
+  // Allow admin routes even in maintenance mode
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  
+  if (isLoading) {
+    return <div className="min-h-screen bg-background" />;
+  }
+  
+  if (isMaintenanceMode && !isAdminRoute) {
+    return <Maintenance />;
+  }
+  
+  return <>{children}</>;
+};
+
 const App = () => {
   // Initialize Web Vitals tracking
   useWebVitals();
@@ -157,15 +178,16 @@ const App = () => {
                   <WishlistProvider>
                     <TooltipProvider delayDuration={300}>
                     <BrowserRouter basename={basePath}>
-                      <Suspense fallback={null}>
-                        <PushNotificationManager />
-                        <PWAInstallPrompt />
-                      </Suspense>
+                      <MaintenanceWrapper>
+                        <Suspense fallback={null}>
+                          <PushNotificationManager />
+                          <PWAInstallPrompt />
+                        </Suspense>
 
-                      {/* Persistent Navigation across routes */}
-                      <Navigation />
+                        {/* Persistent Navigation across routes */}
+                        <Navigation />
 
-                      <Routes>
+                        <Routes>
                         {/* Critical routes loaded immediately */}
                         <Route path="/" element={<Index />} />
                         <Route path="/products" element={<Products />} />
@@ -215,8 +237,8 @@ const App = () => {
 
                         {/* Catch-all route for 404 pages */}
                         <Route path="*" element={<Suspense fallback={<PageLoadingFallback />}><NotFound /></Suspense>} />
-                      </Routes>
-                      
+                        </Routes>
+                      </MaintenanceWrapper>
                     </BrowserRouter>
                     
                     {/* Système de notifications */}
