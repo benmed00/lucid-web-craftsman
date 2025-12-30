@@ -71,6 +71,7 @@ interface SecuritySettings {
 
 interface DisplaySettings {
   maintenanceMode: boolean;
+  maintenanceReturnTime: string;
   showOutOfStock: boolean;
   enableReviews: boolean;
   showPrices: boolean;
@@ -108,6 +109,7 @@ const defaultSecuritySettings: SecuritySettings = {
 
 const defaultDisplaySettings: DisplaySettings = {
   maintenanceMode: false,
+  maintenanceReturnTime: '',
   showOutOfStock: true,
   enableReviews: true,
   showPrices: true
@@ -768,6 +770,24 @@ const AdminSettings = () => {
                   }
                 />
               </div>
+
+              {displaySettings.maintenanceMode && (
+                <div className="space-y-2 pl-4 border-l-2 border-destructive/20">
+                  <Label htmlFor="maintenanceReturnTime">Heure de retour estimée</Label>
+                  <Input
+                    id="maintenanceReturnTime"
+                    type="datetime-local"
+                    value={displaySettings.maintenanceReturnTime}
+                    onChange={(e) => 
+                      setDisplaySettings({...displaySettings, maintenanceReturnTime: e.target.value})
+                    }
+                    className="max-w-xs"
+                  />
+                  <p className="text-sm text-stone-600">
+                    Affichée sur la page de maintenance
+                  </p>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
