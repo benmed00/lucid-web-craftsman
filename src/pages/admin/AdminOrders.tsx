@@ -18,6 +18,8 @@ import { ManualTestOrderStatus } from "@/components/admin/ManualTestOrderStatus"
 import { TestOrderEmailButton } from "@/components/admin/TestOrderEmailButton";
 import { TestShippingEmailButton } from "@/components/admin/TestShippingEmailButton";
 import { SendShippingEmailButton } from "@/components/admin/SendShippingEmailButton";
+import { SendDeliveryEmailButton } from "@/components/admin/SendDeliveryEmailButton";
+import { SendCancellationEmailButton } from "@/components/admin/SendCancellationEmailButton";
 
 interface OrderItem {
   id: string;
@@ -48,7 +50,11 @@ const AdminOrders = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [shippingDialogOpen, setShippingDialogOpen] = useState(false);
+  const [deliveryDialogOpen, setDeliveryDialogOpen] = useState(false);
+  const [cancellationDialogOpen, setCancellationDialogOpen] = useState(false);
   const [pendingShippedOrder, setPendingShippedOrder] = useState<Order | null>(null);
+  const [pendingDeliveredOrder, setPendingDeliveredOrder] = useState<Order | null>(null);
+  const [pendingCancelledOrder, setPendingCancelledOrder] = useState<Order | null>(null);
 
   const fetchOrders = async () => {
     try {
@@ -92,15 +98,28 @@ const AdminOrders = () => {
     }
   }, [user]);
 
-  const updateOrderStatus = async (orderId: string, newStatus: string, skipShippingPrompt = false) => {
+  const updateOrderStatus = async (orderId: string, newStatus: string, skipPrompt = false) => {
+    const order = orders.find(o => o.id === orderId);
+    
     // If changing to shipped, prompt for shipping notification
-    if (newStatus === 'shipped' && !skipShippingPrompt) {
-      const order = orders.find(o => o.id === orderId);
-      if (order) {
-        setPendingShippedOrder(order);
-        setShippingDialogOpen(true);
-        return;
-      }
+    if (newStatus === 'shipped' && !skipPrompt && order) {
+      setPendingShippedOrder(order);
+      setShippingDialogOpen(true);
+      return;
+    }
+
+    // If changing to delivered, prompt for delivery notification
+    if (newStatus === 'delivered' && !skipPrompt && order) {
+      setPendingDeliveredOrder(order);
+      setDeliveryDialogOpen(true);
+      return;
+    }
+
+    // If changing to cancelled or refunded, prompt for cancellation notification
+    if ((newStatus === 'cancelled' || newStatus === 'refunded') && !skipPrompt && order) {
+      setPendingCancelledOrder(order);
+      setCancellationDialogOpen(true);
+      return;
     }
 
     try {
@@ -140,6 +159,47 @@ const AdminOrders = () => {
       updateOrderStatus(pendingShippedOrder.id, 'shipped', true);
     }
     handleShippingDialogClose();
+  };
+
+  // Delivery dialog handlers
+  const handleDeliveryDialogClose = () => {
+    setDeliveryDialogOpen(false);
+    setPendingDeliveredOrder(null);
+  };
+
+  const handleDeliveryEmailSent = () => {
+    if (pendingDeliveredOrder) {
+      updateOrderStatus(pendingDeliveredOrder.id, 'delivered', true);
+    }
+    handleDeliveryDialogClose();
+  };
+
+  const handleSkipDeliveryEmail = () => {
+    if (pendingDeliveredOrder) {
+      updateOrderStatus(pendingDeliveredOrder.id, 'delivered', true);
+    }
+    handleDeliveryDialogClose();
+  };
+
+  // Cancellation dialog handlers
+  const handleCancellationDialogClose = () => {
+    setCancellationDialogOpen(false);
+    setPendingCancelledOrder(null);
+  };
+
+  const handleCancellationEmailSent = () => {
+    if (pendingCancelledOrder) {
+      // Determine status based on context - default to cancelled
+      updateOrderStatus(pendingCancelledOrder.id, pendingCancelledOrder.status === 'refunded' ? 'refunded' : 'cancelled', true);
+    }
+    handleCancellationDialogClose();
+  };
+
+  const handleSkipCancellationEmail = (status: 'cancelled' | 'refunded') => {
+    if (pendingCancelledOrder) {
+      updateOrderStatus(pendingCancelledOrder.id, status, true);
+    }
+    handleCancellationDialogClose();
   };
 
   const getStatusBadge = (status: string) => {
@@ -227,16 +287,33 @@ const AdminOrders = () => {
                   <SelectItem value="processing">En cours</SelectItem>
                   <SelectItem value="shipped">Expédiée</SelectItem>
                   <SelectItem value="delivered">Livrée</SelectItem>
+                  <SelectItem value="cancelled">Annulée</SelectItem>
+                  <SelectItem value="refunded">Remboursée</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          
+          {/* Action buttons based on status */}
+          <div className="flex flex-wrap gap-2 pt-2">
             {(selectedOrder.status === 'shipped' || selectedOrder.status === 'processing') && (
-              <div className="pt-6">
-                <SendShippingEmailButton 
-                  orderId={selectedOrder.id}
-                  orderItems={selectedOrder.order_items}
-                />
-              </div>
+              <SendShippingEmailButton 
+                orderId={selectedOrder.id}
+                orderItems={selectedOrder.order_items}
+              />
+            )}
+            {selectedOrder.status === 'shipped' && (
+              <SendDeliveryEmailButton 
+                orderId={selectedOrder.id}
+                orderItems={selectedOrder.order_items}
+              />
+            )}
+            {(selectedOrder.status !== 'cancelled' && selectedOrder.status !== 'refunded') && (
+              <SendCancellationEmailButton 
+                orderId={selectedOrder.id}
+                orderAmount={selectedOrder.amount}
+                orderItems={selectedOrder.order_items}
+              />
             )}
           </div>
         </div>
@@ -439,7 +516,7 @@ const AdminOrders = () => {
         </CardContent>
       </Card>
 
-      {/* Shipping Notification Dialog - triggered when changing status to shipped */}
+      {/* Shipping Notification Dialog */}
       <Dialog open={shippingDialogOpen} onOpenChange={setShippingDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -448,7 +525,6 @@ const AdminOrders = () => {
               Voulez-vous envoyer un email au client pour l'informer que sa commande a été expédiée ?
             </DialogDescription>
           </DialogHeader>
-          
           {pendingShippedOrder && (
             <div className="py-4">
               <SendShippingEmailButton 
@@ -458,11 +534,57 @@ const AdminOrders = () => {
               />
             </div>
           )}
-
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleSkipShippingEmail}>
-              Passer (ne pas envoyer)
-            </Button>
+            <Button variant="outline" onClick={handleSkipShippingEmail}>Passer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delivery Notification Dialog */}
+      <Dialog open={deliveryDialogOpen} onOpenChange={setDeliveryDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmer la livraison ?</DialogTitle>
+            <DialogDescription>
+              Voulez-vous envoyer un email au client pour confirmer la livraison ?
+            </DialogDescription>
+          </DialogHeader>
+          {pendingDeliveredOrder && (
+            <div className="py-4">
+              <SendDeliveryEmailButton 
+                orderId={pendingDeliveredOrder.id}
+                orderItems={pendingDeliveredOrder.order_items}
+                onEmailSent={handleDeliveryEmailSent}
+              />
+            </div>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleSkipDeliveryEmail}>Passer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancellation Notification Dialog */}
+      <Dialog open={cancellationDialogOpen} onOpenChange={setCancellationDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Notifier l'annulation ?</DialogTitle>
+            <DialogDescription>
+              Voulez-vous envoyer un email au client concernant l'annulation/remboursement ?
+            </DialogDescription>
+          </DialogHeader>
+          {pendingCancelledOrder && (
+            <div className="py-4">
+              <SendCancellationEmailButton 
+                orderId={pendingCancelledOrder.id}
+                orderAmount={pendingCancelledOrder.amount}
+                orderItems={pendingCancelledOrder.order_items}
+                onEmailSent={handleCancellationEmailSent}
+              />
+            </div>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => handleSkipCancellationEmail('cancelled')}>Passer</Button>
           </div>
         </DialogContent>
       </Dialog>
