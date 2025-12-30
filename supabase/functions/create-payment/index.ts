@@ -225,6 +225,17 @@ serve(async (req) => {
     const totalAmount = lineItems.reduce((sum, item) => sum + (item.price_data.unit_amount * item.quantity), 0);
     logStep("Calculated total amount", { totalAmount });
 
+    // Fetch business rules for VIP threshold
+    const { data: businessRulesData } = await supabaseService
+      .from('app_settings')
+      .select('setting_value')
+      .eq('setting_key', 'business_rules')
+      .single();
+
+    const businessRules = businessRulesData?.setting_value as any || {};
+    const vipThreshold = (businessRules?.cart?.highValueThreshold || 1000) * 100; // Convert to cents
+    const isVipOrder = totalAmount >= vipThreshold;
+
     // Create order record first
     const { data: orderData, error: orderError } = await supabaseService
       .from('orders')
@@ -242,7 +253,7 @@ serve(async (req) => {
       throw new Error(`Failed to create order: ${orderError.message}`);
     }
 
-    logStep("Order created", { orderId: orderData.id });
+    logStep("Order created", { orderId: orderData.id, isVipOrder });
 
     // Create order items
     const orderItems = items.map((item: any) => ({
@@ -269,6 +280,26 @@ serve(async (req) => {
     }
 
     logStep("Order items created", { itemCount: orderItems.length });
+
+    // Send VIP notification if order exceeds threshold
+    if (isVipOrder && customerInfo?.email) {
+      logStep("Sending VIP order notification");
+      try {
+        await supabaseService.functions.invoke('send-vip-order-notification', {
+          body: {
+            order_id: orderData.id,
+            customer_email: customerInfo.email,
+            customer_name: `${customerInfo.firstName || ''} ${customerInfo.lastName || ''}`.trim() || 'Client',
+            order_total: totalAmount / 100, // Convert back to euros
+            threshold: vipThreshold / 100
+          }
+        });
+        logStep("VIP notification sent successfully");
+      } catch (vipError) {
+        logStep("VIP notification failed (non-fatal)", vipError);
+        // Non-fatal - don't block payment
+      }
+    }
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
