@@ -2,7 +2,7 @@ import React from 'react';
 import { ShoppingBag, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useCartUI } from '@/context/useCartUI';
+import { useCartUI } from '@/hooks/useCartUI';
 import clsx from 'clsx';
 
 const FloatingCartButton = () => {
