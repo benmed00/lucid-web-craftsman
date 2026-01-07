@@ -178,6 +178,7 @@ const Navigation = () => {
                 size="sm"
                 onClick={() => setShowSearch(!showSearch)}
                 className="hidden md:flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hover:bg-primary/10 hover:text-primary rounded-lg transition-all duration-300 touch-manipulation text-foreground"
+                aria-label="Rechercher des produits"
               >
                 <Search size={18} className="transition-colors" />
               </Button>
@@ -196,6 +197,7 @@ const Navigation = () => {
                   }
                 }}
                 disabled={!user}
+                aria-label={`Mes favoris${user && wishlistCount > 0 ? ` (${wishlistCount} produits)` : ''}`}
               >
                 <span className={clsx(
                   "flex items-center justify-center w-full h-full text-foreground hover:text-primary transition-colors duration-300",
