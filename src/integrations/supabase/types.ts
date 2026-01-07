@@ -1992,7 +1992,51 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      contact_messages_masked: {
+        Row: {
+          company: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string | null
+          ip_address: unknown
+          last_name: string | null
+          message_preview: string | null
+          phone: string | null
+          status: string | null
+          subject: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string | null
+          email?: never
+          first_name?: never
+          id?: string | null
+          ip_address?: never
+          last_name?: never
+          message_preview?: never
+          phone?: never
+          status?: string | null
+          subject?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string | null
+          email?: never
+          first_name?: never
+          id?: string | null
+          ip_address?: never
+          last_name?: never
+          message_preview?: never
+          phone?: never
+          status?: string | null
+          subject?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_admin_user: {
@@ -2047,9 +2091,37 @@ export type Database = {
           role: string
         }[]
       }
+      get_admin_users_with_audit: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          last_login: string
+          name: string
+          role: string
+          user_id: string
+        }[]
+      }
       get_contact_message_details: {
         Args: { message_id: string }
         Returns: Json
+      }
+      get_contact_messages_secure: {
+        Args: { p_include_pii?: boolean; p_limit?: number; p_offset?: number }
+        Returns: {
+          company: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          message: string
+          phone: string
+          status: string
+          subject: string
+          updated_at: string
+        }[]
       }
       get_customer_segments: { Args: never; Returns: Json }
       get_masked_contact_messages: {
@@ -2157,6 +2229,10 @@ export type Database = {
         Returns: undefined
       }
       mask_email: { Args: { email: string }; Returns: string }
+      mask_sensitive_data: {
+        Args: { p_email: string; p_full_mask?: boolean; p_phone?: string }
+        Returns: Json
+      }
       monitor_audit_log_integrity: { Args: never; Returns: Json }
       monitor_contact_data_security: {
         Args: never
