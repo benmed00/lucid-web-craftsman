@@ -1,36 +1,50 @@
 import React from 'react';
-import { ShoppingBag, Plus } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { useCartUI } from '@/hooks/useCartUI';
 import clsx from 'clsx';
 
 const FloatingCartButton = () => {
   const { itemCount } = useCartUI();
 
+  // Don't show if cart is empty
+  if (itemCount === 0) return null;
+
   return (
     <Link 
       to="/cart" 
-      className="fixed bottom-6 right-6 z-40 md:hidden pb-[env(safe-area-inset-bottom)]"
+      className={clsx(
+        "fixed bottom-6 right-4 z-40 md:hidden",
+        "pb-[env(safe-area-inset-bottom)]",
+        "animate-in slide-in-from-bottom-4 fade-in duration-300"
+      )}
       aria-label={`Voir le panier (${itemCount} article${itemCount > 1 ? 's' : ''})`}
     >
-      <Button
-        className={clsx(
-          "h-14 w-14 rounded-full shadow-2xl border-2 transition-all duration-300 hover:scale-110 active:scale-95 touch-manipulation",
-          itemCount > 0
-            ? "bg-primary hover:bg-primary/90 text-primary-foreground border-primary/80 shadow-primary/30"
-            : "bg-background hover:bg-muted text-foreground border-border shadow-muted/30"
-        )}
-      >
-        <div className="relative">
-          <ShoppingBag className="h-6 w-6" />
-          {itemCount > 0 && (
-            <div className="absolute -top-3 -right-3 bg-destructive text-destructive-foreground text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-lg">
-              {itemCount > 99 ? '99+' : itemCount}
-            </div>
-          )}
-        </div>
-      </Button>
+      <div className={clsx(
+        "relative flex items-center justify-center",
+        "w-14 h-14 sm:w-16 sm:h-16",
+        "bg-primary text-primary-foreground",
+        "rounded-full shadow-lg shadow-primary/30",
+        "transition-all duration-300",
+        "hover:scale-105 hover:shadow-xl hover:shadow-primary/40",
+        "active:scale-95 touch-manipulation"
+      )}>
+        <ShoppingBag className="h-6 w-6 sm:h-7 sm:w-7" />
+        
+        {/* Item count badge */}
+        <span className={clsx(
+          "absolute -top-1 -right-1",
+          "flex items-center justify-center",
+          "min-w-[22px] h-[22px] sm:min-w-[24px] sm:h-[24px]",
+          "bg-destructive text-destructive-foreground",
+          "text-xs sm:text-sm font-bold",
+          "rounded-full px-1.5",
+          "shadow-md",
+          "animate-in zoom-in duration-200"
+        )}>
+          {itemCount > 99 ? '99+' : itemCount}
+        </span>
+      </div>
     </Link>
   );
 };

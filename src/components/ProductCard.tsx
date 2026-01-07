@@ -53,19 +53,19 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
   return (
     <Card 
       id={cardId}
-      className="bg-card border border-border overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-xl sm:rounded-2xl hover:scale-[1.01] sm:hover:scale-[1.02] hover:-translate-y-1 shadow-lg hover:border-primary/30 w-full max-w-sm mx-auto sm:max-w-none"
+      className="bg-card border border-border overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-xl sm:rounded-2xl hover:scale-[1.01] sm:hover:scale-[1.02] hover:-translate-y-1 shadow-md hover:shadow-xl hover:border-primary/30 w-full"
       role="article"
       aria-labelledby={`product-title-${product.id}`}
       aria-describedby={`product-price-${product.id} ${singleStockInfo?.isOutOfStock ? `product-stock-${product.id}` : ''}`}
     >
       <Link to={`/products/${product.id}`} className="block touch-manipulation">
         <div className="relative group/image">
-          <div className="aspect-[4/3] sm:aspect-[3/4] md:aspect-[4/3] w-full overflow-hidden rounded-t-xl">
+          <div className="aspect-square sm:aspect-[4/5] w-full overflow-hidden rounded-t-xl">
             <ProductImage
               src={product.images[0]}
               alt={product.name}
               className="object-cover w-full h-full group-hover:scale-105 sm:group-hover:scale-110 transition-transform duration-700"
-              aspectRatio="4/3"
+              aspectRatio="1/1"
             />
           </div>
           
@@ -145,10 +145,10 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
         </div>
       </Link>
       
-      <CardContent className="p-4 sm:p-5 md:p-6 relative">
+      <CardContent className="p-3 sm:p-4 md:p-5 relative">
         {/* Wishlist button - repositioned to top-right of white section */}
         <div 
-          className="absolute -top-2 right-3 sm:right-4 z-20"
+          className="absolute -top-2 right-2 sm:right-3 z-20"
           id={wishlistBtnId}
           data-name={`wishlist-${product.name.toLowerCase().replace(/\s+/g, '-')}`}
         >
@@ -156,26 +156,26 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
             productId={product.id}
             size="sm"
             variant="ghost"
-            className="bg-card border-2 border-border hover:bg-muted p-2 sm:p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 touch-manipulation min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px]"
+            className="bg-card border-2 border-border hover:bg-muted p-1.5 sm:p-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 touch-manipulation min-h-[32px] min-w-[32px] sm:min-h-[40px] sm:min-w-[40px]"
           />
         </div>
 
-        <p className="text-xs sm:text-sm text-primary font-medium mb-2 uppercase tracking-wide">
+        <p className="text-[10px] sm:text-xs text-primary font-medium mb-1 sm:mb-2 uppercase tracking-wide">
           {product.category}
         </p>
         <Link to={`/products/${product.id}`} className="touch-manipulation">
           <h3 
             id={`product-title-${product.id}`}
-            className="font-serif text-base sm:text-lg md:text-xl font-medium text-foreground mb-3 sm:mb-4 line-clamp-2 leading-tight hover:text-primary transition-colors duration-200 pr-10 sm:pr-12"
+            className="font-serif text-sm sm:text-base md:text-lg font-medium text-foreground mb-2 sm:mb-3 line-clamp-2 leading-snug hover:text-primary transition-colors duration-200 pr-8 sm:pr-10"
           >
             {product.name}
           </h3>
         </Link>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2 sm:gap-3">
           <div className="relative">
             <p 
               id={`product-price-${product.id}`}
-              className="text-foreground font-bold text-lg sm:text-xl md:text-2xl whitespace-nowrap"
+              className="text-foreground font-bold text-base sm:text-lg md:text-xl whitespace-nowrap"
               aria-label={`Prix: ${formatPrice(product.price)}`}
             >
               {formatPrice(product.price)}
@@ -199,23 +199,23 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
             <Button
               id={addToCartBtnId}
               name={`add-to-cart-${product.name.toLowerCase().replace(/\s+/g, '-')}`}
-              size="lg"
+              size="default"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 onAddToCart(product);
               }}
               disabled={singleStockInfo?.isOutOfStock}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-4 sm:px-6 py-3 sm:py-4 touch-manipulation min-h-[48px] sm:min-h-[52px] font-semibold text-sm sm:text-base rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl disabled:hover:bg-primary disabled:hover:shadow-lg group relative overflow-hidden border-0"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-3 sm:px-4 py-2.5 sm:py-3 touch-manipulation min-h-[44px] sm:min-h-[48px] font-semibold text-xs sm:text-sm rounded-lg shadow-md hover:shadow-lg disabled:hover:bg-primary disabled:hover:shadow-md group relative overflow-hidden border-0"
               aria-label={singleStockInfo?.isOutOfStock 
                 ? `Indisponible - ${product.name}` 
                 : `Ajouter au panier - ${product.name} pour ${formatPrice(product.price)}`
               }
             >
-              <div className="relative flex items-center justify-center gap-2 z-10">
-                <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
+              <div className="relative flex items-center justify-center gap-1.5 sm:gap-2 z-10">
+                <ShoppingCart className="h-4 w-4" />
                 <span className="font-medium">
-                  {singleStockInfo?.isOutOfStock ? 'Indisponible' : 'Ajouter au panier'}
+                  {singleStockInfo?.isOutOfStock ? 'Indisponible' : 'Ajouter'}
                 </span>
               </div>
               
