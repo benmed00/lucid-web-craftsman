@@ -1,8 +1,8 @@
-/* Global responsive enhancements */
+/* Global responsive enhancements - Mobile First */
 
 /* Mobile-first typography scale */
 :root {
-  /* Mobile font sizes */
+  /* Mobile font sizes - optimized for readability */
   --text-xs: 0.75rem;   /* 12px */
   --text-sm: 0.875rem;  /* 14px */
   --text-base: 1rem;    /* 16px */
@@ -13,57 +13,62 @@
   --text-4xl: 2.25rem;  /* 36px */
   --text-5xl: 3rem;     /* 48px */
   --text-6xl: 3.75rem;  /* 60px */
+  
+  /* Mobile-optimized spacing */
+  --mobile-padding: 1rem;
+  --mobile-gap: 1rem;
+  --mobile-radius: 0.75rem;
 }
 
 /* Enhanced tablet breakpoints */
 @media (min-width: 768px) and (max-width: 1023px) {
-  /* Tablet-specific typography adjustments */
   :root {
-    --text-sm: 0.875rem;  /* 14px */
-    --text-base: 1rem;    /* 16px */
-    --text-lg: 1.125rem;  /* 18px */
-    --text-xl: 1.25rem;   /* 20px */
-    --text-2xl: 1.5rem;   /* 24px */
-    --text-3xl: 1.875rem; /* 30px */
-    --text-4xl: 2.25rem;  /* 36px */
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 1.875rem;
+    --text-4xl: 2.25rem;
   }
 }
 
-/* Mobile-first spacing with tablet optimizations */
+/* Mobile-first container with edge-to-edge feel */
 .container {
-  padding-left: 1rem;  /* 16px */
-  padding-right: 1rem; /* 16px */
+  padding-left: var(--mobile-padding);
+  padding-right: var(--mobile-padding);
+  max-width: 100%;
 }
 
 @media (min-width: 640px) {
   .container {
-    padding-left: 1.5rem;  /* 24px */
-    padding-right: 1.5rem; /* 24px */
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 }
 
 @media (min-width: 768px) {
   .container {
-    padding-left: 1.5rem;  /* 24px - optimized for tablet */
-    padding-right: 1.5rem; /* 24px */
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 }
 
 @media (min-width: 1024px) {
   .container {
-    padding-left: 2rem;  /* 32px */
-    padding-right: 2rem; /* 32px */
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 }
 
 @media (min-width: 1280px) {
   .container {
-    padding-left: 2.5rem;  /* 40px */
-    padding-right: 2.5rem; /* 40px */
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
   }
 }
 
-/* Touch targets for mobile */
+/* Enhanced touch targets for mobile - Apple HIG recommends 44px minimum */
 .touch-target {
   min-height: 44px;
   min-width: 44px;
@@ -73,6 +78,31 @@
   .touch-target {
     min-height: 48px;
     min-width: 48px;
+  }
+  
+  /* Better tap feedback on mobile */
+  .touch-target:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease-out;
+  }
+}
+
+/* Mobile-optimized scrolling */
+@media (max-width: 767px) {
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent horizontal scroll */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Improve text readability on mobile */
+  p, li, span {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 

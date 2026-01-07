@@ -58,35 +58,35 @@ const Index = () => {
       
 
       <main id="main-content" className="flex-grow">
-        {/* Hero Section - Enhanced Mobile Responsiveness */}
-        <section className="container mx-auto px-4 py-6 sm:py-8 md:py-12 lg:py-16 xl:py-24 flex flex-col lg:flex-row items-center gap-6 sm:gap-8 md:gap-10 lg:gap-12">
-          {/* Left: Copy and CTA */}
-          <div className="lg:w-1/2 w-full text-center lg:text-left space-y-4 sm:space-y-5 md:space-y-6 hero-text-animation">
-            <Badge className="inline-flex items-center mb-3 sm:mb-4 bg-secondary text-secondary-foreground hover:bg-secondary/80 border-none animate-scale-in hover-glow px-3 py-2">
-              <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
+        {/* Hero Section - Mobile-First Optimized */}
+        <section className="container mx-auto px-4 sm:px-6 py-8 sm:py-10 md:py-12 lg:py-16 xl:py-24 flex flex-col lg:flex-row items-center gap-8 sm:gap-10 lg:gap-12">
+          {/* Left: Copy and CTA - Mobile optimized with larger touch targets */}
+          <div className="lg:w-1/2 w-full text-center lg:text-left space-y-5 sm:space-y-6 hero-text-animation order-2 lg:order-1">
+            <Badge className="inline-flex items-center bg-secondary text-secondary-foreground hover:bg-secondary/80 border-none animate-scale-in hover-glow px-3 sm:px-4 py-2 text-xs sm:text-sm">
+              <span className="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse"></span>
               Artisanat Durable & Fait Main
             </Badge>
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-serif font-medium text-foreground animate-fade-in-up leading-tight">
-              Créé avec amour dans les <span className="text-primary">montagnes du Rif</span>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-serif font-medium text-foreground animate-fade-in-up leading-[1.15] sm:leading-tight">
+              Créé avec amour dans les <span className="text-primary block sm:inline">montagnes du Rif</span>
             </h1>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground animate-fade-in-up leading-relaxed max-w-2xl mx-auto lg:mx-0" style={{ animationDelay: '0.3s' }}>
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground animate-fade-in-up leading-relaxed max-w-xl mx-auto lg:mx-0" style={{ animationDelay: '0.3s' }}>
               Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-fade-in-up justify-center lg:justify-start" style={{ animationDelay: '0.5s' }}>
-              <Link to="/products" className="group">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-fade-in-up justify-center lg:justify-start pt-2" style={{ animationDelay: '0.5s' }}>
+              <Link to="/products" className="group w-full sm:w-auto">
                 <Button 
-                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg button-press hover-glow text-sm sm:text-base md:text-lg touch-manipulation min-h-[44px] sm:min-h-[48px] md:min-h-[56px]"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 sm:px-8 py-4 sm:py-5 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg button-press hover-glow text-base sm:text-lg touch-manipulation min-h-[52px] sm:min-h-[56px] active:scale-[0.98]"
                   id="hero-discover-collection"
                   name="discover-collection-button"
                 >
                   Découvrir la Collection 
-                  <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </Link>
-              <Link to="/blog" className="group">
+              <Link to="/blog" className="group w-full sm:w-auto">
                 <Button 
                   variant="outline" 
-                  className="w-full sm:w-auto border-border text-foreground hover:bg-muted px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 rounded-lg transition-all duration-300 hover:scale-105 hover:border-primary/50 button-press text-sm sm:text-base md:text-lg touch-manipulation min-h-[44px] sm:min-h-[48px] md:min-h-[56px]"
+                  className="w-full sm:w-auto border-2 border-border text-foreground hover:bg-muted px-6 sm:px-8 py-4 sm:py-5 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:border-primary/50 button-press text-base sm:text-lg touch-manipulation min-h-[52px] sm:min-h-[56px] active:scale-[0.98]"
                   id="hero-our-story"
                   name="our-story-button"
                 >
@@ -96,9 +96,9 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Right: Hero image */}
-          <div className="lg:w-1/2 w-full hero-image-animation">
-            <div className="transition-all duration-500 max-w-md mx-auto lg:max-w-none">
+          {/* Right: Hero image - Shows first on mobile */}
+          <div className="lg:w-1/2 w-full hero-image-animation order-1 lg:order-2">
+            <div className="transition-all duration-500 max-w-sm sm:max-w-md mx-auto lg:max-w-none">
               <HeroImage />
             </div>
           </div>
