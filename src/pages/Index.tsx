@@ -238,7 +238,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-serif text-2xl md:text-3xl text-primary-foreground mb-4">Rejoignez Notre Newsletter</h2>
-            <p className="text-sm md:text-base text-primary-foreground/80 mb-6 md:mb-8 leading-relaxed">Inscrivez-vous pour recevoir des mises à jour sur les nouveaux produits, les offres spéciales et les histoires de nos artisans.</p>
+            <p className="text-sm md:text-base text-primary-foreground/90 mb-6 md:mb-8 leading-relaxed">Inscrivez-vous pour recevoir des mises à jour sur les nouveaux produits, les offres spéciales et les histoires de nos artisans.</p>
             <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" role="form">
               <label htmlFor="newsletter-email-index" className="sr-only">Votre adresse email</label>
               <input 
