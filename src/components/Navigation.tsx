@@ -88,7 +88,7 @@ const Navigation = () => {
               <Link 
                 to="/" 
                 className="group flex items-center space-x-2 md:space-x-3 min-w-0"
-                aria-label="Retour à l'accueil"
+                aria-label="Rif Raw Straw - Artisanat Berbère - Retour à l'accueil"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <div className="p-2 rounded-full bg-primary group-hover:bg-primary/90 transition-all duration-300 shadow-md group-hover:shadow-lg flex-shrink-0">
@@ -265,7 +265,7 @@ const Navigation = () => {
                   </>
                 ) : (
                   <Button variant="ghost" size="sm" asChild className="text-xs lg:text-sm px-2 lg:px-3 py-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all duration-300 touch-manipulation font-medium whitespace-nowrap">
-                    <Link to="/auth" aria-label="Se connecter">Connexion</Link>
+                    <Link to="/auth">Connexion</Link>
                   </Button>
                 )}
               </div>
