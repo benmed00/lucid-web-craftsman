@@ -159,7 +159,7 @@ export const ErrorReportButton = () => {
         <Button
           variant="outline"
           size="sm"
-          className="bg-status-error/10 border-status-error/20 text-status-error hover:bg-status-error/20 hover:border-status-error/30"
+          className="bg-destructive/15 border-destructive/30 text-destructive hover:bg-destructive/25 hover:border-destructive/40"
         >
           <AlertTriangle className="h-4 w-4 mr-2" />
           Signaler un problème
