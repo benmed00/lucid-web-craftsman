@@ -13,7 +13,7 @@ import { useShipping } from '@/hooks/useShipping';
 import { useStock } from '@/hooks/useStock';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { removeFromCart as removeFromCartAPI, updateCartItemQuantity } from '@/api/mockApiService';
+// Mock API calls removed - cart state is now fully managed by Zustand store
 import FloatingCartButton from '@/components/ui/FloatingCartButton';
 import { MobilePaymentButtons } from '@/components/ui/MobilePaymentButtons';
 import { LocationBasedFeatures } from '@/components/ui/LocationBasedFeatures';
@@ -76,39 +76,21 @@ const Cart = () => {
     return issues;
   }, [cart.items, stockInfo]);
 
-  const handleQuantityChange = async (itemId: number, newQuantity: number) => {
+  const handleQuantityChange = (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) {
       handleRemoveItem(itemId);
       return;
     }
     
-    try {
-      const response = await updateCartItemQuantity(itemId, newQuantity);
-      if (response.success) {
-        updateItemQuantity(itemId, newQuantity);
-        toast.success("Quantité mise à jour");
-      } else {
-        toast.error("Erreur lors de la mise à jour de la quantité");
-      }
-    } catch (error) {
-      console.error("Error updating quantity:", error);
-      toast.error("Erreur lors de la mise à jour de la quantité");
-    }
+    // Direct store update - Zustand handles persistence and sync
+    updateItemQuantity(itemId, newQuantity);
+    toast.success("Quantité mise à jour");
   };
 
-  const handleRemoveItem = async (itemId: number) => {
-    try {
-      const response = await removeFromCartAPI(itemId);
-      if (response.success) {
-        removeItem(itemId);
-        toast.success("Produit retiré du panier");
-      } else {
-        toast.error("Erreur lors de la suppression du produit");
-      }
-    } catch (error) {
-      console.error("Error removing item:", error);
-      toast.error("Erreur lors de la suppression du produit");
-    }
+  const handleRemoveItem = (itemId: number) => {
+    // Direct store update - Zustand handles persistence and sync
+    removeItem(itemId);
+    toast.success("Produit retiré du panier");
   };
 
   const handleCheckShipping = () => {
