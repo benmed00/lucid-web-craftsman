@@ -20,7 +20,8 @@ import {
   AlertTriangle,
   Tag,
   Mail,
-  Star
+  Star,
+  Activity
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -130,6 +131,11 @@ const AdminLayout = () => {
       icon: Mail,
       label: "Tests Emails",
       path: "/admin/email-testing",
+    },
+    {
+      icon: Activity,
+      label: "Statut APIs",
+      path: "/admin/api-status",
     },
     {
       icon: Settings,
