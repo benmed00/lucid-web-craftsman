@@ -21,7 +21,8 @@ import {
   Tag,
   Mail,
   Star,
-  Activity
+  Activity,
+  FileText
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -81,6 +82,11 @@ const AdminLayout = () => {
       icon: Package,
       label: "Produits",
       path: "/admin/products",
+    },
+    {
+      icon: FileText,
+      label: "Catalogue Complet",
+      path: "/admin/catalog",
     },
     {
       icon: Image,
