@@ -27,10 +27,12 @@ import {
 import { sanitizeUserInput } from "@/utils/xssProtection";
 import { useCsrfToken } from "@/hooks/useCsrfToken";
 import { useBusinessRules } from "@/hooks/useBusinessRules";
+import { useCheckoutFormPersistence } from "@/hooks/useCheckoutFormPersistence";
 import CheckoutProgress from "@/components/checkout/CheckoutProgress";
 import FormFieldWithValidation from "@/components/checkout/FormFieldWithValidation";
 import StepSummary from "@/components/checkout/StepSummary";
 import PaymentButton from "@/components/checkout/PaymentButton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Lazy initialize Stripe only when needed
 let _stripePromise: Promise<Stripe | null> | null = null;
@@ -60,6 +62,14 @@ const Checkout = () => {
   const { getCsrfHeaders, regenerateToken } = useCsrfToken();
   const { rules: businessRules } = useBusinessRules();
   
+  // Use checkout form persistence hook for pre-filling and caching
+  const { 
+    formData, 
+    setFormData, 
+    isLoading: isFormLoading,
+    clearSavedData 
+  } = useCheckoutFormPersistence();
+  
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(null);
@@ -78,27 +88,6 @@ const Checkout = () => {
     quantity: item.quantity
   }));
   
-  const [formData, setFormData] = useState<{
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    address: string;
-    addressComplement: string;
-    postalCode: string;
-    city: string;
-    country: 'FR' | 'BE' | 'CH' | 'MC' | 'LU';
-  }>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    address: "",
-    addressComplement: "",
-    postalCode: "",
-    city: "",
-    country: "FR",
-  });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -502,7 +491,33 @@ const Checkout = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-12">
             {/* Form Section */}
             <div className="lg:col-span-2">
-              {step === 1 && (
+              {/* Loading state for form data */}
+              {isFormLoading && step === 1 && (
+                <div className="space-y-6 animate-fade-in">
+                  <Skeleton className="h-8 w-48" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <Skeleton className="h-12 w-48" />
+                </div>
+              )}
+
+              {!isFormLoading && step === 1 && (
                 <fieldset className="space-y-6 animate-fade-in">
                   <legend className="text-xl font-medium mb-4">Vos Coordonnées</legend>
                   
