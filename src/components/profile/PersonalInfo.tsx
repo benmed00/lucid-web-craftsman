@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,19 +39,38 @@ interface PersonalInfoProps {
 export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [addressData, setAddressData] = useState({
-    address_line1: profile?.address_line1 || '',
-    address_line2: profile?.address_line2 || '',
-    city: profile?.city || '',
-    postal_code: profile?.postal_code || '',
-    country: profile?.country || ''
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    postal_code: '',
+    country: ''
   });
 
   const [socialData, setSocialData] = useState({
-    website_url: profile?.website_url || '',
-    instagram_handle: profile?.instagram_handle || '',
-    facebook_url: profile?.facebook_url || '',
-    twitter_handle: profile?.twitter_handle || ''
+    website_url: '',
+    instagram_handle: '',
+    facebook_url: '',
+    twitter_handle: ''
   });
+
+  // Sync state when profile changes
+  useEffect(() => {
+    if (profile) {
+      setAddressData({
+        address_line1: profile.address_line1 || '',
+        address_line2: profile.address_line2 || '',
+        city: profile.city || '',
+        postal_code: profile.postal_code || '',
+        country: profile.country || ''
+      });
+      setSocialData({
+        website_url: profile.website_url || '',
+        instagram_handle: profile.instagram_handle || '',
+        facebook_url: profile.facebook_url || '',
+        twitter_handle: profile.twitter_handle || ''
+      });
+    }
+  }, [profile]);
 
   const handleAddressSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

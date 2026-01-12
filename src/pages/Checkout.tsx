@@ -54,9 +54,6 @@ interface FreeShippingSettings {
 }
 
 const Checkout = () => {
-  const [step, setStep] = useState(1);
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState("card");
   const { loadStripe } = useLazyStripe();
   const { cart } = useCart();
   const { getCsrfHeaders, regenerateToken } = useCsrfToken();
@@ -67,8 +64,29 @@ const Checkout = () => {
     formData, 
     setFormData, 
     isLoading: isFormLoading,
-    clearSavedData 
+    clearSavedData,
+    savedStep,
+    savedCompletedSteps,
+    saveStepState,
   } = useCheckoutFormPersistence();
+
+  // Initialize step from saved state
+  const [step, setStep] = useState(1);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [hasRestoredState, setHasRestoredState] = useState(false);
+
+  // Restore step state after form data is loaded
+  useEffect(() => {
+    if (!isFormLoading && !hasRestoredState) {
+      // Only restore if we have saved data and completed steps
+      if (savedStep > 1 && savedCompletedSteps.length > 0) {
+        setStep(savedStep);
+        setCompletedSteps(savedCompletedSteps);
+      }
+      setHasRestoredState(true);
+    }
+  }, [isFormLoading, hasRestoredState, savedStep, savedCompletedSteps]);
   
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
@@ -257,6 +275,8 @@ const Checkout = () => {
       return;
     }
     
+    let newCompletedSteps = [...completedSteps];
+    
     if (step === 1) {
       // Validate customer information with Zod
       const validation = validateCustomerInfo({
@@ -283,7 +303,10 @@ const Checkout = () => {
       }));
       
       // Mark step as completed
-      setCompletedSteps(prev => prev.includes(1) ? prev : [...prev, 1]);
+      if (!newCompletedSteps.includes(1)) {
+        newCompletedSteps = [...newCompletedSteps, 1];
+      }
+      setCompletedSteps(newCompletedSteps);
       
     } else if (step === 2) {
       // Validate shipping address with Zod
@@ -313,19 +336,26 @@ const Checkout = () => {
       }));
       
       // Mark step as completed
-      setCompletedSteps(prev => prev.includes(2) ? prev : [...prev, 2]);
+      if (!newCompletedSteps.includes(2)) {
+        newCompletedSteps = [...newCompletedSteps, 2];
+      }
+      setCompletedSteps(newCompletedSteps);
     }
     
-    // Proceed to next step
-    setStep(step + 1);
-  }, [step, formData, honeypot]);
+    // Proceed to next step and save state
+    const nextStep = step + 1;
+    setStep(nextStep);
+    saveStepState(nextStep, newCompletedSteps);
+  }, [step, formData, honeypot, completedSteps, saveStepState]);
 
   // Handle editing a previous step
   const handleEditStep = useCallback((targetStep: number) => {
     // Remove completion status for this step and subsequent steps
-    setCompletedSteps(prev => prev.filter(s => s < targetStep));
+    const newCompletedSteps = completedSteps.filter(s => s < targetStep);
+    setCompletedSteps(newCompletedSteps);
     setStep(targetStep);
-  }, []);
+    saveStepState(targetStep, newCompletedSteps);
+  }, [completedSteps, saveStepState]);
 
   // Process payment with full validation
   const handlePayment = async () => {
@@ -491,8 +521,8 @@ const Checkout = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-12">
             {/* Form Section */}
             <div className="lg:col-span-2">
-              {/* Loading state for form data */}
-              {isFormLoading && step === 1 && (
+              {/* Loading state for form data - show while restoring state */}
+              {(isFormLoading || !hasRestoredState) && (
                 <div className="space-y-6 animate-fade-in">
                   <Skeleton className="h-8 w-48" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -517,7 +547,7 @@ const Checkout = () => {
                 </div>
               )}
 
-              {!isFormLoading && step === 1 && (
+              {!isFormLoading && hasRestoredState && step === 1 && (
                 <fieldset className="space-y-6 animate-fade-in">
                   <legend className="text-xl font-medium mb-4">Vos Coordonnées</legend>
                   
@@ -655,7 +685,7 @@ const Checkout = () => {
                 </fieldset>
               )}
 
-              {step === 2 && (
+              {!isFormLoading && hasRestoredState && step === 2 && (
                 <div className="space-y-6 animate-fade-in">
                   {/* Step summary */}
                   <StepSummary
@@ -813,7 +843,7 @@ const Checkout = () => {
                 </div>
               )}
 
-              {step === 3 && (
+              {!isFormLoading && hasRestoredState && step === 3 && (
                 <div className="space-y-6 animate-fade-in">
                   {/* Step summaries */}
                   <StepSummary
