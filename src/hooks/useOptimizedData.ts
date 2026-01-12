@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import cache, { CacheTTL, CacheTags, createCacheKey } from '@/lib/cache/UnifiedCache';
 
@@ -54,6 +54,14 @@ export function useOptimizedQuery<T>(
     refetch: async () => {},
   });
 
+  // Use ref to store the latest queryFn to avoid recreating fetchData
+  const queryFnRef = useRef(queryFn);
+  queryFnRef.current = queryFn;
+
+  // Track if this is the first mount
+  const hasInitialFetch = useRef(false);
+  const currentQueryKey = useRef(queryKey);
+
   const fetchData = useCallback(async (forceRefresh = false) => {
     try {
       // Check unified cache first
@@ -80,11 +88,11 @@ export function useOptimizedQuery<T>(
         isLoading: forceRefresh || !prev.data 
       }));
 
-      // Fetch data with retry logic
+      // Fetch data with retry logic using ref
       let lastError: Error | null = null;
       for (let attempt = 0; attempt <= retry; attempt++) {
         try {
-          const data = await queryFn();
+          const data = await queryFnRef.current();
           
           // Cache the result using unified cache
           if (enableCache) {
@@ -125,14 +133,19 @@ export function useOptimizedQuery<T>(
         error: error as Error,
       }));
     }
-  }, [queryKey, queryFn, enableCache, cacheTime, staleTime, retry, tags]);
+  }, [queryKey, enableCache, cacheTime, staleTime, retry, tags]);
 
   const refetch = useCallback(() => fetchData(true), [fetchData]);
 
-  // Initial fetch
+  // Initial fetch - only run once per queryKey
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    // Only fetch if this is the first mount or queryKey changed
+    if (!hasInitialFetch.current || currentQueryKey.current !== queryKey) {
+      hasInitialFetch.current = true;
+      currentQueryKey.current = queryKey;
+      fetchData();
+    }
+  }, [queryKey]); // Only depend on queryKey, not fetchData
 
   // Window focus refetch
   useEffect(() => {

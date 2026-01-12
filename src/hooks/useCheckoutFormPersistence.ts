@@ -6,8 +6,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { safeGetItem, safeSetItem, safeRemoveItem, StorageTTL } from '@/lib/storage/safeStorage';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 
-// Storage key for checkout form data
+// Storage keys for checkout data
 const CHECKOUT_FORM_KEY = 'checkout_form_data';
+const CHECKOUT_STEP_KEY = 'checkout_current_step';
+const CHECKOUT_COMPLETED_STEPS_KEY = 'checkout_completed_steps';
 
 export interface CheckoutFormData {
   firstName: string;
@@ -33,18 +35,29 @@ const EMPTY_FORM: CheckoutFormData = {
   country: 'FR',
 };
 
+interface CheckoutState {
+  step: number;
+  completedSteps: number[];
+}
+
 interface UseCheckoutFormPersistenceReturn {
   formData: CheckoutFormData;
   setFormData: React.Dispatch<React.SetStateAction<CheckoutFormData>>;
   isLoading: boolean;
   clearSavedData: () => void;
   saveFormData: () => void;
+  // Step persistence
+  savedStep: number;
+  savedCompletedSteps: number[];
+  saveStepState: (step: number, completedSteps: number[]) => void;
 }
 
 export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
   const { user } = useOptimizedAuth();
   const [formData, setFormData] = useState<CheckoutFormData>(EMPTY_FORM);
   const [isLoading, setIsLoading] = useState(true);
+  const [savedStep, setSavedStep] = useState(1);
+  const [savedCompletedSteps, setSavedCompletedSteps] = useState<number[]>([]);
   const hasInitialized = useRef(false);
 
   // Load data on mount - first from cache, then from profile if logged in
@@ -63,6 +76,21 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
 
       if (cachedData) {
         loadedData = { ...cachedData };
+      }
+
+      // Load saved step state
+      const cachedStep = safeGetItem<number>(CHECKOUT_STEP_KEY, {
+        storage: 'sessionStorage',
+      });
+      const cachedCompletedSteps = safeGetItem<number[]>(CHECKOUT_COMPLETED_STEPS_KEY, {
+        storage: 'sessionStorage',
+      });
+
+      if (cachedStep && cachedStep >= 1 && cachedStep <= 3) {
+        setSavedStep(cachedStep);
+      }
+      if (cachedCompletedSteps && Array.isArray(cachedCompletedSteps)) {
+        setSavedCompletedSteps(cachedCompletedSteps);
       }
 
       // Step 2: If user is logged in, fill missing fields from profile
@@ -194,6 +222,20 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
     }
   }, [formData]);
 
+  // Save step state
+  const saveStepState = useCallback((step: number, completedSteps: number[]) => {
+    safeSetItem(CHECKOUT_STEP_KEY, step, {
+      storage: 'sessionStorage',
+      ttl: StorageTTL.SESSION,
+    });
+    safeSetItem(CHECKOUT_COMPLETED_STEPS_KEY, completedSteps, {
+      storage: 'sessionStorage',
+      ttl: StorageTTL.SESSION,
+    });
+    setSavedStep(step);
+    setSavedCompletedSteps(completedSteps);
+  }, []);
+
   // Auto-save on form data change (debounced via useEffect)
   useEffect(() => {
     if (isLoading) return;
@@ -208,7 +250,11 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
   // Clear saved data
   const clearSavedData = useCallback(() => {
     safeRemoveItem(CHECKOUT_FORM_KEY, { storage: 'sessionStorage' });
+    safeRemoveItem(CHECKOUT_STEP_KEY, { storage: 'sessionStorage' });
+    safeRemoveItem(CHECKOUT_COMPLETED_STEPS_KEY, { storage: 'sessionStorage' });
     setFormData(EMPTY_FORM);
+    setSavedStep(1);
+    setSavedCompletedSteps([]);
   }, []);
 
   return {
@@ -217,6 +263,9 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
     isLoading,
     clearSavedData,
     saveFormData,
+    savedStep,
+    savedCompletedSteps,
+    saveStepState,
   };
 }
 
