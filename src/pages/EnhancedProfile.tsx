@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from '@supabase/supabase-js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -46,6 +46,9 @@ export default function EnhancedProfile() {
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Track if profile has been loaded to prevent duplicate requests
+  const hasLoadedProfile = useRef(false);
+  
   useEffect(() => {
     // Don't redirect while auth is still loading
     if (authLoading) return;
@@ -55,8 +58,12 @@ export default function EnhancedProfile() {
       return;
     }
 
-    loadProfile();
-  }, [user, navigate, authLoading]);
+    // Only load profile once per session
+    if (!hasLoadedProfile.current) {
+      hasLoadedProfile.current = true;
+      loadProfile();
+    }
+  }, [user, authLoading]); // Removed navigate from deps to prevent re-runs
 
   const loadProfile = async () => {
     if (!user) return;

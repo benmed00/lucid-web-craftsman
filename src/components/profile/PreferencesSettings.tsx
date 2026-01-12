@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,10 +36,14 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
     document.documentElement.classList.contains('dark')
   );
 
-  // Load user preferences on mount
+  // Load user preferences once on mount
+  const hasLoadedRef = useRef(false);
+  
   useEffect(() => {
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
     loadPreferences();
-  }, [user.id]);
+  }, []); // Empty deps - only run once
 
   const loadPreferences = async () => {
     try {
