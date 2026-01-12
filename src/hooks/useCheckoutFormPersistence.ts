@@ -6,10 +6,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { safeGetItem, safeSetItem, safeRemoveItem, StorageTTL } from '@/lib/storage/safeStorage';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 
-// Storage keys for checkout data
+// Storage keys for checkout data - use localStorage for persistence across tabs/redirects
 const CHECKOUT_FORM_KEY = 'checkout_form_data';
 const CHECKOUT_STEP_KEY = 'checkout_current_step';
 const CHECKOUT_COMPLETED_STEPS_KEY = 'checkout_completed_steps';
+const CHECKOUT_TIMESTAMP_KEY = 'checkout_timestamp';
 
 export interface CheckoutFormData {
   firstName: string;
@@ -69,22 +70,47 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
       setIsLoading(true);
       let loadedData: Partial<CheckoutFormData> = {};
 
-      // Step 1: Try to load from session storage (most recent data)
-      const cachedData = safeGetItem<CheckoutFormData>(CHECKOUT_FORM_KEY, {
-        storage: 'sessionStorage',
+      // Check if checkout data is still valid (30 min TTL)
+      const timestamp = safeGetItem<number>(CHECKOUT_TIMESTAMP_KEY, {
+        storage: 'localStorage',
       });
+      const isExpired = !timestamp || (Date.now() - timestamp) > 30 * 60 * 1000;
 
-      if (cachedData) {
+      // Step 1: Try to load from localStorage first (persists across redirects like Stripe)
+      // Then fall back to sessionStorage for backward compatibility
+      let cachedData = safeGetItem<CheckoutFormData>(CHECKOUT_FORM_KEY, {
+        storage: 'localStorage',
+      });
+      
+      if (!cachedData || isExpired) {
+        cachedData = safeGetItem<CheckoutFormData>(CHECKOUT_FORM_KEY, {
+          storage: 'sessionStorage',
+        });
+      }
+
+      if (cachedData && !isExpired) {
         loadedData = { ...cachedData };
       }
 
-      // Load saved step state
-      const cachedStep = safeGetItem<number>(CHECKOUT_STEP_KEY, {
-        storage: 'sessionStorage',
+      // Load saved step state from localStorage (persists across redirects)
+      let cachedStep = safeGetItem<number>(CHECKOUT_STEP_KEY, {
+        storage: 'localStorage',
       });
-      const cachedCompletedSteps = safeGetItem<number[]>(CHECKOUT_COMPLETED_STEPS_KEY, {
-        storage: 'sessionStorage',
+      let cachedCompletedSteps = safeGetItem<number[]>(CHECKOUT_COMPLETED_STEPS_KEY, {
+        storage: 'localStorage',
       });
+
+      // Fall back to sessionStorage
+      if (!cachedStep && !isExpired) {
+        cachedStep = safeGetItem<number>(CHECKOUT_STEP_KEY, {
+          storage: 'sessionStorage',
+        });
+      }
+      if (!cachedCompletedSteps && !isExpired) {
+        cachedCompletedSteps = safeGetItem<number[]>(CHECKOUT_COMPLETED_STEPS_KEY, {
+          storage: 'sessionStorage',
+        });
+      }
 
       if (cachedStep && cachedStep >= 1 && cachedStep <= 3) {
         setSavedStep(cachedStep);
@@ -208,22 +234,38 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
     loadFormData();
   }, [user]);
 
-  // Save form data to session storage whenever it changes
+  // Save form data to localStorage (persists across redirects like Stripe)
   const saveFormData = useCallback(() => {
     // Only save if there's meaningful data
     const hasData = formData.firstName || formData.lastName || formData.email || 
                     formData.address || formData.city;
     
     if (hasData) {
+      // Save to both localStorage (for persistence across redirects) and sessionStorage (for backward compat)
+      safeSetItem(CHECKOUT_FORM_KEY, formData, {
+        storage: 'localStorage',
+      });
       safeSetItem(CHECKOUT_FORM_KEY, formData, {
         storage: 'sessionStorage',
-        ttl: StorageTTL.SESSION, // 30 minutes
+        ttl: StorageTTL.SESSION,
+      });
+      // Update timestamp
+      safeSetItem(CHECKOUT_TIMESTAMP_KEY, Date.now(), {
+        storage: 'localStorage',
       });
     }
   }, [formData]);
 
-  // Save step state
+  // Save step state - use localStorage for persistence across Stripe redirects
   const saveStepState = useCallback((step: number, completedSteps: number[]) => {
+    // Save to localStorage for persistence across redirects
+    safeSetItem(CHECKOUT_STEP_KEY, step, {
+      storage: 'localStorage',
+    });
+    safeSetItem(CHECKOUT_COMPLETED_STEPS_KEY, completedSteps, {
+      storage: 'localStorage',
+    });
+    // Also save to sessionStorage for backward compat
     safeSetItem(CHECKOUT_STEP_KEY, step, {
       storage: 'sessionStorage',
       ttl: StorageTTL.SESSION,
@@ -231,6 +273,10 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
     safeSetItem(CHECKOUT_COMPLETED_STEPS_KEY, completedSteps, {
       storage: 'sessionStorage',
       ttl: StorageTTL.SESSION,
+    });
+    // Update timestamp
+    safeSetItem(CHECKOUT_TIMESTAMP_KEY, Date.now(), {
+      storage: 'localStorage',
     });
     setSavedStep(step);
     setSavedCompletedSteps(completedSteps);
@@ -247,8 +293,14 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
     return () => clearTimeout(timeoutId);
   }, [formData, isLoading, saveFormData]);
 
-  // Clear saved data
+  // Clear saved data from both storages
   const clearSavedData = useCallback(() => {
+    // Clear from localStorage
+    safeRemoveItem(CHECKOUT_FORM_KEY, { storage: 'localStorage' });
+    safeRemoveItem(CHECKOUT_STEP_KEY, { storage: 'localStorage' });
+    safeRemoveItem(CHECKOUT_COMPLETED_STEPS_KEY, { storage: 'localStorage' });
+    safeRemoveItem(CHECKOUT_TIMESTAMP_KEY, { storage: 'localStorage' });
+    // Clear from sessionStorage
     safeRemoveItem(CHECKOUT_FORM_KEY, { storage: 'sessionStorage' });
     safeRemoveItem(CHECKOUT_STEP_KEY, { storage: 'sessionStorage' });
     safeRemoveItem(CHECKOUT_COMPLETED_STEPS_KEY, { storage: 'sessionStorage' });
