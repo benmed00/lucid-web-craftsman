@@ -341,7 +341,14 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <SheetContent side="bottom" className="h-[92vh] p-0 bg-background overflow-hidden rounded-t-xl [&>button]:hidden">
+        <SheetContent 
+          side="bottom" 
+          className="h-[92vh] p-0 bg-background overflow-hidden rounded-t-xl [&>button]:hidden"
+          aria-describedby={undefined}
+        >
+          <div className="sr-only">
+            <h2>{product.name}</h2>
+          </div>
           {content}
         </SheetContent>
       </Sheet>
