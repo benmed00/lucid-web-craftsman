@@ -18,8 +18,11 @@ const validateName = (name: string): boolean => {
 }
 
 const validatePhone = (phone: string): boolean => {
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
-  return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''))
+  // Allow phones starting with 0 (common in France/Europe) or with country code
+  const cleanPhone = phone.replace(/[\s\-\(\)\.]/g, '')
+  if (cleanPhone.length === 0) return true // Empty is valid (optional field)
+  const phoneRegex = /^[\+]?[0-9]{6,17}$/
+  return phoneRegex.test(cleanPhone)
 }
 
 const sanitizeInput = (input: string): string => {
