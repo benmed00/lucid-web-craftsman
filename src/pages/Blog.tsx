@@ -1,4 +1,3 @@
-
 import { CalendarIcon, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -12,6 +11,7 @@ import PageFooter from "@/components/PageFooter";
 import { getBlogPosts } from "@/api/mockApiService";
 import { BlogImage } from "@/components/ui/GlobalImage";
 import BlogSkeleton from "@/components/BlogSkeleton";
+import NewsletterSubscription from "@/components/NewsletterSubscription";
 
 const Blog = () => {
   const [featuredPosts, setFeaturedPosts] = useState([]);
@@ -189,17 +189,7 @@ const Blog = () => {
                 Ne manquez aucun article, recevez nos dernières histoires et
                 nouvelles collections directement dans votre boîte mail.
               </p>
-
-              <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                <input
-                  type="email"
-                  placeholder="Votre adresse email"
-                  className="flex-grow px-4 py-3 rounded-md bg-background text-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-                <Button className="bg-background text-foreground hover:bg-muted">
-                  S'abonner
-                </Button>
-              </form>
+              <NewsletterSubscription variant="inline" />
             </div>
           </div>
         </div>
