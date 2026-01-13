@@ -60,7 +60,9 @@ serve(async (req) => {
     )
 
     // Get client info for security logging
-    const clientIP = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+    // X-Forwarded-For can contain multiple IPs, take the first one
+    const forwardedFor = req.headers.get('x-forwarded-for') || ''
+    const clientIP = forwardedFor.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '0.0.0.0'
     const userAgent = req.headers.get('user-agent') || 'unknown'
 
     // Check rate limiting
