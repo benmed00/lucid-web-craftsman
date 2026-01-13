@@ -1,5 +1,4 @@
 import { Leaf } from "lucide-react";
-import NewsletterSubscription from "./NewsletterSubscription";
 import { ErrorReportButton } from "./ui/ErrorReportButton";
 
 const Footer = () => {
@@ -17,9 +16,6 @@ const Footer = () => {
             <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
               Sacs et chapeaux artisanaux confectionnés avec des matériaux durables et des techniques traditionnelles berbères.
             </p>
-            
-            {/* Newsletter Subscription */}
-            <NewsletterSubscription variant="footer" />
           </div>
           
           <div>

@@ -7,6 +7,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface NewsletterSubscriptionProps {
   variant?: 'footer' | 'popup' | 'inline';
@@ -118,64 +124,88 @@ const NewsletterSubscription = ({
           </span>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label 
-              htmlFor="newsletter-email" 
-              className={`sr-only ${variant === 'footer' ? 'text-white' : 'text-foreground'}`}
-            >
-              Adresse email
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                id="newsletter-email"
-                type="email"
-                placeholder="votre@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="flex-1 bg-background border-border text-foreground placeholder:text-muted-foreground"
-                disabled={isSubscribing}
-              />
-              <Button
-                type="submit"
-                disabled={isSubscribing || !email.trim() || !consent}
-                className="px-6 bg-primary hover:bg-primary/90 text-primary-foreground"
+        <TooltipProvider>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label 
+                htmlFor="newsletter-email" 
+                className={`sr-only ${variant === 'footer' ? 'text-white' : 'text-foreground'}`}
               >
-                {isSubscribing ? '...' : 'Abonner'}
-              </Button>
+                Adresse email
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="newsletter-email"
+                  type="email"
+                  placeholder="votre@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="flex-1 bg-background border-border text-foreground placeholder:text-muted-foreground"
+                  disabled={isSubscribing}
+                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span tabIndex={isSubscribing || !email.trim() || !consent ? 0 : -1}>
+                      <Button
+                        type="submit"
+                        disabled={isSubscribing || !email.trim() || !consent}
+                        className="px-6 bg-primary hover:bg-primary/90 text-primary-foreground"
+                      >
+                        {isSubscribing ? '...' : 'Abonner'}
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    {!email.trim() 
+                      ? "Veuillez saisir votre adresse email" 
+                      : !consent 
+                        ? "Veuillez cocher la case pour accepter les conditions" 
+                        : "Cliquez pour vous abonner à notre newsletter"}
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-start gap-2">
-            <Checkbox
-              id="newsletter-consent"
-              checked={consent}
-              onCheckedChange={(checked) => setConsent(checked as boolean)}
-              className="border-border data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-            />
-            <Label
-              htmlFor="newsletter-consent"
-              className="text-xs leading-relaxed cursor-pointer text-muted-foreground"
-            >
-              J'accepte de recevoir la newsletter de Rif Raw Straw et confirme avoir lu la{' '}
-              <a href="/privacy" className="underline hover:no-underline text-primary">
-                politique de confidentialité
-              </a>
-              .
-            </Label>
-          </div>
-
-          {variant !== 'footer' && (
-            <div className="flex items-start gap-2 text-xs text-muted-foreground">
-              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <p>
-                Vous pouvez vous désabonner à tout moment en cliquant sur le lien de désinscription 
-                présent dans chaque email.
-              </p>
+            <div className="flex items-start gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Checkbox
+                      id="newsletter-consent"
+                      checked={consent}
+                      onCheckedChange={(checked) => setConsent(checked as boolean)}
+                      className="border-border data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  Requis pour activer le bouton d'abonnement
+                </TooltipContent>
+              </Tooltip>
+              <Label
+                htmlFor="newsletter-consent"
+                className="text-xs leading-relaxed cursor-pointer text-muted-foreground"
+              >
+                J'accepte de recevoir la newsletter de Rif Raw Straw et confirme avoir lu la{' '}
+                <a href="/privacy" className="underline hover:no-underline text-primary">
+                  politique de confidentialité
+                </a>
+                .
+              </Label>
             </div>
-          )}
-        </form>
+
+            {variant !== 'footer' && (
+              <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <p>
+                  Vous pouvez vous désabonner à tout moment en cliquant sur le lien de désinscription 
+                  présent dans chaque email.
+                </p>
+              </div>
+            )}
+          </form>
+        </TooltipProvider>
       )}
     </>
   );
