@@ -477,17 +477,34 @@ export const useCartStore = create<CartState>()(
             }
 
             try {
-              // Clear existing
-              await supabase.from('cart_items').delete().eq('user_id', userId);
+              // Get current cart items from Supabase
+              const { data: existingItems } = await supabase
+                .from('cart_items')
+                .select('product_id')
+                .eq('user_id', userId);
+              
+              const existingProductIds = new Set((existingItems || []).map(i => i.product_id));
+              const currentProductIds = new Set(items.map(i => i.id));
+              
+              // Delete items that are no longer in the cart
+              const toDelete = [...existingProductIds].filter(id => !currentProductIds.has(id));
+              if (toDelete.length > 0) {
+                await supabase
+                  .from('cart_items')
+                  .delete()
+                  .eq('user_id', userId)
+                  .in('product_id', toDelete);
+              }
 
-              // Insert new
+              // Upsert current items (insert or update on conflict)
               if (items.length > 0) {
-                const { error } = await supabase.from('cart_items').insert(
+                const { error } = await supabase.from('cart_items').upsert(
                   items.map((item) => ({
                     user_id: userId,
                     product_id: item.id,
                     quantity: item.quantity,
-                  }))
+                  })),
+                  { onConflict: 'user_id,product_id' }
                 );
                 if (error) throw error;
               }
