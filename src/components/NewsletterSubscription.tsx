@@ -22,8 +22,8 @@ interface NewsletterSubscriptionProps {
 
 const NewsletterSubscription = ({ 
   variant = 'footer',
-  title = "Restez informé",
-  description = "Recevez nos dernières créations et actualités artisanales"
+  title = "Rejoignez Notre Newsletter",
+  description = "Inscrivez-vous pour recevoir des mises à jour sur les nouveaux produits, les offres spéciales et les histoires de nos artisans."
 }: NewsletterSubscriptionProps) => {
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
@@ -98,14 +98,16 @@ const NewsletterSubscription = ({
 
   const renderContent = () => (
     <>
-      <div className="mb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Mail className="h-5 w-5 text-primary" />
-          <h3 className={`font-medium ${variant === 'footer' ? 'text-foreground' : 'text-foreground'}`}>
+      <div className="mb-6 text-center">
+        <div className="flex items-center justify-center gap-3 mb-3">
+          <div className="p-2 bg-primary/10 rounded-full">
+            <Mail className="h-5 w-5 text-primary" />
+          </div>
+          <h3 className="font-serif text-xl md:text-2xl font-medium text-foreground">
             {title}
           </h3>
         </div>
-        <p className={`text-sm ${variant === 'footer' ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
+        <p className="text-sm md:text-base text-muted-foreground max-w-lg mx-auto">
           {description}
         </p>
       </div>
@@ -222,7 +224,7 @@ const NewsletterSubscription = ({
 
   if (variant === 'inline') {
     return (
-      <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
+      <div className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-sm">
         {renderContent()}
       </div>
     );
