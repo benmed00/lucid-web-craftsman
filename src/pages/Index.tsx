@@ -233,12 +233,10 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Newsletter Section - Uses centralized component */}
-      <section className="bg-primary py-12 md:py-16">
+      {/* Newsletter Section */}
+      <section className="bg-secondary py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="font-serif text-2xl md:text-3xl text-primary-foreground mb-4">Rejoignez Notre Newsletter</h2>
-            <p className="text-sm md:text-base text-primary-foreground/90 mb-6 md:mb-8 leading-relaxed">Inscrivez-vous pour recevoir des mises à jour sur les nouveaux produits, les offres spéciales et les histoires de nos artisans.</p>
+          <div className="max-w-2xl mx-auto">
             <NewsletterSubscription variant="inline" />
           </div>
         </div>
