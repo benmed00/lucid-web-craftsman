@@ -99,29 +99,23 @@ const NewsletterSubscription = ({
   const renderContent = () => (
     <>
       <div className="mb-6 text-center">
-        <div className="flex items-center justify-center gap-3 mb-3">
-          <div className="p-2 bg-primary/10 rounded-full">
-            <Mail className="h-5 w-5 text-primary" />
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="p-3 bg-primary/15 dark:bg-primary/20 rounded-full">
+            <Mail className="h-6 w-6 text-primary" />
           </div>
-          <h3 className="font-serif text-xl md:text-2xl font-medium text-foreground">
-            {title}
-          </h3>
         </div>
-        <p className="text-sm md:text-base text-muted-foreground max-w-lg mx-auto">
+        <h3 className="font-serif text-xl md:text-2xl font-medium text-foreground mb-2">
+          {title}
+        </h3>
+        <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
           {description}
         </p>
       </div>
 
       {isSubscribed ? (
-        <div className={`flex items-center gap-2 p-3 rounded-lg ${
-          variant === 'footer' ? 'bg-status-success/10' : 'bg-status-success/10'
-        }`}>
-          <CheckCircle className={`h-5 w-5 ${
-            variant === 'footer' ? 'text-status-success' : 'text-status-success'
-          }`} />
-          <span className={`text-sm font-medium ${
-            variant === 'footer' ? 'text-status-success' : 'text-status-success'
-          }`}>
+        <div className="flex items-center justify-center gap-2 p-4 rounded-xl bg-status-success/15 dark:bg-status-success/20 border border-status-success/20">
+          <CheckCircle className="h-5 w-5 text-status-success" />
+          <span className="text-sm font-medium text-status-success">
             Inscription confirmée !
           </span>
         </div>
@@ -143,7 +137,7 @@ const NewsletterSubscription = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="flex-1 bg-background border-border text-foreground placeholder:text-muted-foreground"
+                  className="flex-1 h-12 bg-background dark:bg-muted/50 border-input text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30"
                   disabled={isSubscribing}
                 />
                 <Tooltip>
@@ -152,9 +146,9 @@ const NewsletterSubscription = ({
                       <Button
                         type="submit"
                         disabled={isSubscribing || !email.trim() || !consent}
-                        className="px-6 bg-primary hover:bg-primary/90 text-primary-foreground"
+                        className="h-12 px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                       >
-                        {isSubscribing ? '...' : 'Abonner'}
+                        {isSubscribing ? 'Envoi...' : "S'abonner"}
                       </Button>
                     </span>
                   </TooltipTrigger>
@@ -177,7 +171,7 @@ const NewsletterSubscription = ({
                       id="newsletter-consent"
                       checked={consent}
                       onCheckedChange={(checked) => setConsent(checked as boolean)}
-                      className="border-border data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                      className="mt-0.5 border-input data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground"
                     />
                   </div>
                 </TooltipTrigger>
@@ -224,7 +218,7 @@ const NewsletterSubscription = ({
 
   if (variant === 'inline') {
     return (
-      <div className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-sm">
+      <div className="bg-card dark:bg-card/80 border border-border rounded-2xl p-6 md:p-10 shadow-lg dark:shadow-2xl dark:shadow-black/20">
         {renderContent()}
       </div>
     );
