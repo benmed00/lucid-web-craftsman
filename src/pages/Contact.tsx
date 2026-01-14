@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import SEOHelmet from "@/components/seo/SEOHelmet";
 import {
@@ -25,8 +25,10 @@ import { useCsrfToken } from "@/hooks/useCsrfToken";
 import { validateAndSanitizeEmail, validateAndSanitizeName, sanitizeUserInput } from "@/utils/xssProtection";
 import { createRateLimiter } from "@/utils/validation";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Rate limiter for contact form submissions
+// Lazy load the map component for better performance
+const LocationMap = lazy(() => import("@/components/ui/LocationMap"));
 const contactRateLimiter = createRateLimiter(3, 10 * 60 * 1000); // 3 attempts per 10 minutes
 
 const Contact = () => {
@@ -470,7 +472,7 @@ const Contact = () => {
       </section>
 
       {/* Map Section */}
-      <section className="py-16 bg-secondary">
+      <section className="py-16 bg-muted/30 dark:bg-muted/10">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-8">
             <h2 className="font-serif text-3xl text-foreground mb-4">Notre Localisation</h2>
@@ -480,21 +482,28 @@ const Contact = () => {
           </div>
           
           <Card className="max-w-4xl mx-auto shadow-xl overflow-hidden bg-card">
-            <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary flex items-center justify-center">
-              <div className="text-center">
-                <MapPin className="h-16 w-16 text-primary mx-auto mb-4" />
-                <h3 className="font-serif text-2xl text-foreground mb-2">Plan Interactif</h3>
-                <p className="text-muted-foreground">123 Rue de l'Artisan, 75001 Paris</p>
-                <Button 
-                  className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground"
-                  id="contact-map-directions"
-                  name="get-directions-button"
-                >
-                  Obtenir l'Itinéraire
-                </Button>
+            <Suspense fallback={
+              <div className="aspect-video">
+                <Skeleton className="w-full h-full" />
               </div>
-            </div>
+            }>
+              <LocationMap
+                latitude={48.8606}
+                longitude={2.3376}
+                zoom={15}
+                address="123 Rue de l'Artisan, 75001 Paris"
+                businessName="Rif Raw Straw - Showroom"
+                className="aspect-video"
+              />
+            </Suspense>
           </Card>
+          
+          <div className="max-w-4xl mx-auto mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              <MapPin className="inline-block h-4 w-4 mr-1" />
+              123 Rue de l'Artisan, 75001 Paris
+            </p>
+          </div>
         </div>
       </section>
 
