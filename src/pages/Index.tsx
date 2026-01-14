@@ -234,9 +234,9 @@ const Index = () => {
       </section>
 
       {/* Newsletter Section */}
-      <section className="bg-secondary py-12 md:py-16">
+      <section className="bg-muted/50 dark:bg-muted/20 py-16 md:py-20">
         <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-xl mx-auto">
             <NewsletterSubscription variant="inline" />
           </div>
         </div>
