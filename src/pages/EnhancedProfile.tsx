@@ -311,7 +311,6 @@ export default function EnhancedProfile() {
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>Email: contact@rifstraw.com</p>
                 <p>Téléphone: +33 1 23 45 67 89</p>
-                <p>Adresse: 6 allée de la Sèvre, 44400 Rezé</p>
               </div>
             </div>
 
