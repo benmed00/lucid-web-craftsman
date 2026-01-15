@@ -242,8 +242,8 @@ const Contact = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-foreground mb-2">Adresse</h3>
-                          <p className="text-muted-foreground">123 Rue de l'Artisan</p>
-                          <p className="text-muted-foreground">75001 Paris, France</p>
+                          <p className="text-muted-foreground">6 allée de la Sèvre</p>
+                          <p className="text-muted-foreground">44400 Rezé, France</p>
                         </div>
                       </div>
                     </CardContent>
@@ -488,10 +488,10 @@ const Contact = () => {
               </div>
             }>
               <LocationMap
-                latitude={48.8606}
-                longitude={2.3376}
+                latitude={47.1847}
+                longitude={-1.5493}
                 zoom={15}
-                address="123 Rue de l'Artisan, 75001 Paris"
+                address="6 allée de la Sèvre, 44400 Rezé"
                 businessName="Rif Raw Straw - Showroom"
                 className="aspect-video"
               />
@@ -501,7 +501,7 @@ const Contact = () => {
           <div className="max-w-4xl mx-auto mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               <MapPin className="inline-block h-4 w-4 mr-1" />
-              123 Rue de l'Artisan, 75001 Paris
+              6 allée de la Sèvre, 44400 Rezé
             </p>
           </div>
         </div>
