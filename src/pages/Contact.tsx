@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import SEOHelmet from "@/components/seo/SEOHelmet";
 import {
@@ -19,19 +19,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import PageFooter from "@/components/PageFooter";
-import { useEffect } from "react";
 import { toast } from "sonner";
 import { useCsrfToken } from "@/hooks/useCsrfToken";
 import { validateAndSanitizeEmail, validateAndSanitizeName, sanitizeUserInput } from "@/utils/xssProtection";
 import { createRateLimiter } from "@/utils/validation";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCompanySettings, formatFullAddress } from "@/hooks/useCompanySettings";
 
 // Lazy load the map component for better performance
 const LocationMap = lazy(() => import("@/components/ui/LocationMap"));
 const contactRateLimiter = createRateLimiter(3, 10 * 60 * 1000); // 3 attempts per 10 minutes
 
 const Contact = () => {
+  // Get company settings from database
+  const { settings: companySettings, isLoading: isLoadingSettings } = useCompanySettings();
+  
   // Form states
   const [contactForm, setContactForm] = useState({
     firstName: '',
@@ -212,7 +215,11 @@ const Contact = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-foreground mb-2">Email</h3>
-                          <p className="text-muted-foreground">contact@rifstraw.com</p>
+                          {isLoadingSettings ? (
+                            <Skeleton className="h-4 w-32" />
+                          ) : (
+                            <p className="text-muted-foreground">{companySettings.email}</p>
+                          )}
                           <p className="text-sm text-muted-foreground">Réponse sous 24h</p>
                         </div>
                       </div>
@@ -227,7 +234,11 @@ const Contact = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-foreground mb-2">Téléphone</h3>
-                          <p className="text-muted-foreground">+33 1 23 45 67 89</p>
+                          {isLoadingSettings ? (
+                            <Skeleton className="h-4 w-32" />
+                          ) : (
+                            <p className="text-muted-foreground">{companySettings.phone}</p>
+                          )}
                           <p className="text-sm text-muted-foreground">Lun-Ven 9h-18h</p>
                         </div>
                       </div>
@@ -242,8 +253,17 @@ const Contact = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-foreground mb-2">Adresse</h3>
-                          <p className="text-muted-foreground">6 allée de la Sèvre</p>
-                          <p className="text-muted-foreground">44400 Rezé, France</p>
+                          {isLoadingSettings ? (
+                            <>
+                              <Skeleton className="h-4 w-40 mb-1" />
+                              <Skeleton className="h-4 w-32" />
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-muted-foreground">{companySettings.address.street}</p>
+                              <p className="text-muted-foreground">{companySettings.address.postalCode} {companySettings.address.city}, {companySettings.address.country}</p>
+                            </>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -257,9 +277,19 @@ const Contact = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-foreground mb-2">Horaires</h3>
-                          <p className="text-muted-foreground">Lundi - Vendredi: 9h - 18h</p>
-                          <p className="text-muted-foreground">Samedi: 10h - 16h</p>
-                          <p className="text-muted-foreground">Dimanche: Fermé</p>
+                          {isLoadingSettings ? (
+                            <>
+                              <Skeleton className="h-4 w-40 mb-1" />
+                              <Skeleton className="h-4 w-32 mb-1" />
+                              <Skeleton className="h-4 w-28" />
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-muted-foreground">{companySettings.openingHours.weekdays}</p>
+                              <p className="text-muted-foreground">{companySettings.openingHours.saturday}</p>
+                              <p className="text-muted-foreground">{companySettings.openingHours.sunday}</p>
+                            </>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -487,21 +517,32 @@ const Contact = () => {
                 <Skeleton className="w-full h-full" />
               </div>
             }>
-              <LocationMap
-                latitude={47.1847}
-                longitude={-1.5493}
-                zoom={15}
-                address="6 allée de la Sèvre, 44400 Rezé"
-                businessName="Rif Raw Straw - Showroom"
-                className="aspect-video"
-              />
+              {!isLoadingSettings && (
+                <LocationMap
+                  latitude={companySettings.address.latitude}
+                  longitude={companySettings.address.longitude}
+                  zoom={15}
+                  address={formatFullAddress(companySettings.address)}
+                  businessName={`${companySettings.name} - Showroom`}
+                  className="aspect-video"
+                />
+              )}
+              {isLoadingSettings && (
+                <div className="aspect-video">
+                  <Skeleton className="w-full h-full" />
+                </div>
+              )}
             </Suspense>
           </Card>
           
           <div className="max-w-4xl mx-auto mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               <MapPin className="inline-block h-4 w-4 mr-1" />
-              6 allée de la Sèvre, 44400 Rezé
+              {isLoadingSettings ? (
+                <Skeleton className="inline-block h-4 w-48" />
+              ) : (
+                formatFullAddress(companySettings.address)
+              )}
             </p>
           </div>
         </div>
