@@ -1,18 +1,6 @@
-import { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-
-// Fix for default marker icon in React-Leaflet
-const customIcon = new L.Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
 
 interface LocationMapProps {
   latitude?: number;
@@ -31,42 +19,97 @@ const LocationMap = ({
   businessName = "Rif Raw Straw",
   className = "",
 }: LocationMapProps) => {
-  const mapRef = useRef<L.Map | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   const handleGetDirections = () => {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  // Ensure we're on the client side
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Initialize Leaflet map directly (bypassing react-leaflet context issues)
+  useEffect(() => {
+    if (!isClient || !mapContainerRef.current || mapInstanceRef.current) return;
+
+    // Create the map instance
+    const map = L.map(mapContainerRef.current, {
+      center: [latitude, longitude],
+      zoom: zoom,
+      scrollWheelZoom: false,
+    });
+
+    mapInstanceRef.current = map;
+
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    // Create custom icon
+    const customIcon = L.icon({
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41],
+    });
+
+    // Add marker with popup
+    const marker = L.marker([latitude, longitude], { icon: customIcon }).addTo(map);
+    
+    const popupContent = `
+      <div style="text-align: center; padding: 4px;">
+        <strong style="display: block; margin-bottom: 4px;">${businessName}</strong>
+        <span style="font-size: 12px; color: #666;">${address}</span>
+        <button 
+          onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}', '_blank', 'noopener,noreferrer')"
+          style="margin-top: 8px; width: 100%; font-size: 12px; background: hsl(var(--primary)); color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer;"
+        >
+          Obtenir l'itinéraire
+        </button>
+      </div>
+    `;
+    
+    marker.bindPopup(popupContent);
+
+    // Cleanup on unmount
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [isClient, latitude, longitude, zoom, address, businessName]);
+
+  // Show loading state until client-side
+  if (!isClient) {
+    return (
+      <div className={`relative ${className}`}>
+        <div 
+          className="h-full w-full rounded-lg bg-muted animate-pulse flex items-center justify-center"
+          style={{ minHeight: '400px' }}
+        >
+          <span className="text-muted-foreground">Chargement de la carte...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`relative ${className}`}>
-      <MapContainer
-        center={[latitude, longitude]}
-        zoom={zoom}
-        ref={mapRef}
+      <div 
+        ref={mapContainerRef}
         className="h-full w-full rounded-lg"
         style={{ minHeight: '400px' }}
-        scrollWheelZoom={false}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker position={[latitude, longitude]} icon={customIcon}>
-          <Popup>
-            <div className="text-center p-1">
-              <strong className="block text-foreground">{businessName}</strong>
-              <span className="text-sm text-muted-foreground">{address}</span>
-              <button
-                onClick={handleGetDirections}
-                className="mt-2 w-full text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded hover:bg-primary/90 transition-colors"
-              >
-                Obtenir l'itinéraire
-              </button>
-            </div>
-          </Popup>
-        </Marker>
-      </MapContainer>
+      />
       
       {/* Overlay button for directions */}
       <button
