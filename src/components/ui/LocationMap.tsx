@@ -12,10 +12,10 @@ interface LocationMapProps {
 }
 
 const LocationMap = ({
-  latitude = 48.8606,
-  longitude = 2.3376,
+  latitude = 47.1847,
+  longitude = -1.5493,
   zoom = 15,
-  address = "123 Rue de l'Artisan, 75001 Paris",
+  address = "6 allée de la Sèvre, 44400 Rezé",
   businessName = "Rif Raw Straw",
   className = "",
 }: LocationMapProps) => {
