@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useCurrency } from "@/stores/currencyStore";
 
 interface DiscountCoupon {
   id: string;
@@ -26,6 +27,7 @@ interface PromoCodeExportProps {
 }
 
 const PromoCodeExport = ({ coupons }: PromoCodeExportProps) => {
+  const { formatPrice } = useCurrency();
   const [isExporting, setIsExporting] = useState(false);
 
   const formatDate = (dateStr: string | null) => {
@@ -105,7 +107,7 @@ const PromoCodeExport = ({ coupons }: PromoCodeExportProps) => {
         ["Total codes", totalCoupons],
         ["Codes actifs", activeCoupons],
         ["Total utilisations", totalUsage],
-        ["Économies totales estimées (€)", totalSavings.toFixed(2)],
+        ["Économies totales estimées", formatPrice(totalSavings)],
         ["Date d'export", format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr })],
       ];
 

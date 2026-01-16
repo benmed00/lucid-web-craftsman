@@ -560,7 +560,7 @@ const AdminOrders = () => {
                     </td>
                     <td className="p-4">
                       <p className="font-medium text-foreground">
-                        {(order.amount / 100).toFixed(2)} €
+                        {formatPrice(order.amount / 100)}
                       </p>
                     </td>
                     <td className="p-4">

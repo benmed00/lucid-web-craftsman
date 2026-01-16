@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { AddClientDialog } from "@/components/admin/AddClientDialog";
+import { useCurrency } from "@/stores/currencyStore";
 
 interface CustomerProfile {
   id: string;
@@ -56,6 +57,7 @@ interface Customer extends CustomerProfile {
 }
 
 const AdminCustomers = () => {
+  const { formatPrice } = useCurrency();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -258,7 +260,7 @@ const AdminCustomers = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-stone-600">CA total</p>
-                <p className="text-2xl font-bold text-blue-600">{totalRevenue.toFixed(2)} €</p>
+                <p className="text-2xl font-bold text-blue-600">{formatPrice(totalRevenue)}</p>
               </div>
               <ShoppingBag className="h-8 w-8 text-blue-600" />
             </div>
@@ -353,7 +355,7 @@ const AdminCustomers = () => {
                       <div>
                         <p className="font-medium">{customer.stats.total_orders}</p>
                         <p className="text-sm text-stone-600">
-                          {customer.stats.total_spent.toFixed(2)} €
+                          {formatPrice(customer.stats.total_spent)}
                         </p>
                       </div>
                     </td>
@@ -428,13 +430,13 @@ const AdminCustomers = () => {
                                   </div>
                                   <div className="text-center p-3 bg-stone-50 rounded-lg">
                                     <p className="text-2xl font-bold text-blue-600">
-                                      {selectedCustomer.stats.total_spent.toFixed(2)} €
+                                      {formatPrice(selectedCustomer.stats.total_spent)}
                                     </p>
                                     <p className="text-xs text-stone-600">Dépenses total</p>
                                   </div>
                                   <div className="text-center p-3 bg-stone-50 rounded-lg">
                                     <p className="text-2xl font-bold text-green-600">
-                                      {selectedCustomer.stats.avg_order_value.toFixed(2)} €
+                                      {formatPrice(selectedCustomer.stats.avg_order_value)}
                                     </p>
                                     <p className="text-xs text-stone-600">Panier moyen</p>
                                   </div>
