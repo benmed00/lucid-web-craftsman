@@ -354,7 +354,6 @@ serve(async (req) => {
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
-    });
 
     logStep("Stripe session created", { sessionId: session.id });
 
