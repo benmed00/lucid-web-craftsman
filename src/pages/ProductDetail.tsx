@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -434,6 +434,10 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl">
+                      <DialogHeader className="sr-only">
+                        <DialogTitle>{product.name} - Vue agrandie</DialogTitle>
+                        <DialogDescription>Image du produit en taille réelle</DialogDescription>
+                      </DialogHeader>
                       <ProductImage
                         src={product.images[selectedImage]}
                         alt={`${product.name} - vue agrandie`}
@@ -607,42 +611,43 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
-                      <div className="flex flex-col space-y-2">
-                        <h3 className="text-lg font-medium">Partager ce produit</h3>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button
-                            variant="outline"
-                            onClick={() => handleShare('facebook')}
-                            className="w-full"
-                          >
-                            <Facebook className="h-4 w-4 mr-2" />
-                            Facebook
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() => handleShare('twitter')}
-                            className="w-full"
-                          >
-                            <Twitter className="h-4 w-4 mr-2" />
-                            Twitter
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() => handleShare('whatsapp')}
-                            className="w-full"
-                          >
-                            <MessageCircle className="h-4 w-4 mr-2" />
-                            WhatsApp
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() => handleShare('copy')}
-                            className="w-full"
-                          >
-                            <Copy className="h-4 w-4 mr-2" />
-                            Copier
-                          </Button>
-                        </div>
+                      <DialogHeader>
+                        <DialogTitle>Partager ce produit</DialogTitle>
+                        <DialogDescription>Choisissez comment partager ce produit</DialogDescription>
+                      </DialogHeader>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => handleShare('facebook')}
+                          className="w-full"
+                        >
+                          <Facebook className="h-4 w-4 mr-2" />
+                          Facebook
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleShare('twitter')}
+                          className="w-full"
+                        >
+                          <Twitter className="h-4 w-4 mr-2" />
+                          Twitter
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleShare('whatsapp')}
+                          className="w-full"
+                        >
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          WhatsApp
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleShare('copy')}
+                          className="w-full"
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copier
+                        </Button>
                       </div>
                     </DialogContent>
                   </Dialog>
