@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { XCircle, Send, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useCurrency } from "@/stores/currencyStore";
 
 interface SendCancellationEmailButtonProps {
   orderId: string;
@@ -26,6 +27,7 @@ interface SendCancellationEmailButtonProps {
 export const SendCancellationEmailButton = ({ orderId, orderAmount, orderItems, onEmailSent }: SendCancellationEmailButtonProps) => {
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
+  const { formatPrice } = useCurrency();
   const [formData, setFormData] = useState({
     customerEmail: '',
     customerName: '',
@@ -139,7 +141,7 @@ export const SendCancellationEmailButton = ({ orderId, orderAmount, orderItems, 
           {formData.isRefund && (
             <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg space-y-3">
               <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                Montant à rembourser: {(orderAmount / 100).toFixed(2)} €
+                Montant à rembourser: {formatPrice(orderAmount / 100)}
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">

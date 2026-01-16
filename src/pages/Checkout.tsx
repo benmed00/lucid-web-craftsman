@@ -228,7 +228,7 @@ const Checkout = () => {
 
       // Check minimum order amount
       if (data.minimum_order_amount && subtotal < data.minimum_order_amount) {
-        setPromoError(`Commande minimum de ${data.minimum_order_amount.toFixed(2)} € requise`);
+        setPromoError(`Commande minimum de ${formatPrice(data.minimum_order_amount)} requise`);
         setIsValidatingPromo(false);
         return;
       }
@@ -388,13 +388,13 @@ const Checkout = () => {
       const { minOrderAmount, maxOrderAmount, highValueThreshold } = businessRules.cart;
       
       if (minOrderAmount > 0 && subtotal < minOrderAmount) {
-        toast.error(`Le montant minimum de commande est de ${minOrderAmount.toFixed(2)} €`);
+        toast.error(`Le montant minimum de commande est de ${formatPrice(minOrderAmount)}`);
         setIsProcessing(false);
         return;
       }
       
       if (maxOrderAmount > 0 && subtotal > maxOrderAmount) {
-        toast.error(`Le montant maximum de commande est de ${maxOrderAmount.toFixed(2)} €. Contactez-nous pour les commandes importantes.`);
+        toast.error(`Le montant maximum de commande est de ${formatPrice(maxOrderAmount)}. Contactez-nous pour les commandes importantes.`);
         setIsProcessing(false);
         return;
       }

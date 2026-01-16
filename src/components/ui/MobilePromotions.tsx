@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useCurrency } from '@/stores/currencyStore';
 
 interface MobilePromotionsProps {
   cartTotal?: number;
@@ -30,6 +31,7 @@ export const MobilePromotions = ({ cartTotal = 0, onPromotionApply }: MobileProm
   const [activePromotions, setActivePromotions] = useState<Promotion[]>([]);
   const [timeLeft, setTimeLeft] = useState<{ [key: string]: string }>({});
   const isMobile = useIsMobile();
+  const { formatPrice } = useCurrency();
 
   const mockPromotions: Promotion[] = [
     {
@@ -197,7 +199,7 @@ export const MobilePromotions = ({ cartTotal = 0, onPromotionApply }: MobileProm
                       className="h-2 mb-2"
                     />
                     <p className="text-xs font-medium">
-                      Plus que {(promotion.minAmount - cartTotal).toFixed(2)}€ pour débloquer
+                      Plus que {formatPrice(promotion.minAmount - cartTotal)} pour débloquer
                     </p>
                   </div>
                 )}
@@ -210,7 +212,7 @@ export const MobilePromotions = ({ cartTotal = 0, onPromotionApply }: MobileProm
                       className="h-2 mb-2"
                     />
                     <p className="text-xs font-medium">
-                      Plus que {(promotion.minAmount - cartTotal).toFixed(2)}€ pour le cadeau
+                      Plus que {formatPrice(promotion.minAmount - cartTotal)} pour le cadeau
                     </p>
                   </div>
                 )}
@@ -238,7 +240,7 @@ export const MobilePromotions = ({ cartTotal = 0, onPromotionApply }: MobileProm
                     className="bg-white/50 hover:bg-white/80 text-current border border-current/20 text-xs px-3 py-2 h-8"
                   >
                     {promotion.minAmount && cartTotal < promotion.minAmount
-                      ? `Ajoutez ${(promotion.minAmount - cartTotal).toFixed(2)}€`
+                      ? `Ajoutez ${formatPrice(promotion.minAmount - cartTotal)}`
                       : `Appliquer ${promotion.code}`
                     }
                   </Button>

@@ -11,6 +11,7 @@ import { Edit2, Package, AlertTriangle, TrendingUp, TrendingDown, Search, Filter
 import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrency } from '@/stores/currencyStore';
 
 interface Product {
   id: number;
@@ -37,6 +38,7 @@ const AdminInventory = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { formatPrice } = useCurrency();
 
   // Fetch products data
   const { data: products = [], isLoading } = useQuery({
@@ -181,7 +183,7 @@ const AdminInventory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-stone-600">Valeur Stock</p>
-                <p className="text-2xl font-bold text-green-600">{inventoryStats.totalValue.toFixed(2)} €</p>
+                <p className="text-2xl font-bold text-green-600">{formatPrice(inventoryStats.totalValue)}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-500" />
             </div>
@@ -290,8 +292,8 @@ const AdminInventory = () => {
                     <TableCell className="font-mono">{product.stock_quantity}</TableCell>
                     <TableCell className="font-mono">{product.min_stock_level}</TableCell>
                     <TableCell>{getStockStatusBadge(product)}</TableCell>
-                    <TableCell>{product.price.toFixed(2)} €</TableCell>
-                    <TableCell>{(product.price * product.stock_quantity).toFixed(2)} €</TableCell>
+                    <TableCell>{formatPrice(product.price)}</TableCell>
+                    <TableCell>{formatPrice(product.price * product.stock_quantity)}</TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"

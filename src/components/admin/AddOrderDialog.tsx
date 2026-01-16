@@ -8,6 +8,7 @@ import { ShoppingCart, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
+import { useCurrency } from "@/stores/currencyStore";
 
 interface OrderItem {
   product_id: number;
@@ -27,6 +28,7 @@ export const AddOrderDialog = ({ onOrderAdded }: AddOrderDialogProps) => {
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const { formatPrice } = useCurrency();
   const [formData, setFormData] = useState({
     customer_id: "",
     status: "pending",
@@ -286,7 +288,7 @@ export const AddOrderDialog = ({ onOrderAdded }: AddOrderDialogProps) => {
                         <SelectContent>
                           {products.map((product) => (
                             <SelectItem key={product.id} value={product.id.toString()}>
-                              {product.name} - {product.price}€
+                              {product.name} - {formatPrice(product.price)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -304,7 +306,7 @@ export const AddOrderDialog = ({ onOrderAdded }: AddOrderDialogProps) => {
                     </div>
                     
                     <div className="w-24 text-right font-medium">
-                      {item.total_price.toFixed(2)}€
+                      {formatPrice(item.total_price)}
                     </div>
                     
                     <Button
@@ -320,7 +322,7 @@ export const AddOrderDialog = ({ onOrderAdded }: AddOrderDialogProps) => {
                 
                 <div className="flex justify-end py-4 border-t">
                   <div className="text-xl font-bold">
-                    Total: {calculateTotal().toFixed(2)}€
+                    Total: {formatPrice(calculateTotal())}
                   </div>
                 </div>
               </div>

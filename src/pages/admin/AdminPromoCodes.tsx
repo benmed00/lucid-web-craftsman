@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCurrency } from "@/stores/currencyStore";
 import {
   Table,
   TableBody,
@@ -80,6 +81,7 @@ const AdminPromoCodes = () => {
   const [editingCoupon, setEditingCoupon] = useState<DiscountCoupon | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const { formatPrice } = useCurrency();
   
   // Free shipping threshold settings
   const [freeShippingSettings, setFreeShippingSettings] = useState<FreeShippingSettings>({
@@ -333,7 +335,7 @@ const AdminPromoCodes = () => {
     if (coupon.type === 'percentage') {
       return `-${coupon.value}%`;
     }
-    return `-${coupon.value.toFixed(2)} €`;
+    return `-${formatPrice(coupon.value)}`;
   };
 
   const getStatusBadge = (coupon: DiscountCoupon) => {
