@@ -85,16 +85,30 @@ export const useCurrencyStore = create<CurrencyState>()(
 
             set({ isLoading: true });
 
+            // Use frankfurter.app - a free, open-source API with no key required
             const response = await fetch(
-              'https://api.exchangerate.host/latest?base=EUR&symbols=USD,GBP,MAD'
+              'https://api.frankfurter.app/latest?from=EUR&to=USD,GBP'
             );
 
-            if (!response.ok) throw new Error('Failed to fetch rates');
+            if (!response.ok) {
+              // Fall back to default rates silently
+              set({ isLoading: false, lastUpdated: Date.now() });
+              return;
+            }
 
             const data = await response.json();
-            if (!data.success || !data.rates) throw new Error('Invalid response');
+            
+            // Frankfurter API returns { rates: { USD: x, GBP: y } }
+            if (!data.rates) {
+              set({ isLoading: false, lastUpdated: Date.now() });
+              return;
+            }
 
-            const rates = data.rates as { USD: number; GBP: number; MAD: number };
+            const rates = {
+              USD: data.rates.USD ?? DEFAULT_EXCHANGE_RATES.EUR.USD,
+              GBP: data.rates.GBP ?? DEFAULT_EXCHANGE_RATES.EUR.GBP,
+              MAD: DEFAULT_EXCHANGE_RATES.EUR.MAD // MAD not supported by frankfurter, use default
+            };
 
             const newRates: ExchangeRates = {
               EUR: { EUR: 1, USD: rates.USD, GBP: rates.GBP, MAD: rates.MAD },
@@ -126,8 +140,8 @@ export const useCurrencyStore = create<CurrencyState>()(
 
             set({ exchangeRates: newRates, lastUpdated: Date.now(), isLoading: false });
           } catch (error) {
-            console.warn('Failed to fetch exchange rates:', error);
-            set({ isLoading: false });
+            // Silently fall back to default rates - no need to log as user-facing error
+            set({ isLoading: false, lastUpdated: Date.now() });
           }
         },
 
