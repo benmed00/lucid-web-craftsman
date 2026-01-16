@@ -202,18 +202,23 @@ export const useCurrencyStore = create<CurrencyState>()(
 // ============= Selectors =============
 export const selectCurrency = (state: CurrencyState) => state.currency;
 export const selectIsLoading = (state: CurrencyState) => state.isLoading;
-export const selectLastUpdated = (state: CurrencyState) => 
-  state.lastUpdated ? new Date(state.lastUpdated) : null;
+export const selectLastUpdated = (state: CurrencyState) => state.lastUpdated;
+
+// Action selectors (stable references)
+const selectSetCurrency = (state: CurrencyState) => state.setCurrency;
+const selectFormatPrice = (state: CurrencyState) => state.formatPrice;
+const selectConvertPrice = (state: CurrencyState) => state.convertPrice;
+const selectRefreshRates = (state: CurrencyState) => state.refreshRates;
 
 // ============= Hook for compatibility =============
 export const useCurrency = () => {
   const currency = useCurrencyStore(selectCurrency);
   const isLoading = useCurrencyStore(selectIsLoading);
   const lastUpdated = useCurrencyStore(selectLastUpdated);
-  const setCurrency = useCurrencyStore(state => state.setCurrency);
-  const formatPrice = useCurrencyStore(state => state.formatPrice);
-  const convertPrice = useCurrencyStore(state => state.convertPrice);
-  const refreshRates = useCurrencyStore(state => state.refreshRates);
+  const setCurrency = useCurrencyStore(selectSetCurrency);
+  const formatPrice = useCurrencyStore(selectFormatPrice);
+  const convertPrice = useCurrencyStore(selectConvertPrice);
+  const refreshRates = useCurrencyStore(selectRefreshRates);
 
   return {
     currency,
@@ -221,7 +226,7 @@ export const useCurrency = () => {
     formatPrice,
     convertPrice,
     isLoading,
-    lastUpdated,
+    lastUpdated: lastUpdated ? new Date(lastUpdated) : null,
     refreshRates
   };
 };

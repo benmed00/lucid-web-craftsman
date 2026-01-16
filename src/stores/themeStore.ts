@@ -94,12 +94,16 @@ if (typeof window !== 'undefined') {
 export const selectTheme = (state: ThemeState) => state.theme;
 export const selectResolvedTheme = (state: ThemeState) => state.resolvedTheme;
 
+// ============= Stable selectors =============
+const selectSetTheme = (state: ThemeState) => state.setTheme;
+const selectToggleTheme = (state: ThemeState) => state.toggleTheme;
+
 // ============= Hook for compatibility =============
 export const useTheme = () => {
   const theme = useThemeStore(selectTheme);
   const resolvedTheme = useThemeStore(selectResolvedTheme);
-  const setTheme = useThemeStore(state => state.setTheme);
-  const toggleTheme = useThemeStore(state => state.toggleTheme);
+  const setTheme = useThemeStore(selectSetTheme);
+  const toggleTheme = useThemeStore(selectToggleTheme);
 
   return {
     theme,
