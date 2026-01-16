@@ -18,6 +18,7 @@ import {
 import { TrendingUp, Award, Euro, Users, Calendar } from "lucide-react";
 import { format, subDays, eachDayOfInterval, parseISO, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useCurrency } from "@/stores/currencyStore";
 
 interface DiscountCoupon {
   id: string;
@@ -45,6 +46,8 @@ const CHART_COLORS = [
 ];
 
 const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
+  const { formatPrice } = useCurrency();
+  
   // Calculate total estimated savings
   const totalSavings = useMemo(() => {
     return coupons.reduce((sum, coupon) => {
@@ -146,9 +149,9 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              ~{totalSavings.toFixed(0)} €
+              ~{formatPrice(totalSavings)}
             </div>
-            <p className="text-xs text-muted-foreground">Estimation basée sur panier moyen 75€</p>
+            <p className="text-xs text-muted-foreground">Estimation basée sur panier moyen {formatPrice(75)}</p>
           </CardContent>
         </Card>
 

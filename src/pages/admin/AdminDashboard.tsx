@@ -21,6 +21,7 @@ import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { ProductService } from "@/services/productService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useCurrency } from "@/stores/currencyStore";
 
 interface Order {
   id: string;
@@ -46,6 +47,7 @@ interface DashboardStats {
 }
 
 const AdminDashboard = () => {
+  const { formatPrice } = useCurrency();
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
@@ -136,7 +138,7 @@ const AdminDashboard = () => {
         ordersData?.slice(0, 3).forEach(order => {
           activities.push({
             type: "order",
-            message: `Nouvelle commande #${order.id.slice(-8)} de €${(order.amount / 100).toFixed(2)}`,
+            message: `Nouvelle commande #${order.id.slice(-8)} de ${formatPrice(order.amount / 100)}`,
             time: formatTimeAgo(order.created_at)
           });
         });
@@ -267,7 +269,7 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              €{stats.totalRevenue.toFixed(2)}
+              {formatPrice(stats.totalRevenue)}
             </div>
             <p className="text-xs text-muted-foreground flex items-center">
               <TrendingUp className="h-3 w-3 mr-1 text-green-600 dark:text-green-400" />
@@ -285,7 +287,7 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              €{stats.avgOrderValue.toFixed(2)}
+              {formatPrice(stats.avgOrderValue)}
             </div>
             <p className="text-xs text-muted-foreground flex items-center">
               <TrendingUp className="h-3 w-3 mr-1 text-green-600 dark:text-green-400" />

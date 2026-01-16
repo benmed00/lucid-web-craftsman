@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useCurrency } from "@/stores/currencyStore";
 
 interface AnalyticsData {
   overview: {
@@ -49,6 +50,7 @@ interface AnalyticsData {
 }
 
 const AdminAnalytics = () => {
+  const { formatPrice } = useCurrency();
   const [timeRange, setTimeRange] = useState("30d");
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -246,16 +248,16 @@ const AdminAnalytics = () => {
       const headers = ["Métrique", "Valeur actuelle", "Valeur précédente", "Croissance (%)"];
       
       const overviewRows = [
-        ["Chiffre d'affaires (€)", analytics.overview.revenue.current.toFixed(2), analytics.overview.revenue.previous.toFixed(2), analytics.overview.revenue.growth.toFixed(1)],
+        ["Chiffre d'affaires", formatPrice(analytics.overview.revenue.current), formatPrice(analytics.overview.revenue.previous), analytics.overview.revenue.growth.toFixed(1)],
         ["Nombre de commandes", analytics.overview.orders.current.toString(), analytics.overview.orders.previous.toString(), analytics.overview.orders.growth.toFixed(1)],
         ["Nouveaux clients", analytics.overview.customers.current.toString(), analytics.overview.customers.previous.toString(), analytics.overview.customers.growth.toFixed(1)],
-        ["Panier moyen (€)", analytics.overview.avgOrder.current.toFixed(2), analytics.overview.avgOrder.previous.toFixed(2), analytics.overview.avgOrder.growth.toFixed(1)],
+        ["Panier moyen", formatPrice(analytics.overview.avgOrder.current), formatPrice(analytics.overview.avgOrder.previous), analytics.overview.avgOrder.growth.toFixed(1)],
       ];
 
       const productHeaders = ["", "", "", ""];
       const productTitleRow = ["", "", "", ""];
-      const topProductsHeaders = ["Produit", "Ventes", "Revenu (€)", ""];
-      const topProductsRows = analytics.topProducts.map(p => [p.name, p.sales.toString(), p.revenue.toFixed(2), ""]);
+      const topProductsHeaders = ["Produit", "Ventes", "Revenu", ""];
+      const topProductsRows = analytics.topProducts.map(p => [p.name, p.sales.toString(), formatPrice(p.revenue), ""]);
 
       const categoryHeaders = ["Catégorie", "Ventes", "Pourcentage (%)", ""];
       const categoryRows = analytics.salesByCategory.map(c => [c.category, c.sales.toString(), c.percentage.toString(), ""]);
@@ -447,7 +449,7 @@ const AdminAnalytics = () => {
             <Package className="h-4 w-4 text-accent-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.overview.avgOrder.current.toFixed(2)}€</div>
+            <div className="text-2xl font-bold">{formatPrice(analytics.overview.avgOrder.current)}</div>
             <div className={`flex items-center text-xs ${getGrowthColor(analytics.overview.avgOrder.growth)}`}>
               {getGrowthIcon(analytics.overview.avgOrder.growth)}
               <span className="ml-1">

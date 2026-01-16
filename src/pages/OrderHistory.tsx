@@ -12,6 +12,7 @@ import { Package, Eye, Truck, CheckCircle, Clock, RefreshCw } from 'lucide-react
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { useCurrency } from '@/stores/currencyStore';
 
 interface OrderItem {
   id: string;
@@ -36,6 +37,7 @@ interface Order {
 
 const OrderHistory = () => {
   const { user } = useAuth();
+  const { formatPrice } = useCurrency();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -201,7 +203,7 @@ const OrderHistory = () => {
                           </span>
                           <Separator orientation="vertical" className="h-4" />
                           <span className="font-medium text-foreground">
-                            {(order.amount / 100).toFixed(2)} €
+                            {formatPrice(order.amount / 100)}
                           </span>
                         </div>
                       </div>
@@ -242,7 +244,7 @@ const OrderHistory = () => {
                                           {item.product_snapshot?.name || 'Produit'}
                                         </div>
                                         <div className="text-sm text-muted-foreground mt-1">
-                                          {item.unit_price.toFixed(2)} € × {item.quantity}
+                                          {formatPrice(item.unit_price)} × {item.quantity}
                                         </div>
                                         {item.product_snapshot?.description && (
                                           <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
@@ -251,7 +253,7 @@ const OrderHistory = () => {
                                         )}
                                       </div>
                                       <div className="font-medium text-foreground ml-4">
-                                        {item.total_price.toFixed(2)} €
+                                        {formatPrice(item.total_price)}
                                       </div>
                                     </div>
                                   ))}
@@ -263,7 +265,7 @@ const OrderHistory = () => {
                               <div className="flex justify-between items-center">
                                 <span className="text-lg font-medium text-foreground">Total</span>
                                 <span className="text-xl font-bold text-foreground">
-                                  {(selectedOrder.amount / 100).toFixed(2)} €
+                                  {formatPrice(selectedOrder.amount / 100)}
                                 </span>
                               </div>
 
