@@ -88,7 +88,7 @@ const Navigation = () => {
               <Link 
                 to="/" 
                 className="group flex items-center space-x-2 md:space-x-3 min-w-0"
-                aria-label="Rif Raw Straw - Artisanat Berbère - Retour à l'accueil"
+                aria-label="Rif Raw Straw Artisanat Berbère"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <div className="p-2 rounded-full bg-primary group-hover:bg-primary/90 transition-all duration-300 shadow-md group-hover:shadow-lg flex-shrink-0">
