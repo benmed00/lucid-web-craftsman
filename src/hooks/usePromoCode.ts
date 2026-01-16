@@ -1,10 +1,13 @@
-// src/hooks/usePromoCode.ts
-// Extracted promo code logic from Checkout.tsx
+/**
+ * Promo Code Hook
+ * Handles validation and application of discount coupons
+ */
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { validatePromoCode } from '@/utils/checkoutValidation';
 import { toast } from 'sonner';
+import { handleError, DatabaseError, ValidationError } from '@/lib/errors/AppError';
 
 export interface DiscountCoupon {
   id: string;
@@ -30,6 +33,11 @@ interface UsePromoCodeReturn {
   hasFreeShipping: boolean;
   validateAndApply: () => Promise<void>;
   remove: () => void;
+}
+
+interface CouponValidationResult {
+  isValid: boolean;
+  error?: string;
 }
 
 export function usePromoCode({ subtotal }: UsePromoCodeOptions): UsePromoCodeReturn {
@@ -58,6 +66,32 @@ export function usePromoCode({ subtotal }: UsePromoCodeOptions): UsePromoCodeRet
     return Math.min(discountAmount, subtotal);
   }, [appliedCoupon, subtotal]);
 
+  // Validate coupon data against business rules
+  const validateCouponData = useCallback((data: any): CouponValidationResult => {
+    const now = new Date();
+
+    if (data.valid_from && new Date(data.valid_from) > now) {
+      return { isValid: false, error: "Ce code promo n'est pas encore actif" };
+    }
+
+    if (data.valid_until && new Date(data.valid_until) < now) {
+      return { isValid: false, error: 'Ce code promo a expiré' };
+    }
+
+    if (data.usage_limit && data.usage_count >= data.usage_limit) {
+      return { isValid: false, error: "Ce code promo a atteint sa limite d'utilisation" };
+    }
+
+    if (data.minimum_order_amount && subtotal < data.minimum_order_amount) {
+      return { 
+        isValid: false, 
+        error: `Commande minimum de ${data.minimum_order_amount.toFixed(2)} € requise` 
+      };
+    }
+
+    return { isValid: true };
+  }, [subtotal]);
+
   // Validate and apply promo code
   const validateAndApply = useCallback(async () => {
     // First validate the promo code format
@@ -79,36 +113,21 @@ export function usePromoCode({ subtotal }: UsePromoCodeOptions): UsePromoCodeRet
         .eq('is_active', true)
         .single();
 
-      if (fetchError || !data) {
-        setError('Code promo invalide ou expiré');
-        setIsValidating(false);
-        return;
+      if (fetchError) {
+        if (fetchError.code === 'PGRST116') {
+          throw new ValidationError('Code promo invalide ou expiré');
+        }
+        throw new DatabaseError(`Failed to validate promo code: ${fetchError.message}`, fetchError.code);
       }
 
-      // Check validity dates
-      const now = new Date();
-      if (data.valid_from && new Date(data.valid_from) > now) {
-        setError("Ce code promo n'est pas encore actif");
-        setIsValidating(false);
-        return;
-      }
-      if (data.valid_until && new Date(data.valid_until) < now) {
-        setError('Ce code promo a expiré');
-        setIsValidating(false);
-        return;
+      if (!data) {
+        throw new ValidationError('Code promo invalide ou expiré');
       }
 
-      // Check usage limit
-      if (data.usage_limit && data.usage_count >= data.usage_limit) {
-        setError("Ce code promo a atteint sa limite d'utilisation");
-        setIsValidating(false);
-        return;
-      }
-
-      // Check minimum order amount
-      if (data.minimum_order_amount && subtotal < data.minimum_order_amount) {
-        setError(`Commande minimum de ${data.minimum_order_amount.toFixed(2)} € requise`);
-        setIsValidating(false);
+      // Validate coupon against business rules
+      const validation = validateCouponData(data);
+      if (!validation.isValid) {
+        setError(validation.error || 'Code promo invalide');
         return;
       }
 
@@ -127,12 +146,16 @@ export function usePromoCode({ subtotal }: UsePromoCodeOptions): UsePromoCodeRet
       setPromoCode('');
       toast.success('Code promo appliqué !');
     } catch (err) {
-      console.error('Error validating promo code:', err);
-      setError('Erreur lors de la validation du code');
+      if (err instanceof ValidationError) {
+        setError(err.message);
+      } else {
+        handleError(err, 'usePromoCode.validateAndApply');
+        setError('Erreur lors de la validation du code');
+      }
     } finally {
       setIsValidating(false);
     }
-  }, [promoCode, subtotal]);
+  }, [promoCode, validateCouponData]);
 
   // Remove applied coupon
   const remove = useCallback(() => {

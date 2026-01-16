@@ -13,4 +13,5 @@ export {
   PERFORMANCE_CONFIG,
   CACHE_CONFIG,
   FEATURES,
+  APP_CONFIG,
 } from './app.config';
