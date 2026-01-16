@@ -1,8 +1,7 @@
 // import axios from "axios"; // Marked as unused
 
 import { supabase } from "@/integrations/supabase/client";
-import { Product } from "../shared/interfaces/Iproduct.interface";
-
+import { Product, normalizeProduct, normalizeProducts } from "../shared/interfaces/Iproduct.interface";
 // Helper to simulate API latency
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -52,13 +51,8 @@ export const getProducts = async (): Promise<Product[]> => {
       throw error;
     }
 
-    // Transform database fields to match interface
-    return data?.map(product => ({
-      ...product,
-      new: product.is_new,
-      artisanStory: product.artisan_story,
-      related: product.related_products
-    })) || [];
+    // Use centralized normalizer for consistency
+    return normalizeProducts(data || []);
   } catch (error) {
     console.error("Error fetching products:", error);
     throw error;
@@ -78,13 +72,8 @@ export const getProductById = async (id: number): Promise<Product | null> => {
       return null;
     }
 
-    // Transform database fields to match interface
-    return data ? {
-      ...data,
-      new: data.is_new,
-      artisanStory: data.artisan_story,
-      related: data.related_products
-    } : null;
+    // Use centralized normalizer for consistency
+    return data ? normalizeProduct(data) : null;
   } catch (error) {
     console.error(`Product with ID ${id} not found`, error);
     return null;

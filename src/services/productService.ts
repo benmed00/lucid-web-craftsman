@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Product } from '../shared/interfaces/Iproduct.interface';
+import { Product, normalizeProducts, normalizeProduct } from '../shared/interfaces/Iproduct.interface';
 
 export class ProductService {
   static async getAllProducts(): Promise<Product[]> {
@@ -14,7 +14,7 @@ export class ProductService {
       throw error;
     }
 
-    return data || [];
+    return normalizeProducts(data || []);
   }
 
   static async getProductById(id: number): Promise<Product | null> {
@@ -33,7 +33,7 @@ export class ProductService {
       throw error;
     }
 
-    return data;
+    return data ? normalizeProduct(data) : null;
   }
 
   static async getProductsByCategory(category: string): Promise<Product[]> {
@@ -49,7 +49,7 @@ export class ProductService {
       throw error;
     }
 
-    return data || [];
+    return normalizeProducts(data || []);
   }
 
   static async getFeaturedProducts(): Promise<Product[]> {
@@ -65,7 +65,7 @@ export class ProductService {
       throw error;
     }
 
-    return data || [];
+    return normalizeProducts(data || []);
   }
 
   static async getNewProducts(): Promise<Product[]> {
@@ -81,7 +81,7 @@ export class ProductService {
       throw error;
     }
 
-    return data || [];
+    return normalizeProducts(data || []);
   }
 
   static async searchProducts(query: string): Promise<Product[]> {
@@ -97,6 +97,6 @@ export class ProductService {
       throw error;
     }
 
-    return data || [];
+    return normalizeProducts(data || []);
   }
 }
