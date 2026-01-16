@@ -1,17 +1,25 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-interface UseInfiniteScrollProps {
-  items: any[];
+interface UseInfiniteScrollProps<T> {
+  items: T[];
   itemsPerPage?: number;
   threshold?: number;
 }
 
-export const useInfiniteScroll = ({ 
+interface UseInfiniteScrollReturn<T> {
+  visibleItems: T[];
+  hasMore: boolean;
+  isLoading: boolean;
+  sentinelRef: React.RefObject<HTMLDivElement>;
+  loadMore: () => void;
+}
+
+export function useInfiniteScroll<T>({ 
   items, 
   itemsPerPage = 12, 
   threshold = 0.8 
-}: UseInfiniteScrollProps) => {
-  const [visibleItems, setVisibleItems] = useState<any[]>([]);
+}: UseInfiniteScrollProps<T>): UseInfiniteScrollReturn<T> {
+  const [visibleItems, setVisibleItems] = useState<T[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);

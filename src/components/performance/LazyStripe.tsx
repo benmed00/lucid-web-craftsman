@@ -1,20 +1,27 @@
 import { lazy, Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// Extend Window interface for global Stripe key
+declare global {
+  interface Window {
+    STRIPE_PUBLIC_KEY?: string;
+  }
+}
+
+const getStripePublicKey = (): string => {
+  return (typeof window !== 'undefined' && window.STRIPE_PUBLIC_KEY) || 'pk_test_placeholder';
+};
+
 // Lazy load Stripe components only when needed
-const LazyStripeProvider = lazy(() => 
+const LazyStripeProvider = lazy(() =>
   import('@stripe/stripe-js').then(async (module) => {
     // Only load Stripe when the component is actually needed
-    const stripe = await module.loadStripe(
-      (window as any).STRIPE_PUBLIC_KEY || 'pk_test_placeholder'
-    );
-    
+    await module.loadStripe(getStripePublicKey());
+
     return {
       default: ({ children }: { children: React.ReactNode }) => (
-        <div data-stripe-initialized="true">
-          {children}
-        </div>
-      )
+        <div data-stripe-initialized="true">{children}</div>
+      ),
     };
   })
 );
@@ -29,18 +36,16 @@ const StripeLoadingFallback = () => (
 );
 
 // Wrapper component that loads Stripe only when needed
-export const LazyStripeWrapper = ({ 
-  children, 
-  fallback = <StripeLoadingFallback /> 
-}: { 
+export const LazyStripeWrapper = ({
+  children,
+  fallback = <StripeLoadingFallback />,
+}: {
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }) => {
   return (
     <Suspense fallback={fallback}>
-      <LazyStripeProvider>
-        {children}
-      </LazyStripeProvider>
+      <LazyStripeProvider>{children}</LazyStripeProvider>
     </Suspense>
   );
 };
@@ -49,7 +54,7 @@ export const LazyStripeWrapper = ({
 export const useLazyStripe = () => {
   const loadStripe = async () => {
     const { loadStripe: stripeLoader } = await import('@stripe/stripe-js');
-    return stripeLoader((window as any).STRIPE_PUBLIC_KEY || 'pk_test_placeholder');
+    return stripeLoader(getStripePublicKey());
   };
 
   return { loadStripe };
