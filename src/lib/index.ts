@@ -1,8 +1,9 @@
 /**
  * Library exports - centralized utilities
+ * This is the main entry point for all shared library code
  */
 
-// Error handling
+// ============= Error Handling =============
 export {
   AppError,
   NetworkError,
@@ -16,7 +17,7 @@ export {
   type ErrorCategory,
 } from './errors/AppError';
 
-// Hooks
+// ============= Hooks =============
 export {
   useStableCallback,
   useStableValue,
@@ -24,7 +25,7 @@ export {
   useThrottledCallback,
 } from './hooks/useStableCallback';
 
-// API Client
+// ============= API Client =============
 export {
   apiClient,
   currencyApi,
@@ -32,5 +33,21 @@ export {
   fetchWithRetry,
 } from './api/apiClient';
 
-// Re-export existing utils
+// ============= Storage =============
+export {
+  safeGetItem,
+  safeSetItem,
+  safeRemoveItem,
+  StorageKeys,
+  StorageTTL,
+} from './storage/safeStorage';
+
+// ============= Cache =============
+export {
+  cache,
+  CacheTTL,
+  CacheTags,
+} from './cache/UnifiedCache';
+
+// ============= Utils =============
 export { cn } from './utils';

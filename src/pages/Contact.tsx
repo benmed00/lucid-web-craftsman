@@ -26,6 +26,9 @@ import { createRateLimiter } from "@/utils/validation";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCompanySettings, formatFullAddress } from "@/hooks/useCompanySettings";
+import { apiClient } from "@/lib/api/apiClient";
+import { handleError, ValidationError } from "@/lib/errors/AppError";
+import { EXTERNAL_SERVICES } from "@/config/app.config";
 
 // Lazy load the map component for better performance
 const LocationMap = lazy(() => import("@/components/ui/LocationMap"));
@@ -76,32 +79,31 @@ const Contact = () => {
       };
 
       if (sanitizedData.subject.length < 5) {
-        throw new Error("Le sujet doit contenir au moins 5 caractères");
+        throw new ValidationError(
+          "Le sujet doit contenir au moins 5 caractères",
+          { subject: "Minimum 5 caractères requis" }
+        );
       }
 
       if (sanitizedData.message.length < 20) {
-        throw new Error("Le message doit contenir au moins 20 caractères");
+        throw new ValidationError(
+          "Le message doit contenir au moins 20 caractères",
+          { message: "Minimum 20 caractères requis" }
+        );
       }
 
       setIsSubmitting(true);
       
-      // Submit to Supabase edge function
-      const supabaseUrl = 'https://xcvlijchkmhjonhfildm.supabase.co';
-      const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdmxpamNoa21oam9uaGZpbGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2MDY3MDEsImV4cCI6MjA2MzE4MjcwMX0.3_FZWbV4qCqs1xQmh0Hws83xQxofSApzVRScSCEi9Pg';
-      
-      const response = await fetch(`${supabaseUrl}/functions/v1/submit-contact`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`
-        },
-        body: JSON.stringify(sanitizedData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Erreur de communication' }));
-        throw new Error(errorData.error || 'Erreur lors de l\'envoi du message');
-      }
+      // Use centralized API client for consistent error handling
+      await apiClient.post(
+        `${EXTERNAL_SERVICES.supabase.url}/functions/v1/submit-contact`,
+        sanitizedData,
+        {
+          headers: {
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || 'anon'}`
+          }
+        }
+      );
       
       toast.success("Message envoyé avec succès! Nous vous répondrons bientôt.");
       
@@ -116,8 +118,9 @@ const Contact = () => {
         message: ''
       });
 
-    } catch (error: any) {
-      toast.error(error.message || "Erreur lors de l'envoi du message");
+    } catch (error) {
+      const appError = handleError(error);
+      toast.error(appError.message);
     } finally {
       setIsSubmitting(false);
     }
