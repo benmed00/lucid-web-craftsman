@@ -337,7 +337,7 @@ const AdminDashboard = () => {
                           {getStatusText(order.status)}
                         </Badge>
                         <p className="font-semibold text-foreground">
-                          €{(order.amount / 100).toFixed(2)}
+                          {formatPrice(order.amount / 100)}
                         </p>
                       </div>
                     </div>

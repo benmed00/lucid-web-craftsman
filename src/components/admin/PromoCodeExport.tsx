@@ -48,9 +48,9 @@ const PromoCodeExport = ({ coupons }: PromoCodeExportProps) => {
     const avgOrderValue = 75;
     const usage = coupon.usage_count || 0;
     if (coupon.type === "percentage") {
-      return (avgOrderValue * (coupon.value / 100) * usage).toFixed(2);
+      return formatPrice(avgOrderValue * (coupon.value / 100) * usage);
     }
-    return (coupon.value * usage).toFixed(2);
+    return formatPrice(coupon.value * usage);
   };
 
   const exportToCSV = () => {
