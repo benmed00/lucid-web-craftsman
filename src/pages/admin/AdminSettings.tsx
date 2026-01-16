@@ -88,11 +88,11 @@ interface ValidationErrors {
 }
 
 const defaultSiteSettings: SiteSettings = {
-  siteName: "Rif Raw Straw",
-  siteDescription: "Artisanat berbère authentique du Rif marocain",
-  contactEmail: "contact@rifrawstraw.com",
-  contactPhone: "+33 1 23 45 67 89",
-  address: "6 allée de la Sèvre, 44400 Rezé, France",
+  siteName: "",
+  siteDescription: "",
+  contactEmail: "",
+  contactPhone: "",
+  address: "",
   currency: "EUR",
   taxRate: 20,
   shippingCost: 5.90,

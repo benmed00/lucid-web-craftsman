@@ -12,11 +12,11 @@ interface LocationMapProps {
 }
 
 const LocationMap = ({
-  latitude = 47.1847,
-  longitude = -1.5493,
+  latitude,
+  longitude,
   zoom = 15,
-  address = "6 allée de la Sèvre, 44400 Rezé",
-  businessName = "Rif Raw Straw",
+  address,
+  businessName,
   className = "",
 }: LocationMapProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
