@@ -68,6 +68,8 @@ const Checkout = () => {
     savedStep,
     savedCompletedSteps,
     saveStepState,
+    savedCoupon,
+    saveCoupon,
   } = useCheckoutFormPersistence();
 
   // Initialize step from saved state
@@ -84,9 +86,13 @@ const Checkout = () => {
         setStep(savedStep);
         setCompletedSteps(savedCompletedSteps);
       }
+      // Restore saved coupon if exists
+      if (savedCoupon) {
+        setAppliedCoupon(savedCoupon);
+      }
       setHasRestoredState(true);
     }
-  }, [isFormLoading, hasRestoredState, savedStep, savedCompletedSteps]);
+  }, [isFormLoading, hasRestoredState, savedStep, savedCompletedSteps, savedCoupon]);
   
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
@@ -226,7 +232,12 @@ const Checkout = () => {
       }
 
       // Apply coupon
-      setAppliedCoupon(data as DiscountCoupon);
+      const coupon: DiscountCoupon = {
+        ...data,
+        type: data.type as 'percentage' | 'fixed'
+      };
+      setAppliedCoupon(coupon);
+      saveCoupon(coupon as any); // Persist coupon for Stripe redirect
       setPromoCode("");
       toast.success("Code promo appliqué !");
     } catch (err) {
@@ -240,6 +251,7 @@ const Checkout = () => {
   // Remove applied coupon
   const removePromoCode = () => {
     setAppliedCoupon(null);
+    saveCoupon(null); // Clear persisted coupon
     toast.info("Code promo retiré");
   };
 
@@ -427,7 +439,8 @@ const Checkout = () => {
           discount: appliedCoupon ? {
             couponId: appliedCoupon.id,
             code: sanitizeUserInput(appliedCoupon.code),
-            amount: discount
+            amount: discount,
+            includesFreeShipping: appliedCoupon.includes_free_shipping || false
           } : null
         },
         headers: csrfHeaders

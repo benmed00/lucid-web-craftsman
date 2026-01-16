@@ -161,28 +161,11 @@ serve(async (req) => {
 
     logStep("Received order data", { itemCount: items.length, hasDiscount: !!discount, discountAmount: discount?.amount });
 
-    // Create Stripe coupon if discount is applied
-    let stripeCouponId: string | null = null;
+    // Store discount info for line item adjustment
+    let discountAmount = 0;
     if (discount && discount.amount > 0) {
-      const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-        apiVersion: "2025-08-27.basil",
-      });
-      
-      try {
-        // Create a one-time use coupon in Stripe
-        const coupon = await stripe.coupons.create({
-          amount_off: Math.round(discount.amount * 100), // Convert to cents
-          currency: 'eur',
-          duration: 'once',
-          name: `Code promo: ${discount.code}`,
-          max_redemptions: 1,
-        });
-        stripeCouponId = coupon.id;
-        logStep("Stripe coupon created", { couponId: coupon.id, amountOff: discount.amount });
-      } catch (couponError) {
-        logStep("Error creating Stripe coupon", couponError);
-        // Non-fatal - continue without discount
-      }
+      discountAmount = Math.round(discount.amount * 100); // Convert to cents
+      logStep("Discount to be applied as line item", { amountCents: discountAmount, code: discount.code });
     }
 
     // Get authenticated user (optional for guest checkout)
@@ -218,7 +201,9 @@ serve(async (req) => {
 
     // Add shipping as a line item if applicable
     const subtotal = items.reduce((sum: number, item: any) => sum + (item.product.price * item.quantity), 0);
-    if (subtotal > 0) {
+    const hasFreeShipping = discount?.includesFreeShipping === true;
+    
+    if (subtotal > 0 && !hasFreeShipping) {
       lineItems.push({
         price_data: {
           currency: "eur",
@@ -230,6 +215,64 @@ serve(async (req) => {
         },
         quantity: 1,
       });
+    }
+
+    // Add discount as a negative line item if applicable
+    if (discountAmount > 0) {
+      // Calculate the adjusted price per item to apply the discount proportionally
+      // Since Stripe doesn't allow negative line items directly, we'll apply it via automatic_tax/invoice_creation
+      // OR we adjust each item's price proportionally
+      const totalBeforeDiscount = items.reduce((sum: number, item: any) => 
+        sum + Math.round(item.product.price * 100) * item.quantity, 0
+      );
+      
+      // Apply discount to items proportionally
+      if (totalBeforeDiscount > 0) {
+        const discountRatio = discountAmount / totalBeforeDiscount;
+        
+        // Recreate line items with discounted prices
+        lineItems.length = 0;
+        items.forEach((item: any) => {
+          const originalPrice = Math.round(item.product.price * 100);
+          const discountedPrice = Math.max(1, Math.round(originalPrice * (1 - discountRatio)));
+          
+          lineItems.push({
+            price_data: {
+              currency: "eur",
+              product_data: {
+                name: item.product.name,
+                description: item.product.description || `Prix original: ${(originalPrice/100).toFixed(2)}€`,
+                images: item.product.images?.length > 0 ? [
+                  `${req.headers.get("origin")}${item.product.images[0]}`
+                ] : [],
+              },
+              unit_amount: discountedPrice,
+            },
+            quantity: item.quantity,
+          });
+        });
+        
+        // Re-add shipping if applicable
+        if (subtotal > 0 && !hasFreeShipping) {
+          lineItems.push({
+            price_data: {
+              currency: "eur",
+              product_data: {
+                name: "Frais de livraison",
+                description: "Livraison standard",
+              },
+              unit_amount: 695,
+            },
+            quantity: 1,
+          });
+        }
+        
+        logStep("Applied proportional discount to line items", { 
+          discountRatio: (discountRatio * 100).toFixed(2) + '%',
+          originalTotal: totalBeforeDiscount,
+          discountAmount
+        });
+      }
     }
 
     // Check if customer exists or create metadata for new customer
@@ -347,11 +390,8 @@ serve(async (req) => {
       },
     };
 
-    // Apply discount coupon if created
-    if (stripeCouponId) {
-      sessionParams.discounts = [{ coupon: stripeCouponId }];
-      logStep("Applying discount to session", { couponId: stripeCouponId });
-    }
+    // Note: Discount is already applied proportionally to line items above
+    // No need for Stripe coupon since we don't have coupon_write permissions
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 

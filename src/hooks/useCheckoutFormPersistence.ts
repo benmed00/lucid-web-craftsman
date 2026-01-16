@@ -11,6 +11,7 @@ const CHECKOUT_FORM_KEY = 'checkout_form_data';
 const CHECKOUT_STEP_KEY = 'checkout_current_step';
 const CHECKOUT_COMPLETED_STEPS_KEY = 'checkout_completed_steps';
 const CHECKOUT_TIMESTAMP_KEY = 'checkout_timestamp';
+const CHECKOUT_COUPON_KEY = 'checkout_applied_coupon';
 
 export interface CheckoutFormData {
   firstName: string;
@@ -22,6 +23,16 @@ export interface CheckoutFormData {
   postalCode: string;
   city: string;
   country: 'FR' | 'BE' | 'CH' | 'MC' | 'LU';
+}
+
+export interface SavedCoupon {
+  id: string;
+  code: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  minimum_order_amount: number | null;
+  maximum_discount_amount: number | null;
+  includes_free_shipping?: boolean;
 }
 
 const EMPTY_FORM: CheckoutFormData = {
@@ -51,6 +62,9 @@ interface UseCheckoutFormPersistenceReturn {
   savedStep: number;
   savedCompletedSteps: number[];
   saveStepState: (step: number, completedSteps: number[]) => void;
+  // Coupon persistence
+  savedCoupon: SavedCoupon | null;
+  saveCoupon: (coupon: SavedCoupon | null) => void;
 }
 
 export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
@@ -59,6 +73,7 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [savedStep, setSavedStep] = useState(1);
   const [savedCompletedSteps, setSavedCompletedSteps] = useState<number[]>([]);
+  const [savedCoupon, setSavedCoupon] = useState<SavedCoupon | null>(null);
   const hasInitialized = useRef(false);
 
   // Load data on mount - first from cache, then from profile if logged in
@@ -117,6 +132,14 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
       }
       if (cachedCompletedSteps && Array.isArray(cachedCompletedSteps)) {
         setSavedCompletedSteps(cachedCompletedSteps);
+      }
+
+      // Load saved coupon
+      const cachedCoupon = safeGetItem<SavedCoupon>(CHECKOUT_COUPON_KEY, {
+        storage: 'localStorage',
+      });
+      if (cachedCoupon && !isExpired) {
+        setSavedCoupon(cachedCoupon);
       }
 
       // Step 2: If user is logged in, fill missing fields from profile
@@ -300,6 +323,7 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
     safeRemoveItem(CHECKOUT_STEP_KEY, { storage: 'localStorage' });
     safeRemoveItem(CHECKOUT_COMPLETED_STEPS_KEY, { storage: 'localStorage' });
     safeRemoveItem(CHECKOUT_TIMESTAMP_KEY, { storage: 'localStorage' });
+    safeRemoveItem(CHECKOUT_COUPON_KEY, { storage: 'localStorage' });
     // Clear from sessionStorage
     safeRemoveItem(CHECKOUT_FORM_KEY, { storage: 'sessionStorage' });
     safeRemoveItem(CHECKOUT_STEP_KEY, { storage: 'sessionStorage' });
@@ -307,6 +331,23 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
     setFormData(EMPTY_FORM);
     setSavedStep(1);
     setSavedCompletedSteps([]);
+    setSavedCoupon(null);
+  }, []);
+
+  // Save coupon to localStorage
+  const saveCoupon = useCallback((coupon: SavedCoupon | null) => {
+    if (coupon) {
+      safeSetItem(CHECKOUT_COUPON_KEY, coupon, {
+        storage: 'localStorage',
+      });
+      // Update timestamp
+      safeSetItem(CHECKOUT_TIMESTAMP_KEY, Date.now(), {
+        storage: 'localStorage',
+      });
+    } else {
+      safeRemoveItem(CHECKOUT_COUPON_KEY, { storage: 'localStorage' });
+    }
+    setSavedCoupon(coupon);
   }, []);
 
   return {
@@ -318,6 +359,8 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
     savedStep,
     savedCompletedSteps,
     saveStepState,
+    savedCoupon,
+    saveCoupon,
   };
 }
 
