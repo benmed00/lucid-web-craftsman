@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Product } from '@/shared/interfaces/Iproduct.interface';
+import { Product, getArtisanStory, isProductNew } from '@/shared/interfaces/Iproduct.interface';
 
 export interface FilterOptions {
   category: string[];
@@ -66,7 +66,7 @@ export const useProductFilters = ({ products }: UseProductFiltersProps) => {
           product.description,
           product.category,
           product.artisan,
-          product.artisan_story || product.artisanStory
+          getArtisanStory(product)
         ].filter(Boolean);
         
         const matches = searchFields.some(field => 
@@ -77,7 +77,7 @@ export const useProductFilters = ({ products }: UseProductFiltersProps) => {
       }
 
       // New products filter
-      if (filters.isNew && !product.new && !product.is_new) {
+      if (filters.isNew && !isProductNew(product)) {
         return false;
       }
 

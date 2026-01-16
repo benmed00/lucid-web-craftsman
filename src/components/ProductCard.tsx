@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ShoppingCart, Eye, AlertTriangle, Share } from "lucide-react";
-import { Product } from "@/shared/interfaces/Iproduct.interface";
+import { Product, isProductNew } from "@/shared/interfaces/Iproduct.interface";
 import { ProductImage } from "@/components/ui/GlobalImage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -119,7 +119,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
             </TooltipWrapper>
           </div>
 
-          {(product.new || product.is_new) && (
+          {isProductNew(product) && (
             <Badge className="absolute bottom-2 right-2 md:bottom-3 md:right-3 bg-primary text-primary-foreground border-none shadow-lg text-xs px-2 py-1">
               Nouveau
             </Badge>

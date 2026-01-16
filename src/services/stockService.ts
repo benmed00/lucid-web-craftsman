@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Product } from "@/shared/interfaces/Iproduct.interface";
+import { Product, normalizeProducts } from "@/shared/interfaces/Iproduct.interface";
 
 export interface StockInfo {
   available: number;
@@ -369,12 +369,7 @@ export class StockService {
 
       if (error) throw error;
 
-      return data?.map(product => ({
-        ...product,
-        new: product.is_new,
-        artisanStory: product.artisan_story,
-        related: product.related_products
-      })) || [];
+      return normalizeProducts(data || []);
 
     } catch (error) {
       console.error('Error fetching low stock products:', error);
