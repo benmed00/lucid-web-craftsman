@@ -76,11 +76,13 @@ export const useCurrencyStore = create<CurrencyState>()(
 
         fetchExchangeRates: async () => {
           try {
-            // Try cache first
-            const cached = cache.get<ExchangeRates>(RATES_CACHE_KEY);
-            if (cached.data && !cached.isExpired) {
-              set({ exchangeRates: cached.data, lastUpdated: Date.now() });
-              return;
+            // Try cache first (with safety check)
+            if (cache && typeof cache.get === 'function') {
+              const cached = cache.get<ExchangeRates>(RATES_CACHE_KEY);
+              if (cached?.data && !cached.isExpired) {
+                set({ exchangeRates: cached.data, lastUpdated: Date.now() });
+                return;
+              }
             }
 
             set({ isLoading: true });
@@ -132,11 +134,14 @@ export const useCurrencyStore = create<CurrencyState>()(
               }
             };
 
-            cache.set(RATES_CACHE_KEY, newRates, {
-              ttl: CacheTTL.HOUR,
-              staleTime: CacheTTL.MEDIUM,
-              tags: [CacheTags.PROFILE]
-            });
+            // Cache the new rates (with safety check)
+            if (cache && typeof cache.set === 'function') {
+              cache.set(RATES_CACHE_KEY, newRates, {
+                ttl: CacheTTL.HOUR,
+                staleTime: CacheTTL.MEDIUM,
+                tags: [CacheTags.PROFILE]
+              });
+            }
 
             set({ exchangeRates: newRates, lastUpdated: Date.now(), isLoading: false });
           } catch (error) {
@@ -146,7 +151,9 @@ export const useCurrencyStore = create<CurrencyState>()(
         },
 
         refreshRates: async () => {
-          cache.invalidate(RATES_CACHE_KEY);
+          if (cache && typeof cache.invalidate === 'function') {
+            cache.invalidate(RATES_CACHE_KEY);
+          }
           await get().fetchExchangeRates();
         },
 

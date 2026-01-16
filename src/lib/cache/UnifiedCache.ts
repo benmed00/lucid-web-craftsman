@@ -31,7 +31,8 @@ class UnifiedCacheManager {
   private cache = new Map<string, CacheEntry<unknown>>();
   private config: Required<CacheConfig>;
   private stats = { hits: 0, misses: 0 };
-  private cleanupInterval: number | null = null;
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
+  private initialized = false;
 
   constructor(config: CacheConfig = {}) {
     this.config = {
@@ -41,8 +42,11 @@ class UnifiedCacheManager {
       onEvict: config.onEvict ?? (() => {}),
     };
 
-    // Start periodic cleanup
-    this.startCleanup();
+    // Start periodic cleanup only in browser environment
+    if (typeof window !== 'undefined') {
+      this.startCleanup();
+      this.initialized = true;
+    }
   }
 
   /**
@@ -256,10 +260,12 @@ class UnifiedCacheManager {
   }
 
   private startCleanup(): void {
-    // Cleanup every 5 minutes
-    this.cleanupInterval = window.setInterval(() => {
-      this.cleanup();
-    }, 5 * 60 * 1000);
+    // Cleanup every 5 minutes - only in browser environment
+    if (typeof window !== 'undefined' && typeof setInterval !== 'undefined') {
+      this.cleanupInterval = setInterval(() => {
+        this.cleanup();
+      }, 5 * 60 * 1000);
+    }
   }
 
   /**
