@@ -16,25 +16,44 @@ import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Maintenance from "./pages/Maintenance";
 
-// Non-critical pages lazy loaded
-const About = lazy(() => import("./pages/About"));
-const Blog = lazy(() => import("./pages/Blog"));
-const BlogPost = lazy(() => import("./pages/BlogPost"));
-const CGV = lazy(() => import("./pages/CGV"));
-const Cart = lazy(() => import("./pages/Cart"));
-const Checkout = lazy(() => import("./pages/Checkout"));
-const Contact = lazy(() => import("./pages/Contact"));
-const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
-const Wishlist = lazy(() => import("./pages/Wishlist"));
-const FAQ = lazy(() => import("./pages/FAQ"));
-const Auth = lazy(() => import("./pages/Auth"));
-const EnhancedProfile = lazy(() => import("./pages/EnhancedProfile"));
-const OrderHistory = lazy(() => import("./pages/OrderHistory"));
-const Returns = lazy(() => import("./pages/Returns"));
-const Shipping = lazy(() => import("./pages/Shipping"));
-const Story = lazy(() => import("./pages/Story"));
-const Terms = lazy(() => import("./pages/Terms"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+// Helper for resilient lazy loading with retry and reload fallback
+const lazyWithRetry = (importFn: () => Promise<{ default: React.ComponentType<any> }>) => {
+  return lazy(async () => {
+    try {
+      return await importFn();
+    } catch (error) {
+      // Check if it's a chunk loading error
+      if (error instanceof Error && error.message.includes('Failed to fetch dynamically imported module')) {
+        // Clear any cached modules and reload the page
+        console.warn('Chunk loading failed, reloading page...');
+        window.location.reload();
+        // Return a placeholder while reloading
+        return { default: () => null };
+      }
+      throw error;
+    }
+  });
+};
+
+// Non-critical pages lazy loaded with retry logic
+const About = lazyWithRetry(() => import("./pages/About"));
+const Blog = lazyWithRetry(() => import("./pages/Blog"));
+const BlogPost = lazyWithRetry(() => import("./pages/BlogPost"));
+const CGV = lazyWithRetry(() => import("./pages/CGV"));
+const Cart = lazyWithRetry(() => import("./pages/Cart"));
+const Checkout = lazyWithRetry(() => import("./pages/Checkout"));
+const Contact = lazyWithRetry(() => import("./pages/Contact"));
+const PaymentSuccess = lazyWithRetry(() => import("./pages/PaymentSuccess"));
+const Wishlist = lazyWithRetry(() => import("./pages/Wishlist"));
+const FAQ = lazyWithRetry(() => import("./pages/FAQ"));
+const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const EnhancedProfile = lazyWithRetry(() => import("./pages/EnhancedProfile"));
+const OrderHistory = lazyWithRetry(() => import("./pages/OrderHistory"));
+const Returns = lazyWithRetry(() => import("./pages/Returns"));
+const Shipping = lazyWithRetry(() => import("./pages/Shipping"));
+const Story = lazyWithRetry(() => import("./pages/Story"));
+const Terms = lazyWithRetry(() => import("./pages/Terms"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 // Essential context providers (Auth only - Cart/Wishlist/Currency/Theme migrated to Zustand)
 import { AuthProvider } from "@/context/AuthContext";
