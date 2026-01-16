@@ -72,8 +72,13 @@ export function useCompanySettings() {
         }
 
         if (data?.setting_value) {
-          const fetchedSettings = data.setting_value as unknown as Partial<CompanySettings>;
-          const mergedSettings = {
+          // Type guard for setting_value from Supabase Json type
+          const rawValue = data.setting_value;
+          const fetchedSettings: Partial<CompanySettings> =
+            typeof rawValue === 'object' && rawValue !== null && !Array.isArray(rawValue)
+              ? (rawValue as Partial<CompanySettings>)
+              : {};
+          const mergedSettings: CompanySettings = {
             ...DEFAULT_COMPANY_SETTINGS,
             ...fetchedSettings,
             address: {

@@ -1,6 +1,14 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+
+// Typed audit log details - extend as needed for specific actions
+export interface AuditLogDetails {
+  description?: string;
+  previousValue?: unknown;
+  newValue?: unknown;
+  metadata?: Record<string, unknown>;
+  [key: string]: unknown;
+}
 
 export interface AuditLogEntry {
   id?: string;
@@ -8,7 +16,7 @@ export interface AuditLogEntry {
   action: string;
   entity_type: string;
   entity_id?: string;
-  details?: any;
+  details?: AuditLogDetails;
   ip_address?: string;
   user_agent?: string;
   created_at?: string;
@@ -22,7 +30,7 @@ export const useAuditLog = () => {
     action: string,
     entityType: string,
     entityId?: string,
-    details?: any
+    details?: AuditLogDetails
   ) => {
     if (!user) return;
 

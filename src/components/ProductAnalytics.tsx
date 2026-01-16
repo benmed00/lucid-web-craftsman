@@ -35,14 +35,19 @@ interface ProductAnalyticsProps {
   cacheStats?: CacheStats;
 }
 
-interface ProductPerformance {
-  mostViewed: Array<{ id: number; name: string; views: number }>;
-  bestConverting: Array<{ id: number; name: string; conversion: number }>;
-  trending: Array<{ id: number; name: string; trend: number }>;
+// Typed metadata from audit logs
+interface SearchLogMetadata {
+  description?: string;
+  metadata?: {
+    resultCount?: number;
+    filters?: Record<string, unknown>;
+  };
 }
 
+type TimeRangeOption = '24h' | '7d' | '30d';
+
 export const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ cacheStats }) => {
-  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('7d');
+  const [timeRange, setTimeRange] = useState<TimeRangeOption>('7d');
 
   // Fetch search analytics
   const { data: searchAnalytics, isLoading: searchLoading } = useOptimizedData(
@@ -64,37 +69,36 @@ export const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ cacheStats }
       // Process analytics
       const searchTerms = new Map<string, number>();
       const filterUsage = new Map<string, number>();
-      const hourlyDistribution = new Array(24).fill(0);
-      
+      const hourlyDistribution = new Array(24).fill(0) as number[];
+
       let totalResults = 0;
       let searchesToCart = 0;
 
-      searchLogs?.forEach(log => {
+      searchLogs?.forEach((log) => {
         try {
-          const metadata = log.new_values as any;
+          const metadata = log.new_values as SearchLogMetadata | null;
           const searchQuery = metadata?.description?.match(/"([^"]+)"/)?.[1];
-          
+
           if (searchQuery) {
             searchTerms.set(searchQuery, (searchTerms.get(searchQuery) || 0) + 1);
           }
-          
+
           if (metadata?.metadata?.resultCount) {
             totalResults += metadata.metadata.resultCount;
           }
-          
+
           // Track filter usage
           const filters = metadata?.metadata?.filters || {};
-          Object.keys(filters).forEach(filter => {
+          Object.keys(filters).forEach((filter) => {
             if (filters[filter] && filter !== 'searchQuery') {
               filterUsage.set(filter, (filterUsage.get(filter) || 0) + 1);
             }
           });
-          
+
           // Track hourly distribution
-          const hour = new Date(log.created_at).getHours();
+          const hour = new Date(log.created_at || '').getHours();
           hourlyDistribution[hour]++;
-          
-        } catch (error) {
+        } catch {
           // Silent error handling for production
         }
       });
@@ -192,14 +196,14 @@ export const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ cacheStats }
     <div className="space-y-6">
       {/* Time Range Selector */}
       <div className="flex gap-2">
-        {[
+        {([
           { key: '24h', label: '24h' },
           { key: '7d', label: '7 jours' },
-          { key: '30d', label: '30 jours' }
-        ].map((option) => (
+          { key: '30d', label: '30 jours' },
+        ] as const).map((option) => (
           <button
             key={option.key}
-            onClick={() => setTimeRange(option.key as any)}
+            onClick={() => setTimeRange(option.key)}
             className={`px-3 py-1 rounded-md text-sm ${
               timeRange === option.key
                 ? 'bg-primary text-primary-foreground'

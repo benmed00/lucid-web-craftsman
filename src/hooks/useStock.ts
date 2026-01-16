@@ -7,26 +7,23 @@ export interface UseStockOptions {
   enabled?: boolean;
 }
 
+// Base return type
+interface UseStockReturn<T> {
+  stockInfo: T;
+  loading: boolean;
+  error: string | null;
+  canOrderQuantity: (productId: number, quantity: number) => Promise<{ canOrder: boolean; reason?: string }>;
+  reserveStock: (items: Array<{ productId: number; quantity: number }>) => Promise<{ success: boolean; errors?: Array<{ productId: number; error: string }> }>;
+  updateStock: (update: { productId: number; quantity: number; type: 'add' | 'remove' | 'set'; reason?: string }) => Promise<void>;
+}
+
 // Overloads for different usage patterns
-export function useStock(options: { productId: number; enabled?: boolean }): {
-  stockInfo: StockInfo | null;
-  loading: boolean;
-  error: string | null;
-  canOrderQuantity: (productId: number, quantity: number) => Promise<{ canOrder: boolean; reason?: string }>;
-  reserveStock: (items: Array<{ productId: number; quantity: number }>) => Promise<{ success: boolean; errors?: Array<{ productId: number; error: string }> }>;
-  updateStock: (update: { productId: number; quantity: number; type: 'add' | 'remove' | 'set'; reason?: string }) => Promise<void>;
-};
+export function useStock(options: { productId: number; enabled?: boolean }): UseStockReturn<StockInfo | null>;
+export function useStock(options: { productIds: number[]; enabled?: boolean }): UseStockReturn<Record<number, StockInfo>>;
+export function useStock(options?: UseStockOptions): UseStockReturn<StockInfo | Record<number, StockInfo> | null>;
 
-export function useStock(options: { productIds: number[]; enabled?: boolean }): {
-  stockInfo: Record<number, StockInfo>;
-  loading: boolean;
-  error: string | null;
-  canOrderQuantity: (productId: number, quantity: number) => Promise<{ canOrder: boolean; reason?: string }>;
-  reserveStock: (items: Array<{ productId: number; quantity: number }>) => Promise<{ success: boolean; errors?: Array<{ productId: number; error: string }> }>;
-  updateStock: (update: { productId: number; quantity: number; type: 'add' | 'remove' | 'set'; reason?: string }) => Promise<void>;
-};
-
-export function useStock(options: UseStockOptions = {}): any {
+// Implementation
+export function useStock(options: UseStockOptions = {}): UseStockReturn<StockInfo | Record<number, StockInfo> | null> {
   const [stockInfo, setStockInfo] = useState<StockInfo | Record<number, StockInfo> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
