@@ -578,7 +578,7 @@ const AdminErrorReports: React.FC = () => {
 
       {/* Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Error Report Details</DialogTitle>
           </DialogHeader>
@@ -765,7 +765,7 @@ const AdminErrorReports: React.FC = () => {
 
       {/* Screenshot Zoom Modal */}
       <Dialog open={showScreenshotModal} onOpenChange={setShowScreenshotModal}>
-        <DialogContent className="max-w-[90vw] max-h-[90vh] p-2">
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-2" aria-describedby={undefined}>
           <DialogHeader className="sr-only">
             <DialogTitle>Capture d'écran</DialogTitle>
           </DialogHeader>

@@ -76,7 +76,7 @@ export const NativeShare = ({ title, text, url, isOpen, onClose }: NativeSharePr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-sm mx-auto">
+      <DialogContent className="max-w-sm mx-auto" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="text-center">Partager ce produit</DialogTitle>
         </DialogHeader>

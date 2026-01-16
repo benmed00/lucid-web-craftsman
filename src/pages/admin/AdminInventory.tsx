@@ -314,7 +314,7 @@ const AdminInventory = () => {
 
       {/* Edit Stock Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Modifier le Stock</DialogTitle>
           </DialogHeader>
