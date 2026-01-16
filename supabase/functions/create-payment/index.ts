@@ -159,7 +159,31 @@ serve(async (req) => {
       }
     }
 
-    logStep("Received order data", { itemCount: items.length, hasDiscount: !!discount });
+    logStep("Received order data", { itemCount: items.length, hasDiscount: !!discount, discountAmount: discount?.amount });
+
+    // Create Stripe coupon if discount is applied
+    let stripeCouponId: string | null = null;
+    if (discount && discount.amount > 0) {
+      const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+        apiVersion: "2025-08-27.basil",
+      });
+      
+      try {
+        // Create a one-time use coupon in Stripe
+        const coupon = await stripe.coupons.create({
+          amount_off: Math.round(discount.amount * 100), // Convert to cents
+          currency: 'eur',
+          duration: 'once',
+          name: `Code promo: ${discount.code}`,
+          max_redemptions: 1,
+        });
+        stripeCouponId = coupon.id;
+        logStep("Stripe coupon created", { couponId: coupon.id, amountOff: discount.amount });
+      } catch (couponError) {
+        logStep("Error creating Stripe coupon", couponError);
+        // Non-fatal - continue without discount
+      }
+    }
 
     // Get authenticated user (optional for guest checkout)
     let user = null;
@@ -301,8 +325,8 @@ serve(async (req) => {
       }
     }
 
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Create checkout session with discount if applicable
+    const sessionParams: any = {
       customer: customerId,
       customer_email: customerId ? undefined : customerInfo?.email || "guest@example.com",
       customer_creation: customerId ? undefined : 'always',
@@ -318,7 +342,18 @@ serve(async (req) => {
         order_id: orderData.id,
         customer_name: customerInfo ? `${customerInfo.firstName} ${customerInfo.lastName}` : 'Guest',
         customer_phone: customerInfo?.phone || '',
+        discount_code: discount?.code || '',
+        discount_amount: discount?.amount?.toString() || '0',
       },
+    };
+
+    // Apply discount coupon if created
+    if (stripeCouponId) {
+      sessionParams.discounts = [{ coupon: stripeCouponId }];
+      logStep("Applying discount to session", { couponId: stripeCouponId });
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
     });
 
     logStep("Stripe session created", { sessionId: session.id });
