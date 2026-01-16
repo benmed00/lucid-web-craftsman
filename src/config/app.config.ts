@@ -146,3 +146,15 @@ export const FEATURES = {
   enableDevTools: ENV.isDev,
   enablePerformanceMonitoring: true,
 } as const;
+
+// Unified app configuration export
+export const APP_CONFIG = {
+  env: ENV,
+  services: EXTERNAL_SERVICES,
+  csp: CSP_CONFIG,
+  query: QUERY_CONFIG,
+  cart: CART_DEFAULTS,
+  performance: PERFORMANCE_CONFIG,
+  cache: CACHE_CONFIG,
+  features: FEATURES,
+} as const;

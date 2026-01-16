@@ -1,10 +1,13 @@
 // src/stores/currencyStore.ts
 // Zustand store for currency management with exchange rates
+// Uses centralized API client for consistent error handling
 
 import { create } from 'zustand';
 import { persist, devtools } from 'zustand/middleware';
 import { safeGetItem, safeSetItem, StorageKeys, StorageTTL } from '@/lib/storage/safeStorage';
 import { cache, CacheTTL, CacheTags } from '@/lib/cache/UnifiedCache';
+import { currencyApi } from '@/lib/api/apiClient';
+import { handleError, NetworkError } from '@/lib/errors/AppError';
 
 // ============= Types =============
 export type Currency = 'EUR' | 'USD' | 'GBP' | 'MAD';
@@ -87,18 +90,10 @@ export const useCurrencyStore = create<CurrencyState>()(
 
             set({ isLoading: true });
 
-            // Use frankfurter.app - a free, open-source API with no key required
-            const response = await fetch(
-              'https://api.frankfurter.app/latest?from=EUR&to=USD,GBP'
-            );
-
-            if (!response.ok) {
-              // Fall back to default rates silently
-              set({ isLoading: false, lastUpdated: Date.now() });
-              return;
-            }
-
-            const data = await response.json();
+            // Use centralized API client for consistent error handling
+            const data = await currencyApi.get<{
+              rates?: { USD?: number; GBP?: number };
+            }>('/latest?from=EUR&to=USD,GBP');
             
             // Frankfurter API returns { rates: { USD: x, GBP: y } }
             if (!data.rates) {
@@ -145,7 +140,15 @@ export const useCurrencyStore = create<CurrencyState>()(
 
             set({ exchangeRates: newRates, lastUpdated: Date.now(), isLoading: false });
           } catch (error) {
-            // Silently fall back to default rates - no need to log as user-facing error
+            // Convert to AppError for consistent handling, but don't display to user
+            const appError = handleError(error);
+            
+            // Log network errors for monitoring (could be sent to analytics)
+            if (appError instanceof NetworkError) {
+              console.debug('Currency fetch failed, using defaults:', appError.code);
+            }
+            
+            // Silently fall back to default rates
             set({ isLoading: false, lastUpdated: Date.now() });
           }
         },

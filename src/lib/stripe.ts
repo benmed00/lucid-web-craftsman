@@ -1,4 +1,8 @@
 // Stripe configuration for the frontend
+// Uses centralized API client for consistent error handling
+
+import { apiClient } from '@/lib/api/apiClient';
+import { handleError, BusinessError } from '@/lib/errors/AppError';
 
 // Types
 export interface StripeCartItem {
@@ -26,6 +30,7 @@ export interface StripePaymentResult {
   success: boolean;
   url?: string;
   error?: string;
+  errorCode?: string;
 }
 
 // Extend Window interface for global Stripe key
@@ -52,22 +57,98 @@ export const formatPrice = (amount: number): string => {
   return formatter.format(amount);
 };
 
+// Validate cart items before payment
+function validateCartItems(items: StripeCartItem[]): void {
+  if (!items || items.length === 0) {
+    throw new BusinessError('Le panier est vide', 'EMPTY_CART');
+  }
+
+  for (const item of items) {
+    if (item.quantity <= 0) {
+      throw new BusinessError(
+        `Quantité invalide pour ${item.name}`,
+        'INVALID_QUANTITY',
+        { productId: item.id }
+      );
+    }
+    if (item.price <= 0) {
+      throw new BusinessError(
+        `Prix invalide pour ${item.name}`,
+        'INVALID_PRICE',
+        { productId: item.id }
+      );
+    }
+  }
+}
+
+// Validate customer info
+function validateCustomerInfo(customerInfo: StripeCustomerInfo): void {
+  if (!customerInfo.email || !customerInfo.email.includes('@')) {
+    throw new BusinessError('Email invalide', 'INVALID_EMAIL');
+  }
+  if (!customerInfo.firstName?.trim()) {
+    throw new BusinessError('Prénom requis', 'MISSING_FIRST_NAME');
+  }
+  if (!customerInfo.lastName?.trim()) {
+    throw new BusinessError('Nom requis', 'MISSING_LAST_NAME');
+  }
+}
+
 // Initialize Stripe payment
 export const initializeStripePayment = async (
   items: StripeCartItem[],
   customerInfo: StripeCustomerInfo
 ): Promise<StripePaymentResult> => {
   try {
-    const response = await fetch('/api/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items, customerInfo }),
-    });
+    // Validate inputs before API call
+    validateCartItems(items);
+    validateCustomerInfo(customerInfo);
 
-    const data = await response.json();
+    // Use centralized API client for consistent error handling
+    const data = await apiClient.post<{ url: string; sessionId?: string }>(
+      '/api/create-checkout-session',
+      { items, customerInfo }
+    );
+
+    if (!data.url) {
+      throw new BusinessError(
+        'URL de paiement non reçue',
+        'MISSING_CHECKOUT_URL'
+      );
+    }
+
     return { url: data.url, success: true };
   } catch (error) {
-    console.error('Error initializing payment:', error);
-    return { success: false, error: 'Payment initialization failed' };
+    const appError = handleError(error);
+    
+    console.error('Payment initialization failed:', {
+      code: appError.code,
+      message: appError.message,
+      context: appError.context,
+    });
+
+    return {
+      success: false,
+      error: appError.message,
+      errorCode: appError.code,
+    };
+  }
+};
+
+// Verify payment status
+export const verifyPaymentStatus = async (
+  sessionId: string
+): Promise<{ status: 'success' | 'pending' | 'failed'; orderId?: string }> => {
+  try {
+    const data = await apiClient.get<{
+      status: 'success' | 'pending' | 'failed';
+      orderId?: string;
+    }>(`/api/verify-payment?session_id=${encodeURIComponent(sessionId)}`);
+
+    return data;
+  } catch (error) {
+    const appError = handleError(error);
+    console.error('Payment verification failed:', appError.message);
+    return { status: 'failed' };
   }
 };
