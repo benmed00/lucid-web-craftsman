@@ -120,8 +120,40 @@ export class BusinessError extends AppError {
   }
 }
 
+export class DatabaseError extends AppError {
+  public readonly dbErrorCode?: string;
+
+  constructor(message: string, dbErrorCode?: string, context?: Record<string, unknown>) {
+    super(message, {
+      code: 'DATABASE_ERROR',
+      category: 'system',
+      severity: 'error',
+      context: { ...context, dbErrorCode },
+    });
+    this.name = 'DatabaseError';
+    this.dbErrorCode = dbErrorCode;
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(message: string, resource?: string) {
+    super(message, {
+      code: 'NOT_FOUND',
+      category: 'business',
+      severity: 'warning',
+      context: { resource },
+    });
+    this.name = 'NotFoundError';
+  }
+}
+
 // Error handler utility
-export function handleError(error: unknown): AppError {
+export function handleError(error: unknown, context?: string): AppError {
+  // Log error with context if provided
+  if (context) {
+    console.error(`[${context}]`, error);
+  }
+
   if (error instanceof AppError) {
     return error;
   }

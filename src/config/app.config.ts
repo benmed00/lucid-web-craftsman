@@ -136,6 +136,7 @@ export const CACHE_CONFIG = {
   staticAssets: 'public, max-age=31536000, immutable',
   html: 'no-cache, no-store, must-revalidate',
   serviceWorker: 'no-cache, no-store, must-revalidate',
+  apiResponseTTL: 5 * 60 * 1000, // 5 minutes in ms
 } as const;
 
 // Feature flags

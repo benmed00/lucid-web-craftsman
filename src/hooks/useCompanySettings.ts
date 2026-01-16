@@ -1,5 +1,12 @@
-import { useState, useEffect } from 'react';
+/**
+ * Company Settings Hook
+ * Fetches and caches company settings from the database
+ */
+
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { handleError, DatabaseError } from '@/lib/errors/AppError';
+import { APP_CONFIG } from '@/config';
 
 export interface CompanyAddress {
   street: string;
@@ -44,14 +51,38 @@ const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
 // Cache for company settings
 let cachedSettings: CompanySettings | null = null;
 let cacheTimestamp = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = APP_CONFIG.cache.apiResponseTTL;
+
+const SETTINGS_KEY = 'company_settings';
 
 export function useCompanySettings() {
   const [settings, setSettings] = useState<CompanySettings>(cachedSettings || DEFAULT_COMPANY_SETTINGS);
   const [isLoading, setIsLoading] = useState(!cachedSettings);
   const [error, setError] = useState<string | null>(null);
 
+  const parseSettings = useCallback((rawValue: unknown): CompanySettings => {
+    const fetchedSettings: Partial<CompanySettings> =
+      typeof rawValue === 'object' && rawValue !== null && !Array.isArray(rawValue)
+        ? (rawValue as Partial<CompanySettings>)
+        : {};
+
+    return {
+      ...DEFAULT_COMPANY_SETTINGS,
+      ...fetchedSettings,
+      address: {
+        ...DEFAULT_COMPANY_SETTINGS.address,
+        ...(fetchedSettings.address || {}),
+      },
+      openingHours: {
+        ...DEFAULT_COMPANY_SETTINGS.openingHours,
+        ...(fetchedSettings.openingHours || {}),
+      },
+    };
+  }, []);
+
   useEffect(() => {
+    let isMounted = true;
+
     const fetchSettings = async () => {
       // Use cache if valid
       if (cachedSettings && Date.now() - cacheTimestamp < CACHE_DURATION) {
@@ -64,53 +95,41 @@ export function useCompanySettings() {
         const { data, error: fetchError } = await supabase
           .from('app_settings')
           .select('setting_value')
-          .eq('setting_key', 'company_settings')
+          .eq('setting_key', SETTINGS_KEY)
           .maybeSingle();
 
+        if (!isMounted) return;
+
         if (fetchError && fetchError.code !== 'PGRST116') {
-          throw fetchError;
+          throw new DatabaseError(`Failed to fetch company settings: ${fetchError.message}`, fetchError.code);
         }
 
-        if (data?.setting_value) {
-          // Type guard for setting_value from Supabase Json type
-          const rawValue = data.setting_value;
-          const fetchedSettings: Partial<CompanySettings> =
-            typeof rawValue === 'object' && rawValue !== null && !Array.isArray(rawValue)
-              ? (rawValue as Partial<CompanySettings>)
-              : {};
-          const mergedSettings: CompanySettings = {
-            ...DEFAULT_COMPANY_SETTINGS,
-            ...fetchedSettings,
-            address: {
-              ...DEFAULT_COMPANY_SETTINGS.address,
-              ...(fetchedSettings.address || {}),
-            },
-            openingHours: {
-              ...DEFAULT_COMPANY_SETTINGS.openingHours,
-              ...(fetchedSettings.openingHours || {}),
-            },
-          };
-          
-          cachedSettings = mergedSettings;
-          cacheTimestamp = Date.now();
-          setSettings(mergedSettings);
-        } else {
-          // No settings found, use defaults
-          cachedSettings = DEFAULT_COMPANY_SETTINGS;
-          cacheTimestamp = Date.now();
+        const mergedSettings = data?.setting_value 
+          ? parseSettings(data.setting_value)
+          : DEFAULT_COMPANY_SETTINGS;
+        
+        cachedSettings = mergedSettings;
+        cacheTimestamp = Date.now();
+        setSettings(mergedSettings);
+      } catch (err) {
+        handleError(err, 'useCompanySettings.fetchSettings');
+        if (isMounted) {
+          setError('Erreur lors du chargement des paramètres');
           setSettings(DEFAULT_COMPANY_SETTINGS);
         }
-      } catch (err) {
-        console.error('Error fetching company settings:', err);
-        setError('Erreur lors du chargement des paramètres');
-        setSettings(DEFAULT_COMPANY_SETTINGS);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchSettings();
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [parseSettings]);
 
   return { settings, isLoading, error };
 }

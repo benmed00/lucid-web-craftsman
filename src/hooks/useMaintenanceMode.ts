@@ -1,5 +1,11 @@
-import { useState, useEffect } from "react";
+/**
+ * Maintenance Mode Hook
+ * Checks and subscribes to maintenance mode status
+ */
+
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { handleError, DatabaseError } from "@/lib/errors/AppError";
 
 interface DisplaySettings {
   maintenanceMode?: boolean;
@@ -10,45 +16,65 @@ interface DisplaySettings {
   showPrices?: boolean;
 }
 
-export const useMaintenanceMode = () => {
-  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
-  const [maintenanceReturnTime, setMaintenanceReturnTime] = useState<string | null>(null);
-  const [maintenanceMessage, setMaintenanceMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+interface MaintenanceModeState {
+  isMaintenanceMode: boolean;
+  maintenanceReturnTime: string | null;
+  maintenanceMessage: string | null;
+  isLoading: boolean;
+}
+
+const SETTINGS_KEY = 'display_settings';
+
+export const useMaintenanceMode = (): MaintenanceModeState => {
+  const [state, setState] = useState<MaintenanceModeState>({
+    isMaintenanceMode: false,
+    maintenanceReturnTime: null,
+    maintenanceMessage: null,
+    isLoading: true,
+  });
+
+  const updateFromSettings = useCallback((settings: DisplaySettings | null) => {
+    setState(prev => ({
+      ...prev,
+      isMaintenanceMode: settings?.maintenanceMode ?? false,
+      maintenanceReturnTime: settings?.maintenanceReturnTime ?? null,
+      maintenanceMessage: settings?.maintenanceMessage ?? null,
+    }));
+  }, []);
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkMaintenanceMode = async () => {
       try {
-        console.log('Checking maintenance mode...');
         const { data, error } = await supabase
           .from('app_settings')
           .select('setting_value')
-          .eq('setting_key', 'display_settings')
+          .eq('setting_key', SETTINGS_KEY)
           .maybeSingle();
 
-        console.log('Maintenance mode data:', data, 'error:', error);
+        if (!isMounted) return;
 
         if (error && error.code !== 'PGRST116') {
-          console.error('Error checking maintenance mode:', error);
+          throw new DatabaseError(`Failed to check maintenance mode: ${error.message}`, error.code);
         }
 
         if (data?.setting_value) {
           const settings = data.setting_value as unknown as DisplaySettings;
-          console.log('Maintenance mode setting:', settings?.maintenanceMode);
-          setIsMaintenanceMode(settings?.maintenanceMode ?? false);
-          setMaintenanceReturnTime(settings?.maintenanceReturnTime ?? null);
-          setMaintenanceMessage(settings?.maintenanceMessage ?? null);
+          updateFromSettings(settings);
         }
       } catch (error) {
-        console.error('Error checking maintenance mode:', error);
+        handleError(error, 'useMaintenanceMode.checkMaintenanceMode');
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setState(prev => ({ ...prev, isLoading: false }));
+        }
       }
     };
 
     checkMaintenanceMode();
 
-    // Subscribe to changes
+    // Subscribe to realtime changes
     const channel = supabase
       .channel('maintenance-mode')
       .on(
@@ -57,23 +83,22 @@ export const useMaintenanceMode = () => {
           event: '*',
           schema: 'public',
           table: 'app_settings',
-          filter: 'setting_key=eq.display_settings'
+          filter: `setting_key=eq.${SETTINGS_KEY}`
         },
         (payload) => {
           if (payload.new && 'setting_value' in payload.new) {
             const settings = payload.new.setting_value as unknown as DisplaySettings;
-            setIsMaintenanceMode(settings?.maintenanceMode ?? false);
-            setMaintenanceReturnTime(settings?.maintenanceReturnTime ?? null);
-            setMaintenanceMessage(settings?.maintenanceMessage ?? null);
+            updateFromSettings(settings);
           }
         }
       )
       .subscribe();
 
     return () => {
+      isMounted = false;
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [updateFromSettings]);
 
-  return { isMaintenanceMode, maintenanceReturnTime, maintenanceMessage, isLoading };
+  return state;
 };
