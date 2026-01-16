@@ -1,6 +1,6 @@
 import { Share, Copy, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
 
@@ -76,9 +76,10 @@ export const NativeShare = ({ title, text, url, isOpen, onClose }: NativeSharePr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-sm mx-auto" aria-describedby={undefined}>
+      <DialogContent className="max-w-sm mx-auto">
         <DialogHeader>
           <DialogTitle className="text-center">Partager ce produit</DialogTitle>
+          <DialogDescription className="text-center">Choisissez comment partager ce produit</DialogDescription>
         </DialogHeader>
         
         <div className="space-y-3 py-4">
