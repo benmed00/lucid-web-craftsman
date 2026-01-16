@@ -13,6 +13,7 @@ import { Package2, Search, Eye, RefreshCw, DollarSign, ShoppingCart, Clock, Truc
 import { toast } from "sonner";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useCurrency } from '@/stores/currencyStore';
 import { AddOrderDialog } from "@/components/admin/AddOrderDialog";
 import { ManualTestOrderStatus } from "@/components/admin/ManualTestOrderStatus";
 import { TestOrderEmailButton } from "@/components/admin/TestOrderEmailButton";
@@ -60,6 +61,7 @@ const AdminOrders = () => {
   const [pendingShippedOrder, setPendingShippedOrder] = useState<Order | null>(null);
   const [pendingDeliveredOrder, setPendingDeliveredOrder] = useState<Order | null>(null);
   const [pendingCancelledOrder, setPendingCancelledOrder] = useState<Order | null>(null);
+  const { formatPrice } = useCurrency();
 
   const fetchOrders = async () => {
     try {
@@ -345,14 +347,14 @@ const AdminOrders = () => {
             {selectedOrder.order_items.map((item) => (
               <div key={item.id} className="flex justify-between">
                 <span>{item.product_snapshot?.name || 'Produit'} × {item.quantity}</span>
-                <span>{(item.total_price).toFixed(2)} €</span>
+                <span>{formatPrice(item.total_price)}</span>
               </div>
             ))}
           </div>
           <Separator />
           <div className="flex justify-between items-center">
             <span className="font-medium">Total:</span>
-            <span className="font-bold">{(selectedOrder.amount / 100).toFixed(2)} €</span>
+            <span className="font-bold">{formatPrice(selectedOrder.amount / 100)}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex-1">
@@ -472,7 +474,7 @@ const AdminOrders = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Chiffre d'affaires</p>
                 <p className="text-2xl font-bold text-primary">
-                  {(totalRevenue / 100).toFixed(2)} €
+                  {formatPrice(totalRevenue / 100)}
                 </p>
               </div>
               <Package className="h-8 w-8 text-primary" />

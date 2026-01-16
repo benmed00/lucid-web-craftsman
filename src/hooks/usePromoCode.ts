@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { validatePromoCode } from '@/utils/checkoutValidation';
 import { toast } from 'sonner';
 import { handleError, DatabaseError, ValidationError } from '@/lib/errors/AppError';
+import { useCurrency } from '@/stores/currencyStore';
 
 export interface DiscountCoupon {
   id: string;
@@ -45,6 +46,7 @@ export function usePromoCode({ subtotal }: UsePromoCodeOptions): UsePromoCodeRet
   const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState('');
+  const { formatPrice } = useCurrency();
 
   // Calculate discount amount
   const calculateDiscount = useCallback((): number => {
@@ -85,7 +87,7 @@ export function usePromoCode({ subtotal }: UsePromoCodeOptions): UsePromoCodeRet
     if (data.minimum_order_amount && subtotal < data.minimum_order_amount) {
       return { 
         isValid: false, 
-        error: `Commande minimum de ${data.minimum_order_amount.toFixed(2)} € requise` 
+        error: `Commande minimum de ${formatPrice(data.minimum_order_amount)} requise` 
       };
     }
 
