@@ -1,6 +1,7 @@
 import { Loader2, Lock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/stores/currencyStore";
 
 interface PaymentButtonProps {
   total: number;
@@ -10,6 +11,8 @@ interface PaymentButtonProps {
 }
 
 const PaymentButton = ({ total, isProcessing, onClick, disabled }: PaymentButtonProps) => {
+  const { formatPrice } = useCurrency();
+  
   return (
     <div className="space-y-4">
       <Button
@@ -30,7 +33,7 @@ const PaymentButton = ({ total, isProcessing, onClick, disabled }: PaymentButton
         ) : (
           <span className="flex items-center gap-3">
             <Lock className="h-5 w-5" />
-            Payer {total.toFixed(2)} €
+            Payer {formatPrice(total)}
           </span>
         )}
       </Button>

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { useCart } from '@/stores';
+import { useCurrency } from '@/stores/currencyStore';
 
 interface QuickReorderProps {
   userId?: string;
@@ -23,6 +24,7 @@ export const QuickReorder = ({ userId }: QuickReorderProps) => {
   const [recentItems, setRecentItems] = useState<OrderItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { addItem } = useCart();
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     loadRecentOrders();
@@ -192,7 +194,7 @@ export const QuickReorder = ({ userId }: QuickReorderProps) => {
                   </h4>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-olive-600 font-medium text-sm">
-                      {item.product.price}€
+                      {formatPrice(item.product.price)}
                     </span>
                     <Badge variant="secondary" className="text-xs px-2 py-0">
                       Qté: {item.quantity}

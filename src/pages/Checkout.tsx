@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { stockService } from "@/services/stockService";
 import { useLazyStripe } from "@/components/performance/LazyStripe";
 import { useCart } from "@/stores";
+import { useCurrency } from "@/stores/currencyStore";
 import { 
   validateCustomerInfo, 
   validateShippingAddress, 
@@ -56,6 +57,7 @@ interface FreeShippingSettings {
 const Checkout = () => {
   const { loadStripe } = useLazyStripe();
   const { cart } = useCart();
+  const { formatPrice } = useCurrency();
   const { getCsrfHeaders, regenerateToken } = useCsrfToken();
   const { rules: businessRules } = useBusinessRules();
   
@@ -969,7 +971,7 @@ const Checkout = () => {
                         </div>
                       </div>
                       <div className="text-primary font-medium">
-                        {item.product.price} €
+                        {formatPrice(item.product.price)}
                       </div>
                     </div>
                   ))}
@@ -991,7 +993,7 @@ const Checkout = () => {
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {appliedCoupon.type === 'percentage' 
                             ? `-${appliedCoupon.value}%` 
-                            : `-${appliedCoupon.value.toFixed(2)} €`}
+                            : `-${formatPrice(appliedCoupon.value)}`}
                         </p>
                       </div>
                       <Button
@@ -1047,13 +1049,13 @@ const Checkout = () => {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Sous-total</span>
-                    <span className="font-medium">{subtotal.toFixed(2)} €</span>
+                    <span className="font-medium">{formatPrice(subtotal)}</span>
                   </div>
                   
                   {discount > 0 && (
                     <div className="flex justify-between text-primary">
                       <span>Réduction</span>
-                      <span className="font-medium">-{discount.toFixed(2)} €</span>
+                      <span className="font-medium">-{formatPrice(discount)}</span>
                     </div>
                   )}
                   
@@ -1061,14 +1063,14 @@ const Checkout = () => {
                     <span className="text-muted-foreground">Frais de livraison</span>
                     {hasFreeShipping ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground line-through text-sm">{shippingCost.toFixed(2)} €</span>
+                        <span className="text-muted-foreground line-through text-sm">{formatPrice(shippingCost)}</span>
                         <span className="font-medium text-primary flex items-center gap-1">
                           <Truck className="h-3 w-3" />
                           Gratuit
                         </span>
                       </div>
                     ) : (
-                      <span className="font-medium">{shipping.toFixed(2)} €</span>
+                      <span className="font-medium">{formatPrice(shipping)}</span>
                     )}
                   </div>
                   
@@ -1076,14 +1078,14 @@ const Checkout = () => {
                   {!hasFreeShipping && freeShippingSettings.enabled && subtotal > 0 && (
                     <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded-md">
                       <Truck className="h-3 w-3 inline mr-1" />
-                      Plus que {(freeShippingSettings.amount - subtotal).toFixed(2)} € pour la livraison gratuite !
+                      Plus que {formatPrice(freeShippingSettings.amount - subtotal)} pour la livraison gratuite !
                     </div>
                   )}
                   <Separator className="my-2" />
                   <div className="flex justify-between text-lg">
                     <span className="font-medium">Total</span>
                     <span className="font-medium text-primary">
-                      {total.toFixed(2)} €
+                      {formatPrice(total)}
                     </span>
                   </div>
                 </div>
@@ -1138,7 +1140,7 @@ const Checkout = () => {
               onClick={handlePayment}
               disabled={isProcessing}
             >
-              {isProcessing ? "Traitement..." : `Payer ${total.toFixed(2)} €`}
+              {isProcessing ? "Traitement..." : `Payer ${formatPrice(total)}`}
             </Button>
           )}
         </div>

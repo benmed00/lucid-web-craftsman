@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useCart } from '@/stores';
 import { useBusinessRules } from '@/hooks/useBusinessRules';
+import { useCurrency } from '@/stores/currencyStore';
 
 import Footer from '@/components/Footer';
 import SEOHelmet from '@/components/seo/SEOHelmet';
@@ -25,6 +26,7 @@ import { RemainingSlots } from '@/components/ui/RemainingSlots';
 const Cart = () => {
   const { cart, itemCount, totalPrice, clearCart, updateItemQuantity, removeItem } = useCart();
   const { rules } = useBusinessRules();
+  const { formatPrice, currency } = useCurrency();
   const [postalCode, setPostalCode] = useState('');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const { calculation, loading: shippingLoading, loadZones } = useShipping({ postalCode, orderAmount: totalPrice });
@@ -364,11 +366,11 @@ const Cart = () => {
                       <div className="text-left sm:text-right w-full sm:w-auto">
                         <p 
                           className="font-medium text-foreground text-base md:text-lg"
-                          aria-label={`Prix total: ${(item.product.price * item.quantity).toFixed(2)} euros`}
+                          aria-label={`Prix total: ${formatPrice(item.product.price * item.quantity)}`}
                         >
-                          {(item.product.price * item.quantity).toFixed(2)} €
+                          {formatPrice(item.product.price * item.quantity)}
                         </p>
-                        <p className="text-xs md:text-sm text-muted-foreground">{item.product.price.toFixed(2)} € l'unité</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{formatPrice(item.product.price)} l'unité</p>
                       </div>
                     </div>
                   </CardContent>
@@ -386,14 +388,14 @@ const Cart = () => {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span>Sous-total</span>
-                    <span>{subtotal.toFixed(2)} €</span>
+                    <span>{formatPrice(subtotal)}</span>
                   </div>
                   
                   {calculation && (
                     <>
                       <div className="flex justify-between">
                         <span>Livraison</span>
-                        <span>{calculation.is_free ? 'Gratuit' : `${calculation.cost.toFixed(2)} €`}</span>
+                        <span>{calculation.is_free ? 'Gratuit' : formatPrice(calculation.cost)}</span>
                       </div>
                       <div className="flex justify-between text-sm text-muted-foreground">
                         <span>Délai de livraison</span>
@@ -405,7 +407,7 @@ const Cart = () => {
                   <div className="border-t pt-3">
                     <div className="flex justify-between font-medium text-lg">
                       <span>Total</span>
-                      <span>{total.toFixed(2)} €</span>
+                      <span>{formatPrice(total)}</span>
                     </div>
                   </div>
                 </div>
@@ -452,7 +454,7 @@ const Cart = () => {
                     {/* Mobile Payment Buttons */}
                     <MobilePaymentButtons
                       amount={total}
-                      currency="EUR"
+                      currency={currency}
                       onPaymentSuccess={handlePaymentSuccess}
                       onPaymentError={handlePaymentError}
                       disabled={isCheckingOut || stockIssues.length > 0}
@@ -467,7 +469,7 @@ const Cart = () => {
                 <TooltipWrapper 
                   content={stockIssues.length > 0 
                     ? "Veuillez corriger les problèmes de stock avant de continuer" 
-                    : `Procéder au paiement pour ${total.toFixed(2)} €`
+                    : `Procéder au paiement pour ${formatPrice(total)}`
                   }
                 >
                   <Link to="/checkout">

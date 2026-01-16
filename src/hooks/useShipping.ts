@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { shippingService, ShippingCalculation, ShippingZone } from '@/services/shippingService';
+import { useCurrency } from '@/stores/currencyStore';
 
 export interface UseShippingOptions {
   postalCode?: string;
@@ -12,6 +13,7 @@ export const useShipping = (options: UseShippingOptions = {}) => {
   const [zones, setZones] = useState<ShippingZone[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { formatPrice } = useCurrency();
 
   const { postalCode, orderAmount = 0, enabled = true } = options;
 
@@ -70,10 +72,10 @@ export const useShipping = (options: UseShippingOptions = {}) => {
         return `🚚 Livraison gratuite • ${delivery_estimate}`;
       }
     } else {
-      let message = `🚚 Livraison: ${cost.toFixed(2)}€ • ${delivery_estimate}`;
+      let message = `🚚 Livraison: ${formatPrice(cost)} • ${delivery_estimate}`;
       
       if (savings && savings > 0) {
-        message += ` • Plus que ${savings.toFixed(2)}€ pour la livraison gratuite !`;
+        message += ` • Plus que ${formatPrice(savings)} pour la livraison gratuite !`;
       }
       
       return message;
