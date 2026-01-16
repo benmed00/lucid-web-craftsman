@@ -28,11 +28,13 @@ import {
   ExternalLink
 } from "lucide-react";
 import { ProductService } from "@/services/productService";
+import { useCurrency } from "@/stores/currencyStore";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
 const AdminProductCatalog = () => {
+  const { formatPrice } = useCurrency();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,7 +71,7 @@ const AdminProductCatalog = () => {
       id: p.id,
       name: p.name,
       category: p.category,
-      price: `${p.price}€`,
+      price: formatPrice(p.price),
       artisan: p.artisan,
       material: p.material || 'Non spécifié',
       color: p.color || 'Non spécifié',
