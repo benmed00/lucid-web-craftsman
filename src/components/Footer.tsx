@@ -1,7 +1,11 @@
 import { Leaf } from "lucide-react";
 import { ErrorReportButton } from "./ui/ErrorReportButton";
+import { useTranslation } from "react-i18next";
 
 const Footer = () => {
+  const { t } = useTranslation('common');
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer className="bg-card text-card-foreground border-t border-border py-8 sm:py-12">
       <div className="container mx-auto px-4">
@@ -10,44 +14,44 @@ const Footer = () => {
             <div className="flex items-center space-x-2 mb-4">
               <Leaf className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               <span className="font-serif text-lg sm:text-xl font-medium">
-                Rif Raw Straw
+                {t('brand.name')}
               </span>
             </div>
             <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
-              Sacs et chapeaux artisanaux confectionnés avec des matériaux durables et des techniques traditionnelles berbères.
+              {t('footer.aboutText')}
             </p>
           </div>
           
           <div>
             <h3 className="font-serif text-base sm:text-lg font-medium mb-3 sm:mb-4">
-              Boutique
+              {t('nav.shop')}
             </h3>
             <ul className="space-y-1.5 sm:space-y-2" role="list">
               <li>
                 <a 
                   href="/products" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
-                  aria-label="Tous les produits - Voir tous nos produits artisanaux"
+                  aria-label={t('footer.allProductsAria')}
                 >
-                  Tous les produits
+                  {t('footer.allProducts')}
                 </a>
               </li>
               <li>
                 <a 
                   href="/products?category=Sacs" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
-                  aria-label="Découvrir notre collection de sacs"
+                  aria-label={t('footer.bagsAria')}
                 >
-                  Sacs
+                  {t('footer.bags')}
                 </a>
               </li>
               <li>
                 <a 
                   href="/products?category=Chapeaux" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
-                  aria-label="Découvrir notre collection de chapeaux"
+                  aria-label={t('footer.hatsAria')}
                 >
-                  Chapeaux
+                  {t('footer.hats')}
                 </a>
               </li>
             </ul>
@@ -55,25 +59,25 @@ const Footer = () => {
           
           <div>
             <h3 className="font-serif text-base sm:text-lg font-medium mb-3 sm:mb-4">
-              À propos
+              {t('footer.about')}
             </h3>
             <ul className="space-y-1.5 sm:space-y-2" role="list">
               <li>
                 <a 
                   href="/about" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
-                  aria-label="En savoir plus sur notre histoire et nos valeurs"
+                  aria-label={t('footer.storyAria')}
                 >
-                  Notre histoire
+                  {t('footer.story')}
                 </a>
               </li>
               <li>
                 <a 
                   href="/blog" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
-                  aria-label="Lire nos articles de blog sur l'artisanat"
+                  aria-label={t('footer.blogAria')}
                 >
-                  Blog
+                  {t('nav.blog')}
                 </a>
               </li>
             </ul>
@@ -81,43 +85,43 @@ const Footer = () => {
           
           <div>
             <h3 className="font-serif text-base sm:text-lg font-medium mb-3 sm:mb-4">
-              Aide
+              {t('footer.help')}
             </h3>
             <ul className="space-y-1.5 sm:space-y-2" role="list">
               <li>
                 <a 
                   href="/contact" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
-                  aria-label="Nous contacter pour toute question"
+                  aria-label={t('footer.contactAria')}
                 >
-                  Contact
+                  {t('nav.contact')}
                 </a>
               </li>
               <li>
                 <a 
                   href="/shipping" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
-                  aria-label="Informations sur la livraison"
+                  aria-label={t('footer.shippingAria')}
                 >
-                  Livraison
+                  {t('footer.shipping')}
                 </a>
               </li>
               <li>
                 <a 
                   href="/faq" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
-                  aria-label="FAQ - Questions fréquemment posées"
+                  aria-label={t('footer.faqAria')}
                 >
-                  FAQ
+                  {t('footer.faq')}
                 </a>
               </li>
               <li>
                 <a 
                   href="/cgv" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
-                  aria-label="CGV - Lire nos conditions générales de vente"
+                  aria-label={t('footer.cgvAria')}
                 >
-                  CGV
+                  {t('footer.cgv')}
                 </a>
               </li>
             </ul>
@@ -125,7 +129,7 @@ const Footer = () => {
         </div>
         
         <div className="border-t border-border mt-8 sm:mt-12 pt-4 sm:pt-6 text-center sm:text-left sm:flex sm:justify-between sm:items-center">
-          <p className="text-muted-foreground text-sm sm:text-base">© 2024 Rif Raw Straw. Tous droits réservés.</p>
+          <p className="text-muted-foreground text-sm sm:text-base">{t('footer.copyright', { year: currentYear })}</p>
           <div className="mt-3 sm:mt-0">
             <ErrorReportButton />
           </div>

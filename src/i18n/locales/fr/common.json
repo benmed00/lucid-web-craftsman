@@ -19,7 +19,7 @@
   },
   "footer": {
     "about": "À Propos",
-    "aboutText": "Artisanat berbère authentique des montagnes du Rif marocain.",
+    "aboutText": "Sacs et chapeaux artisanaux confectionnés avec des matériaux durables et des techniques traditionnelles berbères.",
     "quickLinks": "Liens Rapides",
     "information": "Informations",
     "newsletter": "Newsletter",
@@ -33,7 +33,20 @@
     "faq": "FAQ",
     "terms": "Conditions",
     "privacy": "Confidentialité",
-    "cgv": "CGV"
+    "cgv": "CGV",
+    "help": "Aide",
+    "allProducts": "Tous les produits",
+    "bags": "Sacs",
+    "hats": "Chapeaux",
+    "allProductsAria": "Tous les produits - Voir tous nos produits artisanaux",
+    "bagsAria": "Découvrir notre collection de sacs",
+    "hatsAria": "Découvrir notre collection de chapeaux",
+    "storyAria": "En savoir plus sur notre histoire et nos valeurs",
+    "blogAria": "Lire nos articles de blog sur l'artisanat",
+    "contactAria": "Nous contacter pour toute question",
+    "shippingAria": "Informations sur la livraison",
+    "faqAria": "FAQ - Questions fréquemment posées",
+    "cgvAria": "CGV - Lire nos conditions générales de vente"
   },
   "buttons": {
     "addToCart": "Ajouter au panier",
@@ -93,5 +106,26 @@
     "closeMenu": "Fermer le menu",
     "toggleTheme": "Changer de thème",
     "selectLanguage": "Choisir la langue"
+  },
+  "newsletter": {
+    "title": "Rejoignez Notre Newsletter",
+    "description": "Inscrivez-vous pour recevoir des mises à jour sur les nouveaux produits, les offres spéciales et les histoires de nos artisans.",
+    "emailLabel": "Adresse email",
+    "emailPlaceholder": "votre@email.com",
+    "subscribe": "S'abonner",
+    "sending": "Envoi...",
+    "confirmed": "Inscription confirmée !",
+    "success": "Merci ! Vous êtes maintenant abonné à notre newsletter.",
+    "alreadySubscribed": "Cette adresse email est déjà abonnée à notre newsletter",
+    "errorEmail": "Veuillez saisir votre adresse email",
+    "errorConsent": "Veuillez accepter les conditions pour vous abonner",
+    "errorGeneric": "Une erreur est survenue. Veuillez réessayer.",
+    "tooltipEmail": "Veuillez saisir votre adresse email",
+    "tooltipConsent": "Veuillez cocher la case pour accepter les conditions",
+    "tooltipSubscribe": "Cliquez pour vous abonner à notre newsletter",
+    "tooltipRequired": "Requis pour activer le bouton d'abonnement",
+    "consentText": "J'accepte de recevoir la newsletter de Rif Raw Straw et confirme avoir lu la",
+    "privacyPolicy": "politique de confidentialité",
+    "unsubscribeNote": "Vous pouvez vous désabonner à tout moment en cliquant sur le lien de désinscription présent dans chaque email."
   }
 }

@@ -13,6 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useTranslation } from 'react-i18next';
 
 interface NewsletterSubscriptionProps {
   variant?: 'footer' | 'popup' | 'inline';
@@ -22,9 +23,12 @@ interface NewsletterSubscriptionProps {
 
 const NewsletterSubscription = ({ 
   variant = 'footer',
-  title = "Rejoignez Notre Newsletter",
-  description = "Inscrivez-vous pour recevoir des mises à jour sur les nouveaux produits, les offres spéciales et les histoires de nos artisans."
+  title,
+  description
 }: NewsletterSubscriptionProps) => {
+  const { t } = useTranslation('common');
+  const displayTitle = title || t('newsletter.title');
+  const displayDescription = description || t('newsletter.description');
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
@@ -34,12 +38,12 @@ const NewsletterSubscription = ({
     e.preventDefault();
     
     if (!email.trim()) {
-      toast.error('Veuillez saisir votre adresse email');
+      toast.error(t('newsletter.errorEmail'));
       return;
     }
 
     if (!consent) {
-      toast.error('Veuillez accepter les conditions pour vous abonner');
+      toast.error(t('newsletter.errorConsent'));
       return;
     }
 
@@ -74,7 +78,7 @@ const NewsletterSubscription = ({
       if (error) {
         // Check if it's a duplicate error (email already active)
         if (error.code === '23505') {
-          toast.info('Cette adresse email est déjà abonnée à notre newsletter');
+          toast.info(t('newsletter.alreadySubscribed'));
         } else {
           throw error;
         }
@@ -82,7 +86,7 @@ const NewsletterSubscription = ({
         setIsSubscribed(true);
         setEmail('');
         setConsent(false);
-        toast.success('Merci ! Vous êtes maintenant abonné à notre newsletter.');
+        toast.success(t('newsletter.success'));
         
         // Reset success state after 5 seconds
         setTimeout(() => setIsSubscribed(false), 5000);
@@ -90,7 +94,7 @@ const NewsletterSubscription = ({
 
     } catch (error) {
       console.error('Newsletter subscription error:', error);
-      toast.error('Une erreur est survenue. Veuillez réessayer.');
+      toast.error(t('newsletter.errorGeneric'));
     } finally {
       setIsSubscribing(false);
     }
@@ -105,10 +109,10 @@ const NewsletterSubscription = ({
           </div>
         </div>
         <h3 className="font-serif text-xl md:text-2xl font-medium text-foreground mb-2">
-          {title}
+          {displayTitle}
         </h3>
         <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
-          {description}
+          {displayDescription}
         </p>
       </div>
 
@@ -116,7 +120,7 @@ const NewsletterSubscription = ({
         <div className="flex items-center justify-center gap-2 p-4 rounded-xl bg-status-success/15 dark:bg-status-success/20 border border-status-success/20">
           <CheckCircle className="h-5 w-5 text-status-success" />
           <span className="text-sm font-medium text-status-success">
-            Inscription confirmée !
+            {t('newsletter.confirmed')}
           </span>
         </div>
       ) : (
@@ -127,13 +131,13 @@ const NewsletterSubscription = ({
                 htmlFor="newsletter-email" 
                 className={`sr-only ${variant === 'footer' ? 'text-white' : 'text-foreground'}`}
               >
-                Adresse email
+                {t('newsletter.emailLabel')}
               </Label>
               <div className="flex gap-2">
                 <Input
                   id="newsletter-email"
                   type="email"
-                  placeholder="votre@email.com"
+                  placeholder={t('newsletter.emailPlaceholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -148,16 +152,16 @@ const NewsletterSubscription = ({
                         disabled={isSubscribing || !email.trim() || !consent}
                         className="h-12 px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                       >
-                        {isSubscribing ? 'Envoi...' : "S'abonner"}
+                        {isSubscribing ? t('newsletter.sending') : t('newsletter.subscribe')}
                       </Button>
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="top">
                     {!email.trim() 
-                      ? "Veuillez saisir votre adresse email" 
+                      ? t('newsletter.tooltipEmail')
                       : !consent 
-                        ? "Veuillez cocher la case pour accepter les conditions" 
-                        : "Cliquez pour vous abonner à notre newsletter"}
+                        ? t('newsletter.tooltipConsent')
+                        : t('newsletter.tooltipSubscribe')}
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -176,16 +180,16 @@ const NewsletterSubscription = ({
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="left">
-                  Requis pour activer le bouton d'abonnement
+                  {t('newsletter.tooltipRequired')}
                 </TooltipContent>
               </Tooltip>
               <Label
                 htmlFor="newsletter-consent"
                 className="text-xs leading-relaxed cursor-pointer text-muted-foreground"
               >
-                J'accepte de recevoir la newsletter de Rif Raw Straw et confirme avoir lu la{' '}
+                {t('newsletter.consentText')}{' '}
                 <a href="/privacy" className="underline hover:no-underline text-primary">
-                  politique de confidentialité
+                  {t('newsletter.privacyPolicy')}
                 </a>
                 .
               </Label>
@@ -195,8 +199,7 @@ const NewsletterSubscription = ({
               <div className="flex items-start gap-2 text-xs text-muted-foreground">
                 <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <p>
-                  Vous pouvez vous désabonner à tout moment en cliquant sur le lien de désinscription 
-                  présent dans chaque email.
+                  {t('newsletter.unsubscribeNote')}
                 </p>
               </div>
             )}
