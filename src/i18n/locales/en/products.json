@@ -73,6 +73,41 @@
   },
   "recommendations": {
     "title": "You may also like",
-    "basedOnViewing": "Based on what you've viewed"
+    "basedOnViewing": "Based on what you've viewed",
+    "addError": "Unable to add product to cart"
+  },
+  "recentlyViewed": {
+    "addError": "Unable to add product to cart"
+  },
+  "quickView": {
+    "linkCopied": "Link copied to clipboard",
+    "previousImage": "Previous image",
+    "previous": "Previous",
+    "nextImage": "Next image",
+    "next": "Next",
+    "reviewsCount": "({{count}} reviews)",
+    "highlyRated": "Highly rated",
+    "authenticCraft": "Authentic craftsmanship",
+    "premiumQuality": "Premium quality",
+    "nobleMaterials": "Noble materials",
+    "artisanPassion": "Created with passion and traditional craftsmanship",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity",
+    "freeShipping": "Free shipping",
+    "returns30Days": "30-day returns"
+  },
+  "advancedFilters": {
+    "searchPlaceholder": "Search products... (e.g., Berber bag, straw hat)",
+    "suggestions": "Suggestions",
+    "recentSearches": "Recent searches",
+    "bestRated": "Best rated",
+    "filteredResults": "Filtered results",
+    "cachedQueries": "{{count}} cached queries",
+    "clearCache": "Clear cache",
+    "stars": "stars",
+    "includeOutOfStock": "Include out of stock",
+    "minRating": "Minimum rating",
+    "artisans": "Artisans",
+    "inStockOnly": "In stock only"
   }
 }
