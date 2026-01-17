@@ -23,7 +23,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { VoiceSearch } from "@/components/ui/VoiceSearch";
 import { MobilePromotions } from "@/components/ui/MobilePromotions";
 
-import { ProductService } from "@/services/productService";
+import { useProductsWithTranslations, ProductWithTranslation } from "@/hooks/useTranslatedContent";
 import { useCart } from "@/stores";
 import { useAdvancedProductFilters } from "@/hooks/useAdvancedProductFilters";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
@@ -31,13 +31,41 @@ import { toast } from "sonner";
 
 const Products = () => {
   const { t } = useTranslation(['products', 'common']);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   
   const { addItem } = useCart();
   const isMobile = useIsMobile();
+
+  // Fetch products with translations based on current locale
+  const { 
+    data: translatedProducts = [], 
+    isLoading: loading, 
+    error: fetchError,
+    refetch 
+  } = useProductsWithTranslations();
+
+  // Convert translated products to Product interface for compatibility
+  const products = useMemo(() => 
+    translatedProducts.map((p): Product => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      price: p.price,
+      images: p.images,
+      category: p.category,
+      artisan: p.artisan,
+      details: p.details,
+      care: p.care,
+      is_new: p.is_new ?? false,
+      is_available: p.is_available ?? true,
+      stock_quantity: p.stock_quantity ?? 0,
+      rating_average: p.rating_average ?? 0,
+      rating_count: p.rating_count ?? 0,
+    })),
+    [translatedProducts]
+  );
+
+  const error = fetchError ? t('fetch.error') : null;
 
   // Enhanced filters hook with analytics and cache
   const {
@@ -82,35 +110,12 @@ const Products = () => {
   });
 
   const handleRefresh = async () => {
-    try {
-      setLoading(true);
-      const data = await ProductService.getAllProducts();
-      setProducts(data);
-      toast.success(t('refresh.success'));
-    } catch (error) {
-      toast.error(t('refresh.error'));
-    } finally {
-      setLoading(false);
-    }
+    await refetch();
+    toast.success(t('refresh.success'));
   };
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    
-    const fetchProducts = async () => {
-      try {
-        const data = await ProductService.getAllProducts();
-        setProducts(data);
-        setLoading(false);
-        setError(null);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-        setLoading(false);
-        setError(t('fetch.error'));
-      }
-    };
-    
-    fetchProducts();
   }, []);
 
   // Memoized categories for performance
