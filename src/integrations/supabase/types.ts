@@ -2037,6 +2037,47 @@ export type Database = {
         }
         Relationships: []
       }
+      email_logs_masked: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          order_id: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          sent_at: string | null
+          status: string | null
+          template_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          order_id?: string | null
+          recipient_email?: never
+          recipient_name?: never
+          sent_at?: string | null
+          status?: string | null
+          template_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          order_id?: string | null
+          recipient_email?: never
+          recipient_name?: never
+          sent_at?: string | null
+          status?: string | null
+          template_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_email_logs_order"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       add_admin_user: {
