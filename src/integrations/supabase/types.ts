@@ -124,6 +124,53 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_post_translations: {
+        Row: {
+          blog_post_id: string
+          content: string
+          created_at: string | null
+          excerpt: string | null
+          id: string
+          locale: string
+          seo_description: string | null
+          seo_title: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          blog_post_id: string
+          content: string
+          created_at?: string | null
+          excerpt?: string | null
+          id?: string
+          locale: string
+          seo_description?: string | null
+          seo_title?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          blog_post_id?: string
+          content?: string
+          created_at?: string | null
+          excerpt?: string | null
+          id?: string
+          locale?: string
+          seo_description?: string | null
+          seo_title?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_translations_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author_id: string | null
@@ -1165,6 +1212,62 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_translations: {
+        Row: {
+          artisan_story: string | null
+          care: string
+          created_at: string | null
+          description: string
+          details: string
+          id: string
+          locale: string
+          name: string
+          product_id: number
+          seo_description: string | null
+          seo_title: string | null
+          short_description: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          artisan_story?: string | null
+          care: string
+          created_at?: string | null
+          description: string
+          details: string
+          id?: string
+          locale: string
+          name: string
+          product_id: number
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          artisan_story?: string | null
+          care?: string
+          created_at?: string | null
+          description?: string
+          details?: string
+          id?: string
+          locale?: string
+          name?: string
+          product_id?: number
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_translations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
