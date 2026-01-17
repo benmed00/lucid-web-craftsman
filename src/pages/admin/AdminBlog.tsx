@@ -10,18 +10,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { FileText, Plus, Edit, Trash2, Eye, Calendar, Tag, Search, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import BlogEditor from "@/components/admin/BlogEditor";
 
 interface BlogPost {
   id: string;
@@ -117,7 +115,7 @@ export default function AdminBlog() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: BlogPostFormData }) => {
-      const updateData: any = {
+      const updateData: BlogPostFormData & { updated_at: string; published_at?: string | null } = {
         ...data,
         updated_at: new Date().toISOString(),
       };
@@ -253,7 +251,7 @@ export default function AdminBlog() {
               Nouvel article
             </Button>
           </DialogTrigger>
-          <BlogFormDialog
+          <BlogEditor
             formData={formData}
             setFormData={setFormData}
             tagsInput={tagsInput}
@@ -435,7 +433,7 @@ export default function AdminBlog() {
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
-                            <BlogFormDialog
+                            <BlogEditor
                               formData={formData}
                               setFormData={setFormData}
                               tagsInput={tagsInput}
@@ -446,6 +444,7 @@ export default function AdminBlog() {
                               isValid={isFormValid}
                               mode="edit"
                               generateSlug={generateSlug}
+                              editingPostId={post.id}
                             />
                           </Dialog>
                           <AlertDialog>
@@ -483,210 +482,5 @@ export default function AdminBlog() {
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-// Blog Form Dialog Component
-function BlogFormDialog({
-  formData,
-  setFormData,
-  tagsInput,
-  setTagsInput,
-  onSubmit,
-  onCancel,
-  isSubmitting,
-  isValid,
-  mode,
-  generateSlug,
-}: {
-  formData: BlogPostFormData;
-  setFormData: (data: BlogPostFormData) => void;
-  tagsInput: string;
-  setTagsInput: (value: string) => void;
-  onSubmit: () => void;
-  onCancel: () => void;
-  isSubmitting: boolean;
-  isValid: boolean;
-  mode: "create" | "edit";
-  generateSlug: (title: string) => string;
-}) {
-  return (
-    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-      <DialogHeader>
-        <DialogTitle>
-          {mode === "create" ? "Nouvel article" : "Modifier l'article"}
-        </DialogTitle>
-        <DialogDescription>
-          {mode === "create"
-            ? "Créez un nouvel article de blog"
-            : "Modifiez les informations de l'article"}
-        </DialogDescription>
-      </DialogHeader>
-
-      <div className="space-y-6 py-4">
-        {/* Title & Slug */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="title">Titre *</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Titre de l'article"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="slug">
-              Slug
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                className="ml-2 h-auto p-0 text-xs"
-                onClick={() => setFormData({ ...formData, slug: generateSlug(formData.title) })}
-              >
-                Générer
-              </Button>
-            </Label>
-            <Input
-              id="slug"
-              value={formData.slug}
-              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              placeholder="url-de-larticle"
-            />
-          </div>
-        </div>
-
-        {/* Excerpt */}
-        <div className="space-y-2">
-          <Label htmlFor="excerpt">Extrait</Label>
-          <Textarea
-            id="excerpt"
-            value={formData.excerpt || ""}
-            onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-            placeholder="Résumé court de l'article..."
-            rows={2}
-          />
-        </div>
-
-        {/* Content */}
-        <div className="space-y-2">
-          <Label htmlFor="content">Contenu *</Label>
-          <Textarea
-            id="content"
-            value={formData.content}
-            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-            placeholder="Contenu complet de l'article (Markdown supporté)..."
-            rows={10}
-            className="font-mono text-sm"
-          />
-        </div>
-
-        {/* Featured Image */}
-        <div className="space-y-2">
-          <Label htmlFor="featured_image_url">URL de l'image principale</Label>
-          <Input
-            id="featured_image_url"
-            value={formData.featured_image_url || ""}
-            onChange={(e) => setFormData({ ...formData, featured_image_url: e.target.value })}
-            placeholder="https://..."
-          />
-          {formData.featured_image_url && (
-            <div className="mt-2 rounded-lg overflow-hidden border max-w-xs">
-              <img
-                src={formData.featured_image_url}
-                alt="Preview"
-                className="w-full h-32 object-cover"
-                onError={(e) => (e.currentTarget.style.display = 'none')}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Tags */}
-        <div className="space-y-2">
-          <Label htmlFor="tags">Tags (séparés par des virgules)</Label>
-          <div className="flex items-center gap-2">
-            <Tag className="h-4 w-4 text-muted-foreground" />
-            <Input
-              id="tags"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="artisanat, tradition, mode..."
-            />
-          </div>
-        </div>
-
-        {/* Status & Featured */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="status">Statut</Label>
-            <Select
-              value={formData.status || "draft"}
-              onValueChange={(v) => setFormData({ ...formData, status: v })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="draft">Brouillon</SelectItem>
-                <SelectItem value="published">Publié</SelectItem>
-                <SelectItem value="archived">Archivé</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center justify-between rounded-lg border p-4">
-            <div className="space-y-0.5">
-              <Label>Article à la une</Label>
-              <p className="text-sm text-muted-foreground">
-                Afficher en vedette sur le blog
-              </p>
-            </div>
-            <Switch
-              checked={formData.is_featured || false}
-              onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })}
-            />
-          </div>
-        </div>
-
-        {/* SEO */}
-        <div className="space-y-4 rounded-lg border p-4">
-          <h4 className="font-medium">SEO</h4>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="seo_title">Titre SEO</Label>
-              <Input
-                id="seo_title"
-                value={formData.seo_title || ""}
-                onChange={(e) => setFormData({ ...formData, seo_title: e.target.value })}
-                placeholder="Titre optimisé pour les moteurs de recherche"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="seo_description">Description SEO</Label>
-              <Input
-                id="seo_description"
-                value={formData.seo_description || ""}
-                onChange={(e) => setFormData({ ...formData, seo_description: e.target.value })}
-                placeholder="Description pour les résultats de recherche"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <DialogFooter>
-        <Button variant="outline" onClick={onCancel}>
-          Annuler
-        </Button>
-        <Button onClick={onSubmit} disabled={isSubmitting || !isValid}>
-          {isSubmitting
-            ? "Enregistrement..."
-            : mode === "create"
-            ? "Créer l'article"
-            : "Enregistrer"}
-        </Button>
-      </DialogFooter>
-    </DialogContent>
   );
 }
