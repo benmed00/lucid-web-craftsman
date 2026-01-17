@@ -276,7 +276,18 @@
     },
     "testimonials": {
       "badge": "Témoignages",
-      "title": "Ce Que Disent Nos Clients"
+      "title": "Ce Que Disent Nos Clients",
+      "reviews": {
+        "emma": "J'adore mon sac tressé ! L'artisanat est exceptionnel et c'est exactement ce que je cherchais pour compléter mon style de vie durable. Je recommande vivement !",
+        "michael": "La qualité du chapeau que j'ai acheté a dépassé mes attentes. Il est confortable, élégant, et j'apprécie de savoir qu'il a été fabriqué selon des pratiques durables. Je reviendrai certainement.",
+        "sarah": "Non seulement les produits sont magnifiques, mais le service client est remarquable. Mon sac est arrivé magnifiquement emballé avec une note personnelle. Ce sont ces détails qui font toute la différence."
+      }
+    },
+    "heroImage": {
+      "alt": "Chapeau artisanal et sac traditionnel fait main - Artisanat authentique du Rif",
+      "fallback": "Produits artisanaux du Rif",
+      "title": "Artisanat Authentique du Rif",
+      "subtitle": "Chapeau tressé et sac naturel - Fait main avec amour"
     },
     "instagram": {
       "follow": "Suivez-nous @artisan_maroc",

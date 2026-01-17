@@ -1,33 +1,34 @@
-
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"; // Removed AvatarImage
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
-
-const testimonials = [
-  {
-    id: 1,
-    name: "Emma Thompson",
-    avatar: "ET",
-    rating: 5,
-    text: "I absolutely love my woven tote bag! The craftsmanship is exceptional and it's exactly what I was looking for to complement my sustainable lifestyle. Highly recommend!",
-  },
-  {
-    id: 2,
-    name: "Michael Chen",
-    avatar: "MC",
-    rating: 5,
-    text: "The quality of the hat I purchased exceeded my expectations. It's comfortable, stylish, and I appreciate knowing it was made with sustainable practices. Will definitely shop here again.",
-  },
-  {
-    id: 3,
-    name: "Sarah Johnson",
-    avatar: "SJ",
-    rating: 5,
-    text: "Not only are the products beautiful, but the customer service is outstanding. My bag arrived beautifully packaged with a personal note. It's these touches that make all the difference.",
-  },
-];
+import { useTranslation } from 'react-i18next';
 
 const Testimonials = () => {
+  const { t } = useTranslation('pages');
+  
+  const testimonials = [
+    {
+      id: 1,
+      name: "Emma Thompson",
+      avatar: "ET",
+      rating: 5,
+      textKey: "home.testimonials.reviews.emma",
+    },
+    {
+      id: 2,
+      name: "Michael Chen",
+      avatar: "MC",
+      rating: 5,
+      textKey: "home.testimonials.reviews.michael",
+    },
+    {
+      id: 3,
+      name: "Sarah Johnson",
+      avatar: "SJ",
+      rating: 5,
+      textKey: "home.testimonials.reviews.sarah",
+    },
+  ];
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       {testimonials.map((testimonial) => (
@@ -38,7 +39,7 @@ const Testimonials = () => {
                 <Star key={i} className="h-4 w-4 sm:h-5 sm:w-5 fill-amber-400 text-amber-400" />
               ))}
             </div>
-            <p className="text-muted-foreground mb-4 sm:mb-6 italic text-sm sm:text-base leading-relaxed">"{testimonial.text}"</p>
+            <p className="text-muted-foreground mb-4 sm:mb-6 italic text-sm sm:text-base leading-relaxed">"{t(testimonial.textKey)}"</p>
             <div className="flex items-center">
               <Avatar className="h-8 w-8 sm:h-10 sm:w-10 mr-2 sm:mr-3">
                 <AvatarFallback className="bg-primary/20 text-primary text-xs sm:text-sm">{testimonial.avatar}</AvatarFallback>

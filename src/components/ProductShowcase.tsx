@@ -1,4 +1,3 @@
-
 import { useCart } from "@/stores";
 import { toast } from "sonner";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
@@ -10,8 +9,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useStock } from "@/hooks/useStock";
 import { StockInfo } from "@/services/stockService";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 const ProductShowcase = () => {
+  const { t } = useTranslation('products');
   const { addItem } = useCart();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,13 +72,13 @@ const ProductShowcase = () => {
       if (response.success) {
         // Use direct action instead of dispatch
         addItem(product, 1);
-        toast.success(`${product.name} ajouté au panier`);
+        toast.success(t('recommendations.addedToCart', { name: product.name }));
       } else {
-        toast.error("Impossible d'ajouter le produit au panier (API error)");
+        toast.error(t('recommendations.addError'));
       }
     } catch (error) {
       // Silent error handling for production
-      toast.error("Impossible d'ajouter le produit au panier");
+      toast.error(t('recommendations.addError'));
     }
 
   };
@@ -103,11 +104,11 @@ const ProductShowcase = () => {
         // Use direct action instead of dispatch
         addItem(product, quantity);
       } else {
-        toast.error("Impossible d'ajouter le produit au panier (API error)");
+        toast.error(t('recommendations.addError'));
       }
     } catch (error) {
       // Silent error handling for production
-      toast.error("Impossible d'ajouter le produit au panier");
+      toast.error(t('recommendations.addError'));
     }
   };
 
@@ -144,7 +145,7 @@ const ProductShowcase = () => {
     <StockContext.Provider value={stockInfo || {}}>
       <section 
         className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6"
-        aria-label="Produits en vedette"
+        aria-label={t('showcase.ariaLabel')}
         role="region"
       >
         {featuredProducts.map((product, index) => (

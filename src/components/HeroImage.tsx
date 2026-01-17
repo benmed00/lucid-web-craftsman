@@ -1,9 +1,10 @@
-
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useHeroImage } from "@/hooks/useHeroImage";
 import { HeroImage as HeroImageComponent } from "@/components/ui/GlobalImage";
+import { useTranslation } from 'react-i18next';
 
 const HeroImage = () => {
+  const { t } = useTranslation('pages');
   const { heroImageData, isLoading } = useHeroImage();
 
   // Render default image immediately while loading data
@@ -17,9 +18,9 @@ const HeroImage = () => {
           {/* Show default image immediately to optimize LCP */}
           <HeroImageComponent
             src="/assets/images/home_page_image.webp"
-            alt="Chapeau artisanal et sac traditionnel fait main - Artisanat authentique du Rif"
+            alt={t('home.heroImage.alt')}
             className="object-cover w-full h-full rounded-lg"
-            fallbackText="Produits artisanaux du Rif"
+            fallbackText={t('home.heroImage.fallback')}
             preload={true}
             showLoadingSpinner={false}
             showRetryButton={false}
@@ -33,10 +34,10 @@ const HeroImage = () => {
         <div className="absolute bottom-6 left-6 right-6">
           <div className="bg-card/95 backdrop-blur-sm px-6 py-4 rounded-lg shadow-lg border border-border/50">
             <p className="text-sm font-medium text-foreground mb-1">
-              Artisanat Authentique du Rif
+              {t('home.heroImage.title')}
             </p>
             <p className="text-xs text-muted-foreground">
-              Chapeau tressé et sac naturel - Fait main avec amour
+              {t('home.heroImage.subtitle')}
             </p>
           </div>
         </div>
@@ -55,7 +56,7 @@ const HeroImage = () => {
           src={heroImageData.imageUrl}
           alt={heroImageData.altText}
           className="object-cover w-full h-full rounded-lg"
-          fallbackText="Produits artisanaux du Rif"
+          fallbackText={t('home.heroImage.fallback')}
           preload={true}
           showLoadingSpinner={true}
           showRetryButton={false}

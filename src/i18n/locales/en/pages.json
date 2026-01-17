@@ -276,7 +276,18 @@
     },
     "testimonials": {
       "badge": "Testimonials",
-      "title": "What Our Customers Say"
+      "title": "What Our Customers Say",
+      "reviews": {
+        "emma": "I absolutely love my woven tote bag! The craftsmanship is exceptional and it's exactly what I was looking for to complement my sustainable lifestyle. Highly recommend!",
+        "michael": "The quality of the hat I purchased exceeded my expectations. It's comfortable, stylish, and I appreciate knowing it was made with sustainable practices. Will definitely shop here again.",
+        "sarah": "Not only are the products beautiful, but the customer service is outstanding. My bag arrived beautifully packaged with a personal note. It's these touches that make all the difference."
+      }
+    },
+    "heroImage": {
+      "alt": "Handmade artisan hat and traditional bag - Authentic Rif craftsmanship",
+      "fallback": "Rif artisan products",
+      "title": "Authentic Rif Craftsmanship",
+      "subtitle": "Woven hat and natural bag - Handmade with love"
     },
     "instagram": {
       "follow": "Follow us @artisan_maroc",
