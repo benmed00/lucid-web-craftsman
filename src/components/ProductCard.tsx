@@ -179,7 +179,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
             <p 
               id={`product-price-${product.id}`}
               className="text-foreground font-bold text-base sm:text-lg md:text-xl whitespace-nowrap"
-              aria-label={`Prix: ${formatPrice(product.price)}`}
+              aria-label={t('details.priceLabel', { price: formatPrice(product.price) })}
             >
               {formatPrice(product.price)}
             </p>

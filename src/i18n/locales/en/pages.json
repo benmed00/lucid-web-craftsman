@@ -110,7 +110,8 @@
     "title": "Blog",
     "seo": {
       "title": "Craft Journal - Blog | Rif Raw Straw",
-      "description": "Discover the stories behind our creations, meet our artisans, and dive into the richness of Moroccan craftsmanship."
+      "description": "Discover the stories behind our creations, meet our artisans, and dive into the richness of Moroccan craftsmanship.",
+      "keywords": ["craft blog", "artisan stories", "traditional know-how", "Berber culture"]
     },
     "badge": "Our Blog",
     "heading": "Craft Journal",
@@ -154,7 +155,9 @@
       "description": "Choose how to share this product",
       "copy": "Copy",
       "copied": "Link copied to clipboard",
-      "error": "Error sharing"
+      "error": "Error sharing",
+      "brandName": "Berber Craftsmanship",
+      "shareText": "Discover this beautiful artisan creation: {{name}}"
     },
     "stock": {
       "inStock": "In stock",
@@ -213,7 +216,19 @@
       "previous": "Previous image",
       "next": "Next image",
       "thumbnail": "thumbnail",
-      "enlarged": "Enlarged view"
+      "enlarged": "Enlarged view",
+      "ariaLabel": "Product images",
+      "viewImage": "View image",
+      "fullSizeDescription": "Full size product image"
+    },
+    "seo": {
+      "handmadeBy": "handmade by",
+      "berberCraft": "Berber craftsmanship",
+      "handmade": "handmade",
+      "naturalFibers": "natural fibers"
+    },
+    "productInfo": {
+      "ariaLabel": "Product information"
     }
   },
   "home": {

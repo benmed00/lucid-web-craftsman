@@ -52,7 +52,7 @@ const Blog = () => {
       <SEOHelmet
         title={t("blog.seo.title")}
         description={t("blog.seo.description")}
-        keywords={["blog artisanat", "histoires artisans", "savoir-faire traditionnel", "culture berbère"]}
+        keywords={t("blog.seo.keywords", { returnObjects: true }) as string[]}
         url="/blog"
         type="website"
       />

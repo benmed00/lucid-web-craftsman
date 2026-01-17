@@ -1,6 +1,9 @@
 {
   "title": "Our Products",
   "subtitle": "Discover our collection of authentic Berber craftsmanship",
+  "seo": {
+    "keywords": ["artisan products", "Berber bags", "straw hats", "Moroccan crafts", "handmade accessories"]
+  },
   "filters": {
     "all": "All",
     "search": "Search",
@@ -48,6 +51,7 @@
     "quantity": "Quantity",
     "addToCart": "Add",
     "addToCartFull": "Add to cart",
+    "priceLabel": "Price: {{price}}",
     "addToCartTooltip": "Add {{name}} to your cart ({{price}})",
     "addToCartAria": "Add to cart - {{name}} for {{price}}",
     "addToWishlist": "Add to wishlist",
