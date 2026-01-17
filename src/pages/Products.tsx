@@ -63,13 +63,11 @@ const Products = () => {
     debounceMs: 300
   });
 
-  // Get cache statistics - force re-render after clearing
-  const [cacheCleared, setCacheCleared] = useState(0);
-  const cacheStats = useMemo(() => getCacheStats?.(), [getCacheStats, cacheCleared]);
+  // Get cache statistics
+  const cacheStats = getCacheStats?.() ?? { cachedQueries: 0, totalCacheSize: 0 };
 
   const handleClearCache = () => {
     invalidateCache?.();
-    setCacheCleared(prev => prev + 1); // Force re-render to update stats
     toast.success("Cache de recherche vidé");
   };
 

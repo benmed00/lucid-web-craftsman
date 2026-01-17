@@ -19,19 +19,28 @@ export function useInfiniteScroll<T>({
   itemsPerPage = 12, 
   threshold = 0.8 
 }: UseInfiniteScrollProps<T>): UseInfiniteScrollReturn<T> {
-  const [visibleItems, setVisibleItems] = useState<T[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const prevItemsRef = useRef<T[]>([]);
 
-  // Reset pagination when items change
+  // Calculate visible items and hasMore based on currentPage
+  const endIndex = currentPage * itemsPerPage;
+  const visibleItems = items.slice(0, endIndex);
+  const hasMore = endIndex < items.length;
+
+  // Reset pagination only when items array actually changes (by reference or length)
   useEffect(() => {
-    setCurrentPage(1);
-    setVisibleItems(items.slice(0, itemsPerPage));
-    setHasMore(items.length > itemsPerPage);
-  }, [items, itemsPerPage]);
+    const itemsChanged = items !== prevItemsRef.current && 
+      (items.length !== prevItemsRef.current.length || 
+       items[0] !== prevItemsRef.current[0]);
+    
+    if (itemsChanged) {
+      setCurrentPage(1);
+      prevItemsRef.current = items;
+    }
+  }, [items]);
 
   const loadMore = useCallback(() => {
     if (isLoading || !hasMore) return;
@@ -40,21 +49,10 @@ export function useInfiniteScroll<T>({
     
     // Simulate loading delay for better UX
     setTimeout(() => {
-      const startIndex = currentPage * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      const newItems = items.slice(startIndex, endIndex);
-      
-      if (newItems.length === 0) {
-        setHasMore(false);
-      } else {
-        setVisibleItems(prev => [...prev, ...newItems]);
-        setCurrentPage(prev => prev + 1);
-        setHasMore(endIndex < items.length);
-      }
-      
+      setCurrentPage(prev => prev + 1);
       setIsLoading(false);
     }, 300);
-  }, [items, currentPage, itemsPerPage, isLoading, hasMore]);
+  }, [isLoading, hasMore]);
 
   // Intersection Observer setup
   useEffect(() => {
