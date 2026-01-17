@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useDeferredValue, useTransition } from 'react';
+import { useState, useMemo, useCallback, useDeferredValue } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,7 +39,6 @@ export const useAdvancedProductFilters = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [popularFilters, setPopularFilters] = useState<string[]>([]);
-  const [isPending, startTransition] = useTransition();
 
   // Initialize filters from URL parameters
   const getInitialFilters = (): AdvancedFilterOptions => ({
@@ -162,16 +161,14 @@ export const useAdvancedProductFilters = ({
     }
   }, [enableAnalytics]);
 
-  // Update filters with transition for non-urgent updates
+  // Update filters immediately for responsive UI
   const updateFilters = useCallback(
     (newFilters: Partial<AdvancedFilterOptions>) => {
       const updatedFilters = { ...filters, ...newFilters };
       
-      // Use startTransition for filter changes to keep UI responsive
-      startTransition(() => {
-        setFilters(updatedFilters);
-        updateUrlParams(updatedFilters);
-      });
+      // Update state immediately - no transition delay
+      setFilters(updatedFilters);
+      updateUrlParams(updatedFilters);
 
       // Prefetch related searches for better UX
       if (newFilters.searchQuery && newFilters.searchQuery.length > 2) {
@@ -290,7 +287,7 @@ export const useAdvancedProductFilters = ({
     availableOptions,
     searchHistory,
     popularFilters,
-    isLoading: isPending || isCacheLoading,
+    isLoading: isCacheLoading,
     isFetching,
     isSearchStale: deferredSearchQuery !== filters.searchQuery || isStale,
     activeFiltersCount,

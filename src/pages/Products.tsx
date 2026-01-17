@@ -302,30 +302,31 @@ const Products = () => {
           showingCount={isMobile ? visibleProducts.length : filteredCount}
         />
 
-        {/* Smart Category Filters with Loading State */}
+        {/* Smart Category Filters */}
         {!filters.searchQuery && (
           <div className="flex flex-wrap gap-2 mb-6 md:mb-8 overflow-x-auto mobile-scroll">
             <div className="flex gap-2 min-w-max">
-              <Badge
-                variant={filters.category.length === 0 ? "default" : "secondary"}
-                className={`cursor-pointer px-3 md:px-4 py-2 text-sm touch-manipulation min-h-[44px] flex items-center whitespace-nowrap ${
-                  filterLoading ? 'animate-pulse' : ''
-                }`}
-                onClick={() => updateFilters({ category: [] })}
+              <Button
+                variant={filters.category.length === 0 ? "default" : "outline"}
+                size="sm"
+                className="min-h-[44px] touch-manipulation whitespace-nowrap"
+                onClick={() => {
+                  updateFilters({ category: [] });
+                }}
               >
                 Tout voir ({totalProductsCount})
-              </Badge>
+              </Button>
               {displayCategories.map((category) => {
                 const categoryCount = products.filter(p => p.category === category).length;
+                const isSelected = filters.category.includes(category);
                 return (
-                  <Badge
+                  <Button
                     key={category}
-                    variant={filters.category.includes(category) ? "default" : "secondary"}
-                    className={`cursor-pointer px-3 md:px-4 py-2 text-sm touch-manipulation min-h-[44px] flex items-center whitespace-nowrap ${
-                      filterLoading ? 'animate-pulse' : ''
-                    }`}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    className="min-h-[44px] touch-manipulation whitespace-nowrap"
                     onClick={() => {
-                      if (filters.category.includes(category)) {
+                      if (isSelected) {
                         updateFilters({ category: filters.category.filter(c => c !== category) });
                       } else {
                         updateFilters({ category: [...filters.category, category] });
@@ -333,7 +334,7 @@ const Products = () => {
                     }}
                   >
                     {category} ({categoryCount})
-                  </Badge>
+                  </Button>
                 );
               })}
             </div>
