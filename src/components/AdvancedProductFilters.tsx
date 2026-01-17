@@ -264,12 +264,12 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
             variant="ghost"
             size="sm"
             onClick={onClearCache}
-            className="text-muted-foreground hover:text-foreground flex items-center gap-1"
+            className="text-muted-foreground hover:text-foreground flex items-center gap-2"
             title={`${cacheStats.cachedQueries} requêtes en cache`}
           >
             <Database className="h-3 w-3" />
             <span className="hidden sm:inline">Vider cache</span>
-            <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full">
+            <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full ml-1">
               {cacheStats.cachedQueries}
             </span>
           </Button>
