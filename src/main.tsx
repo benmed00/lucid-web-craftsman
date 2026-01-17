@@ -1,13 +1,22 @@
-import React, { StrictMode } from "react";
+import { StrictMode } from "react";
 import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import './index.css';
+
+// Initialize i18n first (before any React components)
+import './i18n';
+
+// Then import performance utilities and store initializers
 import { initPerformanceOptimizations } from '@/utils/sitemapGenerator';
 import { setupProductionErrorSuppression } from './utils/errorSuppression';
 import { registerServiceWorker, addResourceHints, monitorCachePerformance } from './utils/cacheOptimization';
 import { initializeCartStore, initializeCurrencyStore, initializeThemeStore } from '@/stores';
 import { initializeLanguageStore } from '@/stores/languageStore';
 import { initializeBusinessRules } from '@/hooks/useBusinessRules';
+
+// Finally import App after all initialization
+import App from './App';
+
 // Declare global flag
 declare global {
   interface Window {
@@ -37,12 +46,6 @@ if (!window.__PERF_OPTIMIZED__) {
   initializeThemeStore();
   initializeLanguageStore();
 }
-
-// Import i18n after stores are initialized
-import './i18n';
-
-// Import App after i18n is ready
-import App from './App.tsx';
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
