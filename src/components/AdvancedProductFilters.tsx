@@ -230,14 +230,14 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
       {/* Results Info & Quick Actions */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <p className="text-sm text-muted-foreground flex items-center gap-1">
-            {isLoading && <div className="h-4 w-4 animate-spin border-2 border-muted-foreground border-t-transparent rounded-full" />}
+          <span className="text-sm text-muted-foreground flex items-center gap-1">
+            {isLoading && <span className="h-4 w-4 animate-spin border-2 border-muted-foreground border-t-transparent rounded-full inline-block" />}
             {filteredCount === totalProducts ? (
               <span>{totalProducts} produits</span>
             ) : (
               <span><strong className="text-foreground">{filteredCount}</strong> sur {totalProducts} produits</span>
             )}
-          </p>
+          </span>
           
           {filteredCount > 0 && filteredCount < totalProducts && (
             <Badge variant="outline" className="flex items-center gap-1">
