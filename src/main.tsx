@@ -1,12 +1,13 @@
 import { StrictMode } from "react";
 import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
+import { I18nextProvider } from 'react-i18next';
 import './index.css';
 
-// Initialize i18n first (before any React components)
-import './i18n';
+// Import i18n instance (no React binding at module level)
+import i18n from './i18n';
 
-// Then import performance utilities and store initializers
+// Import performance utilities and store initializers
 import { initPerformanceOptimizations } from '@/utils/sitemapGenerator';
 import { setupProductionErrorSuppression } from './utils/errorSuppression';
 import { registerServiceWorker, addResourceHints, monitorCachePerformance } from './utils/cacheOptimization';
@@ -14,7 +15,7 @@ import { initializeCartStore, initializeCurrencyStore, initializeThemeStore } fr
 import { initializeLanguageStore } from '@/stores/languageStore';
 import { initializeBusinessRules } from '@/hooks/useBusinessRules';
 
-// Finally import App after all initialization
+// Import App
 import App from './App';
 
 // Declare global flag
@@ -50,7 +51,9 @@ if (!window.__PERF_OPTIMIZED__) {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <HelmetProvider>
-      <App />
+      <I18nextProvider i18n={i18n}>
+        <App />
+      </I18nextProvider>
     </HelmetProvider>
   </StrictMode>
 );

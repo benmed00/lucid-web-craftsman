@@ -1,6 +1,5 @@
 // i18n configuration for Rif Raw Straw
 import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import French translations
@@ -61,11 +60,10 @@ export const resources = {
   },
 } as const;
 
-// Initialize i18next only if not already initialized
+// Initialize i18next only if not already initialized (without React binding - that's done via I18nextProvider)
 if (!i18n.isInitialized) {
   i18n
     .use(LanguageDetector)
-    .use(initReactI18next)
     .init({
       resources,
       fallbackLng: 'fr',
@@ -83,13 +81,8 @@ if (!i18n.isInitialized) {
         escapeValue: false, // React already escapes
       },
       
-      // React specific options
-      react: {
-        useSuspense: false, // Disable suspense for now to avoid hydration issues
-      },
-      
       // Debug in development
-      debug: false, // Disable debug to reduce console noise
+      debug: false,
     });
 }
 
@@ -98,20 +91,16 @@ i18n.on('languageChanged', (lng: string) => {
   const language = lng as SupportedLanguage;
   const config = languageConfig[language] || languageConfig.fr;
   
-  document.documentElement.lang = lng;
+  document.documentElement.lang = language;
   document.documentElement.dir = config.dir;
-  
-  // Update meta tag for SEO
-  const ogLocale = document.querySelector('meta[property="og:locale"]');
-  if (ogLocale) {
-    ogLocale.setAttribute('content', lng === 'fr' ? 'fr_FR' : 'en_GB');
-  }
 });
 
-// Set initial HTML attributes
-const currentLang = i18n.language as SupportedLanguage;
-const currentConfig = languageConfig[currentLang] || languageConfig.fr;
-document.documentElement.lang = currentLang;
-document.documentElement.dir = currentConfig.dir;
+// Set initial lang attribute
+if (typeof document !== 'undefined') {
+  const currentLang = i18n.language as SupportedLanguage;
+  const config = languageConfig[currentLang] || languageConfig.fr;
+  document.documentElement.lang = currentLang || 'fr';
+  document.documentElement.dir = config.dir;
+}
 
 export default i18n;
