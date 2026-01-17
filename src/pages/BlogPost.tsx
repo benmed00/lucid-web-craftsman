@@ -99,35 +99,8 @@ const BlogPost = () => {
           </div>
 
           <div className="prose prose-stone dark:prose-invert lg:prose-lg max-w-none">
-            <p className="text-lg text-muted-foreground mb-6">{post.excerpt}</p>
-            
-            <p className="text-foreground mb-6">
-              {t("blogPost.content.intro1")}
-            </p>
-
-            <p className="text-foreground mb-6">
-              {t("blogPost.content.intro2")}
-            </p>
-
-            <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">{t("blogPost.content.heading1")}</h2>
-
-            <p className="text-foreground mb-6">
-              {t("blogPost.content.paragraph1")}
-            </p>
-
-            <p className="text-foreground mb-6">
-              {t("blogPost.content.paragraph2")}
-            </p>
-
-            <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">{t("blogPost.content.heading2")}</h2>
-
-            <p className="text-foreground mb-6">
-              {t("blogPost.content.paragraph3")}
-            </p>
-
-            <p className="text-foreground">
-              {t("blogPost.content.paragraph4")}
-            </p>
+            {/* Blog content comes from CMS/database - not translated via i18n */}
+            <p className="text-lg text-muted-foreground italic mb-6">{post.excerpt}</p>
           </div>
 
           {/* Share Buttons */}
