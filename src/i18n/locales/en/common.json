@@ -19,7 +19,7 @@
   },
   "footer": {
     "about": "About",
-    "aboutText": "Authentic Berber craftsmanship from the Moroccan Rif mountains.",
+    "aboutText": "Handmade bags and hats crafted with sustainable materials and traditional Berber techniques.",
     "quickLinks": "Quick Links",
     "information": "Information",
     "newsletter": "Newsletter",
@@ -33,7 +33,20 @@
     "faq": "FAQ",
     "terms": "Terms",
     "privacy": "Privacy",
-    "cgv": "T&C"
+    "cgv": "T&C",
+    "help": "Help",
+    "allProducts": "All products",
+    "bags": "Bags",
+    "hats": "Hats",
+    "allProductsAria": "All products - View all our handmade products",
+    "bagsAria": "Discover our bag collection",
+    "hatsAria": "Discover our hat collection",
+    "storyAria": "Learn more about our story and values",
+    "blogAria": "Read our blog articles about craftsmanship",
+    "contactAria": "Contact us for any questions",
+    "shippingAria": "Shipping information",
+    "faqAria": "FAQ - Frequently asked questions",
+    "cgvAria": "T&C - Read our terms and conditions"
   },
   "buttons": {
     "addToCart": "Add to cart",
@@ -93,5 +106,26 @@
     "closeMenu": "Close menu",
     "toggleTheme": "Toggle theme",
     "selectLanguage": "Select language"
+  },
+  "newsletter": {
+    "title": "Join Our Newsletter",
+    "description": "Sign up to receive updates on new products, special offers, and stories from our artisans.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "your@email.com",
+    "subscribe": "Subscribe",
+    "sending": "Sending...",
+    "confirmed": "Subscription confirmed!",
+    "success": "Thank you! You are now subscribed to our newsletter.",
+    "alreadySubscribed": "This email address is already subscribed to our newsletter",
+    "errorEmail": "Please enter your email address",
+    "errorConsent": "Please accept the terms to subscribe",
+    "errorGeneric": "An error occurred. Please try again.",
+    "tooltipEmail": "Please enter your email address",
+    "tooltipConsent": "Please check the box to accept the terms",
+    "tooltipSubscribe": "Click to subscribe to our newsletter",
+    "tooltipRequired": "Required to enable the subscribe button",
+    "consentText": "I agree to receive the Rif Raw Straw newsletter and confirm I have read the",
+    "privacyPolicy": "privacy policy",
+    "unsubscribeNote": "You can unsubscribe at any time by clicking the unsubscribe link in each email."
   }
 }
