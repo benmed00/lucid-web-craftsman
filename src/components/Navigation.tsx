@@ -11,6 +11,7 @@ import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
 import ThemeToggle from "@/components/ThemeToggle";
 import LanguageSelector from "@/components/LanguageSelector";
+import CompactSettingsMenu from "@/components/CompactSettingsMenu";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -215,18 +216,21 @@ const Navigation = () => {
                 </span>
               </Button>
 
-              {/* Language Selector - Desktop only */}
+              {/* Language Selector - Desktop only (xl+) */}
               <div className="hidden xl:block">
                 <LanguageSelector variant="minimal" />
               </div>
+
+              {/* Compact Settings Menu - Tablet only (md to xl) */}
+              <CompactSettingsMenu className="hidden md:flex xl:hidden" />
 
               {/* Currency Selector - XL Desktop only */}
               <div className="hidden xl:block">
                 <CurrencySelector />
               </div>
 
-              {/* Theme Toggle - Desktop & Tablet */}
-              <ThemeToggle className="hidden md:flex" />
+              {/* Theme Toggle - Desktop only (xl+), hidden on tablet (handled by CompactSettingsMenu) */}
+              <ThemeToggle className="hidden xl:flex" />
 
               {/* Cart Button - Tablet & Desktop */}
               <Link to="/cart" className="hidden md:block">
