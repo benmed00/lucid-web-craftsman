@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { 
   ArrowLeft, 
   Heart, 
@@ -65,6 +66,8 @@ import { sanitizeHtmlContent } from "@/utils/xssProtection";
 interface ProductDetailProps {}
 
 const ProductDetail: React.FC<ProductDetailProps> = () => {
+  const { t } = useTranslation("pages");
+  
   // Router & Navigation
   const { id } = useParams();
   const navigate = useNavigate();
@@ -114,7 +117,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   useEffect(() => {
     const fetchProductData = async () => {
       if (!id) {
-        setError("ID produit manquant");
+        setError(t("productDetail.error.missingId"));
         setLoading(false);
         return;
       }
@@ -130,13 +133,13 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
         // Find the product with the matching id
         const productId = parseInt(id);
         if (isNaN(productId)) {
-          throw new Error("ID produit invalide");
+          throw new Error(t("productDetail.error.invalidId"));
         }
 
         const foundProduct = await ProductService.getProductById(productId);
 
         if (!foundProduct) {
-          throw new Error("Produit non trouvé");
+          throw new Error(t("productDetail.error.notFound"));
         }
 
         setProduct(foundProduct);
@@ -156,7 +159,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
 
       } catch (error) {
         console.error("Error fetching product:", error);
-        setError(error instanceof Error ? error.message : "Erreur lors du chargement du produit");
+        setError(error instanceof Error ? error.message : t("productDetail.error.loadError"));
       } finally {
         setLoading(false);
       }
@@ -172,7 +175,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
     // Validate stock before adding to cart
     const canOrder = await canOrderQuantity(product.id, quantity);
     if (!canOrder.canOrder) {
-      toast.error(canOrder.reason || "Impossible d'ajouter ce produit au panier");
+      toast.error(canOrder.reason || t("productDetail.error.cartError"));
       return;
     }
 
@@ -181,10 +184,10 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
       addItem(product, quantity);
 
       // Show success message
-      toast.success(`${quantity} × ${product.name} ajouté au panier`);
+      toast.success(`${quantity} × ${product.name} ${t("productDetail.cart.added")}`);
     } catch (error) {
       console.error("Error adding product to cart:", error);
-      toast.error("Impossible d'ajouter le produit au panier");
+      toast.error(t("productDetail.error.cartError"));
     }
   };
 
@@ -205,7 +208,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
             await navigator.share({ title, text, url });
           } else {
             await navigator.clipboard.writeText(url);
-            toast.success("Lien copié dans le presse-papiers");
+            toast.success(t("productDetail.share.copied"));
           }
           break;
         case 'facebook':
@@ -219,12 +222,12 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
           break;
         case 'copy':
           await navigator.clipboard.writeText(url);
-          toast.success("Lien copié dans le presse-papiers");
+          toast.success(t("productDetail.share.copied"));
           break;
       }
     } catch (error) {
       console.error('Error sharing:', error);
-      toast.error("Erreur lors du partage");
+      toast.error(t("productDetail.share.error"));
     }
     setShareMenuOpen(false);
   };
@@ -296,10 +299,10 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
           <div className="max-w-md mx-auto">
             <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
             <h2 className="text-2xl font-serif text-foreground mb-4">
-              {error || "Produit non trouvé"}
+              {error || t("productDetail.error.notFound")}
             </h2>
             <p className="text-muted-foreground mb-8">
-              Le produit que vous recherchez n'existe pas ou n'est plus disponible.
+              {t("productDetail.error.description")}
             </p>
             <div className="space-x-4">
               <Button 
@@ -308,14 +311,14 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                 className="border-border"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour
+                {t("productDetail.error.back")}
               </Button>
               <Button 
                 asChild
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <Link to="/products">
-                  Voir tous les produits
+                  {t("productDetail.error.viewAll")}
                 </Link>
               </Button>
             </div>
@@ -362,13 +365,13 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
             <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
               <li>
                 <Link to="/" className="hover:text-primary transition-colors">
-                  Accueil
+                  {t("productDetail.breadcrumb.home")}
                 </Link>
               </li>
               <li>/</li>
               <li>
                 <Link to="/products" className="hover:text-primary transition-colors">
-                  Boutique
+                  {t("productDetail.breadcrumb.shop")}
                 </Link>
               </li>
               <li>/</li>
@@ -498,12 +501,12 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                   </Badge>
                   {(product.new || product.is_new) && (
                     <Badge className="bg-primary text-primary-foreground">
-                      Nouveau
+                      {t("productDetail.badges.new")}
                     </Badge>
                   )}
                   {product.is_featured && (
                     <Badge className="bg-accent text-accent-foreground">
-                      ⭐ Coup de cœur
+                      {t("productDetail.badges.favorite")}
                     </Badge>
                   )}
                 </div>
@@ -531,7 +534,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       ))}
                     </div>
                     <span className="text-sm text-muted-foreground">
-                      ({reviewCount} avis)
+                      ({reviewCount} {t("productDetail.reviews")})
                     </span>
                   </div>
                 )}
@@ -542,7 +545,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     {formatPrice(product.price)}
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">
-                    TVA incluse • Livraison calculée à l'étape suivante
+                    {t("productDetail.price.vatIncluded")}
                   </p>
                 </div>
               </header>
@@ -557,7 +560,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     onClick={() => setShowFullDescription(!showFullDescription)}
                     className="text-primary text-sm hover:underline mt-2"
                   >
-                    {showFullDescription ? 'Voir moins' : 'Voir plus'}
+                    {showFullDescription ? t("productDetail.description.showLess") : t("productDetail.description.showMore")}
                   </button>
                 )}
               </div>
@@ -571,7 +574,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       size="sm"
                       onClick={() => handleQuantityChange(-1)}
                       disabled={quantity <= 1}
-                      aria-label="Diminuer la quantité"
+                      aria-label={t("productDetail.quantity.decrease")}
                     >
                       <Minus className="h-4 w-4" />
                     </Button>
@@ -583,7 +586,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       size="sm"
                       onClick={() => handleQuantityChange(1)}
                       disabled={quantity >= (singleStockInfo?.maxQuantity || 99)}
-                      aria-label="Augmenter la quantité"
+                      aria-label={t("productDetail.quantity.increase")}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -601,7 +604,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     disabled={singleStockInfo?.isOutOfStock}
                   >
                     <ShoppingBag className="h-4 w-4 mr-2" />
-                    {!singleStockInfo?.isOutOfStock ? 'Ajouter au panier' : 'Rupture de stock'}
+                    {!singleStockInfo?.isOutOfStock ? t("productDetail.cart.add") : t("productDetail.cart.outOfStock")}
                   </Button>
                   
                   <Dialog open={shareMenuOpen} onOpenChange={setShareMenuOpen}>
@@ -612,8 +615,8 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
                       <DialogHeader>
-                        <DialogTitle>Partager ce produit</DialogTitle>
-                        <DialogDescription>Choisissez comment partager ce produit</DialogDescription>
+                        <DialogTitle>{t("productDetail.share.title")}</DialogTitle>
+                        <DialogDescription>{t("productDetail.share.description")}</DialogDescription>
                       </DialogHeader>
                       <div className="grid grid-cols-2 gap-2">
                         <Button
@@ -646,7 +649,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                           className="w-full"
                         >
                           <Copy className="h-4 w-4 mr-2" />
-                          Copier
+                          {t("productDetail.share.copy")}
                         </Button>
                       </div>
                     </DialogContent>
@@ -662,8 +665,8 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       <CheckCircle className="h-4 w-4 text-green-600" />
                       <span className="text-sm">
                         {!singleStockInfo.isOutOfStock 
-                          ? `En stock • ${singleStockInfo.available} disponible(s)`
-                          : 'Rupture de stock'
+                          ? `${t("productDetail.stock.inStock")} • ${singleStockInfo.available} ${t("productDetail.stock.available")}`
+                          : t("productDetail.stock.outOfStock")
                         }
                       </span>
                     </AlertDescription>
@@ -674,9 +677,9 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                   <AlertDescription className="flex items-center gap-2">
                     <Truck className="h-4 w-4 text-primary" />
                     <div className="text-sm">
-                      <p className="font-medium text-foreground">Livraison gratuite</p>
+                      <p className="font-medium text-foreground">{t("productDetail.shipping.free")}</p>
                       <p className="text-muted-foreground">
-                        À partir de 50€ d'achat en France métropolitaine
+                        {t("productDetail.shipping.freeFrom")}
                       </p>
                         {getShippingMessage && (
                         <p className="text-muted-foreground mt-1">
@@ -694,16 +697,16 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
           <div className="mb-16">
             <Tabs defaultValue="details" className="w-full">
               <TabsList className="grid w-full grid-cols-4 mb-8">
-                <TabsTrigger value="details">Détails</TabsTrigger>
-                <TabsTrigger value="specs">Caractéristiques</TabsTrigger>
-                <TabsTrigger value="care">Entretien</TabsTrigger>
-                <TabsTrigger value="shipping">Livraison</TabsTrigger>
+                <TabsTrigger value="details">{t("productDetail.tabs.details")}</TabsTrigger>
+                <TabsTrigger value="specs">{t("productDetail.tabs.specs")}</TabsTrigger>
+                <TabsTrigger value="care">{t("productDetail.tabs.care")}</TabsTrigger>
+                <TabsTrigger value="shipping">{t("productDetail.tabs.shipping")}</TabsTrigger>
               </TabsList>
               
               <TabsContent value="details" className="space-y-4">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-medium text-foreground mb-4">Description détaillée</h3>
+                    <h3 className="font-medium text-foreground mb-4">{t("productDetail.detailsTab.title")}</h3>
                     <div
                       className="prose prose-stone dark:prose-invert max-w-none text-muted-foreground"
                       dangerouslySetInnerHTML={{
@@ -717,35 +720,35 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
               <TabsContent value="specs" className="space-y-4">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-medium text-foreground mb-4">Caractéristiques techniques</h3>
+                    <h3 className="font-medium text-foreground mb-4">{t("productDetail.specsTab.title")}</h3>
                     <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {product.material && (
                         <>
-                          <dt className="font-medium text-foreground">Matériau</dt>
+                          <dt className="font-medium text-foreground">{t("productDetail.specsTab.material")}</dt>
                           <dd className="text-muted-foreground">{product.material}</dd>
                         </>
                       )}
                       {product.color && (
                         <>
-                          <dt className="font-medium text-foreground">Couleur</dt>
+                          <dt className="font-medium text-foreground">{t("productDetail.specsTab.color")}</dt>
                           <dd className="text-muted-foreground">{product.color}</dd>
                         </>
                       )}
                       {product.dimensions_cm && (
                         <>
-                          <dt className="font-medium text-foreground">Dimensions</dt>
+                          <dt className="font-medium text-foreground">{t("productDetail.specsTab.dimensions")}</dt>
                           <dd className="text-muted-foreground">{product.dimensions_cm}</dd>
                         </>
                       )}
                       {product.weight_grams && (
                         <>
-                          <dt className="font-medium text-foreground">Poids</dt>
+                          <dt className="font-medium text-foreground">{t("productDetail.specsTab.weight")}</dt>
                           <dd className="text-muted-foreground">{product.weight_grams}g</dd>
                         </>
                       )}
-                      <dt className="font-medium text-foreground">Artisan</dt>
+                      <dt className="font-medium text-foreground">{t("productDetail.specsTab.artisan")}</dt>
                       <dd className="text-muted-foreground">{product.artisan}</dd>
-                      <dt className="font-medium text-foreground">Catégorie</dt>
+                      <dt className="font-medium text-foreground">{t("productDetail.specsTab.category")}</dt>
                       <dd className="text-muted-foreground">{product.category}</dd>
                     </dl>
                   </CardContent>
@@ -755,7 +758,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
               <TabsContent value="care" className="space-y-4">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-medium text-foreground mb-4">Instructions d'entretien</h3>
+                    <h3 className="font-medium text-foreground mb-4">{t("productDetail.careTab.title")}</h3>
                     <div
                       className="prose prose-stone dark:prose-invert max-w-none text-muted-foreground"
                       dangerouslySetInnerHTML={{
@@ -769,22 +772,22 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
               <TabsContent value="shipping" className="space-y-4">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-medium text-foreground mb-4">Livraison et retours</h3>
+                    <h3 className="font-medium text-foreground mb-4">{t("productDetail.shippingTab.title")}</h3>
                     <div className="space-y-4">
                       <div>
-                        <h4 className="font-medium text-foreground mb-2">Délais de livraison</h4>
-                        <p className="text-muted-foreground">2-5 jours ouvrés en France métropolitaine</p>
+                        <h4 className="font-medium text-foreground mb-2">{t("productDetail.shippingTab.deliveryTime")}</h4>
+                        <p className="text-muted-foreground">{t("productDetail.shippingTab.deliveryTimeValue")}</p>
                       </div>
                       <div>
-                        <h4 className="font-medium text-foreground mb-2">Frais de livraison</h4>
+                        <h4 className="font-medium text-foreground mb-2">{t("productDetail.shippingTab.shippingCost")}</h4>
                         <p className="text-muted-foreground">
-                          Gratuite à partir de 50€ d'achat. Sinon 4,90€ en France métropolitaine.
+                          {t("productDetail.shippingTab.shippingCostValue")}
                         </p>
                       </div>
                       <div>
-                        <h4 className="font-medium text-foreground mb-2">Retours</h4>
+                        <h4 className="font-medium text-foreground mb-2">{t("productDetail.shippingTab.returns")}</h4>
                         <p className="text-muted-foreground">
-                          Retours gratuits sous 14 jours. L'article doit être dans son état d'origine.
+                          {t("productDetail.shippingTab.returnsValue")}
                         </p>
                       </div>
                     </div>
@@ -807,7 +810,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
             <div className="mb-16">
               <ProductRecommendations
                 allProducts={relatedProducts}
-                title="Vous pourriez aussi aimer"
+                title={t("productDetail.recommendations")}
                 maxRecommendations={6}
                 onQuickView={() => {}}
               />

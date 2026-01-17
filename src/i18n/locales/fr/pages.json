@@ -123,6 +123,99 @@
       "description": "Ne manquez aucun article, recevez nos dernières histoires et nouvelles collections directement dans votre boîte mail."
     }
   },
+  "productDetail": {
+    "breadcrumb": {
+      "home": "Accueil",
+      "shop": "Boutique"
+    },
+    "badges": {
+      "new": "Nouveau",
+      "favorite": "⭐ Coup de cœur"
+    },
+    "reviews": "avis",
+    "price": {
+      "vatIncluded": "TVA incluse • Livraison calculée à l'étape suivante"
+    },
+    "description": {
+      "showMore": "Voir plus",
+      "showLess": "Voir moins"
+    },
+    "quantity": {
+      "decrease": "Diminuer la quantité",
+      "increase": "Augmenter la quantité"
+    },
+    "cart": {
+      "add": "Ajouter au panier",
+      "outOfStock": "Rupture de stock",
+      "added": "ajouté au panier"
+    },
+    "share": {
+      "title": "Partager ce produit",
+      "description": "Choisissez comment partager ce produit",
+      "copy": "Copier",
+      "copied": "Lien copié dans le presse-papiers",
+      "error": "Erreur lors du partage"
+    },
+    "stock": {
+      "inStock": "En stock",
+      "available": "disponible(s)",
+      "outOfStock": "Rupture de stock"
+    },
+    "shipping": {
+      "free": "Livraison gratuite",
+      "freeFrom": "À partir de 50€ d'achat en France métropolitaine"
+    },
+    "tabs": {
+      "details": "Détails",
+      "specs": "Caractéristiques",
+      "care": "Entretien",
+      "shipping": "Livraison"
+    },
+    "detailsTab": {
+      "title": "Description détaillée"
+    },
+    "specsTab": {
+      "title": "Caractéristiques techniques",
+      "material": "Matériau",
+      "color": "Couleur",
+      "dimensions": "Dimensions",
+      "weight": "Poids",
+      "artisan": "Artisan",
+      "category": "Catégorie"
+    },
+    "careTab": {
+      "title": "Instructions d'entretien"
+    },
+    "shippingTab": {
+      "title": "Livraison et retours",
+      "deliveryTime": "Délais de livraison",
+      "deliveryTimeValue": "2-5 jours ouvrés en France métropolitaine",
+      "shippingCost": "Frais de livraison",
+      "shippingCostValue": "Gratuite à partir de 50€ d'achat. Sinon 4,90€ en France métropolitaine.",
+      "returns": "Retours",
+      "returnsValue": "Retours gratuits sous 14 jours. L'article doit être dans son état d'origine."
+    },
+    "recommendations": "Vous pourriez aussi aimer",
+    "error": {
+      "title": "Produit non trouvé",
+      "description": "Le produit que vous recherchez n'existe pas ou n'est plus disponible.",
+      "back": "Retour",
+      "viewAll": "Voir tous les produits",
+      "missingId": "ID produit manquant",
+      "invalidId": "ID produit invalide",
+      "notFound": "Produit non trouvé",
+      "loadError": "Erreur lors du chargement du produit",
+      "cartError": "Impossible d'ajouter le produit au panier"
+    },
+    "images": {
+      "view": "vue",
+      "of": "sur",
+      "previous": "Image précédente",
+      "next": "Image suivante",
+      "thumbnail": "miniature",
+      "enlarged": "Vue agrandie"
+    }
+  },
   "home": {
     "title": "Accueil",
     "seo": {
