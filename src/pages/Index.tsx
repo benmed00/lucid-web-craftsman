@@ -48,8 +48,8 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* SEO Meta Tags */}
       <SEOHelmet 
-        title="Rif Raw Straw - Artisanat Marocain Authentique | Sacs et Chapeaux Fait Main"
-        description="Découvrez notre collection de sacs et chapeaux fabriqués à la main dans les montagnes du Rif. Artisanat durable et savoir-faire traditionnel marocain."
+        title={t('pages:home.seo.title')}
+        description={t('pages:home.seo.description')}
         keywords={['artisanat marocain', 'sacs fait main', 'chapeaux paille', 'rif', 'artisan', 'durable', 'traditionnel', 'berbère', 'écologique']}
         url="/"
         type="website"
@@ -66,13 +66,13 @@ const Index = () => {
           <div className="lg:w-1/2 w-full text-center lg:text-left space-y-5 sm:space-y-6 hero-text-animation order-2 lg:order-1">
             <Badge className="inline-flex items-center bg-secondary text-secondary-foreground hover:bg-secondary/80 border-none animate-scale-in hover-glow px-3 sm:px-4 py-2 text-xs sm:text-sm">
               <span className="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse"></span>
-              Artisanat Durable & Fait Main
+              {t('pages:home.hero.badge')}
             </Badge>
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-serif font-medium text-foreground animate-fade-in-up leading-[1.15] sm:leading-tight">
-              Créé avec amour dans les <span className="text-primary block sm:inline">montagnes du Rif</span>
+              {t('pages:home.hero.title')} <span className="text-primary block sm:inline">{t('pages:home.hero.titleHighlight')}</span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground animate-fade-in-up leading-relaxed max-w-xl mx-auto lg:mx-0" style={{ animationDelay: '0.3s' }}>
-              Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.
+              {t('pages:home.hero.description')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-fade-in-up justify-center lg:justify-start pt-2" style={{ animationDelay: '0.5s' }}>
               <Link to="/products" className="group w-full sm:w-auto">
@@ -81,7 +81,7 @@ const Index = () => {
                   id="hero-discover-collection"
                   name="discover-collection-button"
                 >
-                  Découvrir la Collection 
+                  {t('pages:home.hero.discoverButton')}
                   <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </Link>
@@ -92,7 +92,7 @@ const Index = () => {
                   id="hero-our-story"
                   name="our-story-button"
                 >
-                  Notre Histoire
+                  {t('pages:home.hero.storyButton')}
                 </Button>
               </Link>
             </div>
@@ -111,13 +111,13 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-8 md:mb-16 lg:mb-20">
             <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20 border-none px-4 py-2">
-              Nos Valeurs
+              {t('pages:home.features.badge')}
             </Badge>
             <h2 className="font-serif text-2xl md:text-4xl lg:text-5xl text-foreground mb-4 md:mb-6 leading-tight">
-              Pourquoi Choisir Nos Créations?
+              {t('pages:home.features.title')}
             </h2>
             <p className="text-base md:text-lg lg:text-xl text-muted-foreground leading-relaxed px-4">
-              Nos produits sont fabriqués avec amour, soin et engagement envers des pratiques durables
+              {t('pages:home.features.description')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 lg:gap-12 stagger-animation">
@@ -126,9 +126,9 @@ const Index = () => {
                 <div className="h-14 w-14 md:h-16 md:w-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 md:mb-6 mx-auto transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
                   <Leaf className="h-7 w-7 md:h-8 md:w-8 text-primary transition-transform duration-300" />
                 </div>
-                <h3 className="text-lg md:text-xl font-serif text-foreground mb-3 md:mb-4 text-center transition-colors duration-300 group-hover:text-primary">Matériaux Écologiques</h3>
+                <h3 className="text-lg md:text-xl font-serif text-foreground mb-3 md:mb-4 text-center transition-colors duration-300 group-hover:text-primary">{t('pages:home.features.eco.title')}</h3>
                 <p className="text-sm md:text-base text-muted-foreground text-center leading-relaxed transition-colors duration-300 group-hover:text-foreground">
-                  Tous nos produits sont fabriqués à partir de matériaux durables et éthiques, respectueux de l'environnement et des traditions locales.
+                  {t('pages:home.features.eco.description')}
                 </p>
               </CardContent>
             </Card>
@@ -139,9 +139,9 @@ const Index = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                   </svg>
                 </div>
-                <h3 className="text-lg md:text-xl font-serif text-foreground mb-3 md:mb-4 text-center transition-colors duration-300 group-hover:text-primary">Artisanat Traditionnel</h3>
+                <h3 className="text-lg md:text-xl font-serif text-foreground mb-3 md:mb-4 text-center transition-colors duration-300 group-hover:text-primary">{t('pages:home.features.craft.title')}</h3>
                 <p className="text-sm md:text-base text-muted-foreground text-center leading-relaxed transition-colors duration-300 group-hover:text-foreground">
-                  Chaque pièce est soigneusement fabriquée par des artisans qualifiés utilisant des techniques traditionnelles transmises de génération en génération.
+                  {t('pages:home.features.craft.description')}
                 </p>
               </CardContent>
             </Card>
@@ -152,9 +152,9 @@ const Index = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 1 1 2 2h-2zm0 0V5.5A2.5 2.5 0 1 0 9.5 8H12zm-7 4h14M5 12a2 2 0 1 1 0-4h14a2 2 0 1 1 0 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
                   </svg>
                 </div>
-                <h3 className="text-lg md:text-xl font-serif text-foreground mb-3 md:mb-4 text-center transition-colors duration-300 group-hover:text-primary">Designs Uniques</h3>
+                <h3 className="text-lg md:text-xl font-serif text-foreground mb-3 md:mb-4 text-center transition-colors duration-300 group-hover:text-primary">{t('pages:home.features.design.title')}</h3>
                 <p className="text-sm md:text-base text-muted-foreground text-center leading-relaxed transition-colors duration-300 group-hover:text-foreground">
-                  Nos designs allient esthétique moderne et influences traditionnelles, pour des pièces intemporelles qui racontent une histoire.
+                  {t('pages:home.features.design.description')}
                 </p>
               </CardContent>
             </Card>
@@ -168,18 +168,18 @@ const Index = () => {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-8 md:mb-12 lg:mb-16 gap-6">
             <div className="max-w-2xl text-center lg:text-left">
               <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20 border-none px-4 py-2">
-                Collection Artisanale
+                {t('pages:home.products.badge')}
               </Badge>
               <h2 className="font-serif text-2xl md:text-4xl lg:text-5xl text-foreground mb-4 leading-tight">
-                Nos Produits Phares
+                {t('pages:home.products.title')}
               </h2>
               <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-                Chaque création raconte l'histoire de nos artisans et perpétue un savoir-faire ancestral
+                {t('pages:home.products.description')}
               </p>
             </div>
             <Link to="/products" className="hidden lg:flex items-center text-primary hover:text-primary/80 transition-all duration-300 font-medium group hover-underline icon-bounce">
               <span id="collection-link-desktop" className="cursor-pointer">
-                Voir Toute la Collection 
+                {t('pages:home.products.viewAll')}
               </span>
               <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
@@ -202,7 +202,7 @@ const Index = () => {
                 id="mobile-view-all-products"
                 name="view-all-products-mobile"
               >
-                Voir Tous les Produits 
+                {t('pages:home.products.viewAllMobile')}
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
               </Button>
             </Link>
@@ -214,8 +214,8 @@ const Index = () => {
       <section id="testimonials" className="bg-secondary py-12 md:py-20 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center mb-8 md:mb-12">
-            <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none">Témoignages</Badge>
-            <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground">Ce Que Disent Nos Clients</h2>
+            <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none">{t('pages:home.testimonials.badge')}</Badge>
+            <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground">{t('pages:home.testimonials.title')}</h2>
           </div>
           <Testimonials />
         </div>
@@ -227,9 +227,9 @@ const Index = () => {
           <div className="max-w-3xl mx-auto text-center mb-8 md:mb-12">
             <div className="flex items-center justify-center mb-2">
               <Instagram className="h-4 w-4 md:h-5 md:w-5 text-foreground mr-2" />
-              <span className="text-sm md:text-base text-foreground font-medium">Suivez-nous @artisan_maroc</span>
+              <span className="text-sm md:text-base text-foreground font-medium">{t('pages:home.instagram.follow')}</span>
             </div>
-            <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground">Laissez-vous Inspirer par Notre Communauté</h2>
+            <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground">{t('pages:home.instagram.title')}</h2>
           </div>
           <InstagramFeed />
         </div>
