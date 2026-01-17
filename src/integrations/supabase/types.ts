@@ -2103,6 +2103,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_auth_user_email: { Args: never; Returns: string }
       get_contact_message_details: {
         Args: { message_id: string }
         Returns: Json
