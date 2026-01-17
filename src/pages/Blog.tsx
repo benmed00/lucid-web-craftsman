@@ -1,6 +1,7 @@
 import { CalendarIcon, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import SEOHelmet from "@/components/seo/SEOHelmet";
 
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import BlogSkeleton from "@/components/BlogSkeleton";
 import NewsletterSubscription from "@/components/NewsletterSubscription";
 
 const Blog = () => {
+  const { t } = useTranslation("pages");
   const [featuredPosts, setFeaturedPosts] = useState([]);
   const [regularPosts, setRegularPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,8 +50,8 @@ const Blog = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHelmet
-        title="Journal de l'Artisanat - Blog | Rif Raw Straw"
-        description="Découvrez les histoires derrière nos créations, rencontrez nos artisans, et plongez dans la richesse de l'artisanat marocain."
+        title={t("blog.seo.title")}
+        description={t("blog.seo.description")}
         keywords={["blog artisanat", "histoires artisans", "savoir-faire traditionnel", "culture berbère"]}
         url="/blog"
         type="website"
@@ -61,14 +63,13 @@ const Blog = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none">
-              Notre Blog
+              {t("blog.badge")}
             </Badge>
             <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
-              Journal de l'Artisanat
+              {t("blog.heading")}
             </h1>
             <p className="text-muted-foreground md:text-lg">
-              Découvrez les histoires derrière nos créations, rencontrez nos
-              artisans, et plongez dans la richesse de l'artisanat marocain.
+              {t("blog.description")}
             </p>
           </div>
         </div>
@@ -79,7 +80,7 @@ const Blog = () => {
         <section className="py-16">
           <div className="container mx-auto px-4">
             <h2 className="font-serif text-3xl text-foreground mb-8">
-              Articles à la Une
+              {t("blog.featured")}
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -119,7 +120,7 @@ const Blog = () => {
                         variant="outline"
                         className="border-border hover:bg-muted hover:text-foreground"
                       >
-                        Lire la suite
+                        {t("blog.readMore")}
                       </Button>
                     </Link>
                   </CardContent>
@@ -134,7 +135,7 @@ const Blog = () => {
       <section className="py-16 bg-secondary">
         <div className="container mx-auto px-4">
           <h2 className="font-serif text-3xl text-foreground mb-8">
-            Derniers Articles
+            {t("blog.latest")}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -171,7 +172,7 @@ const Blog = () => {
                       variant="link"
                       className="p-0 h-auto text-primary hover:text-primary/80"
                     >
-                      Lire la suite
+                      {t("blog.readMore")}
                     </Button>
                   </Link>
                 </CardContent>
@@ -183,11 +184,10 @@ const Blog = () => {
           <div className="mt-16 bg-primary rounded-lg p-8 md:p-12">
             <div className="max-w-3xl mx-auto text-center">
               <h3 className="font-serif text-2xl text-primary-foreground mb-3">
-                Abonnez-vous à notre newsletter
+                {t("blog.newsletter.title")}
               </h3>
               <p className="text-primary-foreground/80 mb-6">
-                Ne manquez aucun article, recevez nos dernières histoires et
-                nouvelles collections directement dans votre boîte mail.
+                {t("blog.newsletter.description")}
               </p>
               <NewsletterSubscription variant="inline" />
             </div>
