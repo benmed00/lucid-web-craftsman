@@ -1,5 +1,6 @@
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 interface CustomerData {
   firstName: string;
@@ -32,6 +33,8 @@ const COUNTRY_NAMES: Record<string, string> = {
 };
 
 const StepSummary = ({ step, customerData, shippingData, onEditStep }: StepSummaryProps) => {
+  const { t } = useTranslation('checkout');
+  
   // Show customer info summary in step 2 and 3
   const showCustomerSummary = step >= 2 && customerData;
   // Show shipping summary in step 3
@@ -48,7 +51,7 @@ const StepSummary = ({ step, customerData, shippingData, onEditStep }: StepSumma
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Coordonnées
+                {t('steps.summary.contact')}
               </p>
               <p className="font-medium text-sm">
                 {customerData.firstName} {customerData.lastName}
@@ -65,7 +68,7 @@ const StepSummary = ({ step, customerData, shippingData, onEditStep }: StepSumma
               onClick={() => onEditStep(1)}
             >
               <Pencil className="h-3 w-3 mr-1" />
-              Modifier
+              {t('steps.summary.edit')}
             </Button>
           </div>
         </div>
@@ -76,7 +79,7 @@ const StepSummary = ({ step, customerData, shippingData, onEditStep }: StepSumma
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Adresse de livraison
+                {t('steps.summary.shippingAddress')}
               </p>
               <p className="font-medium text-sm">{shippingData.address}</p>
               {shippingData.addressComplement && (
@@ -95,7 +98,7 @@ const StepSummary = ({ step, customerData, shippingData, onEditStep }: StepSumma
               onClick={() => onEditStep(2)}
             >
               <Pencil className="h-3 w-3 mr-1" />
-              Modifier
+              {t('steps.summary.edit')}
             </Button>
           </div>
         </div>

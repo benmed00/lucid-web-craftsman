@@ -3,6 +3,7 @@ import { AlertCircle, Check, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface FormFieldWithValidationProps {
   id: string;
@@ -35,6 +36,7 @@ const FormFieldWithValidation = ({
   autoComplete,
   maxLength,
 }: FormFieldWithValidationProps) => {
+  const { t } = useTranslation('checkout');
   const [touched, setTouched] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -48,9 +50,9 @@ const FormFieldWithValidation = ({
       const validationError = validate(value);
       setLocalError(validationError);
     } else if (required && !value.trim()) {
-      setLocalError("Ce champ est requis");
+      setLocalError(t('form.required'));
     }
-  }, [validate, value, required]);
+  }, [validate, value, required, t]);
 
   // Clear local error when typing
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

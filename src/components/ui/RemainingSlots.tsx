@@ -5,6 +5,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Info, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface RemainingSlotsProps {
   current: number;
@@ -17,13 +18,16 @@ interface RemainingSlotsProps {
 export const RemainingSlots: React.FC<RemainingSlotsProps> = ({
   current,
   max,
-  label = 'produits',
+  label,
   showWhenFull = true,
   className,
 }) => {
+  const { t } = useTranslation('checkout');
   const remaining = max - current;
   const isFull = remaining <= 0;
   const isNearFull = remaining <= 2 && remaining > 0;
+  
+  const displayLabel = label || t('cart.slots.products');
 
   if (!showWhenFull && isFull) return null;
   if (current === 0) return null;
@@ -42,12 +46,12 @@ export const RemainingSlots: React.FC<RemainingSlotsProps> = ({
       {isFull ? (
         <>
           <AlertTriangle className="h-3 w-3" />
-          Limite atteinte
+          {t('cart.slots.limitReached')}
         </>
       ) : (
         <>
           <Info className="h-3 w-3" />
-          {remaining} {label} restant{remaining > 1 ? 's' : ''}
+          {t('cart.slots.remaining', { count: remaining, label: displayLabel })}
         </>
       )}
     </Badge>

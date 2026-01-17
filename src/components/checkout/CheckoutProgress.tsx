@@ -1,5 +1,6 @@
 import { Check, User, MapPin, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface CheckoutProgressProps {
   currentStep: number;
@@ -7,13 +8,15 @@ interface CheckoutProgressProps {
   onStepClick?: (step: number) => void;
 }
 
-const steps = [
-  { id: 1, label: "Information", shortLabel: "Info", icon: User },
-  { id: 2, label: "Livraison", shortLabel: "Livraison", icon: MapPin },
-  { id: 3, label: "Paiement", shortLabel: "Paiement", icon: CreditCard },
-];
-
 const CheckoutProgress = ({ currentStep, completedSteps, onStepClick }: CheckoutProgressProps) => {
+  const { t } = useTranslation('checkout');
+  
+  const steps = [
+    { id: 1, label: t('steps.information'), shortLabel: "Info", icon: User },
+    { id: 2, label: t('steps.shipping'), shortLabel: t('steps.shipping'), icon: MapPin },
+    { id: 3, label: t('steps.payment'), shortLabel: t('steps.payment'), icon: CreditCard },
+  ];
+
   const handleStepClick = (stepId: number) => {
     // Only allow clicking on completed steps or current step
     const isClickable = completedSteps.includes(stepId) || stepId < currentStep;
@@ -63,8 +66,8 @@ const CheckoutProgress = ({ currentStep, completedSteps, onStepClick }: Checkout
                     isClickable && "cursor-pointer hover:scale-110 hover:shadow-lg active:scale-95",
                     !isClickable && "cursor-default"
                   )}
-                  aria-label={isClickable ? `Retourner à l'étape ${step.label}` : step.label}
-                  title={isClickable ? `Cliquez pour modifier ${step.label}` : undefined}
+                  aria-label={isClickable ? t('steps.returnToStep', { step: step.label }) : step.label}
+                  title={isClickable ? t('steps.clickToModify', { step: step.label }) : undefined}
                 >
                   {isCompleted ? (
                     <Check className="h-4 w-4 md:h-5 md:w-5 animate-in zoom-in duration-200" />
@@ -101,8 +104,8 @@ const CheckoutProgress = ({ currentStep, completedSteps, onStepClick }: Checkout
                     isCompleted && "text-muted-foreground",
                     isCurrent && "text-primary"
                   )}>
-                    {isCompleted && "Complété"}
-                    {isCurrent && "En cours"}
+                    {isCompleted && t('steps.completed')}
+                    {isCurrent && t('steps.inProgress')}
                   </p>
                 </button>
               </div>
@@ -114,11 +117,11 @@ const CheckoutProgress = ({ currentStep, completedSteps, onStepClick }: Checkout
       {/* Mobile step indicator with navigation hint */}
       <div className="md:hidden mt-4 text-center">
         <p className="text-sm text-muted-foreground">
-          Étape {currentStep} sur {steps.length}
+          {t('steps.stepOf', { current: currentStep, total: steps.length })}
         </p>
         {completedSteps.length > 0 && currentStep > 1 && (
           <p className="text-xs text-primary mt-1">
-            Cliquez sur une étape complétée pour la modifier
+            {t('steps.clickCompletedToModify')}
           </p>
         )}
       </div>

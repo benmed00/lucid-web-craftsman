@@ -67,7 +67,7 @@ const Products = () => {
 
   const handleClearCache = () => {
     invalidateCache?.();
-    toast.success("Cache de recherche vidé");
+    toast.success(t('cache.cleared'));
   };
 
   // Infinite scroll for mobile with better performance  
@@ -86,9 +86,9 @@ const Products = () => {
       setLoading(true);
       const data = await ProductService.getAllProducts();
       setProducts(data);
-      toast.success("Produits mis à jour");
+      toast.success(t('refresh.success'));
     } catch (error) {
-      toast.error("Erreur lors de la mise à jour");
+      toast.error(t('refresh.error'));
     } finally {
       setLoading(false);
     }
@@ -106,7 +106,7 @@ const Products = () => {
       } catch (error) {
         console.error("Error fetching products:", error);
         setLoading(false);
-        setError("Impossible de charger les produits. Veuillez réessayer plus tard.");
+        setError(t('fetch.error'));
       }
     };
     
@@ -124,7 +124,7 @@ const Products = () => {
     
     addItem(product, 1);
 
-    toast.success(`${product.name} ajouté au panier`, {
+    toast.success(t('recommendations.addedToCart', { name: product.name }), {
       duration: 2000,
     });
   };
@@ -140,7 +140,7 @@ const Products = () => {
   const handleQuickViewAddToCart = (product: Product, quantity: number) => {
     addItem(product, quantity);
 
-    toast.success(`${product.name} ajouté au panier (${quantity}x)`, {
+    toast.success(t('recommendations.addedToCartQuantity', { name: product.name, quantity }), {
       duration: 2000,
     });
 
@@ -240,13 +240,13 @@ const Products = () => {
             {/* Voice Search */}
             <VoiceSearch 
               onSearch={handleVoiceSearch}
-              placeholder="Rechercher des produits artisanaux..."
+              placeholder={t('filters.searchPlaceholder')}
             />
             
             {/* Mobile Promotions with Dynamic Cart Total */}
             <MobilePromotions 
               cartTotal={150} // Pass actual cart total
-              onPromotionApply={(code) => toast.success(`Code promo ${code} appliqué!`)}
+              onPromotionApply={(code) => toast.success(t('promo.applied', { code }))}
             />
           </div>
         )}
@@ -403,14 +403,14 @@ const Products = () => {
         {filteredProducts.length > 0 && (
           <div className="text-center py-16 border-t border-border">
             <h2 className="font-serif text-2xl text-foreground mb-4">
-              Vous ne trouvez pas ce que vous cherchez ?
+              {t('cta.title')}
             </h2>
             <p className="text-muted-foreground mb-6">
-              Contactez-nous pour une création personnalisée selon vos goûts.
+              {t('cta.description')}
             </p>
             <Button asChild className="bg-primary hover:bg-primary/90">
               <Link to="/contact" className="inline-flex items-center">
-                Nous contacter
+                {t('cta.button')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -426,7 +426,7 @@ const Products = () => {
         <div className="mt-16">
           <ProductRecommendations
             allProducts={products}
-            title="Recommandés pour vous"
+            title={t('recommendations.title')}
             maxRecommendations={8}
             onQuickView={setQuickViewProduct}
           />

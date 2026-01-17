@@ -21,17 +21,80 @@
     "quantityUpdated": "Quantité mise à jour",
     "itemRemoved": "Produit retiré du panier",
     "paymentSuccess": "Paiement réussi via {{method}}",
+    "orderSummary": "Résumé de Commande",
+    "deliveryTime": "Délai de livraison",
+    "shippingFreeLabel": "Gratuit",
+    "calculateShipping": "Calculer les frais de livraison",
+    "postalCodePlaceholder": "Code postal",
+    "postalCodeAria": "Entrez votre code postal pour calculer les frais de livraison",
+    "postalCodeSrOnly": "Entrez votre code postal pour connaître les frais et délais de livraison",
+    "calculateButton": "Calculer",
+    "calculating": "Calcul...",
+    "enterPostalCode": "Veuillez entrer un code postal",
+    "perUnit": "l'unité",
+    "linkCopied": "Lien copié !",
+    "shareCart": "Partager mon panier",
+    "shareCartTitle": "Mon panier Rif Raw Straw",
+    "shareCartText": "Découvrez ma sélection d'artisanat berbère ({{count}} articles)",
+    "removeFromCart": "Retirer du panier",
+    "removeItem": "Retirer",
+    "removeConfirm": "Voulez-vous retirer \"{{name}}\" de votre panier ?",
+    "viewDetails": "Voir les détails de {{name}}",
+    "decreaseQuantity": "Diminuer la quantité",
+    "increaseQuantity": "Augmenter la quantité",
+    "quantityControls": "Contrôles de quantité pour {{name}}",
+    "maxQuantity": "Maximum {{max}} par article. Contactez-nous pour plus.",
+    "defaultDescription": "Produit artisanal berbère fait main avec des matériaux naturels et traditionnels.",
+    "stockLimited": "Stock limité ({{available}} disponibles)",
     "pendingCheckout": {
       "title": "Commande en cours",
       "message": "Vous avez une commande non finalisée. Reprenez là où vous vous êtes arrêté.",
       "resume": "Reprendre ma commande",
       "step": "Étape {{current}}/{{total}}"
+    },
+    "stockAlert": "Attention : Certains articles de votre panier ont un stock limité. Veuillez ajuster les quantités.",
+    "vip": {
+      "title": "Commande VIP détectée",
+      "description": "Pour les commandes supérieures à {{threshold}}€, nous vous offrons une expérience personnalisée, rapide et fiable.",
+      "contact": "Contactez-nous directement pour bénéficier d'un accompagnement dédié et de conditions privilégiées.",
+      "emailButton": "Nous contacter",
+      "callButton": "Appeler maintenant"
+    },
+    "benefits": {
+      "title": "Pourquoi choisir Rif Raw Straw ?",
+      "item1": "Artisanat authentique berbère",
+      "item2": "Livraison gratuite dès 50€",
+      "item3": "Retours sous 30 jours",
+      "item4": "Support client réactif"
+    },
+    "estimatedDelivery": {
+      "title": "Livraison estimée",
+      "orderBefore": "Commandez avant 14h pour une expédition le jour même",
+      "delay": "Délai: {{estimate}}",
+      "defaultDelay": "2-3 jours ouvrés"
+    },
+    "slots": {
+      "limitReached": "Limite atteinte",
+      "remaining": "{{count}} {{label}} restant",
+      "remaining_other": "{{count}} {{label}} restants",
+      "products": "produits différents"
     }
   },
   "steps": {
     "information": "Informations",
     "shipping": "Livraison",
-    "payment": "Paiement"
+    "payment": "Paiement",
+    "completed": "Complété",
+    "inProgress": "En cours",
+    "returnToStep": "Retourner à l'étape {{step}}",
+    "clickToModify": "Cliquez pour modifier {{step}}",
+    "stepOf": "Étape {{current}} sur {{total}}",
+    "clickCompletedToModify": "Cliquez sur une étape complétée pour la modifier",
+    "summary": {
+      "contact": "Coordonnées",
+      "shippingAddress": "Adresse de livraison",
+      "edit": "Modifier"
+    }
   },
   "form": {
     "firstName": "Prénom",
@@ -44,7 +107,7 @@
     "postalCode": "Code postal",
     "country": "Pays",
     "notes": "Instructions de livraison",
-    "required": "Obligatoire",
+    "required": "Ce champ est requis",
     "optional": "Optionnel"
   },
   "shipping": {
@@ -61,8 +124,11 @@
     "title": "Paiement sécurisé",
     "securePayment": "Paiement 100% sécurisé",
     "payNow": "Payer maintenant",
+    "pay": "Payer {{amount}}",
     "processing": "Traitement en cours...",
-    "redirecting": "Redirection vers le paiement..."
+    "redirecting": "Redirection vers le paiement...",
+    "ssl": "SSL 256-bit",
+    "secureLabel": "Paiement sécurisé"
   },
   "promo": {
     "label": "Code promo",

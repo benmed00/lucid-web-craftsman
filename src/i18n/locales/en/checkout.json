@@ -21,17 +21,80 @@
     "quantityUpdated": "Quantity updated",
     "itemRemoved": "Item removed from cart",
     "paymentSuccess": "Payment successful via {{method}}",
+    "orderSummary": "Order Summary",
+    "deliveryTime": "Delivery time",
+    "shippingFreeLabel": "Free",
+    "calculateShipping": "Calculate shipping",
+    "postalCodePlaceholder": "Postal code",
+    "postalCodeAria": "Enter your postal code to calculate shipping costs",
+    "postalCodeSrOnly": "Enter your postal code to find out shipping costs and delivery times",
+    "calculateButton": "Calculate",
+    "calculating": "Calculating...",
+    "enterPostalCode": "Please enter a postal code",
+    "perUnit": "each",
+    "linkCopied": "Link copied!",
+    "shareCart": "Share my cart",
+    "shareCartTitle": "My Rif Raw Straw cart",
+    "shareCartText": "Check out my Berber artisan selection ({{count}} items)",
+    "removeFromCart": "Remove from cart",
+    "removeItem": "Remove",
+    "removeConfirm": "Do you want to remove \"{{name}}\" from your cart?",
+    "viewDetails": "View details of {{name}}",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity",
+    "quantityControls": "Quantity controls for {{name}}",
+    "maxQuantity": "Maximum {{max}} per item. Contact us for more.",
+    "defaultDescription": "Handmade Berber artisan product with natural and traditional materials.",
+    "stockLimited": "Limited stock ({{available}} available)",
     "pendingCheckout": {
       "title": "Order in progress",
       "message": "You have an unfinished order. Pick up where you left off.",
       "resume": "Resume my order",
       "step": "Step {{current}}/{{total}}"
+    },
+    "stockAlert": "Warning: Some items in your cart have limited stock. Please adjust quantities.",
+    "vip": {
+      "title": "VIP Order Detected",
+      "description": "For orders over {{threshold}}€, we offer a personalized, fast and reliable experience.",
+      "contact": "Contact us directly to benefit from dedicated support and preferential conditions.",
+      "emailButton": "Contact us",
+      "callButton": "Call now"
+    },
+    "benefits": {
+      "title": "Why choose Rif Raw Straw?",
+      "item1": "Authentic Berber craftsmanship",
+      "item2": "Free shipping from €50",
+      "item3": "Returns within 30 days",
+      "item4": "Responsive customer support"
+    },
+    "estimatedDelivery": {
+      "title": "Estimated delivery",
+      "orderBefore": "Order before 2pm for same-day shipping",
+      "delay": "Delivery: {{estimate}}",
+      "defaultDelay": "2-3 business days"
+    },
+    "slots": {
+      "limitReached": "Limit reached",
+      "remaining": "{{count}} {{label}} remaining",
+      "remaining_other": "{{count}} {{label}} remaining",
+      "products": "different products"
     }
   },
   "steps": {
     "information": "Information",
     "shipping": "Shipping",
-    "payment": "Payment"
+    "payment": "Payment",
+    "completed": "Completed",
+    "inProgress": "In progress",
+    "returnToStep": "Return to {{step}} step",
+    "clickToModify": "Click to modify {{step}}",
+    "stepOf": "Step {{current}} of {{total}}",
+    "clickCompletedToModify": "Click on a completed step to modify it",
+    "summary": {
+      "contact": "Contact details",
+      "shippingAddress": "Shipping address",
+      "edit": "Edit"
+    }
   },
   "form": {
     "firstName": "First name",
@@ -44,7 +107,7 @@
     "postalCode": "Postal code",
     "country": "Country",
     "notes": "Delivery instructions",
-    "required": "Required",
+    "required": "This field is required",
     "optional": "Optional"
   },
   "shipping": {
@@ -61,8 +124,11 @@
     "title": "Secure payment",
     "securePayment": "100% secure payment",
     "payNow": "Pay now",
+    "pay": "Pay {{amount}}",
     "processing": "Processing...",
-    "redirecting": "Redirecting to payment..."
+    "redirecting": "Redirecting to payment...",
+    "ssl": "SSL 256-bit",
+    "secureLabel": "Secure payment"
   },
   "promo": {
     "label": "Promo code",
