@@ -1,8 +1,10 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCurrency, Currency } from '@/stores';
+import { useTranslation } from 'react-i18next';
 
 const CurrencySelector: React.FC = () => {
+  const { t } = useTranslation('common');
   const { currency, setCurrency } = useCurrency();
 
   const currencies: { value: Currency; label: string; flag: string }[] = [
@@ -15,7 +17,7 @@ const CurrencySelector: React.FC = () => {
     <Select value={currency} onValueChange={(value: Currency) => setCurrency(value)}>
       <SelectTrigger 
         className="w-[140px] bg-background border-border hover:border-primary/50 transition-colors"
-        aria-label="Sélectionner la devise"
+        aria-label={t('accessibility.selectCurrency')}
       >
         <SelectValue>
           <div className="flex items-center gap-2">

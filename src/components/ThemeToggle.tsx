@@ -3,6 +3,7 @@ import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/stores';
 import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
 
 interface ThemeToggleProps {
   className?: string;
@@ -10,6 +11,7 @@ interface ThemeToggleProps {
 }
 
 const ThemeToggle: React.FC<ThemeToggleProps> = ({ className, size = 'sm' }) => {
+  const { t } = useTranslation('common');
   const { resolvedTheme, toggleTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
 
@@ -24,7 +26,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ className, size = 'sm' }) => 
         "hover:bg-accent text-muted-foreground hover:text-accent-foreground",
         className
       )}
-      aria-label={isDark ? "Activer le mode clair" : "Activer le mode sombre"}
+      aria-label={isDark ? t('accessibility.enableLightMode') : t('accessibility.enableDarkMode')}
     >
       <Sun 
         className={clsx(

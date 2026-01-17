@@ -1,6 +1,7 @@
 import { CheckCircle, ShoppingBag, Home, Loader2 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 
@@ -10,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/stores";
 
 const PaymentSuccess = () => {
+  const { t } = useTranslation(['pages', 'common']);
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const [isVerifying, setIsVerifying] = useState(true);
@@ -25,7 +27,7 @@ const PaymentSuccess = () => {
       if (!sessionId) {
         setVerificationResult({
           success: false,
-          message: "ID de session manquant"
+          message: t('pages:paymentSuccess.errors.missingSession')
         });
         setIsVerifying(false);
         return;
@@ -42,14 +44,14 @@ const PaymentSuccess = () => {
           console.error("Verification error:", error);
           setVerificationResult({
             success: false,
-            message: "Erreur lors de la vérification du paiement"
+            message: t('pages:paymentSuccess.errors.verificationError')
           });
-          toast.error("Erreur lors de la vérification du paiement");
+          toast.error(t('pages:paymentSuccess.errors.verificationError'));
         } else if (data?.success) {
           console.log("Payment verified successfully:", data);
           setVerificationResult({
             success: true,
-            message: data.message || "Paiement vérifié avec succès",
+            message: data.message || t('pages:paymentSuccess.success.verified'),
             orderId: data.orderId
           });
           
@@ -57,29 +59,29 @@ const PaymentSuccess = () => {
           clearCart();
           localStorage.removeItem('cart');
           
-          toast.success("Paiement confirmé et stock mis à jour !");
+          toast.success(t('pages:paymentSuccess.success.confirmed'));
         } else {
           console.log("Payment verification failed:", data);
           setVerificationResult({
             success: false,
-            message: data?.message || "Échec de la vérification du paiement"
+            message: data?.message || t('pages:paymentSuccess.errors.verificationFailed')
           });
-          toast.error(data?.message || "Problème avec la vérification du paiement");
+          toast.error(data?.message || t('pages:paymentSuccess.errors.verificationFailed'));
         }
       } catch (error) {
         console.error("Unexpected error during verification:", error);
         setVerificationResult({
           success: false,
-          message: "Erreur inattendue"
+          message: t('pages:paymentSuccess.errors.unexpectedError')
         });
-        toast.error("Erreur inattendue lors de la vérification");
+        toast.error(t('pages:paymentSuccess.errors.unexpectedError'));
       } finally {
         setIsVerifying(false);
       }
     };
 
     verifyPayment();
-  }, [sessionId, clearCart]);
+  }, [sessionId, clearCart, t]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -92,29 +94,29 @@ const PaymentSuccess = () => {
               <>
                 <Loader2 className="w-20 h-20 text-primary mx-auto mb-4 animate-spin" />
                 <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-                  Vérification du Paiement
+                  {t('pages:paymentSuccess.verifying.title')}
                 </h1>
                 <p className="text-lg text-muted-foreground mb-2">
-                  Nous vérifions votre paiement et mettons à jour votre commande...
+                  {t('pages:paymentSuccess.verifying.description')}
                 </p>
               </>
             ) : verificationResult?.success ? (
               <>
                 <CheckCircle className="w-20 h-20 text-green-600 dark:text-green-400 mx-auto mb-4" />
                 <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-                  Paiement Confirmé
+                  {t('pages:paymentSuccess.success.title')}
                 </h1>
                 <p className="text-lg text-muted-foreground mb-2">
-                  Merci pour votre commande ! {verificationResult.message}
+                  {t('pages:paymentSuccess.success.thanks')} {verificationResult.message}
                 </p>
                 {sessionId && (
                   <p className="text-sm text-muted-foreground mb-2">
-                    Numéro de transaction : {sessionId.slice(-8).toUpperCase()}
+                    {t('pages:paymentSuccess.success.transactionId')}: {sessionId.slice(-8).toUpperCase()}
                   </p>
                 )}
                 {verificationResult.orderId && (
                   <p className="text-sm text-muted-foreground mb-6">
-                    Numéro de commande : {verificationResult.orderId.slice(-8).toUpperCase()}
+                    {t('pages:paymentSuccess.success.orderId')}: {verificationResult.orderId.slice(-8).toUpperCase()}
                   </p>
                 )}
               </>
@@ -126,10 +128,10 @@ const PaymentSuccess = () => {
                   </svg>
                 </div>
                 <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-                  Problème de Vérification
+                  {t('pages:paymentSuccess.error.title')}
                 </h1>
                 <p className="text-lg text-muted-foreground mb-6">
-                  {verificationResult?.message || "Une erreur s'est produite lors de la vérification de votre paiement."}
+                  {verificationResult?.message || t('pages:paymentSuccess.error.description')}
                 </p>
               </>
             )}
@@ -137,7 +139,7 @@ const PaymentSuccess = () => {
 
           <div className="bg-muted rounded-lg p-8 mb-8">
             <h2 className="text-xl font-medium text-foreground mb-4">
-              Que se passe-t-il maintenant ?
+              {t('pages:paymentSuccess.nextSteps.title')}
             </h2>
             <div className="space-y-3 text-left max-w-md mx-auto">
               <div className="flex items-start">
@@ -145,8 +147,8 @@ const PaymentSuccess = () => {
                   1
                 </div>
                 <div>
-                  <p className="text-foreground font-medium">Confirmation par email</p>
-                  <p className="text-sm text-muted-foreground">Vous allez recevoir un email de confirmation avec les détails de votre commande.</p>
+                  <p className="text-foreground font-medium">{t('pages:paymentSuccess.nextSteps.step1.title')}</p>
+                  <p className="text-sm text-muted-foreground">{t('pages:paymentSuccess.nextSteps.step1.description')}</p>
                 </div>
               </div>
               <div className="flex items-start">
@@ -154,8 +156,8 @@ const PaymentSuccess = () => {
                   2
                 </div>
                 <div>
-                  <p className="text-foreground font-medium">Préparation</p>
-                  <p className="text-sm text-muted-foreground">Nos artisans vont préparer votre commande avec le plus grand soin.</p>
+                  <p className="text-foreground font-medium">{t('pages:paymentSuccess.nextSteps.step2.title')}</p>
+                  <p className="text-sm text-muted-foreground">{t('pages:paymentSuccess.nextSteps.step2.description')}</p>
                 </div>
               </div>
               <div className="flex items-start">
@@ -163,8 +165,8 @@ const PaymentSuccess = () => {
                   3
                 </div>
                 <div>
-                  <p className="text-foreground font-medium">Expédition</p>
-                  <p className="text-sm text-muted-foreground">Votre commande sera expédiée sous 2-3 jours ouvrés.</p>
+                  <p className="text-foreground font-medium">{t('pages:paymentSuccess.nextSteps.step3.title')}</p>
+                  <p className="text-sm text-muted-foreground">{t('pages:paymentSuccess.nextSteps.step3.description')}</p>
                 </div>
               </div>
             </div>
@@ -175,14 +177,14 @@ const PaymentSuccess = () => {
               <Button asChild className="bg-primary hover:bg-primary/90">
                 <Link to="/products" className="flex items-center">
                   <ShoppingBag className="w-4 h-4 mr-2" />
-                  Continuer mes achats
+                  {t('common:buttons.continueShopping')}
                 </Link>
               </Button>
               
               <Button variant="outline" asChild>
                 <Link to="/" className="flex items-center">
                   <Home className="w-4 h-4 mr-2" />
-                  Retour à l'accueil
+                  {t('common:buttons.backToHome')}
                 </Link>
               </Button>
             </div>
@@ -190,14 +192,14 @@ const PaymentSuccess = () => {
 
           <div className="mt-12 p-6 bg-primary/10 rounded-lg">
             <h3 className="text-lg font-medium text-foreground mb-2">
-              Questions ou Problèmes ?
+              {t('pages:paymentSuccess.help.title')}
             </h3>
             <p className="text-muted-foreground mb-4">
-              Notre équipe est là pour vous aider. N'hésitez pas à nous contacter.
+              {t('pages:paymentSuccess.help.description')}
             </p>
             <Button variant="outline" asChild>
               <Link to="/contact">
-                Nous contacter
+                {t('common:nav.contact')}
               </Link>
             </Button>
           </div>

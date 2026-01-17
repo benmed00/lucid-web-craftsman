@@ -105,7 +105,16 @@
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
     "toggleTheme": "Changer de thème",
-    "selectLanguage": "Choisir la langue"
+    "selectLanguage": "Choisir la langue",
+    "selectCurrency": "Sélectionner la devise",
+    "mainNav": "Navigation principale",
+    "mobileNav": "Menu principal mobile",
+    "enableLightMode": "Activer le mode clair",
+    "enableDarkMode": "Activer le mode sombre"
+  },
+  "wishlist": {
+    "add": "Ajouter aux favoris",
+    "remove": "Retirer des favoris"
   },
   "newsletter": {
     "title": "Rejoignez Notre Newsletter",

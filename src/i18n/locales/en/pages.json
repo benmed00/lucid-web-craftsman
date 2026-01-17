@@ -465,7 +465,8 @@
     "addToCart": "Add to cart",
     "remove": "Remove from wishlist",
     "remainingSlots": "{{count}} slot remaining",
-    "remainingSlots_other": "{{count}} slots remaining"
+    "remainingSlots_other": "{{count}} slots remaining",
+    "loginRequired": "You must be signed in to view your wishlist."
   },
   "profile": {
     "seo": {
@@ -570,6 +571,49 @@
     "reorder": "Order again",
     "messages": {
       "loadError": "Error loading orders"
+    }
+  },
+  "paymentSuccess": {
+    "verifying": {
+      "title": "Verifying Payment",
+      "description": "We are verifying your payment and updating your order..."
+    },
+    "success": {
+      "title": "Payment Confirmed",
+      "thanks": "Thank you for your order!",
+      "verified": "Payment verified successfully",
+      "confirmed": "Payment confirmed and stock updated!",
+      "transactionId": "Transaction number",
+      "orderId": "Order number"
+    },
+    "error": {
+      "title": "Verification Problem",
+      "description": "An error occurred while verifying your payment."
+    },
+    "errors": {
+      "missingSession": "Missing session ID",
+      "verificationError": "Error verifying payment",
+      "verificationFailed": "Payment verification failed",
+      "unexpectedError": "Unexpected error"
+    },
+    "nextSteps": {
+      "title": "What happens now?",
+      "step1": {
+        "title": "Email confirmation",
+        "description": "You will receive a confirmation email with the details of your order."
+      },
+      "step2": {
+        "title": "Preparation",
+        "description": "Our artisans will prepare your order with the greatest care."
+      },
+      "step3": {
+        "title": "Shipping",
+        "description": "Your order will be shipped within 2-3 business days."
+      }
+    },
+    "help": {
+      "title": "Questions or Problems?",
+      "description": "Our team is here to help. Feel free to contact us."
     }
   }
 }
