@@ -2,13 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { useCart } from '@/stores';
 import { useBusinessRules } from '@/hooks/useBusinessRules';
 import { useCurrency } from '@/stores/currencyStore';
+import { useCheckoutResume } from '@/hooks/useCheckoutResume';
 
 import Footer from '@/components/Footer';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Minus, Plus, X, ShoppingBag, ArrowRight, Truck, AlertCircle, CreditCard, Heart, Share2, Clock, Phone, Mail, Trash2 } from 'lucide-react';
+import { Minus, Plus, X, ShoppingBag, ArrowRight, Truck, AlertCircle, CreditCard, Heart, Share2, Clock, Phone, Mail, Trash2, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useShipping } from '@/hooks/useShipping';
 import { useStock } from '@/hooks/useStock';
@@ -27,6 +28,7 @@ const Cart = () => {
   const { cart, itemCount, totalPrice, clearCart, updateItemQuantity, removeItem } = useCart();
   const { rules } = useBusinessRules();
   const { formatPrice, currency } = useCurrency();
+  const { hasPendingCheckout, savedStep } = useCheckoutResume();
   const [postalCode, setPostalCode] = useState('');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const { calculation, loading: shippingLoading, loadZones } = useShipping({ postalCode, orderAmount: totalPrice });
@@ -190,6 +192,28 @@ const Cart = () => {
             )}
           </div>
         </div>
+
+        {/* Resume checkout banner */}
+        {hasPendingCheckout && (
+          <Alert 
+            className="mb-6 border-primary/50 bg-primary/5"
+            role="status"
+          >
+            <RotateCcw className="h-4 w-4 text-primary" aria-hidden="true" />
+            <AlertTitle className="text-primary font-medium">Commande en cours</AlertTitle>
+            <AlertDescription className="text-foreground mt-2">
+              <p className="mb-3 text-muted-foreground">
+                Vous avez une commande non finalisée. Reprenez là où vous vous êtes arrêté.
+              </p>
+              <Link to="/checkout">
+                <Button size="sm" className="gap-2">
+                  <ArrowRight className="h-4 w-4" />
+                  Reprendre ma commande (Étape {savedStep}/3)
+                </Button>
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {stockIssues.length > 0 && (
           <Alert 
