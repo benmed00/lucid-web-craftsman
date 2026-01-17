@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '@/stores';
 import { useBusinessRules } from '@/hooks/useBusinessRules';
 import { useCurrency } from '@/stores/currencyStore';
@@ -25,6 +26,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { RemainingSlots } from '@/components/ui/RemainingSlots';
 
 const Cart = () => {
+  const { t } = useTranslation(['checkout', 'common']);
   const { cart, itemCount, totalPrice, clearCart, updateItemQuantity, removeItem } = useCart();
   const { rules } = useBusinessRules();
   const { formatPrice, currency } = useCurrency();
@@ -113,8 +115,8 @@ const Cart = () => {
     return (
       <div className="min-h-screen bg-background">
         <SEOHelmet
-          title="Votre Panier - Rif Raw Straw"
-          description="Consultez et modifiez votre panier d'achats. Finalisez votre commande de produits artisanaux berbères."
+          title={t('cart.title') + " - Rif Raw Straw"}
+          description={t('cart.emptyMessage')}
           keywords={["panier", "achat", "commande", "artisanat berbère"]}
           url="/cart"
           type="website"
@@ -127,16 +129,16 @@ const Cart = () => {
             >
               <ShoppingBag className="h-12 w-12 text-muted-foreground" />
             </div>
-            <h1 className="text-2xl font-serif text-foreground mb-4">Votre Panier est Vide</h1>
-            <p className="text-muted-foreground mb-8">Découvrez notre belle collection de produits artisanaux</p>
+            <h1 className="text-2xl font-serif text-foreground mb-4">{t('cart.empty')}</h1>
+            <p className="text-muted-foreground mb-8">{t('cart.emptyMessage')}</p>
             <Link to="/products">
               <Button 
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3"
                 id="empty-cart-shop-button"
                 name="start-shopping-button"
-                aria-label="Commencer vos achats - Aller à la page produits"
+                aria-label={t('cart.continueShopping')}
               >
-                Commencer Vos Achats
+                {t('cart.continueShopping')}
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Button>
             </Link>
@@ -150,8 +152,8 @@ const Cart = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHelmet
-        title={`Votre Panier (${itemCount}) - Rif Raw Straw`}
-        description="Consultez et modifiez votre panier d'achats. Finalisez votre commande de produits artisanaux berbères faits main."
+        title={`${t('cart.title')} (${itemCount}) - Rif Raw Straw`}
+        description={t('cart.emptyMessage')}
         keywords={["panier", "achat", "commande", "artisanat berbère"]}
         url="/cart"
         type="website"
@@ -161,10 +163,10 @@ const Cart = () => {
         <div className="mb-6 md:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-2">Votre Panier</h1>
+              <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-2">{t('cart.title')}</h1>
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-muted-foreground" aria-live="polite">
-                  {itemCount} article{itemCount > 1 ? 's' : ''} dans votre panier
+                  {t('cart.itemCount', { count: itemCount })}
                 </p>
                 <RemainingSlots 
                   current={cart.items.length} 
@@ -178,15 +180,15 @@ const Cart = () => {
                 trigger={
                   <Button variant="outline" size="sm" className="gap-2 text-muted-foreground hover:text-destructive hover:border-destructive">
                     <Trash2 className="h-4 w-4" />
-                    Vider le panier
+                    {t('cart.clearCart')}
                   </Button>
                 }
-                title="Vider le panier"
-                description="Êtes-vous sûr de vouloir supprimer tous les articles de votre panier ? Cette action est irréversible."
-                confirmLabel="Oui, vider le panier"
+                title={t('cart.clearCart')}
+                description={t('cart.clearCartConfirm')}
+                confirmLabel={t('common:buttons.confirm')}
                 onConfirm={() => {
                   clearCart();
-                  toast.success('Panier vidé');
+                  toast.success(t('common:messages.success'));
                 }}
               />
             )}

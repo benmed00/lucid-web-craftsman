@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Leaf, Instagram } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 import Footer from "@/components/Footer";
 import ProductShowcase from "@/components/ProductShowcase";
@@ -21,6 +22,7 @@ import OptimizedImage from '@/components/performance/OptimizedImage';
 import NewsletterSubscription from '@/components/NewsletterSubscription';
 
 const Index = () => {
+  const { t } = useTranslation(['pages', 'common']);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   
   // Configuration for showing/hiding sections - easily configurable for future
