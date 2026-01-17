@@ -116,9 +116,17 @@
       "q": "Quels moyens de paiement acceptez-vous ?",
       "a": "Nous acceptons les cartes bancaires (Visa, Mastercard), PayPal et Apple Pay."
     },
+    "modification": {
+      "q": "Puis-je modifier ou annuler ma commande ?",
+      "a": "Si votre commande n'a pas encore été expédiée, contactez-nous rapidement via la page Contact pour toute modification ou annulation."
+    },
     "returns": {
       "q": "Comment effectuer un retour ?",
-      "a": "Vous disposez de 14 jours après réception pour retourner un article."
+      "a": {
+        "prefix": "Consultez notre page",
+        "linkText": "Retours",
+        "suffix": "pour connaître la procédure détaillée."
+      }
     }
   },
   "shipping": {
