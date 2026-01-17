@@ -6,20 +6,9 @@ import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import PageFooter from "@/components/PageFooter";
+import BlogContent from "@/components/BlogContent";
 import { useQuery } from "@tanstack/react-query";
-import { getBlogPostById } from "@/api/mockApiService";
-
-// Define the BlogPost interface to properly type the data
-interface BlogPost {
-  id: number;
-  title: string;
-  excerpt: string;
-  image: string;
-  date: string;
-  author: string;
-  category: string;
-  featured?: boolean;
-}
+import { getBlogPostById, BlogPostLegacy } from "@/api/mockApiService";
 
 const BlogPost = () => {
   const { t } = useTranslation("pages");
@@ -32,7 +21,7 @@ const BlogPost = () => {
   }, []);
   
   // Fetch post by ID using React Query with proper typing
-  const { data: post, isLoading, error } = useQuery<BlogPost | null>({
+  const { data: post, isLoading, error } = useQuery<BlogPostLegacy | null>({
     queryKey: ["blogPost", id],
     queryFn: () => getBlogPostById(Number(id)),
   });
@@ -43,9 +32,6 @@ const BlogPost = () => {
       navigate("/blog");
     }
   }, [post, isLoading, error, navigate]);
-
-  // Always render, handle loading/error states within JSX to avoid hook order issues
-  const shouldRender = !isLoading && !error && post;
 
   if (isLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center text-foreground">{t("blogPost.loading")}</div>;
@@ -98,37 +84,56 @@ const BlogPost = () => {
             />
           </div>
 
-          <div className="prose prose-stone dark:prose-invert lg:prose-lg max-w-none">
-            <p className="text-lg text-muted-foreground mb-6">{post.excerpt}</p>
-            
-            <p className="text-foreground mb-6">
-              {t("blogPost.content.intro1")}
-            </p>
+          {/* Dynamic content from database or fallback to excerpt */}
+          {post.content ? (
+            <>
+              <p className="text-lg text-muted-foreground mb-6">{post.excerpt}</p>
+              <BlogContent content={post.content} />
+            </>
+          ) : (
+            <div className="prose prose-stone dark:prose-invert lg:prose-lg max-w-none">
+              <p className="text-lg text-muted-foreground mb-6">{post.excerpt}</p>
+              
+              <p className="text-foreground mb-6">
+                {t("blogPost.content.intro1")}
+              </p>
 
-            <p className="text-foreground mb-6">
-              {t("blogPost.content.intro2")}
-            </p>
+              <p className="text-foreground mb-6">
+                {t("blogPost.content.intro2")}
+              </p>
 
-            <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">{t("blogPost.content.heading1")}</h2>
+              <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">{t("blogPost.content.heading1")}</h2>
 
-            <p className="text-foreground mb-6">
-              {t("blogPost.content.paragraph1")}
-            </p>
+              <p className="text-foreground mb-6">
+                {t("blogPost.content.paragraph1")}
+              </p>
 
-            <p className="text-foreground mb-6">
-              {t("blogPost.content.paragraph2")}
-            </p>
+              <p className="text-foreground mb-6">
+                {t("blogPost.content.paragraph2")}
+              </p>
 
-            <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">{t("blogPost.content.heading2")}</h2>
+              <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">{t("blogPost.content.heading2")}</h2>
 
-            <p className="text-foreground mb-6">
-              {t("blogPost.content.paragraph3")}
-            </p>
+              <p className="text-foreground mb-6">
+                {t("blogPost.content.paragraph3")}
+              </p>
 
-            <p className="text-foreground">
-              {t("blogPost.content.paragraph4")}
-            </p>
-          </div>
+              <p className="text-foreground">
+                {t("blogPost.content.paragraph4")}
+              </p>
+            </div>
+          )}
+
+          {/* Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-8 mb-6">
+              {post.tags.map((tag, index) => (
+                <Badge key={index} variant="outline" className="capitalize">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          )}
 
           {/* Share Buttons */}
           <div className="border-t border-border mt-12 pt-6">

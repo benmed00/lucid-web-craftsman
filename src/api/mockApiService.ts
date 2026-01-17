@@ -14,26 +14,141 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 //   },
 // });
 
-// Blog posts API - using static data
-import { blogPosts } from "../data/blogPosts";
+// Blog posts API - using Supabase
+// Fallback to static data if DB is empty
+import { blogPosts as staticBlogPosts } from "../data/blogPosts";
 
-export const getBlogPosts = async () => {
+export interface BlogPostDB {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
+  featured_image_url: string | null;
+  author_id: string | null;
+  status: string | null;
+  is_featured: boolean | null;
+  tags: string[] | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  published_at: string | null;
+  view_count: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+// Legacy interface for backward compatibility
+export interface BlogPostLegacy {
+  id: number;
+  title: string;
+  excerpt: string;
+  image: string;
+  date: string;
+  author: string;
+  category: string;
+  featured?: boolean;
+  // Extended fields from DB
+  slug?: string;
+  content?: string;
+  tags?: string[];
+}
+
+// Convert DB format to legacy format for backward compatibility
+const convertDBToLegacy = (dbPost: BlogPostDB): BlogPostLegacy => {
+  const publishedDate = dbPost.published_at 
+    ? new Date(dbPost.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+    : 'Date inconnue';
+  
+  return {
+    id: parseInt(dbPost.slug.split('-').pop() || '0') || Math.abs(dbPost.id.charCodeAt(0)), // Generate a numeric ID from slug or uuid
+    title: dbPost.title,
+    excerpt: dbPost.excerpt || '',
+    image: dbPost.featured_image_url || '/placeholder.svg',
+    date: publishedDate,
+    author: 'Rif Raw Straw', // Default author since we don't have author table joined
+    category: dbPost.tags?.[0] || 'Artisanat',
+    featured: dbPost.is_featured || false,
+    slug: dbPost.slug,
+    content: dbPost.content,
+    tags: dbPost.tags || [],
+  };
+};
+
+export const getBlogPosts = async (): Promise<BlogPostLegacy[]> => {
   try {
-    await delay(300); // Simulate network latency
-    return blogPosts;
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching blog posts from DB:", error);
+      // Fallback to static data
+      return staticBlogPosts;
+    }
+
+    if (!data || data.length === 0) {
+      // Fallback to static data if DB is empty
+      return staticBlogPosts;
+    }
+
+    return data.map(convertDBToLegacy);
   } catch (error) {
     console.error("Error fetching blog posts:", error);
-    throw error;
+    return staticBlogPosts;
   }
 };
 
-export const getBlogPostById = async (id: number) => {
+export const getBlogPostById = async (id: number): Promise<BlogPostLegacy | null> => {
   try {
-    await delay(200);
-    const post = blogPosts.find(post => post.id === id);
-    return post || null;
+    // First try to fetch from DB
+    const { data: allPosts, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false });
+
+    if (error || !allPosts || allPosts.length === 0) {
+      // Fallback to static data
+      const post = staticBlogPosts.find(post => post.id === id);
+      return post || null;
+    }
+
+    // Find the post by index (id is 1-based)
+    const post = allPosts[id - 1];
+    if (!post) {
+      // Fallback to static data
+      const staticPost = staticBlogPosts.find(p => p.id === id);
+      return staticPost || null;
+    }
+
+    return convertDBToLegacy(post);
   } catch (error) {
     console.error(`Post with ID ${id} not found`, error);
+    // Fallback to static data
+    const post = staticBlogPosts.find(post => post.id === id);
+    return post || null;
+  }
+};
+
+export const getBlogPostBySlug = async (slug: string): Promise<BlogPostLegacy | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('slug', slug)
+      .eq('status', 'published')
+      .single();
+
+    if (error || !data) {
+      console.error(`Post with slug ${slug} not found`, error);
+      return null;
+    }
+
+    return convertDBToLegacy(data);
+  } catch (error) {
+    console.error(`Post with slug ${slug} not found`, error);
     return null;
   }
 };
