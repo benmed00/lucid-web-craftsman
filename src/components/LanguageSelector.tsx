@@ -19,7 +19,10 @@ interface LanguageSelectorProps {
 export function LanguageSelector({ variant = 'default', className }: LanguageSelectorProps) {
   const { t } = useTranslation('common');
   const { locale, setLocale } = useLanguageStore();
-  const currentConfig = languageConfig[locale];
+  
+  // Normalize locale (e.g., 'fr-FR' -> 'fr') and fallback to 'fr'
+  const normalizedLocale = (locale?.split('-')[0] || 'fr') as SupportedLanguage;
+  const currentConfig = languageConfig[normalizedLocale] || languageConfig.fr;
 
   const handleLanguageChange = (newLocale: SupportedLanguage) => {
     setLocale(newLocale);
