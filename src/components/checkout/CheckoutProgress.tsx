@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 interface CheckoutProgressProps {
   currentStep: number;
   completedSteps: number[];
+  onStepClick?: (step: number) => void;
 }
 
 const steps = [
@@ -12,7 +13,15 @@ const steps = [
   { id: 3, label: "Paiement", shortLabel: "Paiement", icon: CreditCard },
 ];
 
-const CheckoutProgress = ({ currentStep, completedSteps }: CheckoutProgressProps) => {
+const CheckoutProgress = ({ currentStep, completedSteps, onStepClick }: CheckoutProgressProps) => {
+  const handleStepClick = (stepId: number) => {
+    // Only allow clicking on completed steps or current step
+    const isClickable = completedSteps.includes(stepId) || stepId < currentStep;
+    if (isClickable && onStepClick) {
+      onStepClick(stepId);
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto mb-6 md:mb-10 px-2">
       <div className="relative">
@@ -33,28 +42,48 @@ const CheckoutProgress = ({ currentStep, completedSteps }: CheckoutProgressProps
             const isCompleted = completedSteps.includes(step.id);
             const isCurrent = currentStep === step.id;
             const isUpcoming = currentStep < step.id;
+            const isClickable = (isCompleted || step.id < currentStep) && onStepClick;
             const Icon = step.icon;
 
             return (
-              <div key={step.id} className="flex flex-col items-center">
-                {/* Step circle - smaller on mobile */}
-                <div
+              <div 
+                key={step.id} 
+                className="flex flex-col items-center"
+              >
+                {/* Step circle - clickable if completed */}
+                <button
+                  type="button"
+                  onClick={() => handleStepClick(step.id)}
+                  disabled={!isClickable}
                   className={cn(
                     "w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all duration-300 border-2",
                     isCompleted && "bg-primary border-primary text-primary-foreground",
                     isCurrent && "bg-background border-primary text-primary ring-2 md:ring-4 ring-primary/20",
-                    isUpcoming && "bg-muted border-muted text-muted-foreground"
+                    isUpcoming && "bg-muted border-muted text-muted-foreground",
+                    isClickable && "cursor-pointer hover:scale-110 hover:shadow-lg active:scale-95",
+                    !isClickable && "cursor-default"
                   )}
+                  aria-label={isClickable ? `Retourner à l'étape ${step.label}` : step.label}
+                  title={isClickable ? `Cliquez pour modifier ${step.label}` : undefined}
                 >
                   {isCompleted ? (
                     <Check className="h-4 w-4 md:h-5 md:w-5 animate-in zoom-in duration-200" />
                   ) : (
                     <Icon className="h-4 w-4 md:h-5 md:w-5" />
                   )}
-                </div>
+                </button>
 
-                {/* Step label - shorter on mobile */}
-                <div className="mt-2 md:mt-3 text-center">
+                {/* Step label - clickable if completed */}
+                <button
+                  type="button"
+                  onClick={() => handleStepClick(step.id)}
+                  disabled={!isClickable}
+                  className={cn(
+                    "mt-2 md:mt-3 text-center bg-transparent border-none p-0",
+                    isClickable && "cursor-pointer hover:underline",
+                    !isClickable && "cursor-default"
+                  )}
+                >
                   <span
                     className={cn(
                       "text-xs md:text-sm font-medium transition-colors",
@@ -66,7 +95,7 @@ const CheckoutProgress = ({ currentStep, completedSteps }: CheckoutProgressProps
                     <span className="hidden sm:inline">{step.label}</span>
                     <span className="sm:hidden">{step.shortLabel}</span>
                   </span>
-                  {/* Hide status text on mobile to save space */}
+                  {/* Status text */}
                   <p className={cn(
                     "hidden md:block text-xs mt-0.5",
                     isCompleted && "text-muted-foreground",
@@ -75,18 +104,23 @@ const CheckoutProgress = ({ currentStep, completedSteps }: CheckoutProgressProps
                     {isCompleted && "Complété"}
                     {isCurrent && "En cours"}
                   </p>
-                </div>
+                </button>
               </div>
             );
           })}
         </div>
       </div>
       
-      {/* Mobile step indicator */}
+      {/* Mobile step indicator with navigation hint */}
       <div className="md:hidden mt-4 text-center">
         <p className="text-sm text-muted-foreground">
           Étape {currentStep} sur {steps.length}
         </p>
+        {completedSteps.length > 0 && currentStep > 1 && (
+          <p className="text-xs text-primary mt-1">
+            Cliquez sur une étape complétée pour la modifier
+          </p>
+        )}
       </div>
     </div>
   );
