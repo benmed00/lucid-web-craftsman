@@ -23,7 +23,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { VoiceSearch } from "@/components/ui/VoiceSearch";
 import { MobilePromotions } from "@/components/ui/MobilePromotions";
 
-import { useProductsWithTranslations, ProductWithTranslation } from "@/hooks/useTranslatedContent";
+import { useProductsWithTranslations, ProductWithTranslation, SupportedLocale } from "@/hooks/useTranslatedContent";
 import { useCart } from "@/stores";
 import { useAdvancedProductFilters } from "@/hooks/useAdvancedProductFilters";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
@@ -43,6 +43,15 @@ const Products = () => {
     error: fetchError,
     refetch 
   } = useProductsWithTranslations();
+
+  // Create a map of product ID to fallback info
+  const fallbackInfo = useMemo(() => {
+    const info: Record<number, { isFallback: boolean; locale: SupportedLocale }> = {};
+    translatedProducts.forEach((p: ProductWithTranslation) => {
+      info[p.id] = { isFallback: p._fallbackUsed, locale: p._locale };
+    });
+    return info;
+  }, [translatedProducts]);
 
   // Convert translated products to Product interface for compatibility
   const products = useMemo(() => 
@@ -383,6 +392,8 @@ const Products = () => {
                         product={product}
                         onAddToCart={handleAddToCart}
                         onQuickView={handleQuickView}
+                        isFallback={fallbackInfo[product.id]?.isFallback}
+                        fallbackLocale={fallbackInfo[product.id]?.locale}
                       />
                     </div>
                   ))}

@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useStock } from "@/hooks/useStock";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
-import { useProductsWithTranslations, ProductWithTranslation } from "@/hooks/useTranslatedContent";
+import { useProductsWithTranslations, ProductWithTranslation, SupportedLocale } from "@/hooks/useTranslatedContent";
 
 const ProductShowcase = () => {
   const { t } = useTranslation('products');
@@ -18,6 +18,15 @@ const ProductShowcase = () => {
 
   // Fetch products with translations
   const { data: translatedProducts = [], isLoading: loading } = useProductsWithTranslations();
+
+  // Create a map of product ID to fallback info
+  const fallbackInfo = useMemo(() => {
+    const info: Record<number, { isFallback: boolean; locale: string }> = {};
+    translatedProducts.forEach((p: ProductWithTranslation) => {
+      info[p.id] = { isFallback: p._fallbackUsed, locale: p._locale };
+    });
+    return info;
+  }, [translatedProducts]);
 
   // Transform to Product interface and get featured products
   const featuredProducts = useMemo(() => {
@@ -180,6 +189,8 @@ const ProductShowcase = () => {
               product={product}
               onAddToCart={handleAddToCart}
               onQuickView={handleQuickView}
+              isFallback={fallbackInfo[product.id]?.isFallback}
+              fallbackLocale={fallbackInfo[product.id]?.locale as SupportedLocale}
             />
           </article>
         ))}

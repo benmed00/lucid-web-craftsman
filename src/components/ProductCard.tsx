@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import { WishlistButton } from "@/components/ui/WishlistButton";
 import { NativeShare } from "@/components/ui/NativeShare";
 import { TooltipWrapper } from "@/components/ui/TooltipWrapper";
+import { FallbackDot } from "@/components/ui/TranslationFallbackIndicator";
 import { useStock } from "@/hooks/useStock";
 import { StockInfo } from "@/services/stockService";
+import { SupportedLocale } from "@/services/translationService";
 import { useEffect, useState, useContext, createContext } from "react";
 import { useCurrency } from "@/stores";
 
@@ -22,9 +24,13 @@ interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product) => void;
   onQuickView?: (product: Product) => void;
+  /** Whether the translation is a fallback */
+  isFallback?: boolean;
+  /** The locale being displayed if fallback */
+  fallbackLocale?: SupportedLocale;
 }
 
-const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) => {
+const ProductCard = ({ product, onAddToCart, onQuickView, isFallback, fallbackLocale }: ProductCardProps) => {
   const { t } = useTranslation('products');
   
   // Try to get stock info from context first (for ProductShowcase)
@@ -169,9 +175,12 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
         <Link to={`/products/${product.id}`} className="touch-manipulation">
           <h3 
             id={`product-title-${product.id}`}
-            className="font-serif text-sm sm:text-base md:text-lg font-medium text-foreground mb-2 sm:mb-3 line-clamp-2 leading-snug hover:text-primary transition-colors duration-200 pr-8 sm:pr-10"
+            className="font-serif text-sm sm:text-base md:text-lg font-medium text-foreground mb-2 sm:mb-3 line-clamp-2 leading-snug hover:text-primary transition-colors duration-200 pr-8 sm:pr-10 flex items-start gap-1"
           >
-            {product.name}
+            <span>{product.name}</span>
+            {isFallback && fallbackLocale && (
+              <FallbackDot isFallback={isFallback} locale={fallbackLocale} className="mt-1 flex-shrink-0" />
+            )}
           </h3>
         </Link>
         <div className="flex flex-col gap-2 sm:gap-3">
