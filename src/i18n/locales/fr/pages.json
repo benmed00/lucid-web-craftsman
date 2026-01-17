@@ -291,7 +291,9 @@
     },
     "instagram": {
       "follow": "Suivez-nous @artisan_maroc",
-      "title": "Laissez-vous Inspirer par Notre Communauté"
+      "title": "Laissez-vous Inspirer par Notre Communauté",
+      "postAlt": "Publication Instagram {{id}}",
+      "imageUnavailable": "Image non disponible"
     }
   },
   "about": {
@@ -351,6 +353,7 @@
       "firstName": "Prénom",
       "lastName": "Nom",
       "email": "Email",
+      "emailPlaceholder": "votre.email@exemple.com",
       "emailFormat": "Format requis: votre@email.com",
       "phone": "Téléphone",
       "phonePlaceholder": "Votre numéro de téléphone",

@@ -2,7 +2,7 @@
 // Description: Instagram feed component for displaying images with likes and comments.
 
 import { useState } from "react";
-
+import { useTranslation } from "react-i18next";
 interface InstagramPost {
   id: number;
   image: string;
@@ -62,7 +62,7 @@ const instagramPosts: InstagramPost[] = [
   },
 ];
 
-const ImageWithFallback = ({ src, alt }: { src: string; alt: string }) => {
+const ImageWithFallback = ({ src, alt, unavailableText }: { src: string; alt: string; unavailableText: string }) => {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -81,7 +81,7 @@ const ImageWithFallback = ({ src, alt }: { src: string; alt: string }) => {
             // If fallback also fails, show placeholder
             const placeholder = document.createElement('div');
             placeholder.className = "bg-muted w-full h-full flex items-center justify-center text-muted-foreground text-sm";
-            placeholder.textContent = "Image non disponible";
+            placeholder.textContent = unavailableText;
           }}
         />
       ) : (
@@ -106,6 +106,8 @@ const ImageWithFallback = ({ src, alt }: { src: string; alt: string }) => {
 };
 
 const InstagramFeed = () => {
+  const { t } = useTranslation('pages');
+  
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
       {instagramPosts.map((post) => (
@@ -116,7 +118,8 @@ const InstagramFeed = () => {
         >
           <ImageWithFallback
             src={post.image}
-            alt={`Instagram post ${post.id}`}
+            alt={t('home.instagram.postAlt', { id: post.id })}
+            unavailableText={t('home.instagram.imageUnavailable')}
           />
           <div className="opacity-0 group-hover:opacity-100 absolute inset-0 bg-foreground/50 flex items-center justify-center transition-opacity duration-300">
             <div className="text-background flex items-center text-sm sm:text-base">

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Send, Upload, X, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -15,6 +16,7 @@ interface ErrorReportForm {
 }
 
 export const ErrorReportButton = () => {
+  const { t } = useTranslation('errors');
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState<ErrorReportForm>({
@@ -31,12 +33,12 @@ export const ErrorReportButton = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        toast.error('Veuillez sélectionner une image');
+        toast.error(t('report.validation.selectImage'));
         return;
       }
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('L\'image ne doit pas dépasser 5 Mo');
+        toast.error(t('report.validation.maxSize'));
         return;
       }
       setScreenshot(file);
@@ -88,7 +90,7 @@ export const ErrorReportButton = () => {
     e.preventDefault();
     
     if (!form.email || !form.description) {
-      toast.error('Veuillez remplir tous les champs requis');
+      toast.error(t('report.validation.requiredFields'));
       return;
     }
 
@@ -133,13 +135,13 @@ export const ErrorReportButton = () => {
 
       if (error) throw error;
 
-      toast.success('Rapport d\'erreur envoyé avec succès!');
+      toast.success(t('report.success'));
       setForm({ email: '', description: '', errorType: 'bug_report' });
       removeScreenshot();
       setIsOpen(false);
     } catch (error: any) {
       console.error('Error submitting report:', error);
-      toast.error('Erreur lors de l\'envoi du rapport');
+      toast.error(t('report.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -163,7 +165,7 @@ export const ErrorReportButton = () => {
           style={{ color: 'hsl(0, 72%, 35%)' }}
         >
           <AlertTriangle className="h-4 w-4 mr-2" />
-          Signaler un problème
+          {t('report.button')}
         </Button>
       </DialogTrigger>
       
@@ -171,49 +173,49 @@ export const ErrorReportButton = () => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-status-error" />
-            Signaler un problème
+            {t('report.title')}
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground mt-2">
-            Aidez-nous à améliorer l'application en signalant les bugs ou problèmes que vous rencontrez.
+            {t('report.description')}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="error-email">Email de contact *</Label>
+            <Label htmlFor="error-email">{t('report.form.email')} *</Label>
             <Input
               id="error-email"
               type="email"
               value={form.email}
               onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
-              placeholder="votre@email.com"
+              placeholder={t('report.form.emailPlaceholder')}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="error-type">Type de problème</Label>
+            <Label htmlFor="error-type">{t('report.form.type')}</Label>
             <select
               id="error-type"
               value={form.errorType}
               onChange={(e) => setForm(prev => ({ ...prev, errorType: e.target.value }))}
               className="w-full h-10 px-3 py-2 border border-border rounded-md focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-background text-foreground"
             >
-              <option value="bug_report">Bug / Erreur</option>
-              <option value="ui_issue">Problème d'interface</option>
-              <option value="performance">Problème de performance</option>
-              <option value="feature_request">Demande de fonctionnalité</option>
-              <option value="other">Autre</option>
+              <option value="bug_report">{t('report.form.types.bug')}</option>
+              <option value="ui_issue">{t('report.form.types.ui')}</option>
+              <option value="performance">{t('report.form.types.performance')}</option>
+              <option value="feature_request">{t('report.form.types.feature')}</option>
+              <option value="other">{t('report.form.types.other')}</option>
             </select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="error-description">Description du problème *</Label>
+            <Label htmlFor="error-description">{t('report.form.descriptionLabel')} *</Label>
             <Textarea
               id="error-description"
               value={form.description}
               onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Décrivez le problème en détail : que faisiez-vous quand c'est arrivé ? Quel était le comportement attendu ?"
+              placeholder={t('report.form.descriptionPlaceholder')}
               rows={4}
               required
             />
@@ -221,7 +223,7 @@ export const ErrorReportButton = () => {
 
           {/* Screenshot Upload */}
           <div className="space-y-2">
-            <Label>Capture d'écran (optionnel)</Label>
+            <Label>{t('report.form.screenshot')}</Label>
             
             {!screenshot ? (
               <div 
@@ -237,17 +239,17 @@ export const ErrorReportButton = () => {
                 />
                 <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
                 <p className="text-sm text-muted-foreground">
-                  Cliquez ou glissez une image ici
+                  {t('report.form.screenshotDrag')}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  PNG, JPG jusqu'à 5 Mo
+                  {t('report.form.screenshotFormats')}
                 </p>
               </div>
             ) : (
               <div className="relative border border-border rounded-lg overflow-hidden">
                 <img 
                   src={screenshotPreview || ''} 
-                  alt="Capture d'écran" 
+                  alt={t('report.form.screenshotAlt')} 
                   className="w-full h-32 object-cover"
                 />
                 <button
@@ -274,7 +276,7 @@ export const ErrorReportButton = () => {
               onClick={() => setIsOpen(false)}
               disabled={isSubmitting}
             >
-              Annuler
+              {t('report.form.cancel')}
             </Button>
             <Button
               type="submit"
@@ -284,12 +286,12 @@ export const ErrorReportButton = () => {
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                  Envoi...
+                  {t('report.form.sending')}
                 </>
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" />
-                  Envoyer le rapport
+                  {t('report.form.submit')}
                 </>
               )}
             </Button>
