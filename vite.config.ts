@@ -40,6 +40,10 @@ export default defineConfig(({ mode }) => ({
     // Dedupe React to prevent multiple instances
     dedupe: ['react', 'react-dom', 'react-i18next', 'i18next'],
   },
+  optimizeDeps: {
+    // Pre-bundle these dependencies to ensure single instance
+    include: ['react', 'react-dom', 'react-i18next', 'i18next'],
+  },
   build: {
     sourcemap: true, // Enable source maps for production builds
     cssCodeSplit: true, // Enable CSS code splitting for better caching
