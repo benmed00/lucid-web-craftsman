@@ -176,9 +176,10 @@ export const useCachedProductSearch = ({
     });
   };
 
-  // Invalidate cache for specific filters
+  // Clear all product search cache completely
   const invalidateCache = () => {
-    queryClient.invalidateQueries({ queryKey: ['product-search'] });
+    // Remove all product-search queries from cache (not just invalidate)
+    queryClient.removeQueries({ queryKey: ['product-search'] });
   };
 
   // Get cache stats
