@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Loader2 } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
 import { ProductRecommendations } from "@/components/ProductRecommendations";
 import SEOHelmet from "@/components/seo/SEOHelmet";
@@ -29,6 +30,7 @@ import { Product } from "@/shared/interfaces/Iproduct.interface";
 import { toast } from "sonner";
 
 const Products = () => {
+  const { t } = useTranslation(['products', 'common']);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -195,11 +197,11 @@ const Products = () => {
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
             <h1 className="text-2xl font-serif text-foreground mb-4">
-              Erreur de chargement
+              {t('common:messages.error')}
             </h1>
             <p className="text-muted-foreground mb-8">{error}</p>
             <Button onClick={() => window.location.reload()}>
-              Réessayer
+              {t('common:buttons.retry')}
             </Button>
           </div>
         </div>
@@ -211,8 +213,8 @@ const Products = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHelmet
-        title="Nos Créations Artisanales - Sacs et Chapeaux Berbères | Rif Raw Straw"
-        description="Découvrez notre collection unique d'accessoires berbères, confectionnés à la main par des artisans passionnés des montagnes du Rif."
+        title={t('title') + " | Rif Raw Straw"}
+        description={t('subtitle')}
         keywords={["produits artisanaux", "sacs berbères", "chapeaux paille", "artisanat marocain", "accessoires fait main"]}
         url="/products"
         type="website"
@@ -223,11 +225,10 @@ const Products = () => {
       <div className="bg-gradient-to-r from-secondary to-muted py-8 md:py-12 lg:py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground mb-3 md:mb-4 leading-tight">
-            Nos Créations Artisanales
+            {t('title')}
           </h1>
           <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Découvrez notre collection unique d'accessoires berbères, 
-            confectionnés à la main par des artisans passionnés.
+            {t('subtitle')}
           </p>
         </div>
       </div>
@@ -287,7 +288,7 @@ const Products = () => {
                   updateFilters({ category: [] });
                 }}
               >
-                Tout voir ({totalProductsCount})
+                {t('filters.all')} ({totalProductsCount})
               </Button>
               {displayCategories.map((category) => {
                 const categoryCount = products.filter(p => p.category === category).length;
@@ -321,16 +322,16 @@ const Products = () => {
               <div className="mb-8">
                 <div className="text-6xl mb-4">🔍</div>
                 <h2 className="font-serif text-2xl text-foreground mb-4">
-                  Aucun produit trouvé
+                  {t('common:messages.noResults')}
                 </h2>
                 <p className="text-muted-foreground mb-6">
                   {filters.searchQuery 
-                    ? `Aucun produit ne correspond à "${filters.searchQuery}". Essayez avec d'autres mots-clés.`
-                    : "Aucun produit ne correspond à vos critères. Essayez de modifier vos filtres."
+                    ? t('common:messages.noResults')
+                    : t('common:messages.noResults')
                   }
                 </p>
                 <Button onClick={resetFilters} variant="outline">
-                  Effacer tous les filtres
+                  {t('filters.clearFilters')}
                 </Button>
               </div>
             </div>
@@ -341,7 +342,7 @@ const Products = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-center gap-2 text-muted-foreground py-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">Recherche en cours...</span>
+                    <span className="text-sm">{t('common:messages.loading')}...</span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
                     {Array.from({ length: isMobile ? 4 : 8 }).map((_, index) => (
@@ -386,12 +387,12 @@ const Products = () => {
                 {/* Infinite Scroll Sentinel and Loading */}
               {isMobile && hasMore && (
                 <div ref={sentinelRef} className="flex justify-center py-8">
-                  {isLoadingMore && (
-                    <div className="flex items-center space-x-2 text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">Chargement...</span>
-                    </div>
-                  )}
+                {isLoadingMore && (
+                  <div className="flex items-center space-x-2 text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm">{t('common:messages.loading')}...</span>
+                  </div>
+                )}
                 </div>
               )}
             </div>
