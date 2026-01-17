@@ -10,6 +10,21 @@ import { Button } from "@/components/ui/button";
 import PageFooter from "@/components/PageFooter";
 import BlogContent from "@/components/BlogContent";
 import { useBlogPostWithTranslation } from "@/hooks/useTranslatedContent";
+import { TranslationFallbackIndicator } from "@/components/ui/TranslationFallbackIndicator";
+
+// Common tag translations - maps French tags to translation keys
+const TAG_TRANSLATIONS: Record<string, Record<string, string>> = {
+  "Conseils": { fr: "Conseils", en: "Tips", ar: "نصائح", es: "Consejos", de: "Tipps" },
+  "Entretien": { fr: "Entretien", en: "Care", ar: "صيانة", es: "Cuidado", de: "Pflege" },
+  "Sac": { fr: "Sac", en: "Bag", ar: "حقيبة", es: "Bolso", de: "Tasche" },
+  "Fibres": { fr: "Fibres", en: "Fibers", ar: "ألياف", es: "Fibras", de: "Fasern" },
+  "Artisanat": { fr: "Artisanat", en: "Craftsmanship", ar: "حرفة", es: "Artesanía", de: "Handwerk" },
+  "Tradition": { fr: "Tradition", en: "Tradition", ar: "تقليد", es: "Tradición", de: "Tradition" },
+  "Mode": { fr: "Mode", en: "Fashion", ar: "موضة", es: "Moda", de: "Mode" },
+  "Chapeau": { fr: "Chapeau", en: "Hat", ar: "قبعة", es: "Sombrero", de: "Hut" },
+  "Paille": { fr: "Paille", en: "Straw", ar: "قش", es: "Paja", de: "Stroh" },
+  "Berbère": { fr: "Berbère", en: "Berber", ar: "أمازيغي", es: "Bereber", de: "Berber" },
+};
 
 const BlogPost = () => {
   const { t, i18n } = useTranslation("pages");
@@ -27,6 +42,18 @@ const BlogPost = () => {
     } catch {
       return dateStr;
     }
+  };
+  
+  // Get the current language code (fr, en, etc.)
+  const currentLang = i18n.language?.split('-')[0] || 'fr';
+
+  // Translate a tag based on current language
+  const translateTag = (tag: string): string => {
+    const translations = TAG_TRANSLATIONS[tag];
+    if (translations && translations[currentLang]) {
+      return translations[currentLang];
+    }
+    return tag; // Fallback to original tag
   };
   
   // Scroll to top on mount
@@ -67,12 +94,22 @@ const BlogPost = () => {
           <div className="max-w-3xl mx-auto">
             {post.tags && post.tags[0] && (
               <Badge className="mb-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 border-none">
-                {post.tags[0]}
+                {translateTag(post.tags[0])}
               </Badge>
             )}
-            <h1 className="font-serif text-3xl md:text-5xl text-foreground mb-4">
-              {post.title}
-            </h1>
+            <div className="flex items-center gap-3 flex-wrap mb-4">
+              <h1 className="font-serif text-3xl md:text-5xl text-foreground">
+                {post.title}
+              </h1>
+              {/* Fallback indicator when translation is not available */}
+              {post._fallbackUsed && (
+                <TranslationFallbackIndicator
+                  isFallback={true}
+                  displayedLocale={post._locale}
+                  variant="badge"
+                />
+              )}
+            </div>
             
             <div className="flex items-center gap-4 text-sm text-muted-foreground mt-6">
               <div className="flex items-center">
@@ -87,7 +124,6 @@ const BlogPost = () => {
           </div>
         </div>
       </div>
-
       {/* Article Content */}
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-3xl mx-auto">
@@ -139,12 +175,12 @@ const BlogPost = () => {
             </div>
           )}
 
-          {/* Tags */}
+          {/* Tags - with translations */}
           {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-8 mb-6">
               {post.tags.map((tag, index) => (
                 <Badge key={index} variant="outline" className="capitalize">
-                  {tag}
+                  {translateTag(tag)}
                 </Badge>
               ))}
             </div>
