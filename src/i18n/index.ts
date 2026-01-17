@@ -1,5 +1,6 @@
 // i18n configuration for Rif Raw Straw
 import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import French translations
@@ -60,10 +61,11 @@ export const resources = {
   },
 } as const;
 
-// Initialize i18next only if not already initialized (without React binding - that's done via I18nextProvider)
+// Initialize i18next with React binding included
 if (!i18n.isInitialized) {
   i18n
     .use(LanguageDetector)
+    .use(initReactI18next)
     .init({
       resources,
       fallbackLng: 'fr',
@@ -81,6 +83,11 @@ if (!i18n.isInitialized) {
         escapeValue: false, // React already escapes
       },
       
+      // Disable suspense mode to avoid React context issues
+      react: {
+        useSuspense: false,
+      },
+      
       // Debug in development
       debug: false,
     });
@@ -91,12 +98,14 @@ i18n.on('languageChanged', (lng: string) => {
   const language = lng as SupportedLanguage;
   const config = languageConfig[language] || languageConfig.fr;
   
-  document.documentElement.lang = language;
-  document.documentElement.dir = config.dir;
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = language;
+    document.documentElement.dir = config.dir;
+  }
 });
 
 // Set initial lang attribute
-if (typeof document !== 'undefined') {
+if (typeof document !== 'undefined' && i18n.language) {
   const currentLang = i18n.language as SupportedLanguage;
   const config = languageConfig[currentLang] || languageConfig.fr;
   document.documentElement.lang = currentLang || 'fr';
