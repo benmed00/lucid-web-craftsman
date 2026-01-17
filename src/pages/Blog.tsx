@@ -16,10 +16,15 @@ import BlogSkeleton from "@/components/BlogSkeleton";
 import NewsletterSubscription from "@/components/NewsletterSubscription";
 import { useBlogPostsWithTranslations } from "@/hooks/useTranslatedContent";
 import { FallbackDot } from "@/components/ui/TranslationFallbackIndicator";
+import { useTranslateTag } from "@/hooks/useTagTranslations";
 
 const Blog = () => {
   const { t, i18n } = useTranslation("pages");
   const { data: posts = [], isLoading } = useBlogPostsWithTranslations();
+  
+  // Dynamic tag translation
+  const { translateTag } = useTranslateTag();
+  const currentLang = i18n.language?.split('-')[0] || 'fr';
 
   // Get date-fns locale based on current language
   const dateLocale = i18n.language?.startsWith('fr') ? fr : enUS;
@@ -121,7 +126,7 @@ const Blog = () => {
 
                     {post.tags && post.tags[0] && (
                       <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none">
-                        {post.tags[0]}
+                        {translateTag(post.tags[0], currentLang)}
                       </Badge>
                     )}
 
@@ -176,7 +181,7 @@ const Blog = () => {
 
                   {post.tags && post.tags[0] && (
                     <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none text-xs">
-                      {post.tags[0]}
+                      {translateTag(post.tags[0], currentLang)}
                     </Badge>
                   )}
 
