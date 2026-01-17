@@ -615,5 +615,21 @@
       "title": "Questions or Problems?",
       "description": "Our team is here to help. Feel free to contact us."
     }
+  },
+  "blogPost": {
+    "loading": "Loading...",
+    "notFound": "Article not found",
+    "backToArticles": "Back to articles",
+    "shareArticle": "Share this article:",
+    "content": {
+      "intro1": "Moroccan craftsmanship is an invaluable cultural treasure, passed down from generation to generation. In the Rif mountains, ancestral weaving and braiding techniques are carefully preserved by local communities who perpetuate unique expertise.",
+      "intro2": "Each piece tells a story and carries the soul of the artisan who created it. The geometric patterns and Berber symbols used in our creations are imbued with meaning and represent a form of visual communication rooted in tradition.",
+      "heading1": "Tradition serving modernity",
+      "paragraph1": "Today, these ancestral techniques adapt to contemporary needs while preserving the authenticity that makes them valuable. Our artisans combine their traditional expertise with modern designs to create pieces that are both timeless and current.",
+      "paragraph2": "By supporting our cooperative, you contribute directly to the preservation of this intangible cultural heritage and to the economic empowerment of artisan communities in the Rif.",
+      "heading2": "Social and environmental impact",
+      "paragraph3": "Our commitment goes beyond product quality. We also ensure that every stage of production respects the environment by using natural materials and low-impact techniques.",
+      "paragraph4": "The artisans who collaborate with us benefit from fair working conditions and equitable compensation, thereby supporting the local economy while preserving expertise that is unique in the world."
+    }
   }
 }
