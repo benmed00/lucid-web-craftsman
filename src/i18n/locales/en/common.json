@@ -1,0 +1,96 @@
+{
+  "brand": {
+    "name": "Rif Raw Straw",
+    "tagline": "Authentic Berber Craftsmanship"
+  },
+  "nav": {
+    "home": "Home",
+    "shop": "Shop",
+    "blog": "Blog",
+    "contact": "Contact",
+    "cart": "Cart",
+    "wishlist": "Wishlist",
+    "profile": "Profile",
+    "orders": "Orders",
+    "login": "Login",
+    "logout": "Logout",
+    "search": "Search",
+    "searchPlaceholder": "Search products..."
+  },
+  "footer": {
+    "about": "About",
+    "aboutText": "Authentic Berber craftsmanship from the Moroccan Rif mountains.",
+    "quickLinks": "Quick Links",
+    "information": "Information",
+    "newsletter": "Newsletter",
+    "newsletterText": "Subscribe to receive our latest news and exclusive offers.",
+    "emailPlaceholder": "Your email",
+    "subscribe": "Subscribe",
+    "copyright": "© {{year}} Rif Raw Straw. All rights reserved.",
+    "story": "Our Story",
+    "shipping": "Shipping",
+    "returns": "Returns",
+    "faq": "FAQ",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "cgv": "T&C"
+  },
+  "buttons": {
+    "addToCart": "Add to cart",
+    "buyNow": "Buy now",
+    "viewDetails": "View details",
+    "continueShopping": "Continue shopping",
+    "checkout": "Checkout",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "share": "Share",
+    "backToHome": "Back to home",
+    "learnMore": "Learn more",
+    "seeAll": "See all",
+    "apply": "Apply",
+    "remove": "Remove",
+    "clear": "Clear"
+  },
+  "messages": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Operation successful",
+    "noResults": "No results",
+    "confirmDelete": "Are you sure you want to delete?",
+    "alreadyOnPage": "You are already on this page",
+    "addedToCart": "Added to cart",
+    "removedFromCart": "Removed from cart",
+    "addedToWishlist": "Added to wishlist",
+    "removedFromWishlist": "Removed from wishlist"
+  },
+  "currency": {
+    "label": "Currency",
+    "eur": "Euro (€)",
+    "usd": "Dollar ($)",
+    "gbp": "Pound (£)",
+    "mad": "Dirham (DH)"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "label": "Language",
+    "fr": "Français",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "accessibility": {
+    "skipToContent": "Skip to main content",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "toggleTheme": "Toggle theme",
+    "selectLanguage": "Select language"
+  }
+}

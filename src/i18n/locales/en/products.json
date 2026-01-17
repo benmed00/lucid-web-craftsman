@@ -1,0 +1,63 @@
+{
+  "title": "Our Products",
+  "subtitle": "Discover our collection of authentic Berber craftsmanship",
+  "filters": {
+    "all": "All",
+    "search": "Search",
+    "searchPlaceholder": "Product name, category...",
+    "category": "Category",
+    "priceRange": "Price range",
+    "sortBy": "Sort by",
+    "sortOptions": {
+      "newest": "Newest",
+      "priceAsc": "Price: Low to High",
+      "priceDesc": "Price: High to Low",
+      "nameAsc": "Name A-Z",
+      "nameDesc": "Name Z-A",
+      "popular": "Popular"
+    },
+    "clearFilters": "Clear filters",
+    "resultsCount": "{{count}} product found",
+    "resultsCount_other": "{{count}} products found"
+  },
+  "categories": {
+    "all": "All categories",
+    "hats": "Hats",
+    "bags": "Bags",
+    "accessories": "Accessories",
+    "decor": "Decor"
+  },
+  "details": {
+    "description": "Description",
+    "specifications": "Specifications",
+    "care": "Care",
+    "shipping": "Shipping",
+    "artisan": "Artisan",
+    "madeBy": "Made by {{name}}",
+    "handmade": "Handmade",
+    "inStock": "In stock",
+    "outOfStock": "Out of stock",
+    "lowStock": "Low stock ({{count}} left)",
+    "quantity": "Quantity",
+    "addToCart": "Add to cart",
+    "addToWishlist": "Add to wishlist",
+    "removeFromWishlist": "Remove from wishlist",
+    "share": "Share",
+    "relatedProducts": "Related products",
+    "recentlyViewed": "Recently viewed"
+  },
+  "reviews": {
+    "title": "Customer reviews",
+    "writeReview": "Write a review",
+    "averageRating": "Average rating",
+    "basedOn": "Based on {{count}} reviews",
+    "noReviews": "No reviews yet",
+    "beFirst": "Be the first to leave a review!",
+    "helpful": "Helpful",
+    "verified": "Verified purchase"
+  },
+  "recommendations": {
+    "title": "You may also like",
+    "basedOnViewing": "Based on what you've viewed"
+  }
+}

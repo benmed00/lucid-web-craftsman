@@ -1,0 +1,48 @@
+{
+  "generic": {
+    "title": "Oops!",
+    "message": "An unexpected error occurred.",
+    "tryAgain": "Try again",
+    "goHome": "Back to home"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "code": "404",
+    "message": "The page you're looking for doesn't exist or has been moved.",
+    "suggestions": "Check the URL or return to the homepage."
+  },
+  "network": {
+    "title": "Connection problem",
+    "message": "Unable to connect to the server. Check your internet connection.",
+    "offline": "You are offline",
+    "retry": "Retry"
+  },
+  "form": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "invalidPhone": "Invalid phone number",
+    "invalidPostalCode": "Invalid postal code",
+    "minLength": "Minimum {{min}} characters required",
+    "maxLength": "Maximum {{max}} characters allowed",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "passwordMismatch": "Passwords do not match"
+  },
+  "api": {
+    "timeout": "The request took too long. Please try again.",
+    "serverError": "Server error. Please try again later.",
+    "unauthorized": "You must log in to perform this action.",
+    "forbidden": "You don't have the required permissions.",
+    "rateLimited": "Too many requests. Please wait."
+  },
+  "stock": {
+    "outOfStock": "This product is no longer available",
+    "insufficientStock": "Insufficient stock ({{available}} available)",
+    "reservationExpired": "Your reservation has expired"
+  },
+  "payment": {
+    "failed": "Payment failed",
+    "cancelled": "Payment cancelled",
+    "cardDeclined": "Card declined. Please use another payment method.",
+    "insufficientFunds": "Insufficient funds"
+  }
+}

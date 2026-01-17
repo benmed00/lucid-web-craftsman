@@ -1,0 +1,63 @@
+{
+  "title": "Nos Produits",
+  "subtitle": "Découvrez notre collection d'artisanat berbère authentique",
+  "filters": {
+    "all": "Tous",
+    "search": "Rechercher",
+    "searchPlaceholder": "Nom du produit, catégorie...",
+    "category": "Catégorie",
+    "priceRange": "Fourchette de prix",
+    "sortBy": "Trier par",
+    "sortOptions": {
+      "newest": "Plus récents",
+      "priceAsc": "Prix croissant",
+      "priceDesc": "Prix décroissant",
+      "nameAsc": "Nom A-Z",
+      "nameDesc": "Nom Z-A",
+      "popular": "Populaires"
+    },
+    "clearFilters": "Effacer les filtres",
+    "resultsCount": "{{count}} produit trouvé",
+    "resultsCount_other": "{{count}} produits trouvés"
+  },
+  "categories": {
+    "all": "Toutes catégories",
+    "hats": "Chapeaux",
+    "bags": "Sacs",
+    "accessories": "Accessoires",
+    "decor": "Décoration"
+  },
+  "details": {
+    "description": "Description",
+    "specifications": "Caractéristiques",
+    "care": "Entretien",
+    "shipping": "Livraison",
+    "artisan": "Artisan",
+    "madeBy": "Fabriqué par {{name}}",
+    "handmade": "Fait main",
+    "inStock": "En stock",
+    "outOfStock": "Rupture de stock",
+    "lowStock": "Stock limité ({{count}} restants)",
+    "quantity": "Quantité",
+    "addToCart": "Ajouter au panier",
+    "addToWishlist": "Ajouter aux favoris",
+    "removeFromWishlist": "Retirer des favoris",
+    "share": "Partager",
+    "relatedProducts": "Produits similaires",
+    "recentlyViewed": "Vus récemment"
+  },
+  "reviews": {
+    "title": "Avis clients",
+    "writeReview": "Écrire un avis",
+    "averageRating": "Note moyenne",
+    "basedOn": "Basé sur {{count}} avis",
+    "noReviews": "Aucun avis pour le moment",
+    "beFirst": "Soyez le premier à donner votre avis !",
+    "helpful": "Utile",
+    "verified": "Achat vérifié"
+  },
+  "recommendations": {
+    "title": "Vous aimerez aussi",
+    "basedOnViewing": "Basé sur ce que vous avez consulté"
+  }
+}

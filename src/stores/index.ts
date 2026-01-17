@@ -51,6 +51,14 @@ export {
   type Theme
 } from './themeStore';
 
+export {
+  useLanguageStore,
+  useLocale,
+  useSetLocale,
+  useIsRTL,
+  initializeLanguageStore
+} from './languageStore';
+
 // ============= Unified Store Management =============
 
 interface CleanupFunction {

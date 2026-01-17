@@ -1,0 +1,93 @@
+{
+  "cart": {
+    "title": "Your Cart",
+    "empty": "Your cart is empty",
+    "emptyMessage": "Discover our collection and add your favorites!",
+    "itemCount": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "shippingFree": "Free",
+    "shippingCalculated": "Calculated at next step",
+    "discount": "Discount",
+    "total": "Total",
+    "clearCart": "Clear cart",
+    "clearCartConfirm": "Are you sure you want to remove all items?",
+    "updateQuantity": "Update quantity",
+    "remove": "Remove",
+    "continueShopping": "Continue shopping",
+    "proceedToCheckout": "Proceed to checkout",
+    "pendingCheckout": {
+      "title": "Order in progress",
+      "message": "You have an unfinished order. Pick up where you left off.",
+      "resume": "Resume my order",
+      "step": "Step {{current}}/{{total}}"
+    }
+  },
+  "steps": {
+    "information": "Information",
+    "shipping": "Shipping",
+    "payment": "Payment"
+  },
+  "form": {
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "addressLine2": "Apartment, suite, etc.",
+    "city": "City",
+    "postalCode": "Postal code",
+    "country": "Country",
+    "notes": "Delivery instructions",
+    "required": "Required",
+    "optional": "Optional"
+  },
+  "shipping": {
+    "title": "Shipping options",
+    "standard": "Standard shipping",
+    "standardTime": "3-5 business days",
+    "express": "Express shipping",
+    "expressTime": "24-48h",
+    "freeFrom": "Free from {{amount}}",
+    "postalCodeLabel": "Enter your postal code",
+    "estimatedDelivery": "Estimated delivery"
+  },
+  "payment": {
+    "title": "Secure payment",
+    "securePayment": "100% secure payment",
+    "payNow": "Pay now",
+    "processing": "Processing...",
+    "redirecting": "Redirecting to payment..."
+  },
+  "promo": {
+    "label": "Promo code",
+    "placeholder": "Enter your code",
+    "apply": "Apply",
+    "applied": "Code applied!",
+    "remove": "Remove",
+    "invalid": "Invalid promo code",
+    "expired": "This code has expired",
+    "minOrder": "Minimum order of {{amount}} required",
+    "limitReached": "This code has reached its usage limit"
+  },
+  "errors": {
+    "requiredField": "This field is required",
+    "invalidEmail": "Invalid email",
+    "invalidPhone": "Invalid phone number",
+    "invalidPostalCode": "Invalid postal code",
+    "stockError": "Some items are no longer available",
+    "paymentFailed": "Payment failed. Please try again.",
+    "genericError": "An error occurred. Please try again."
+  },
+  "success": {
+    "title": "Order confirmed!",
+    "message": "Thank you for your order. You will receive a confirmation email.",
+    "orderNumber": "Order number",
+    "transactionId": "Transaction",
+    "nextSteps": "Next steps",
+    "step1": "Confirmation email sent",
+    "step2": "Preparing your order",
+    "step3": "Shipping with tracking"
+  }
+}
