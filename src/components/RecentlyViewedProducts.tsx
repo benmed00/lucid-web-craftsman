@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { History, X } from 'lucide-react';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
+import { useTranslation } from 'react-i18next';
 
 interface RecentlyViewedProductsProps {
   onQuickView?: (product: Product) => void;
@@ -14,6 +15,7 @@ interface RecentlyViewedProductsProps {
 export const RecentlyViewedProducts = ({ onQuickView }: RecentlyViewedProductsProps) => {
   const { recentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
   const { addItem } = useCart();
+  const { t } = useTranslation(['products', 'common']);
 
   const handleAddToCart = async (product: Product) => {
     try {
@@ -21,13 +23,13 @@ export const RecentlyViewedProducts = ({ onQuickView }: RecentlyViewedProductsPr
 
       if (response.success) {
         addItem(product, 1);
-        toast.success(`${product.name} ajouté au panier`);
+        toast.success(t('common:messages.addedToCart'));
       } else {
-        toast.error("Impossible d'ajouter le produit au panier");
+        toast.error(t('recentlyViewed.addError'));
       }
     } catch (error) {
       // Silent error handling for production
-      toast.error("Impossible d'ajouter le produit au panier");
+      toast.error(t('recentlyViewed.addError'));
     }
   };
 
@@ -40,7 +42,7 @@ export const RecentlyViewedProducts = ({ onQuickView }: RecentlyViewedProductsPr
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle className="text-xl font-serif flex items-center gap-2">
           <History className="h-5 w-5 text-primary" />
-          Récemment consultés
+          {t('details.recentlyViewed')}
         </CardTitle>
         <Button
           variant="ghost"
@@ -49,7 +51,7 @@ export const RecentlyViewedProducts = ({ onQuickView }: RecentlyViewedProductsPr
           className="text-muted-foreground hover:text-foreground"
         >
           <X className="h-4 w-4 mr-1" />
-          Effacer
+          {t('common:buttons.clear')}
         </Button>
       </CardHeader>
       <CardContent>

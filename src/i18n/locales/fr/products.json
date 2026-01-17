@@ -73,6 +73,41 @@
   },
   "recommendations": {
     "title": "Vous aimerez aussi",
-    "basedOnViewing": "Basé sur ce que vous avez consulté"
+    "basedOnViewing": "Basé sur ce que vous avez consulté",
+    "addError": "Impossible d'ajouter le produit au panier"
+  },
+  "recentlyViewed": {
+    "addError": "Impossible d'ajouter le produit au panier"
+  },
+  "quickView": {
+    "linkCopied": "Lien copié dans le presse-papiers",
+    "previousImage": "Image précédente",
+    "previous": "Précédente",
+    "nextImage": "Image suivante",
+    "next": "Suivante",
+    "reviewsCount": "({{count}} avis)",
+    "highlyRated": "Très bien noté",
+    "authenticCraft": "Artisanat authentique",
+    "premiumQuality": "Qualité premium",
+    "nobleMaterials": "Matériaux nobles",
+    "artisanPassion": "Créé avec passion et savoir-faire traditionnel",
+    "decreaseQuantity": "Diminuer la quantité",
+    "increaseQuantity": "Augmenter la quantité",
+    "freeShipping": "Livraison gratuite",
+    "returns30Days": "Retours 30 jours"
+  },
+  "advancedFilters": {
+    "searchPlaceholder": "Rechercher des produits... (ex: sac berbère, chapeau paille)",
+    "suggestions": "Suggestions",
+    "recentSearches": "Recherches récentes",
+    "bestRated": "Mieux notés",
+    "filteredResults": "Résultats filtrés",
+    "cachedQueries": "{{count}} requêtes en cache",
+    "clearCache": "Vider cache",
+    "stars": "étoiles",
+    "includeOutOfStock": "Inclure rupture de stock",
+    "minRating": "Note minimum",
+    "artisans": "Artisans",
+    "inStockOnly": "En stock uniquement"
   }
 }
