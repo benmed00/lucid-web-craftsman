@@ -74,10 +74,14 @@
   "recommendations": {
     "title": "Vous aimerez aussi",
     "basedOnViewing": "Basé sur ce que vous avez consulté",
-    "addError": "Impossible d'ajouter le produit au panier"
+    "addError": "Impossible d'ajouter le produit au panier",
+    "addedToCart": "{{name}} ajouté au panier"
   },
   "recentlyViewed": {
     "addError": "Impossible d'ajouter le produit au panier"
+  },
+  "showcase": {
+    "ariaLabel": "Produits en vedette"
   },
   "quickView": {
     "linkCopied": "Lien copié dans le presse-papiers",
