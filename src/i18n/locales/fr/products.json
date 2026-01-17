@@ -1,6 +1,9 @@
 {
   "title": "Nos Produits",
   "subtitle": "Découvrez notre collection d'artisanat berbère authentique",
+  "seo": {
+    "keywords": ["produits artisanaux", "sacs berbères", "chapeaux paille", "artisanat marocain", "accessoires fait main"]
+  },
   "filters": {
     "all": "Tous",
     "search": "Rechercher",
@@ -48,6 +51,7 @@
     "quantity": "Quantité",
     "addToCart": "Ajouter",
     "addToCartFull": "Ajouter au panier",
+    "priceLabel": "Prix: {{price}}",
     "addToCartTooltip": "Ajouter {{name}} à votre panier ({{price}})",
     "addToCartAria": "Ajouter au panier - {{name}} pour {{price}}",
     "addToWishlist": "Ajouter aux favoris",

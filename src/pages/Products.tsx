@@ -215,7 +215,7 @@ const Products = () => {
       <SEOHelmet
         title={t('title') + " | Rif Raw Straw"}
         description={t('subtitle')}
-        keywords={["produits artisanaux", "sacs berbères", "chapeaux paille", "artisanat marocain", "accessoires fait main"]}
+        keywords={t('seo.keywords', { returnObjects: true }) as string[]}
         url="/products"
         type="website"
       />

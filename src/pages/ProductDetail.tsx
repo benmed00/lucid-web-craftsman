@@ -198,8 +198,8 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
 
   const handleShare = async (platform: string) => {
     const url = window.location.href;
-    const title = `${product?.name} - Artisanat Berbère`;
-    const text = `Découvrez cette magnifique création artisanale : ${product?.name}`;
+    const title = `${product?.name} - ${t("productDetail.share.brandName")}`;
+    const text = t("productDetail.share.shareText", { name: product?.name });
 
     try {
       switch (platform) {
@@ -335,7 +335,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   return (
     <>
       <SEOHelmet 
-        title={`${product.name} - ${product.category} fait main par ${product.artisan}`}
+        title={`${product.name} - ${product.category} ${t("productDetail.seo.handmadeBy")} ${product.artisan}`}
         description={product.short_description || product.description?.substring(0, 155)}
         image={product.images[0]}
         url={`/products/${product.id}`}
@@ -350,9 +350,9 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
           product.name,
           product.category,
           product.artisan,
-          "artisanat berbère",
-          "fait main",
-          product.material || "fibres naturelles"
+          t("productDetail.seo.berberCraft"),
+          t("productDetail.seo.handmade"),
+          product.material || t("productDetail.seo.naturalFibers")
         ]}
       />
 
@@ -390,13 +390,13 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
           {/* Main Product Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             {/* Image Gallery */}
-            <section className="space-y-4" aria-label="Images du produit">
+            <section className="space-y-4" aria-label={t("productDetail.images.ariaLabel")}>
               {/* Main Image */}
               <div className="relative group">
                 <div className="aspect-square overflow-hidden rounded-xl bg-muted">
                   <ProductImage
                     src={product.images[selectedImage]}
-                    alt={`${product.name} - vue ${selectedImage + 1} sur ${product.images.length}`}
+                    alt={`${product.name} - ${t("productDetail.images.view")} ${selectedImage + 1} ${t("productDetail.images.of")} ${product.images.length}`}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     preload={true}
                   />
@@ -409,7 +409,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                         size="sm"
                         className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => handleImageChange('prev')}
-                        aria-label={`Image précédente (${selectedImage} sur ${product.images.length})`}
+                        aria-label={`${t("productDetail.images.previous")} (${selectedImage} ${t("productDetail.images.of")} ${product.images.length})`}
                       >
                         <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                       </Button>
@@ -418,7 +418,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                         size="sm"
                         className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => handleImageChange('next')}
-                        aria-label={`Image suivante (${selectedImage + 2} sur ${product.images.length})`}
+                        aria-label={`${t("productDetail.images.next")} (${selectedImage + 2} ${t("productDetail.images.of")} ${product.images.length})`}
                       >
                         <ChevronRight className="h-4 w-4" aria-hidden="true" />
                       </Button>
@@ -438,12 +438,12 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl">
                       <DialogHeader className="sr-only">
-                        <DialogTitle>{product.name} - Vue agrandie</DialogTitle>
-                        <DialogDescription>Image du produit en taille réelle</DialogDescription>
+                        <DialogTitle>{product.name} - {t("productDetail.images.enlarged")}</DialogTitle>
+                        <DialogDescription>{t("productDetail.images.fullSizeDescription")}</DialogDescription>
                       </DialogHeader>
                       <ProductImage
                         src={product.images[selectedImage]}
-                        alt={`${product.name} - vue agrandie`}
+                        alt={`${product.name} - ${t("productDetail.images.enlarged")}`}
                         className="w-full h-auto"
                       />
                     </DialogContent>
@@ -460,7 +460,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                           index === selectedImage ? 'bg-primary-foreground' : 'bg-primary-foreground/50'
                         }`}
                         onClick={() => setSelectedImage(index)}
-                        aria-label={`Voir l'image ${index + 1}`}
+                        aria-label={`${t("productDetail.images.viewImage")} ${index + 1}`}
                       />
                     ))}
                   </div>
@@ -482,7 +482,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     >
                       <ProductImage
                         src={image}
-                        alt={`${product.name} - miniature ${index + 1}`}
+                        alt={`${product.name} - ${t("productDetail.images.thumbnail")} ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
                     </button>
@@ -492,7 +492,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
             </section>
 
             {/* Product Information */}
-            <section className="space-y-6" aria-label="Informations du produit">
+            <section className="space-y-6" aria-label={t("productDetail.productInfo.ariaLabel")}>
               {/* Header */}
               <header>
                 <div className="flex items-center gap-3 mb-3">
