@@ -116,9 +116,17 @@
       "q": "What payment methods do you accept?",
       "a": "We accept credit cards (Visa, Mastercard), PayPal, and Apple Pay."
     },
+    "modification": {
+      "q": "Can I modify or cancel my order?",
+      "a": "If your order has not been shipped yet, contact us quickly via the Contact page for any modification or cancellation."
+    },
     "returns": {
       "q": "How do I make a return?",
-      "a": "You have 14 days after delivery to return an item."
+      "a": {
+        "prefix": "Visit our",
+        "linkText": "Returns",
+        "suffix": "page for the detailed procedure."
+      }
     }
   },
   "shipping": {
