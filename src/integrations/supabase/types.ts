@@ -1950,6 +1950,42 @@ export type Database = {
           },
         ]
       }
+      tag_translations: {
+        Row: {
+          ar: string | null
+          created_at: string
+          de: string | null
+          en: string | null
+          es: string | null
+          fr: string
+          id: string
+          tag_key: string
+          updated_at: string
+        }
+        Insert: {
+          ar?: string | null
+          created_at?: string
+          de?: string | null
+          en?: string | null
+          es?: string | null
+          fr: string
+          id?: string
+          tag_key: string
+          updated_at?: string
+        }
+        Update: {
+          ar?: string | null
+          created_at?: string
+          de?: string | null
+          en?: string | null
+          es?: string | null
+          fr?: string
+          id?: string
+          tag_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           created_at: string
