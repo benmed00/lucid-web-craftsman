@@ -13,17 +13,39 @@ import HeroImage from "@/components/HeroImage";
 import ScrollToTop from "@/components/ScrollToTop";
 import FloatingCartButton from "@/components/ui/FloatingCartButton";
 import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
-import { ProductRecommendations } from "@/components/ProductRecommendations";
-import { useState, useEffect } from "react";
-import { ProductService } from "@/services/productService";
+import { useMemo } from "react";
+import { useProductsWithTranslations, ProductWithTranslation } from "@/hooks/useTranslatedContent";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import SEOHelmet from '@/components/seo/SEOHelmet';
-import OptimizedImage from '@/components/performance/OptimizedImage';
 import NewsletterSubscription from '@/components/NewsletterSubscription';
 
 const Index = () => {
   const { t } = useTranslation(['pages', 'common']);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  
+  // Fetch products with translations
+  const { data: translatedProducts = [] } = useProductsWithTranslations();
+  
+  // Transform to Product interface for compatibility
+  const allProducts = useMemo(() => {
+    return translatedProducts.map((p: ProductWithTranslation): Product => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      images: p.images,
+      category: p.category,
+      description: p.description,
+      details: p.details,
+      care: p.care,
+      artisan: p.artisan,
+      is_new: p.is_new ?? false,
+      is_available: p.is_available ?? true,
+      stock_quantity: p.stock_quantity ?? 0,
+      artisan_story: p.artisan_story ?? undefined,
+      short_description: p.short_description ?? undefined,
+      rating_average: p.rating_average ?? undefined,
+      rating_count: p.rating_count ?? undefined,
+    }));
+  }, [translatedProducts]);
   
   // Configuration for showing/hiding sections - easily configurable for future
   const sectionConfig = {
@@ -31,18 +53,6 @@ const Index = () => {
     showRecommendations: false,
     showProductShowcase: true,
   };
-
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const products = await ProductService.getAllProducts();
-        setAllProducts(products);
-      } catch (error) {
-        console.error('Error loading products:', error);
-      }
-    };
-    loadProducts();
-  }, []);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

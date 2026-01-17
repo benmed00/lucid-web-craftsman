@@ -1,23 +1,45 @@
 import { useCart } from "@/stores";
 import { toast } from "sonner";
 import { Product } from "@/shared/interfaces/Iproduct.interface";
-import { useEffect, useState, useCallback } from "react";
-import { ProductService } from "@/services/productService";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import ProductCard, { StockContext } from "./ProductCard";
 import { ProductQuickView } from "./ProductQuickView";
 import { Card, CardContent } from "@/components/ui/card";
 import { useStock } from "@/hooks/useStock";
-import { StockInfo } from "@/services/stockService";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
+import { useProductsWithTranslations, ProductWithTranslation } from "@/hooks/useTranslatedContent";
 
 const ProductShowcase = () => {
   const { t } = useTranslation('products');
   const { addItem } = useCart();
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Fetch products with translations
+  const { data: translatedProducts = [], isLoading: loading } = useProductsWithTranslations();
+
+  // Transform to Product interface and get featured products
+  const featuredProducts = useMemo(() => {
+    return translatedProducts.slice(0, 4).map((p: ProductWithTranslation): Product => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      images: p.images,
+      category: p.category,
+      description: p.description,
+      details: p.details,
+      care: p.care,
+      artisan: p.artisan,
+      is_new: p.is_new ?? false,
+      is_available: p.is_available ?? true,
+      stock_quantity: p.stock_quantity ?? 0,
+      artisan_story: p.artisan_story ?? undefined,
+      short_description: p.short_description ?? undefined,
+      rating_average: p.rating_average ?? undefined,
+      rating_count: p.rating_count ?? undefined,
+    }));
+  }, [translatedProducts]);
 
   // Batch stock loading for all featured products
   const productIds = featuredProducts.map(p => p.id);
@@ -25,22 +47,6 @@ const ProductShowcase = () => {
     productIds, 
     enabled: productIds.length > 0 
   });
-
-  useEffect(() => {
-    const loadFeaturedProducts = async () => {
-      try {
-        const allProducts = await ProductService.getAllProducts();
-        setFeaturedProducts(allProducts.slice(0, 4));
-
-        setLoading(false);
-      } catch (error) {
-        // Silent error handling for production
-        setLoading(false);
-      }
-    };
-
-    loadFeaturedProducts();
-  }, []);
 
   // Handle URL-based quick view state
   useEffect(() => {
@@ -51,18 +57,30 @@ const ProductShowcase = () => {
       if (product) {
         setQuickViewProduct(product);
       } else {
-        // If product not found in featured, try to fetch it
-        ProductService.getAllProducts().then(allProducts => {
-          const foundProduct = allProducts.find(p => p.id === productIdNum);
-          if (foundProduct) {
-            setQuickViewProduct(foundProduct);
-          }
-        });
+        // Try to find in all translated products
+        const allProducts = translatedProducts.map((p: ProductWithTranslation): Product => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          images: p.images,
+          category: p.category,
+          description: p.description,
+          details: p.details,
+          care: p.care,
+          artisan: p.artisan,
+          is_new: p.is_new ?? false,
+          is_available: p.is_available ?? true,
+          stock_quantity: p.stock_quantity ?? 0,
+        }));
+        const foundProduct = allProducts.find(p => p.id === productIdNum);
+        if (foundProduct) {
+          setQuickViewProduct(foundProduct);
+        }
       }
     } else {
       setQuickViewProduct(null);
     }
-  }, [searchParams, featuredProducts]);
+  }, [searchParams, featuredProducts, translatedProducts]);
 
   const handleAddToCart = async (product: Product) => { // Made async
     try {
