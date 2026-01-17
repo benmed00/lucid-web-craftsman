@@ -141,6 +141,11 @@ const AdminLayout = () => {
       path: "/admin/translations",
     },
     {
+      icon: Tag,
+      label: "Tags Blog",
+      path: "/admin/tags",
+    },
+    {
       icon: AlertTriangle,
       label: "Rapports d'erreurs",
       path: "/admin/error-reports",
