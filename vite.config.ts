@@ -37,6 +37,8 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    // Dedupe React to prevent multiple instances
+    dedupe: ['react', 'react-dom', 'react-i18next', 'i18next'],
   },
   build: {
     sourcemap: true, // Enable source maps for production builds
