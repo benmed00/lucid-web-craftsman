@@ -1,21 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Loader2, TrendingUp, BarChart3 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
 import { ProductRecommendations } from "@/components/ProductRecommendations";
 import SEOHelmet from "@/components/seo/SEOHelmet";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Card, CardContent } from "@/components/ui/card";
 
 import PageFooter from "@/components/PageFooter";
 import ProductCard from "@/components/ProductCard";
 import ProductGridSkeleton from "@/components/ProductGridSkeleton";
 import { ProductQuickView } from "@/components/ProductQuickView";
 import { AdvancedProductFilters } from "@/components/AdvancedProductFilters";
-import { ProductAnalytics } from "@/components/ProductAnalytics";
+
 import { SearchResultsHeader, HighlightText } from "@/components/SearchResults";
 import FloatingCartButton from "@/components/ui/FloatingCartButton";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
@@ -35,7 +33,6 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
-  const [showAnalytics, setShowAnalytics] = useState(false);
   
   const { addItem } = useCart();
   const isMobile = useIsMobile();
@@ -270,34 +267,6 @@ const Products = () => {
           cacheStats={cacheStats}
         />
 
-        {/* Analytics Toggle - Always visible on desktop */}
-        {!isMobile && (
-          <Collapsible open={showAnalytics} onOpenChange={setShowAnalytics}>
-            <CollapsibleTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="mb-4 text-muted-foreground hover:text-foreground"
-              >
-                <BarChart3 className="h-4 w-4 mr-2" />
-                {showAnalytics ? 'Masquer' : 'Afficher'} les analyses
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Analyses de recherche
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ProductAnalytics cacheStats={cacheStats} />
-                </CardContent>
-              </Card>
-            </CollapsibleContent>
-          </Collapsible>
-        )}
 
         {/* Enhanced Search Results Header */}
         <SearchResultsHeader
