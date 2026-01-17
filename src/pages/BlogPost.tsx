@@ -2,29 +2,40 @@ import { CalendarIcon, User } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { format } from "date-fns";
+import { fr, enUS } from "date-fns/locale";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import PageFooter from "@/components/PageFooter";
 import BlogContent from "@/components/BlogContent";
-import { useQuery } from "@tanstack/react-query";
-import { getBlogPostById, BlogPostLegacy } from "@/api/mockApiService";
+import { useBlogPostWithTranslation } from "@/hooks/useTranslatedContent";
 
 const BlogPost = () => {
-  const { t } = useTranslation("pages");
+  const { t, i18n } = useTranslation("pages");
   const { id } = useParams();
   const navigate = useNavigate();
+  
+  // Get date-fns locale based on current language
+  const dateLocale = i18n.language?.startsWith('fr') ? fr : enUS;
+
+  // Format date for display
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return '';
+    try {
+      return format(new Date(dateStr), 'dd MMM yyyy', { locale: dateLocale });
+    } catch {
+      return dateStr;
+    }
+  };
   
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
   
-  // Fetch post by ID using React Query with proper typing
-  const { data: post, isLoading, error } = useQuery<BlogPostLegacy | null>({
-    queryKey: ["blogPost", id],
-    queryFn: () => getBlogPostById(Number(id)),
-  });
+  // Fetch post by ID using translated content hook (supports UUID)
+  const { data: post, isLoading, error } = useBlogPostWithTranslation(id || null);
 
   // Redirect if post not found
   useEffect(() => {
@@ -54,20 +65,24 @@ const BlogPost = () => {
           </Link>
           
           <div className="max-w-3xl mx-auto">
-            <Badge className="mb-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 border-none">
-              {post.category}
-            </Badge>
+            {post.tags && post.tags[0] && (
+              <Badge className="mb-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 border-none">
+                {post.tags[0]}
+              </Badge>
+            )}
             <h1 className="font-serif text-3xl md:text-5xl text-foreground mb-4">
               {post.title}
             </h1>
             
             <div className="flex items-center gap-4 text-sm text-muted-foreground mt-6">
               <div className="flex items-center">
-                <CalendarIcon className="h-4 w-4 mr-1" /> {post.date}
+                <CalendarIcon className="h-4 w-4 mr-1" /> {formatDate(post.published_at)}
               </div>
-              <div className="flex items-center">
-                <User className="h-4 w-4 mr-1" /> {post.author}
-              </div>
+              {post.author_id && (
+                <div className="flex items-center">
+                  <User className="h-4 w-4 mr-1" /> {t("blog.author")}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -78,7 +93,7 @@ const BlogPost = () => {
         <div className="max-w-3xl mx-auto">
           <div className="aspect-w-16 aspect-h-9 mb-8">
             <img
-              src={post.image}
+              src={post.featured_image_url || '/placeholder.svg'}
               alt={post.title}
               className="w-full h-full object-cover rounded-lg"
             />
