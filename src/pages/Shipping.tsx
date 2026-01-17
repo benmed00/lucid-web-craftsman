@@ -4,7 +4,7 @@ import PageFooter from "@/components/PageFooter";
 import SEOHelmet from "@/components/seo/SEOHelmet";
 
 const Shipping = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "common"]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -53,7 +53,7 @@ const Shipping = () => {
               to="/contact"
               className="text-primary underline hover:text-primary/80"
             >
-              Contact
+              {t("common:nav.contact", { ns: 'common' })}
             </Link>
             .
           </p>

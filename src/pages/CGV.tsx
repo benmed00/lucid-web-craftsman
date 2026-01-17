@@ -4,7 +4,7 @@ import PageFooter from "@/components/PageFooter";
 import SEOHelmet from "@/components/seo/SEOHelmet";
 
 const CGV = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "common"]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -29,12 +29,12 @@ const CGV = () => {
             <li>{t("cgv.items.item5")}</li>
           </ul>
           <p className="text-muted-foreground">
-            {t("cgv.contact")}{" "}
+            {t("pages:cgv.contact")}{" "}
             <Link
               to="/contact"
               className="text-primary underline hover:text-primary/80"
             >
-              Contact
+              {t("common:nav.contact")}
             </Link>
             .
           </p>
