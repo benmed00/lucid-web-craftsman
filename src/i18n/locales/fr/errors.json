@@ -44,5 +44,38 @@
     "cancelled": "Paiement annulé",
     "cardDeclined": "Carte refusée. Veuillez utiliser une autre méthode.",
     "insufficientFunds": "Fonds insuffisants"
+  },
+  "report": {
+    "button": "Signaler un problème",
+    "title": "Signaler un problème",
+    "description": "Aidez-nous à améliorer l'application en signalant les bugs ou problèmes que vous rencontrez.",
+    "success": "Rapport d'erreur envoyé avec succès !",
+    "error": "Erreur lors de l'envoi du rapport",
+    "validation": {
+      "requiredFields": "Veuillez remplir tous les champs requis",
+      "selectImage": "Veuillez sélectionner une image",
+      "maxSize": "L'image ne doit pas dépasser 5 Mo"
+    },
+    "form": {
+      "email": "Email de contact",
+      "emailPlaceholder": "votre@email.com",
+      "type": "Type de problème",
+      "types": {
+        "bug": "Bug / Erreur",
+        "ui": "Problème d'interface",
+        "performance": "Problème de performance",
+        "feature": "Demande de fonctionnalité",
+        "other": "Autre"
+      },
+      "descriptionLabel": "Description du problème",
+      "descriptionPlaceholder": "Décrivez le problème en détail : que faisiez-vous quand c'est arrivé ? Quel était le comportement attendu ?",
+      "screenshot": "Capture d'écran (optionnel)",
+      "screenshotDrag": "Cliquez ou glissez une image ici",
+      "screenshotFormats": "PNG, JPG jusqu'à 5 Mo",
+      "screenshotAlt": "Capture d'écran",
+      "cancel": "Annuler",
+      "sending": "Envoi...",
+      "submit": "Envoyer le rapport"
+    }
   }
 }

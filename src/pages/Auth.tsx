@@ -307,7 +307,7 @@ export default function Auth() {
                       <Input
                         id="signin-email"
                         type="email"
-                        placeholder="votre@email.com"
+                        placeholder={t('auth:login.emailPlaceholder')}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -364,7 +364,7 @@ export default function Auth() {
                         <Input
                           id="signup-name"
                           type="text"
-                          placeholder="Jean Dupont"
+                          placeholder={t('auth:register.fullNamePlaceholder')}
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
                           required
@@ -377,7 +377,7 @@ export default function Auth() {
                         <Input
                           id="signup-phone"
                           type="tel"
-                          placeholder="+33 6 12 34 56 78"
+                          placeholder={t('auth:register.phonePlaceholder')}
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
                           maxLength={20}
@@ -390,7 +390,7 @@ export default function Auth() {
                       <Input
                         id="signup-email"
                         type="email"
-                        placeholder="votre@email.com"
+                        placeholder={t('auth:register.emailPlaceholder')}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required

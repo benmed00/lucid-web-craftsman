@@ -385,7 +385,7 @@ const Contact = () => {
                               id="email"
                               name="contact-email"
                               type="email"
-                              placeholder="votre.email@exemple.com"
+                              placeholder={t('contact.form.emailPlaceholder')}
                               value={contactForm.email}
                               onChange={(e) => setContactForm(prev => ({...prev, email: e.target.value}))}
                               required

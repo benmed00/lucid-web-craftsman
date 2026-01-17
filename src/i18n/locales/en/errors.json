@@ -44,5 +44,38 @@
     "cancelled": "Payment cancelled",
     "cardDeclined": "Card declined. Please use another payment method.",
     "insufficientFunds": "Insufficient funds"
+  },
+  "report": {
+    "button": "Report a problem",
+    "title": "Report a problem",
+    "description": "Help us improve the application by reporting bugs or issues you encounter.",
+    "success": "Error report sent successfully!",
+    "error": "Error sending report",
+    "validation": {
+      "requiredFields": "Please fill in all required fields",
+      "selectImage": "Please select an image",
+      "maxSize": "Image must not exceed 5 MB"
+    },
+    "form": {
+      "email": "Contact email",
+      "emailPlaceholder": "your@email.com",
+      "type": "Problem type",
+      "types": {
+        "bug": "Bug / Error",
+        "ui": "Interface issue",
+        "performance": "Performance issue",
+        "feature": "Feature request",
+        "other": "Other"
+      },
+      "descriptionLabel": "Problem description",
+      "descriptionPlaceholder": "Describe the problem in detail: what were you doing when it happened? What was the expected behavior?",
+      "screenshot": "Screenshot (optional)",
+      "screenshotDrag": "Click or drag an image here",
+      "screenshotFormats": "PNG, JPG up to 5 MB",
+      "screenshotAlt": "Screenshot",
+      "cancel": "Cancel",
+      "sending": "Sending...",
+      "submit": "Send report"
+    }
   }
 }
