@@ -79,23 +79,84 @@
     "title": "Contact Us",
     "seo": {
       "title": "Contact Us - Rif Raw Straw",
-      "description": "Contact us for any questions about our handmade products. We respond within 24 hours."
+      "description": "Contact our expert team for any questions about our handmade Berber products. Response within 24 hours."
     },
-    "subtitle": "Have a question? We're here to help.",
-    "form": {
-      "name": "Your name",
-      "email": "Your email",
-      "subject": "Subject",
-      "message": "Your message",
-      "submit": "Send",
-      "success": "Message sent successfully!",
-      "error": "Error sending message. Please try again."
+    "hero": {
+      "title": "Let's Talk",
+      "description": "Questions about our handmade products? A custom order? Our team is here to assist you.",
+      "cta": "Start a Discussion"
+    },
+    "cards": {
+      "general": {
+        "title": "General Inquiry",
+        "description": "Questions about our artisan products"
+      },
+      "support": {
+        "title": "Technical Support",
+        "description": "Help with your orders"
+      },
+      "partnership": {
+        "title": "Partnerships",
+        "description": "Business collaborations"
+      }
     },
     "info": {
-      "address": "Address",
-      "phone": "Phone",
+      "title": "Contact Us",
+      "description": "Our expert team is here to assist you with all your authentic Berber craft projects.",
       "email": "Email",
-      "hours": "Opening hours"
+      "emailResponse": "Response within 24h",
+      "phone": "Phone",
+      "phoneHours": "Mon-Fri 9am-6pm",
+      "address": "Address",
+      "hours": "Hours"
+    },
+    "services": {
+      "title": "Our Services",
+      "customOrders": "Custom orders",
+      "expertAdvice": "Expert advice",
+      "b2b": "B2B solutions",
+      "international": "International shipping"
+    },
+    "form": {
+      "title": "Send Us a Message",
+      "subtitle": "We typically respond within 2-4 hours",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "emailFormat": "Required format: your@email.com",
+      "phone": "Phone",
+      "phonePlaceholder": "Your phone number",
+      "company": "Company (optional)",
+      "companyPlaceholder": "Your company name",
+      "subject": "Subject",
+      "subjectPlaceholder": "Select a subject",
+      "subjectOptions": {
+        "product": "Product question",
+        "customOrder": "Custom order",
+        "partnership": "Business partnership",
+        "wholesale": "Wholesale",
+        "shipping": "Shipping and delivery",
+        "support": "Technical support",
+        "other": "Other question"
+      },
+      "message": "Message",
+      "messagePlaceholder": "Describe your request in detail...",
+      "characters": "characters",
+      "minCharacters": "Minimum 20 characters required",
+      "submit": "Send Message",
+      "submitting": "Sending...",
+      "privacy": "By submitting this form, you agree that we process your data in accordance with our privacy policy.",
+      "success": "Message sent successfully! We will respond soon.",
+      "error": "Error sending message. Please try again.",
+      "rateLimited": "Too many submissions. Please wait 10 minutes before trying again.",
+      "validation": {
+        "subjectMinLength": "Subject must be at least 5 characters",
+        "messageMinLength": "Message must be at least 20 characters"
+      }
+    },
+    "map": {
+      "title": "Our Location",
+      "description": "Visit our showroom to discover our artisan creations"
     }
   },
   "faq": {
