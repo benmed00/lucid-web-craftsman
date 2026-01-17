@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { User } from '@supabase/supabase-js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +19,7 @@ import { EnhancedProfileManager } from '@/components/profile/EnhancedProfileMana
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useCompanySettings } from '@/hooks/useCompanySettings';
 
 interface Profile {
   id: string;
@@ -40,8 +42,10 @@ interface Profile {
 }
 
 export default function EnhancedProfile() {
+  const { t } = useTranslation('pages');
   const navigate = useNavigate();
   const { user, signOut, isLoading: authLoading, session } = useOptimizedAuth();
+  const { settings: companySettings, isLoading: isLoadingSettings } = useCompanySettings();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -87,7 +91,7 @@ export default function EnhancedProfile() {
       }
     } catch (error: any) {
       console.error('Error loading profile:', error);
-      toast.error('Erreur lors du chargement du profil');
+      toast.error(t('profile.messages.loadError'));
     } finally {
       setIsProfileLoading(false);
     }
@@ -112,7 +116,7 @@ export default function EnhancedProfile() {
       setProfile(data);
     } catch (error: any) {
       console.error('Error creating profile:', error);
-      toast.error('Erreur lors de la création du profil');
+      toast.error(t('profile.messages.createError'));
     }
   };
 
@@ -136,10 +140,10 @@ export default function EnhancedProfile() {
       // Sign out user
       await signOut();
       navigate('/auth');
-      toast.success('Compte supprimé avec succès');
+      toast.success(t('profile.messages.deleteSuccess'));
     } catch (error: any) {
       console.error('Error deleting account:', error);
-      toast.error('Erreur lors de la suppression du compte');
+      toast.error(t('profile.messages.deleteError'));
     } finally {
       setIsProfileLoading(false);
     }
@@ -159,7 +163,7 @@ export default function EnhancedProfile() {
       window.location.href = '/auth';
     } catch (error: any) {
       console.error('Error signing out:', error);
-      toast.error('Erreur lors de la déconnexion');
+      toast.error(t('profile.messages.signOutError'));
     }
   };
 
@@ -197,44 +201,43 @@ export default function EnhancedProfile() {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Mon Profil</h1>
+              <h1 className="text-3xl font-bold mb-2">{t('profile.title')}</h1>
               <p className="text-muted-foreground">
-                Gérez vos informations personnelles, préférences et historique
+                {t('profile.subtitle')}
               </p>
             </div>
             
             <div className="flex gap-2 flex-wrap">
               <Button variant="outline" onClick={() => navigate('/')}>
                 <Home className="h-4 w-4 mr-2" />
-                Accueil
+                {t('profile.buttons.home')}
               </Button>
               
               <Button variant="outline" onClick={handleSignOut}>
                 <UserCog className="h-4 w-4 mr-2" />
-                Se déconnecter
+                {t('profile.buttons.signOut')}
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" className="text-destructive hover:text-destructive">
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Supprimer le compte
+                    {t('profile.buttons.deleteAccount')}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Supprimer le compte</AlertDialogTitle>
+                    <AlertDialogTitle>{t('profile.deleteDialog.title')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Cette action est irréversible. Toutes vos données seront définitivement supprimées.
-                      Êtes-vous sûr de vouloir supprimer votre compte ?
+                      {t('profile.deleteDialog.description')}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogCancel>{t('profile.deleteDialog.cancel')}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDeleteAccount}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
-                      Supprimer définitivement
+                      {t('profile.deleteDialog.confirm')}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -250,28 +253,28 @@ export default function EnhancedProfile() {
           <TabsList className="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <UserIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">Vue d'ensemble</span>
-              <span className="sm:hidden">Profil</span>
+              <span className="hidden sm:inline">{t('profile.tabs.overview')}</span>
+              <span className="sm:hidden">{t('profile.tabs.overviewShort')}</span>
             </TabsTrigger>
             <TabsTrigger value="personal" className="flex items-center gap-2">
               <UserCog className="h-4 w-4" />
-              <span className="hidden sm:inline">Informations</span>
-              <span className="sm:hidden">Infos</span>
+              <span className="hidden sm:inline">{t('profile.tabs.personal')}</span>
+              <span className="sm:hidden">{t('profile.tabs.personalShort')}</span>
             </TabsTrigger>
             <TabsTrigger value="loyalty" className="flex items-center gap-2">
               <Crown className="h-4 w-4" />
-              <span className="hidden sm:inline">Fidélité</span>
-              <span className="sm:hidden">Points</span>
+              <span className="hidden sm:inline">{t('profile.tabs.loyalty')}</span>
+              <span className="sm:hidden">{t('profile.tabs.loyaltyShort')}</span>
             </TabsTrigger>
             <TabsTrigger value="preferences" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Préférences</span>
-              <span className="sm:hidden">Prefs</span>
+              <span className="hidden sm:inline">{t('profile.tabs.preferences')}</span>
+              <span className="sm:hidden">{t('profile.tabs.preferencesShort')}</span>
             </TabsTrigger>
             <TabsTrigger value="orders" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
-              <span className="hidden sm:inline">Commandes</span>
-              <span className="sm:hidden">Orders</span>
+              <span className="hidden sm:inline">{t('profile.tabs.orders')}</span>
+              <span className="sm:hidden">{t('profile.tabs.ordersShort')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -307,61 +310,61 @@ export default function EnhancedProfile() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Contact Info */}
             <div>
-              <h3 className="font-semibold mb-4">Contact</h3>
+              <h3 className="font-semibold mb-4">{t('profile.footer.contact')}</h3>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>Email: contact@rifstraw.com</p>
-                <p>Téléphone: +33 1 23 45 67 89</p>
+                <p>Email: {companySettings?.email || 'contact@rifstraw.com'}</p>
+                <p>{t('profile.footer.contact')}: {companySettings?.phone || '+33 1 23 45 67 89'}</p>
               </div>
             </div>
 
             {/* Important Links */}
             <div>
-              <h3 className="font-semibold mb-4">Liens Importants</h3>
+              <h3 className="font-semibold mb-4">{t('profile.footer.importantLinks')}</h3>
               <div className="space-y-2 text-sm">
                 <Button 
                   variant="link" 
                   className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   onClick={() => navigate('/terms')}
                 >
-                  Conditions d'utilisation
+                  {t('profile.footer.terms')}
                 </Button>
                 <Button 
                   variant="link" 
                   className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   onClick={() => navigate('/cgv')}
                 >
-                  Conditions générales de vente
+                  {t('profile.footer.cgv')}
                 </Button>
                 <Button 
                   variant="link" 
                   className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   onClick={() => window.open('/privacy-policy', '_blank')}
                 >
-                  Politique de confidentialité (RGPD)
+                  {t('profile.footer.privacy')}
                 </Button>
               </div>
             </div>
 
             {/* Legal */}
             <div>
-              <h3 className="font-semibold mb-4">Informations Légales</h3>
+              <h3 className="font-semibold mb-4">{t('profile.footer.legal')}</h3>
               <div className="space-y-2 text-sm">
                 <Button 
                   variant="link" 
                   className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   onClick={() => window.open('/legal-notices', '_blank')}
                 >
-                  Mentions légales
+                  {t('profile.footer.legalNotices')}
                 </Button>
                 <Button 
                   variant="link" 
                   className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   onClick={() => window.open('/cookie-policy', '_blank')}
                 >
-                  Politique des cookies
+                  {t('profile.footer.cookies')}
                 </Button>
                 <p className="text-xs text-muted-foreground mt-4">
-                  © 2024 RifStraw. Tous droits réservés.
+                  {t('profile.footer.copyright')}
                 </p>
               </div>
             </div>

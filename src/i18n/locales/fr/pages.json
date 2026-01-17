@@ -454,30 +454,108 @@
     "remainingSlots_other": "{{count}} places restantes"
   },
   "profile": {
+    "seo": {
+      "title": "Mon Profil - Rif Raw Straw",
+      "description": "Gérez vos informations personnelles, préférences et historique de commandes"
+    },
     "title": "Mon Profil",
-    "overview": "Vue d'ensemble",
-    "personal": "Informations personnelles",
-    "orders": "Mes commandes",
-    "preferences": "Préférences",
-    "loyalty": "Programme fidélité",
-    "security": "Sécurité",
-    "deleteAccount": "Supprimer mon compte"
+    "subtitle": "Gérez vos informations personnelles, préférences et historique",
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "overviewShort": "Profil",
+      "personal": "Informations",
+      "personalShort": "Infos",
+      "loyalty": "Fidélité",
+      "loyaltyShort": "Points",
+      "preferences": "Préférences",
+      "preferencesShort": "Prefs",
+      "orders": "Commandes",
+      "ordersShort": "Orders"
+    },
+    "buttons": {
+      "home": "Accueil",
+      "signOut": "Se déconnecter",
+      "deleteAccount": "Supprimer le compte"
+    },
+    "deleteDialog": {
+      "title": "Supprimer le compte",
+      "description": "Cette action est irréversible. Toutes vos données seront définitivement supprimées. Êtes-vous sûr de vouloir supprimer votre compte ?",
+      "cancel": "Annuler",
+      "confirm": "Supprimer définitivement"
+    },
+    "footer": {
+      "contact": "Contact",
+      "importantLinks": "Liens Importants",
+      "terms": "Conditions d'utilisation",
+      "cgv": "Conditions générales de vente",
+      "privacy": "Politique de confidentialité (RGPD)",
+      "legal": "Informations Légales",
+      "legalNotices": "Mentions légales",
+      "cookies": "Politique des cookies",
+      "copyright": "© 2024 RifStraw. Tous droits réservés."
+    },
+    "messages": {
+      "loadError": "Erreur lors du chargement du profil",
+      "createError": "Erreur lors de la création du profil",
+      "deleteSuccess": "Compte supprimé avec succès",
+      "deleteError": "Erreur lors de la suppression du compte",
+      "signOutError": "Erreur lors de la déconnexion"
+    }
   },
   "orders": {
+    "seo": {
+      "title": "Mes Commandes - Rif Raw Straw",
+      "description": "Consultez l'historique de vos commandes et suivez leur statut"
+    },
     "title": "Mes Commandes",
-    "empty": "Vous n'avez pas encore de commandes",
-    "orderNumber": "Commande n°{{number}}",
-    "date": "Passée le {{date}}",
+    "subtitle": "Suivez l'état de vos commandes et consultez votre historique d'achats",
+    "refresh": "Actualiser",
+    "loginRequired": {
+      "title": "Connectez-vous pour voir vos commandes",
+      "description": "Vous devez être connecté pour accéder à l'historique de vos commandes."
+    },
+    "empty": {
+      "title": "Aucune commande trouvée",
+      "description": "Vous n'avez pas encore passé de commande. Découvrez notre collection artisanale !",
+      "cta": "Découvrir nos produits"
+    },
+    "orderNumber": "Commande #{{id}}",
+    "placedOn": "Passée le {{date}}",
+    "articles": "{{count}} article",
+    "articles_plural": "{{count}} articles",
+    "viewDetails": "Voir détails",
     "status": {
       "pending": "En attente",
       "paid": "Payée",
       "processing": "En préparation",
       "shipped": "Expédiée",
       "delivered": "Livrée",
-      "cancelled": "Annulée"
+      "cancelled": "Annulée",
+      "refunded": "Remboursée"
     },
-    "details": "Voir les détails",
+    "statusDescription": {
+      "pending": "Votre commande est en attente de traitement.",
+      "paid": "Votre paiement a été confirmé.",
+      "processing": "Votre commande est en cours de préparation par nos artisans.",
+      "shipped": "Votre commande a été expédiée et est en route.",
+      "delivered": "Votre commande a été livrée avec succès.",
+      "cancelled": "Votre commande a été annulée.",
+      "refunded": "Votre commande a été remboursée."
+    },
+    "details": {
+      "orderedItems": "Articles commandés",
+      "product": "Produit",
+      "total": "Total",
+      "orderStatus": "État de la commande",
+      "sessionId": "ID de session",
+      "deliveryInfo": "Information de livraison",
+      "deliveredMessage": "Votre commande a été livrée avec succès.",
+      "inTransitMessage": "Votre commande est en cours de livraison."
+    },
     "track": "Suivre ma commande",
-    "reorder": "Commander à nouveau"
+    "reorder": "Commander à nouveau",
+    "messages": {
+      "loadError": "Erreur lors du chargement des commandes"
+    }
   }
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -10,9 +11,10 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Package, Eye, Truck, CheckCircle, Clock, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useCurrency } from '@/stores/currencyStore';
+
 
 interface OrderItem {
   id: string;
@@ -36,11 +38,14 @@ interface Order {
 }
 
 const OrderHistory = () => {
+  const { t, i18n } = useTranslation('pages');
   const { user } = useAuth();
   const { formatPrice } = useCurrency();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  const dateLocale = i18n.language === 'fr' ? fr : enUS;
 
   const fetchOrders = async () => {
     if (!user) return;
@@ -69,7 +74,7 @@ const OrderHistory = () => {
       setOrders((data as Order[]) || []);
     } catch (error) {
       console.error('Error fetching orders:', error);
-      toast.error('Erreur lors du chargement des commandes');
+      toast.error(t('orders.messages.loadError'));
     } finally {
       setLoading(false);
     }
@@ -81,42 +86,32 @@ const OrderHistory = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { 
-      label: string; 
       variant: 'default' | 'secondary' | 'destructive' | 'outline';
       icon: React.ComponentType<{ className?: string }>;
     }> = {
-      pending: { label: 'En attente', variant: 'outline', icon: Clock },
-      paid: { label: 'Payée', variant: 'default', icon: CheckCircle },
-      processing: { label: 'En préparation', variant: 'secondary', icon: Package },
-      shipped: { label: 'Expédiée', variant: 'default', icon: Truck },
-      delivered: { label: 'Livrée', variant: 'default', icon: CheckCircle },
-      cancelled: { label: 'Annulée', variant: 'destructive', icon: Clock },
-      refunded: { label: 'Remboursée', variant: 'destructive', icon: Clock }
+      pending: { variant: 'outline', icon: Clock },
+      paid: { variant: 'default', icon: CheckCircle },
+      processing: { variant: 'secondary', icon: Package },
+      shipped: { variant: 'default', icon: Truck },
+      delivered: { variant: 'default', icon: CheckCircle },
+      cancelled: { variant: 'destructive', icon: Clock },
+      refunded: { variant: 'destructive', icon: Clock }
     };
 
-    const config = statusConfig[status] || { label: status, variant: 'outline', icon: Clock };
+    const config = statusConfig[status] || { variant: 'outline', icon: Clock };
     const Icon = config.icon;
+    const label = t(`orders.status.${status}`, { defaultValue: status });
     
     return (
       <Badge variant={config.variant} className="flex items-center gap-1">
         <Icon className="h-3 w-3" />
-        {config.label}
+        {label}
       </Badge>
     );
   };
 
   const getStatusDescription = (status: string) => {
-    const descriptions: Record<string, string> = {
-      pending: 'Votre commande est en attente de traitement.',
-      paid: 'Votre paiement a été confirmé.',
-      processing: 'Votre commande est en cours de préparation par nos artisans.',
-      shipped: 'Votre commande a été expédiée et est en route.',
-      delivered: 'Votre commande a été livrée avec succès.',
-      cancelled: 'Votre commande a été annulée.',
-      refunded: 'Votre commande a été remboursée.'
-    };
-
-    return descriptions[status] || 'Statut de commande non reconnu.';
+    return t(`orders.statusDescription.${status}`, { defaultValue: t('orders.statusDescription.pending') });
   };
 
   if (!user) {
@@ -124,8 +119,8 @@ const OrderHistory = () => {
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-4">Connectez-vous pour voir vos commandes</h1>
-            <p className="text-muted-foreground">Vous devez être connecté pour accéder à l'historique de vos commandes.</p>
+            <h1 className="text-2xl font-bold text-foreground mb-4">{t('orders.loginRequired.title')}</h1>
+            <p className="text-muted-foreground">{t('orders.loginRequired.description')}</p>
           </div>
         </div>
         <PageFooter />
@@ -142,10 +137,10 @@ const OrderHistory = () => {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
-                Mes Commandes
+                {t('orders.title')}
               </h1>
               <p className="text-muted-foreground">
-                Suivez l'état de vos commandes et consultez votre historique d'achats
+                {t('orders.subtitle')}
               </p>
             </div>
             <Button 
@@ -155,7 +150,7 @@ const OrderHistory = () => {
               disabled={loading}
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              Actualiser
+              {t('orders.refresh')}
             </Button>
           </div>
 
@@ -168,13 +163,13 @@ const OrderHistory = () => {
               <CardContent className="text-center py-12">
                 <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-foreground mb-2">
-                  Aucune commande trouvée
+                  {t('orders.empty.title')}
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  Vous n'avez pas encore passé de commande. Découvrez notre collection artisanale !
+                  {t('orders.empty.description')}
                 </p>
                 <Button asChild className="bg-primary hover:bg-primary/90">
-                  <a href="/products">Découvrir nos produits</a>
+                  <a href="/products">{t('orders.empty.cta')}</a>
                 </Button>
               </CardContent>
             </Card>
@@ -187,19 +182,19 @@ const OrderHistory = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <h3 className="font-medium text-foreground">
-                            Commande #{order.id.slice(-8)}
+                            {t('orders.orderNumber', { id: order.id.slice(-8) })}
                           </h3>
                           {getStatusBadge(order.status)}
                         </div>
                         
                         <div className="text-sm text-muted-foreground mb-3">
-                          <p>Passée le {format(new Date(order.created_at), 'dd MMMM yyyy à HH:mm', { locale: fr })}</p>
+                          <p>{format(new Date(order.created_at), 'dd MMMM yyyy', { locale: dateLocale })}</p>
                           <p className="mt-1">{getStatusDescription(order.status)}</p>
                         </div>
 
                         <div className="flex items-center gap-4 text-sm">
                           <span className="text-muted-foreground">
-                            {order.order_items.length} article{order.order_items.length > 1 ? 's' : ''}
+                            {t('orders.articles', { count: order.order_items.length })}
                           </span>
                           <Separator orientation="vertical" className="h-4" />
                           <span className="font-medium text-foreground">
@@ -217,7 +212,7 @@ const OrderHistory = () => {
                             className="gap-2"
                           >
                             <Eye className="h-4 w-4" />
-                            Voir détails
+                            {t('orders.viewDetails')}
                           </Button>
                         </DialogTrigger>
                         
