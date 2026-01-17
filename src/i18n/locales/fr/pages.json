@@ -615,5 +615,21 @@
       "title": "Questions ou Problèmes ?",
       "description": "Notre équipe est là pour vous aider. N'hésitez pas à nous contacter."
     }
+  },
+  "blogPost": {
+    "loading": "Chargement...",
+    "notFound": "Article non trouvé",
+    "backToArticles": "Retour aux articles",
+    "shareArticle": "Partager cet article :",
+    "content": {
+      "intro1": "L'artisanat marocain est une richesse culturelle inestimable, transmise de génération en génération. Dans les montagnes du Rif, les techniques ancestrales de tissage et de tressage sont préservées avec soin par des communautés locales qui perpétuent un savoir-faire unique.",
+      "intro2": "Chaque pièce raconte une histoire et porte en elle l'âme de l'artisan qui l'a créée. Les motifs géométriques et les symboles berbères utilisés dans nos créations sont imprégnés de significations et représentent une forme de communication visuelle ancrée dans la tradition.",
+      "heading1": "La tradition au service de la modernité",
+      "paragraph1": "Aujourd'hui, ces techniques ancestrales s'adaptent aux besoins contemporains tout en préservant l'authenticité qui fait leur valeur. Nos artisans combinent leur expertise traditionnelle avec des designs modernes pour créer des pièces à la fois intemporelles et actuelles.",
+      "paragraph2": "En soutenant notre coopérative, vous contribuez directement à la préservation de ce patrimoine culturel immatériel et à l'autonomisation économique des communautés artisanales du Rif.",
+      "heading2": "Un impact social et environnemental",
+      "paragraph3": "Notre engagement ne se limite pas à la qualité de nos produits. Nous veillons également à ce que chaque étape de production respecte l'environnement en utilisant des matériaux naturels et des techniques à faible impact écologique.",
+      "paragraph4": "Les artisans qui collaborent avec nous bénéficient de conditions de travail justes et d'une rémunération équitable, permettant ainsi de soutenir l'économie locale tout en préservant un savoir-faire unique au monde."
+    }
   }
 }

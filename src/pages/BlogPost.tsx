@@ -1,7 +1,7 @@
-
 import { CalendarIcon, User } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ interface BlogPost {
 }
 
 const BlogPost = () => {
+  const { t } = useTranslation("pages");
   const { id } = useParams();
   const navigate = useNavigate();
   
@@ -47,11 +48,11 @@ const BlogPost = () => {
   const shouldRender = !isLoading && !error && post;
 
   if (isLoading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center text-foreground">Chargement...</div>;
+    return <div className="min-h-screen bg-background flex items-center justify-center text-foreground">{t("blogPost.loading")}</div>;
   }
   
   if (error || !post) {
-    return <div className="min-h-screen bg-background flex items-center justify-center text-foreground">Article non trouvé</div>;
+    return <div className="min-h-screen bg-background flex items-center justify-center text-foreground">{t("blogPost.notFound")}</div>;
   }
 
   return (
@@ -63,7 +64,7 @@ const BlogPost = () => {
             to="/blog" 
             className="inline-flex items-center text-primary hover:text-primary/80 mb-6"
           >
-            ← Retour aux articles
+            ← {t("blogPost.backToArticles")}
           </Link>
           
           <div className="max-w-3xl mx-auto">
@@ -101,48 +102,37 @@ const BlogPost = () => {
             <p className="text-lg text-muted-foreground mb-6">{post.excerpt}</p>
             
             <p className="text-foreground mb-6">
-              L'artisanat marocain est une richesse culturelle inestimable, transmise de génération en génération. 
-              Dans les montagnes du Rif, les techniques ancestrales de tissage et de tressage sont préservées 
-              avec soin par des communautés locales qui perpétuent un savoir-faire unique.
+              {t("blogPost.content.intro1")}
             </p>
 
             <p className="text-foreground mb-6">
-              Chaque pièce raconte une histoire et porte en elle l'âme de l'artisan qui l'a créée. 
-              Les motifs géométriques et les symboles berbères utilisés dans nos créations sont imprégnés 
-              de significations et représentent une forme de communication visuelle ancrée dans la tradition.
+              {t("blogPost.content.intro2")}
             </p>
 
-            <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">La tradition au service de la modernité</h2>
+            <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">{t("blogPost.content.heading1")}</h2>
 
             <p className="text-foreground mb-6">
-              Aujourd'hui, ces techniques ancestrales s'adaptent aux besoins contemporains tout en 
-              préservant l'authenticité qui fait leur valeur. Nos artisans combinent leur expertise 
-              traditionnelle avec des designs modernes pour créer des pièces à la fois intemporelles et actuelles.
+              {t("blogPost.content.paragraph1")}
             </p>
 
             <p className="text-foreground mb-6">
-              En soutenant notre coopérative, vous contribuez directement à la préservation de ce 
-              patrimoine culturel immatériel et à l'autonomisation économique des communautés artisanales du Rif.
+              {t("blogPost.content.paragraph2")}
             </p>
 
-            <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">Un impact social et environnemental</h2>
+            <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">{t("blogPost.content.heading2")}</h2>
 
             <p className="text-foreground mb-6">
-              Notre engagement ne se limite pas à la qualité de nos produits. Nous veillons également 
-              à ce que chaque étape de production respecte l'environnement en utilisant des matériaux naturels 
-              et des techniques à faible impact écologique.
+              {t("blogPost.content.paragraph3")}
             </p>
 
             <p className="text-foreground">
-              Les artisans qui collaborent avec nous bénéficient de conditions de travail justes et d'une 
-              rémunération équitable, permettant ainsi de soutenir l'économie locale tout en préservant un 
-              savoir-faire unique au monde.
+              {t("blogPost.content.paragraph4")}
             </p>
           </div>
 
           {/* Share Buttons */}
           <div className="border-t border-border mt-12 pt-6">
-            <p className="text-muted-foreground mb-3">Partager cet article :</p>
+            <p className="text-muted-foreground mb-3">{t("blogPost.shareArticle")}</p>
             <div className="flex space-x-3">
               <Button variant="outline" size="sm" className="border-border hover:bg-muted">
                 Facebook
