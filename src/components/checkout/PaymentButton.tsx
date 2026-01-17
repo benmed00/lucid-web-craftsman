@@ -2,6 +2,7 @@ import { Loader2, Lock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCurrency } from "@/stores/currencyStore";
+import { useTranslation } from "react-i18next";
 
 interface PaymentButtonProps {
   total: number;
@@ -12,6 +13,7 @@ interface PaymentButtonProps {
 
 const PaymentButton = ({ total, isProcessing, onClick, disabled }: PaymentButtonProps) => {
   const { formatPrice } = useCurrency();
+  const { t } = useTranslation('checkout');
   
   return (
     <div className="space-y-4">
@@ -28,12 +30,12 @@ const PaymentButton = ({ total, isProcessing, onClick, disabled }: PaymentButton
         {isProcessing ? (
           <span className="flex items-center gap-3">
             <Loader2 className="h-5 w-5 animate-spin" />
-            Traitement en cours...
+            {t('payment.processing')}
           </span>
         ) : (
           <span className="flex items-center gap-3">
             <Lock className="h-5 w-5" />
-            Payer {formatPrice(total)}
+            {t('payment.pay', { amount: formatPrice(total) })}
           </span>
         )}
       </Button>
@@ -42,11 +44,11 @@ const PaymentButton = ({ total, isProcessing, onClick, disabled }: PaymentButton
       <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
           <ShieldCheck className="h-4 w-4 text-primary" />
-          SSL 256-bit
+          {t('payment.ssl')}
         </span>
         <span className="flex items-center gap-1">
           <Lock className="h-4 w-4 text-primary" />
-          Paiement sécurisé
+          {t('payment.secureLabel')}
         </span>
       </div>
 

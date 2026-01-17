@@ -101,7 +101,7 @@ const Cart = () => {
 
   const handleCheckShipping = () => {
     if (!postalCode.trim()) {
-      toast.error('Veuillez entrer un code postal');
+      toast.error(t('cart.enterPostalCode'));
       return;
     }
     loadZones();
@@ -171,7 +171,7 @@ const Cart = () => {
                 <RemainingSlots 
                   current={cart.items.length} 
                   max={rules.cart.maxProductTypes} 
-                  label="produits différents"
+                  label={t('cart.slots.products')}
                 />
               </div>
             </div>
@@ -202,15 +202,15 @@ const Cart = () => {
             role="status"
           >
             <RotateCcw className="h-4 w-4 text-primary" aria-hidden="true" />
-            <AlertTitle className="text-primary font-medium">Commande en cours</AlertTitle>
+            <AlertTitle className="text-primary font-medium">{t('cart.pendingCheckout.title')}</AlertTitle>
             <AlertDescription className="text-foreground mt-2">
               <p className="mb-3 text-muted-foreground">
-                Vous avez une commande non finalisée. Reprenez là où vous vous êtes arrêté.
+                {t('cart.pendingCheckout.message')}
               </p>
               <Link to="/checkout">
                 <Button size="sm" className="gap-2">
                   <ArrowRight className="h-4 w-4" />
-                  Reprendre ma commande (Étape {savedStep}/3)
+                  {t('cart.pendingCheckout.resume')} ({t('cart.pendingCheckout.step', { current: savedStep, total: 3 })})
                 </Button>
               </Link>
             </AlertDescription>
@@ -225,7 +225,7 @@ const Cart = () => {
           >
             <AlertCircle className="h-4 w-4 text-destructive" aria-hidden="true" />
             <AlertDescription className="text-destructive">
-              Attention : Certains articles de votre panier ont un stock limité. Veuillez ajuster les quantités.
+              {t('cart.stockAlert')}
             </AlertDescription>
           </Alert>
         )}
@@ -237,26 +237,25 @@ const Cart = () => {
             role="status"
           >
             <Heart className="h-4 w-4 text-primary" aria-hidden="true" />
-            <AlertTitle className="text-primary font-medium">Commande VIP détectée</AlertTitle>
+            <AlertTitle className="text-primary font-medium">{t('cart.vip.title')}</AlertTitle>
             <AlertDescription className="text-foreground mt-2">
               <p className="mb-3">
-                Pour les commandes supérieures à {highValueThreshold}€, nous vous offrons une 
-                <strong> expérience personnalisée, rapide et fiable</strong>.
+                {t('cart.vip.description', { threshold: highValueThreshold })}
               </p>
               <p className="mb-4 text-muted-foreground">
-                Contactez-nous directement pour bénéficier d'un accompagnement dédié et de conditions privilégiées.
+                {t('cart.vip.contact')}
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link to="/contact">
                   <Button variant="outline" size="sm" className="gap-2">
                     <Mail className="h-4 w-4" />
-                    Nous contacter
+                    {t('cart.vip.emailButton')}
                   </Button>
                 </Link>
                 <a href={`tel:${vipPhone}`}>
                   <Button variant="default" size="sm" className="gap-2">
                     <Phone className="h-4 w-4" />
-                    Appeler maintenant
+                    {t('cart.vip.callButton')}
                   </Button>
                 </a>
               </div>
@@ -286,7 +285,7 @@ const Cart = () => {
                         to={`/products/${item.product.id}`}
                         className="flex gap-3 md:gap-4 flex-1 hover:opacity-80 transition-opacity"
                       >
-                        <TooltipWrapper content={`Voir les détails de ${item.product.name}`} disabled={isMobile}>
+                        <TooltipWrapper content={t('cart.viewDetails', { name: item.product.name })} disabled={isMobile}>
                           <div className="w-20 h-20 md:w-24 md:h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0 hover:scale-105 transition-transform">
                             <img
                               src={item.product.images[0] || '/placeholder.svg'}
@@ -311,11 +310,11 @@ const Cart = () => {
                                 id={`cart-item-details-${item.id}`}
                                 className="text-xs text-muted-foreground line-clamp-2 mb-1"
                               >
-                                {item.product.description || "Produit artisanal berbère fait main avec des matériaux naturels et traditionnels."}
+                              {item.product.description || t('cart.defaultDescription')}
                               </p>
                               {hasStockIssue && (
                                 <Badge variant="outline" className="text-destructive border-destructive/30 bg-destructive/10 mt-1">
-                                  Stock limité ({productStock?.available} disponibles)
+                                  {t('cart.stockLimited', { available: productStock?.available })}
                                 </Badge>
                               )}
                             </div>
@@ -332,23 +331,23 @@ const Cart = () => {
                             className="text-muted-foreground hover:text-destructive p-2 touch-manipulation min-h-[44px] min-w-[44px] flex-shrink-0"
                             id={`cart-remove-${item.id}`}
                             name={`remove-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
-                            aria-label={`Retirer ${item.product.name} du panier`}
+                            aria-label={t('cart.removeFromCart')}
                           >
                             <X className="h-4 w-4" aria-hidden="true" />
-                            <span className="sr-only">Retirer du panier</span>
+                            <span className="sr-only">{t('cart.removeFromCart')}</span>
                           </Button>
                         }
-                        title="Retirer du panier"
-                        description={`Voulez-vous retirer "${item.product.name}" de votre panier ?`}
-                        confirmLabel="Retirer"
+                        title={t('cart.removeFromCart')}
+                        description={t('cart.removeConfirm', { name: item.product.name })}
+                        confirmLabel={t('cart.removeItem')}
                         onConfirm={() => handleRemoveItem(item.id)}
                       />
                     </div>
                     
                      {/* Quantity and price controls */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-4">
-                      <div className="flex items-center gap-2 md:gap-3" role="group" aria-label={`Contrôles de quantité pour ${item.product.name}`}>
-                        <TooltipWrapper content="Diminuer la quantité">
+                      <div className="flex items-center gap-2 md:gap-3" role="group" aria-label={t('cart.quantityControls', { name: item.product.name })}>
+                        <TooltipWrapper content={t('cart.decreaseQuantity')}>
                           <Button
                             variant="outline"
                             size="sm"
@@ -357,7 +356,7 @@ const Cart = () => {
                             className="touch-manipulation min-h-[44px] min-w-[44px] p-2"
                             id={`cart-qty-minus-${item.id}`}
                             name={`quantity-decrease-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
-                            aria-label={`Diminuer la quantité de ${item.product.name}`}
+                            aria-label={t('cart.decreaseQuantity')}
                           >
                             <Minus className="h-3 w-3 md:h-4 md:w-4" aria-hidden="true" />
                           </Button>
@@ -369,8 +368,8 @@ const Cart = () => {
                           {item.quantity}
                         </span>
                         <TooltipWrapper content={item.quantity >= maxQuantityPerItem 
-                          ? `Maximum ${maxQuantityPerItem} par article. Contactez-nous pour plus.`
-                          : "Augmenter la quantité"
+                          ? t('cart.maxQuantity', { max: maxQuantityPerItem })
+                          : t('cart.increaseQuantity')
                         }>
                           <Button
                             variant="outline"
@@ -380,7 +379,7 @@ const Cart = () => {
                             className="touch-manipulation min-h-[44px] min-w-[44px] p-2"
                             id={`cart-qty-plus-${item.id}`}
                             name={`quantity-increase-${item.product.name.toLowerCase().replace(/\s+/g, '-')}`}
-                            aria-label={`Augmenter la quantité de ${item.product.name}`}
+                            aria-label={t('cart.increaseQuantity')}
                           >
                             <Plus className="h-3 w-3 md:h-4 md:w-4" aria-hidden="true" />
                           </Button>
@@ -396,7 +395,7 @@ const Cart = () => {
                         >
                           {formatPrice(item.product.price * item.quantity)}
                         </p>
-                        <p className="text-xs md:text-sm text-muted-foreground">{formatPrice(item.product.price)} l'unité</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{formatPrice(item.product.price)} {t('cart.perUnit')}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -409,22 +408,22 @@ const Cart = () => {
           <div className="lg:col-span-1">
             <Card className="lg:sticky lg:top-4">
               <CardContent className="p-4 md:p-6">
-                <h2 className="text-xl font-medium text-foreground mb-4">Résumé de Commande</h2>
+                <h2 className="text-xl font-medium text-foreground mb-4">{t('cart.orderSummary')}</h2>
                 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
-                    <span>Sous-total</span>
+                    <span>{t('cart.subtotal')}</span>
                     <span>{formatPrice(subtotal)}</span>
                   </div>
                   
                   {calculation && (
                     <>
                       <div className="flex justify-between">
-                        <span>Livraison</span>
-                        <span>{calculation.is_free ? 'Gratuit' : formatPrice(calculation.cost)}</span>
+                        <span>{t('cart.shipping')}</span>
+                        <span>{calculation.is_free ? t('cart.shippingFreeLabel') : formatPrice(calculation.cost)}</span>
                       </div>
                       <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>Délai de livraison</span>
+                        <span>{t('cart.deliveryTime')}</span>
                         <span>{calculation.delivery_estimate}</span>
                       </div>
                     </>
@@ -432,7 +431,7 @@ const Cart = () => {
                   
                   <div className="border-t pt-3">
                     <div className="flex justify-between font-medium text-lg">
-                      <span>Total</span>
+                      <span>{t('cart.total')}</span>
                       <span>{formatPrice(total)}</span>
                     </div>
                   </div>
@@ -441,21 +440,21 @@ const Cart = () => {
                 <fieldset className="mb-6">
                   <legend className="block text-sm font-medium text-foreground mb-2">
                     <Truck className="inline h-4 w-4 mr-1" aria-hidden="true" />
-                    Calculer les frais de livraison
+                    {t('cart.calculateShipping')}
                   </legend>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
-                      placeholder="Code postal"
+                      placeholder={t('cart.postalCodePlaceholder')}
                       className="flex-1 px-3 py-2 border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                       id="shipping-postal-code"
                       name="postal-code-input"
-                      aria-label="Entrez votre code postal pour calculer les frais de livraison"
+                      aria-label={t('cart.postalCodeAria')}
                       aria-describedby="shipping-description"
                     />
-                    <TooltipWrapper content="Calculer les frais de livraison pour votre code postal">
+                    <TooltipWrapper content={t('cart.calculateShipping')}>
                       <Button
                         variant="outline"
                         size="sm"
@@ -463,14 +462,14 @@ const Cart = () => {
                         disabled={shippingLoading}
                         id="shipping-calculator-button"
                         name="calculate-shipping-costs"
-                        aria-label="Calculer les frais de livraison"
+                        aria-label={t('cart.calculateShipping')}
                       >
-                        {shippingLoading ? 'Calcul...' : 'Calculer'}
+                        {shippingLoading ? t('cart.calculating') : t('cart.calculateButton')}
                       </Button>
                     </TooltipWrapper>
                   </div>
                   <p id="shipping-description" className="sr-only">
-                    Entrez votre code postal pour connaître les frais et délais de livraison
+                    {t('cart.postalCodeSrOnly')}
                   </p>
                 </fieldset>
 
@@ -494,8 +493,8 @@ const Cart = () => {
                 {/* Traditional checkout button */}
                 <TooltipWrapper 
                   content={stockIssues.length > 0 
-                    ? "Veuillez corriger les problèmes de stock avant de continuer" 
-                    : `Procéder au paiement pour ${formatPrice(total)}`
+                    ? t('cart.stockAlert') 
+                    : t('cart.proceedToCheckout')
                   }
                 >
                   <Link to="/checkout">
@@ -529,65 +528,65 @@ const Cart = () => {
                   <div className="bg-secondary rounded-lg p-4">
                     <h3 className="font-medium text-secondary-foreground mb-3 flex items-center gap-2">
                       <Heart className="h-4 w-4" />
-                      Pourquoi choisir Rif Raw Straw ?
+                      {t('cart.benefits.title')}
                     </h3>
                     <div className="space-y-2 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <span className="text-primary">✓</span>
-                        <span>Artisanat authentique berbère</span>
+                        <span>{t('cart.benefits.item1')}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-primary">✓</span>
-                        <span>Livraison gratuite dès 50€</span>
+                        <span>{t('cart.benefits.item2')}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-primary">✓</span>
-                        <span>Retours sous 30 jours</span>
+                        <span>{t('cart.benefits.item3')}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-primary">✓</span>
-                        <span>Support client réactif</span>
+                        <span>{t('cart.benefits.item4')}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Estimated delivery */}
-                  <div className="bg-stone-50 rounded-lg p-4">
-                    <h4 className="font-medium text-stone-800 mb-2 flex items-center gap-2">
+                  <div className="bg-stone-50 dark:bg-muted rounded-lg p-4">
+                    <h4 className="font-medium text-stone-800 dark:text-foreground mb-2 flex items-center gap-2">
                       <Clock className="h-4 w-4" />
-                      Livraison estimée
+                      {t('cart.estimatedDelivery.title')}
                     </h4>
-                    <p className="text-sm text-stone-600">
-                      Commandez avant 14h pour une expédition le jour même
+                    <p className="text-sm text-stone-600 dark:text-muted-foreground">
+                      {t('cart.estimatedDelivery.orderBefore')}
                     </p>
-                    <p className="text-xs text-stone-500 mt-1">
-                      Délai: {calculation?.delivery_estimate || "2-3 jours ouvrés"}
+                    <p className="text-xs text-stone-500 dark:text-muted-foreground mt-1">
+                      {t('cart.estimatedDelivery.delay', { estimate: calculation?.delivery_estimate || t('cart.estimatedDelivery.defaultDelay') })}
                     </p>
                   </div>
 
                   {/* Share cart */}
                   <div className="text-center">
-                    <TooltipWrapper content="Partager votre panier avec vos proches">
+                    <TooltipWrapper content={t('cart.shareCart')}>
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => {
                           if (navigator.share) {
                             navigator.share({
-                              title: 'Mon panier Rif Raw Straw',
-                              text: `Découvrez ma sélection d'artisanat berbère (${itemCount} articles)`
+                              title: t('cart.shareCartTitle'),
+                              text: t('cart.shareCartText', { count: itemCount })
                             });
                           } else {
                             navigator.clipboard.writeText(window.location.href);
-                            toast.success('Lien copié !');
+                            toast.success(t('cart.linkCopied'));
                           }
                         }}
-                        className="text-stone-600 hover:text-stone-800"
+                        className="text-stone-600 dark:text-muted-foreground hover:text-stone-800 dark:hover:text-foreground"
                         id="cart-share-button"
                         name="share-cart-selection"
                       >
                         <Share2 className="mr-2 h-4 w-4" />
-                        Partager mon panier
+                        {t('cart.shareCart')}
                       </Button>
                     </TooltipWrapper>
                   </div>

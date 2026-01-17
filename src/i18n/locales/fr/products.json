@@ -75,7 +75,26 @@
     "title": "Vous aimerez aussi",
     "basedOnViewing": "Basé sur ce que vous avez consulté",
     "addError": "Impossible d'ajouter le produit au panier",
-    "addedToCart": "{{name}} ajouté au panier"
+    "addedToCart": "{{name}} ajouté au panier",
+    "addedToCartQuantity": "{{name}} ajouté au panier ({{quantity}}x)"
+  },
+  "cache": {
+    "cleared": "Cache de recherche vidé"
+  },
+  "refresh": {
+    "success": "Produits mis à jour",
+    "error": "Erreur lors de la mise à jour"
+  },
+  "fetch": {
+    "error": "Impossible de charger les produits. Veuillez réessayer plus tard."
+  },
+  "promo": {
+    "applied": "Code promo {{code}} appliqué !"
+  },
+  "cta": {
+    "title": "Vous ne trouvez pas ce que vous cherchez ?",
+    "description": "Contactez-nous pour une création personnalisée selon vos goûts.",
+    "button": "Nous contacter"
   },
   "recentlyViewed": {
     "addError": "Impossible d'ajouter le produit au panier"
