@@ -139,7 +139,7 @@ const Wishlist = () => {
               {t('pages:wishlist.title')}
             </h1>
             <p className="text-muted-foreground mb-8">
-              {t('auth:login.noAccount', { defaultValue: 'Vous devez être connecté pour voir vos favoris.' })}
+              {t('pages:wishlist.loginRequired')}
             </p>
             <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
               <Link to="/auth">{t('common:nav.login')}</Link>

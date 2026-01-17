@@ -105,7 +105,16 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "toggleTheme": "Toggle theme",
-    "selectLanguage": "Select language"
+    "selectLanguage": "Select language",
+    "selectCurrency": "Select currency",
+    "mainNav": "Main navigation",
+    "mobileNav": "Mobile main menu",
+    "enableLightMode": "Enable light mode",
+    "enableDarkMode": "Enable dark mode"
+  },
+  "wishlist": {
+    "add": "Add to wishlist",
+    "remove": "Remove from wishlist"
   },
   "newsletter": {
     "title": "Join Our Newsletter",

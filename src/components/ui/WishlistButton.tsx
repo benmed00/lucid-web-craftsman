@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { useWishlist } from '@/hooks/useWishlist';
 import { Button } from '@/components/ui/button';
 import { TooltipWrapper } from '@/components/ui/TooltipWrapper';
+import { useTranslation } from 'react-i18next';
 
 interface WishlistButtonProps {
   productId: number;
@@ -20,6 +21,7 @@ export const WishlistButton = React.forwardRef<HTMLButtonElement, WishlistButton
   variant = 'ghost',
   showText = false 
 }, ref) => {
+  const { t } = useTranslation('common');
   const { isInWishlist, toggleWishlist, loading } = useWishlist();
   const isFavorited = isInWishlist(productId);
 
@@ -41,10 +43,12 @@ export const WishlistButton = React.forwardRef<HTMLButtonElement, WishlistButton
     lg: 24
   };
 
+  const tooltipText = isFavorited ? t('wishlist.remove') : t('wishlist.add');
+
   return (
     <TooltipWrapper 
-      content={isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-      disabled={showText} // Don't show tooltip if text is already visible
+      content={tooltipText}
+      disabled={showText}
     >
       <Button
         ref={ref}
@@ -52,7 +56,7 @@ export const WishlistButton = React.forwardRef<HTMLButtonElement, WishlistButton
         size={showText ? 'default' : 'icon'}
         onClick={handleClick}
         disabled={loading}
-        aria-label={isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+        aria-label={tooltipText}
         className={cn(
           'transition-all duration-200',
           !showText && sizeClasses[size],
@@ -70,7 +74,7 @@ export const WishlistButton = React.forwardRef<HTMLButtonElement, WishlistButton
         />
         {showText && (
           <span className="ml-2">
-            {isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+            {tooltipText}
           </span>
         )}
       </Button>

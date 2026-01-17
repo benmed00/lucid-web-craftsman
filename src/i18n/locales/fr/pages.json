@@ -465,7 +465,8 @@
     "addToCart": "Ajouter au panier",
     "remove": "Retirer des favoris",
     "remainingSlots": "{{count}} place restante",
-    "remainingSlots_other": "{{count}} places restantes"
+    "remainingSlots_other": "{{count}} places restantes",
+    "loginRequired": "Vous devez être connecté pour voir vos favoris."
   },
   "profile": {
     "seo": {
@@ -570,6 +571,49 @@
     "reorder": "Commander à nouveau",
     "messages": {
       "loadError": "Erreur lors du chargement des commandes"
+    }
+  },
+  "paymentSuccess": {
+    "verifying": {
+      "title": "Vérification du Paiement",
+      "description": "Nous vérifions votre paiement et mettons à jour votre commande..."
+    },
+    "success": {
+      "title": "Paiement Confirmé",
+      "thanks": "Merci pour votre commande !",
+      "verified": "Paiement vérifié avec succès",
+      "confirmed": "Paiement confirmé et stock mis à jour !",
+      "transactionId": "Numéro de transaction",
+      "orderId": "Numéro de commande"
+    },
+    "error": {
+      "title": "Problème de Vérification",
+      "description": "Une erreur s'est produite lors de la vérification de votre paiement."
+    },
+    "errors": {
+      "missingSession": "ID de session manquant",
+      "verificationError": "Erreur lors de la vérification du paiement",
+      "verificationFailed": "Échec de la vérification du paiement",
+      "unexpectedError": "Erreur inattendue"
+    },
+    "nextSteps": {
+      "title": "Que se passe-t-il maintenant ?",
+      "step1": {
+        "title": "Confirmation par email",
+        "description": "Vous allez recevoir un email de confirmation avec les détails de votre commande."
+      },
+      "step2": {
+        "title": "Préparation",
+        "description": "Nos artisans vont préparer votre commande avec le plus grand soin."
+      },
+      "step3": {
+        "title": "Expédition",
+        "description": "Votre commande sera expédiée sous 2-3 jours ouvrés."
+      }
+    },
+    "help": {
+      "title": "Questions ou Problèmes ?",
+      "description": "Notre équipe est là pour vous aider. N'hésitez pas à nous contacter."
     }
   }
 }

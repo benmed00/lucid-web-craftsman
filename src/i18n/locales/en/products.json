@@ -75,7 +75,26 @@
     "title": "You may also like",
     "basedOnViewing": "Based on what you've viewed",
     "addError": "Unable to add product to cart",
-    "addedToCart": "{{name}} added to cart"
+    "addedToCart": "{{name}} added to cart",
+    "addedToCartQuantity": "{{name}} added to cart ({{quantity}}x)"
+  },
+  "cache": {
+    "cleared": "Search cache cleared"
+  },
+  "refresh": {
+    "success": "Products updated",
+    "error": "Error updating products"
+  },
+  "fetch": {
+    "error": "Unable to load products. Please try again later."
+  },
+  "promo": {
+    "applied": "Promo code {{code}} applied!"
+  },
+  "cta": {
+    "title": "Can't find what you're looking for?",
+    "description": "Contact us for a custom creation tailored to your taste.",
+    "button": "Contact us"
   },
   "recentlyViewed": {
     "addError": "Unable to add product to cart"

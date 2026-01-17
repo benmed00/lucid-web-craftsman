@@ -109,7 +109,7 @@ const Navigation = () => {
             </div>
 
             {/* Navigation Links - Desktop & Tablet */}
-            <nav className="hidden md:flex items-center justify-center flex-1 max-w-md lg:max-w-lg xl:max-w-xl mx-2" role="navigation" aria-label="Navigation principale">
+            <nav className="hidden md:flex items-center justify-center flex-1 max-w-md lg:max-w-lg xl:max-w-xl mx-2" role="navigation" aria-label={t('common:accessibility.mainNav')}>
               <div className="flex items-center justify-center space-x-2 lg:space-x-3">
                 <Link
                   to="/"
@@ -340,7 +340,7 @@ const Navigation = () => {
         }`}
         {...(!isMenuOpen ? { 'aria-hidden': 'true' as const, tabIndex: -1 } : {})}
         role="menu"
-        aria-label="Menu principal mobile"
+        aria-label={t('common:accessibility.mobileNav')}
       >
         {/* Header with close button */}
         <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
@@ -502,7 +502,7 @@ const Navigation = () => {
                       <div className="p-2 bg-primary rounded-full">
                         <User className="h-4 w-4 text-primary-foreground" />
                       </div>
-                      <span className="text-sm font-medium text-secondary-foreground">{t('auth:messages.loggedIn', { defaultValue: 'Connecté' })}</span>
+                      <span className="text-sm font-medium text-secondary-foreground">{t('auth:messages.loggedIn')}</span>
                     </div>
 
                     {/* User Menu Items */}

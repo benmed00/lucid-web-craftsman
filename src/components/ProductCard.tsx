@@ -133,14 +133,14 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
             <>
               {singleStockInfo.isOutOfStock && (
                 <Badge className="absolute top-12 right-2 md:top-14 md:right-3 bg-status-error text-background border-none shadow-lg text-xs px-2 py-1">
-                  {singleStockInfo.message}
+                  {t('details.outOfStock')}
                 </Badge>
               )}
               {singleStockInfo.isLow && !singleStockInfo.isOutOfStock && (
                 <Badge className="absolute top-2 left-2 md:top-3 md:left-3 bg-status-warning text-status-warning-foreground border-none shadow-lg flex items-center gap-1 text-xs px-2 py-1 rounded-full font-semibold">
                   <AlertTriangle className="h-3 w-3" />
-                  <span className="hidden sm:inline">{singleStockInfo.message}</span>
-                  <span className="sm:hidden">{t('details.lowStock', { count: singleStockInfo.maxQuantity || 3 })}</span>
+                  <span className="hidden sm:inline">{t('details.lowStock', { count: singleStockInfo.available || singleStockInfo.maxQuantity || 3 })}</span>
+                  <span className="sm:hidden">{t('details.lowStock', { count: singleStockInfo.available || singleStockInfo.maxQuantity || 3 })}</span>
                 </Badge>
               )}
             </>
