@@ -61,35 +61,37 @@ export const resources = {
   },
 } as const;
 
-// Initialize i18next
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    resources,
-    fallbackLng: 'fr',
-    defaultNS,
-    ns: namespaces,
-    
-    // Language detection options
-    detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
-      lookupLocalStorage: 'i18nextLng',
-      caches: ['localStorage'],
-    },
-    
-    interpolation: {
-      escapeValue: false, // React already escapes
-    },
-    
-    // React specific options
-    react: {
-      useSuspense: false, // Disable suspense for now to avoid hydration issues
-    },
-    
-    // Debug in development
-    debug: import.meta.env.DEV,
-  });
+// Initialize i18next only if not already initialized
+if (!i18n.isInitialized) {
+  i18n
+    .use(LanguageDetector)
+    .use(initReactI18next)
+    .init({
+      resources,
+      fallbackLng: 'fr',
+      defaultNS,
+      ns: namespaces,
+      
+      // Language detection options
+      detection: {
+        order: ['localStorage', 'navigator', 'htmlTag'],
+        lookupLocalStorage: 'i18nextLng',
+        caches: ['localStorage'],
+      },
+      
+      interpolation: {
+        escapeValue: false, // React already escapes
+      },
+      
+      // React specific options
+      react: {
+        useSuspense: false, // Disable suspense for now to avoid hydration issues
+      },
+      
+      // Debug in development
+      debug: false, // Disable debug to reduce console noise
+    });
+}
 
 // Update HTML lang and dir attributes when language changes
 i18n.on('languageChanged', (lng: string) => {
