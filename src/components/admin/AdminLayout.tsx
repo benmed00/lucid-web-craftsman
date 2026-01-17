@@ -22,7 +22,8 @@ import {
   Mail,
   Star,
   Activity,
-  FileText
+  FileText,
+  Languages
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -127,6 +128,11 @@ const AdminLayout = () => {
       icon: Star,
       label: "Avis clients",
       path: "/admin/reviews",
+    },
+    {
+      icon: Languages,
+      label: "Traductions",
+      path: "/admin/translations",
     },
     {
       icon: AlertTriangle,
