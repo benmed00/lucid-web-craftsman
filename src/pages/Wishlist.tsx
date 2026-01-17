@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Heart, Trash2 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,6 +25,7 @@ interface WishlistProduct extends Product {
 }
 
 const Wishlist = () => {
+  const { t } = useTranslation(['common', 'pages', 'products']);
   const { wishlistItems, loading, removeFromWishlist } = useWishlist();
   const { user } = useAuth();
   const { addItem } = useCart();
@@ -108,39 +110,39 @@ const Wishlist = () => {
       await removeFromWishlist(productId);
     } catch (error) {
       console.error('Failed to remove from wishlist:', error);
-      toast.error('Erreur lors de la suppression des favoris');
+      toast.error(t('common:messages.error'));
     }
-  }, [removeFromWishlist]);
+  }, [removeFromWishlist, t]);
 
   const handleAddToCart = useCallback((product: WishlistProduct) => {
     try {
       addItem(product, 1);
-      toast.success("Produit ajouté au panier");
+      toast.success(t('common:messages.addedToCart'));
     } catch (error) {
       console.error('Failed to add to cart:', error);
-      toast.error('Erreur lors de l\'ajout au panier');
+      toast.error(t('common:messages.error'));
     }
-  }, [addItem]);
+  }, [addItem, t]);
 
   if (!user) {
     return (
       <>
         <SEOHelmet 
-          title="Mes Favoris - Connectez-vous"
-          description="Connectez-vous pour accéder à votre liste de favoris et retrouver vos créations artisanales préférées."
+          title={t('pages:wishlist.title')}
+          description={t('pages:wishlist.emptyMessage')}
         />
         <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-2xl mx-auto text-center">
             <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
             <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-              Mes Favoris
+              {t('pages:wishlist.title')}
             </h1>
             <p className="text-muted-foreground mb-8">
-              Vous devez être connecté pour voir vos favoris.
+              {t('auth:login.noAccount', { defaultValue: 'Vous devez être connecté pour voir vos favoris.' })}
             </p>
             <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link to="/auth">Se connecter</Link>
+              <Link to="/auth">{t('common:nav.login')}</Link>
             </Button>
           </div>
         </div>
@@ -153,8 +155,8 @@ const Wishlist = () => {
   return (
     <>
       <SEOHelmet 
-        title={`Mes Favoris (${wishlistProducts.length}) - Artisanat Berbère`}
-        description={`Votre liste de favoris contient ${wishlistProducts.length} création${wishlistProducts.length > 1 ? 's' : ''} artisanale${wishlistProducts.length > 1 ? 's' : ''} du Rif marocain. Découvrez et commandez vos pièces préférées.`}
+        title={`${t('pages:wishlist.title')} (${wishlistProducts.length})`}
+        description={t('pages:wishlist.itemCount', { count: wishlistProducts.length })}
       />
       <div className="min-h-screen bg-background">
         
@@ -167,16 +169,16 @@ const Wishlist = () => {
               <Heart className="w-8 h-8 text-destructive mr-3" />
               <div>
                 <h1 className="font-serif text-3xl md:text-4xl text-foreground">
-                  Mes Favoris
+                  {t('pages:wishlist.title')}
                 </h1>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
                   <p className="text-muted-foreground">
-                    {wishlistItems.length} produit{wishlistItems.length > 1 ? 's' : ''} sauvegardé{wishlistItems.length > 1 ? 's' : ''}
+                    {t('pages:wishlist.itemCount', { count: wishlistItems.length })}
                   </p>
                   <RemainingSlots 
                     current={wishlistItems.length} 
                     max={rules.wishlist.maxItems} 
-                    label="favoris"
+                    label={t('common:nav.wishlist').toLowerCase()}
                   />
                 </div>
               </div>
@@ -206,13 +208,13 @@ const Wishlist = () => {
                 <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
               </div>
               <h2 className="font-serif text-2xl text-foreground mb-4">
-                Votre liste de favoris est vide
+                {t('pages:wishlist.empty')}
               </h2>
               <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                Découvrez nos créations artisanales uniques et ajoutez vos pièces préférées à vos favoris pour les retrouver facilement.
+                {t('pages:wishlist.emptyMessage')}
               </p>
               <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200">
-                <Link to="/products">✨ Découvrir nos produits</Link>
+                <Link to="/products">✨ {t('common:buttons.seeAll')}</Link>
               </Button>
             </div>
           ) : (
@@ -266,7 +268,9 @@ const Wishlist = () => {
                               <span className="bg-muted px-2 py-1 rounded text-xs">
                                 {product.category}
                               </span>
-                              <span className="text-xs sm:text-sm">Par {product.artisan}</span>
+                              <span className="text-xs sm:text-sm">
+                                {t('products:details.madeBy', { name: product.artisan })}
+                              </span>
                             </div>
 
                             <p className="text-muted-foreground text-sm mb-4 line-clamp-2 overflow-hidden hidden sm:block">
@@ -285,7 +289,7 @@ const Wishlist = () => {
                               onClick={() => handleAddToCart(product)}
                               className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90 text-primary-foreground flex-1 sm:flex-none whitespace-nowrap"
                             >
-                              Ajouter au panier
+                              {t('common:buttons.addToCart')}
                             </Button>
                             
                             <ConfirmDialog
@@ -294,14 +298,14 @@ const Wishlist = () => {
                                   variant="ghost"
                                   size="sm"
                                   className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 flex-shrink-0"
-                                  aria-label="Retirer des favoris"
+                                  aria-label={t('pages:wishlist.remove')}
                                 >
                                   <Trash2 size={16} />
                                 </Button>
                               }
-                              title="Retirer des favoris"
-                              description={`Voulez-vous retirer "${product.name}" de vos favoris ?`}
-                              confirmLabel="Retirer"
+                              title={t('pages:wishlist.remove')}
+                              description={`${t('common:messages.confirmDelete')} "${product.name}"?`}
+                              confirmLabel={t('common:buttons.remove')}
                               onConfirm={() => handleRemoveFromWishlist(product.id)}
                             />
                           </div>
@@ -317,11 +321,11 @@ const Wishlist = () => {
               
               <div className="text-center">
                 <p className="text-muted-foreground mb-4">
-                  Continuez votre shopping pour découvrir d'autres créations
+                  {t('common:buttons.continueShopping')}
                 </p>
                 <Button asChild variant="outline">
                   <Link to="/products">
-                    Voir tous nos produits
+                    {t('common:buttons.seeAll')}
                   </Link>
                 </Button>
               </div>

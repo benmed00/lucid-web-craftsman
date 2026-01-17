@@ -10,9 +10,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
 import ThemeToggle from "@/components/ThemeToggle";
+import LanguageSelector from "@/components/LanguageSelector";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 const Navigation = () => {
+  const { t } = useTranslation(['common', 'pages']);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -54,11 +57,11 @@ const Navigation = () => {
   const handleNavClick = useCallback((targetPath: string, e?: React.MouseEvent) => {
     if (currentPath === targetPath) {
       e?.preventDefault();
-      toast.info("Vous êtes déjà sur cette page", { duration: 2000 });
+      toast.info(t('common:messages.alreadyOnPage'), { duration: 2000 });
       return false;
     }
     return true;
-  }, [currentPath]);
+  }, [currentPath, t]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +80,7 @@ const Navigation = () => {
         href="#main-content" 
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-primary-foreground px-4 py-2 rounded-md z-50 focus:ring-2 focus:ring-primary/50"
       >
-        Aller au contenu principal
+        {t('common:accessibility.skipToContent')}
       </a>
       
       <header className="sticky top-0 z-header w-full bg-background border-b border-border shadow-sm">
@@ -88,7 +91,7 @@ const Navigation = () => {
               <Link 
                 to="/" 
                 className="group flex items-center space-x-2 md:space-x-3 min-w-0"
-                aria-label="Rif Raw Straw Artisanat Berbère"
+                aria-label={t('common:brand.name')}
                 onClick={() => setIsMenuOpen(false)}
               >
                 <div className="p-2 rounded-full bg-primary group-hover:bg-primary/90 transition-all duration-300 shadow-md group-hover:shadow-lg flex-shrink-0">
@@ -96,10 +99,10 @@ const Navigation = () => {
                 </div>
                 <div className="flex flex-col min-w-0 hidden sm:block">
                   <span className="font-serif text-sm md:text-base lg:text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300 whitespace-nowrap">
-                    Rif Raw Straw
+                    {t('common:brand.name')}
                   </span>
                   <span className="text-xs md:text-xs text-muted-foreground hidden md:block group-hover:text-primary/80 transition-colors duration-300 whitespace-nowrap">
-                    Artisanat Berbère
+                    {t('common:brand.tagline')}
                   </span>
                 </div>
               </Link>
@@ -117,7 +120,7 @@ const Navigation = () => {
                   )}
                   aria-current={currentPath === "/" ? "page" : undefined}
                 >
-                  Accueil
+                  {t('common:nav.home')}
                   {currentPath === "/" && (
                     <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
                   )}
@@ -132,7 +135,7 @@ const Navigation = () => {
                   )}
                   aria-current={currentPath === "/products" ? "page" : undefined}
                 >
-                  Boutique
+                  {t('common:nav.shop')}
                   {currentPath === "/products" && (
                     <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
                   )}
@@ -147,7 +150,7 @@ const Navigation = () => {
                   )}
                   aria-current={currentPath === "/blog" ? "page" : undefined}
                 >
-                  Blog
+                  {t('common:nav.blog')}
                   {currentPath === "/blog" && (
                     <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
                   )}
@@ -162,7 +165,7 @@ const Navigation = () => {
                   )}
                   aria-current={currentPath === "/contact" ? "page" : undefined}
                 >
-                  Contact
+                  {t('common:nav.contact')}
                   {currentPath === "/contact" && (
                     <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
                   )}
@@ -178,7 +181,7 @@ const Navigation = () => {
                 size="sm"
                 onClick={() => setShowSearch(!showSearch)}
                 className="hidden md:flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hover:bg-primary/10 hover:text-primary rounded-lg transition-all duration-300 touch-manipulation text-foreground"
-                aria-label="Rechercher des produits"
+                aria-label={t('common:nav.search')}
               >
                 <Search size={18} className="transition-colors" />
               </Button>
@@ -191,13 +194,13 @@ const Navigation = () => {
                 onClick={() => {
                   if (!user) return;
                   if (currentPath === "/wishlist") {
-                    toast.info("Vous êtes déjà sur cette page", { duration: 2000 });
+                    toast.info(t('common:messages.alreadyOnPage'), { duration: 2000 });
                   } else {
                     navigate("/wishlist");
                   }
                 }}
                 disabled={!user}
-                aria-label={`Mes favoris${user && wishlistCount > 0 ? ` (${wishlistCount} produits)` : ''}`}
+                aria-label={t('common:nav.wishlist')}
               >
                 <span className={clsx(
                   "flex items-center justify-center w-full h-full text-foreground hover:text-primary transition-colors duration-300",
@@ -211,6 +214,11 @@ const Navigation = () => {
                   )}
                 </span>
               </Button>
+
+              {/* Language Selector - Desktop only */}
+              <div className="hidden xl:block">
+                <LanguageSelector variant="minimal" />
+              </div>
 
               {/* Currency Selector - XL Desktop only */}
               <div className="hidden xl:block">
@@ -259,13 +267,14 @@ const Navigation = () => {
                       size="sm" 
                       onClick={handleSignOut} 
                       className="group relative flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hidden xl:inline-flex hover:bg-primary/10 text-foreground hover:text-primary rounded-lg transition-all duration-300"
+                      aria-label={t('common:nav.logout')}
                     >
                       <LogOut className="h-4 w-4 transition-colors" />
                     </Button>
                   </>
                 ) : (
                   <Button variant="ghost" size="sm" asChild className="text-xs lg:text-sm px-2 lg:px-3 py-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all duration-300 touch-manipulation font-medium whitespace-nowrap">
-                    <Link to="/auth">Connexion</Link>
+                    <Link to="/auth">{t('common:nav.login')}</Link>
                   </Button>
                 )}
               </div>
@@ -276,7 +285,7 @@ const Navigation = () => {
                   isMenuOpen ? 'relative z-mobile-toggle' : ''
                 }`}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+                aria-label={isMenuOpen ? t('common:accessibility.closeMenu') : t('common:accessibility.openMenu')}
                 aria-expanded={isMenuOpen}
                 aria-haspopup="true"
                 aria-controls="mobile-menu"
@@ -294,7 +303,7 @@ const Navigation = () => {
               <form onSubmit={handleSearch} className="flex gap-3 md:gap-4 lg:gap-2">
                 <Input
                   type="text"
-                  placeholder="Rechercher des produits..."
+                  placeholder={t('common:nav.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="flex-1 h-11 md:h-12 lg:h-11 text-base md:text-lg lg:text-base rounded-lg border-border focus:border-primary focus:ring-primary touch-manipulation"
@@ -306,7 +315,7 @@ const Navigation = () => {
                   className="bg-primary hover:bg-primary/90 px-4 md:px-6 lg:px-4 h-11 md:h-12 lg:h-11 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 touch-manipulation"
                 >
                   <Search size={18} className="md:w-5 md:h-5 lg:w-[18px] lg:h-[18px]" />
-                  <span className="ml-2 text-base md:text-lg lg:text-base font-medium">Rechercher</span>
+                  <span className="ml-2 text-base md:text-lg lg:text-base font-medium">{t('common:nav.search')}</span>
                 </Button>
               </form>
             </div>
@@ -341,16 +350,16 @@ const Navigation = () => {
             </div>
             <div>
               <span className="font-serif text-lg font-semibold text-foreground">
-                Rif Raw Straw
+                {t('common:brand.name')}
               </span>
-              <p className="text-sm text-muted-foreground">Artisanat Berbère</p>
+              <p className="text-sm text-muted-foreground">{t('common:brand.tagline')}</p>
             </div>
           </div>
           {/* Close button */}
           <button
             onClick={() => setIsMenuOpen(false)}
             className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors touch-manipulation"
-            aria-label="Fermer le menu"
+            aria-label={t('common:accessibility.closeMenu')}
             tabIndex={isMenuOpen ? 0 : -1}
           >
             <X className="h-6 w-6" />
@@ -364,7 +373,7 @@ const Navigation = () => {
             <form onSubmit={handleSearch} className="flex gap-2">
               <Input
                 type="text"
-                placeholder="Rechercher..."
+                placeholder={t('common:nav.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 rounded-lg"
@@ -400,7 +409,7 @@ const Navigation = () => {
               <div className={`p-2 rounded-lg ${currentPath === "/" ? "bg-primary-foreground/20" : "bg-muted"}`}>
                 <Leaf className={`h-5 w-5 ${currentPath === "/" ? "text-primary-foreground" : "text-primary"}`} />
               </div>
-              <span className="font-medium text-lg">Accueil</span>
+              <span className="font-medium text-lg">{t('common:nav.home')}</span>
             </Link>
 
             <Link
@@ -419,7 +428,7 @@ const Navigation = () => {
               <div className={`p-2 rounded-lg ${currentPath === "/products" ? "bg-primary-foreground/20" : "bg-muted"}`}>
                 <ShoppingBag className={`h-5 w-5 ${currentPath === "/products" ? "text-primary-foreground" : "text-primary"}`} />
               </div>
-              <span className="font-medium text-lg">Boutique</span>
+              <span className="font-medium text-lg">{t('common:nav.shop')}</span>
             </Link>
 
             <Link
@@ -438,7 +447,7 @@ const Navigation = () => {
               <div className={`p-2 rounded-lg ${currentPath === "/blog" ? "bg-primary-foreground/20" : "bg-muted"}`}>
                 <Package className={`h-5 w-5 ${currentPath === "/blog" ? "text-primary-foreground" : "text-primary"}`} />
               </div>
-              <span className="font-medium text-lg">Blog</span>
+              <span className="font-medium text-lg">{t('common:nav.blog')}</span>
             </Link>
 
             <Link
@@ -457,7 +466,7 @@ const Navigation = () => {
               <div className={`p-2 rounded-lg ${currentPath === "/contact" ? "bg-primary-foreground/20" : "bg-muted"}`}>
                 <User className={`h-5 w-5 ${currentPath === "/contact" ? "text-primary-foreground" : "text-primary"}`} />
               </div>
-              <span className="font-medium text-lg">Contact</span>
+              <span className="font-medium text-lg">{t('common:nav.contact')}</span>
             </Link>
           </div>
 
@@ -479,7 +488,7 @@ const Navigation = () => {
                 tabIndex={isMenuOpen ? 0 : -1}
               >
                 <ShoppingBag className="h-5 w-5" />
-                <span>Panier {itemCount > 0 && `(${itemCount})`}</span>
+                <span>{t('common:nav.cart')} {itemCount > 0 && `(${itemCount})`}</span>
               </Button>
             </Link>
 
@@ -493,7 +502,7 @@ const Navigation = () => {
                       <div className="p-2 bg-primary rounded-full">
                         <User className="h-4 w-4 text-primary-foreground" />
                       </div>
-                      <span className="text-sm font-medium text-secondary-foreground">Connecté</span>
+                      <span className="text-sm font-medium text-secondary-foreground">{t('auth:messages.loggedIn', { defaultValue: 'Connecté' })}</span>
                     </div>
 
                     {/* User Menu Items */}
@@ -505,7 +514,7 @@ const Navigation = () => {
                         tabIndex={isMenuOpen ? 0 : -1}
                       >
                         <User className="h-5 w-5" />
-                        <span>Mon Profil</span>
+                        <span>{t('common:nav.profile')}</span>
                       </Link>
 
                       <Link
@@ -515,7 +524,7 @@ const Navigation = () => {
                         tabIndex={isMenuOpen ? 0 : -1}
                       >
                         <Package className="h-5 w-5" />
-                        <span>Mes Commandes</span>
+                        <span>{t('common:nav.orders')}</span>
                       </Link>
 
                       <button
@@ -523,7 +532,7 @@ const Navigation = () => {
                         onClick={() => {
                           setIsMenuOpen(false);
                           if (currentPath === "/wishlist") {
-                            toast.info("Vous êtes déjà sur cette page", { duration: 2000 });
+                            toast.info(t('common:messages.alreadyOnPage'), { duration: 2000 });
                           } else {
                             navigate("/wishlist");
                           }
@@ -532,7 +541,7 @@ const Navigation = () => {
                       >
                         <div className="flex items-center gap-3">
                           <Heart className="h-5 w-5" />
-                          <span>Mes Favoris</span>
+                          <span>{t('common:nav.wishlist')}</span>
                         </div>
                         {wishlistCount > 0 && (
                           <span className="bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -547,7 +556,7 @@ const Navigation = () => {
                         tabIndex={isMenuOpen ? 0 : -1}
                       >
                         <LogOut className="h-5 w-5" />
-                        <span>Déconnexion</span>
+                        <span>{t('common:nav.logout')}</span>
                       </button>
                     </div>
                   </>
@@ -560,7 +569,7 @@ const Navigation = () => {
                   >
                     <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
                       <User className="mr-2 h-5 w-5" />
-                      Se connecter
+                      {t('common:nav.login')}
                     </Link>
                   </Button>
                 )}
@@ -569,16 +578,22 @@ const Navigation = () => {
           </div>
 
           {/* Settings Section */}
-          <div className="px-6 py-4 border-t border-stone-100 space-y-4">
+          <div className="px-6 py-4 border-t border-border space-y-4">
+            {/* Language Selector */}
+            <div className="flex items-center justify-between">
+              <span className="text-foreground font-medium">{t('common:language.label')}:</span>
+              <LanguageSelector variant="minimal" />
+            </div>
+            
             {/* Theme Toggle */}
             <div className="flex items-center justify-between">
-              <span className="text-stone-700 font-medium">Thème:</span>
+              <span className="text-foreground font-medium">{t('common:theme.label')}:</span>
               <ThemeToggle />
             </div>
             
             {/* Currency Selector */}
             <div className="flex items-center justify-between">
-              <span className="text-stone-700 font-medium">Devise:</span>
+              <span className="text-foreground font-medium">{t('common:currency.label')}:</span>
               <div tabIndex={isMenuOpen ? 0 : -1}>
                 <CurrencySelector />
               </div>
