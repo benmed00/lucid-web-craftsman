@@ -79,23 +79,84 @@
     "title": "Contactez-nous",
     "seo": {
       "title": "Nous Contacter - Rif Raw Straw",
-      "description": "Contactez-nous pour toute question concernant nos produits artisanaux. Nous répondons sous 24h."
+      "description": "Contactez notre équipe d'experts pour toute question sur nos produits artisanaux berbères. Réponse sous 24h."
     },
-    "subtitle": "Une question ? Nous sommes là pour vous aider.",
-    "form": {
-      "name": "Votre nom",
-      "email": "Votre email",
-      "subject": "Sujet",
-      "message": "Votre message",
-      "submit": "Envoyer",
-      "success": "Message envoyé avec succès !",
-      "error": "Erreur lors de l'envoi. Veuillez réessayer."
+    "hero": {
+      "title": "Parlons Ensemble",
+      "description": "Des questions sur nos produits artisanaux ? Une commande personnalisée ? Notre équipe est à votre écoute pour vous accompagner.",
+      "cta": "Démarrer une Discussion"
+    },
+    "cards": {
+      "general": {
+        "title": "Contact Général",
+        "description": "Questions sur nos produits artisanaux"
+      },
+      "support": {
+        "title": "Support Technique",
+        "description": "Aide pour vos commandes"
+      },
+      "partnership": {
+        "title": "Partenariats",
+        "description": "Collaborations commerciales"
+      }
     },
     "info": {
-      "address": "Adresse",
-      "phone": "Téléphone",
+      "title": "Nous Contacter",
+      "description": "Notre équipe d'experts est là pour vous accompagner dans tous vos projets d'artisanat berbère authentique.",
       "email": "Email",
-      "hours": "Horaires d'ouverture"
+      "emailResponse": "Réponse sous 24h",
+      "phone": "Téléphone",
+      "phoneHours": "Lun-Ven 9h-18h",
+      "address": "Adresse",
+      "hours": "Horaires"
+    },
+    "services": {
+      "title": "Nos Services",
+      "customOrders": "Commandes personnalisées",
+      "expertAdvice": "Conseil d'expert",
+      "b2b": "Solutions B2B",
+      "international": "Livraison internationale"
+    },
+    "form": {
+      "title": "Envoyez-nous un Message",
+      "subtitle": "Nous répondons généralement sous 2-4 heures",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "Email",
+      "emailFormat": "Format requis: votre@email.com",
+      "phone": "Téléphone",
+      "phonePlaceholder": "Votre numéro de téléphone",
+      "company": "Entreprise (optionnel)",
+      "companyPlaceholder": "Nom de votre entreprise",
+      "subject": "Sujet",
+      "subjectPlaceholder": "Sélectionnez un sujet",
+      "subjectOptions": {
+        "product": "Question sur un produit",
+        "customOrder": "Commande personnalisée",
+        "partnership": "Partenariat commercial",
+        "wholesale": "Vente en gros",
+        "shipping": "Livraison et expédition",
+        "support": "Support technique",
+        "other": "Autre question"
+      },
+      "message": "Message",
+      "messagePlaceholder": "Décrivez votre demande en détail...",
+      "characters": "caractères",
+      "minCharacters": "Minimum 20 caractères requis",
+      "submit": "Envoyer le Message",
+      "submitting": "Envoi en cours...",
+      "privacy": "En soumettant ce formulaire, vous acceptez que nous traitions vos données conformément à notre politique de confidentialité.",
+      "success": "Message envoyé avec succès! Nous vous répondrons bientôt.",
+      "error": "Erreur lors de l'envoi. Veuillez réessayer.",
+      "rateLimited": "Trop de soumissions. Veuillez attendre 10 minutes avant de réessayer.",
+      "validation": {
+        "subjectMinLength": "Le sujet doit contenir au moins 5 caractères",
+        "messageMinLength": "Le message doit contenir au moins 20 caractères"
+      }
+    },
+    "map": {
+      "title": "Notre Localisation",
+      "description": "Visitez notre showroom pour découvrir nos créations artisanales"
     }
   },
   "faq": {
