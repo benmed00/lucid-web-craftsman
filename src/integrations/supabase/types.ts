@@ -2249,6 +2249,15 @@ export type Database = {
         Args: { subscription_email: string }
         Returns: boolean
       }
+      verify_admin_session: {
+        Args: never
+        Returns: {
+          admin_email: string
+          admin_name: string
+          admin_role: string
+          is_admin: boolean
+        }[]
+      }
     }
     Enums: {
       app_role: "user" | "admin" | "super_admin"
