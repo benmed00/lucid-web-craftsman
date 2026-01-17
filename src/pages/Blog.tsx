@@ -1,44 +1,54 @@
 import { CalendarIcon, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import SEOHelmet from "@/components/seo/SEOHelmet";
+import { format } from "date-fns";
+import { fr, enUS } from "date-fns/locale";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 import PageFooter from "@/components/PageFooter";
-import { getBlogPosts } from "@/api/mockApiService";
 import { BlogImage } from "@/components/ui/GlobalImage";
 import BlogSkeleton from "@/components/BlogSkeleton";
 import NewsletterSubscription from "@/components/NewsletterSubscription";
+import { useBlogPostsWithTranslations } from "@/hooks/useTranslatedContent";
 
 const Blog = () => {
-  const { t } = useTranslation("pages");
-  const [featuredPosts, setFeaturedPosts] = useState([]);
-  const [regularPosts, setRegularPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { t, i18n } = useTranslation("pages");
+  const { data: posts = [], isLoading } = useBlogPostsWithTranslations();
+
+  // Get date-fns locale based on current language
+  const dateLocale = i18n.language?.startsWith('fr') ? fr : enUS;
+
+  // Format date for display
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return '';
+    try {
+      return format(new Date(dateStr), 'dd MMM yyyy', { locale: dateLocale });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Memoize filtered posts
+  const featuredPosts = useMemo(() => 
+    posts.filter(post => post.is_featured), 
+    [posts]
+  );
+  
+  const regularPosts = useMemo(() => 
+    posts.filter(post => !post.is_featured), 
+    [posts]
+  );
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    
-    const fetchPosts = async () => {
-      try {
-        const posts = await getBlogPosts();
-        setFeaturedPosts(posts.filter(post => post.featured));
-        setRegularPosts(posts.filter(post => !post.featured));
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching blog posts:", error);
-        setLoading(false);
-      }
-    };
-    
-    fetchPosts();
   }, []);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <>
         <BlogSkeleton />
@@ -91,7 +101,7 @@ const Blog = () => {
                 >
                   <div className="aspect-ratio aspect-w-1 aspect-h-1 md:aspect-w-16 md:aspect-h-9">
                     <BlogImage
-                      src={post.image}
+                      src={post.featured_image_url || '/placeholder.svg'}
                       alt={post.title}
                       className="object-cover w-full h-full"
                     />
@@ -99,16 +109,20 @@ const Blog = () => {
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                       <div className="flex items-center">
-                        <CalendarIcon className="h-4 w-4 mr-1" /> {post.date}
+                        <CalendarIcon className="h-4 w-4 mr-1" /> {formatDate(post.published_at)}
                       </div>
-                      <div className="flex items-center">
-                        <User className="h-4 w-4 mr-1" /> {post.author}
-                      </div>
+                      {post.author_id && (
+                        <div className="flex items-center">
+                          <User className="h-4 w-4 mr-1" /> {t("blog.author")}
+                        </div>
+                      )}
                     </div>
 
-                    <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none">
-                      {post.category}
-                    </Badge>
+                    {post.tags && post.tags[0] && (
+                      <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none">
+                        {post.tags[0]}
+                      </Badge>
+                    )}
 
                     <h3 className="font-serif text-2xl text-foreground mb-3">
                       {post.title}
@@ -146,7 +160,7 @@ const Blog = () => {
               >
                 <div className="aspect-ratio aspect-w-1 aspect-h-1 md:aspect-w-4 md:aspect-h-3">
                   <BlogImage
-                    src={post.image}
+                    src={post.featured_image_url || '/placeholder.svg'}
                     alt={post.title}
                     className="object-cover w-full h-full"
                   />
@@ -154,13 +168,15 @@ const Blog = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
                     <div className="flex items-center">
-                      <CalendarIcon className="h-3 w-3 mr-1" /> {post.date}
+                      <CalendarIcon className="h-3 w-3 mr-1" /> {formatDate(post.published_at)}
                     </div>
                   </div>
 
-                  <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none text-xs">
-                    {post.category}
-                  </Badge>
+                  {post.tags && post.tags[0] && (
+                    <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none text-xs">
+                      {post.tags[0]}
+                    </Badge>
+                  )}
 
                   <h3 className="font-serif text-xl text-foreground mb-3">
                     {post.title}
