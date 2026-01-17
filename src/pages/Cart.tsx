@@ -49,7 +49,7 @@ const Cart = () => {
   const { stockInfo, canOrderQuantity } = useStock({ productIds, enabled: productIds.length > 0 });
 
   const handlePaymentSuccess = (paymentMethod: string) => {
-    toast.success(`Paiement réussi via ${paymentMethod}`);
+    toast.success(t('cart.paymentSuccess', { method: paymentMethod }));
     // Clear cart and redirect
     clearCart();
     setTimeout(() => {
@@ -90,13 +90,13 @@ const Cart = () => {
     
     // Direct store update - Zustand handles persistence and sync
     updateItemQuantity(itemId, newQuantity);
-    toast.success("Quantité mise à jour");
+    toast.success(t('cart.quantityUpdated'));
   };
 
   const handleRemoveItem = (itemId: number) => {
     // Direct store update - Zustand handles persistence and sync
     removeItem(itemId);
-    toast.success("Produit retiré du panier");
+    toast.success(t('cart.itemRemoved'));
   };
 
   const handleCheckShipping = () => {
@@ -507,10 +507,10 @@ const Cart = () => {
                     >
                       <CreditCard className="mr-2 h-4 w-4" />
                       {stockIssues.length > 0 
-                        ? 'Corriger le stock d\'abord' 
+                        ? t('cart.fixStockFirst') 
                         : isMobile 
-                          ? 'Commander' 
-                          : 'Procéder au Paiement'
+                          ? t('common:buttons.order') 
+                          : t('cart.proceedToCheckout')
                       }
                       {!stockIssues.length && <ArrowRight className="ml-2 h-4 w-4" />}
                     </Button>
@@ -519,7 +519,7 @@ const Cart = () => {
 
                 <div className="mt-4 text-center">
                   <Link to="/products" className="text-olive-700 hover:text-olive-900 text-sm">
-                    Continuer mes achats
+                    {t('cart.continueShopping')}
                   </Link>
                 </div>
 

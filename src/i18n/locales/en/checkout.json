@@ -17,6 +17,10 @@
     "remove": "Remove",
     "continueShopping": "Continue shopping",
     "proceedToCheckout": "Proceed to checkout",
+    "fixStockFirst": "Fix stock issues first",
+    "quantityUpdated": "Quantity updated",
+    "itemRemoved": "Item removed from cart",
+    "paymentSuccess": "Payment successful via {{method}}",
     "pendingCheckout": {
       "title": "Order in progress",
       "message": "You have an unfinished order. Pick up where you left off.",

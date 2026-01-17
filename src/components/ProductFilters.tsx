@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, Filter, X, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ export const ProductFilters = ({
   onResetFilters,
   onClearFilter
 }: ProductFiltersProps) => {
+  const { t } = useTranslation('products');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   return (
@@ -46,15 +48,15 @@ export const ProductFilters = ({
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400" size={20} aria-hidden="true" />
           <Input
             type="text"
-            placeholder="Rechercher des produits..."
+            placeholder={t('filters.searchPlaceholder')}
             value={filters.searchQuery}
             onChange={(e) => onFiltersChange({ searchQuery: e.target.value })}
             className="pl-10 pr-4"
-            aria-label="Rechercher des produits"
+            aria-label={t('filters.search')}
             aria-describedby="search-description"
           />
           <div id="search-description" className="sr-only">
-            Entrez un mot-clé pour rechercher dans les produits
+            {t('filters.searchPlaceholder')}
           </div>
           {filters.searchQuery && (
             <Button
@@ -62,7 +64,7 @@ export const ProductFilters = ({
               size="sm"
               onClick={() => onClearFilter('searchQuery')}
               className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-              aria-label="Effacer la recherche"
+              aria-label={t('filters.clearFilters')}
             >
               <X size={14} aria-hidden="true" />
             </Button>
@@ -75,14 +77,14 @@ export const ProductFilters = ({
             value={filters.sortBy}
             onValueChange={(value: FilterOptions['sortBy']) => onFiltersChange({ sortBy: value })}
           >
-            <SelectTrigger className="w-40" aria-label="Trier les produits">
+            <SelectTrigger className="w-40" aria-label={t('filters.sortBy')}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="name">Nom A-Z</SelectItem>
-              <SelectItem value="price-asc">Prix croissant</SelectItem>
-              <SelectItem value="price-desc">Prix décroissant</SelectItem>
-              <SelectItem value="newest">Nouveautés</SelectItem>
+              <SelectItem value="name">{t('filters.sortOptions.nameAsc')}</SelectItem>
+              <SelectItem value="price-asc">{t('filters.sortOptions.priceAsc')}</SelectItem>
+              <SelectItem value="price-desc">{t('filters.sortOptions.priceDesc')}</SelectItem>
+              <SelectItem value="newest">{t('filters.sortOptions.newest')}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -92,10 +94,10 @@ export const ProductFilters = ({
             className="flex items-center gap-2"
             aria-expanded={isFiltersOpen}
             aria-controls="filters-panel"
-            aria-label={`${isFiltersOpen ? 'Masquer' : 'Afficher'} les filtres${activeFiltersCount > 0 ? ` (${activeFiltersCount} actif${activeFiltersCount > 1 ? 's' : ''})` : ''}`}
+            aria-label={t('filters.toggleFilters', { count: activeFiltersCount })}
           >
             <SlidersHorizontal size={16} aria-hidden="true" />
-            Filtres
+            {t('filters.filtersButton')}
             {activeFiltersCount > 0 && (
               <Badge variant="secondary" className="ml-1" aria-hidden="true">
                 {activeFiltersCount}
@@ -109,9 +111,9 @@ export const ProductFilters = ({
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-stone-600" aria-live="polite">
           {filteredCount === totalProducts ? (
-            `${totalProducts} produits`
+            t('filters.resultsCount', { count: totalProducts })
           ) : (
-            `${filteredCount} sur ${totalProducts} produits`
+            t('filters.resultsFiltered', { filtered: filteredCount, total: totalProducts })
           )}
         </p>
         
@@ -121,9 +123,9 @@ export const ProductFilters = ({
             size="sm"
             onClick={onResetFilters}
             className="text-stone-600 hover:text-stone-800"
-            aria-label={`Effacer tous les filtres (${activeFiltersCount} actif${activeFiltersCount > 1 ? 's' : ''})`}
+            aria-label={t('filters.clearAllFilters')}
           >
-            Effacer tous les filtres
+            {t('filters.clearFilters')}
           </Button>
         )}
       </div>
@@ -168,7 +170,7 @@ export const ProductFilters = ({
           
           {filters.isNew && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Nouveautés
+              {t('filters.sortOptions.newest')}
               <X 
                 size={12} 
                 className="cursor-pointer hover:text-red-500"
@@ -186,14 +188,14 @@ export const ProductFilters = ({
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Filter size={18} aria-hidden="true" />
-                Filtres avancés
+                {t('filters.advancedFilters')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Categories */}
               <div>
                 <Label className="text-sm font-medium text-stone-700 mb-3 block">
-                  Catégories
+                  {t('filters.category')}
                 </Label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {availableCategories.map(category => (
@@ -229,7 +231,7 @@ export const ProductFilters = ({
               {/* Price Range */}
               <div>
                 <Label className="text-sm font-medium text-stone-700 mb-3 block">
-                  Gamme de prix: {filters.priceRange[0]}€ - {filters.priceRange[1]}€
+                  {t('filters.priceRange')}: {filters.priceRange[0]}€ - {filters.priceRange[1]}€
                 </Label>
                 <div className="px-2">
                   <Slider
@@ -252,7 +254,7 @@ export const ProductFilters = ({
               {/* Special Options */}
               <div>
                 <Label className="text-sm font-medium text-stone-700 mb-3 block">
-                  Options spéciales
+                  {t('filters.specialOptions')}
                 </Label>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
@@ -262,7 +264,7 @@ export const ProductFilters = ({
                       onCheckedChange={(checked) => onFiltersChange({ isNew: !!checked })}
                     />
                     <Label htmlFor="isNew" className="text-sm cursor-pointer text-stone-700">
-                      Nouveautés uniquement
+                      {t('filters.newOnly')}
                     </Label>
                   </div>
                 </div>
