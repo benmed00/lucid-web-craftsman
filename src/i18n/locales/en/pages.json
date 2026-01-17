@@ -631,5 +631,11 @@
       "paragraph3": "Our commitment goes beyond product quality. We also ensure that every stage of production respects the environment by using natural materials and low-impact techniques.",
       "paragraph4": "The artisans who collaborate with us benefit from fair working conditions and equitable compensation, thereby supporting the local economy while preserving expertise that is unique in the world."
     }
+  },
+  "notFound": {
+    "title": "Sorry, this path seems lost...",
+    "subtitle": "...like a hat in the Provençal wind!",
+    "description": "The requested page does not exist or is no longer available.",
+    "backHome": "Back to Home"
   }
 }

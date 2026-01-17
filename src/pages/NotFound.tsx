@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-
+import { useTranslation } from "react-i18next";
 
 import PageFooter from "../components/PageFooter";
 import { useEffect } from "react";
 
 const NotFound = () => {
   const location = useLocation();
+  const { t } = useTranslation("pages");
 
   useEffect(() => {
     console.error(
@@ -21,7 +22,7 @@ const NotFound = () => {
         backgroundColor: "#f7f3ee",
       }}
     >
-      {/* Effet tressage de paille subtil en parallaxe */}
+      {/* Straw weave effect */}
       <div
         className="absolute inset-0 z-0 pointer-events-none"
         style={{
@@ -66,17 +67,17 @@ const NotFound = () => {
         </svg>
       </div>
 
-      {/* Overlay dégradé subtil */}
+      {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-tr from-[#f7f3ee]/90 via-[#e6dcc3]/60 to-[#bfae99]/40 z-0 pointer-events-none" />
 
-      {/* Entête */}
+      {/* Header */}
       <div className="relative z-10">
         
       </div>
 
-      {/* Grid centrale */}
+      {/* Main content */}
       <main className="relative z-10 flex-1 w-full max-w-2xl mx-auto px-6 py-16 flex flex-col items-center justify-center">
-        {/* Illustration chapeau stylisé avec 404 */}
+        {/* Hat illustration with 404 */}
         <div className="mb-8 flex justify-center">
           <svg
             width="160"
@@ -86,7 +87,7 @@ const NotFound = () => {
             aria-hidden="true"
             className="drop-shadow-md"
           >
-            {/* Calotte du chapeau formant le 0 */}
+            {/* Hat crown forming the 0 */}
             <ellipse
               cx="80"
               cy="55"
@@ -96,7 +97,7 @@ const NotFound = () => {
               stroke="#bfae99"
               strokeWidth="2.5"
             />
-            {/* Bord du chapeau */}
+            {/* Hat brim */}
             <ellipse
               cx="80"
               cy="75"
@@ -106,7 +107,7 @@ const NotFound = () => {
               stroke="#bfae99"
               strokeWidth="2"
             />
-            {/* Ruban stylisé formant les deux 4 */}
+            {/* Ribbon forming the two 4s */}
             <path
               d="M48 78 Q52 60 60 60 Q68 60 68 78"
               stroke="#7d8c6a"
@@ -121,7 +122,7 @@ const NotFound = () => {
               fill="none"
               strokeLinecap="round"
             />
-            {/* 404 intégré */}
+            {/* 404 text */}
             <text
               x="80"
               y="70"
@@ -139,23 +140,18 @@ const NotFound = () => {
           </svg>
         </div>
 
-        {/* Message bilingue */}
-        <h1 className="text-3xl md:text-4xl font-serif font-extrabold text-[#7d6e4a] mb-4 tracking-tight">
-          Désolé, ce chemin semble égaré...
+        {/* Message */}
+        <h1 className="text-3xl md:text-4xl font-serif font-extrabold text-[#7d6e4a] mb-4 tracking-tight text-center">
+          {t("notFound.title")}
         </h1>
-        <h2 className="text-xl md:text-2xl font-serif text-[#7d8c6a] mb-2">
-          ...comme un chapeau sous le vent provençal !
+        <h2 className="text-xl md:text-2xl font-serif text-[#7d8c6a] mb-2 text-center">
+          {t("notFound.subtitle")}
         </h2>
-        <p className="text-base md:text-lg font-sans text-[#6b5c3a] mb-2">
-          La page demandée n’existe pas ou n’est plus disponible.
-        </p>
-        <p className="text-base md:text-lg font-sans text-[#6b5c3a] mb-8">
-          <span className="font-semibold">
-            Sorry, this page can’t be found.
-          </span>
+        <p className="text-base md:text-lg font-sans text-[#6b5c3a] mb-8 text-center">
+          {t("notFound.description")}
         </p>
 
-        {/* Bouton principal */}
+        {/* Main button */}
         <Link
           to="/"
           className="inline-block px-8 py-3 rounded-full font-bold text-lg shadow transition-all duration-200 border-2 border-border bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
@@ -163,16 +159,16 @@ const NotFound = () => {
             letterSpacing: "0.04em",
           }}
         >
-          Retour à l’accueil / Back to Home
+          {t("notFound.backHome")}
         </Link>
       </main>
 
-      {/* Pied de page */}
+      {/* Footer */}
       <div className="relative z-10">
         <PageFooter />
       </div>
 
-      {/* Micro-interactions CSS */}
+      {/* CSS micro-interactions */}
       <style>{`
         a[href]:hover {
           box-shadow: 0 4px 24px 0 #bfae9933;

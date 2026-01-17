@@ -631,5 +631,11 @@
       "paragraph3": "Notre engagement ne se limite pas à la qualité de nos produits. Nous veillons également à ce que chaque étape de production respecte l'environnement en utilisant des matériaux naturels et des techniques à faible impact écologique.",
       "paragraph4": "Les artisans qui collaborent avec nous bénéficient de conditions de travail justes et d'une rémunération équitable, permettant ainsi de soutenir l'économie locale tout en préservant un savoir-faire unique au monde."
     }
+  },
+  "notFound": {
+    "title": "Désolé, ce chemin semble égaré...",
+    "subtitle": "...comme un chapeau sous le vent provençal !",
+    "description": "La page demandée n'existe pas ou n'est plus disponible.",
+    "backHome": "Retour à l'accueil"
   }
 }
