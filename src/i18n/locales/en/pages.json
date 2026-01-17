@@ -1,13 +1,34 @@
 {
   "home": {
+    "title": "Home",
+    "seo": {
+      "title": "Rif Raw Straw - Authentic Moroccan Craftsmanship | Handmade Bags and Hats",
+      "description": "Discover our collection of handmade bags and hats from the Rif mountains. Sustainable craftsmanship and traditional Moroccan know-how."
+    },
     "hero": {
-      "title": "Authentic Berber Craftsmanship",
-      "subtitle": "Discover unique creations, handwoven by artisans from the Rif mountains.",
-      "cta": "Discover the collection",
-      "secondaryCta": "Our story"
+      "badge": "Sustainable & Handmade Crafts",
+      "title": "Created with love in the",
+      "titleHighlight": "Rif Mountains",
+      "description": "Discover our collection of handmade bags and hats, created with sustainable materials and traditional Moroccan craftsmanship.",
+      "discoverButton": "Discover the Collection",
+      "storyButton": "Our Story"
     },
     "features": {
-      "title": "Our Values",
+      "badge": "Our Values",
+      "title": "Why Choose Our Creations?",
+      "description": "Our products are made with love, care and commitment to sustainable practices",
+      "eco": {
+        "title": "Eco-Friendly Materials",
+        "description": "All our products are made from sustainable and ethical materials, respecting the environment and local traditions."
+      },
+      "craft": {
+        "title": "Traditional Craftsmanship",
+        "description": "Each piece is carefully crafted by skilled artisans using traditional techniques passed down through generations."
+      },
+      "design": {
+        "title": "Unique Designs",
+        "description": "Our designs blend modern aesthetics with traditional influences, for timeless pieces that tell a story."
+      },
       "handmade": {
         "title": "100% Handmade",
         "description": "Each piece is carefully crafted by our artisans."
@@ -25,24 +46,41 @@
         "description": "Fair compensation for our partner artisans."
       }
     },
+    "products": {
+      "badge": "Artisan Collection",
+      "title": "Our Featured Products",
+      "description": "Each creation tells the story of our artisans and perpetuates ancestral know-how",
+      "viewAll": "View Full Collection",
+      "viewAllMobile": "View All Products"
+    },
     "showcase": {
       "title": "Our Creations",
       "viewAll": "View the full collection"
     },
     "testimonials": {
-      "title": "Customer testimonials"
+      "badge": "Testimonials",
+      "title": "What Our Customers Say"
     },
     "instagram": {
-      "title": "Follow us on Instagram"
+      "follow": "Follow us @artisan_maroc",
+      "title": "Get Inspired by Our Community"
     }
   },
   "about": {
-    "title": "Our Story",
+    "title": "About Us",
+    "seo": {
+      "title": "About - Rif Raw Straw",
+      "description": "Discover our story, our passion for Berber craftsmanship and our commitment to artisans from the Rif mountains."
+    },
     "subtitle": "A passion for authentic Berber craftsmanship",
     "content": "The Rif Raw Straw adventure began with a shared passion: to reveal the beauty of Berber craftsmanship and share it with the world."
   },
   "contact": {
     "title": "Contact Us",
+    "seo": {
+      "title": "Contact Us - Rif Raw Straw",
+      "description": "Contact us for any questions about our handmade products. We respond within 24 hours."
+    },
     "subtitle": "Have a question? We're here to help.",
     "form": {
       "name": "Your name",
@@ -62,6 +100,10 @@
   },
   "faq": {
     "title": "Frequently Asked Questions",
+    "seo": {
+      "title": "FAQ - Frequently Asked Questions | Rif Raw Straw",
+      "description": "Find answers to your questions about our artisan products, delivery, returns and our Berber craftsmanship."
+    },
     "shipping": {
       "q": "What are the delivery times?",
       "a": "Orders are shipped within 24-48 hours. Standard delivery typically takes 3-5 business days."
@@ -77,6 +119,41 @@
     "returns": {
       "q": "How do I make a return?",
       "a": "You have 14 days after delivery to return an item."
+    }
+  },
+  "shipping": {
+    "title": "Shipping & Delivery",
+    "seo": {
+      "title": "Shipping & Delivery - Rif Raw Straw",
+      "description": "Discover our delivery options for your Moroccan crafts purchases. Fast and secure delivery in France and internationally."
+    }
+  },
+  "returns": {
+    "title": "Returns & Refunds",
+    "seo": {
+      "title": "Returns & Refunds - Rif Raw Straw",
+      "description": "Return and refund policy for your Moroccan crafts purchases. 14 days to return your items."
+    }
+  },
+  "terms": {
+    "title": "Terms of Use",
+    "seo": {
+      "title": "Terms of Use - Rif Raw Straw",
+      "description": "Consult our terms of use to understand the rules and conditions of use of our Moroccan crafts shop."
+    }
+  },
+  "cgv": {
+    "title": "Terms & Conditions",
+    "seo": {
+      "title": "Terms & Conditions - Rif Raw Straw",
+      "description": "Consult our terms and conditions for your Berber crafts purchases. Guarantees, payment and delivery terms."
+    }
+  },
+  "story": {
+    "title": "Our Story",
+    "seo": {
+      "title": "Our Story - Rif Raw Straw",
+      "description": "Discover the story of Rif Raw Straw, our passion for Berber craftsmanship and our quest to promote authentic handmade."
     }
   },
   "wishlist": {

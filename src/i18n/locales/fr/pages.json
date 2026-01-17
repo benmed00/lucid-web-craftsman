@@ -1,13 +1,34 @@
 {
   "home": {
+    "title": "Accueil",
+    "seo": {
+      "title": "Rif Raw Straw - Artisanat Marocain Authentique | Sacs et Chapeaux Fait Main",
+      "description": "Découvrez notre collection de sacs et chapeaux fabriqués à la main dans les montagnes du Rif. Artisanat durable et savoir-faire traditionnel marocain."
+    },
     "hero": {
-      "title": "Artisanat Berbère Authentique",
-      "subtitle": "Découvrez des créations uniques, tissées à la main par les artisans des montagnes du Rif.",
-      "cta": "Découvrir la collection",
-      "secondaryCta": "Notre histoire"
+      "badge": "Artisanat Durable & Fait Main",
+      "title": "Créé avec amour dans les",
+      "titleHighlight": "montagnes du Rif",
+      "description": "Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.",
+      "discoverButton": "Découvrir la Collection",
+      "storyButton": "Notre Histoire"
     },
     "features": {
-      "title": "Nos Valeurs",
+      "badge": "Nos Valeurs",
+      "title": "Pourquoi Choisir Nos Créations?",
+      "description": "Nos produits sont fabriqués avec amour, soin et engagement envers des pratiques durables",
+      "eco": {
+        "title": "Matériaux Écologiques",
+        "description": "Tous nos produits sont fabriqués à partir de matériaux durables et éthiques, respectueux de l'environnement et des traditions locales."
+      },
+      "craft": {
+        "title": "Artisanat Traditionnel",
+        "description": "Chaque pièce est soigneusement fabriquée par des artisans qualifiés utilisant des techniques traditionnelles transmises de génération en génération."
+      },
+      "design": {
+        "title": "Designs Uniques",
+        "description": "Nos designs allient esthétique moderne et influences traditionnelles, pour des pièces intemporelles qui racontent une histoire."
+      },
       "handmade": {
         "title": "100% Fait Main",
         "description": "Chaque pièce est créée avec soin par nos artisans."
@@ -25,24 +46,41 @@
         "description": "Rémunération juste pour nos artisans partenaires."
       }
     },
+    "products": {
+      "badge": "Collection Artisanale",
+      "title": "Nos Produits Phares",
+      "description": "Chaque création raconte l'histoire de nos artisans et perpétue un savoir-faire ancestral",
+      "viewAll": "Voir Toute la Collection",
+      "viewAllMobile": "Voir Tous les Produits"
+    },
     "showcase": {
       "title": "Nos Créations",
       "viewAll": "Voir toute la collection"
     },
     "testimonials": {
-      "title": "Ils nous font confiance"
+      "badge": "Témoignages",
+      "title": "Ce Que Disent Nos Clients"
     },
     "instagram": {
-      "title": "Suivez-nous sur Instagram"
+      "follow": "Suivez-nous @artisan_maroc",
+      "title": "Laissez-vous Inspirer par Notre Communauté"
     }
   },
   "about": {
-    "title": "Notre Histoire",
+    "title": "À Propos",
+    "seo": {
+      "title": "À Propos - Rif Raw Straw",
+      "description": "Découvrez notre histoire, notre passion pour l'artisanat berbère et notre engagement envers les artisans des montagnes du Rif."
+    },
     "subtitle": "Une passion pour l'artisanat berbère authentique",
     "content": "L'aventure Rif Raw Straw commence avec une passion commune : révéler la beauté de l'artisanat berbère et la partager au plus grand nombre."
   },
   "contact": {
     "title": "Contactez-nous",
+    "seo": {
+      "title": "Nous Contacter - Rif Raw Straw",
+      "description": "Contactez-nous pour toute question concernant nos produits artisanaux. Nous répondons sous 24h."
+    },
     "subtitle": "Une question ? Nous sommes là pour vous aider.",
     "form": {
       "name": "Votre nom",
@@ -62,6 +100,10 @@
   },
   "faq": {
     "title": "Questions Fréquentes",
+    "seo": {
+      "title": "FAQ - Questions Fréquentes | Rif Raw Straw",
+      "description": "Trouvez les réponses à vos questions sur nos produits artisanaux, livraison, retours et notre artisanat berbère."
+    },
     "shipping": {
       "q": "Quels sont les délais de livraison ?",
       "a": "Les commandes sont expédiées sous 24h à 48h. La livraison standard prend généralement 3 à 5 jours ouvrés."
@@ -77,6 +119,41 @@
     "returns": {
       "q": "Comment effectuer un retour ?",
       "a": "Vous disposez de 14 jours après réception pour retourner un article."
+    }
+  },
+  "shipping": {
+    "title": "Livraison & Expédition",
+    "seo": {
+      "title": "Livraison et Expédition - Rif Raw Straw",
+      "description": "Découvrez nos options de livraison pour vos achats d'artisanat marocain. Livraison rapide et sécurisée en France et à l'international."
+    }
+  },
+  "returns": {
+    "title": "Retours & Remboursements",
+    "seo": {
+      "title": "Retours & Remboursements - Rif Raw Straw",
+      "description": "Politique de retour et remboursement pour vos achats d'artisanat marocain. 14 jours pour retourner vos articles."
+    }
+  },
+  "terms": {
+    "title": "Conditions d'utilisation",
+    "seo": {
+      "title": "Conditions d'utilisation - Rif Raw Straw",
+      "description": "Consultez nos conditions d'utilisation pour comprendre les règles et modalités d'usage de notre boutique d'artisanat marocain."
+    }
+  },
+  "cgv": {
+    "title": "Conditions Générales de Vente",
+    "seo": {
+      "title": "Conditions Générales de Vente - Rif Raw Straw",
+      "description": "Consultez nos conditions générales de vente pour vos achats d'artisanat berbère. Garanties, modalités de paiement et de livraison."
+    }
+  },
+  "story": {
+    "title": "Notre Histoire",
+    "seo": {
+      "title": "Notre Histoire - Rif Raw Straw",
+      "description": "Découvrez l'histoire de Rif Raw Straw, notre passion pour l'artisanat berbère et notre quête de valoriser le fait-main authentique."
     }
   },
   "wishlist": {
