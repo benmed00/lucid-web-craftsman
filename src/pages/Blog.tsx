@@ -15,6 +15,7 @@ import { BlogImage } from "@/components/ui/GlobalImage";
 import BlogSkeleton from "@/components/BlogSkeleton";
 import NewsletterSubscription from "@/components/NewsletterSubscription";
 import { useBlogPostsWithTranslations } from "@/hooks/useTranslatedContent";
+import { FallbackDot } from "@/components/ui/TranslationFallbackIndicator";
 
 const Blog = () => {
   const { t, i18n } = useTranslation("pages");
@@ -124,8 +125,9 @@ const Blog = () => {
                       </Badge>
                     )}
 
-                    <h3 className="font-serif text-2xl text-foreground mb-3">
+                    <h3 className="font-serif text-2xl text-foreground mb-3 flex items-center gap-2">
                       {post.title}
+                      <FallbackDot isFallback={post._fallbackUsed} locale={post._locale} />
                     </h3>
                     <p className="text-muted-foreground mb-6">{post.excerpt}</p>
 
@@ -178,8 +180,9 @@ const Blog = () => {
                     </Badge>
                   )}
 
-                  <h3 className="font-serif text-xl text-foreground mb-3">
+                  <h3 className="font-serif text-xl text-foreground mb-3 flex items-center gap-2">
                     {post.title}
+                    <FallbackDot isFallback={post._fallbackUsed} locale={post._locale} />
                   </h3>
                   <p className="text-muted-foreground text-sm mb-6">{post.excerpt}</p>
 
