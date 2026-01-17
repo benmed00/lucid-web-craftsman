@@ -46,7 +46,7 @@ import ProductReviews from "@/components/ProductReviews";
 import { ProductRecommendations } from "@/components/ProductRecommendations";
 import { WishlistButton } from "@/components/ui/WishlistButton";
 import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
-
+import { TranslationFallbackIndicator, FallbackDot } from "@/components/ui/TranslationFallbackIndicator";
 // Services & Hooks
 import { ProductService } from "@/services/productService";
 import { useCart, useCurrency } from "@/stores";
@@ -517,12 +517,23 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                   )}
                 </div>
 
-                <h1 
-                  className="text-3xl lg:text-4xl font-serif text-foreground mb-4"
-                  id="product-title"
-                >
-                  {product.name}
-                </h1>
+                <div className="flex items-center gap-3 flex-wrap mb-4">
+                  <h1 
+                    className="text-3xl lg:text-4xl font-serif text-foreground"
+                    id="product-title"
+                  >
+                    {product.name}
+                  </h1>
+                  {/* Fallback indicator when translation is not available */}
+                  {'_fallbackUsed' in product && (product as ProductWithTranslation)._fallbackUsed && (
+                    <TranslationFallbackIndicator
+                      isFallback={true}
+                      displayedLocale={(product as ProductWithTranslation)._locale}
+                      preferredLocale={currentLocale}
+                      variant="badge"
+                    />
+                  )}
+                </div>
 
                 {/* Rating */}
                 {reviewCount > 0 && (
