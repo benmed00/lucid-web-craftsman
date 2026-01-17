@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ShoppingCart, Eye, AlertTriangle, Share } from "lucide-react";
 import { Product, isProductNew } from "@/shared/interfaces/Iproduct.interface";
 import { ProductImage } from "@/components/ui/GlobalImage";
@@ -24,6 +25,8 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) => {
+  const { t } = useTranslation('products');
+  
   // Try to get stock info from context first (for ProductShowcase)
   const stockContext = useStockContext();
   const contextStockInfo = stockContext[product.id];
@@ -73,7 +76,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
           {onQuickView && (
             <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20">
               <TooltipWrapper 
-                content={`Aperçu rapide de ${product.name}`}
+                content={t('details.quickView', { name: product.name })}
                 side="left"
               >
                 <Button
@@ -87,7 +90,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
                     onQuickView(product);
                   }}
                   className="bg-background/95 backdrop-blur-sm hover:bg-background text-foreground p-2 sm:p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 touch-manipulation min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px]"
-                  aria-label={`Aperçu rapide de ${product.name}`}
+                  aria-label={t('details.quickView', { name: product.name })}
                 >
                   <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Button>
@@ -98,7 +101,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
           {/* Share Button - Mobile Only */}
           <div className="absolute top-12 right-2 sm:top-14 sm:right-3 z-10 md:hidden">
             <TooltipWrapper 
-              content={`Partager ${product.name}`}
+              content={t('details.share')}
               side="left"
             >
               <Button
@@ -112,7 +115,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
                   setShowShareDialog(true);
                 }}
                 className="bg-background/90 backdrop-blur-sm hover:bg-background text-foreground shadow-lg p-2 rounded-full touch-manipulation min-h-[36px] min-w-[36px] sm:min-h-[40px] sm:min-w-[40px]"
-                aria-label={`Partager ${product.name}`}
+                aria-label={t('details.share')}
               >
                 <Share className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
@@ -121,7 +124,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
 
           {isProductNew(product) && (
             <Badge className="absolute bottom-2 right-2 md:bottom-3 md:right-3 bg-primary text-primary-foreground border-none shadow-lg text-xs px-2 py-1">
-              Nouveau
+              {t('details.new')}
             </Badge>
           )}
 
@@ -185,14 +188,14 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
                 id={`product-stock-${product.id}`}
                 className="sr-only"
               >
-                Produit indisponible
+                {t('details.outOfStock')}
               </span>
             )}
           </div>
           <TooltipWrapper 
             content={singleStockInfo?.isOutOfStock 
-              ? `${product.name} est actuellement indisponible` 
-              : `Ajouter ${product.name} à votre panier (${formatPrice(product.price)})`
+              ? t('details.outOfStock') 
+              : t('details.addToCartTooltip', { name: product.name, price: formatPrice(product.price) })
             }
             side="top"
           >
@@ -208,14 +211,14 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
               disabled={singleStockInfo?.isOutOfStock}
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-3 sm:px-4 py-2.5 sm:py-3 touch-manipulation min-h-[44px] sm:min-h-[48px] font-semibold text-xs sm:text-sm rounded-lg shadow-md hover:shadow-lg disabled:hover:bg-primary disabled:hover:shadow-md group relative overflow-hidden border-0"
               aria-label={singleStockInfo?.isOutOfStock 
-                ? `Indisponible - ${product.name}` 
-                : `Ajouter au panier - ${product.name} pour ${formatPrice(product.price)}`
+                ? t('details.outOfStock') 
+                : t('details.addToCartAria', { name: product.name, price: formatPrice(product.price) })
               }
             >
               <div className="relative flex items-center justify-center gap-1.5 sm:gap-2 z-10">
                 <ShoppingCart className="h-4 w-4" />
                 <span className="font-medium">
-                  {singleStockInfo?.isOutOfStock ? 'Indisponible' : 'Ajouter'}
+                  {singleStockInfo?.isOutOfStock ? t('details.outOfStock') : t('details.addToCart')}
                 </span>
               </div>
               
@@ -229,7 +232,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView }: ProductCardProps) =>
       {/* Native Share Dialog */}
       <NativeShare
         title={product.name}
-        text={`Découvrez ce magnifique ${product.name} - ${product.description}`}
+        text={t('details.shareText', { name: product.name, description: product.description })}
         url={`${window.location.origin}/products/${product.id}`}
         isOpen={showShareDialog}
         onClose={() => setShowShareDialog(false)}

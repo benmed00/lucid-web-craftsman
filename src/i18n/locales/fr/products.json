@@ -17,8 +17,15 @@
       "popular": "Populaires"
     },
     "clearFilters": "Effacer les filtres",
-    "resultsCount": "{{count}} produit trouvé",
-    "resultsCount_other": "{{count}} produits trouvés"
+    "clearAllFilters": "Effacer tous les filtres",
+    "resultsCount": "{{count}} produits",
+    "resultsCount_other": "{{count}} produits",
+    "resultsFiltered": "{{filtered}} sur {{total}} produits",
+    "filtersButton": "Filtres",
+    "toggleFilters": "Afficher/Masquer les filtres",
+    "advancedFilters": "Filtres avancés",
+    "specialOptions": "Options spéciales",
+    "newOnly": "Nouveautés uniquement"
   },
   "categories": {
     "all": "Toutes catégories",
@@ -39,12 +46,20 @@
     "outOfStock": "Rupture de stock",
     "lowStock": "Stock limité ({{count}} restants)",
     "quantity": "Quantité",
-    "addToCart": "Ajouter au panier",
+    "addToCart": "Ajouter",
+    "addToCartFull": "Ajouter au panier",
+    "addToCartTooltip": "Ajouter {{name}} à votre panier ({{price}})",
+    "addToCartAria": "Ajouter au panier - {{name}} pour {{price}}",
     "addToWishlist": "Ajouter aux favoris",
     "removeFromWishlist": "Retirer des favoris",
+    "inWishlist": "Dans les favoris",
     "share": "Partager",
+    "shareText": "Découvrez ce magnifique {{name}} - {{description}}",
     "relatedProducts": "Produits similaires",
-    "recentlyViewed": "Vus récemment"
+    "recentlyViewed": "Vus récemment",
+    "quickView": "Aperçu rapide de {{name}}",
+    "new": "Nouveau",
+    "viewDetails": "Voir les détails complets"
   },
   "reviews": {
     "title": "Avis clients",

@@ -17,8 +17,15 @@
       "popular": "Popular"
     },
     "clearFilters": "Clear filters",
-    "resultsCount": "{{count}} product found",
-    "resultsCount_other": "{{count}} products found"
+    "clearAllFilters": "Clear all filters",
+    "resultsCount": "{{count}} products",
+    "resultsCount_other": "{{count}} products",
+    "resultsFiltered": "{{filtered}} of {{total}} products",
+    "filtersButton": "Filters",
+    "toggleFilters": "Show/Hide filters",
+    "advancedFilters": "Advanced filters",
+    "specialOptions": "Special options",
+    "newOnly": "New arrivals only"
   },
   "categories": {
     "all": "All categories",
@@ -39,12 +46,20 @@
     "outOfStock": "Out of stock",
     "lowStock": "Low stock ({{count}} left)",
     "quantity": "Quantity",
-    "addToCart": "Add to cart",
+    "addToCart": "Add",
+    "addToCartFull": "Add to cart",
+    "addToCartTooltip": "Add {{name}} to your cart ({{price}})",
+    "addToCartAria": "Add to cart - {{name}} for {{price}}",
     "addToWishlist": "Add to wishlist",
     "removeFromWishlist": "Remove from wishlist",
+    "inWishlist": "In wishlist",
     "share": "Share",
+    "shareText": "Discover this beautiful {{name}} - {{description}}",
     "relatedProducts": "Related products",
-    "recentlyViewed": "Recently viewed"
+    "recentlyViewed": "Recently viewed",
+    "quickView": "Quick view of {{name}}",
+    "new": "New",
+    "viewDetails": "View full details"
   },
   "reviews": {
     "title": "Customer reviews",
