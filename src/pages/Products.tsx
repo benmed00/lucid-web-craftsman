@@ -270,13 +270,17 @@ const Products = () => {
           cacheStats={cacheStats}
         />
 
-        {/* Analytics Toggle for Power Users */}
-        {!isMobile && activeFiltersCount > 0 && (
+        {/* Analytics Toggle - Always visible on desktop */}
+        {!isMobile && (
           <Collapsible open={showAnalytics} onOpenChange={setShowAnalytics}>
             <CollapsibleTrigger asChild>
-              <Button variant="outline" size="sm" className="mb-4">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="mb-4 text-muted-foreground hover:text-foreground"
+              >
                 <BarChart3 className="h-4 w-4 mr-2" />
-                {showAnalytics ? 'Masquer' : 'Afficher'} les analyses de recherche
+                {showAnalytics ? 'Masquer' : 'Afficher'} les analyses
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
