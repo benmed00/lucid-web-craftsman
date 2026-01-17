@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { blogImageUploadService } from "@/services/blogImageUploadService";
+import TagAutocomplete from "./TagAutocomplete";
 
 // Supported locales
 const SUPPORTED_LOCALES = ["fr", "en", "ar", "es", "de"] as const;
@@ -412,18 +413,14 @@ export default function BlogEditor({
               </div>
             </div>
 
-            {/* Tags */}
+            {/* Tags with Autocomplete */}
             <div className="space-y-2">
-              <Label htmlFor="tags">Tags (séparés par des virgules)</Label>
-              <div className="flex items-center gap-2">
-                <Tag className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="tags"
-                  value={tagsInput}
-                  onChange={(e) => setTagsInput(e.target.value)}
-                  placeholder="artisanat, tradition, mode..."
-                />
-              </div>
+              <Label>Tags</Label>
+              <TagAutocomplete
+                value={tagsInput}
+                onChange={setTagsInput}
+                placeholder="Rechercher ou créer des tags..."
+              />
             </div>
 
             {/* Status & Featured */}
