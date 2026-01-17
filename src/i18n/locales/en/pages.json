@@ -454,30 +454,108 @@
     "remainingSlots_other": "{{count}} slots remaining"
   },
   "profile": {
+    "seo": {
+      "title": "My Profile - Rif Raw Straw",
+      "description": "Manage your personal information, preferences and order history"
+    },
     "title": "My Profile",
-    "overview": "Overview",
-    "personal": "Personal information",
-    "orders": "My orders",
-    "preferences": "Preferences",
-    "loyalty": "Loyalty program",
-    "security": "Security",
-    "deleteAccount": "Delete my account"
+    "subtitle": "Manage your personal information, preferences and history",
+    "tabs": {
+      "overview": "Overview",
+      "overviewShort": "Profile",
+      "personal": "Information",
+      "personalShort": "Info",
+      "loyalty": "Loyalty",
+      "loyaltyShort": "Points",
+      "preferences": "Preferences",
+      "preferencesShort": "Prefs",
+      "orders": "Orders",
+      "ordersShort": "Orders"
+    },
+    "buttons": {
+      "home": "Home",
+      "signOut": "Sign out",
+      "deleteAccount": "Delete account"
+    },
+    "deleteDialog": {
+      "title": "Delete account",
+      "description": "This action is irreversible. All your data will be permanently deleted. Are you sure you want to delete your account?",
+      "cancel": "Cancel",
+      "confirm": "Delete permanently"
+    },
+    "footer": {
+      "contact": "Contact",
+      "importantLinks": "Important Links",
+      "terms": "Terms of Use",
+      "cgv": "Terms and Conditions",
+      "privacy": "Privacy Policy (GDPR)",
+      "legal": "Legal Information",
+      "legalNotices": "Legal Notices",
+      "cookies": "Cookie Policy",
+      "copyright": "© 2024 RifStraw. All rights reserved."
+    },
+    "messages": {
+      "loadError": "Error loading profile",
+      "createError": "Error creating profile",
+      "deleteSuccess": "Account deleted successfully",
+      "deleteError": "Error deleting account",
+      "signOutError": "Error signing out"
+    }
   },
   "orders": {
+    "seo": {
+      "title": "My Orders - Rif Raw Straw",
+      "description": "View your order history and track their status"
+    },
     "title": "My Orders",
-    "empty": "You don't have any orders yet",
-    "orderNumber": "Order #{{number}}",
-    "date": "Placed on {{date}}",
+    "subtitle": "Track your orders and view your purchase history",
+    "refresh": "Refresh",
+    "loginRequired": {
+      "title": "Sign in to view your orders",
+      "description": "You must be signed in to access your order history."
+    },
+    "empty": {
+      "title": "No orders found",
+      "description": "You haven't placed any orders yet. Discover our artisan collection!",
+      "cta": "Discover our products"
+    },
+    "orderNumber": "Order #{{id}}",
+    "placedOn": "Placed on {{date}}",
+    "articles": "{{count}} item",
+    "articles_plural": "{{count}} items",
+    "viewDetails": "View details",
     "status": {
       "pending": "Pending",
       "paid": "Paid",
       "processing": "Processing",
       "shipped": "Shipped",
       "delivered": "Delivered",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "refunded": "Refunded"
     },
-    "details": "View details",
+    "statusDescription": {
+      "pending": "Your order is pending processing.",
+      "paid": "Your payment has been confirmed.",
+      "processing": "Your order is being prepared by our artisans.",
+      "shipped": "Your order has been shipped and is on its way.",
+      "delivered": "Your order has been delivered successfully.",
+      "cancelled": "Your order has been cancelled.",
+      "refunded": "Your order has been refunded."
+    },
+    "details": {
+      "orderedItems": "Ordered items",
+      "product": "Product",
+      "total": "Total",
+      "orderStatus": "Order status",
+      "sessionId": "Session ID",
+      "deliveryInfo": "Delivery information",
+      "deliveredMessage": "Your order has been delivered successfully.",
+      "inTransitMessage": "Your order is in transit."
+    },
     "track": "Track my order",
-    "reorder": "Order again"
+    "reorder": "Order again",
+    "messages": {
+      "loadError": "Error loading orders"
+    }
   }
 }
