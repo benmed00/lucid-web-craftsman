@@ -1,54 +1,50 @@
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import PageFooter from "@/components/PageFooter";
 import SEOHelmet from "@/components/seo/SEOHelmet";
 
-const Terms = () => (
-  <div className="min-h-screen bg-background flex flex-col">
-    <SEOHelmet
-      title="Conditions d'utilisation - Rif Raw Straw"
-      description="Consultez nos conditions d'utilisation pour comprendre les règles et modalités d'usage de notre boutique d'artisanat marocain."
-      keywords={["conditions", "utilisation", "termes", "règles", "légal"]}
-      url="/terms"
-      type="website"
-    />
-    
-    <main className="flex-1 container mx-auto px-4 py-12">
-      <div className="max-w-3xl mx-auto bg-card rounded-lg shadow p-8 border border-border">
-        <h1 className="text-3xl font-serif font-bold text-primary mb-6">
-          Conditions d'utilisation
-        </h1>
-        <p className="text-foreground mb-4">
-          En accédant à ce site, vous acceptez nos conditions d'utilisation.
-          Veuillez lire attentivement les informations ci-dessous.
-        </p>
-        <ul className="list-disc pl-6 text-muted-foreground space-y-2 mb-6">
-          <li>Le contenu du site est protégé par le droit d'auteur.</li>
-          <li>
-            Vous ne pouvez pas reproduire, distribuer ou exploiter le contenu
-            sans autorisation écrite.
-          </li>
-          <li>
-            Les prix et informations produits sont susceptibles d'être modifiés
-            à tout moment.
-          </li>
-          <li>
-            Nous nous réservons le droit de refuser une commande en cas de
-            litige antérieur.
-          </li>
-        </ul>
-        <p className="text-muted-foreground">
-          Pour toute question, contactez-nous via la page{" "}
-          <a
-            href="/contact"
-            className="text-primary underline hover:text-primary/80"
-          >
-            Contact
-          </a>
-          .
-        </p>
-      </div>
-    </main>
-    <PageFooter />
-  </div>
-);
+const Terms = () => {
+  const { t } = useTranslation("pages");
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <SEOHelmet
+        title={t("terms.seo.title")}
+        description={t("terms.seo.description")}
+        keywords={["conditions", "utilisation", "termes", "règles", "légal"]}
+        url="/terms"
+        type="website"
+      />
+      
+      <main className="flex-1 container mx-auto px-4 py-12">
+        <div className="max-w-3xl mx-auto bg-card rounded-lg shadow p-8 border border-border">
+          <h1 className="text-3xl font-serif font-bold text-primary mb-6">
+            {t("terms.heading")}
+          </h1>
+          <p className="text-foreground mb-4">
+            {t("terms.intro")}
+          </p>
+          <ul className="list-disc pl-6 text-muted-foreground space-y-2 mb-6">
+            <li>{t("terms.items.item1")}</li>
+            <li>{t("terms.items.item2")}</li>
+            <li>{t("terms.items.item3")}</li>
+            <li>{t("terms.items.item4")}</li>
+          </ul>
+          <p className="text-muted-foreground">
+            {t("terms.contact")}{" "}
+            <Link
+              to="/contact"
+              className="text-primary underline hover:text-primary/80"
+            >
+              Contact
+            </Link>
+            .
+          </p>
+        </div>
+      </main>
+      <PageFooter />
+    </div>
+  );
+};
 
 export default Terms;

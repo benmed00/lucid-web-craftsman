@@ -1,4 +1,128 @@
 {
+  "about": {
+    "title": "About Us",
+    "seo": {
+      "title": "About - Rif Raw Straw",
+      "description": "Discover our story, our passion for Berber craftsmanship and our commitment to artisans from the Rif mountains."
+    },
+    "heading": "About Rif Raw Straw",
+    "intro": "The <brand>Rif Raw Straw</brand> adventure began with a shared passion: to reveal the beauty of Berber craftsmanship and share it with the world.",
+    "paragraph1": "Since our beginnings, we have been exploring workshops, markets and villages in search of talented creators. Each encounter, each object, each story fuels our desire to promote handmade and authenticity.",
+    "paragraph2": "Today, our shop reflects this quest: a demanding selection, unique pieces, and a desire to weave a link between artisans and lovers of beauty.",
+    "paragraph3": "Thank you for being part of this adventure and supporting craftsmanship with us."
+  },
+  "story": {
+    "title": "Our Story",
+    "seo": {
+      "title": "Our Story - Rif Raw Straw",
+      "description": "Discover the story of Rif Raw Straw, our passion for Berber craftsmanship and our quest to promote authentic handmade."
+    },
+    "heading": "Our Story",
+    "intro": "The <brand>Rif Raw Straw</brand> adventure began with a shared passion: to reveal the beauty of craftsmanship and share it with the world.",
+    "paragraph1": "Since our beginnings, we have been exploring workshops, markets and villages in search of talented creators. Each encounter, each object, each story fuels our desire to promote handmade and authenticity.",
+    "paragraph2": "Today, our shop reflects this quest: a demanding selection, unique pieces, and a desire to weave a link between artisans and lovers of beauty.",
+    "paragraph3": "Thank you for being part of this adventure and supporting craftsmanship with us."
+  },
+  "shipping": {
+    "title": "Shipping & Delivery",
+    "seo": {
+      "title": "Shipping & Delivery - Rif Raw Straw",
+      "description": "Discover our delivery options for your Moroccan crafts purchases. Fast and secure delivery in France and internationally."
+    },
+    "heading": "Shipping & Delivery",
+    "delays": {
+      "title": "Times & Rates",
+      "standard": "Standard delivery (3-5 business days):",
+      "standardPrice": "€4.90",
+      "express": "Express delivery (24/48h):",
+      "expressPrice": "€9.90",
+      "freeFrom": "Free from",
+      "freeThreshold": "€80",
+      "freeLabel": "purchase"
+    },
+    "zones": {
+      "title": "Delivery zones",
+      "description": "We deliver to mainland France, Belgium, Luxembourg and Switzerland."
+    },
+    "tracking": {
+      "title": "Tracking & Service",
+      "description": "A tracking number will be sent as soon as your order is shipped. For any questions, contact us via the"
+    }
+  },
+  "returns": {
+    "title": "Returns & Refunds",
+    "seo": {
+      "title": "Returns & Refunds - Rif Raw Straw",
+      "description": "Return and refund policy for your Moroccan crafts purchases. 14 days to return your items."
+    },
+    "heading": "Returns & Refunds",
+    "policy": {
+      "title": "Return Policy",
+      "item1": "You have 14 days after receipt to return an item.",
+      "item2": "Products must be new, unused and in their original packaging.",
+      "item3": "Return costs are the customer's responsibility unless we made an error."
+    },
+    "procedure": {
+      "title": "Procedure",
+      "step1": "Contact us via the",
+      "step1Link": "Contact",
+      "step1Suffix": "page specifying your order number.",
+      "step2": "We will provide you with the return address and instructions.",
+      "step3": "After receipt and verification, the refund will be made within 7 business days."
+    },
+    "questions": "For any questions, feel free to check our",
+    "faqLink": "FAQ",
+    "questionsSuffix": "or write to us."
+  },
+  "terms": {
+    "title": "Terms of Use",
+    "seo": {
+      "title": "Terms of Use - Rif Raw Straw",
+      "description": "Check our terms of use to understand the rules and conditions for using our Moroccan crafts shop."
+    },
+    "heading": "Terms of Use",
+    "intro": "By accessing this site, you agree to our terms of use. Please read the information below carefully.",
+    "items": {
+      "item1": "The site content is protected by copyright.",
+      "item2": "You may not reproduce, distribute or exploit the content without written authorization.",
+      "item3": "Prices and product information are subject to change at any time.",
+      "item4": "We reserve the right to refuse an order in case of previous dispute."
+    },
+    "contact": "For any questions, contact us via the"
+  },
+  "cgv": {
+    "title": "Terms & Conditions",
+    "seo": {
+      "title": "Terms & Conditions - Rif Raw Straw",
+      "description": "Check our terms and conditions for your Berber crafts purchases. Warranties, payment and delivery terms."
+    },
+    "heading": "Terms & Conditions",
+    "items": {
+      "item1": "Orders are payable in full at the time of order.",
+      "item2": "Products remain the property of the seller until full payment.",
+      "item3": "The customer has a 14-day withdrawal period after receipt.",
+      "item4": "Returns must be made in the original packaging and in perfect condition.",
+      "item5": "In case of dispute, the competent court will be that of the seller's registered office."
+    },
+    "contact": "For more details, contact us via the"
+  },
+  "blog": {
+    "title": "Blog",
+    "seo": {
+      "title": "Craft Journal - Blog | Rif Raw Straw",
+      "description": "Discover the stories behind our creations, meet our artisans, and dive into the richness of Moroccan craftsmanship."
+    },
+    "badge": "Our Blog",
+    "heading": "Craft Journal",
+    "description": "Discover the stories behind our creations, meet our artisans, and dive into the richness of Moroccan craftsmanship.",
+    "featured": "Featured Articles",
+    "latest": "Latest Articles",
+    "readMore": "Read more",
+    "newsletter": {
+      "title": "Subscribe to our newsletter",
+      "description": "Don't miss any articles, receive our latest stories and new collections directly in your inbox."
+    }
+  },
   "home": {
     "title": "Home",
     "seo": {

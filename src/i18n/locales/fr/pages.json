@@ -1,4 +1,128 @@
 {
+  "about": {
+    "title": "À Propos",
+    "seo": {
+      "title": "À Propos - Rif Raw Straw",
+      "description": "Découvrez notre histoire, notre passion pour l'artisanat berbère et notre engagement envers les artisans des montagnes du Rif."
+    },
+    "heading": "À Propos de Rif Raw Straw",
+    "intro": "L'aventure <brand>Rif Raw Straw</brand> commence avec une passion commune : révéler la beauté de l'artisanat berbère et la partager au plus grand nombre.",
+    "paragraph1": "Depuis nos débuts, nous parcourons les ateliers, les marchés et les villages à la recherche de créateurs talentueux. Chaque rencontre, chaque objet, chaque histoire nourrit notre envie de valoriser le fait-main et l'authenticité.",
+    "paragraph2": "Aujourd'hui, notre boutique est le reflet de cette quête : une sélection exigeante, des pièces uniques, et une volonté de tisser un lien entre artisans et amoureux du beau.",
+    "paragraph3": "Merci de faire partie de cette aventure et de soutenir l'artisanat avec nous."
+  },
+  "story": {
+    "title": "Notre Histoire",
+    "seo": {
+      "title": "Notre Histoire - Rif Raw Straw",
+      "description": "Découvrez l'histoire de Rif Raw Straw, notre passion pour l'artisanat berbère et notre quête de valoriser le fait-main authentique."
+    },
+    "heading": "Notre Histoire",
+    "intro": "L'aventure <brand>Rif Raw Straw</brand> commence avec une passion commune : révéler la beauté de l'artisanat et la partager au plus grand nombre.",
+    "paragraph1": "Depuis nos débuts, nous parcourons les ateliers, les marchés et les villages à la recherche de créateurs talentueux. Chaque rencontre, chaque objet, chaque histoire nourrit notre envie de valoriser le fait-main et l'authenticité.",
+    "paragraph2": "Aujourd'hui, notre boutique est le reflet de cette quête : une sélection exigeante, des pièces uniques, et une volonté de tisser un lien entre artisans et amoureux du beau.",
+    "paragraph3": "Merci de faire partie de cette aventure et de soutenir l'artisanat avec nous."
+  },
+  "shipping": {
+    "title": "Livraison & Expédition",
+    "seo": {
+      "title": "Livraison et Expédition - Rif Raw Straw",
+      "description": "Découvrez nos options de livraison pour vos achats d'artisanat marocain. Livraison rapide et sécurisée en France et à l'international."
+    },
+    "heading": "Livraison & Expédition",
+    "delays": {
+      "title": "Délais & Tarifs",
+      "standard": "Livraison standard (3-5 jours ouvrés) :",
+      "standardPrice": "4,90 €",
+      "express": "Livraison express (24/48h) :",
+      "expressPrice": "9,90 €",
+      "freeFrom": "Offerte dès",
+      "freeThreshold": "80 €",
+      "freeLabel": "d'achat"
+    },
+    "zones": {
+      "title": "Zones desservies",
+      "description": "Nous livrons en France métropolitaine, Belgique, Luxembourg et Suisse."
+    },
+    "tracking": {
+      "title": "Suivi & Service",
+      "description": "Un numéro de suivi vous sera envoyé dès l'expédition de votre commande. Pour toute question, contactez-nous via la page"
+    }
+  },
+  "returns": {
+    "title": "Retours & Remboursements",
+    "seo": {
+      "title": "Retours & Remboursements - Rif Raw Straw",
+      "description": "Politique de retour et remboursement pour vos achats d'artisanat marocain. 14 jours pour retourner vos articles."
+    },
+    "heading": "Retours & Remboursements",
+    "policy": {
+      "title": "Politique de retour",
+      "item1": "Vous disposez de 14 jours après réception pour retourner un article.",
+      "item2": "Les produits doivent être neufs, non utilisés et dans leur emballage d'origine.",
+      "item3": "Les frais de retour sont à la charge du client sauf erreur de notre part."
+    },
+    "procedure": {
+      "title": "Procédure",
+      "step1": "Contactez-nous via la page",
+      "step1Link": "Contact",
+      "step1Suffix": "en précisant votre numéro de commande.",
+      "step2": "Nous vous indiquerons l'adresse de retour et la marche à suivre.",
+      "step3": "Après réception et vérification, le remboursement sera effectué sous 7 jours ouvrés."
+    },
+    "questions": "Pour toute question, n'hésitez pas à consulter notre",
+    "faqLink": "FAQ",
+    "questionsSuffix": "ou à nous écrire."
+  },
+  "terms": {
+    "title": "Conditions d'utilisation",
+    "seo": {
+      "title": "Conditions d'utilisation - Rif Raw Straw",
+      "description": "Consultez nos conditions d'utilisation pour comprendre les règles et modalités d'usage de notre boutique d'artisanat marocain."
+    },
+    "heading": "Conditions d'utilisation",
+    "intro": "En accédant à ce site, vous acceptez nos conditions d'utilisation. Veuillez lire attentivement les informations ci-dessous.",
+    "items": {
+      "item1": "Le contenu du site est protégé par le droit d'auteur.",
+      "item2": "Vous ne pouvez pas reproduire, distribuer ou exploiter le contenu sans autorisation écrite.",
+      "item3": "Les prix et informations produits sont susceptibles d'être modifiés à tout moment.",
+      "item4": "Nous nous réservons le droit de refuser une commande en cas de litige antérieur."
+    },
+    "contact": "Pour toute question, contactez-nous via la page"
+  },
+  "cgv": {
+    "title": "Conditions Générales de Vente",
+    "seo": {
+      "title": "Conditions Générales de Vente - Rif Raw Straw",
+      "description": "Consultez nos conditions générales de vente pour vos achats d'artisanat berbère. Garanties, modalités de paiement et de livraison."
+    },
+    "heading": "Conditions Générales de Vente",
+    "items": {
+      "item1": "Les commandes sont payables comptant à la commande.",
+      "item2": "Les produits restent la propriété du vendeur jusqu'au paiement complet.",
+      "item3": "Le client dispose d'un délai de rétractation de 14 jours après réception.",
+      "item4": "Les retours doivent être effectués dans l'emballage d'origine et en parfait état.",
+      "item5": "En cas de litige, le tribunal compétent sera celui du siège social du vendeur."
+    },
+    "contact": "Pour plus de détails, contactez-nous via la page"
+  },
+  "blog": {
+    "title": "Blog",
+    "seo": {
+      "title": "Journal de l'Artisanat - Blog | Rif Raw Straw",
+      "description": "Découvrez les histoires derrière nos créations, rencontrez nos artisans, et plongez dans la richesse de l'artisanat marocain."
+    },
+    "badge": "Notre Blog",
+    "heading": "Journal de l'Artisanat",
+    "description": "Découvrez les histoires derrière nos créations, rencontrez nos artisans, et plongez dans la richesse de l'artisanat marocain.",
+    "featured": "Articles à la Une",
+    "latest": "Derniers Articles",
+    "readMore": "Lire la suite",
+    "newsletter": {
+      "title": "Abonnez-vous à notre newsletter",
+      "description": "Ne manquez aucun article, recevez nos dernières histoires et nouvelles collections directement dans votre boîte mail."
+    }
+  },
   "home": {
     "title": "Accueil",
     "seo": {
