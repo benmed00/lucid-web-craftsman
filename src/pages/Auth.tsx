@@ -49,8 +49,8 @@ export default function Auth() {
     const clientId = navigator.userAgent + window.location.hostname;
     if (!authRateLimiter(clientId)) {
       toast({
-        title: "Trop de tentatives",
-        description: "Veuillez attendre 15 minutes avant de réessayer",
+        title: t('auth:errors.tooManyAttempts'),
+        description: t('auth:errors.tooManyAttempts'),
         variant: "destructive"
       });
       return;
@@ -61,19 +61,19 @@ export default function Auth() {
       const sanitizedEmail = validateAndSanitizeEmail(email);
       
       if (!password) {
-        throw new Error("Mot de passe requis");
+        throw new Error(t('auth:errors.passwordRequired'));
       }
 
       setIsLoading(true);
       await signIn(sanitizedEmail, password);
       toast({
-        title: "Connexion réussie",
-        description: "Bienvenue !"
+        title: t('auth:messages.loggedIn'),
+        description: t('auth:messages.welcome')
       });
     } catch (error: any) {
       toast({
-        title: "Erreur de connexion",
-        description: error.message || "Email ou mot de passe incorrect",
+        title: t('auth:errors.invalidCredentials'),
+        description: error.message || t('auth:errors.invalidCredentials'),
         variant: "destructive"
       });
     } finally {
@@ -88,8 +88,8 @@ export default function Auth() {
     const clientId = navigator.userAgent + window.location.hostname;
     if (!authRateLimiter(clientId)) {
       toast({
-        title: "Trop de tentatives",
-        description: "Veuillez attendre 15 minutes avant de réessayer",
+        title: t('auth:errors.tooManyAttempts'),
+        description: t('auth:errors.tooManyAttempts'),
         variant: "destructive"
       });
       return;
@@ -103,19 +103,19 @@ export default function Auth() {
       validatePassword(password);
 
       if (password !== confirmPassword) {
-        throw new Error("Les mots de passe ne correspondent pas");
+        throw new Error(t('auth:errors.passwordMismatch'));
       }
 
       setIsLoading(true);
       await signUp(sanitizedEmail, password, sanitizedFullName, phone || undefined);
       toast({
-        title: "Inscription réussie",
-        description: "Bienvenue ! Votre compte a été créé avec succès."
+        title: t('auth:messages.accountCreated'),
+        description: t('auth:messages.welcome')
       });
     } catch (error: any) {
       toast({
-        title: "Erreur d'inscription",
-        description: error.message || "Une erreur s'est produite lors de l'inscription",
+        title: t('auth:errors.networkError'),
+        description: error.message || t('auth:errors.networkError'),
         variant: "destructive"
       });
     } finally {
@@ -147,8 +147,8 @@ export default function Auth() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
               </div>
-              <h1 className="text-4xl font-serif font-bold text-foreground mb-2">Artisan du Rif</h1>
-              <p className="text-muted-foreground text-lg">Artisanat authentique du Maroc</p>
+              <h1 className="text-4xl font-serif font-bold text-foreground mb-2">{t('auth:page.brandName')}</h1>
+              <p className="text-muted-foreground text-lg">{t('auth:page.brandDescription')}</p>
               <div className="mt-2 w-16 h-1 bg-primary rounded-full mx-auto"></div>
             </div>
             
@@ -188,8 +188,8 @@ export default function Auth() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
               </svg>
             </div>
-            <h1 className="text-4xl font-serif font-bold text-foreground mb-2">Artisan du Rif</h1>
-            <p className="text-muted-foreground text-lg">Artisanat authentique du Maroc</p>
+            <h1 className="text-4xl font-serif font-bold text-foreground mb-2">{t('auth:page.brandName')}</h1>
+            <p className="text-muted-foreground text-lg">{t('auth:page.brandDescription')}</p>
             <div className="mt-2 w-16 h-1 bg-primary rounded-full mx-auto"></div>
           </div>
 
@@ -198,7 +198,7 @@ export default function Auth() {
               <div 
                 className="grid grid-cols-2 gap-2 p-1.5 bg-card/60 backdrop-blur-sm border border-border rounded-xl shadow-sm"
                 role="tablist"
-                aria-label="Méthodes d'authentification"
+                aria-label={t('auth:page.authMethods')}
               >
                 <button
                   type="button"
@@ -213,7 +213,7 @@ export default function Auth() {
                   }`}
                 >
                   <Shield className="h-4 w-4" aria-hidden="true" />
-                  <span className="text-sm">Classique</span>
+                  <span className="text-sm">{t('auth:page.traditional')}</span>
                 </button>
                 <button
                   type="button"
@@ -228,7 +228,7 @@ export default function Auth() {
                   }`}
                 >
                   <Smartphone className="h-4 w-4" aria-hidden="true" />
-                  <span className="text-sm">Code sécurisé</span>
+                  <span className="text-sm">{t('auth:page.secureCode')}</span>
                 </button>
               </div>
           </div>
@@ -239,9 +239,9 @@ export default function Auth() {
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Smartphone className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle className="text-2xl font-serif text-foreground">Authentification sécurisée</CardTitle>
+                <CardTitle className="text-2xl font-serif text-foreground">{t('auth:otp.title')}</CardTitle>
                 <CardDescription className="text-muted-foreground">
-                  Connectez-vous ou créez un compte avec un code de sécurité
+                  {t('auth:otp.subtitle')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 p-6">
@@ -251,7 +251,7 @@ export default function Auth() {
                   variant="default"
                 >
                   <Mail className="h-5 w-5 mr-3" />
-                  <span className="font-medium">Se connecter par code</span>
+                  <span className="font-medium">{t('auth:otp.signInByCode')}</span>
                 </Button>
                 <Button 
                   onClick={() => setOtpFlow('signup')} 
@@ -259,7 +259,7 @@ export default function Auth() {
                   variant="outline"
                 >
                   <Shield className="h-5 w-5 mr-3" />
-                  <span className="font-medium">S'inscrire par code</span>
+                  <span className="font-medium">{t('auth:otp.signUpByCode')}</span>
                 </Button>
                 <Button 
                   onClick={() => setOtpFlow('reset')} 
@@ -267,7 +267,7 @@ export default function Auth() {
                   variant="ghost"
                   size="sm"
                 >
-                  Mot de passe oublié ?
+                  {t('auth:login.forgotPassword')}
                 </Button>
               </CardContent>
             </Card>
@@ -277,9 +277,9 @@ export default function Auth() {
               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <Shield className="h-6 w-6 text-primary" />
               </div>
-              <CardTitle className="text-2xl font-serif text-foreground">Bienvenue</CardTitle>
+              <CardTitle className="text-2xl font-serif text-foreground">{t('auth:page.welcome')}</CardTitle>
               <CardDescription className="text-muted-foreground">
-                Connectez-vous ou créez un compte pour découvrir nos créations artisanales
+                {t('auth:page.welcomeDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
@@ -289,13 +289,13 @@ export default function Auth() {
                     value="signin" 
                     className="data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-primary font-medium py-3 rounded-lg transition-all duration-300"
                   >
-                    Se connecter
+                    {t('auth:login.submit')}
                   </TabsTrigger>
                   <TabsTrigger 
                     value="signup" 
                     className="data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-primary font-medium py-3 rounded-lg transition-all duration-300"
                   >
-                    S'inscrire
+                    {t('auth:register.submit')}
                   </TabsTrigger>
                 </TabsList>
 
@@ -303,7 +303,7 @@ export default function Auth() {
                   <form onSubmit={handleSignIn} className="space-y-5">
                     <input type="hidden" name="csrf_token" value={csrfToken} />
                     <div className="space-y-2">
-                      <Label htmlFor="signin-email" className="text-foreground font-medium">Email</Label>
+                      <Label htmlFor="signin-email" className="text-foreground font-medium">{t('auth:login.email')}</Label>
                       <Input
                         id="signin-email"
                         type="email"
@@ -316,7 +316,7 @@ export default function Auth() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signin-password" className="text-foreground font-medium">Mot de passe</Label>
+                      <Label htmlFor="signin-password" className="text-foreground font-medium">{t('auth:login.password')}</Label>
                       <div className="relative">
                         <Input
                           id="signin-password"
@@ -346,10 +346,10 @@ export default function Auth() {
                       {isLoading ? (
                         <>
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
-                          Connexion...
+                          {t('auth:login.loading')}
                         </>
                       ) : (
-                        "Se connecter"
+                        t('auth:login.submit')
                       )}
                     </Button>
                   </form>
@@ -360,7 +360,7 @@ export default function Auth() {
                     <input type="hidden" name="csrf_token" value={csrfToken} />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="signup-name" className="text-foreground font-medium">Nom complet</Label>
+                        <Label htmlFor="signup-name" className="text-foreground font-medium">{t('auth:register.fullName')}</Label>
                         <Input
                           id="signup-name"
                           type="text"
@@ -373,7 +373,7 @@ export default function Auth() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="signup-phone" className="text-foreground font-medium">Téléphone <span className="text-muted-foreground text-sm">(optionnel)</span></Label>
+                        <Label htmlFor="signup-phone" className="text-foreground font-medium">{t('auth:register.phone')}</Label>
                         <Input
                           id="signup-phone"
                           type="tel"
@@ -386,7 +386,7 @@ export default function Auth() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-email" className="text-foreground font-medium">Email</Label>
+                      <Label htmlFor="signup-email" className="text-foreground font-medium">{t('auth:register.email')}</Label>
                       <Input
                         id="signup-email"
                         type="email"
@@ -399,7 +399,7 @@ export default function Auth() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-password" className="text-foreground font-medium">Mot de passe</Label>
+                      <Label htmlFor="signup-password" className="text-foreground font-medium">{t('auth:register.password')}</Label>
                       <div className="relative">
                         <Input
                           id="signup-password"
@@ -422,7 +422,7 @@ export default function Auth() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="confirm-password" className="text-foreground font-medium">Confirmer le mot de passe</Label>
+                      <Label htmlFor="confirm-password" className="text-foreground font-medium">{t('auth:register.confirmPassword')}</Label>
                       <div className="relative">
                         <Input
                           id="confirm-password"
@@ -452,10 +452,10 @@ export default function Auth() {
                       {isLoading ? (
                         <>
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
-                          Création du compte...
+                          {t('auth:register.loading')}
                         </>
                       ) : (
-                        "Créer un compte"
+                        t('auth:register.submit')
                       )}
                     </Button>
                   </form>
@@ -475,7 +475,7 @@ export default function Auth() {
                 className="text-muted-foreground hover:text-primary hover:bg-card/60 px-6 py-3 rounded-lg transition-all duration-300"
               >
                 <Mail className="h-4 w-4 mr-2" />
-                Mot de passe oublié ? Utiliser un code sécurisé
+                {t('auth:login.forgotPassword')}
               </Button>
             </div>
           )}
@@ -490,13 +490,13 @@ export default function Auth() {
               <svg className="h-4 w-4 mr-2 transition-transform duration-300 group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Retour à l'accueil
+              {t('common:nav.home')}
             </Button>
           </div>
 
           {/* Footer */}
           <div className="text-center mt-8 text-muted-foreground text-sm animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <p>© 2024 Artisan du Rif - Artisanat authentique</p>
+            <p>© 2024 {t('auth:page.brandName')} - {t('auth:page.brandDescription')}</p>
           </div>
         </div>
       </div>
