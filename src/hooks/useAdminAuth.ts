@@ -44,23 +44,50 @@ export const useAdminAuth = () => {
       currentUserIdRef.current = user.id;
 
       try {
-        // Check if user has admin profile
-        const { data: adminProfile, error } = await supabase
-          .from('admin_users')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
+        // Use server-side verification function (cannot be spoofed via DevTools)
+        const { data: verifyResult, error: verifyError } = await supabase
+          .rpc('verify_admin_session');
 
-        if (error || !adminProfile) {
-          setAdminUser(null);
-          setIsAuthenticated(false);
-        } else {
+        if (verifyError) {
+          console.error('Error verifying admin session:', verifyError);
+          // Fallback to direct query if RPC fails
+          const { data: adminProfile, error } = await supabase
+            .from('admin_users')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+          if (error || !adminProfile) {
+            setAdminUser(null);
+            setIsAuthenticated(false);
+          } else {
+            const admin: AdminUser = {
+              id: adminProfile.id,
+              email: adminProfile.email,
+              name: adminProfile.name,
+              role: adminProfile.role as 'admin' | 'super-admin',
+              lastLogin: adminProfile.last_login || new Date().toISOString()
+            };
+            setAdminUser(admin);
+            setIsAuthenticated(true);
+          }
+        } else if (verifyResult && verifyResult.length > 0 && verifyResult[0].is_admin) {
+          // Server verified admin status - this is secure
+          const result = verifyResult[0];
+          
+          // Fetch full admin profile for additional details
+          const { data: adminProfile } = await supabase
+            .from('admin_users')
+            .select('id, last_login')
+            .eq('user_id', user.id)
+            .single();
+
           const admin: AdminUser = {
-            id: adminProfile.id,
-            email: adminProfile.email,
-            name: adminProfile.name,
-            role: adminProfile.role as 'admin' | 'super-admin',
-            lastLogin: adminProfile.last_login || new Date().toISOString()
+            id: adminProfile?.id || user.id,
+            email: result.admin_email || user.email || '',
+            name: result.admin_name || '',
+            role: result.admin_role as 'admin' | 'super-admin',
+            lastLogin: adminProfile?.last_login || new Date().toISOString()
           };
           setAdminUser(admin);
           setIsAuthenticated(true);
@@ -70,6 +97,10 @@ export const useAdminAuth = () => {
             .from('admin_users')
             .update({ last_login: new Date().toISOString() })
             .eq('user_id', user.id);
+        } else {
+          // Server verified: not an admin
+          setAdminUser(null);
+          setIsAuthenticated(false);
         }
         
         hasCheckedRef.current = true;
@@ -109,10 +140,26 @@ export const useAdminAuth = () => {
     }
   };
 
+  // Re-verify admin status on demand (for sensitive operations)
+  const reverifyAdmin = async (): Promise<boolean> => {
+    try {
+      const { data: verifyResult, error } = await supabase.rpc('verify_admin_session');
+      if (error || !verifyResult || verifyResult.length === 0) {
+        setIsAuthenticated(false);
+        setAdminUser(null);
+        return false;
+      }
+      return verifyResult[0].is_admin === true;
+    } catch {
+      return false;
+    }
+  };
+
   return {
     user: adminUser,
     isLoading,
     isAuthenticated,
+    reverifyAdmin,
     login: () => {
       throw new Error('Use regular auth login instead');
     },
