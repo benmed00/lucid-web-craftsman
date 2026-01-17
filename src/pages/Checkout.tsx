@@ -2,6 +2,7 @@ import { ArrowLeft, CheckCircle, CreditCard, Tag, Loader2, X, Truck, AlertCircle
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Stripe } from "@stripe/stripe-js"; // Type import only
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +56,7 @@ interface FreeShippingSettings {
 }
 
 const Checkout = () => {
+  const { t } = useTranslation("checkout");
   const { loadStripe } = useLazyStripe();
   const { cart } = useCart();
   const { formatPrice } = useCurrency();
@@ -184,7 +186,7 @@ const Checkout = () => {
     // First validate the promo code format
     const promoValidation = validatePromoCode(promoCode);
     if (!promoValidation.success) {
-      setPromoError(promoValidation.error || "Code promo invalide");
+      setPromoError(promoValidation.error || t("promo.invalid"));
       return;
     }
 
@@ -201,7 +203,7 @@ const Checkout = () => {
         .single();
 
       if (error || !data) {
-        setPromoError("Code promo invalide ou expiré");
+        setPromoError(t("promo.invalid"));
         setIsValidatingPromo(false);
         return;
       }
@@ -209,26 +211,26 @@ const Checkout = () => {
       // Check validity dates
       const now = new Date();
       if (data.valid_from && new Date(data.valid_from) > now) {
-        setPromoError("Ce code promo n'est pas encore actif");
+        setPromoError(t("promo.invalid"));
         setIsValidatingPromo(false);
         return;
       }
       if (data.valid_until && new Date(data.valid_until) < now) {
-        setPromoError("Ce code promo a expiré");
+        setPromoError(t("promo.expired"));
         setIsValidatingPromo(false);
         return;
       }
 
       // Check usage limit
       if (data.usage_limit && data.usage_count >= data.usage_limit) {
-        setPromoError("Ce code promo a atteint sa limite d'utilisation");
+        setPromoError(t("promo.limitReached"));
         setIsValidatingPromo(false);
         return;
       }
 
       // Check minimum order amount
       if (data.minimum_order_amount && subtotal < data.minimum_order_amount) {
-        setPromoError(`Commande minimum de ${formatPrice(data.minimum_order_amount)} requise`);
+        setPromoError(t("promo.minOrder", { amount: formatPrice(data.minimum_order_amount) }));
         setIsValidatingPromo(false);
         return;
       }
@@ -241,10 +243,10 @@ const Checkout = () => {
       setAppliedCoupon(coupon);
       saveCoupon(coupon as any); // Persist coupon for Stripe redirect
       setPromoCode("");
-      toast.success("Code promo appliqué !");
+      toast.success(t("promo.applied"));
     } catch (err) {
       console.error("Error validating promo code:", err);
-      setPromoError("Erreur lors de la validation du code");
+      setPromoError(t("errors.genericError"));
     } finally {
       setIsValidatingPromo(false);
     }
@@ -254,7 +256,7 @@ const Checkout = () => {
   const removePromoCode = () => {
     setAppliedCoupon(null);
     saveCoupon(null); // Clear persisted coupon
-    toast.info("Code promo retiré");
+    toast.info(t("promo.remove"));
   };
 
   // Calculate discount amount
@@ -285,7 +287,7 @@ const Checkout = () => {
     // Anti-bot check: if honeypot is filled, silently fail
     if (honeypot) {
       console.warn("Bot detected via honeypot");
-      toast.error("Une erreur est survenue. Veuillez réessayer.");
+      toast.error(t("errors.genericError"));
       return;
     }
     
@@ -303,7 +305,7 @@ const Checkout = () => {
       if (!validation.success) {
         setFormErrors(validation.errors || {});
         const firstError = Object.values(validation.errors || {})[0];
-        toast.error(firstError || "Veuillez corriger les erreurs du formulaire");
+        toast.error(firstError || t("errors.requiredField"));
         return;
       }
       
@@ -335,7 +337,7 @@ const Checkout = () => {
       if (!validation.success) {
         setFormErrors(validation.errors || {});
         const firstError = Object.values(validation.errors || {})[0];
-        toast.error(firstError || "Veuillez corriger les erreurs du formulaire");
+        toast.error(firstError || t("errors.requiredField"));
         return;
       }
       
@@ -379,7 +381,7 @@ const Checkout = () => {
       // Anti-bot check
       if (honeypot) {
         console.warn("Bot detected via honeypot");
-        toast.error("Une erreur est survenue. Veuillez réessayer.");
+        toast.error(t("errors.genericError"));
         setIsProcessing(false);
         return;
       }
@@ -388,13 +390,13 @@ const Checkout = () => {
       const { minOrderAmount, maxOrderAmount, highValueThreshold } = businessRules.cart;
       
       if (minOrderAmount > 0 && subtotal < minOrderAmount) {
-        toast.error(`Le montant minimum de commande est de ${formatPrice(minOrderAmount)}`);
+        toast.error(t("promo.minOrder", { amount: formatPrice(minOrderAmount) }));
         setIsProcessing(false);
         return;
       }
       
       if (maxOrderAmount > 0 && subtotal > maxOrderAmount) {
-        toast.error(`Le montant maximum de commande est de ${formatPrice(maxOrderAmount)}. Contactez-nous pour les commandes importantes.`);
+        toast.error(t("errors.genericError"));
         setIsProcessing(false);
         return;
       }
@@ -404,7 +406,7 @@ const Checkout = () => {
       if (!fullValidation.success) {
         setFormErrors(fullValidation.errors || {});
         const firstError = Object.values(fullValidation.errors || {})[0];
-        toast.error(firstError || "Veuillez vérifier vos informations");
+        toast.error(firstError || t("errors.requiredField"));
         setIsProcessing(false);
         return;
       }
@@ -425,7 +427,7 @@ const Checkout = () => {
           `${cartItems.find(item => item.product.id === error.productId)?.product.name}: ${error.error}`
         ).join('\n');
         
-        toast.error(`Stock insuffisant:\n${errorMessages}`);
+        toast.error(t("errors.stockError") + `:\n${errorMessages}`);
         setIsProcessing(false);
         return;
       }
@@ -461,7 +463,7 @@ const Checkout = () => {
 
     } catch (error) {
       console.error("Payment error:", error);
-      toast.error("Erreur lors du paiement");
+      toast.error(t("errors.paymentFailed"));
       setIsProcessing(false);
     }
   };
@@ -489,23 +491,23 @@ const Checkout = () => {
     return (
       <div className="min-h-screen bg-background">
         <SEOHelmet
-          title="Paiement - Rif Raw Straw"
-          description="Finalisez votre commande de produits artisanaux berbères en toute sécurité."
+          title={t("payment.title") + " - Rif Raw Straw"}
+          description={t("payment.securePayment")}
           keywords={["paiement", "checkout", "commande sécurisée"]}
           url="/checkout"
           type="website"
         />
         <div className="container mx-auto px-4 py-16">
           <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-8 text-center">
-            Paiement
+            {t("payment.title")}
           </h1>
           <div className="text-center">
-            <p className="text-muted-foreground">Votre panier est vide</p>
+            <p className="text-muted-foreground">{t("cart.empty")}</p>
             <Button 
               className="mt-4" 
               onClick={() => window.location.href = '/products'}
             >
-              Voir nos produits
+              {t("cart.continueShopping")}
             </Button>
           </div>
         </div>
@@ -517,15 +519,15 @@ const Checkout = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHelmet
-        title="Paiement Sécurisé - Rif Raw Straw"
-        description="Finalisez votre commande de produits artisanaux berbères. Paiement sécurisé par Stripe. Livraison en France et international."
+        title={t("payment.title") + " - Rif Raw Straw"}
+        description={t("payment.securePayment")}
         keywords={["paiement sécurisé", "checkout", "commande", "artisanat berbère"]}
         url="/checkout"
         type="website"
       />
       <div className="container mx-auto px-4 py-6 md:py-12 pb-24 md:pb-12">
         <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground mb-4 md:mb-8 text-center">
-          Paiement sécurisé
+          {t("payment.title")}
         </h1>
 
         {/* Enhanced Checkout Progress - Clickable steps */}
@@ -568,7 +570,7 @@ const Checkout = () => {
 
               {!isFormLoading && hasRestoredState && step === 1 && (
                 <fieldset className="space-y-6 animate-fade-in">
-                  <legend className="text-xl font-medium mb-4">Vos Coordonnées</legend>
+                  <legend className="text-xl font-medium mb-4">{t("steps.information")}</legend>
                   
                   {/* Honeypot field - hidden from real users */}
                   <div className="absolute -left-[9999px]" aria-hidden="true">
@@ -587,7 +589,7 @@ const Checkout = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormFieldWithValidation
                       id="firstName"
-                      label="Prénom"
+                      label={t("form.firstName")}
                       value={formData.firstName}
                       onChange={(value) => {
                         setFormData(prev => ({ ...prev, firstName: value }));
@@ -598,20 +600,20 @@ const Checkout = () => {
                         });
                       }}
                       error={formErrors.firstName}
-                      placeholder="Votre prénom"
+                      placeholder={t("form.firstName")}
                       required
                       autoComplete="given-name"
                       maxLength={50}
                       validate={(value) => {
-                        if (value.length < 2) return "Le prénom doit contenir au moins 2 caractères";
-                        if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value)) return "Caractères non autorisés";
+                        if (value.length < 2) return t("errors.requiredField");
+                        if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value)) return t("errors.requiredField");
                         return null;
                       }}
                     />
 
                     <FormFieldWithValidation
                       id="lastName"
-                      label="Nom"
+                      label={t("form.lastName")}
                       value={formData.lastName}
                       onChange={(value) => {
                         setFormData(prev => ({ ...prev, lastName: value }));
@@ -622,13 +624,13 @@ const Checkout = () => {
                         });
                       }}
                       error={formErrors.lastName}
-                      placeholder="Votre nom"
+                      placeholder={t("form.lastName")}
                       required
                       autoComplete="family-name"
                       maxLength={50}
                       validate={(value) => {
-                        if (value.length < 2) return "Le nom doit contenir au moins 2 caractères";
-                        if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value)) return "Caractères non autorisés";
+                        if (value.length < 2) return t("errors.requiredField");
+                        if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value)) return t("errors.requiredField");
                         return null;
                       }}
                     />
@@ -636,7 +638,7 @@ const Checkout = () => {
 
                   <FormFieldWithValidation
                     id="email"
-                    label="Email"
+                    label={t("form.email")}
                     type="email"
                     value={formData.email}
                     onChange={(value) => {
@@ -648,15 +650,14 @@ const Checkout = () => {
                       });
                     }}
                     error={formErrors.email}
-                    placeholder="votre.email@exemple.com"
+                    placeholder="email@example.com"
                     required
                     autoComplete="email"
                     maxLength={254}
-                    helpText="Nous vous enverrons la confirmation de commande à cette adresse"
                     validate={(value) => {
-                      if (!value.includes('@')) return "Adresse email invalide";
+                      if (!value.includes('@')) return t("errors.invalidEmail");
                       if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
-                        return "Format d'email invalide";
+                        return t("errors.invalidEmail");
                       }
                       return null;
                     }}
@@ -664,7 +665,7 @@ const Checkout = () => {
 
                   <FormFieldWithValidation
                     id="phone"
-                    label="Téléphone"
+                    label={t("form.phone")}
                     type="tel"
                     value={formData.phone}
                     onChange={(value) => {
@@ -679,12 +680,11 @@ const Checkout = () => {
                     placeholder="+33 6 12 34 56 78"
                     autoComplete="tel"
                     maxLength={20}
-                    helpText="Pour vous contacter en cas de problème avec votre commande"
                     showSuccessState={false}
                     validate={(value) => {
                       if (!value) return null; // Optional field
                       if (!/^[\+]?[(]?[0-9]{1,4}[)]?[-\s\./0-9]*$/.test(value)) {
-                        return "Format de téléphone invalide";
+                        return t("errors.invalidPhone");
                       }
                       return null;
                     }}
@@ -695,11 +695,11 @@ const Checkout = () => {
                     onClick={goToNextStep}
                     aria-describedby="step1-instructions"
                   >
-                    Continuer vers la livraison
+                    {t("steps.shipping")}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                   <p id="step1-instructions" className="sr-only">
-                    Passer à l'étape suivante pour saisir votre adresse de livraison
+                    {t("steps.shipping")}
                   </p>
                 </fieldset>
               )}
@@ -718,16 +718,16 @@ const Checkout = () => {
                       className="text-primary hover:text-primary/80 flex items-center text-sm"
                       onClick={() => handleEditStep(1)}
                     >
-                      <ArrowLeft className="h-4 w-4 mr-1" /> Retour
+                      <ArrowLeft className="h-4 w-4 mr-1" /> {t("cart.continueShopping").split(' ')[0]}
                     </button>
                     <h2 className="text-xl font-medium ml-4">
-                      Adresse de Livraison
+                      {t("shipping.title")}
                     </h2>
                   </div>
 
                   <FormFieldWithValidation
                     id="address"
-                    label="Adresse"
+                    label={t("form.address")}
                     value={formData.address}
                     onChange={(value) => {
                       setFormData(prev => ({ ...prev, address: value }));
@@ -738,19 +738,19 @@ const Checkout = () => {
                       });
                     }}
                     error={formErrors.address}
-                    placeholder="Numéro et nom de rue"
+                    placeholder={t("form.address")}
                     required
                     autoComplete="street-address"
                     maxLength={200}
                     validate={(value) => {
-                      if (value.length < 5) return "L'adresse doit contenir au moins 5 caractères";
+                      if (value.length < 5) return t("errors.requiredField");
                       return null;
                     }}
                   />
 
                   <FormFieldWithValidation
                     id="addressComplement"
-                    label="Complément d'adresse"
+                    label={t("form.addressLine2")}
                     value={formData.addressComplement}
                     onChange={(value) => {
                       setFormData(prev => ({ ...prev, addressComplement: value }));
@@ -761,7 +761,7 @@ const Checkout = () => {
                       });
                     }}
                     error={formErrors.addressComplement}
-                    placeholder="Appartement, étage, code d'entrée..."
+                    placeholder={t("form.addressLine2")}
                     autoComplete="address-line2"
                     maxLength={100}
                     showSuccessState={false}
@@ -770,7 +770,7 @@ const Checkout = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormFieldWithValidation
                       id="postalCode"
-                      label="Code postal"
+                      label={t("form.postalCode")}
                       value={formData.postalCode}
                       onChange={(value) => {
                         setFormData(prev => ({ ...prev, postalCode: value }));
@@ -795,7 +795,7 @@ const Checkout = () => {
                         };
                         const pattern = countryPatterns[formData.country];
                         if (pattern && !pattern.test(value)) {
-                          return `Code postal invalide pour ${formData.country === 'FR' ? 'la France' : formData.country}`;
+                          return t("errors.invalidPostalCode");
                         }
                         return null;
                       }}
@@ -804,7 +804,7 @@ const Checkout = () => {
                     <div className="md:col-span-2">
                       <FormFieldWithValidation
                         id="city"
-                        label="Ville"
+                        label={t("form.city")}
                         value={formData.city}
                         onChange={(value) => {
                           setFormData(prev => ({ ...prev, city: value }));
@@ -815,13 +815,13 @@ const Checkout = () => {
                           });
                         }}
                         error={formErrors.city}
-                        placeholder="Paris"
+                        placeholder={t("form.city")}
                         required
                         autoComplete="address-level2"
                         maxLength={100}
                         validate={(value) => {
-                          if (value.length < 2) return "La ville doit contenir au moins 2 caractères";
-                          if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value)) return "Caractères non autorisés";
+                          if (value.length < 2) return t("errors.requiredField");
+                          if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value)) return t("errors.requiredField");
                           return null;
                         }}
                       />
@@ -829,7 +829,7 @@ const Checkout = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="country">Pays *</Label>
+                    <Label htmlFor="country">{t("form.country")} *</Label>
                     <select
                       id="country"
                       className={`w-full h-10 px-3 py-2 border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors ${
@@ -856,7 +856,7 @@ const Checkout = () => {
                     className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground gap-2 min-h-[48px] text-base"
                     onClick={goToNextStep}
                   >
-                    Continuer vers le paiement
+                    {t("steps.payment")}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -877,10 +877,10 @@ const Checkout = () => {
                       className="text-primary hover:text-primary/80 flex items-center text-sm"
                       onClick={() => handleEditStep(2)}
                     >
-                      <ArrowLeft className="h-4 w-4 mr-1" /> Retour
+                      <ArrowLeft className="h-4 w-4 mr-1" /> {t("cart.continueShopping").split(' ')[0]}
                     </button>
                     <h2 className="text-xl font-medium ml-4">
-                      Méthode de Paiement
+                      {t("payment.title")}
                     </h2>
                   </div>
 
@@ -908,14 +908,14 @@ const Checkout = () => {
                             htmlFor="card"
                             className="text-lg flex items-center cursor-pointer"
                           >
-                            <CreditCard className="mr-2 h-5 w-5" /> Carte bancaire
+                            <CreditCard className="mr-2 h-5 w-5" /> {t("payment.payNow")}
                           </Label>
                           <p className="text-sm text-muted-foreground mt-1">
                             Visa, Mastercard, American Express
                           </p>
                           {paymentMethod === "card" && (
                             <p className="text-xs text-primary mt-2 animate-fade-in">
-                              Vous serez redirigé vers notre page de paiement sécurisée Stripe
+                              {t("payment.redirecting")}
                             </p>
                           )}
                         </div>
@@ -949,10 +949,10 @@ const Checkout = () => {
             </div>
 
             {/* Order Summary */}
-            <div className="lg:col-span-1">
-              <div className="border border-border rounded-lg p-6 bg-secondary sticky top-8">
+              <div className="lg:col-span-1">
+                <div className="border border-border rounded-lg p-6 bg-secondary sticky top-8">
                 <h3 className="font-serif text-xl text-foreground mb-4">
-                  Récapitulatif de la commande
+                  {t("cart.title")}
                 </h3>
 
                 {/* Order Items */}
@@ -971,7 +971,7 @@ const Checkout = () => {
                           {item.product.name}
                         </h4>
                         <div className="text-xs text-muted-foreground mt-1">
-                          Quantité: {item.quantity}
+                          {t("cart.updateQuantity")}: {item.quantity}
                         </div>
                       </div>
                       <div className="text-primary font-medium">
@@ -987,7 +987,7 @@ const Checkout = () => {
                 <div className="mb-4">
                   <Label className="text-sm font-medium mb-2 flex items-center gap-1">
                     <Tag className="h-4 w-4" />
-                    Code promo
+                    {t("promo.label")}
                   </Label>
                   
                   {appliedCoupon ? (
@@ -1012,7 +1012,7 @@ const Checkout = () => {
                   ) : (
                     <div className="flex gap-2 mt-2">
                       <Input
-                        placeholder="Entrez votre code"
+                        placeholder={t("promo.placeholder")}
                         value={promoCode}
                         onChange={(e) => {
                           setPromoCode(e.target.value.toUpperCase());
@@ -1036,7 +1036,7 @@ const Checkout = () => {
                         {isValidatingPromo ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          "Appliquer"
+                          t("promo.apply")
                         )}
                       </Button>
                     </div>
@@ -1052,25 +1052,25 @@ const Checkout = () => {
                 {/* Order Totals */}
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Sous-total</span>
+                    <span className="text-muted-foreground">{t("cart.subtotal")}</span>
                     <span className="font-medium">{formatPrice(subtotal)}</span>
                   </div>
                   
                   {discount > 0 && (
                     <div className="flex justify-between text-primary">
-                      <span>Réduction</span>
+                      <span>{t("cart.discount")}</span>
                       <span className="font-medium">-{formatPrice(discount)}</span>
                     </div>
                   )}
                   
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Frais de livraison</span>
+                    <span className="text-muted-foreground">{t("cart.shipping")}</span>
                     {hasFreeShipping ? (
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground line-through text-sm">{formatPrice(shippingCost)}</span>
                         <span className="font-medium text-primary flex items-center gap-1">
                           <Truck className="h-3 w-3" />
-                          Gratuit
+                          {t("cart.shippingFree")}
                         </span>
                       </div>
                     ) : (
@@ -1082,12 +1082,12 @@ const Checkout = () => {
                   {!hasFreeShipping && freeShippingSettings.enabled && subtotal > 0 && (
                     <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded-md">
                       <Truck className="h-3 w-3 inline mr-1" />
-                      Plus que {formatPrice(freeShippingSettings.amount - subtotal)} pour la livraison gratuite !
+                      {t("shipping.freeFrom", { amount: formatPrice(freeShippingSettings.amount - subtotal) })}
                     </div>
                   )}
                   <Separator className="my-2" />
                   <div className="flex justify-between text-lg">
-                    <span className="font-medium">Total</span>
+                    <span className="font-medium">{t("cart.total")}</span>
                     <span className="font-medium text-primary">
                       {formatPrice(total)}
                     </span>
@@ -1098,7 +1098,7 @@ const Checkout = () => {
                 <div className="bg-background p-3 rounded-md border border-border mt-6">
                   <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
                     <CheckCircle className="h-4 w-4 text-primary" />
-                    <span>Paiement 100% sécurisé</span>
+                    <span>{t("payment.securePayment")}</span>
                   </div>
                 </div>
               </div>
@@ -1117,7 +1117,7 @@ const Checkout = () => {
               onClick={() => handleEditStep(step - 1)}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour
+              {t("cart.continueShopping").split(' ')[0]}
             </Button>
           ) : (
             <Button
@@ -1126,7 +1126,7 @@ const Checkout = () => {
               onClick={() => window.history.back()}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Panier
+              {t("cart.title")}
             </Button>
           )}
           
@@ -1135,7 +1135,7 @@ const Checkout = () => {
               className="flex-1 min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground"
               onClick={goToNextStep}
             >
-              Continuer
+              {t("cart.proceedToCheckout")}
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           ) : (
@@ -1144,7 +1144,7 @@ const Checkout = () => {
               onClick={handlePayment}
               disabled={isProcessing}
             >
-              {isProcessing ? "Traitement..." : `Payer ${formatPrice(total)}`}
+              {isProcessing ? t("payment.processing") : t("payment.payNow") + ` ${formatPrice(total)}`}
             </Button>
           )}
         </div>
