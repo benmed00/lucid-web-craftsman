@@ -528,8 +528,12 @@ const Checkout = () => {
           Paiement sécurisé
         </h1>
 
-        {/* Enhanced Checkout Progress */}
-        <CheckoutProgress currentStep={step} completedSteps={completedSteps} />
+        {/* Enhanced Checkout Progress - Clickable steps */}
+        <CheckoutProgress 
+          currentStep={step} 
+          completedSteps={completedSteps} 
+          onStepClick={handleEditStep}
+        />
 
         {/* Main Checkout Container */}
         <div className="max-w-6xl mx-auto">
