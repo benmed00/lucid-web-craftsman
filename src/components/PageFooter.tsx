@@ -1,38 +1,42 @@
 import { Facebook, Instagram, Twitter } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 
 const PageFooter = () => {
+  const { t } = useTranslation(['common', 'pages']);
+  
   return (
     <footer className="bg-secondary py-16">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* About Section */}
           <div>
-            <h3 className="font-serif text-xl mb-4 text-foreground">Artisan</h3>
+            <h3 className="font-serif text-xl mb-4 text-foreground">{t('common:footer.about')}</h3>
             <p className="text-muted-foreground mb-4">
-              Sacs et accessoires artisanaux fabriqués à la main dans les
-              montagnes du Rif au Maroc, perpétuant des traditions ancestrales
-              avec des matériaux durables.
+              {t('common:footer.aboutText')}
             </p>
             <div className="flex space-x-4">
               <a
                 href="https://instagram.com"
                 className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Instagram"
               >
                 <Instagram className="h-5 w-5" />
               </a>
               <a
                 href="https://facebook.com"
                 className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Facebook"
               >
                 <Facebook className="h-5 w-5" />
               </a>
               <a
                 href="https://twitter.com"
                 className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Twitter"
               >
                 <Twitter className="h-5 w-5" />
               </a>
@@ -41,14 +45,14 @@ const PageFooter = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-serif text-xl mb-4 text-foreground">Liens Rapides</h3>
+            <h3 className="font-serif text-xl mb-4 text-foreground">{t('common:footer.quickLinks')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   to="/products"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Boutique
+                  {t('common:nav.shop')}
                 </Link>
               </li>
               <li>
@@ -56,7 +60,7 @@ const PageFooter = () => {
                   to="/blog"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Blog
+                  {t('common:nav.blog')}
                 </Link>
               </li>
               <li>
@@ -64,7 +68,7 @@ const PageFooter = () => {
                   to="/contact"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Contact
+                  {t('common:nav.contact')}
                 </Link>
               </li>
               <li>
@@ -72,7 +76,7 @@ const PageFooter = () => {
                   to="/about"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Notre Histoire
+                  {t('common:footer.story')}
                 </Link>
               </li>
             </ul>
@@ -80,14 +84,14 @@ const PageFooter = () => {
 
           {/* Information */}
           <div>
-            <h3 className="font-serif text-xl mb-4 text-foreground">Information</h3>
+            <h3 className="font-serif text-xl mb-4 text-foreground">{t('common:footer.information')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   to="/shipping"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Livraison
+                  {t('common:footer.shipping')}
                 </Link>
               </li>
               <li>
@@ -95,7 +99,7 @@ const PageFooter = () => {
                   to="/returns"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Retours
+                  {t('common:footer.returns')}
                 </Link>
               </li>
               <li>
@@ -103,7 +107,7 @@ const PageFooter = () => {
                   to="/faq"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  FAQ
+                  {t('common:footer.faq')}
                 </Link>
               </li>
               <li>
@@ -111,7 +115,7 @@ const PageFooter = () => {
                   to="/cgv"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Conditions Générales
+                  {t('common:footer.cgv')}
                 </Link>
               </li>
             </ul>
@@ -119,21 +123,21 @@ const PageFooter = () => {
 
           {/* Newsletter */}
           <div>
-            <h3 className="font-serif text-xl mb-4 text-foreground">Newsletter</h3>
+            <h3 className="font-serif text-xl mb-4 text-foreground">{t('common:footer.newsletter')}</h3>
             <p className="text-muted-foreground mb-4">
-              Inscrivez-vous pour recevoir nos actualités et offres spéciales.
+              {t('common:footer.newsletterText')}
             </p>
             <form className="space-y-2">
-              <label htmlFor="newsletter-email-footer" className="sr-only">Votre email</label>
+              <label htmlFor="newsletter-email-footer" className="sr-only">{t('common:footer.emailPlaceholder')}</label>
               <Input
                 type="email"
                 id="newsletter-email-footer"
-                placeholder="Votre email"
+                placeholder={t('common:footer.emailPlaceholder')}
                 className="bg-background border-border focus:border-primary text-foreground placeholder:text-muted-foreground"
-                aria-label="Adresse email pour la newsletter"
+                aria-label={t('common:footer.emailPlaceholder')}
               />
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                S'abonner
+                {t('common:footer.subscribe')}
               </Button>
             </form>
           </div>
@@ -141,7 +145,7 @@ const PageFooter = () => {
 
         <div className="border-t border-border mt-10 pt-6 text-center text-muted-foreground text-sm">
           <p>
-            &copy; {new Date().getFullYear()} Artisan. Tous droits réservés.
+            {t('common:footer.copyright', { year: new Date().getFullYear() })}
           </p>
         </div>
       </div>
