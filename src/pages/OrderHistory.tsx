@@ -219,24 +219,24 @@ const OrderHistory = () => {
                         <DialogContent className="max-w-2xl">
                           <DialogHeader>
                             <DialogTitle className="flex items-center gap-2">
-                              Commande #{selectedOrder?.id.slice(-8)}
+                              {t('orders.orderNumber', { id: selectedOrder?.id.slice(-8) })}
                               {selectedOrder && getStatusBadge(selectedOrder.status)}
                             </DialogTitle>
                             <DialogDescription>
-                              {selectedOrder && format(new Date(selectedOrder.created_at), 'dd MMMM yyyy à HH:mm', { locale: fr })}
+                              {selectedOrder && format(new Date(selectedOrder.created_at), 'dd MMMM yyyy', { locale: dateLocale })}
                             </DialogDescription>
                           </DialogHeader>
                           
                           {selectedOrder && (
                             <div className="space-y-6">
                               <div>
-                                <h4 className="font-medium mb-3 text-foreground">Articles commandés</h4>
+                                <h4 className="font-medium mb-3 text-foreground">{t('orders.details.orderedItems')}</h4>
                                 <div className="space-y-3">
                                   {selectedOrder.order_items.map((item) => (
                                     <div key={item.id} className="flex justify-between items-start p-3 bg-muted rounded-lg">
                                       <div className="flex-1">
                                         <div className="font-medium text-foreground">
-                                          {item.product_snapshot?.name || 'Produit'}
+                                          {item.product_snapshot?.name || t('orders.details.product')}
                                         </div>
                                         <div className="text-sm text-muted-foreground mt-1">
                                           {formatPrice(item.unit_price)} × {item.quantity}
@@ -258,19 +258,19 @@ const OrderHistory = () => {
                               <Separator />
 
                               <div className="flex justify-between items-center">
-                                <span className="text-lg font-medium text-foreground">Total</span>
+                                <span className="text-lg font-medium text-foreground">{t('orders.details.total')}</span>
                                 <span className="text-xl font-bold text-foreground">
                                   {formatPrice(selectedOrder.amount / 100)}
                                 </span>
                               </div>
 
                               <div className="bg-primary/10 p-4 rounded-lg">
-                                <h4 className="font-medium text-foreground mb-2">État de la commande</h4>
+                                <h4 className="font-medium text-foreground mb-2">{t('orders.details.orderStatus')}</h4>
                                 <p className="text-muted-foreground">{getStatusDescription(selectedOrder.status)}</p>
                                 
                                 {selectedOrder.stripe_session_id && (
                                   <div className="mt-3 text-xs text-muted-foreground">
-                                    ID de session: {selectedOrder.stripe_session_id.slice(-12)}
+                                    {t('orders.details.sessionId')}: {selectedOrder.stripe_session_id.slice(-12)}
                                   </div>
                                 )}
                               </div>
@@ -279,12 +279,12 @@ const OrderHistory = () => {
                                 <div className="bg-blue-500/10 p-4 rounded-lg">
                                   <h4 className="font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-2">
                                     <Truck className="h-4 w-4" />
-                                    Information de livraison
+                                    {t('orders.details.deliveryInfo')}
                                   </h4>
                                   <p className="text-blue-600 dark:text-blue-400">
                                     {selectedOrder.status === 'delivered' 
-                                      ? 'Votre commande a été livrée avec succès.' 
-                                      : 'Votre commande est en cours de livraison.'}
+                                      ? t('orders.details.deliveredMessage') 
+                                      : t('orders.details.inTransitMessage')}
                                   </p>
                                 </div>
                               )}
