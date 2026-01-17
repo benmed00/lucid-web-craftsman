@@ -94,6 +94,7 @@ const AdminReviews = lazy(() => import("./pages/admin/AdminReviews").then(m => (
 const AdminApiStatus = lazy(() => import("./pages/admin/AdminApiStatus"));
 const AdminProductCatalog = lazy(() => import("./pages/admin/AdminProductCatalog"));
 const AdminTranslations = lazy(() => import("./pages/admin/AdminTranslations"));
+const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 
 // Loading fallback component
 const PageLoadingFallback = () => (
@@ -245,6 +246,7 @@ const App = () => {
                   <Route path="reviews" element={<Suspense fallback={<PageLoadingFallback />}><AdminReviews /></Suspense>} />
                   <Route path="api-status" element={<Suspense fallback={<PageLoadingFallback />}><AdminApiStatus /></Suspense>} />
                   <Route path="catalog" element={<Suspense fallback={<PageLoadingFallback />}><AdminProductCatalog /></Suspense>} />
+                  <Route path="blog" element={<Suspense fallback={<PageLoadingFallback />}><AdminBlog /></Suspense>} />
                   <Route path="translations" element={<Suspense fallback={<PageLoadingFallback />}><AdminTranslations /></Suspense>} />
                   <Route path="settings" element={<Suspense fallback={<PageLoadingFallback />}><AdminSettings /></Suspense>} />
                 </Route>

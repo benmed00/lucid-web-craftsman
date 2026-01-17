@@ -23,7 +23,8 @@ import {
   Star,
   Activity,
   FileText,
-  Languages
+  Languages,
+  BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -88,6 +89,11 @@ const AdminLayout = () => {
       icon: FileText,
       label: "Catalogue Complet",
       path: "/admin/catalog",
+    },
+    {
+      icon: BookOpen,
+      label: "Blog",
+      path: "/admin/blog",
     },
     {
       icon: Image,
