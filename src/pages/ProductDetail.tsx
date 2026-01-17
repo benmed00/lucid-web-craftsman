@@ -55,6 +55,7 @@ import { useWishlist } from "@/hooks/useWishlist";
 import { useStock } from "@/hooks/useStock";
 import { useShipping } from "@/hooks/useShipping";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+import { useProductWithTranslation, useCurrentLocale, ProductWithTranslation } from "@/hooks/useTranslatedContent";
 
 // Types & Interfaces
 import { Product } from "@/shared/interfaces/Iproduct.interface";
@@ -78,11 +79,14 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   const { formatPrice } = useCurrency();
   
   // Product State
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<Product | ProductWithTranslation | null>(null);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get current locale for translations
+  const currentLocale = useCurrentLocale();
   
   // UI State
   const [selectedImage, setSelectedImage] = useState(0);
@@ -113,7 +117,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
     enabled: !!product
   });
 
-  // Effects
+  // Effects - refetch when locale changes
   useEffect(() => {
     const fetchProductData = async () => {
       if (!id) {
@@ -136,21 +140,23 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
           throw new Error(t("productDetail.error.invalidId"));
         }
 
-        const foundProduct = await ProductService.getProductById(productId);
+        // Fetch product with translations
+        const { getProductWithTranslation } = await import('@/services/translationService');
+        const translatedProduct = await getProductWithTranslation(productId, currentLocale);
 
-        if (!foundProduct) {
+        if (!translatedProduct) {
           throw new Error(t("productDetail.error.notFound"));
         }
 
-        setProduct(foundProduct);
+        setProduct(translatedProduct);
         
         // Add to recently viewed
-        addToRecentlyViewed(foundProduct);
+        addToRecentlyViewed(translatedProduct as Product);
 
         // Get related products based on category and artisan
         const categoryProducts = products.filter(p => 
-          p.id !== foundProduct.id && 
-          (p.category === foundProduct.category || p.artisan === foundProduct.artisan)
+          p.id !== translatedProduct.id && 
+          (p.category === translatedProduct.category || p.artisan === translatedProduct.artisan)
         );
         setRelatedProducts(categoryProducts.slice(0, 6));
 
@@ -166,7 +172,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
     };
 
     fetchProductData();
-  }, [id, addToRecentlyViewed]);
+  }, [id, currentLocale, addToRecentlyViewed, t]);
 
   // Handlers
   const handleAddToCart = async () => {
@@ -499,7 +505,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                   <Badge variant="outline" className="text-primary border-primary/20">
                     {product.category}
                   </Badge>
-                  {(product.new || product.is_new) && (
+                  {product.is_new && (
                     <Badge className="bg-primary text-primary-foreground">
                       {t("productDetail.badges.new")}
                     </Badge>
