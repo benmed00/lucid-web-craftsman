@@ -1,9 +1,7 @@
 import React, { StrictMode } from "react";
 import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
-import App from './App.tsx';
 import './index.css';
-import './i18n'; // Initialize i18n
 import { initPerformanceOptimizations } from '@/utils/sitemapGenerator';
 import { setupProductionErrorSuppression } from './utils/errorSuppression';
 import { registerServiceWorker, addResourceHints, monitorCachePerformance } from './utils/cacheOptimization';
@@ -39,6 +37,12 @@ if (!window.__PERF_OPTIMIZED__) {
   initializeThemeStore();
   initializeLanguageStore();
 }
+
+// Import i18n after stores are initialized
+import './i18n';
+
+// Import App after i18n is ready
+import App from './App.tsx';
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
