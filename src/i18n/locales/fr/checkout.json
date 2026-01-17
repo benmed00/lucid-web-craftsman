@@ -1,0 +1,93 @@
+{
+  "cart": {
+    "title": "Votre Panier",
+    "empty": "Votre panier est vide",
+    "emptyMessage": "Découvrez notre collection et ajoutez vos coups de cœur !",
+    "itemCount": "{{count}} article",
+    "itemCount_other": "{{count}} articles",
+    "subtotal": "Sous-total",
+    "shipping": "Livraison",
+    "shippingFree": "Gratuite",
+    "shippingCalculated": "Calculé à l'étape suivante",
+    "discount": "Réduction",
+    "total": "Total",
+    "clearCart": "Vider le panier",
+    "clearCartConfirm": "Êtes-vous sûr de vouloir supprimer tous les articles ?",
+    "updateQuantity": "Modifier la quantité",
+    "remove": "Supprimer",
+    "continueShopping": "Continuer vos achats",
+    "proceedToCheckout": "Passer à la caisse",
+    "pendingCheckout": {
+      "title": "Commande en cours",
+      "message": "Vous avez une commande non finalisée. Reprenez là où vous vous êtes arrêté.",
+      "resume": "Reprendre ma commande",
+      "step": "Étape {{current}}/{{total}}"
+    }
+  },
+  "steps": {
+    "information": "Informations",
+    "shipping": "Livraison",
+    "payment": "Paiement"
+  },
+  "form": {
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "Email",
+    "phone": "Téléphone",
+    "address": "Adresse",
+    "addressLine2": "Complément d'adresse",
+    "city": "Ville",
+    "postalCode": "Code postal",
+    "country": "Pays",
+    "notes": "Instructions de livraison",
+    "required": "Obligatoire",
+    "optional": "Optionnel"
+  },
+  "shipping": {
+    "title": "Options de livraison",
+    "standard": "Livraison standard",
+    "standardTime": "3-5 jours ouvrés",
+    "express": "Livraison express",
+    "expressTime": "24-48h",
+    "freeFrom": "Gratuite dès {{amount}}",
+    "postalCodeLabel": "Entrez votre code postal",
+    "estimatedDelivery": "Livraison estimée"
+  },
+  "payment": {
+    "title": "Paiement sécurisé",
+    "securePayment": "Paiement 100% sécurisé",
+    "payNow": "Payer maintenant",
+    "processing": "Traitement en cours...",
+    "redirecting": "Redirection vers le paiement..."
+  },
+  "promo": {
+    "label": "Code promo",
+    "placeholder": "Entrez votre code",
+    "apply": "Appliquer",
+    "applied": "Code appliqué !",
+    "remove": "Retirer",
+    "invalid": "Code promo invalide",
+    "expired": "Ce code a expiré",
+    "minOrder": "Commande minimum de {{amount}} requise",
+    "limitReached": "Ce code a atteint sa limite d'utilisation"
+  },
+  "errors": {
+    "requiredField": "Ce champ est obligatoire",
+    "invalidEmail": "Email invalide",
+    "invalidPhone": "Numéro de téléphone invalide",
+    "invalidPostalCode": "Code postal invalide",
+    "stockError": "Certains articles ne sont plus disponibles",
+    "paymentFailed": "Le paiement a échoué. Veuillez réessayer.",
+    "genericError": "Une erreur est survenue. Veuillez réessayer."
+  },
+  "success": {
+    "title": "Commande confirmée !",
+    "message": "Merci pour votre commande. Vous recevrez un email de confirmation.",
+    "orderNumber": "Numéro de commande",
+    "transactionId": "Transaction",
+    "nextSteps": "Prochaines étapes",
+    "step1": "Email de confirmation envoyé",
+    "step2": "Préparation de votre commande",
+    "step3": "Expédition avec suivi"
+  }
+}

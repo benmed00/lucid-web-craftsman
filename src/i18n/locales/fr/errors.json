@@ -1,0 +1,48 @@
+{
+  "generic": {
+    "title": "Oups !",
+    "message": "Une erreur inattendue s'est produite.",
+    "tryAgain": "Réessayer",
+    "goHome": "Retour à l'accueil"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "code": "404",
+    "message": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "suggestions": "Vérifiez l'URL ou retournez à l'accueil."
+  },
+  "network": {
+    "title": "Problème de connexion",
+    "message": "Impossible de se connecter au serveur. Vérifiez votre connexion internet.",
+    "offline": "Vous êtes hors ligne",
+    "retry": "Réessayer"
+  },
+  "form": {
+    "required": "Ce champ est obligatoire",
+    "invalidEmail": "Adresse email invalide",
+    "invalidPhone": "Numéro de téléphone invalide",
+    "invalidPostalCode": "Code postal invalide",
+    "minLength": "Minimum {{min}} caractères requis",
+    "maxLength": "Maximum {{max}} caractères autorisés",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
+    "passwordMismatch": "Les mots de passe ne correspondent pas"
+  },
+  "api": {
+    "timeout": "La requête a pris trop de temps. Veuillez réessayer.",
+    "serverError": "Erreur du serveur. Veuillez réessayer plus tard.",
+    "unauthorized": "Vous devez vous connecter pour effectuer cette action.",
+    "forbidden": "Vous n'avez pas les permissions nécessaires.",
+    "rateLimited": "Trop de requêtes. Veuillez patienter."
+  },
+  "stock": {
+    "outOfStock": "Ce produit n'est plus disponible",
+    "insufficientStock": "Stock insuffisant ({{available}} disponibles)",
+    "reservationExpired": "Votre réservation a expiré"
+  },
+  "payment": {
+    "failed": "Le paiement a échoué",
+    "cancelled": "Paiement annulé",
+    "cardDeclined": "Carte refusée. Veuillez utiliser une autre méthode.",
+    "insufficientFunds": "Fonds insuffisants"
+  }
+}

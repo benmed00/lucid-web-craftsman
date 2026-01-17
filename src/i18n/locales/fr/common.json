@@ -1,0 +1,96 @@
+{
+  "brand": {
+    "name": "Rif Raw Straw",
+    "tagline": "Artisanat Berbère Authentique"
+  },
+  "nav": {
+    "home": "Accueil",
+    "shop": "Boutique",
+    "blog": "Blog",
+    "contact": "Contact",
+    "cart": "Panier",
+    "wishlist": "Favoris",
+    "profile": "Profil",
+    "orders": "Commandes",
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "search": "Rechercher",
+    "searchPlaceholder": "Rechercher des produits..."
+  },
+  "footer": {
+    "about": "À Propos",
+    "aboutText": "Artisanat berbère authentique des montagnes du Rif marocain.",
+    "quickLinks": "Liens Rapides",
+    "information": "Informations",
+    "newsletter": "Newsletter",
+    "newsletterText": "Inscrivez-vous pour recevoir nos dernières nouvelles et offres exclusives.",
+    "emailPlaceholder": "Votre email",
+    "subscribe": "S'inscrire",
+    "copyright": "© {{year}} Rif Raw Straw. Tous droits réservés.",
+    "story": "Notre Histoire",
+    "shipping": "Livraison",
+    "returns": "Retours",
+    "faq": "FAQ",
+    "terms": "Conditions",
+    "privacy": "Confidentialité",
+    "cgv": "CGV"
+  },
+  "buttons": {
+    "addToCart": "Ajouter au panier",
+    "buyNow": "Acheter maintenant",
+    "viewDetails": "Voir les détails",
+    "continueShopping": "Continuer vos achats",
+    "checkout": "Commander",
+    "submit": "Envoyer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "share": "Partager",
+    "backToHome": "Retour à l'accueil",
+    "learnMore": "En savoir plus",
+    "seeAll": "Voir tout",
+    "apply": "Appliquer",
+    "remove": "Retirer",
+    "clear": "Effacer"
+  },
+  "messages": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "success": "Opération réussie",
+    "noResults": "Aucun résultat",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ?",
+    "alreadyOnPage": "Vous êtes déjà sur cette page",
+    "addedToCart": "Ajouté au panier",
+    "removedFromCart": "Retiré du panier",
+    "addedToWishlist": "Ajouté aux favoris",
+    "removedFromWishlist": "Retiré des favoris"
+  },
+  "currency": {
+    "label": "Devise",
+    "eur": "Euro (€)",
+    "usd": "Dollar ($)",
+    "gbp": "Livre (£)",
+    "mad": "Dirham (DH)"
+  },
+  "theme": {
+    "label": "Thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système"
+  },
+  "language": {
+    "label": "Langue",
+    "fr": "Français",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "accessibility": {
+    "skipToContent": "Aller au contenu principal",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "toggleTheme": "Changer de thème",
+    "selectLanguage": "Choisir la langue"
+  }
+}

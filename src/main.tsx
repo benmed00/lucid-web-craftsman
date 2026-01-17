@@ -3,12 +3,13 @@ import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import App from './App.tsx';
 import './index.css';
+import './i18n'; // Initialize i18n
 import { initPerformanceOptimizations } from '@/utils/sitemapGenerator';
 import { setupProductionErrorSuppression } from './utils/errorSuppression';
 import { registerServiceWorker, addResourceHints, monitorCachePerformance } from './utils/cacheOptimization';
 import { initializeCartStore, initializeCurrencyStore, initializeThemeStore } from '@/stores';
+import { initializeLanguageStore } from '@/stores/languageStore';
 import { initializeBusinessRules } from '@/hooks/useBusinessRules';
-
 // Declare global flag
 declare global {
   interface Window {
@@ -36,6 +37,7 @@ if (!window.__PERF_OPTIMIZED__) {
   initializeCartStore();
   initializeCurrencyStore();
   initializeThemeStore();
+  initializeLanguageStore();
 }
 
 createRoot(document.getElementById("root")!).render(

@@ -1,0 +1,120 @@
+{
+  "home": {
+    "hero": {
+      "title": "Artisanat Berbère Authentique",
+      "subtitle": "Découvrez des créations uniques, tissées à la main par les artisans des montagnes du Rif.",
+      "cta": "Découvrir la collection",
+      "secondaryCta": "Notre histoire"
+    },
+    "features": {
+      "title": "Nos Valeurs",
+      "handmade": {
+        "title": "100% Fait Main",
+        "description": "Chaque pièce est créée avec soin par nos artisans."
+      },
+      "authentic": {
+        "title": "Authentique",
+        "description": "Des techniques ancestrales transmises de génération en génération."
+      },
+      "sustainable": {
+        "title": "Durable",
+        "description": "Matériaux naturels et production responsable."
+      },
+      "fairTrade": {
+        "title": "Commerce Équitable",
+        "description": "Rémunération juste pour nos artisans partenaires."
+      }
+    },
+    "showcase": {
+      "title": "Nos Créations",
+      "viewAll": "Voir toute la collection"
+    },
+    "testimonials": {
+      "title": "Ils nous font confiance"
+    },
+    "instagram": {
+      "title": "Suivez-nous sur Instagram"
+    }
+  },
+  "about": {
+    "title": "Notre Histoire",
+    "subtitle": "Une passion pour l'artisanat berbère authentique",
+    "content": "L'aventure Rif Raw Straw commence avec une passion commune : révéler la beauté de l'artisanat berbère et la partager au plus grand nombre."
+  },
+  "contact": {
+    "title": "Contactez-nous",
+    "subtitle": "Une question ? Nous sommes là pour vous aider.",
+    "form": {
+      "name": "Votre nom",
+      "email": "Votre email",
+      "subject": "Sujet",
+      "message": "Votre message",
+      "submit": "Envoyer",
+      "success": "Message envoyé avec succès !",
+      "error": "Erreur lors de l'envoi. Veuillez réessayer."
+    },
+    "info": {
+      "address": "Adresse",
+      "phone": "Téléphone",
+      "email": "Email",
+      "hours": "Horaires d'ouverture"
+    }
+  },
+  "faq": {
+    "title": "Questions Fréquentes",
+    "shipping": {
+      "q": "Quels sont les délais de livraison ?",
+      "a": "Les commandes sont expédiées sous 24h à 48h. La livraison standard prend généralement 3 à 5 jours ouvrés."
+    },
+    "tracking": {
+      "q": "Comment suivre ma commande ?",
+      "a": "Un email de confirmation avec un numéro de suivi vous sera envoyé dès l'expédition."
+    },
+    "payment": {
+      "q": "Quels moyens de paiement acceptez-vous ?",
+      "a": "Nous acceptons les cartes bancaires (Visa, Mastercard), PayPal et Apple Pay."
+    },
+    "returns": {
+      "q": "Comment effectuer un retour ?",
+      "a": "Vous disposez de 14 jours après réception pour retourner un article."
+    }
+  },
+  "wishlist": {
+    "title": "Mes Favoris",
+    "empty": "Votre liste de favoris est vide",
+    "emptyMessage": "Explorez notre collection et ajoutez vos coups de cœur !",
+    "itemCount": "{{count}} article sauvegardé",
+    "itemCount_other": "{{count}} articles sauvegardés",
+    "addToCart": "Ajouter au panier",
+    "remove": "Retirer des favoris",
+    "remainingSlots": "{{count}} place restante",
+    "remainingSlots_other": "{{count}} places restantes"
+  },
+  "profile": {
+    "title": "Mon Profil",
+    "overview": "Vue d'ensemble",
+    "personal": "Informations personnelles",
+    "orders": "Mes commandes",
+    "preferences": "Préférences",
+    "loyalty": "Programme fidélité",
+    "security": "Sécurité",
+    "deleteAccount": "Supprimer mon compte"
+  },
+  "orders": {
+    "title": "Mes Commandes",
+    "empty": "Vous n'avez pas encore de commandes",
+    "orderNumber": "Commande n°{{number}}",
+    "date": "Passée le {{date}}",
+    "status": {
+      "pending": "En attente",
+      "paid": "Payée",
+      "processing": "En préparation",
+      "shipped": "Expédiée",
+      "delivered": "Livrée",
+      "cancelled": "Annulée"
+    },
+    "details": "Voir les détails",
+    "track": "Suivre ma commande",
+    "reorder": "Commander à nouveau"
+  }
+}
