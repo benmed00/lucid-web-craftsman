@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import ProductShowcase from "@/components/ProductShowcase";
 import Testimonials from "@/components/Testimonials";
 import InstagramFeed from "@/components/InstagramFeed";
+import ArtisansSection from "@/components/ArtisansSection";
 import { Link } from "react-router-dom";
 import HeroImage from "@/components/HeroImage";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -18,7 +19,6 @@ import { useProductsWithTranslations, ProductWithTranslation } from "@/hooks/use
 import { Product } from "@/shared/interfaces/Iproduct.interface";
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import NewsletterSubscription from '@/components/NewsletterSubscription';
-
 const Index = () => {
   const { t } = useTranslation(['pages', 'common']);
   
@@ -219,6 +219,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Artisans Section */}
+      <ArtisansSection />
 
       {/* Testimonials - Mobile Responsive */}
       <section id="testimonials" className="bg-secondary py-12 md:py-20 lg:py-24">

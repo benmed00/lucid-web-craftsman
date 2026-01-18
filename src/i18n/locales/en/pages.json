@@ -310,6 +310,12 @@
       "title": "Get Inspired by Our Community",
       "postAlt": "Instagram post {{id}}",
       "imageUnavailable": "Image unavailable"
+    },
+    "artisans": {
+      "badge": "The hands behind the art",
+      "title": "Our Artisans",
+      "description": "Meet the talented artisans who perpetuate ancestral know-how in the Moroccan Rif mountains.",
+      "cta": "Every purchase directly supports these artisans and their families, preserving a unique cultural heritage."
     }
   },
   "about": {

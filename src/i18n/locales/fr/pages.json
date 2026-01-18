@@ -310,6 +310,12 @@
       "title": "Laissez-vous Inspirer par Notre Communauté",
       "postAlt": "Publication Instagram {{id}}",
       "imageUnavailable": "Image non disponible"
+    },
+    "artisans": {
+      "badge": "Les mains derrière l'art",
+      "title": "Nos Artisans",
+      "description": "Découvrez les artisans talentueux qui perpétuent un savoir-faire ancestral dans les montagnes du Rif marocain.",
+      "cta": "Chaque achat soutient directement ces artisans et leurs familles, préservant un patrimoine culturel unique."
     }
   },
   "about": {
