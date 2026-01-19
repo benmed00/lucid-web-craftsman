@@ -82,6 +82,104 @@ export type Database = {
         }
         Relationships: []
       }
+      artisan_translations: {
+        Row: {
+          artisan_id: string
+          bio: string | null
+          bio_short: string | null
+          created_at: string
+          id: string
+          locale: string
+          quote: string | null
+          specialty: string | null
+          updated_at: string
+        }
+        Insert: {
+          artisan_id: string
+          bio?: string | null
+          bio_short?: string | null
+          created_at?: string
+          id?: string
+          locale: string
+          quote?: string | null
+          specialty?: string | null
+          updated_at?: string
+        }
+        Update: {
+          artisan_id?: string
+          bio?: string | null
+          bio_short?: string | null
+          created_at?: string
+          id?: string
+          locale?: string
+          quote?: string | null
+          specialty?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artisan_translations_artisan_id_fkey"
+            columns: ["artisan_id"]
+            isOneToOne: false
+            referencedRelation: "artisans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artisans: {
+        Row: {
+          bio: string | null
+          bio_short: string | null
+          created_at: string
+          experience_years: number | null
+          id: string
+          is_active: boolean | null
+          location: string | null
+          name: string
+          photo_url: string | null
+          quote: string | null
+          region: string | null
+          slug: string | null
+          specialty: string | null
+          techniques: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          bio_short?: string | null
+          created_at?: string
+          experience_years?: number | null
+          id?: string
+          is_active?: boolean | null
+          location?: string | null
+          name: string
+          photo_url?: string | null
+          quote?: string | null
+          region?: string | null
+          slug?: string | null
+          specialty?: string | null
+          techniques?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          bio_short?: string | null
+          created_at?: string
+          experience_years?: number | null
+          id?: string
+          is_active?: boolean | null
+          location?: string | null
+          name?: string
+          photo_url?: string | null
+          quote?: string | null
+          region?: string | null
+          slug?: string | null
+          specialty?: string | null
+          techniques?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1225,6 +1323,7 @@ export type Database = {
           details: string
           id: string
           locale: string
+          material: string | null
           name: string
           product_id: number
           seo_description: string | null
@@ -1240,6 +1339,7 @@ export type Database = {
           details: string
           id?: string
           locale: string
+          material?: string | null
           name: string
           product_id: number
           seo_description?: string | null
@@ -1255,6 +1355,7 @@ export type Database = {
           details?: string
           id?: string
           locale?: string
+          material?: string | null
           name?: string
           product_id?: number
           seo_description?: string | null
@@ -1275,6 +1376,7 @@ export type Database = {
       products: {
         Row: {
           artisan: string
+          artisan_id: string | null
           artisan_story: string | null
           care: string
           category: string
@@ -1306,6 +1408,7 @@ export type Database = {
         }
         Insert: {
           artisan: string
+          artisan_id?: string | null
           artisan_story?: string | null
           care: string
           category: string
@@ -1337,6 +1440,7 @@ export type Database = {
         }
         Update: {
           artisan?: string
+          artisan_id?: string | null
           artisan_story?: string | null
           care?: string
           category?: string
@@ -1366,7 +1470,15 @@ export type Database = {
           updated_at?: string
           weight_grams?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_artisan_id_fkey"
+            columns: ["artisan_id"]
+            isOneToOne: false
+            referencedRelation: "artisans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
