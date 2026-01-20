@@ -83,6 +83,7 @@ const PageFooter = () => {
           </div>
 
           {/* Information */}
+          {/* Information */}
           <div>
             <h3 className="font-serif text-xl mb-4 text-foreground">{t('common:footer.information')}</h3>
             <ul className="space-y-2">
@@ -90,6 +91,7 @@ const PageFooter = () => {
                 <Link
                   to="/shipping"
                   className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={t('common:footer.shippingAria')}
                 >
                   {t('common:footer.shipping')}
                 </Link>
@@ -98,6 +100,7 @@ const PageFooter = () => {
                 <Link
                   to="/returns"
                   className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={t('common:footer.returnsAria')}
                 >
                   {t('common:footer.returns')}
                 </Link>
@@ -106,6 +109,7 @@ const PageFooter = () => {
                 <Link
                   to="/faq"
                   className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={t('common:footer.faqAria')}
                 >
                   {t('common:footer.faq')}
                 </Link>
@@ -114,8 +118,18 @@ const PageFooter = () => {
                 <Link
                   to="/cgv"
                   className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={t('common:footer.cgvAria')}
                 >
                   {t('common:footer.cgv')}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/terms"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={t('common:footer.terms')}
+                >
+                  {t('common:footer.terms')}
                 </Link>
               </li>
             </ul>
