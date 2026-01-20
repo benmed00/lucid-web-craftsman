@@ -108,6 +108,15 @@ const Footer = () => {
               </li>
               <li>
                 <a 
+                  href="/returns" 
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
+                  aria-label={t('footer.returnsAria')}
+                >
+                  {t('footer.returns')}
+                </a>
+              </li>
+              <li>
+                <a 
                   href="/faq" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.faqAria')}
