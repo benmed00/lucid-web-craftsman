@@ -89,7 +89,7 @@ if (!i18n.isInitialized) {
       },
       
       // Debug in development
-      debug: false,
+      debug: import.meta.env.DEV,
     });
 }
 
