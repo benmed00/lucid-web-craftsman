@@ -6,11 +6,68 @@
     }
   },
 
+  "shipping": {
+    "title": "Shipping Information",
+    "seo": {
+      "title": "Shipping Information – Rif Raw Straw",
+      "description": "Delivery times, prices, zones and tracking information."
+    },
+
+    "delays": {
+      "title": "Delivery Times & Prices",
+      "standard": "Standard delivery",
+      "standardPrice": "3–5 business days",
+      "express": "Express delivery",
+      "expressPrice": "1–2 business days",
+      "freeFrom": "Free shipping from",
+      "freeThreshold": "€100",
+      "freeLabel": "Free delivery"
+    },
+
+    "zones": {
+      "title": "Shipping Zones",
+      "description": "We currently ship within Europe and selected international destinations."
+    },
+
+    "tracking": {
+      "title": "Order Tracking",
+      "description": "Once your order is shipped, you will receive a tracking number by email."
+    }
+  },
+
+  "returns": {
+    "title": "Returns & Refunds",
+    "seo": {
+      "title": "Returns & Refunds – Rif Raw Straw",
+      "description": "Return conditions, refund policy and procedures."
+    },
+
+    "policy": {
+      "title": "Return Policy",
+      "item1": "You have 14 days from receipt of your order to request a return.",
+      "item2": "Returned items must be unused and in their original packaging.",
+      "item3": "Refunds are issued after inspection of the returned items."
+    },
+
+    "procedure": {
+      "title": "Return Procedure",
+      "step1": "Contact our customer support via the",
+      "step1Link": "contact page",
+      "step1Suffix": "to initiate a return request.",
+      "step2": "Carefully pack the item and include the return reference.",
+      "step3": "Send the parcel using the provided instructions."
+    },
+
+    "questions": "If you have any questions about returns, please visit our",
+    "faqLink": "FAQ page",
+    "questionsSuffix": "or contact our support team."
+  },
+
   "cgv": {
     "title": "Terms & Conditions",
     "seo": {
       "title": "Terms & Conditions – Rif Raw Straw",
-      "description": "Read our general terms and conditions: payment, delivery, warranty, and returns."
+      "description": "General sales conditions, payment, delivery and liability."
     },
     "heading": "Terms & Conditions",
     "items": {
@@ -20,64 +77,34 @@
       "item4": "Returned products must be unused and in their original packaging.",
       "item5": "In case of dispute, the competent court will be that of the seller’s registered office."
     },
-    "contact": "For more details, please contact us via the"
+    "contact": "For more details, please contact us via the contact page."
   },
 
   "terms": {
     "title": "Legal Notice",
     "seo": {
       "title": "Legal Notice – Rif Raw Straw",
-      "description": "Legal information about Rif Raw Straw, publisher, hosting, and liability."
+      "description": "Legal information about the website and publisher."
     },
     "heading": "Legal Notice",
     "content": "This website is published by Rif Raw Straw. All content is protected by intellectual property laws."
-  },
-
-  "returns": {
-    "title": "Returns & Refunds",
-    "seo": {
-      "title": "Returns & Refunds – Rif Raw Straw",
-      "description": "Learn about our return, refund, and exchange policy."
-    },
-    "heading": "Returns & Refunds",
-    "items": {
-      "item1": "You have 14 days to request a return after receiving your order.",
-      "item2": "Returned items must be unused and in original condition.",
-      "item3": "Refunds are processed within 14 days after validation.",
-      "item4": "Return shipping costs are the responsibility of the customer unless the product is defective."
-    }
-  },
-
-  "shipping": {
-    "title": "Shipping Information",
-    "seo": {
-      "title": "Shipping Information – Rif Raw Straw",
-      "description": "Find out about shipping methods, delivery times, and costs."
-    },
-    "heading": "Shipping Information",
-    "items": {
-      "item1": "Orders are prepared within 2–3 business days.",
-      "item2": "Delivery times depend on the destination country.",
-      "item3": "Tracking information is provided once the order is shipped.",
-      "item4": "International customs fees may apply depending on your location."
-    }
   },
 
   "about": {
     "title": "About Us",
     "seo": {
       "title": "About Rif Raw Straw",
-      "description": "Learn about our story, values, and commitment to Berber craftsmanship."
+      "description": "Our mission, values and craftsmanship."
     },
     "heading": "About Rif Raw Straw",
-    "content": "Rif Raw Straw promotes authentic Berber craftsmanship through handmade straw products created with respect for tradition and sustainability."
+    "content": "Rif Raw Straw promotes authentic Berber craftsmanship through handmade straw products."
   },
 
   "story": {
     "title": "Our Story",
     "seo": {
       "title": "Our Story – Rif Raw Straw",
-      "description": "Discover the origins and mission of Rif Raw Straw."
+      "description": "The origins and vision of Rif Raw Straw."
     },
     "heading": "Our Story",
     "content": "Born from a passion for Berber culture, Rif Raw Straw works directly with artisans to preserve ancestral know-how."
