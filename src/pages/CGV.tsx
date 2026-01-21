@@ -1,15 +1,14 @@
-// File_path : src/pages/CGV.tsx
-
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import PageFooter from "@/components/PageFooter";
 import SEOHelmet from "@/components/seo/SEOHelmet";
 
 const CGV = () => {
-  //const { t } = useTranslation(['pages', 'common']);
+  // const { t } = useTranslation(['pages', 'common']);
 
   const { t, ready } = useTranslation("pages");
   if (!ready) return null;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHelmet
