@@ -61,6 +61,7 @@ export const resources = {
   },
 } as const;
 
+
 // Initialize i18next with React binding included
 if (!i18n.isInitialized) {
   i18n
