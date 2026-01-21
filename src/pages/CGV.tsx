@@ -6,7 +6,9 @@ import SEOHelmet from "@/components/seo/SEOHelmet";
 const CGV = () => {
   // const { t } = useTranslation(['pages', 'common']);
 
-  const { t, ready } = useTranslation("pages");
+  const { t, ready } = useTranslation(["pages", "common"], {
+    bindI18n: "languageChanged loaded",
+  });
   if (!ready) return null;
 
   return (
