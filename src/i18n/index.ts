@@ -105,13 +105,18 @@ if (!i18n.isInitialized) {
 
 // Update HTML lang and dir attributes when language changes
 i18n.on("languageChanged", (lng: string) => {
-  const language = lng as SupportedLanguage;
-  const config = languageConfig[language] || languageConfig.fr;
+  const normalizedLng = lng.split("-")[0] as SupportedLanguage;
+  const config = languageConfig[normalizedLng] || languageConfig.fr;
+
+  document.documentElement.lang = normalizedLng;
+  document.documentElement.dir = config.dir;
+
+  /*const config = languageConfig[language] || languageConfig.fr;
 
   if (typeof document !== "undefined") {
     document.documentElement.lang = language;
     document.documentElement.dir = config.dir;
-  }
+  }*/
 });
 
 // Set initial lang attribute
