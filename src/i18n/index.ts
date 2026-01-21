@@ -73,6 +73,11 @@ if (!i18n.isInitialized) {
       defaultNS,
       ns: namespaces,
       
+      // CRITICAL: Map browser locales (en-US, en-GB, fr-FR) to our supported locales
+      supportedLngs: ['fr', 'en'],
+      nonExplicitSupportedLngs: true, // This maps en-US -> en, fr-FR -> fr automatically
+      load: 'languageOnly', // Load only 'en' not 'en-US'
+      
       // Language detection options
       detection: {
         order: ['localStorage', 'navigator', 'htmlTag'],
