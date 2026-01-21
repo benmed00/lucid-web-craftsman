@@ -1,672 +1,85 @@
 {
-  "about": {
-    "title": "About Us",
+  "home": {
     "seo": {
-      "title": "About - Rif Raw Straw",
-      "description": "Discover our story, our passion for Berber craftsmanship and our commitment to artisans from the Rif mountains."
-    },
-    "heading": "About Rif Raw Straw",
-    "intro": "The <brand>Rif Raw Straw</brand> adventure began with a shared passion: to reveal the beauty of Berber craftsmanship and share it with the world.",
-    "paragraph1": "Since our beginnings, we have been exploring workshops, markets and villages in search of talented creators. Each encounter, each object, each story fuels our desire to promote handmade and authenticity.",
-    "paragraph2": "Today, our shop reflects this quest: a demanding selection, unique pieces, and a desire to weave a link between artisans and lovers of beauty.",
-    "paragraph3": "Thank you for being part of this adventure and supporting craftsmanship with us."
-  },
-  "story": {
-    "title": "Our Story",
-    "seo": {
-      "title": "Our Story - Rif Raw Straw",
-      "description": "Discover the story of Rif Raw Straw, our passion for Berber craftsmanship and our quest to promote authentic handmade."
-    },
-    "heading": "Our Story",
-    "intro": "The <brand>Rif Raw Straw</brand> adventure began with a shared passion: to reveal the beauty of craftsmanship and share it with the world.",
-    "paragraph1": "Since our beginnings, we have been exploring workshops, markets and villages in search of talented creators. Each encounter, each object, each story fuels our desire to promote handmade and authenticity.",
-    "paragraph2": "Today, our shop reflects this quest: a demanding selection, unique pieces, and a desire to weave a link between artisans and lovers of beauty.",
-    "paragraph3": "Thank you for being part of this adventure and supporting craftsmanship with us."
-  },
-  "shipping": {
-    "title": "Shipping & Delivery",
-    "seo": {
-      "title": "Shipping & Delivery - Rif Raw Straw",
-      "description": "Discover our delivery options for your Moroccan crafts purchases. Fast and secure delivery in France and internationally."
-    },
-    "heading": "Shipping & Delivery",
-    "delays": {
-      "title": "Times & Rates",
-      "standard": "Standard delivery (3-5 business days):",
-      "standardPrice": "€4.90",
-      "express": "Express delivery (24/48h):",
-      "expressPrice": "€9.90",
-      "freeFrom": "Free from",
-      "freeThreshold": "€80",
-      "freeLabel": "purchase"
-    },
-    "zones": {
-      "title": "Delivery zones",
-      "description": "We deliver to mainland France, Belgium, Luxembourg and Switzerland."
-    },
-    "tracking": {
-      "title": "Tracking & Service",
-      "description": "A tracking number will be sent as soon as your order is shipped. For any questions, contact us via the"
+      "title": "Rif Raw Straw – Authentic Berber Craftsmanship",
+      "description": "Discover authentic handcrafted Berber straw products made in Morocco."
     }
   },
-  "returns": {
-    "title": "Returns & Refunds",
-    "seo": {
-      "title": "Returns & Refunds - Rif Raw Straw",
-      "description": "Return and refund policy for your Moroccan crafts purchases. 14 days to return your items."
-    },
-    "heading": "Returns & Refunds",
-    "policy": {
-      "title": "Return Policy",
-      "item1": "You have 14 days after receipt to return an item.",
-      "item2": "Products must be new, unused and in their original packaging.",
-      "item3": "Return costs are the customer's responsibility unless we made an error."
-    },
-    "procedure": {
-      "title": "Procedure",
-      "step1": "Contact us via the",
-      "step1Link": "Contact",
-      "step1Suffix": "page specifying your order number.",
-      "step2": "We will provide you with the return address and instructions.",
-      "step3": "After receipt and verification, the refund will be made within 7 business days."
-    },
-    "questions": "For any questions, feel free to check our",
-    "faqLink": "FAQ",
-    "questionsSuffix": "or write to us."
-  },
-  "terms": {
-    "title": "Terms of Use",
-    "seo": {
-      "title": "Terms of Use - Rif Raw Straw",
-      "description": "Check our terms of use to understand the rules and conditions for using our Moroccan crafts shop."
-    },
-    "heading": "Terms of Use",
-    "intro": "By accessing this site, you agree to our terms of use. Please read the information below carefully.",
-    "items": {
-      "item1": "The site content is protected by copyright.",
-      "item2": "You may not reproduce, distribute or exploit the content without written authorization.",
-      "item3": "Prices and product information are subject to change at any time.",
-      "item4": "We reserve the right to refuse an order in case of previous dispute."
-    },
-    "contact": "For any questions, contact us via the"
-  },
+
   "cgv": {
     "title": "Terms & Conditions",
     "seo": {
-      "title": "Terms & Conditions - Rif Raw Straw",
-      "description": "Check our terms and conditions for your Berber crafts purchases. Warranties, payment and delivery terms."
+      "title": "Terms & Conditions – Rif Raw Straw",
+      "description": "Read our general terms and conditions: payment, delivery, warranty, and returns."
     },
     "heading": "Terms & Conditions",
     "items": {
-      "item1": "Orders are payable in full at the time of order.",
-      "item2": "Products remain the property of the seller until full payment.",
-      "item3": "The customer has a 14-day withdrawal period after receipt.",
-      "item4": "Returns must be made in the original packaging and in perfect condition.",
-      "item5": "In case of dispute, the competent court will be that of the seller's registered office."
+      "item1": "Orders are payable in full at the time of purchase.",
+      "item2": "Products remain the property of the seller until full payment is received.",
+      "item3": "Customers have a 14-day withdrawal period after receiving their order.",
+      "item4": "Returned products must be unused and in their original packaging.",
+      "item5": "In case of dispute, the competent court will be that of the seller’s registered office."
     },
-    "contact": "For more details, contact us via the"
+    "contact": "For more details, please contact us via the"
   },
-  "blog": {
-    "title": "Blog",
+
+  "terms": {
+    "title": "Legal Notice",
     "seo": {
-      "title": "Craft Journal - Blog | Rif Raw Straw",
-      "description": "Discover the stories behind our creations, meet our artisans, and dive into the richness of Moroccan craftsmanship.",
-      "keywords": ["craft blog", "artisan stories", "traditional know-how", "Berber culture"]
+      "title": "Legal Notice – Rif Raw Straw",
+      "description": "Legal information about Rif Raw Straw, publisher, hosting, and liability."
     },
-    "badge": "Our Blog",
-    "heading": "Craft Journal",
-    "description": "Discover the stories behind our creations, meet our artisans, and dive into the richness of Moroccan craftsmanship.",
-    "featured": "Featured Articles",
-    "latest": "Latest Articles",
-    "readMore": "Read more",
-    "author": "Author",
-    "newsletter": {
-      "title": "Subscribe to our newsletter",
-      "description": "Don't miss any articles, receive our latest stories and new collections directly in your inbox."
-    }
+    "heading": "Legal Notice",
+    "content": "This website is published by Rif Raw Straw. All content is protected by intellectual property laws."
   },
-  "productDetail": {
-    "breadcrumb": {
-      "home": "Home",
-      "shop": "Shop"
-    },
-    "badges": {
-      "new": "New",
-      "favorite": "⭐ Favorite"
-    },
-    "reviews": "reviews",
-    "price": {
-      "vatIncluded": "VAT included • Shipping calculated at next step"
-    },
-    "description": {
-      "showMore": "Show more",
-      "showLess": "Show less"
-    },
-    "quantity": {
-      "decrease": "Decrease quantity",
-      "increase": "Increase quantity"
-    },
-    "cart": {
-      "add": "Add to cart",
-      "outOfStock": "Out of stock",
-      "added": "added to cart"
-    },
-    "share": {
-      "title": "Share this product",
-      "description": "Choose how to share this product",
-      "copy": "Copy",
-      "copied": "Link copied to clipboard",
-      "error": "Error sharing",
-      "brandName": "Berber Craftsmanship",
-      "shareText": "Discover this beautiful artisan creation: {{name}}"
-    },
-    "stock": {
-      "inStock": "In stock",
-      "available": "available",
-      "outOfStock": "Out of stock"
-    },
-    "shipping": {
-      "free": "Free shipping",
-      "freeFrom": "From €50 purchase in mainland France"
-    },
-    "tabs": {
-      "details": "Details",
-      "specs": "Specifications",
-      "care": "Care",
-      "shipping": "Shipping"
-    },
-    "detailsTab": {
-      "title": "Detailed description"
-    },
-    "specsTab": {
-      "title": "Technical specifications",
-      "material": "Material",
-      "color": "Color",
-      "dimensions": "Dimensions",
-      "weight": "Weight",
-      "artisan": "Artisan",
-      "category": "Category"
-    },
-    "careTab": {
-      "title": "Care instructions"
-    },
-    "shippingTab": {
-      "title": "Shipping and returns",
-      "deliveryTime": "Delivery time",
-      "deliveryTimeValue": "2-5 business days in mainland France",
-      "shippingCost": "Shipping cost",
-      "shippingCostValue": "Free from €50 purchase. Otherwise €4.90 in mainland France.",
-      "returns": "Returns",
-      "returnsValue": "Free returns within 14 days. Item must be in original condition."
-    },
-    "recommendations": "You might also like",
-    "error": {
-      "title": "Product not found",
-      "description": "The product you are looking for does not exist or is no longer available.",
-      "back": "Back",
-      "viewAll": "View all products",
-      "missingId": "Missing product ID",
-      "invalidId": "Invalid product ID",
-      "notFound": "Product not found",
-      "loadError": "Error loading product",
-      "cartError": "Unable to add product to cart"
-    },
-    "images": {
-      "view": "view",
-      "of": "of",
-      "previous": "Previous image",
-      "next": "Next image",
-      "thumbnail": "thumbnail",
-      "enlarged": "Enlarged view",
-      "ariaLabel": "Product images",
-      "viewImage": "View image",
-      "fullSizeDescription": "Full size product image"
-    },
-    "seo": {
-      "handmadeBy": "handmade by",
-      "berberCraft": "Berber craftsmanship",
-      "handmade": "handmade",
-      "naturalFibers": "natural fibers"
-    },
-    "productInfo": {
-      "ariaLabel": "Product information"
-    }
-  },
-  "home": {
-    "title": "Home",
-    "seo": {
-      "title": "Rif Raw Straw - Authentic Moroccan Craftsmanship | Handmade Bags and Hats",
-      "description": "Discover our collection of handmade bags and hats from the Rif mountains. Sustainable craftsmanship and traditional Moroccan know-how."
-    },
-    "hero": {
-      "badge": "Sustainable & Handmade Crafts",
-      "title": "Created with love in the",
-      "titleHighlight": "Rif Mountains",
-      "description": "Discover our collection of handmade bags and hats, created with sustainable materials and traditional Moroccan craftsmanship.",
-      "discoverButton": "Discover the Collection",
-      "storyButton": "Our Story"
-    },
-    "features": {
-      "badge": "Our Values",
-      "title": "Why Choose Our Creations?",
-      "description": "Our products are made with love, care and commitment to sustainable practices",
-      "eco": {
-        "title": "Eco-Friendly Materials",
-        "description": "All our products are made from sustainable and ethical materials, respecting the environment and local traditions."
-      },
-      "craft": {
-        "title": "Traditional Craftsmanship",
-        "description": "Each piece is carefully crafted by skilled artisans using traditional techniques passed down through generations."
-      },
-      "design": {
-        "title": "Unique Designs",
-        "description": "Our designs blend modern aesthetics with traditional influences, for timeless pieces that tell a story."
-      },
-      "handmade": {
-        "title": "100% Handmade",
-        "description": "Each piece is carefully crafted by our artisans."
-      },
-      "authentic": {
-        "title": "Authentic",
-        "description": "Ancestral techniques passed down through generations."
-      },
-      "sustainable": {
-        "title": "Sustainable",
-        "description": "Natural materials and responsible production."
-      },
-      "fairTrade": {
-        "title": "Fair Trade",
-        "description": "Fair compensation for our partner artisans."
-      }
-    },
-    "products": {
-      "badge": "Artisan Collection",
-      "title": "Our Featured Products",
-      "description": "Each creation tells the story of our artisans and perpetuates ancestral know-how",
-      "viewAll": "View Full Collection",
-      "viewAllMobile": "View All Products"
-    },
-    "showcase": {
-      "title": "Our Creations",
-      "viewAll": "View the full collection"
-    },
-    "testimonials": {
-      "badge": "Testimonials",
-      "title": "What Our Customers Say",
-      "reviews": {
-        "emma": "I absolutely love my woven tote bag! The craftsmanship is exceptional and it's exactly what I was looking for to complement my sustainable lifestyle. Highly recommend!",
-        "michael": "The quality of the hat I purchased exceeded my expectations. It's comfortable, stylish, and I appreciate knowing it was made with sustainable practices. Will definitely shop here again.",
-        "sarah": "Not only are the products beautiful, but the customer service is outstanding. My bag arrived beautifully packaged with a personal note. It's these touches that make all the difference."
-      }
-    },
-    "heroImage": {
-      "alt": "Handmade artisan hat and traditional bag - Authentic Rif craftsmanship",
-      "fallback": "Rif artisan products",
-      "title": "Authentic Rif Craftsmanship",
-      "subtitle": "Woven hat and natural bag - Handmade with love"
-    },
-    "instagram": {
-      "follow": "Follow us @artisan_maroc",
-      "title": "Get Inspired by Our Community",
-      "postAlt": "Instagram post {{id}}",
-      "imageUnavailable": "Image unavailable"
-    },
-    "artisans": {
-      "badge": "The hands behind the art",
-      "title": "Our Artisans",
-      "description": "Meet the talented artisans who perpetuate ancestral know-how in the Moroccan Rif mountains.",
-      "cta": "Every purchase directly supports these artisans and their families, preserving a unique cultural heritage."
-    }
-  },
-  "about": {
-    "title": "About Us",
-    "seo": {
-      "title": "About - Rif Raw Straw",
-      "description": "Discover our story, our passion for Berber craftsmanship and our commitment to artisans from the Rif mountains."
-    },
-    "subtitle": "A passion for authentic Berber craftsmanship",
-    "content": "The Rif Raw Straw adventure began with a shared passion: to reveal the beauty of Berber craftsmanship and share it with the world."
-  },
-  "contact": {
-    "title": "Contact Us",
-    "seo": {
-      "title": "Contact Us - Rif Raw Straw",
-      "description": "Contact our expert team for any questions about our handmade Berber products. Response within 24 hours."
-    },
-    "hero": {
-      "title": "Let's Talk",
-      "description": "Questions about our handmade products? A custom order? Our team is here to assist you.",
-      "cta": "Start a Discussion"
-    },
-    "cards": {
-      "general": {
-        "title": "General Inquiry",
-        "description": "Questions about our artisan products"
-      },
-      "support": {
-        "title": "Technical Support",
-        "description": "Help with your orders"
-      },
-      "partnership": {
-        "title": "Partnerships",
-        "description": "Business collaborations"
-      }
-    },
-    "info": {
-      "title": "Contact Us",
-      "description": "Our expert team is here to assist you with all your authentic Berber craft projects.",
-      "email": "Email",
-      "emailResponse": "Response within 24h",
-      "phone": "Phone",
-      "phoneHours": "Mon-Fri 9am-6pm",
-      "address": "Address",
-      "hours": "Hours"
-    },
-    "services": {
-      "title": "Our Services",
-      "customOrders": "Custom orders",
-      "expertAdvice": "Expert advice",
-      "b2b": "B2B solutions",
-      "international": "International shipping"
-    },
-    "form": {
-      "title": "Send Us a Message",
-      "subtitle": "We typically respond within 2-4 hours",
-      "firstName": "First Name",
-      "lastName": "Last Name",
-      "email": "Email",
-      "emailPlaceholder": "your.email@example.com",
-      "emailFormat": "Required format: your@email.com",
-      "phone": "Phone",
-      "phonePlaceholder": "Your phone number",
-      "company": "Company (optional)",
-      "companyPlaceholder": "Your company name",
-      "subject": "Subject",
-      "subjectPlaceholder": "Select a subject",
-      "subjectOptions": {
-        "product": "Product question",
-        "customOrder": "Custom order",
-        "partnership": "Business partnership",
-        "wholesale": "Wholesale",
-        "shipping": "Shipping and delivery",
-        "support": "Technical support",
-        "other": "Other question"
-      },
-      "message": "Message",
-      "messagePlaceholder": "Describe your request in detail...",
-      "characters": "characters",
-      "minCharacters": "Minimum 20 characters required",
-      "submit": "Send Message",
-      "submitting": "Sending...",
-      "privacy": "By submitting this form, you agree that we process your data in accordance with our privacy policy.",
-      "success": "Message sent successfully! We will respond soon.",
-      "error": "Error sending message. Please try again.",
-      "rateLimited": "Too many submissions. Please wait 10 minutes before trying again.",
-      "validation": {
-        "subjectMinLength": "Subject must be at least 5 characters",
-        "messageMinLength": "Message must be at least 20 characters"
-      }
-    },
-    "map": {
-      "title": "Our Location",
-      "description": "Visit our showroom to discover our artisan creations"
-    }
-  },
-  "faq": {
-    "title": "Frequently Asked Questions",
-    "seo": {
-      "title": "FAQ - Frequently Asked Questions | Rif Raw Straw",
-      "description": "Find answers to your questions about our artisan products, delivery, returns and our Berber craftsmanship."
-    },
-    "shipping": {
-      "q": "What are the delivery times?",
-      "a": "Orders are shipped within 24-48 hours. Standard delivery typically takes 3-5 business days."
-    },
-    "tracking": {
-      "q": "How can I track my order?",
-      "a": "A confirmation email with a tracking number will be sent upon shipment."
-    },
-    "payment": {
-      "q": "What payment methods do you accept?",
-      "a": "We accept credit cards (Visa, Mastercard), PayPal, and Apple Pay."
-    },
-    "modification": {
-      "q": "Can I modify or cancel my order?",
-      "a": "If your order has not been shipped yet, contact us quickly via the Contact page for any modification or cancellation."
-    },
-    "returns": {
-      "q": "How do I make a return?",
-      "a": {
-        "prefix": "Visit our",
-        "linkText": "Returns",
-        "suffix": "page for the detailed procedure."
-      }
-    }
-  },
-  "shipping": {
-    "title": "Shipping & Delivery",
-    "seo": {
-      "title": "Shipping & Delivery - Rif Raw Straw",
-      "description": "Discover our delivery options for your Moroccan crafts purchases. Fast and secure delivery in France and internationally."
-    }
-  },
+
   "returns": {
     "title": "Returns & Refunds",
     "seo": {
-      "title": "Returns & Refunds - Rif Raw Straw",
-      "description": "Return and refund policy for your Moroccan crafts purchases. 14 days to return your items."
-    }
-  },
-  "terms": {
-    "title": "Terms of Use",
-    "seo": {
-      "title": "Terms of Use - Rif Raw Straw",
-      "description": "Consult our terms of use to understand the rules and conditions of use of our Moroccan crafts shop."
-    }
-  },
-  "cgv": {
-    "title": "Terms & Conditions",
-    "seo": {
-      "title": "Terms & Conditions - Rif Raw Straw",
-      "description": "Consult our terms and conditions for your Berber crafts purchases. Guarantees, payment and delivery terms."
+      "title": "Returns & Refunds – Rif Raw Straw",
+      "description": "Learn about our return, refund, and exchange policy."
     },
-    "heading": "...",
+    "heading": "Returns & Refunds",
     "items": {
-      "item1": "...",
-      "item2": "...",
-      "item3": "...",
-      "item4": "...",
-      "item5": "..."
-    },
-    "contact": "..."
+      "item1": "You have 14 days to request a return after receiving your order.",
+      "item2": "Returned items must be unused and in original condition.",
+      "item3": "Refunds are processed within 14 days after validation.",
+      "item4": "Return shipping costs are the responsibility of the customer unless the product is defective."
+    }
   },
+
+  "shipping": {
+    "title": "Shipping Information",
+    "seo": {
+      "title": "Shipping Information – Rif Raw Straw",
+      "description": "Find out about shipping methods, delivery times, and costs."
+    },
+    "heading": "Shipping Information",
+    "items": {
+      "item1": "Orders are prepared within 2–3 business days.",
+      "item2": "Delivery times depend on the destination country.",
+      "item3": "Tracking information is provided once the order is shipped.",
+      "item4": "International customs fees may apply depending on your location."
+    }
+  },
+
+  "about": {
+    "title": "About Us",
+    "seo": {
+      "title": "About Rif Raw Straw",
+      "description": "Learn about our story, values, and commitment to Berber craftsmanship."
+    },
+    "heading": "About Rif Raw Straw",
+    "content": "Rif Raw Straw promotes authentic Berber craftsmanship through handmade straw products created with respect for tradition and sustainability."
+  },
+
   "story": {
     "title": "Our Story",
     "seo": {
-      "title": "Our Story - Rif Raw Straw",
-      "description": "Discover the story of Rif Raw Straw, our passion for Berber craftsmanship and our quest to promote authentic handmade."
-    }
-  },
-  "wishlist": {
-    "title": "My Wishlist",
-    "empty": "Your wishlist is empty",
-    "emptyMessage": "Explore our collection and save your favorites!",
-    "itemCount": "{{count}} item saved",
-    "itemCount_other": "{{count}} items saved",
-    "addToCart": "Add to cart",
-    "remove": "Remove from wishlist",
-    "remainingSlots": "{{count}} slot remaining",
-    "remainingSlots_other": "{{count}} slots remaining",
-    "loginRequired": "You must be signed in to view your wishlist."
-  },
-  "profile": {
-    "seo": {
-      "title": "My Profile - Rif Raw Straw",
-      "description": "Manage your personal information, preferences and order history"
+      "title": "Our Story – Rif Raw Straw",
+      "description": "Discover the origins and mission of Rif Raw Straw."
     },
-    "title": "My Profile",
-    "subtitle": "Manage your personal information, preferences and history",
-    "tabs": {
-      "overview": "Overview",
-      "overviewShort": "Profile",
-      "personal": "Information",
-      "personalShort": "Info",
-      "loyalty": "Loyalty",
-      "loyaltyShort": "Points",
-      "preferences": "Preferences",
-      "preferencesShort": "Prefs",
-      "orders": "Orders",
-      "ordersShort": "Orders"
-    },
-    "buttons": {
-      "home": "Home",
-      "signOut": "Sign out",
-      "deleteAccount": "Delete account"
-    },
-    "deleteDialog": {
-      "title": "Delete account",
-      "description": "This action is irreversible. All your data will be permanently deleted. Are you sure you want to delete your account?",
-      "cancel": "Cancel",
-      "confirm": "Delete permanently"
-    },
-    "footer": {
-      "contact": "Contact",
-      "importantLinks": "Important Links",
-      "terms": "Terms of Use",
-      "cgv": "Terms and Conditions",
-      "privacy": "Privacy Policy (GDPR)",
-      "legal": "Legal Information",
-      "legalNotices": "Legal Notices",
-      "cookies": "Cookie Policy",
-      "copyright": "© 2024 RifStraw. All rights reserved."
-    },
-    "messages": {
-      "loadError": "Error loading profile",
-      "createError": "Error creating profile",
-      "deleteSuccess": "Account deleted successfully",
-      "deleteError": "Error deleting account",
-      "signOutError": "Error signing out"
-    }
-  },
-  "orders": {
-    "seo": {
-      "title": "My Orders - Rif Raw Straw",
-      "description": "View your order history and track their status"
-    },
-    "title": "My Orders",
-    "subtitle": "Track your orders and view your purchase history",
-    "refresh": "Refresh",
-    "loginRequired": {
-      "title": "Sign in to view your orders",
-      "description": "You must be signed in to access your order history."
-    },
-    "empty": {
-      "title": "No orders found",
-      "description": "You haven't placed any orders yet. Discover our artisan collection!",
-      "cta": "Discover our products"
-    },
-    "orderNumber": "Order #{{id}}",
-    "placedOn": "Placed on {{date}}",
-    "articles": "{{count}} item",
-    "articles_plural": "{{count}} items",
-    "viewDetails": "View details",
-    "status": {
-      "pending": "Pending",
-      "paid": "Paid",
-      "processing": "Processing",
-      "shipped": "Shipped",
-      "delivered": "Delivered",
-      "cancelled": "Cancelled",
-      "refunded": "Refunded"
-    },
-    "statusDescription": {
-      "pending": "Your order is pending processing.",
-      "paid": "Your payment has been confirmed.",
-      "processing": "Your order is being prepared by our artisans.",
-      "shipped": "Your order has been shipped and is on its way.",
-      "delivered": "Your order has been delivered successfully.",
-      "cancelled": "Your order has been cancelled.",
-      "refunded": "Your order has been refunded."
-    },
-    "details": {
-      "orderedItems": "Ordered items",
-      "product": "Product",
-      "total": "Total",
-      "orderStatus": "Order status",
-      "sessionId": "Session ID",
-      "deliveryInfo": "Delivery information",
-      "deliveredMessage": "Your order has been delivered successfully.",
-      "inTransitMessage": "Your order is in transit."
-    },
-    "track": "Track my order",
-    "reorder": "Order again",
-    "messages": {
-      "loadError": "Error loading orders"
-    }
-  },
-  "paymentSuccess": {
-    "verifying": {
-      "title": "Verifying Payment",
-      "description": "We are verifying your payment and updating your order..."
-    },
-    "success": {
-      "title": "Payment Confirmed",
-      "thanks": "Thank you for your order!",
-      "verified": "Payment verified successfully",
-      "confirmed": "Payment confirmed and stock updated!",
-      "transactionId": "Transaction number",
-      "orderId": "Order number"
-    },
-    "error": {
-      "title": "Verification Problem",
-      "description": "An error occurred while verifying your payment."
-    },
-    "errors": {
-      "missingSession": "Missing session ID",
-      "verificationError": "Error verifying payment",
-      "verificationFailed": "Payment verification failed",
-      "unexpectedError": "Unexpected error"
-    },
-    "nextSteps": {
-      "title": "What happens now?",
-      "step1": {
-        "title": "Email confirmation",
-        "description": "You will receive a confirmation email with the details of your order."
-      },
-      "step2": {
-        "title": "Preparation",
-        "description": "Our artisans will prepare your order with the greatest care."
-      },
-      "step3": {
-        "title": "Shipping",
-        "description": "Your order will be shipped within 2-3 business days."
-      }
-    },
-    "help": {
-      "title": "Questions or Problems?",
-      "description": "Our team is here to help. Feel free to contact us."
-    }
-  },
-  "blogPost": {
-    "loading": "Loading...",
-    "notFound": "Article not found",
-    "backToArticles": "Back to articles",
-    "shareArticle": "Share this article:",
-    "content": {
-      "intro1": "Moroccan craftsmanship is an invaluable cultural treasure, passed down from generation to generation. In the Rif mountains, ancestral weaving and braiding techniques are carefully preserved by local communities who perpetuate unique expertise.",
-      "intro2": "Each piece tells a story and carries the soul of the artisan who created it. The geometric patterns and Berber symbols used in our creations are imbued with meaning and represent a form of visual communication rooted in tradition.",
-      "heading1": "Tradition serving modernity",
-      "paragraph1": "Today, these ancestral techniques adapt to contemporary needs while preserving the authenticity that makes them valuable. Our artisans combine their traditional expertise with modern designs to create pieces that are both timeless and current.",
-      "paragraph2": "By supporting our cooperative, you contribute directly to the preservation of this intangible cultural heritage and to the economic empowerment of artisan communities in the Rif.",
-      "heading2": "Social and environmental impact",
-      "paragraph3": "Our commitment goes beyond product quality. We also ensure that every stage of production respects the environment by using natural materials and low-impact techniques.",
-      "paragraph4": "The artisans who collaborate with us benefit from fair working conditions and equitable compensation, thereby supporting the local economy while preserving expertise that is unique in the world."
-    }
-  },
-  "notFound": {
-    "title": "Sorry, this path seems lost...",
-    "subtitle": "...like a hat in the Provençal wind!",
-    "description": "The requested page does not exist or is no longer available.",
-    "backHome": "Back to Home"
+    "heading": "Our Story",
+    "content": "Born from a passion for Berber culture, Rif Raw Straw works directly with artisans to preserve ancestral know-how."
   }
 }
