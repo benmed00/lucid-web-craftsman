@@ -469,7 +469,16 @@
     "seo": {
       "title": "Terms & Conditions - Rif Raw Straw",
       "description": "Consult our terms and conditions for your Berber crafts purchases. Guarantees, payment and delivery terms."
-    }
+    },
+    "heading": "...",
+    "items": {
+      "item1": "...",
+      "item2": "...",
+      "item3": "...",
+      "item4": "...",
+      "item5": "..."
+    },
+    "contact": "..."
   },
   "story": {
     "title": "Our Story",
