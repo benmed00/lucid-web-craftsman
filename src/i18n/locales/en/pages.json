@@ -3,6 +3,51 @@
     "seo": {
       "title": "Rif Raw Straw – Authentic Berber Craftsmanship",
       "description": "Discover authentic handcrafted Berber straw products made in Morocco."
+    },
+    "hero": {
+      "badge": "Sustainable & Handmade Crafts",
+      "title": "Created with love in the",
+      "titleHighlight": "Rif Mountains",
+      "description": "Discover our collection of handmade bags and hats, crafted with sustainable materials and traditional Moroccan know-how.",
+      "discoverButton": "Discover the Collection",
+      "storyButton": "Our Story"
+    },
+    "features": {
+      "badge": "Our Values",
+      "title": "Ancestral craftsmanship in the service of sustainability",
+      "description": "Each piece tells a story, one of craftsmanship passed down through generations.",
+      "eco": {
+        "title": "Eco-Friendly",
+        "description": "Natural and sustainable materials, respectful of the environment."
+      },
+      "craft": {
+        "title": "Handmade",
+        "description": "Each piece is unique, created by skilled artisans."
+      },
+      "design": {
+        "title": "Authentic Design",
+        "description": "Timeless styles inspired by Berber tradition."
+      }
+    },
+    "products": {
+      "badge": "Our Collection",
+      "title": "Discover our artisanal creations",
+      "description": "A selection of unique pieces, handmade with passion.",
+      "viewAll": "View entire collection",
+      "viewAllMobile": "View all products"
+    },
+    "testimonials": {
+      "badge": "Testimonials",
+      "title": "What our customers say",
+      "reviews": {
+        "emma": "The quality of craftsmanship is exceptional. My hat has become my favorite summer accessory.",
+        "michael": "I love that each piece is unique. The bag I bought has received so many compliments!",
+        "sarah": "Customer service was fantastic and delivery was very fast. Highly recommend!"
+      }
+    },
+    "instagram": {
+      "follow": "@rifrawstraw",
+      "title": "Follow us on Instagram"
     }
   },
 
