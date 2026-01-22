@@ -12,150 +12,6 @@
       "description": "Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.",
       "discoverButton": "Découvrir la Collection",
       "storyButton": "Notre Histoire"
-    },
-    "features": {
-      "badge": "Nos Valeurs",
-      "title": "Un savoir-faire ancestral au service de la durabilité",
-      "description": "Chaque pièce raconte une histoire, celle d'un artisanat transmis de génération en génération.",
-      "eco": {
-        "title": "Éco-responsable",
-        "description": "Matériaux naturels et durables, respectueux de l'environnement."
-      },
-      "craft": {
-        "title": "Fait Main",
-        "description": "Chaque pièce est unique, créée par des artisans qualifiés."
-      },
-      "design": {
-        "title": "Design Authentique",
-        "description": "Styles intemporels inspirés de la tradition berbère."
-      }
-    },
-    "products": {
-      "badge": "Notre Collection",
-      "title": "Découvrez nos créations artisanales",
-      "description": "Une sélection de pièces uniques, fabriquées à la main avec passion.",
-      "viewAll": "Voir toute la collection",
-      "viewAllMobile": "Voir tous les produits"
-    },
-    "testimonials": {
-      "badge": "Témoignages",
-      "title": "Ce que nos clients disent",
-      "reviews": {
-        "emma": "La qualité de l'artisanat est exceptionnelle. Mon chapeau est devenu mon accessoire préféré pour l'été.",
-        "michael": "J'adore le fait que chaque pièce soit unique. Le sac que j'ai acheté a reçu tellement de compliments !",
-        "sarah": "Le service client était fantastique et la livraison très rapide. Je recommande vivement !"
-      }
-    },
-    "instagram": {
-      "follow": "@rifrawstraw",
-      "title": "Suivez-nous sur Instagram"
-    }
-  },
-
-  "productDetail": {
-    "reviews": "avis",
-    "recommendations": "Produits similaires",
-    "seo": {
-      "handmadeBy": "fait main par",
-      "berberCraft": "artisanat berbère",
-      "handmade": "fait main",
-      "naturalFibers": "fibres naturelles"
-    },
-    "error": {
-      "missingId": "Identifiant du produit manquant",
-      "invalidId": "Identifiant du produit invalide",
-      "notFound": "Produit non trouvé",
-      "loadError": "Erreur lors du chargement du produit",
-      "description": "Le produit que vous recherchez n'existe pas ou a été supprimé.",
-      "back": "Retour",
-      "viewAll": "Voir tous les produits",
-      "cartError": "Erreur lors de l'ajout au panier"
-    },
-    "cart": {
-      "added": "ajouté au panier",
-      "add": "Ajouter au panier",
-      "outOfStock": "Rupture de stock"
-    },
-    "share": {
-      "brandName": "Rif Raw Straw",
-      "shareText": "Découvrez {{name}} - artisanat berbère authentique",
-      "copied": "Lien copié !",
-      "error": "Erreur lors du partage",
-      "title": "Partager ce produit",
-      "description": "Partagez ce produit avec vos amis",
-      "copy": "Copier le lien"
-    },
-    "breadcrumb": {
-      "home": "Accueil",
-      "shop": "Boutique"
-    },
-    "images": {
-      "ariaLabel": "Galerie d'images du produit",
-      "view": "vue",
-      "of": "sur",
-      "previous": "Précédent",
-      "next": "Suivant",
-      "viewImage": "Voir l'image",
-      "thumbnail": "miniature",
-      "enlarged": "Vue agrandie",
-      "fullSizeDescription": "Image en taille réelle du produit"
-    },
-    "productInfo": {
-      "ariaLabel": "Informations sur le produit"
-    },
-    "badges": {
-      "new": "Nouveau",
-      "favorite": "Coup de cœur"
-    },
-    "price": {
-      "vatIncluded": "TVA incluse"
-    },
-    "description": {
-      "showMore": "Voir plus",
-      "showLess": "Voir moins"
-    },
-    "quantity": {
-      "decrease": "Diminuer la quantité",
-      "increase": "Augmenter la quantité"
-    },
-    "stock": {
-      "inStock": "En stock",
-      "available": "disponible(s)",
-      "outOfStock": "Rupture de stock"
-    },
-    "shipping": {
-      "free": "Livraison gratuite",
-      "freeFrom": "Livraison offerte dès 80€ d'achat"
-    },
-    "tabs": {
-      "details": "Description",
-      "specs": "Caractéristiques",
-      "care": "Entretien",
-      "shipping": "Livraison"
-    },
-    "detailsTab": {
-      "title": "Description du produit"
-    },
-    "specsTab": {
-      "title": "Caractéristiques",
-      "material": "Matériau",
-      "color": "Couleur",
-      "dimensions": "Dimensions",
-      "weight": "Poids",
-      "artisan": "Artisan",
-      "category": "Catégorie"
-    },
-    "careTab": {
-      "title": "Instructions d'entretien"
-    },
-    "shippingTab": {
-      "title": "Informations de livraison",
-      "deliveryTime": "Délai de livraison",
-      "deliveryTimeValue": "3-5 jours ouvrés pour la France métropolitaine",
-      "shippingCost": "Frais de livraison",
-      "shippingCostValue": "Livraison gratuite à partir de 80€ d'achat",
-      "returns": "Retours",
-      "returnsValue": "Retour gratuit sous 14 jours"
     }
   },
 
@@ -184,7 +40,6 @@
 
   "shipping": {
     "title": "Livraison & Expédition",
-    "heading": "Livraison & Expédition",
     "seo": {
       "title": "Livraison et Expédition - Rif Raw Straw",
       "description": "Délais, tarifs et zones de livraison."
@@ -211,7 +66,6 @@
 
   "returns": {
     "title": "Retours & Remboursements",
-    "heading": "Retours & Remboursements",
     "seo": {
       "title": "Retours & Remboursements - Rif Raw Straw",
       "description": "Conditions et procédure de retour."
@@ -305,5 +159,83 @@
     "title": "Page introuvable",
     "description": "La page demandée n'existe pas.",
     "backHome": "Retour à l'accueil"
+  },
+
+  "contact": {
+    "hero": {
+      "title": "Contactez-nous",
+      "description": "Une question, un projet ou un besoin spécifique ? Notre équipe est à votre écoute."
+    },
+
+    "cards": {
+      "general": {
+        "title": "Informations générales",
+        "description": "Pour toute question concernant nos produits, services ou notre entreprise."
+      },
+      "support": {
+        "title": "Support client",
+        "description": "Besoin d’aide après un achat ou d’un accompagnement technique ?"
+      },
+      "partnership": {
+        "title": "Partenariats",
+        "description": "Vous souhaitez collaborer avec nous ou développer un partenariat B2B ?"
+      }
+    },
+
+    "info": {
+      "title": "Coordonnées",
+      "description": "Vous pouvez nous contacter par email, téléphone ou nous rendre visite.",
+      "email": "contact@rifstraw.com",
+      "emailResponse": "Nous répondons généralement sous 24 heures ouvrées.",
+      "phone": "+33 1 23 45 67 89",
+      "phoneHours": "Du lundi au vendredi, de 9h à 18h",
+      "address": "6 allée de la Sèvre\n44400 Rezé, France",
+      "hours": "Lundi - Vendredi : 9h - 18h\nSamedi : 10h - 16h\nDimanche : Fermé"
+    },
+
+    "services": {
+      "title": "Nos services",
+      "customOrders": "Commandes personnalisées",
+      "expertAdvice": "Conseils d’experts",
+      "b2b": "Solutions B2B",
+      "international": "Livraison internationale"
+    },
+
+    "form": {
+      "title": "Formulaire de contact",
+      "subtitle": "Remplissez le formulaire ci-dessous et nous reviendrons vers vous rapidement.",
+
+      "firstName": "Prénom",
+      "firstNameRequired": "Prénom *",
+
+      "lastName": "Nom",
+      "lastNameRequired": "Nom *",
+
+      "email": "Adresse email",
+      "emailRequired": "Adresse email *",
+      "emailPlaceholder": "exemple@email.com",
+      "emailFormat": "Veuillez entrer une adresse email valide.",
+
+      "phone": "Téléphone",
+      "phonePlaceholder": "+33 6 12 34 56 78",
+
+      "company": "Entreprise",
+      "companyPlaceholder": "Nom de l’entreprise",
+
+      "subjectRequired": "Sujet *",
+      "subjectPlaceholder": "Objet de votre message",
+
+      "messageRequired": "Message *",
+      "messagePlaceholder": "Décrivez votre demande en détail",
+      "characters": "0/2000 caractères",
+      "minCharacters": "Le message doit contenir au moins 20 caractères.",
+
+      "privacy": "J’accepte la politique de confidentialité et le traitement de mes données."
+    },
+
+    "map": {
+      "title": "Notre localisation",
+      "description": "Retrouvez-nous facilement grâce à la carte ci-dessous."
+    }
   }
 }
