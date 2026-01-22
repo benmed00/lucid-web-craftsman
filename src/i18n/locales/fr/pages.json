@@ -113,7 +113,46 @@
       "description": "Informations légales du site."
     },
     "heading": "Mentions Légales",
-    "content": "Ce site est édité par Rif Raw Straw. Tous droits réservés."
+    "intro": "Bienvenue sur Rif Raw Straw. En utilisant ce site, vous acceptez les conditions suivantes :",
+    "items": {
+      "item1": "Tout le contenu de ce site est protégé par le droit d'auteur.",
+      "item2": "Les images et textes ne peuvent être reproduits sans autorisation.",
+      "item3": "Les informations personnelles sont traitées conformément à notre politique de confidentialité.",
+      "item4": "L'utilisation abusive du site peut entraîner la suspension de l'accès."
+    },
+    "contact": "Pour toute question, contactez-nous via la page"
+  },
+
+  "faq": {
+    "title": "Questions Fréquentes",
+    "seo": {
+      "title": "FAQ - Rif Raw Straw",
+      "description": "Trouvez les réponses à vos questions sur la livraison, les retours et les paiements."
+    },
+    "shipping": {
+      "q": "Quels sont les délais de livraison ?",
+      "a": "La livraison standard prend 3 à 5 jours ouvrés. La livraison express est disponible en 24-48h."
+    },
+    "tracking": {
+      "q": "Comment suivre ma commande ?",
+      "a": "Un email avec le numéro de suivi vous sera envoyé dès l'expédition de votre colis."
+    },
+    "payment": {
+      "q": "Quels moyens de paiement acceptez-vous ?",
+      "a": "Nous acceptons les cartes bancaires (Visa, Mastercard), PayPal et Apple Pay."
+    },
+    "modification": {
+      "q": "Puis-je modifier ma commande après validation ?",
+      "a": "Contactez-nous rapidement via la page contact. Si la commande n'a pas été expédiée, nous ferons notre possible pour la modifier."
+    },
+    "returns": {
+      "q": "Comment effectuer un retour ?",
+      "a": {
+        "prefix": "Consultez notre",
+        "linkText": "page retours",
+        "suffix": "pour connaître la procédure complète."
+      }
+    }
   },
 
   "notFound": {
