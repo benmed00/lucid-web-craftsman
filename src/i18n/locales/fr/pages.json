@@ -162,9 +162,15 @@
   },
 
   "contact": {
+    "seo": {
+      "title": "Contact | Rifstraw",
+      "description": "Contactez Rifstraw pour toute question, commande personnalisée, partenariat ou support client."
+    },
+
     "hero": {
       "title": "Contactez-nous",
-      "description": "Une question, un projet ou un besoin spécifique ? Notre équipe est à votre écoute."
+      "description": "Une question, un projet ou un besoin spécifique ? Notre équipe est à votre écoute.",
+      "cta": "Nous contacter"
     },
 
     "cards": {
@@ -222,15 +228,29 @@
       "company": "Entreprise",
       "companyPlaceholder": "Nom de l’entreprise",
 
+      "subject": "Sujet",
       "subjectRequired": "Sujet *",
       "subjectPlaceholder": "Objet de votre message",
 
+      "subjectOptions": {
+        "product": "Question sur un produit",
+        "customOrder": "Commande personnalisée",
+        "partnership": "Partenariat",
+        "wholesale": "Vente en gros",
+        "shipping": "Livraison",
+        "support": "Support client",
+        "other": "Autre"
+      },
+
+      "message": "Message",
       "messageRequired": "Message *",
       "messagePlaceholder": "Décrivez votre demande en détail",
       "characters": "0/2000 caractères",
       "minCharacters": "Le message doit contenir au moins 20 caractères.",
 
-      "privacy": "J’accepte la politique de confidentialité et le traitement de mes données."
+      "privacy": "J’accepte la politique de confidentialité et le traitement de mes données.",
+
+      "submit": "Envoyer le message"
     },
 
     "map": {
