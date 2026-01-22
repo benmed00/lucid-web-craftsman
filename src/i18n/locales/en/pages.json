@@ -51,6 +51,113 @@
     }
   },
 
+  "productDetail": {
+    "reviews": "reviews",
+    "recommendations": "Related Products",
+    "seo": {
+      "handmadeBy": "handmade by",
+      "berberCraft": "Berber craftsmanship",
+      "handmade": "handmade",
+      "naturalFibers": "natural fibers"
+    },
+    "error": {
+      "missingId": "Product ID is missing",
+      "invalidId": "Invalid product ID",
+      "notFound": "Product not found",
+      "loadError": "Error loading product",
+      "description": "The product you are looking for does not exist or has been removed.",
+      "back": "Go Back",
+      "viewAll": "View All Products",
+      "cartError": "Error adding to cart"
+    },
+    "cart": {
+      "added": "added to cart",
+      "add": "Add to Cart",
+      "outOfStock": "Out of Stock"
+    },
+    "share": {
+      "brandName": "Rif Raw Straw",
+      "shareText": "Discover {{name}} - authentic Berber craftsmanship",
+      "copied": "Link copied!",
+      "error": "Error sharing",
+      "title": "Share this product",
+      "description": "Share this product with your friends",
+      "copy": "Copy link"
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "shop": "Shop"
+    },
+    "images": {
+      "ariaLabel": "Product image gallery",
+      "view": "view",
+      "of": "of",
+      "previous": "Previous",
+      "next": "Next",
+      "viewImage": "View image",
+      "thumbnail": "thumbnail",
+      "enlarged": "Enlarged view",
+      "fullSizeDescription": "Full size product image"
+    },
+    "productInfo": {
+      "ariaLabel": "Product information"
+    },
+    "badges": {
+      "new": "New",
+      "favorite": "Favorite"
+    },
+    "price": {
+      "vatIncluded": "VAT included"
+    },
+    "description": {
+      "showMore": "Show more",
+      "showLess": "Show less"
+    },
+    "quantity": {
+      "decrease": "Decrease quantity",
+      "increase": "Increase quantity"
+    },
+    "stock": {
+      "inStock": "In stock",
+      "available": "available",
+      "outOfStock": "Out of stock"
+    },
+    "shipping": {
+      "free": "Free shipping",
+      "freeFrom": "Free shipping on orders over €80"
+    },
+    "tabs": {
+      "details": "Description",
+      "specs": "Specifications",
+      "care": "Care",
+      "shipping": "Shipping"
+    },
+    "detailsTab": {
+      "title": "Product Description"
+    },
+    "specsTab": {
+      "title": "Specifications",
+      "material": "Material",
+      "color": "Color",
+      "dimensions": "Dimensions",
+      "weight": "Weight",
+      "artisan": "Artisan",
+      "category": "Category"
+    },
+    "careTab": {
+      "title": "Care Instructions"
+    },
+    "shippingTab": {
+      "title": "Shipping Information",
+      "deliveryTime": "Delivery Time",
+      "deliveryTimeValue": "3-5 business days for mainland France",
+      "shippingCost": "Shipping Cost",
+      "shippingCostValue": "Free shipping on orders over €80",
+      "returns": "Returns",
+      "returnsValue": "Free returns within 14 days"
+    }
+  },
+
   "shipping": {
     "title": "Shipping Information",
     "heading": "Shipping Information",
