@@ -40,6 +40,7 @@
 
   "shipping": {
     "title": "Livraison & Expédition",
+    "heading": "Livraison & Expédition",
     "seo": {
       "title": "Livraison et Expédition - Rif Raw Straw",
       "description": "Délais, tarifs et zones de livraison."
@@ -66,6 +67,7 @@
 
   "returns": {
     "title": "Retours & Remboursements",
+    "heading": "Retours & Remboursements",
     "seo": {
       "title": "Retours & Remboursements - Rif Raw Straw",
       "description": "Conditions et procédure de retour."
