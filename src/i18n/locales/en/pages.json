@@ -8,6 +8,7 @@
 
   "shipping": {
     "title": "Shipping Information",
+    "heading": "Shipping Information",
     "seo": {
       "title": "Shipping Information – Rif Raw Straw",
       "description": "Delivery times, prices, zones and tracking information."
@@ -37,6 +38,7 @@
 
   "returns": {
     "title": "Returns & Refunds",
+    "heading": "Returns & Refunds",
     "seo": {
       "title": "Returns & Refunds – Rif Raw Straw",
       "description": "Return conditions, refund policy and procedures."
