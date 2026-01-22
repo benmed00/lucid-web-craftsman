@@ -87,7 +87,46 @@
       "description": "Legal information about the website and publisher."
     },
     "heading": "Legal Notice",
-    "content": "This website is published by Rif Raw Straw. All content is protected by intellectual property laws."
+    "intro": "Welcome to Rif Raw Straw. By using this site, you agree to the following terms:",
+    "items": {
+      "item1": "All content on this site is protected by copyright.",
+      "item2": "Images and texts may not be reproduced without permission.",
+      "item3": "Personal information is processed in accordance with our privacy policy.",
+      "item4": "Misuse of this site may result in access suspension."
+    },
+    "contact": "For any questions, please contact us via the"
+  },
+
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "seo": {
+      "title": "FAQ – Rif Raw Straw",
+      "description": "Find answers to your questions about shipping, returns, and payments."
+    },
+    "shipping": {
+      "q": "What are the delivery times?",
+      "a": "Standard delivery takes 3 to 5 business days. Express delivery is available in 24-48 hours."
+    },
+    "tracking": {
+      "q": "How can I track my order?",
+      "a": "A tracking email will be sent to you as soon as your package is shipped."
+    },
+    "payment": {
+      "q": "What payment methods do you accept?",
+      "a": "We accept credit cards (Visa, Mastercard), PayPal, and Apple Pay."
+    },
+    "modification": {
+      "q": "Can I modify my order after placing it?",
+      "a": "Contact us quickly via the contact page. If the order hasn't shipped, we'll do our best to modify it."
+    },
+    "returns": {
+      "q": "How do I make a return?",
+      "a": {
+        "prefix": "Please see our",
+        "linkText": "returns page",
+        "suffix": "for the complete procedure."
+      }
+    }
   },
 
   "about": {
