@@ -301,5 +301,103 @@
     },
     "heading": "Our Story",
     "content": "Born from a passion for Berber culture, Rif Raw Straw works directly with artisans to preserve ancestral know-how."
+  },
+
+  "contact": {
+    "seo": {
+      "title": "Contact | Rifstraw",
+      "description": "Get in touch with Rifstraw for any questions, custom orders, partnerships, or customer support."
+    },
+
+    "hero": {
+      "title": "Get in Touch",
+      "description": "Have a question, a project, or a specific request? Our team is here to help.",
+      "cta": "Contact us"
+    },
+
+    "cards": {
+      "general": {
+        "title": "General information",
+        "description": "For any questions regarding our products, services, or company."
+      },
+      "support": {
+        "title": "Customer support",
+        "description": "Need help after a purchase or technical assistance?"
+      },
+      "partnership": {
+        "title": "Partnerships",
+        "description": "Interested in collaborating with us or developing a B2B partnership?"
+      }
+    },
+
+    "info": {
+      "title": "Contact details",
+      "description": "You can reach us by email, phone, or visit us in person.",
+      "email": "contact@rifstraw.com",
+      "emailResponse": "We usually reply within 24 business hours.",
+      "phone": "+33 1 23 45 67 89",
+      "phoneHours": "Monday to Friday, 9:00 AM – 6:00 PM",
+      "address": "6 allée de la Sèvre\n44400 Rezé, France",
+      "hours": "Monday – Friday: 9:00 AM – 6:00 PM\nSaturday: 10:00 AM – 4:00 PM\nSunday: Closed"
+    },
+
+    "services": {
+      "title": "Our services",
+      "customOrders": "Custom orders",
+      "expertAdvice": "Expert advice",
+      "b2b": "B2B solutions",
+      "international": "International shipping"
+    },
+
+    "form": {
+      "title": "Contact form",
+      "subtitle": "Fill out the form below and we will get back to you as soon as possible.",
+
+      "firstName": "First name",
+      "firstNameRequired": "First name *",
+
+      "lastName": "Last name",
+      "lastNameRequired": "Last name *",
+
+      "email": "Email address",
+      "emailRequired": "Email address *",
+      "emailPlaceholder": "example@email.com",
+      "emailFormat": "Please enter a valid email address.",
+
+      "phone": "Phone",
+      "phonePlaceholder": "+33 6 12 34 56 78",
+
+      "company": "Company",
+      "companyPlaceholder": "Company name",
+
+      "subject": "Subject",
+      "subjectRequired": "Subject *",
+      "subjectPlaceholder": "Subject of your message",
+
+      "subjectOptions": {
+        "product": "Product inquiry",
+        "customOrder": "Custom order",
+        "partnership": "Partnership",
+        "wholesale": "Wholesale",
+        "shipping": "Shipping",
+        "support": "Customer support",
+        "other": "Other"
+      },
+
+      "message": "Message",
+      "messageRequired": "Message *",
+      "messagePlaceholder": "Describe your request in detail",
+      "characters": "0/2000 characters",
+      "minCharacters": "The message must contain at least 20 characters.",
+
+      "privacy": "I agree to the privacy policy and the processing of my personal data.",
+
+      "submit": "Send message"
+    },
+
+    "map": {
+      "title": "Our location",
+      "description": "Find us easily using the map below."
+    }
   }
 }
