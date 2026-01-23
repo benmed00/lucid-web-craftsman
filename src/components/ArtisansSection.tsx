@@ -2,64 +2,70 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Quote, MapPin, Clock, Heart } from "lucide-react";
-import { useProductsWithTranslations } from "@/hooks/useTranslatedContent";
-import { useMemo } from "react";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from "@/components/ui/skeleton";
 
-interface ArtisanData {
+interface Artisan {
+  id: string;
   name: string;
-  story: string;
-  location: string;
-  experience: string;
-  quote: string;
-  specialty: string;
-  image: string;
+  specialty: string | null;
+  photo_url: string | null;
+  region: string | null;
+  experience_years: number | null;
+  bio_short: string | null;
+  quote: string | null;
 }
 
 const ArtisansSection = () => {
-  const { t } = useTranslation(['pages', 'common']);
-  const { data: products = [], isLoading } = useProductsWithTranslations();
+  const { t, i18n } = useTranslation(['pages', 'common']);
+  const currentLocale = i18n.language?.split('-')[0] || 'fr';
 
-  // Extract unique artisans with their stories from products
-  const artisans = useMemo((): ArtisanData[] => {
-    const artisanMap = new Map<string, ArtisanData>();
-    
-    products.forEach((product) => {
-      if (product.artisan && product.artisan_story && !artisanMap.has(product.artisan)) {
-        // Extract location from story if mentioned
-        const storyLower = product.artisan_story.toLowerCase();
-        let location = 'Rif, Maroc';
-        if (storyLower.includes('chefchaouen')) location = 'Chefchaouen';
-        else if (storyLower.includes('tétouan')) location = 'Tétouan';
-        else if (storyLower.includes('nador')) location = 'Nador';
-        else if (storyLower.includes('al hoceima')) location = 'Al Hoceima';
-        
-        // Extract experience years if mentioned
-        const yearsMatch = product.artisan_story.match(/(\d+)\s*(ans?|years?)/i);
-        const experience = yearsMatch ? `${yearsMatch[1]} ans d'expérience` : 'Artisan traditionnel';
-        
-        // Generate a quote from the story
-        const sentences = product.artisan_story.split(/[.!?]+/).filter(s => s.trim().length > 20);
-        const quote = sentences.length > 0 
-          ? sentences[0].trim() + '.'
-          : 'Chaque pièce raconte une histoire.';
-
-        artisanMap.set(product.artisan, {
-          name: product.artisan,
-          story: product.artisan_story,
-          location,
-          experience,
+  // Fetch artisans directly from the artisans table
+  const { data: artisans = [], isLoading } = useQuery({
+    queryKey: ['artisans', currentLocale],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('artisans')
+        .select(`
+          id,
+          name,
+          specialty,
+          photo_url,
+          region,
+          experience_years,
+          bio_short,
           quote,
-          specialty: product.category === 'Sacs' ? 'Vannerie & Tissage' : 
-                     product.category === 'Chapeaux' ? 'Chapellerie artisanale' : 
-                     'Artisanat traditionnel',
-          image: product.images?.[0] || '/placeholder.svg',
-        });
+          artisan_translations!left (
+            specialty,
+            quote,
+            bio_short
+          )
+        `)
+        .eq('is_active', true)
+        .order('created_at', { ascending: true })
+        .limit(4);
+
+      if (error) {
+        console.error('Error fetching artisans:', error);
+        return [];
       }
-    });
-    
-    return Array.from(artisanMap.values()).slice(0, 4);
-  }, [products]);
+
+      // Map with translation fallback
+      return (data || []).map((artisan: any) => {
+        const translation = artisan.artisan_translations?.find(
+          (t: any) => t.locale === currentLocale
+        );
+        return {
+          ...artisan,
+          specialty: translation?.specialty || artisan.specialty,
+          quote: translation?.quote || artisan.quote,
+          bio_short: translation?.bio_short || artisan.bio_short,
+        };
+      }) as Artisan[];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   if (isLoading) {
     return (
@@ -105,17 +111,17 @@ const ArtisansSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
           {artisans.map((artisan, index) => (
             <Card 
-              key={artisan.name}
+              key={artisan.id}
               className="group bg-card border-none shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden rounded-2xl hover-lift"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <CardContent className="p-0">
                 <div className="flex flex-col sm:flex-row">
                   {/* Artisan Image */}
-                  <div className="relative w-full sm:w-2/5 h-48 sm:h-auto overflow-hidden">
+                  <div className="relative w-full sm:w-2/5 h-48 sm:h-auto min-h-[200px] overflow-hidden">
                     <img 
-                      src={artisan.image} 
-                      alt={`Création de ${artisan.name}`}
+                      src={artisan.photo_url || '/placeholder.svg'} 
+                      alt={`Portrait de ${artisan.name}`}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       loading="lazy"
                     />
@@ -125,7 +131,7 @@ const ArtisansSection = () => {
                     <div className="absolute bottom-3 left-3 sm:hidden">
                       <Badge variant="secondary" className="bg-white/90 text-foreground backdrop-blur-sm">
                         <MapPin className="w-3 h-3 mr-1" />
-                        {artisan.location}
+                        {artisan.region || 'Rif, Maroc'}
                       </Badge>
                     </div>
                   </div>
@@ -141,36 +147,44 @@ const ArtisansSection = () => {
                           </h3>
                           <p className="text-sm text-muted-foreground hidden sm:block">
                             <MapPin className="w-3 h-3 inline mr-1" />
-                            {artisan.location}
+                            {artisan.region || 'Rif, Maroc'}
                           </p>
                         </div>
-                        <Badge variant="outline" className="text-xs hidden sm:flex">
-                          <Clock className="w-3 h-3 mr-1" />
-                          {artisan.experience}
-                        </Badge>
+                        {artisan.experience_years && (
+                          <Badge variant="outline" className="text-xs hidden sm:flex">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {artisan.experience_years} {t('common:years', 'ans')}
+                          </Badge>
+                        )}
                       </div>
 
                       {/* Specialty */}
-                      <Badge className="mb-4 bg-primary/10 text-primary text-xs">
-                        {artisan.specialty}
-                      </Badge>
+                      {artisan.specialty && (
+                        <Badge className="mb-4 bg-primary/10 text-primary text-xs">
+                          {artisan.specialty}
+                        </Badge>
+                      )}
 
                       {/* Quote */}
-                      <div className="relative">
-                        <Quote className="absolute -top-1 -left-1 w-6 h-6 text-primary/20" />
-                        <p className="text-sm md:text-base text-muted-foreground italic pl-5 leading-relaxed line-clamp-3">
-                          {artisan.quote}
-                        </p>
-                      </div>
+                      {artisan.quote && (
+                        <div className="relative">
+                          <Quote className="absolute -top-1 -left-1 w-6 h-6 text-primary/20" />
+                          <p className="text-sm md:text-base text-muted-foreground italic pl-5 leading-relaxed line-clamp-3">
+                            {artisan.quote}
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Experience - Mobile */}
-                    <div className="mt-4 pt-3 border-t border-border/50 sm:hidden">
-                      <span className="text-xs text-muted-foreground flex items-center">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {artisan.experience}
-                      </span>
-                    </div>
+                    {artisan.experience_years && (
+                      <div className="mt-4 pt-3 border-t border-border/50 sm:hidden">
+                        <span className="text-xs text-muted-foreground flex items-center">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {artisan.experience_years} {t('common:years', 'ans')} d'expérience
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
