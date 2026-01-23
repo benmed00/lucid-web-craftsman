@@ -1,4 +1,22 @@
 {
+  "blog": {
+    "seo": {
+      "title": "Blog - Rif Raw Straw | Histoires d'Artisans & Inspiration",
+      "description": "Découvrez les histoires de l'artisanat berbère, les techniques des artisans et l'inspiration mode durable.",
+      "keywords": ["blog artisanat", "artisanat berbère", "produits faits main", "mode durable", "artisans marocains"]
+    },
+    "badge": "Notre Blog",
+    "heading": "Histoires & Inspiration",
+    "description": "Découvrez les histoires de nos artisans, leurs techniques et le riche patrimoine culturel de l'artisanat berbère.",
+    "featured": "Articles à la Une",
+    "latest": "Derniers Articles",
+    "readMore": "Lire la suite",
+    "author": "Rif Raw Straw",
+    "newsletter": {
+      "title": "Restez Inspiré",
+      "description": "Abonnez-vous pour recevoir nos derniers articles et histoires exclusives directement dans votre boîte mail."
+    }
+  },
   "home": {
     "title": "Accueil",
     "seo": {

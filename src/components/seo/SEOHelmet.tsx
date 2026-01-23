@@ -4,7 +4,7 @@ import { Product } from '@/shared/interfaces/Iproduct.interface';
 interface SEOProps {
   title?: string;
   description?: string;
-  keywords?: string[];
+  keywords?: string[] | string;
   image?: string;
   url?: string;
   type?: 'website' | 'product' | 'article';
@@ -21,13 +21,17 @@ interface SEOProps {
 const SEOHelmet = ({
   title = "Rif Raw Straw - Artisanat Marocain Authentique",
   description = "Découvrez notre collection de sacs et chapeaux fabriqués à la main dans les montagnes du Rif. Artisanat durable et savoir-faire traditionnel marocain.",
-  keywords = ["artisanat marocain", "sacs fait main", "chapeaux paille", "rif", "artisan", "durable", "traditionnel"],
+  keywords: keywordsProp = ["artisanat marocain", "sacs fait main", "chapeaux paille", "rif", "artisan", "durable", "traditionnel"],
   image = "/assets/images/home_page_image.webp",
   url,
   type = "website",
   product,
   article
 }: SEOProps) => {
+  // Ensure keywords is always an array
+  const keywords = Array.isArray(keywordsProp) ? keywordsProp : 
+    (typeof keywordsProp === 'string' && keywordsProp.length > 0 ? keywordsProp.split(',').map(k => k.trim()) : 
+    ["artisanat marocain", "sacs fait main", "chapeaux paille", "rif", "artisan", "durable", "traditionnel"]);
   const siteUrl = "https://rifrawstraw.lovable.app";
   const fullUrl = url ? `${siteUrl}${url}` : siteUrl;
   const fullImageUrl = image.startsWith('http') ? image : `${siteUrl}${image}`;
