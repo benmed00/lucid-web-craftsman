@@ -1,4 +1,22 @@
 {
+  "blog": {
+    "seo": {
+      "title": "Blog - Rif Raw Straw | Artisan Stories & Craft Inspiration",
+      "description": "Discover stories of Berber craftsmanship, artisan techniques, and sustainable fashion inspiration.",
+      "keywords": ["artisan blog", "Berber crafts", "handmade products", "sustainable fashion", "Moroccan artisans"]
+    },
+    "badge": "Our Blog",
+    "heading": "Stories & Inspiration",
+    "description": "Discover the stories behind our artisans, their techniques, and the rich cultural heritage of Berber craftsmanship.",
+    "featured": "Featured Articles",
+    "latest": "Latest Articles",
+    "readMore": "Read more",
+    "author": "Rif Raw Straw",
+    "newsletter": {
+      "title": "Stay Inspired",
+      "description": "Subscribe to receive our latest articles and exclusive stories directly in your inbox."
+    }
+  },
   "home": {
     "seo": {
       "title": "Rif Raw Straw – Authentic Berber Craftsmanship",
