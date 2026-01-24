@@ -49,9 +49,6 @@ export default defineConfig(({ mode }) => ({
     cssCodeSplit: true, // Enable CSS code splitting for better caching
     rollupOptions: {
       output: {
-        // Ensure source maps are generated for all chunks
-        sourcemap: true,
-        sourcemapExcludeSources: false,
         // Optimize chunk names for better caching
         assetFileNames: (assetInfo) => {
           const name = assetInfo.name || 'asset';
