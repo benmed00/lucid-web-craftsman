@@ -1,12 +1,9 @@
-/*
-  Security Headers for Production - Centralized CSP
+# Security Headers for Production - Centralized CSP
+# IMPORTANT: All allowed external domains should be defined here.
+# This is the single source of truth for production CSP.
 
-  IMPORTANT: All allowed external domains should be defined here.
-  This is the single source of truth for production CSP.
-*/
-
+# Global security headers
 /*
-  # Security Headers
   X-Content-Type-Options: nosniff
   X-XSS-Protection: 1; mode=block
   Referrer-Policy: strict-origin-when-cross-origin
@@ -18,7 +15,7 @@
 /assets/js/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Cache CSS bundles (1 year - they have content hashes)  
+# Cache CSS bundles (1 year - they have content hashes)
 /assets/css/*
   Cache-Control: public, max-age=31536000, immutable
 
