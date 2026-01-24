@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Backup directories
+js-backup/
+
+# TypeScript incremental build artifacts
+*.tsbuildinfo
+
+# Test artifacts
+coverage/
+cypress/screenshots/
+cypress/videos/
