@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_order_permissions: {
+        Row: {
+          can_force_status: boolean | null
+          can_override_transitions: boolean | null
+          can_process_refunds: boolean | null
+          can_resolve_anomalies: boolean | null
+          can_view_fraud_data: boolean | null
+          created_at: string
+          expires_at: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          notes: string | null
+          permission_level: Database["public"]["Enums"]["admin_order_permission"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          can_force_status?: boolean | null
+          can_override_transitions?: boolean | null
+          can_process_refunds?: boolean | null
+          can_resolve_anomalies?: boolean | null
+          can_view_fraud_data?: boolean | null
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          notes?: string | null
+          permission_level?: Database["public"]["Enums"]["admin_order_permission"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          can_force_status?: boolean | null
+          can_override_transitions?: boolean | null
+          can_process_refunds?: boolean | null
+          can_resolve_anomalies?: boolean | null
+          can_view_fraud_data?: boolean | null
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          notes?: string | null
+          permission_level?: Database["public"]["Enums"]["admin_order_permission"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_users: {
         Row: {
           created_at: string
@@ -1004,6 +1055,89 @@ export type Database = {
           },
         ]
       }
+      order_anomalies: {
+        Row: {
+          anomaly_type: Database["public"]["Enums"]["order_anomaly_type"]
+          auto_resolved: boolean | null
+          created_at: string
+          description: string | null
+          detected_at: string
+          detected_by: Database["public"]["Enums"]["status_change_actor"]
+          escalated: boolean | null
+          escalated_at: string | null
+          escalated_to: string | null
+          id: string
+          max_retries: number | null
+          metadata: Json | null
+          next_retry_at: string | null
+          order_id: string
+          resolution_action: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          retry_count: number | null
+          severity: Database["public"]["Enums"]["anomaly_severity"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          anomaly_type: Database["public"]["Enums"]["order_anomaly_type"]
+          auto_resolved?: boolean | null
+          created_at?: string
+          description?: string | null
+          detected_at?: string
+          detected_by?: Database["public"]["Enums"]["status_change_actor"]
+          escalated?: boolean | null
+          escalated_at?: string | null
+          escalated_to?: string | null
+          id?: string
+          max_retries?: number | null
+          metadata?: Json | null
+          next_retry_at?: string | null
+          order_id: string
+          resolution_action?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          retry_count?: number | null
+          severity?: Database["public"]["Enums"]["anomaly_severity"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          anomaly_type?: Database["public"]["Enums"]["order_anomaly_type"]
+          auto_resolved?: boolean | null
+          created_at?: string
+          description?: string | null
+          detected_at?: string
+          detected_by?: Database["public"]["Enums"]["status_change_actor"]
+          escalated?: boolean | null
+          escalated_at?: string | null
+          escalated_to?: string | null
+          id?: string
+          max_retries?: number | null
+          metadata?: Json | null
+          next_retry_at?: string | null
+          order_id?: string
+          resolution_action?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          retry_count?: number | null
+          severity?: Database["public"]["Enums"]["anomaly_severity"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_anomalies_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string | null
@@ -1052,34 +1186,237 @@ export type Database = {
           },
         ]
       }
+      order_state_transitions: {
+        Row: {
+          auto_notify_customer: boolean | null
+          created_at: string
+          description: string | null
+          from_status: Database["public"]["Enums"]["order_status"]
+          id: string
+          is_customer_allowed: boolean | null
+          requires_permission:
+            | Database["public"]["Enums"]["admin_order_permission"]
+            | null
+          requires_reason: boolean | null
+          to_status: Database["public"]["Enums"]["order_status"]
+        }
+        Insert: {
+          auto_notify_customer?: boolean | null
+          created_at?: string
+          description?: string | null
+          from_status: Database["public"]["Enums"]["order_status"]
+          id?: string
+          is_customer_allowed?: boolean | null
+          requires_permission?:
+            | Database["public"]["Enums"]["admin_order_permission"]
+            | null
+          requires_reason?: boolean | null
+          to_status: Database["public"]["Enums"]["order_status"]
+        }
+        Update: {
+          auto_notify_customer?: boolean | null
+          created_at?: string
+          description?: string | null
+          from_status?: Database["public"]["Enums"]["order_status"]
+          id?: string
+          is_customer_allowed?: boolean | null
+          requires_permission?:
+            | Database["public"]["Enums"]["admin_order_permission"]
+            | null
+          requires_reason?: boolean | null
+          to_status?: Database["public"]["Enums"]["order_status"]
+        }
+        Relationships: []
+      }
+      order_status_customer_mapping: {
+        Row: {
+          color_class: string | null
+          customer_description_en: string | null
+          customer_description_fr: string | null
+          customer_status_key: string
+          customer_status_label_en: string
+          customer_status_label_fr: string
+          display_order: number | null
+          icon_name: string | null
+          id: string
+          internal_status: Database["public"]["Enums"]["order_status"]
+          show_to_customer: boolean | null
+        }
+        Insert: {
+          color_class?: string | null
+          customer_description_en?: string | null
+          customer_description_fr?: string | null
+          customer_status_key: string
+          customer_status_label_en: string
+          customer_status_label_fr: string
+          display_order?: number | null
+          icon_name?: string | null
+          id?: string
+          internal_status: Database["public"]["Enums"]["order_status"]
+          show_to_customer?: boolean | null
+        }
+        Update: {
+          color_class?: string | null
+          customer_description_en?: string | null
+          customer_description_fr?: string | null
+          customer_status_key?: string
+          customer_status_label_en?: string
+          customer_status_label_fr?: string
+          display_order?: number | null
+          icon_name?: string | null
+          id?: string
+          internal_status?: Database["public"]["Enums"]["order_status"]
+          show_to_customer?: boolean | null
+        }
+        Relationships: []
+      }
+      order_status_history: {
+        Row: {
+          changed_by: Database["public"]["Enums"]["status_change_actor"]
+          changed_by_user_id: string | null
+          created_at: string
+          free_comment: string | null
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          new_status: Database["public"]["Enums"]["order_status"]
+          order_id: string
+          previous_status: Database["public"]["Enums"]["order_status"] | null
+          reason_code: string | null
+          reason_message: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          changed_by?: Database["public"]["Enums"]["status_change_actor"]
+          changed_by_user_id?: string | null
+          created_at?: string
+          free_comment?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          new_status: Database["public"]["Enums"]["order_status"]
+          order_id: string
+          previous_status?: Database["public"]["Enums"]["order_status"] | null
+          reason_code?: string | null
+          reason_message?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          changed_by?: Database["public"]["Enums"]["status_change_actor"]
+          changed_by_user_id?: string | null
+          created_at?: string
+          free_comment?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          new_status?: Database["public"]["Enums"]["order_status"]
+          order_id?: string
+          previous_status?: Database["public"]["Enums"]["order_status"] | null
+          reason_code?: string | null
+          reason_message?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
+          actual_delivery: string | null
           amount: number | null
+          anomaly_count: number | null
+          attention_reason: string | null
+          billing_address: Json | null
+          carrier: string | null
           created_at: string
           currency: string | null
+          customer_notes: string | null
+          estimated_delivery: string | null
+          fraud_flags: Json | null
+          fraud_score: number | null
+          has_anomaly: boolean | null
           id: string
+          internal_notes: string | null
+          last_retry_at: string | null
+          metadata: Json | null
+          order_status: Database["public"]["Enums"]["order_status"] | null
+          payment_method: string | null
+          payment_reference: string | null
+          requires_attention: boolean | null
+          retry_count: number | null
+          shipping_address: Json | null
           status: string | null
           stripe_session_id: string | null
+          tracking_number: string | null
+          tracking_url: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          actual_delivery?: string | null
           amount?: number | null
+          anomaly_count?: number | null
+          attention_reason?: string | null
+          billing_address?: Json | null
+          carrier?: string | null
           created_at?: string
           currency?: string | null
+          customer_notes?: string | null
+          estimated_delivery?: string | null
+          fraud_flags?: Json | null
+          fraud_score?: number | null
+          has_anomaly?: boolean | null
           id?: string
+          internal_notes?: string | null
+          last_retry_at?: string | null
+          metadata?: Json | null
+          order_status?: Database["public"]["Enums"]["order_status"] | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          requires_attention?: boolean | null
+          retry_count?: number | null
+          shipping_address?: Json | null
           status?: string | null
           stripe_session_id?: string | null
+          tracking_number?: string | null
+          tracking_url?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          actual_delivery?: string | null
           amount?: number | null
+          anomaly_count?: number | null
+          attention_reason?: string | null
+          billing_address?: Json | null
+          carrier?: string | null
           created_at?: string
           currency?: string | null
+          customer_notes?: string | null
+          estimated_delivery?: string | null
+          fraud_flags?: Json | null
+          fraud_score?: number | null
+          has_anomaly?: boolean | null
           id?: string
+          internal_notes?: string | null
+          last_retry_at?: string | null
+          metadata?: Json | null
+          order_status?: Database["public"]["Enums"]["order_status"] | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          requires_attention?: boolean | null
+          retry_count?: number | null
+          shipping_address?: Json | null
           status?: string | null
           stripe_session_id?: string | null
+          tracking_number?: string | null
+          tracking_url?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -2366,6 +2703,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_order_anomaly: {
+        Args: {
+          p_anomaly_type: Database["public"]["Enums"]["order_anomaly_type"]
+          p_description?: string
+          p_detected_by?: Database["public"]["Enums"]["status_change_actor"]
+          p_metadata?: Json
+          p_order_id: string
+          p_severity: Database["public"]["Enums"]["anomaly_severity"]
+          p_title: string
+        }
+        Returns: string
+      }
       emergency_lockdown_contact_data: { Args: never; Returns: undefined }
       enhanced_log_contact_message_access: {
         Args: { message_id: string }
@@ -2447,6 +2796,10 @@ export type Database = {
           tags: string[]
           updated_at: string
         }[]
+      }
+      get_order_customer_view: {
+        Args: { p_locale?: string; p_order_id: string; p_user_id: string }
+        Returns: Json
       }
       get_pending_security_alerts: {
         Args: never
@@ -2536,11 +2889,43 @@ export type Database = {
           security_metric: string
         }[]
       }
+      resolve_order_anomaly: {
+        Args: {
+          p_anomaly_id: string
+          p_resolution_action?: string
+          p_resolution_notes: string
+          p_resolved_by: string
+        }
+        Returns: boolean
+      }
       restore_contact_data_access: { Args: never; Returns: undefined }
       update_loyalty_tier: { Args: { user_uuid: string }; Returns: undefined }
+      update_order_status: {
+        Args: {
+          p_actor?: Database["public"]["Enums"]["status_change_actor"]
+          p_actor_user_id?: string
+          p_metadata?: Json
+          p_new_status: Database["public"]["Enums"]["order_status"]
+          p_order_id: string
+          p_reason_code?: string
+          p_reason_message?: string
+        }
+        Returns: Json
+      }
       user_owns_newsletter_subscription: {
         Args: { subscription_email: string }
         Returns: boolean
+      }
+      validate_order_status_transition: {
+        Args: {
+          p_actor?: Database["public"]["Enums"]["status_change_actor"]
+          p_actor_user_id?: string
+          p_new_status: Database["public"]["Enums"]["order_status"]
+          p_order_id: string
+          p_reason_code?: string
+          p_reason_message?: string
+        }
+        Returns: Json
       }
       verify_admin_session: {
         Args: never
@@ -2553,7 +2938,42 @@ export type Database = {
       }
     }
     Enums: {
+      admin_order_permission: "read_only" | "operations" | "full_access"
+      anomaly_severity: "low" | "medium" | "high" | "critical"
       app_role: "user" | "admin" | "super_admin"
+      order_anomaly_type:
+        | "payment"
+        | "stock"
+        | "delivery"
+        | "fraud"
+        | "technical"
+        | "customer"
+        | "carrier"
+      order_status:
+        | "created"
+        | "payment_pending"
+        | "payment_failed"
+        | "paid"
+        | "validation_in_progress"
+        | "validated"
+        | "preparing"
+        | "shipped"
+        | "in_transit"
+        | "delivered"
+        | "delivery_failed"
+        | "partially_delivered"
+        | "return_requested"
+        | "returned"
+        | "refunded"
+        | "partially_refunded"
+        | "cancelled"
+        | "archived"
+      status_change_actor:
+        | "system"
+        | "admin"
+        | "customer"
+        | "webhook"
+        | "scheduler"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2681,7 +3101,45 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_order_permission: ["read_only", "operations", "full_access"],
+      anomaly_severity: ["low", "medium", "high", "critical"],
       app_role: ["user", "admin", "super_admin"],
+      order_anomaly_type: [
+        "payment",
+        "stock",
+        "delivery",
+        "fraud",
+        "technical",
+        "customer",
+        "carrier",
+      ],
+      order_status: [
+        "created",
+        "payment_pending",
+        "payment_failed",
+        "paid",
+        "validation_in_progress",
+        "validated",
+        "preparing",
+        "shipped",
+        "in_transit",
+        "delivered",
+        "delivery_failed",
+        "partially_delivered",
+        "return_requested",
+        "returned",
+        "refunded",
+        "partially_refunded",
+        "cancelled",
+        "archived",
+      ],
+      status_change_actor: [
+        "system",
+        "admin",
+        "customer",
+        "webhook",
+        "scheduler",
+      ],
     },
   },
 } as const
