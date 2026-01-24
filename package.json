@@ -1,7 +1,36 @@
 {
   "name": "vite_react_shadcn_ts",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Lucid Web Craftsman — React + Vite + TypeScript storefront with shadcn/ui, Tailwind CSS, and E2E testing.",
+  "license": "UNLICENSED",
+  "author": {
+    "name": "benmed00",
+    "email": "benyakoub.dev@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/benmed00/lucid-web-craftsman.git"
+  },
+  "bugs": {
+    "url": "https://github.com/benmed00/lucid-web-craftsman/issues"
+  },
+  "homepage": "https://github.com/benmed00/lucid-web-craftsman",
+  "keywords": [
+    "react",
+    "vite",
+    "typescript",
+    "tailwindcss",
+    "shadcn-ui",
+    "zustand",
+    "supabase",
+    "cypress"
+  ],
+  "engines": {
+    "node": ">=18",
+    "npm": ">=10"
+  },
+  "packageManager": "npm@10.8.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,7 +46,11 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,html,css}\"",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "e2e:open": "cypress open",
+    "e2e:run": "cypress run",
+    "e2e:smoke": "cypress run --env grep=@smoke",
+    "e2e:regression": "cypress run --env grep=@regression"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -92,6 +125,7 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@cypress/grep": "^5.1.0",
     "@eslint/js": "^9.27.0",
     "@tailwindcss/typography": "^0.5.15",
     "@testing-library/jest-dom": "^6.9.1",
@@ -102,6 +136,7 @@
     "@vitejs/plugin-react": "^4.5.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.20",
+    "cypress": "^15.9.0",
     "eslint": "^9.9.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-jsx-a11y": "^6.10.2",
