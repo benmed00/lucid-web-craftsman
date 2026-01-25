@@ -6,3 +6,4 @@ export { OrderHistoryTimeline } from './OrderHistoryTimeline';
 export { OrderAnomaliesList } from './OrderAnomaliesList';
 export { OrderStatsCards, AttentionBanner } from './OrderStatsCards';
 export { OrderDetailsPanel } from './OrderDetailsPanel';
+export { FraudAssessmentPanel } from './FraudAssessmentPanel';

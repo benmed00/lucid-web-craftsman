@@ -108,7 +108,7 @@ const AdminLayout = () => {
     {
       icon: ShoppingCart,
       label: "Commandes",
-      path: "/admin/orders",
+      path: "/admin/orders-enhanced",
     },
     {
       icon: Users,

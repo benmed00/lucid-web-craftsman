@@ -101,11 +101,14 @@ serve(async (req) => {
       });
     }
 
-    // Update order status to paid
+    // Update order status to paid and set order_status field
     const { error: updateOrderError } = await supabaseService
       .from('orders')
       .update({ 
         status: 'paid',
+        order_status: 'paid',
+        payment_reference: session.payment_intent,
+        payment_method: session.payment_method_types?.[0] || 'card',
         updated_at: new Date().toISOString()
       })
       .eq('id', orderData.id);
@@ -116,6 +119,81 @@ serve(async (req) => {
     }
 
     logStep("Order status updated to paid");
+
+    // Run fraud detection scoring
+    try {
+      logStep("Running fraud detection...");
+      
+      // Check if this is first order from customer
+      let isFirstOrder = true;
+      if (orderData.user_id) {
+        const { count } = await supabaseService
+          .from('orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', orderData.user_id)
+          .neq('id', orderData.id)
+          .eq('status', 'paid');
+        isFirstOrder = (count || 0) === 0;
+      }
+
+      // Calculate fraud score using database function
+      const { data: fraudResult, error: fraudError } = await supabaseService
+        .rpc('calculate_fraud_score', {
+          p_order_id: orderData.id,
+          p_customer_email: session.customer_details?.email || '',
+          p_shipping_address: session.shipping_details?.address ? {
+            address_line1: session.shipping_details.address.line1,
+            city: session.shipping_details.address.city,
+            postal_code: session.shipping_details.address.postal_code,
+            country: session.shipping_details.address.country
+          } : null,
+          p_billing_address: session.customer_details?.address ? {
+            address_line1: session.customer_details.address.line1,
+            city: session.customer_details.address.city,
+            postal_code: session.customer_details.address.postal_code,
+            country: session.customer_details.address.country
+          } : null,
+          p_ip_address: null,
+          p_user_agent: null,
+          p_checkout_duration_seconds: null,
+          p_is_first_order: isFirstOrder,
+          p_order_amount: (orderData.amount || 0) / 100
+        });
+
+      if (fraudError) {
+        logStep("Warning: Fraud detection error (non-blocking)", { error: fraudError.message });
+      } else {
+        logStep("Fraud detection completed", fraudResult);
+        
+        // If order was put on hold, don't proceed with normal confirmation
+        if (fraudResult?.auto_action === 'hold' || fraudResult?.auto_action === 'reject') {
+          logStep("Order held for fraud review", { 
+            score: fraudResult.total_score,
+            riskLevel: fraudResult.risk_level 
+          });
+        }
+      }
+    } catch (fraudError) {
+      logStep("Warning: Fraud detection failed (non-blocking)", { error: fraudError.message });
+    }
+
+    // Log status change in order_status_history
+    await supabaseService
+      .from('order_status_history')
+      .insert({
+        order_id: orderData.id,
+        previous_status: orderData.order_status || 'payment_pending',
+        new_status: 'paid',
+        changed_by: 'webhook',
+        reason_code: 'PAYMENT_CONFIRMED',
+        reason_message: 'Payment verified via Stripe',
+        metadata: {
+          stripe_session_id: session_id,
+          payment_intent: session.payment_intent
+        }
+      });
+
+    logStep("Status history logged");
 
     // Update stock quantities
     const stockUpdates = [];
