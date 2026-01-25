@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.security-alert-notification]
 verify_jwt = false
+
+[functions.carrier-webhook]
+verify_jwt = false

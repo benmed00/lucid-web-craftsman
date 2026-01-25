@@ -81,6 +81,7 @@ const ProtectedAdminRoute = lazy(() => import("./components/ProtectedAdminRoute"
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
+const AdminOrdersEnhanced = lazy(() => import("./pages/admin/AdminOrdersEnhanced"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminCustomers = lazy(() => import("./pages/admin/AdminCustomers"));
 const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics"));
@@ -238,6 +239,7 @@ const App = () => {
                   <Route path="hero-image" element={<Suspense fallback={<PageLoadingFallback />}><AdminHeroImage /></Suspense>} />
                   <Route path="inventory" element={<Suspense fallback={<PageLoadingFallback />}><AdminInventory /></Suspense>} />
                   <Route path="orders" element={<Suspense fallback={<PageLoadingFallback />}><AdminOrders /></Suspense>} />
+                  <Route path="orders-enhanced" element={<Suspense fallback={<PageLoadingFallback />}><AdminOrdersEnhanced /></Suspense>} />
                   <Route path="customers" element={<Suspense fallback={<PageLoadingFallback />}><AdminCustomers /></Suspense>} />
                   <Route path="marketing" element={<Suspense fallback={<PageLoadingFallback />}><AdminMarketing /></Suspense>} />
                   <Route path="promo-codes" element={<Suspense fallback={<PageLoadingFallback />}><AdminPromoCodes /></Suspense>} />

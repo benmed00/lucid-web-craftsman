@@ -700,6 +700,95 @@ export type Database = {
           },
         ]
       }
+      fraud_assessments: {
+        Row: {
+          assessment_data: Json | null
+          auto_action: string | null
+          created_at: string | null
+          id: string
+          manual_override: boolean | null
+          order_id: string | null
+          override_at: string | null
+          override_by: string | null
+          override_reason: string | null
+          risk_level: string
+          total_score: number
+          triggered_rules: Json
+        }
+        Insert: {
+          assessment_data?: Json | null
+          auto_action?: string | null
+          created_at?: string | null
+          id?: string
+          manual_override?: boolean | null
+          order_id?: string | null
+          override_at?: string | null
+          override_by?: string | null
+          override_reason?: string | null
+          risk_level: string
+          total_score?: number
+          triggered_rules?: Json
+        }
+        Update: {
+          assessment_data?: Json | null
+          auto_action?: string | null
+          created_at?: string | null
+          id?: string
+          manual_override?: boolean | null
+          order_id?: string | null
+          override_at?: string | null
+          override_by?: string | null
+          override_reason?: string | null
+          risk_level?: string
+          total_score?: number
+          triggered_rules?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraud_assessments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fraud_rules: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          parameters: Json | null
+          rule_name: string
+          rule_type: string
+          score_impact: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          parameters?: Json | null
+          rule_name: string
+          rule_type: string
+          score_impact?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          parameters?: Json | null
+          rule_name?: string
+          rule_type?: string
+          score_impact?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       hero_images: {
         Row: {
           alt_text: string
@@ -2690,6 +2779,20 @@ export type Database = {
       }
       anonymize_sensitive_data: { Args: { input_data: Json }; Returns: Json }
       archive_old_payment_data: { Args: never; Returns: undefined }
+      calculate_fraud_score: {
+        Args: {
+          p_billing_address: Json
+          p_checkout_duration_seconds?: number
+          p_customer_email: string
+          p_ip_address?: string
+          p_is_first_order?: boolean
+          p_order_amount?: number
+          p_order_id: string
+          p_shipping_address: Json
+          p_user_agent?: string
+        }
+        Returns: Json
+      }
       can_access_support_ticket: {
         Args: { ticket_id: string }
         Returns: boolean
@@ -2888,6 +2991,10 @@ export type Database = {
           risk_level: string
           security_metric: string
         }[]
+      }
+      override_fraud_assessment: {
+        Args: { p_action: string; p_order_id: string; p_reason: string }
+        Returns: Json
       }
       resolve_order_anomaly: {
         Args: {

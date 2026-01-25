@@ -8,6 +8,7 @@ import { OrderStatusBadge } from './OrderStatusBadge';
 import { OrderStatusSelect } from './OrderStatusSelect';
 import { OrderHistoryTimeline } from './OrderHistoryTimeline';
 import { OrderAnomaliesList } from './OrderAnomaliesList';
+import { FraudAssessmentPanel } from './FraudAssessmentPanel';
 import { useOrder } from '@/hooks/useOrderManagement';
 import type { OrderStatus } from '@/types/order.types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,6 +21,7 @@ import {
   AlertTriangle,
   ExternalLink,
   Copy,
+  ShieldAlert,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -96,6 +98,10 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
       <Tabs defaultValue="details" className="space-y-4">
         <TabsList>
           <TabsTrigger value="details">Détails</TabsTrigger>
+          <TabsTrigger value="fraud" className="flex items-center gap-1">
+            <ShieldAlert className="h-3 w-3" />
+            Fraude
+          </TabsTrigger>
           <TabsTrigger value="history">Historique</TabsTrigger>
           <TabsTrigger value="anomalies" className="flex items-center gap-1">
             Anomalies
@@ -281,6 +287,10 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="fraud">
+          <FraudAssessmentPanel orderId={orderId} />
         </TabsContent>
 
         <TabsContent value="history">
