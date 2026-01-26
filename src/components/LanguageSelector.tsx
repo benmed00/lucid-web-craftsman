@@ -37,9 +37,9 @@ export function LanguageSelector({ variant = 'default', className }: LanguageSel
             variant="ghost"
             size="icon"
             className={className}
-            aria-label={t('accessibility.selectLanguage')}
+            aria-label={`${currentConfig.flag} - ${t('accessibility.selectLanguage')}`}
           >
-            <span className="text-lg" role="img" aria-label={currentConfig.nativeName}>
+            <span className="text-lg" role="img" aria-hidden="true">
               {currentConfig.flag}
             </span>
           </Button>
