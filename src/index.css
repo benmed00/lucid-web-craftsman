@@ -29,7 +29,7 @@
     --status-success-foreground: 0 0% 100%;
     --status-warning: 38 92% 50%;
     --status-warning-foreground: 0 0% 0%;
-    --status-error: 0 72% 45%;
+    --status-error: 0 72% 40%;
     --status-error-foreground: 0 0% 100%;
     --status-info: 217 91% 60%;
     --status-info-foreground: 0 0% 100%;
@@ -117,7 +117,7 @@
     --status-success-foreground: 0 0% 100%;
     --status-warning: 38 92% 50%;
     --status-warning-foreground: 0 0% 0%;
-    --status-error: 0 62% 50%;
+    --status-error: 0 72% 42%;
     --status-error-foreground: 0 0% 100%;
     --status-info: 217 91% 60%;
     --status-info-foreground: 0 0% 100%;

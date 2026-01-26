@@ -138,7 +138,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView, isFallback, fallbackLo
           {singleStockInfo && (
             <>
               {singleStockInfo.isOutOfStock && (
-                <Badge className="absolute top-12 right-2 md:top-14 md:right-3 bg-status-error text-background border-none shadow-lg text-xs px-2 py-1">
+                <Badge className="absolute top-12 right-2 md:top-14 md:right-3 bg-status-error text-status-error-foreground border-none shadow-lg text-xs px-2 py-1 font-semibold">
                   {t('details.outOfStock')}
                 </Badge>
               )}
