@@ -342,7 +342,9 @@ const Navigation = () => {
         className={`md:hidden fixed top-0 right-0 h-full w-full max-w-xs sm:max-w-sm bg-background shadow-2xl z-mobile-menu transform transition-transform duration-300 ease-out flex flex-col ${
           isMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
-        {...(!isMenuOpen ? { 'aria-hidden': 'true' as const, inert: '' } : {})}
+        aria-hidden={!isMenuOpen}
+        // @ts-expect-error - inert is a valid HTML attribute but not yet in React types
+        inert={!isMenuOpen ? '' : undefined}
         role="menu"
         aria-label={t('common:accessibility.mobileNav')}
       >
