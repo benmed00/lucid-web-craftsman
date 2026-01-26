@@ -342,7 +342,7 @@ const Navigation = () => {
         className={`md:hidden fixed top-0 right-0 h-full w-full max-w-xs sm:max-w-sm bg-background shadow-2xl z-mobile-menu transform transition-transform duration-300 ease-out flex flex-col ${
           isMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
-        {...(!isMenuOpen ? { 'aria-hidden': 'true' as const, tabIndex: -1 } : {})}
+        {...(!isMenuOpen ? { 'aria-hidden': 'true' as const, inert: '' } : {})}
         role="menu"
         aria-label={t('common:accessibility.mobileNav')}
       >
