@@ -40,7 +40,6 @@ const Footer = () => {
                 <a 
                   href="/products?category=Sacs" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
-                  aria-label={t('footer.bagsAria')}
                 >
                   {t('footer.bags')}
                 </a>
@@ -49,7 +48,6 @@ const Footer = () => {
                 <a 
                   href="/products?category=Chapeaux" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
-                  aria-label={t('footer.hatsAria')}
                 >
                   {t('footer.hats')}
                 </a>
