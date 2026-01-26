@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { OrderStatusBadge } from './OrderStatusBadge';
 import { OrderStatusSelect } from './OrderStatusSelect';
 import { OrderHistoryTimeline } from './OrderHistoryTimeline';
@@ -12,6 +16,11 @@ import { FraudAssessmentPanel } from './FraudAssessmentPanel';
 import { useOrder } from '@/hooks/useOrderManagement';
 import type { OrderStatus } from '@/types/order.types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SendShippingEmailButton } from '@/components/admin/SendShippingEmailButton';
+import { SendDeliveryEmailButton } from '@/components/admin/SendDeliveryEmailButton';
+import { SendCancellationEmailButton } from '@/components/admin/SendCancellationEmailButton';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   User,
   MapPin,
@@ -22,9 +31,10 @@ import {
   ExternalLink,
   Copy,
   ShieldAlert,
+  Mail,
+  Save,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 
 interface OrderDetailsPanelProps {
   orderId: string;
@@ -33,10 +43,84 @@ interface OrderDetailsPanelProps {
 
 export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) {
   const { data: order, isLoading, refetch } = useOrder(orderId);
+  const [isEditingTracking, setIsEditingTracking] = useState(false);
+  const [trackingForm, setTrackingForm] = useState({
+    carrier: '',
+    tracking_number: '',
+    tracking_url: '',
+  });
+  const [isSavingTracking, setIsSavingTracking] = useState(false);
+  const [internalNotes, setInternalNotes] = useState('');
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
 
   const copyOrderId = () => {
     navigator.clipboard.writeText(orderId);
     toast.success('ID copié');
+  };
+
+  const handleEditTracking = () => {
+    if (order) {
+      setTrackingForm({
+        carrier: order.carrier || '',
+        tracking_number: order.tracking_number || '',
+        tracking_url: order.tracking_url || '',
+      });
+      setIsEditingTracking(true);
+    }
+  };
+
+  const handleSaveTracking = async () => {
+    setIsSavingTracking(true);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          carrier: trackingForm.carrier || null,
+          tracking_number: trackingForm.tracking_number || null,
+          tracking_url: trackingForm.tracking_url || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', orderId);
+
+      if (error) throw error;
+      toast.success('Informations de suivi mises à jour');
+      setIsEditingTracking(false);
+      refetch();
+    } catch (error) {
+      console.error('Error updating tracking:', error);
+      toast.error('Erreur lors de la mise à jour');
+    } finally {
+      setIsSavingTracking(false);
+    }
+  };
+
+  const handleEditNotes = () => {
+    setInternalNotes(order?.internal_notes || '');
+    setIsEditingNotes(true);
+  };
+
+  const handleSaveNotes = async () => {
+    setIsSavingNotes(true);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          internal_notes: internalNotes || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', orderId);
+
+      if (error) throw error;
+      toast.success('Notes mises à jour');
+      setIsEditingNotes(false);
+      refetch();
+    } catch (error) {
+      console.error('Error updating notes:', error);
+      toast.error('Erreur lors de la mise à jour');
+    } finally {
+      setIsSavingNotes(false);
+    }
   };
 
   if (isLoading) {
@@ -200,13 +284,70 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
             {/* Tracking */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Truck className="h-4 w-4" />
-                  Suivi
+                <CardTitle className="text-base flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Truck className="h-4 w-4" />
+                    Suivi
+                  </div>
+                  {!isEditingTracking && (
+                    <Button variant="ghost" size="sm" onClick={handleEditTracking}>
+                      Modifier
+                    </Button>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {order.tracking_number ? (
+                {isEditingTracking ? (
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="carrier" className="text-xs">Transporteur</Label>
+                      <Input
+                        id="carrier"
+                        value={trackingForm.carrier}
+                        onChange={(e) => setTrackingForm(prev => ({ ...prev, carrier: e.target.value }))}
+                        placeholder="Colissimo, DHL, etc."
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="tracking_number" className="text-xs">Numéro de suivi</Label>
+                      <Input
+                        id="tracking_number"
+                        value={trackingForm.tracking_number}
+                        onChange={(e) => setTrackingForm(prev => ({ ...prev, tracking_number: e.target.value }))}
+                        placeholder="ABC123456789"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="tracking_url" className="text-xs">URL de suivi</Label>
+                      <Input
+                        id="tracking_url"
+                        value={trackingForm.tracking_url}
+                        onChange={(e) => setTrackingForm(prev => ({ ...prev, tracking_url: e.target.value }))}
+                        placeholder="https://..."
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        onClick={handleSaveTracking}
+                        disabled={isSavingTracking}
+                      >
+                        <Save className="h-3 w-3 mr-1" />
+                        Enregistrer
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => setIsEditingTracking(false)}
+                      >
+                        Annuler
+                      </Button>
+                    </div>
+                  </div>
+                ) : order.tracking_number ? (
                   <div className="text-sm space-y-2">
                     <p>
                       <span className="text-muted-foreground">Transporteur:</span>{' '}
@@ -234,7 +375,7 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Pas encore expédié
+                    Pas encore expédié - Cliquez sur "Modifier" pour ajouter les infos
                   </p>
                 )}
               </CardContent>
@@ -277,16 +418,78 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
           </Card>
 
           {/* Internal Notes */}
-          {order.internal_notes && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Notes internes</CardTitle>
-              </CardHeader>
-              <CardContent>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center justify-between">
+                Notes internes
+                {!isEditingNotes && (
+                  <Button variant="ghost" size="sm" onClick={handleEditNotes}>
+                    {order.internal_notes ? 'Modifier' : 'Ajouter'}
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isEditingNotes ? (
+                <div className="space-y-3">
+                  <Textarea
+                    value={internalNotes}
+                    onChange={(e) => setInternalNotes(e.target.value)}
+                    placeholder="Ajouter des notes internes..."
+                    rows={4}
+                  />
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      onClick={handleSaveNotes}
+                      disabled={isSavingNotes}
+                    >
+                      <Save className="h-3 w-3 mr-1" />
+                      Enregistrer
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => setIsEditingNotes(false)}
+                    >
+                      Annuler
+                    </Button>
+                  </div>
+                </div>
+              ) : order.internal_notes ? (
                 <p className="text-sm whitespace-pre-wrap">{order.internal_notes}</p>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <p className="text-sm text-muted-foreground">Aucune note</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Email Actions */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Actions email
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                <SendShippingEmailButton
+                  orderId={orderId}
+                  orderItems={order.order_items || []}
+                />
+                <SendDeliveryEmailButton
+                  orderId={orderId}
+                  orderItems={order.order_items || []}
+                />
+                <SendCancellationEmailButton
+                  orderId={orderId}
+                  orderAmount={order.amount || 0}
+                  orderItems={order.order_items || []}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="fraud">
