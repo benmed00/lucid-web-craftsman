@@ -13,6 +13,10 @@ import { OrderStatusSelect } from './OrderStatusSelect';
 import { OrderHistoryTimeline } from './OrderHistoryTimeline';
 import { OrderAnomaliesList } from './OrderAnomaliesList';
 import { FraudAssessmentPanel } from './FraudAssessmentPanel';
+import { OrderCustomerTab } from './OrderCustomerTab';
+import { OrderPaymentTab } from './OrderPaymentTab';
+import { OrderCouponTab } from './OrderCouponTab';
+import { OrderCommandPalette } from './OrderCommandPalette';
 import { useOrder } from '@/hooks/useOrderManagement';
 import type { OrderStatus } from '@/types/order.types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -33,6 +37,8 @@ import {
   ShieldAlert,
   Mail,
   Save,
+  Command,
+  Tag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -53,6 +59,7 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
   const [internalNotes, setInternalNotes] = useState('');
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   const copyOrderId = () => {
     navigator.clipboard.writeText(orderId);
@@ -162,6 +169,18 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
         </div>
 
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setCommandPaletteOpen(true)}
+            className="gap-1"
+          >
+            <Command className="h-3 w-3" />
+            <span className="hidden sm:inline">Actions</span>
+            <kbd className="ml-1 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+              ⌘K
+            </kbd>
+          </Button>
           {order.has_anomaly && (
             <Badge variant="destructive" className="gap-1">
               <AlertTriangle className="h-3 w-3" />
@@ -176,12 +195,33 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
         </div>
       </div>
 
+      {/* Command Palette */}
+      <OrderCommandPalette
+        orderId={orderId}
+        currentStatus={order.order_status as OrderStatus}
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+        onActionComplete={() => refetch()}
+      />
+
       <Separator />
 
       {/* Main Content */}
       <Tabs defaultValue="details" className="space-y-4">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="details">Détails</TabsTrigger>
+          <TabsTrigger value="customer" className="flex items-center gap-1">
+            <User className="h-3 w-3" />
+            Client
+          </TabsTrigger>
+          <TabsTrigger value="payment" className="flex items-center gap-1">
+            <CreditCard className="h-3 w-3" />
+            Paiement
+          </TabsTrigger>
+          <TabsTrigger value="coupon" className="flex items-center gap-1">
+            <Tag className="h-3 w-3" />
+            Promo
+          </TabsTrigger>
           <TabsTrigger value="fraud" className="flex items-center gap-1">
             <ShieldAlert className="h-3 w-3" />
             Fraude
@@ -490,6 +530,18 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="customer">
+          <OrderCustomerTab orderId={orderId} />
+        </TabsContent>
+
+        <TabsContent value="payment">
+          <OrderPaymentTab orderId={orderId} />
+        </TabsContent>
+
+        <TabsContent value="coupon">
+          <OrderCouponTab orderId={orderId} />
         </TabsContent>
 
         <TabsContent value="fraud">
