@@ -13,6 +13,17 @@ const logStep = (step: string, details?: any) => {
   console.log(`[VERIFY-PAYMENT] ${step}${detailsStr}`);
 };
 
+// Generate a guest ID based on session/IP for tracking anonymous users
+const generateGuestId = (sessionId: string, email?: string): string => {
+  // Use first 8 chars of session + email hash if available
+  const baseId = sessionId.slice(-12);
+  if (email) {
+    const emailHash = email.split('@')[0].slice(0, 4).toUpperCase();
+    return `GUEST-${emailHash}-${baseId.slice(-6).toUpperCase()}`;
+  }
+  return `GUEST-${baseId.toUpperCase()}`;
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -29,21 +40,31 @@ serve(async (req) => {
   try {
     logStep("Function started");
     
+    // Capture request metadata
+    const userAgent = req.headers.get("user-agent") || "Unknown";
+    const clientIP = req.headers.get("x-forwarded-for")?.split(',')[0]?.trim() || 
+                     req.headers.get("cf-connecting-ip") || 
+                     req.headers.get("x-real-ip") ||
+                     "Unknown";
+    const acceptLanguage = req.headers.get("accept-language") || "";
+    
     const { session_id } = await req.json();
     
     if (!session_id) {
       throw new Error("No session ID provided");
     }
 
-    logStep("Verifying session", { sessionId: session_id });
+    logStep("Verifying session", { sessionId: session_id, clientIP, userAgent: userAgent.slice(0, 50) });
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Retrieve session from Stripe
-    const session = await stripe.checkout.sessions.retrieve(session_id);
+    // Retrieve session from Stripe with expanded data
+    const session = await stripe.checkout.sessions.retrieve(session_id, {
+      expand: ['customer', 'payment_intent', 'line_items']
+    });
     
     if (!session) {
       throw new Error("Session not found");
@@ -51,7 +72,8 @@ serve(async (req) => {
 
     logStep("Session retrieved", { 
       paymentStatus: session.payment_status, 
-      orderId: session.metadata?.order_id 
+      orderId: session.metadata?.order_id,
+      customerEmail: session.customer_details?.email
     });
 
     // Only process if payment is complete
@@ -101,14 +123,91 @@ serve(async (req) => {
       });
     }
 
-    // Update order status to paid and set order_status field
+    // Extract comprehensive customer data from Stripe session
+    const customerDetails = session.customer_details;
+    const shippingDetails = session.shipping_details;
+    
+    // Build shipping address from Stripe data
+    const shippingAddress = shippingDetails?.address ? {
+      first_name: shippingDetails.name?.split(' ')[0] || customerDetails?.name?.split(' ')[0] || '',
+      last_name: shippingDetails.name?.split(' ').slice(1).join(' ') || customerDetails?.name?.split(' ').slice(1).join(' ') || '',
+      email: customerDetails?.email || '',
+      phone: customerDetails?.phone || shippingDetails?.phone || '',
+      address_line1: shippingDetails.address.line1 || '',
+      address_line2: shippingDetails.address.line2 || '',
+      city: shippingDetails.address.city || '',
+      postal_code: shippingDetails.address.postal_code || '',
+      state: shippingDetails.address.state || '',
+      country: shippingDetails.address.country || 'FR',
+    } : null;
+
+    // Build billing address from Stripe data
+    const billingAddress = customerDetails?.address ? {
+      first_name: customerDetails.name?.split(' ')[0] || '',
+      last_name: customerDetails.name?.split(' ').slice(1).join(' ') || '',
+      email: customerDetails.email || '',
+      phone: customerDetails.phone || '',
+      address_line1: customerDetails.address.line1 || '',
+      address_line2: customerDetails.address.line2 || '',
+      city: customerDetails.address.city || '',
+      postal_code: customerDetails.address.postal_code || '',
+      state: customerDetails.address.state || '',
+      country: customerDetails.address.country || 'FR',
+    } : null;
+
+    // Parse user agent for device/browser info
+    const deviceInfo = parseUserAgent(userAgent);
+
+    // Build metadata with all captured information
+    const enrichedMetadata = {
+      // Client device info
+      device_type: deviceInfo.deviceType,
+      browser: deviceInfo.browser,
+      browser_version: deviceInfo.browserVersion,
+      os: deviceInfo.os,
+      user_agent: userAgent,
+      
+      // Network info
+      client_ip: clientIP,
+      accept_language: acceptLanguage,
+      order_country: shippingDetails?.address?.country || customerDetails?.address?.country || 'Unknown',
+      
+      // Stripe session info
+      stripe_session_id: session_id,
+      stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id,
+      payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id,
+      
+      // Coupon/discount info from session metadata
+      discount_code: session.metadata?.discount_code || null,
+      discount_amount: session.metadata?.discount_amount ? parseFloat(session.metadata.discount_amount) : 0,
+      
+      // Guest tracking
+      guest_id: orderData.user_id ? null : generateGuestId(session_id, customerDetails?.email),
+      
+      // Timing
+      checkout_completed_at: new Date().toISOString(),
+    };
+
+    logStep("Enriched metadata prepared", { 
+      deviceType: deviceInfo.deviceType,
+      browser: deviceInfo.browser,
+      country: enrichedMetadata.order_country,
+      hasDiscount: !!enrichedMetadata.discount_code
+    });
+
+    // Update order with all captured data
     const { error: updateOrderError } = await supabaseService
       .from('orders')
       .update({ 
         status: 'paid',
         order_status: 'paid',
-        payment_reference: session.payment_intent,
+        payment_reference: typeof session.payment_intent === 'string' 
+          ? session.payment_intent 
+          : session.payment_intent?.id,
         payment_method: session.payment_method_types?.[0] || 'card',
+        shipping_address: shippingAddress,
+        billing_address: billingAddress,
+        metadata: enrichedMetadata,
         updated_at: new Date().toISOString()
       })
       .eq('id', orderData.id);
@@ -118,7 +217,7 @@ serve(async (req) => {
       throw new Error(`Failed to update order: ${updateOrderError.message}`);
     }
 
-    logStep("Order status updated to paid");
+    logStep("Order status updated to paid with enriched data");
 
     // Run fraud detection scoring
     try {
@@ -141,20 +240,10 @@ serve(async (req) => {
         .rpc('calculate_fraud_score', {
           p_order_id: orderData.id,
           p_customer_email: session.customer_details?.email || '',
-          p_shipping_address: session.shipping_details?.address ? {
-            address_line1: session.shipping_details.address.line1,
-            city: session.shipping_details.address.city,
-            postal_code: session.shipping_details.address.postal_code,
-            country: session.shipping_details.address.country
-          } : null,
-          p_billing_address: session.customer_details?.address ? {
-            address_line1: session.customer_details.address.line1,
-            city: session.customer_details.address.city,
-            postal_code: session.customer_details.address.postal_code,
-            country: session.customer_details.address.country
-          } : null,
-          p_ip_address: null,
-          p_user_agent: null,
+          p_shipping_address: shippingAddress,
+          p_billing_address: billingAddress,
+          p_ip_address: clientIP,
+          p_user_agent: userAgent,
           p_checkout_duration_seconds: null,
           p_is_first_order: isFirstOrder,
           p_order_amount: (orderData.amount || 0) / 100
@@ -177,7 +266,7 @@ serve(async (req) => {
       logStep("Warning: Fraud detection failed (non-blocking)", { error: fraudError.message });
     }
 
-    // Log status change in order_status_history
+    // Log status change in order_status_history with enriched data
     await supabaseService
       .from('order_status_history')
       .insert({
@@ -187,9 +276,16 @@ serve(async (req) => {
         changed_by: 'webhook',
         reason_code: 'PAYMENT_CONFIRMED',
         reason_message: 'Payment verified via Stripe',
+        ip_address: clientIP,
+        user_agent: userAgent,
         metadata: {
           stripe_session_id: session_id,
-          payment_intent: session.payment_intent
+          payment_intent: typeof session.payment_intent === 'string' 
+            ? session.payment_intent 
+            : session.payment_intent?.id,
+          device_type: deviceInfo.deviceType,
+          browser: deviceInfo.browser,
+          country: enrichedMetadata.order_country
         }
       });
 
@@ -258,14 +354,19 @@ serve(async (req) => {
       .from('payments')
       .insert({
         order_id: orderData.id,
-        stripe_payment_intent_id: session.payment_intent,
+        stripe_payment_intent_id: typeof session.payment_intent === 'string' 
+          ? session.payment_intent 
+          : session.payment_intent?.id,
         amount: orderData.amount,
         currency: orderData.currency,
         status: 'completed',
         processed_at: new Date().toISOString(),
         metadata: {
           stripe_session_id: session_id,
-          customer_email: session.customer_details?.email
+          customer_email: session.customer_details?.email,
+          payment_method: session.payment_method_types?.[0],
+          client_ip: clientIP,
+          discount_code: enrichedMetadata.discount_code
         }
       });
 
@@ -278,7 +379,6 @@ serve(async (req) => {
     try {
       const customerEmail = session.customer_details?.email;
       const customerName = session.customer_details?.name || session.metadata?.customer_name || 'Client';
-      const shippingDetails = session.shipping_details || session.customer_details;
       
       if (customerEmail) {
         logStep("Sending enhanced order confirmation email", { email: customerEmail });
@@ -308,13 +408,13 @@ serve(async (req) => {
         const total = orderData.amount / 100;
         const shipping = total - subtotal > 0 ? total - subtotal : 0;
         
-        // Build shipping address
-        const shippingAddress = {
-          address: shippingDetails?.address?.line1 || session.metadata?.address || '',
-          city: shippingDetails?.address?.city || session.metadata?.city || '',
-          postalCode: shippingDetails?.address?.postal_code || session.metadata?.postalCode || '',
-          country: shippingDetails?.address?.country === 'FR' ? 'France' : 
-                   shippingDetails?.address?.country || session.metadata?.country || 'France'
+        // Build shipping address for email
+        const emailShippingAddress = {
+          address: shippingAddress?.address_line1 || session.metadata?.address || '',
+          city: shippingAddress?.city || session.metadata?.city || '',
+          postalCode: shippingAddress?.postal_code || session.metadata?.postalCode || '',
+          country: shippingAddress?.country === 'FR' ? 'France' : 
+                   shippingAddress?.country || session.metadata?.country || 'France'
         };
 
         // Call the enhanced email edge function
@@ -333,10 +433,10 @@ serve(async (req) => {
               items: emailItems,
               subtotal: subtotal,
               shipping: shipping,
-              discount: 0,
+              discount: enrichedMetadata.discount_amount || 0,
               total: total,
               currency: orderData.currency?.toUpperCase() || 'EUR',
-              shippingAddress: shippingAddress
+              shippingAddress: emailShippingAddress
             })
           }
         );
@@ -357,7 +457,9 @@ serve(async (req) => {
 
     logStep("Payment verification completed", {
       orderId: orderData.id,
-      stockUpdatesCount: stockUpdates.length
+      stockUpdatesCount: stockUpdates.length,
+      hasShippingAddress: !!shippingAddress,
+      hasBillingAddress: !!billingAddress
     });
 
     return new Response(JSON.stringify({ 
@@ -382,3 +484,69 @@ serve(async (req) => {
     });
   }
 });
+
+// Parse user agent to extract device, browser, and OS information
+function parseUserAgent(ua: string): {
+  deviceType: string;
+  browser: string;
+  browserVersion: string;
+  os: string;
+} {
+  const result = {
+    deviceType: 'Desktop',
+    browser: 'Unknown',
+    browserVersion: '',
+    os: 'Unknown'
+  };
+
+  if (!ua) return result;
+
+  // Detect device type
+  if (/Mobile|Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+    if (/iPad|Tablet/i.test(ua)) {
+      result.deviceType = 'Tablet';
+    } else {
+      result.deviceType = 'Mobile';
+    }
+  }
+
+  // Detect browser
+  if (ua.includes('Firefox/')) {
+    result.browser = 'Firefox';
+    const match = ua.match(/Firefox\/(\d+)/);
+    if (match) result.browserVersion = match[1];
+  } else if (ua.includes('Edg/')) {
+    result.browser = 'Edge';
+    const match = ua.match(/Edg\/(\d+)/);
+    if (match) result.browserVersion = match[1];
+  } else if (ua.includes('Chrome/')) {
+    result.browser = 'Chrome';
+    const match = ua.match(/Chrome\/(\d+)/);
+    if (match) result.browserVersion = match[1];
+  } else if (ua.includes('Safari/') && !ua.includes('Chrome')) {
+    result.browser = 'Safari';
+    const match = ua.match(/Version\/(\d+)/);
+    if (match) result.browserVersion = match[1];
+  } else if (ua.includes('MSIE') || ua.includes('Trident/')) {
+    result.browser = 'Internet Explorer';
+  }
+
+  // Detect OS
+  if (ua.includes('Windows')) {
+    result.os = 'Windows';
+    if (ua.includes('Windows NT 10')) result.os = 'Windows 10/11';
+    else if (ua.includes('Windows NT 6.3')) result.os = 'Windows 8.1';
+    else if (ua.includes('Windows NT 6.2')) result.os = 'Windows 8';
+    else if (ua.includes('Windows NT 6.1')) result.os = 'Windows 7';
+  } else if (ua.includes('Mac OS X')) {
+    result.os = 'macOS';
+  } else if (ua.includes('Linux')) {
+    result.os = 'Linux';
+  } else if (ua.includes('Android')) {
+    result.os = 'Android';
+  } else if (ua.includes('iOS') || ua.includes('iPhone') || ua.includes('iPad')) {
+    result.os = 'iOS';
+  }
+
+  return result;
+}
