@@ -405,7 +405,7 @@
       "message": "Message",
       "messageRequired": "Message *",
       "messagePlaceholder": "Describe your request in detail",
-      "characters": "0/2000 characters",
+      "characters": "characters",
       "minCharacters": "The message must contain at least 20 characters.",
 
       "privacy": "I agree to the privacy policy and the processing of my personal data.",

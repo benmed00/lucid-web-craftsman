@@ -263,7 +263,7 @@
       "message": "Message",
       "messageRequired": "Message *",
       "messagePlaceholder": "Décrivez votre demande en détail",
-      "characters": "0/2000 caractères",
+      "characters": "caractères",
       "minCharacters": "Le message doit contenir au moins 20 caractères.",
 
       "privacy": "J’accepte la politique de confidentialité et le traitement de mes données.",
