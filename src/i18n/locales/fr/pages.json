@@ -275,5 +275,49 @@
       "title": "Notre localisation",
       "description": "Retrouvez-nous facilement grâce à la carte ci-dessous."
     }
+  },
+
+  "paymentSuccess": {
+    "verifying": {
+      "title": "Vérification du paiement...",
+      "description": "Veuillez patienter pendant que nous confirmons votre transaction."
+    },
+    "success": {
+      "title": "Paiement Réussi !",
+      "thanks": "Merci pour votre commande !",
+      "verified": "Votre paiement a été vérifié.",
+      "transactionId": "ID de transaction",
+      "orderId": "N° de commande",
+      "confirmed": "Votre commande a été confirmée !"
+    },
+    "error": {
+      "title": "Échec de la vérification",
+      "description": "Nous n'avons pas pu vérifier votre paiement. Veuillez contacter le support."
+    },
+    "errors": {
+      "missingSession": "Session de paiement manquante. Veuillez réessayer.",
+      "verificationError": "Une erreur est survenue lors de la vérification.",
+      "verificationFailed": "La vérification du paiement a échoué.",
+      "unexpectedError": "Une erreur inattendue s'est produite."
+    },
+    "nextSteps": {
+      "title": "Prochaines Étapes",
+      "step1": {
+        "title": "Email de Confirmation",
+        "description": "Vous recevrez un email de confirmation sous peu."
+      },
+      "step2": {
+        "title": "Préparation de la Commande",
+        "description": "Nos artisans prépareront votre commande avec soin."
+      },
+      "step3": {
+        "title": "Expédition",
+        "description": "Vous recevrez un numéro de suivi une fois expédiée."
+      }
+    },
+    "help": {
+      "title": "Besoin d'Aide ?",
+      "description": "Si vous avez des questions sur votre commande, n'hésitez pas à nous contacter."
+    }
   }
 }

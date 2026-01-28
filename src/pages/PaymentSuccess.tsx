@@ -1,4 +1,4 @@
-import { CheckCircle, ShoppingBag, Home, Loader2 } from "lucide-react";
+import { CheckCircle, ShoppingBag, Home, Loader2, Mail } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,13 @@ import PageFooter from "@/components/PageFooter";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/stores";
+import { useAuth } from "@/context/AuthContext";
+
+interface CustomerInfo {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
 
 const PaymentSuccess = () => {
   const { t } = useTranslation(['pages', 'common']);
@@ -20,7 +27,9 @@ const PaymentSuccess = () => {
     message: string;
     orderId?: string;
   } | null>(null);
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const { clearCart } = useCart();
+  const { user, profile } = useAuth();
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -55,6 +64,21 @@ const PaymentSuccess = () => {
             orderId: data.orderId
           });
           
+          // Extract customer info from order data or user profile
+          if (data.customerInfo) {
+            setCustomerInfo(data.customerInfo);
+          } else if (profile || user) {
+            // Parse full_name into first and last name
+            const nameParts = (profile?.full_name || '').split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
+            setCustomerInfo({
+              firstName,
+              lastName,
+              email: user?.email || ''
+            });
+          }
+          
           // Clear cart after successful verification
           clearCart();
           localStorage.removeItem('cart');
@@ -81,7 +105,18 @@ const PaymentSuccess = () => {
     };
 
     verifyPayment();
-  }, [sessionId, clearCart, t]);
+  }, [sessionId, clearCart, t, profile, user]);
+
+  // Build contact URL with customer info pre-filled
+  const getContactUrl = () => {
+    if (!customerInfo) return '/contact';
+    const params = new URLSearchParams();
+    if (customerInfo.firstName) params.set('firstName', customerInfo.firstName);
+    if (customerInfo.lastName) params.set('lastName', customerInfo.lastName);
+    if (customerInfo.email) params.set('email', customerInfo.email);
+    if (verificationResult?.orderId) params.set('orderId', verificationResult.orderId);
+    return `/contact?${params.toString()}`;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -198,7 +233,8 @@ const PaymentSuccess = () => {
               {t('pages:paymentSuccess.help.description')}
             </p>
             <Button variant="outline" asChild>
-              <Link to="/contact">
+              <Link to={getContactUrl()} className="flex items-center">
+                <Mail className="w-4 h-4 mr-2" />
                 {t('common:nav.contact')}
               </Link>
             </Button>
