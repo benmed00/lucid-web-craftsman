@@ -417,5 +417,49 @@
       "title": "Our location",
       "description": "Find us easily using the map below."
     }
+  },
+
+  "paymentSuccess": {
+    "verifying": {
+      "title": "Verifying your payment...",
+      "description": "Please wait while we confirm your transaction."
+    },
+    "success": {
+      "title": "Payment Successful!",
+      "thanks": "Thank you for your order!",
+      "verified": "Your payment has been verified.",
+      "transactionId": "Transaction ID",
+      "orderId": "Order ID",
+      "confirmed": "Your order has been confirmed!"
+    },
+    "error": {
+      "title": "Payment Verification Failed",
+      "description": "We couldn't verify your payment. Please contact support."
+    },
+    "errors": {
+      "missingSession": "Missing payment session. Please try again.",
+      "verificationError": "An error occurred while verifying your payment.",
+      "verificationFailed": "Payment verification failed.",
+      "unexpectedError": "An unexpected error occurred."
+    },
+    "nextSteps": {
+      "title": "What's Next?",
+      "step1": {
+        "title": "Confirmation Email",
+        "description": "You will receive an order confirmation email shortly."
+      },
+      "step2": {
+        "title": "Order Preparation",
+        "description": "Our artisans will prepare your order with care."
+      },
+      "step3": {
+        "title": "Shipping",
+        "description": "You will receive a tracking number once shipped."
+      }
+    },
+    "help": {
+      "title": "Need Help?",
+      "description": "If you have any questions about your order, don't hesitate to contact us."
+    }
   }
 }
