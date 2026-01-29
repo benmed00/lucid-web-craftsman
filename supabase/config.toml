@@ -32,3 +32,9 @@ verify_jwt = false
 
 [functions.carrier-webhook]
 verify_jwt = false
+
+[functions.create-paypal-payment]
+verify_jwt = false
+
+[functions.verify-paypal-payment]
+verify_jwt = false

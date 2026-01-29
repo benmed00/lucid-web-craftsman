@@ -21,11 +21,16 @@ const PaymentSuccess = () => {
   const { t } = useTranslation(['pages', 'common']);
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
+  const isPayPal = searchParams.get('paypal') === 'true';
+  const paypalOrderId = searchParams.get('token'); // PayPal returns the order ID as 'token'
+  const orderId = searchParams.get('order_id');
+  
   const [isVerifying, setIsVerifying] = useState(true);
   const [verificationResult, setVerificationResult] = useState<{
     success: boolean;
     message: string;
     orderId?: string;
+    transactionId?: string;
   } | null>(null);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const { clearCart } = useCart();
@@ -33,79 +38,135 @@ const PaymentSuccess = () => {
 
   useEffect(() => {
     const verifyPayment = async () => {
-      if (!sessionId) {
+      // Determine payment type and verify accordingly
+      if (isPayPal && paypalOrderId && orderId) {
+        // PayPal payment verification
+        try {
+          console.log("Verifying PayPal payment:", { paypalOrderId, orderId });
+          
+          const { data, error } = await supabase.functions.invoke('verify-paypal-payment', {
+            body: { 
+              paypal_order_id: paypalOrderId,
+              order_id: orderId
+            }
+          });
+
+          if (error) {
+            console.error("PayPal verification error:", error);
+            setVerificationResult({
+              success: false,
+              message: t('pages:paymentSuccess.errors.verificationError')
+            });
+            toast.error(t('pages:paymentSuccess.errors.verificationError'));
+          } else if (data?.success) {
+            console.log("PayPal payment verified:", data);
+            setVerificationResult({
+              success: true,
+              message: data.message || t('pages:paymentSuccess.success.verified'),
+              orderId: data.order_id || orderId,
+              transactionId: data.transaction_id
+            });
+            
+            // Set customer info from user profile
+            if (profile || user) {
+              const nameParts = (profile?.full_name || '').split(' ');
+              setCustomerInfo({
+                firstName: nameParts[0] || '',
+                lastName: nameParts.slice(1).join(' ') || '',
+                email: user?.email || ''
+              });
+            }
+            
+            clearCart();
+            localStorage.removeItem('cart');
+            toast.success(t('pages:paymentSuccess.success.confirmed'));
+          } else {
+            console.log("PayPal verification failed:", data);
+            setVerificationResult({
+              success: false,
+              message: data?.message || t('pages:paymentSuccess.errors.verificationFailed')
+            });
+            toast.error(data?.message || t('pages:paymentSuccess.errors.verificationFailed'));
+          }
+        } catch (error) {
+          console.error("Unexpected PayPal error:", error);
+          setVerificationResult({
+            success: false,
+            message: t('pages:paymentSuccess.errors.unexpectedError')
+          });
+          toast.error(t('pages:paymentSuccess.errors.unexpectedError'));
+        } finally {
+          setIsVerifying(false);
+        }
+      } else if (sessionId) {
+        // Stripe payment verification
+        try {
+          console.log("Verifying Stripe payment for session:", sessionId);
+          
+          const { data, error } = await supabase.functions.invoke('verify-payment', {
+            body: { session_id: sessionId }
+          });
+
+          if (error) {
+            console.error("Verification error:", error);
+            setVerificationResult({
+              success: false,
+              message: t('pages:paymentSuccess.errors.verificationError')
+            });
+            toast.error(t('pages:paymentSuccess.errors.verificationError'));
+          } else if (data?.success) {
+            console.log("Payment verified successfully:", data);
+            setVerificationResult({
+              success: true,
+              message: data.message || t('pages:paymentSuccess.success.verified'),
+              orderId: data.orderId,
+              transactionId: sessionId.slice(-8).toUpperCase()
+            });
+            
+            if (data.customerInfo) {
+              setCustomerInfo(data.customerInfo);
+            } else if (profile || user) {
+              const nameParts = (profile?.full_name || '').split(' ');
+              setCustomerInfo({
+                firstName: nameParts[0] || '',
+                lastName: nameParts.slice(1).join(' ') || '',
+                email: user?.email || ''
+              });
+            }
+            
+            clearCart();
+            localStorage.removeItem('cart');
+            toast.success(t('pages:paymentSuccess.success.confirmed'));
+          } else {
+            console.log("Payment verification failed:", data);
+            setVerificationResult({
+              success: false,
+              message: data?.message || t('pages:paymentSuccess.errors.verificationFailed')
+            });
+            toast.error(data?.message || t('pages:paymentSuccess.errors.verificationFailed'));
+          }
+        } catch (error) {
+          console.error("Unexpected error during verification:", error);
+          setVerificationResult({
+            success: false,
+            message: t('pages:paymentSuccess.errors.unexpectedError')
+          });
+          toast.error(t('pages:paymentSuccess.errors.unexpectedError'));
+        } finally {
+          setIsVerifying(false);
+        }
+      } else {
+        // No valid payment info
         setVerificationResult({
           success: false,
           message: t('pages:paymentSuccess.errors.missingSession')
         });
         setIsVerifying(false);
-        return;
-      }
-
-      try {
-        console.log("Verifying payment for session:", sessionId);
-        
-        const { data, error } = await supabase.functions.invoke('verify-payment', {
-          body: { session_id: sessionId }
-        });
-
-        if (error) {
-          console.error("Verification error:", error);
-          setVerificationResult({
-            success: false,
-            message: t('pages:paymentSuccess.errors.verificationError')
-          });
-          toast.error(t('pages:paymentSuccess.errors.verificationError'));
-        } else if (data?.success) {
-          console.log("Payment verified successfully:", data);
-          setVerificationResult({
-            success: true,
-            message: data.message || t('pages:paymentSuccess.success.verified'),
-            orderId: data.orderId
-          });
-          
-          // Extract customer info from order data or user profile
-          if (data.customerInfo) {
-            setCustomerInfo(data.customerInfo);
-          } else if (profile || user) {
-            // Parse full_name into first and last name
-            const nameParts = (profile?.full_name || '').split(' ');
-            const firstName = nameParts[0] || '';
-            const lastName = nameParts.slice(1).join(' ') || '';
-            setCustomerInfo({
-              firstName,
-              lastName,
-              email: user?.email || ''
-            });
-          }
-          
-          // Clear cart after successful verification
-          clearCart();
-          localStorage.removeItem('cart');
-          
-          toast.success(t('pages:paymentSuccess.success.confirmed'));
-        } else {
-          console.log("Payment verification failed:", data);
-          setVerificationResult({
-            success: false,
-            message: data?.message || t('pages:paymentSuccess.errors.verificationFailed')
-          });
-          toast.error(data?.message || t('pages:paymentSuccess.errors.verificationFailed'));
-        }
-      } catch (error) {
-        console.error("Unexpected error during verification:", error);
-        setVerificationResult({
-          success: false,
-          message: t('pages:paymentSuccess.errors.unexpectedError')
-        });
-        toast.error(t('pages:paymentSuccess.errors.unexpectedError'));
-      } finally {
-        setIsVerifying(false);
       }
     };
 
     verifyPayment();
-  }, [sessionId, clearCart, t, profile, user]);
+  }, [sessionId, isPayPal, paypalOrderId, orderId, clearCart, t, profile, user]);
 
   // Build contact URL with customer info pre-filled
   const getContactUrl = () => {
@@ -144,9 +205,9 @@ const PaymentSuccess = () => {
                 <p className="text-lg text-muted-foreground mb-2">
                   {t('pages:paymentSuccess.success.thanks')} {verificationResult.message}
                 </p>
-                {sessionId && (
+                {verificationResult.transactionId && (
                   <p className="text-sm text-muted-foreground mb-2">
-                    {t('pages:paymentSuccess.success.transactionId')}: {sessionId.slice(-8).toUpperCase()}
+                    {t('pages:paymentSuccess.success.transactionId')}: {verificationResult.transactionId.slice(-8).toUpperCase()}
                   </p>
                 )}
                 {verificationResult.orderId && (
