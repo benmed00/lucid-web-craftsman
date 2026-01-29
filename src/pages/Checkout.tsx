@@ -435,8 +435,11 @@ const Checkout = () => {
       // Get CSRF headers for secure request
       const csrfHeaders = await getCsrfHeaders();
       
-      // Call Supabase edge function to create Stripe checkout session with sanitized data
-      const { data, error } = await supabase.functions.invoke('create-payment', {
+      // Determine which edge function to call based on payment method
+      const functionName = paymentMethod === "paypal" ? "create-paypal-payment" : "create-payment";
+      
+      // Call appropriate edge function
+      const { data, error } = await supabase.functions.invoke(functionName, {
         body: {
           items: cartItems,
           customerInfo: sanitizedFormData,
@@ -455,7 +458,7 @@ const Checkout = () => {
       }
 
       if (data?.url) {
-        // Redirect to Stripe Checkout
+        // Redirect to Stripe or PayPal Checkout
         window.location.href = data.url;
       } else {
         throw new Error("No checkout URL received");
