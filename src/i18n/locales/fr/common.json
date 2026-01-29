@@ -137,5 +137,16 @@
     "consentText": "J'accepte de recevoir la newsletter de Rif Raw Straw et confirme avoir lu la",
     "privacyPolicy": "politique de confidentialité",
     "unsubscribeNote": "Vous pouvez vous désabonner à tout moment en cliquant sur le lien de désinscription présent dans chaque email."
+  },
+  "notifications": {
+    "title": "Restez informé",
+    "description": "Recevez nos offres exclusives et les dernières nouveautés directement.",
+    "exclusive": "Exclusif",
+    "enable": "Activer",
+    "later": "Plus tard",
+    "welcomeMessage": "Vous recevrez maintenant nos notifications pour les nouveautés et offres spéciales!"
+  },
+  "common": {
+    "close": "Fermer"
   }
 }
