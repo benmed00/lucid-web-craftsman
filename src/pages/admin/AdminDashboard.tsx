@@ -86,9 +86,16 @@ const AdminDashboard = () => {
 
         if (ordersError) throw ordersError;
 
-        // Load user profiles for orders
+        // Load user profiles for orders (skip if user_id is null - guest orders)
         const ordersWithProfiles = await Promise.all(
           (ordersData || []).map(async (order) => {
+            if (!order.user_id) {
+              return {
+                ...order,
+                profiles: null
+              };
+            }
+            
             const { data: profile } = await supabase
               .from('profiles')
               .select('full_name')
