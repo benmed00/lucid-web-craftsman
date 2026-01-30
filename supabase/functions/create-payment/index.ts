@@ -276,6 +276,21 @@ serve(async (req) => {
     const vipThreshold = (businessRules?.cart?.highValueThreshold || 1000) * 100; // Convert to cents
     const isVipOrder = totalAmount >= vipThreshold;
 
+    // Build shipping address from customer info
+    const shippingAddress = customerInfo ? {
+      first_name: sanitizeString(customerInfo.firstName),
+      last_name: sanitizeString(customerInfo.lastName),
+      email: customerInfo.email,
+      phone: sanitizeString(customerInfo.phone) || null,
+      address_line1: sanitizeString(customerInfo.address),
+      address_line2: sanitizeString(customerInfo.addressComplement) || null,
+      city: sanitizeString(customerInfo.city),
+      postal_code: sanitizeString(customerInfo.postalCode),
+      country: sanitizeString(customerInfo.country) || 'FR',
+    } : null;
+
+    logStep("Shipping address prepared", { hasAddress: !!shippingAddress });
+
     // Create order record first
     const { data: orderData, error: orderError } = await supabaseService
       .from('orders')
@@ -283,7 +298,9 @@ serve(async (req) => {
         user_id: user?.id || null,
         amount: totalAmount,
         currency: 'eur',
-        status: 'pending'
+        status: 'pending',
+        shipping_address: shippingAddress,
+        billing_address: shippingAddress, // Use same as shipping for now
       })
       .select('*')
       .single();
