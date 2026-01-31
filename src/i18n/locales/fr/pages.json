@@ -30,6 +30,43 @@
       "description": "Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.",
       "discoverButton": "Découvrir la Collection",
       "storyButton": "Notre Histoire"
+    },
+    "features": {
+      "badge": "Nos Valeurs",
+      "title": "Un savoir-faire ancestral au service du durable",
+      "description": "Chaque pièce raconte une histoire, celle d'un artisanat transmis de génération en génération.",
+      "eco": {
+        "title": "Éco-responsable",
+        "description": "Matériaux naturels et durables, respectueux de l'environnement."
+      },
+      "craft": {
+        "title": "Fait Main",
+        "description": "Chaque pièce est unique, créée par des artisans talentueux."
+      },
+      "design": {
+        "title": "Design Authentique",
+        "description": "Des styles intemporels inspirés de la tradition berbère."
+      }
+    },
+    "products": {
+      "badge": "Notre Collection",
+      "title": "Découvrez nos créations artisanales",
+      "description": "Une sélection de pièces uniques, fabriquées à la main avec passion.",
+      "viewAll": "Voir toute la collection",
+      "viewAllMobile": "Voir tous les produits"
+    },
+    "testimonials": {
+      "badge": "Témoignages",
+      "title": "Ce que disent nos clients",
+      "reviews": {
+        "emma": "La qualité de l'artisanat est exceptionnelle. Mon chapeau est devenu mon accessoire d'été préféré.",
+        "michael": "J'adore que chaque pièce soit unique. Le sac que j'ai acheté a reçu tant de compliments !",
+        "sarah": "Le service client était fantastique et la livraison très rapide. Je recommande vivement !"
+      }
+    },
+    "instagram": {
+      "follow": "@rifrawstraw",
+      "title": "Suivez-nous sur Instagram"
     }
   },
 
