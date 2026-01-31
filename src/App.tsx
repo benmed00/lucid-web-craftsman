@@ -151,6 +151,11 @@ const MaintenanceWrapper = ({ children }: { children: React.ReactNode }) => {
     return <Maintenance />;
   }
   
+  // Admin routes should NOT show the main navigation
+  if (isAdminRoute) {
+    return <>{children}</>;
+  }
+  
   // Normal operation: show navigation + children
   return (
     <>
