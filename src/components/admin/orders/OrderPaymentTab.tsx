@@ -1,11 +1,11 @@
 // Order Payment Details and Refund Management Tab
+// Shows Stripe payment details, errors, and enables admin refunds
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
@@ -27,30 +27,87 @@ import {
   XCircle,
   Clock,
   AlertTriangle,
-  Receipt,
   History,
+  ExternalLink,
+  Loader2,
+  Info,
+  AlertCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   getOrderPaymentDetails,
   processRefund,
   type OrderPaymentDetails,
-  type RefundRecord,
 } from '@/services/orderService';
+import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface OrderPaymentTabProps {
   orderId: string;
 }
 
+// Extended payment info from Stripe
+interface StripePaymentInfo {
+  payment_intent_id: string | null;
+  payment_method: string | null;
+  payment_method_type: string | null;
+  last_four: string | null;
+  brand: string | null;
+  error_message: string | null;
+  error_code: string | null;
+  decline_code: string | null;
+  status: string | null;
+  amount_received: number | null;
+  stripe_customer_id: string | null;
+  receipt_url: string | null;
+}
+
+interface OrderMetadata {
+  payment_intent_id?: string;
+  stripe_session_id?: string;
+  stripe_customer_id?: string;
+  discount_code?: string;
+  discount_amount?: number;
+  payment_error?: string;
+  payment_error_code?: string;
+  decline_code?: string;
+  refund_history?: Array<{
+    id: string;
+    amount: number;
+    reason: string;
+    processed_by: string;
+    processed_at: string;
+    stripe_refund_id: string | null;
+  }>;
+}
+
 const REFUND_STATUS_CONFIG = {
-  none: { label: 'Aucun', color: 'bg-gray-100 text-gray-800', icon: CheckCircle },
-  partial: { label: 'Partiel', color: 'bg-yellow-100 text-yellow-800', icon: AlertTriangle },
-  full: { label: 'Complet', color: 'bg-green-100 text-green-800', icon: RefreshCw },
+  none: { label: 'Aucun', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200', icon: CheckCircle },
+  partial: { label: 'Partiel', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: AlertTriangle },
+  full: { label: 'Complet', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: RefreshCw },
+};
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  card: 'Carte bancaire',
+  sepa_debit: 'Prélèvement SEPA',
+  ideal: 'iDEAL',
+  bancontact: 'Bancontact',
+  paypal: 'PayPal',
+};
+
+const PAYMENT_STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
+  succeeded: { label: 'Réussi', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: CheckCircle },
+  processing: { label: 'En cours', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: Loader2 },
+  requires_payment_method: { label: 'Méthode requise', color: 'bg-yellow-100 text-yellow-800', icon: AlertTriangle },
+  requires_confirmation: { label: 'Confirmation requise', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+  requires_action: { label: 'Action requise', color: 'bg-orange-100 text-orange-800', icon: AlertTriangle },
+  canceled: { label: 'Annulé', color: 'bg-gray-100 text-gray-800', icon: XCircle },
+  failed: { label: 'Échoué', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', icon: XCircle },
 };
 
 export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
   const [payment, setPayment] = useState<OrderPaymentDetails | null>(null);
+  const [stripeInfo, setStripeInfo] = useState<StripePaymentInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refundAmount, setRefundAmount] = useState('');
   const [refundReason, setRefundReason] = useState('');
@@ -60,8 +117,35 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
   const fetchPayment = async () => {
     setIsLoading(true);
     try {
+      // Get local payment data
       const data = await getOrderPaymentDetails(orderId);
       setPayment(data);
+
+      // Get order metadata for Stripe info
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .select('metadata, payment_method, payment_reference, stripe_session_id')
+        .eq('id', orderId)
+        .single();
+
+      if (!orderError && order) {
+        const metadata = (order.metadata || {}) as OrderMetadata;
+        
+        setStripeInfo({
+          payment_intent_id: metadata.payment_intent_id || order.payment_reference || null,
+          payment_method: order.payment_method || null,
+          payment_method_type: order.payment_method || null,
+          last_four: null, // Would need Stripe API call to get this
+          brand: null, // Would need Stripe API call to get this
+          error_message: metadata.payment_error || null,
+          error_code: metadata.payment_error_code || null,
+          decline_code: metadata.decline_code || null,
+          status: data?.paid_at ? 'succeeded' : 'pending',
+          amount_received: data?.amount || null,
+          stripe_customer_id: metadata.stripe_customer_id || null,
+          receipt_url: null, // Would need Stripe API call
+        });
+      }
     } catch (error) {
       console.error('Error fetching payment:', error);
     } finally {
@@ -135,8 +219,38 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
     ? (payment.refund_amount / payment.amount) * 100 
     : 0;
 
+  const paymentStatusConfig = stripeInfo?.status 
+    ? PAYMENT_STATUS_CONFIG[stripeInfo.status] || PAYMENT_STATUS_CONFIG.processing
+    : PAYMENT_STATUS_CONFIG.processing;
+  const PaymentStatusIcon = paymentStatusConfig.icon;
+
   return (
     <div className="space-y-4">
+      {/* Payment Error Banner */}
+      {stripeInfo?.error_message && (
+        <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950">
+          <CardContent className="py-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-medium text-red-800 dark:text-red-200">
+                  Erreur de paiement
+                </p>
+                <p className="text-sm text-red-700 dark:text-red-300">
+                  {stripeInfo.error_message}
+                </p>
+                {stripeInfo.error_code && (
+                  <p className="text-xs font-mono text-red-600">
+                    Code: {stripeInfo.error_code}
+                    {stripeInfo.decline_code && ` / Déclin: ${stripeInfo.decline_code}`}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Payment Summary */}
       <Card>
         <CardHeader className="pb-3">
@@ -156,38 +270,41 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Méthode</span>
-                <span className="font-medium">{payment.payment_method || 'N/A'}</span>
+                <span className="font-medium">
+                  {PAYMENT_METHOD_LABELS[payment.payment_method || ''] || payment.payment_method || 'N/A'}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Statut</span>
-                {payment.paid_at ? (
-                  <Badge className="bg-green-100 text-green-800">
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Payé
-                  </Badge>
-                ) : (
-                  <Badge className="bg-yellow-100 text-yellow-800">
-                    <Clock className="h-3 w-3 mr-1" />
-                    En attente
-                  </Badge>
-                )}
+                <Badge className={paymentStatusConfig.color}>
+                  <PaymentStatusIcon className="h-3 w-3 mr-1" />
+                  {paymentStatusConfig.label}
+                </Badge>
               </div>
             </div>
 
             <div className="space-y-3">
-              {payment.payment_reference && (
+              {stripeInfo?.payment_intent_id && (
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Référence</span>
-                  <span className="font-mono text-xs truncate max-w-[150px]">
-                    {payment.payment_reference}
+                  <span className="text-sm text-muted-foreground">Payment Intent</span>
+                  <span className="font-mono text-xs truncate max-w-[180px]" title={stripeInfo.payment_intent_id}>
+                    {stripeInfo.payment_intent_id.slice(0, 24)}...
                   </span>
                 </div>
               )}
               {payment.stripe_session_id && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Session Stripe</span>
-                  <span className="font-mono text-xs truncate max-w-[150px]">
+                  <span className="font-mono text-xs truncate max-w-[180px]" title={payment.stripe_session_id}>
                     {payment.stripe_session_id.slice(0, 20)}...
+                  </span>
+                </div>
+              )}
+              {stripeInfo?.stripe_customer_id && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Client Stripe</span>
+                  <span className="font-mono text-xs truncate max-w-[180px]" title={stripeInfo.stripe_customer_id}>
+                    {stripeInfo.stripe_customer_id.slice(0, 20)}...
                   </span>
                 </div>
               )}
@@ -195,12 +312,41 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Date de paiement</span>
                   <span className="text-sm">
-                    {new Date(payment.paid_at).toLocaleDateString('fr-FR')}
+                    {new Date(payment.paid_at).toLocaleDateString('fr-FR', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
                   </span>
                 </div>
               )}
             </div>
           </div>
+
+          {/* Stripe Dashboard Link */}
+          {stripeInfo?.payment_intent_id && (
+            <>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Info className="h-4 w-4" />
+                  <span>Pour plus de détails, consultez le tableau de bord Stripe</span>
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <a 
+                    href={`https://dashboard.stripe.com/payments/${stripeInfo.payment_intent_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="h-3 w-3 mr-2" />
+                    Ouvrir Stripe
+                  </a>
+                </Button>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -254,9 +400,19 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
                         <p className="text-xs text-muted-foreground">
                           {refund.reason}
                         </p>
+                        {refund.stripe_refund_id && (
+                          <p className="text-xs font-mono text-muted-foreground">
+                            Stripe: {refund.stripe_refund_id.slice(0, 15)}...
+                          </p>
+                        )}
                       </div>
                       <div className="text-right text-xs text-muted-foreground">
-                        {new Date(refund.processed_at).toLocaleDateString('fr-FR')}
+                        {new Date(refund.processed_at).toLocaleDateString('fr-FR', {
+                          day: '2-digit',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </div>
                     </div>
                   ))}
@@ -341,6 +497,11 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
                     </AlertDialogContent>
                   </AlertDialog>
                 </div>
+
+                <p className="text-xs text-muted-foreground">
+                  Note: Le remboursement est enregistré localement. Pour exécuter le remboursement via Stripe, 
+                  utilisez le tableau de bord Stripe.
+                </p>
               </div>
             </>
           )}

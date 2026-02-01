@@ -359,12 +359,17 @@ serve(async (req) => {
     }
 
     // Create checkout session with discount if applicable
+    // IMPORTANT: Explicitly set payment_method_types to control what's shown
+    // For France: only card is supported (no iDEAL which is Netherlands-only)
     const sessionParams: any = {
       customer: customerId,
       customer_email: customerId ? undefined : customerInfo?.email || "guest@example.com",
       customer_creation: customerId ? undefined : 'always',
       line_items: lineItems,
       mode: "payment",
+      // CRITICAL: Explicitly define payment methods to prevent iDEAL from showing in France
+      // Do NOT use automatic_payment_methods which would enable region-inappropriate methods
+      payment_method_types: ['card'],
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/checkout`,
       shipping_address_collection: {
@@ -379,6 +384,8 @@ serve(async (req) => {
         discount_amount: discount?.amount?.toString() || '0',
       },
     };
+
+    logStep("Creating Stripe session", { paymentMethods: ['card'], country: shippingAddress?.country || 'FR' });
 
     // Note: Discount is already applied proportionally to line items above
     // No need for Stripe coupon since we don't have coupon_write permissions
