@@ -16,7 +16,11 @@ export const PushNotificationManager = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Track visit count
+    // Disable automatic notification prompts - they are intrusive and overlap with the header
+    // Only show the prompt when explicitly requested by the user
+    // This prevents the browser's native permission bar from unexpectedly appearing
+    
+    // Track visit count for analytics purposes only
     const visitCount = parseInt(localStorage.getItem(VISIT_COUNT_KEY) || '0', 10);
     localStorage.setItem(VISIT_COUNT_KEY, (visitCount + 1).toString());
 
@@ -28,39 +32,20 @@ export const PushNotificationManager = () => {
   }, []);
 
   useEffect(() => {
-    // Only show if:
-    // 1. Notifications are supported
-    // 2. Permission is still 'default' (not granted or denied)
-    // 3. User has items in cart
-    // 4. This is at least the second visit
-    // 5. Prompt hasn't been shown in the last 7 days
+    // DISABLED: Automatic prompts are intrusive and can cause layout issues
+    // The notification prompt was overlapping with the site header
+    // Users can enable notifications via a dedicated settings page instead
     
-    if (!isSupported || permission !== 'default') {
-      setShowPrompt(false);
-      return;
-    }
-
-    const visitCount = parseInt(localStorage.getItem(VISIT_COUNT_KEY) || '0', 10);
-    const promptShown = localStorage.getItem(NOTIFICATION_PROMPT_KEY);
-    const now = Date.now();
-    const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
-
-    const isSecondVisitOrMore = visitCount >= 2;
-    const hasItemsInCart = itemCount > 0;
-    const promptNotRecentlyShown = !promptShown || parseInt(promptShown) < sevenDaysAgo;
-
-    if (isSecondVisitOrMore && hasItemsInCart && promptNotRecentlyShown) {
-      // Delay showing for a smoother experience
-      const timer = setTimeout(() => {
-        setShowPrompt(true);
-        // Animate in
-        requestAnimationFrame(() => setIsVisible(true));
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    } else {
-      setShowPrompt(false);
-    }
+    // Keep this disabled to prevent the banner from showing automatically
+    setShowPrompt(false);
+    return;
+    
+    // Original logic (disabled):
+    // if (!isSupported || permission !== 'default') {
+    //   setShowPrompt(false);
+    //   return;
+    // }
+    // ... rest of original logic
   }, [isSupported, permission, itemCount]);
 
   const requestPermission = async () => {
@@ -115,11 +100,13 @@ export const PushNotificationManager = () => {
 
   return (
     <div 
-      className={`fixed bottom-6 right-6 z-50 max-w-sm transition-all duration-300 ease-out ${
+      className={`fixed bottom-6 right-6 z-40 max-w-sm transition-all duration-300 ease-out ${
         isVisible 
           ? 'opacity-100 translate-y-0 scale-100' 
           : 'opacity-0 translate-y-4 scale-95'
       }`}
+      role="dialog"
+      aria-label={t('notifications.title', 'Restez informé')}
     >
       <div className="relative overflow-hidden rounded-2xl bg-card border border-border shadow-2xl dark:shadow-black/40">
         {/* Decorative gradient background */}

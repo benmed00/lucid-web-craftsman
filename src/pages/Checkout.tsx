@@ -30,6 +30,7 @@ import { sanitizeUserInput } from "@/utils/xssProtection";
 import { useCsrfToken } from "@/hooks/useCsrfToken";
 import { useBusinessRules } from "@/hooks/useBusinessRules";
 import { useCheckoutFormPersistence } from "@/hooks/useCheckoutFormPersistence";
+import { useGuestSession } from "@/hooks/useGuestSession";
 import CheckoutProgress from "@/components/checkout/CheckoutProgress";
 import FormFieldWithValidation from "@/components/checkout/FormFieldWithValidation";
 import StepSummary from "@/components/checkout/StepSummary";
@@ -62,6 +63,9 @@ const Checkout = () => {
   const { formatPrice } = useCurrency();
   const { getCsrfHeaders, regenerateToken } = useCsrfToken();
   const { rules: businessRules } = useBusinessRules();
+  
+  // Guest session for GDPR-compliant tracking
+  const { getSessionData: getGuestSessionData } = useGuestSession();
   
   // Use checkout form persistence hook for pre-filling and caching
   const { 
@@ -435,14 +439,18 @@ const Checkout = () => {
       // Get CSRF headers for secure request
       const csrfHeaders = await getCsrfHeaders();
       
+      // Get guest session data for GDPR-compliant tracking
+      const guestSession = getGuestSessionData();
+      
       // Determine which edge function to call based on payment method
       const functionName = paymentMethod === "paypal" ? "create-paypal-payment" : "create-payment";
       
-      // Call appropriate edge function
+      // Call appropriate edge function with guest session metadata
       const { data, error } = await supabase.functions.invoke(functionName, {
         body: {
           items: cartItems,
           customerInfo: sanitizedFormData,
+          guestSession, // GDPR-compliant device metadata
           discount: appliedCoupon ? {
             couponId: appliedCoupon.id,
             code: sanitizeUserInput(appliedCoupon.code),
