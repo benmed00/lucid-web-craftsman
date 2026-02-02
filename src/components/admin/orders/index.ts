@@ -11,3 +11,4 @@ export { OrderCommandPalette } from './OrderCommandPalette';
 export { OrderCustomerTab } from './OrderCustomerTab';
 export { OrderPaymentTab } from './OrderPaymentTab';
 export { OrderCouponTab } from './OrderCouponTab';
+export { CheckoutSessionsTab } from './CheckoutSessionsTab';

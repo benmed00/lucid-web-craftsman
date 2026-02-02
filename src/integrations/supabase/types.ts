@@ -480,6 +480,110 @@ export type Database = {
           },
         ]
       }
+      checkout_sessions: {
+        Row: {
+          abandoned_at: string | null
+          browser: string | null
+          cart_items: Json | null
+          client_country: string | null
+          client_ip: string | null
+          completed_at: string | null
+          created_at: string
+          current_step: number
+          device_type: string | null
+          expires_at: string | null
+          guest_id: string | null
+          id: string
+          last_completed_step: number
+          order_id: string | null
+          os: string | null
+          personal_info: Json | null
+          promo_code: string | null
+          promo_code_valid: boolean | null
+          promo_discount_applied: number | null
+          promo_discount_type: string | null
+          promo_discount_value: number | null
+          promo_free_shipping: boolean | null
+          shipping_cost: number | null
+          shipping_info: Json | null
+          status: string
+          subtotal: number | null
+          total: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          abandoned_at?: string | null
+          browser?: string | null
+          cart_items?: Json | null
+          client_country?: string | null
+          client_ip?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          device_type?: string | null
+          expires_at?: string | null
+          guest_id?: string | null
+          id?: string
+          last_completed_step?: number
+          order_id?: string | null
+          os?: string | null
+          personal_info?: Json | null
+          promo_code?: string | null
+          promo_code_valid?: boolean | null
+          promo_discount_applied?: number | null
+          promo_discount_type?: string | null
+          promo_discount_value?: number | null
+          promo_free_shipping?: boolean | null
+          shipping_cost?: number | null
+          shipping_info?: Json | null
+          status?: string
+          subtotal?: number | null
+          total?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          abandoned_at?: string | null
+          browser?: string | null
+          cart_items?: Json | null
+          client_country?: string | null
+          client_ip?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          device_type?: string | null
+          expires_at?: string | null
+          guest_id?: string | null
+          id?: string
+          last_completed_step?: number
+          order_id?: string | null
+          os?: string | null
+          personal_info?: Json | null
+          promo_code?: string | null
+          promo_code_valid?: boolean | null
+          promo_discount_applied?: number | null
+          promo_discount_type?: string | null
+          promo_discount_value?: number | null
+          promo_free_shipping?: boolean | null
+          shipping_cost?: number | null
+          shipping_info?: Json | null
+          status?: string
+          subtotal?: number | null
+          total?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkout_sessions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_messages: {
         Row: {
           company: string | null
@@ -1423,6 +1527,7 @@ export type Database = {
           attention_reason: string | null
           billing_address: Json | null
           carrier: string | null
+          checkout_session_id: string | null
           created_at: string
           currency: string | null
           customer_notes: string | null
@@ -1454,6 +1559,7 @@ export type Database = {
           attention_reason?: string | null
           billing_address?: Json | null
           carrier?: string | null
+          checkout_session_id?: string | null
           created_at?: string
           currency?: string | null
           customer_notes?: string | null
@@ -1485,6 +1591,7 @@ export type Database = {
           attention_reason?: string | null
           billing_address?: Json | null
           carrier?: string | null
+          checkout_session_id?: string | null
           created_at?: string
           currency?: string | null
           customer_notes?: string | null
@@ -1515,6 +1622,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_checkout_session_id_fkey"
+            columns: ["checkout_session_id"]
+            isOneToOne: false
+            referencedRelation: "checkout_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -2973,6 +3087,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_abandoned_checkout_sessions: { Args: never; Returns: number }
       mark_alerts_notified: {
         Args: { alert_ids: string[] }
         Returns: undefined

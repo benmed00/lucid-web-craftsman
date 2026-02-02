@@ -34,10 +34,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OrderStatusBadge } from '@/components/admin/orders/OrderStatusBadge';
 import { OrderDetailsPanel } from '@/components/admin/orders/OrderDetailsPanel';
 import { OrderStatsCards, AttentionBanner } from '@/components/admin/orders/OrderStatsCards';
 import { OrderAnomaliesList } from '@/components/admin/orders/OrderAnomaliesList';
+import { CheckoutSessionsTab } from '@/components/admin/orders/CheckoutSessionsTab';
 import { useOrders, useOrderRealtimeUpdates } from '@/hooks/useOrderManagement';
 import { ORDER_STATUS_CONFIG, type OrderStatus, type OrderFilters } from '@/types/order.types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -58,6 +60,8 @@ import {
   Mail,
   Plus,
   TestTube2,
+  ShoppingCart,
+  Package,
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -173,11 +177,25 @@ export default function AdminOrdersEnhanced() {
           </div>
         </div>
 
-        {/* Attention Banner */}
-        <AttentionBanner />
+        {/* Main Tabs: Orders vs Checkout Sessions */}
+        <Tabs defaultValue="orders" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="orders" className="gap-2">
+              <Package className="h-4 w-4" />
+              Commandes
+            </TabsTrigger>
+            <TabsTrigger value="checkouts" className="gap-2">
+              <ShoppingCart className="h-4 w-4" />
+              Sessions Checkout
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Stats Cards */}
-        <OrderStatsCards />
+          <TabsContent value="orders" className="space-y-6">
+            {/* Attention Banner */}
+            <AttentionBanner />
+
+            {/* Stats Cards */}
+            <OrderStatsCards />
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4">
@@ -345,6 +363,13 @@ export default function AdminOrdersEnhanced() {
             )}
           </SheetContent>
         </Sheet>
+          </TabsContent>
+
+          {/* Checkout Sessions Tab */}
+          <TabsContent value="checkouts">
+            <CheckoutSessionsTab />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
