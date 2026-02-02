@@ -95,10 +95,18 @@ serve(async (req) => {
   try {
     logStep("Function started");
     
-    // Extract client identifier for rate limiting
-    const clientIP = req.headers.get("x-forwarded-for")?.split(',')[0]?.trim() || 
-                     req.headers.get("cf-connecting-ip") || 
-                     "unknown";
+    // Extract client IP for rate limiting and fraud detection (truncated for GDPR)
+    const rawIP = req.headers.get("x-forwarded-for")?.split(',')[0]?.trim() || 
+                  req.headers.get("cf-connecting-ip") || 
+                  "unknown";
+    
+    // Truncate IP for GDPR compliance (remove last octet for IPv4)
+    const clientIP = rawIP !== "unknown" 
+      ? rawIP.replace(/\.\d+$/, '.xxx') 
+      : "unknown";
+    
+    // Extract client country from Cloudflare headers (if available)
+    const clientCountry = req.headers.get("cf-ipcountry") || null;
     
     // Check rate limit
     const rateLimitResult = checkRateLimit(clientIP);
@@ -141,7 +149,17 @@ serve(async (req) => {
       logStep("CSRF headers missing - allowing request with warning");
     }
     
-    const { items, customerInfo, discount } = await req.json();
+    const { items, customerInfo, discount, guestSession } = await req.json();
+    
+    // Extract guest session metadata (GDPR-compliant)
+    const guestMetadata = guestSession ? {
+      guest_id: sanitizeString(guestSession.guest_id),
+      device_type: sanitizeString(guestSession.device_type),
+      os: sanitizeString(guestSession.os),
+      browser: sanitizeString(guestSession.browser),
+    } : null;
+    
+    logStep("Guest session data", guestMetadata);
     
     // Validate items
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -291,6 +309,23 @@ serve(async (req) => {
 
     logStep("Shipping address prepared", { hasAddress: !!shippingAddress });
 
+    // Build order metadata with guest session and device info
+    const orderMetadata = {
+      // Guest session data (GDPR-compliant)
+      guest_id: guestMetadata?.guest_id || null,
+      device_type: guestMetadata?.device_type || null,
+      os: guestMetadata?.os || null,
+      browser: guestMetadata?.browser || null,
+      // Network metadata (GDPR-compliant - truncated IP)
+      client_ip: clientIP,
+      client_country: clientCountry,
+      // Discount info
+      discount_code: discount?.code || null,
+      discount_amount: discount?.amount || null,
+      // VIP flag
+      is_vip_order: isVipOrder,
+    };
+
     // Create order record first
     const { data: orderData, error: orderError } = await supabaseService
       .from('orders')
@@ -301,6 +336,7 @@ serve(async (req) => {
         status: 'pending',
         shipping_address: shippingAddress,
         billing_address: shippingAddress, // Use same as shipping for now
+        metadata: orderMetadata,
       })
       .select('*')
       .single();
@@ -378,8 +414,15 @@ serve(async (req) => {
       billing_address_collection: 'required',
       metadata: {
         order_id: orderData.id,
+        // Guest session for Stripe correlation
+        guest_id: guestMetadata?.guest_id || '',
+        // Customer info
         customer_name: customerInfo ? `${customerInfo.firstName} ${customerInfo.lastName}` : 'Guest',
         customer_phone: customerInfo?.phone || '',
+        // Device metadata
+        device_type: guestMetadata?.device_type || '',
+        client_country: clientCountry || '',
+        // Discount info
         discount_code: discount?.code || '',
         discount_amount: discount?.amount?.toString() || '0',
       },
