@@ -31,6 +31,7 @@ import { useCsrfToken } from "@/hooks/useCsrfToken";
 import { useBusinessRules } from "@/hooks/useBusinessRules";
 import { useCheckoutFormPersistence } from "@/hooks/useCheckoutFormPersistence";
 import { useGuestSession } from "@/hooks/useGuestSession";
+import { useCheckoutSession, type PersonalInfo, type ShippingInfo, type CartItemSnapshot } from "@/hooks/useCheckoutSession";
 import CheckoutProgress from "@/components/checkout/CheckoutProgress";
 import FormFieldWithValidation from "@/components/checkout/FormFieldWithValidation";
 import StepSummary from "@/components/checkout/StepSummary";
@@ -66,6 +67,17 @@ const Checkout = () => {
   
   // Guest session for GDPR-compliant tracking
   const { getSessionData: getGuestSessionData } = useGuestSession();
+  
+  // Checkout session tracking for admin visibility (persists to DB)
+  const {
+    sessionId: checkoutSessionId,
+    savePersonalInfo,
+    saveShippingInfo,
+    savePromoCode,
+    saveCartSnapshot,
+    updateStep,
+    isLoading: isSessionLoading,
+  } = useCheckoutSession();
   
   // Use checkout form persistence hook for pre-filling and caching
   const { 
@@ -248,6 +260,19 @@ const Checkout = () => {
       saveCoupon(coupon as any); // Persist coupon for Stripe redirect
       setPromoCode("");
       toast.success(t("promo.applied"));
+      
+      // Save promo code to checkout session for admin visibility
+      const discountApplied = coupon.type === 'percentage' 
+        ? (subtotal * coupon.value) / 100 
+        : coupon.value;
+      savePromoCode({
+        code: coupon.code,
+        valid: true,
+        discount_type: coupon.type as 'percentage' | 'fixed',
+        discount_value: coupon.value,
+        discount_applied: Math.round(Math.min(discountApplied, subtotal) * 100),
+        free_shipping: coupon.includes_free_shipping || false,
+      });
     } catch (err) {
       console.error("Error validating promo code:", err);
       setPromoError(t("errors.genericError"));
@@ -260,6 +285,7 @@ const Checkout = () => {
   const removePromoCode = () => {
     setAppliedCoupon(null);
     saveCoupon(null); // Clear persisted coupon
+    savePromoCode(null); // Clear from checkout session
     toast.info(t("promo.remove"));
   };
 
@@ -314,13 +340,22 @@ const Checkout = () => {
       }
       
       // Update formData with sanitized values
-      setFormData(prev => ({
-        ...prev,
+      const sanitizedData = {
         firstName: validation.data!.firstName,
         lastName: validation.data!.lastName,
         email: validation.data!.email,
         phone: validation.data!.phone || '',
-      }));
+      };
+      
+      setFormData(prev => ({ ...prev, ...sanitizedData }));
+      
+      // Save personal info to checkout session (database persistence for admin)
+      savePersonalInfo({
+        first_name: sanitizedData.firstName,
+        last_name: sanitizedData.lastName,
+        email: sanitizedData.email,
+        phone: sanitizedData.phone || undefined,
+      });
       
       // Mark step as completed
       if (!newCompletedSteps.includes(1)) {
@@ -346,14 +381,38 @@ const Checkout = () => {
       }
       
       // Update formData with sanitized values
-      setFormData(prev => ({
-        ...prev,
+      const sanitizedData = {
         address: validation.data!.address,
         addressComplement: validation.data!.addressComplement || '',
         postalCode: validation.data!.postalCode,
         city: validation.data!.city,
         country: validation.data!.country,
+      };
+      
+      setFormData(prev => ({ ...prev, ...sanitizedData }));
+      
+      // Save shipping info to checkout session (database persistence for admin)
+      saveShippingInfo({
+        address_line1: sanitizedData.address,
+        address_line2: sanitizedData.addressComplement || undefined,
+        postal_code: sanitizedData.postalCode,
+        city: sanitizedData.city,
+        country: sanitizedData.country,
+      });
+      
+      // Save cart snapshot for admin visibility
+      const cartSnapshot: CartItemSnapshot[] = cartItems.map(item => ({
+        product_id: item.product.id,
+        product_name: item.product.name,
+        quantity: item.quantity,
+        unit_price: Math.round(item.product.price * 100),
+        total_price: Math.round(item.product.price * item.quantity * 100),
       }));
+      const discountCents = Math.round(discount * 100);
+      const subtotalCents = Math.round(subtotal * 100);
+      const shippingCents = Math.round(shipping * 100);
+      const totalCents = Math.round(total * 100);
+      saveCartSnapshot(cartSnapshot, subtotalCents, shippingCents, totalCents);
       
       // Mark step as completed
       if (!newCompletedSteps.includes(2)) {
@@ -366,7 +425,10 @@ const Checkout = () => {
     const nextStep = step + 1;
     setStep(nextStep);
     saveStepState(nextStep, newCompletedSteps);
-  }, [step, formData, honeypot, completedSteps, saveStepState]);
+    
+    // Update checkout session step tracking
+    updateStep(nextStep, Math.max(...newCompletedSteps, 0));
+  }, [step, formData, honeypot, completedSteps, saveStepState, savePersonalInfo, saveShippingInfo, saveCartSnapshot, updateStep, cartItems, t]);
 
   // Handle editing a previous step
   const handleEditStep = useCallback((targetStep: number) => {
