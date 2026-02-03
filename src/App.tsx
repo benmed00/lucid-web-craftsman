@@ -53,6 +53,7 @@ const Returns = lazyWithRetry(() => import("./pages/Returns"));
 const Shipping = lazyWithRetry(() => import("./pages/Shipping"));
 const Story = lazyWithRetry(() => import("./pages/Story"));
 const Terms = lazyWithRetry(() => import("./pages/Terms"));
+const TermsOfService = lazyWithRetry(() => import("./pages/TermsOfService"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 // Essential context providers (Auth only - Cart/Wishlist/Currency/Theme migrated to Zustand)
@@ -229,6 +230,7 @@ const App = () => {
                 <Route path="/about" element={<Suspense fallback={<PageLoadingFallback />}><About /></Suspense>} />
                 <Route path="/terms" element={<Suspense fallback={<PageLoadingFallback />}><Terms /></Suspense>} />
                 <Route path="/cgv" element={<Suspense fallback={<PageLoadingFallback />}><CGV /></Suspense>} />
+                <Route path="/terms-of-service" element={<Suspense fallback={<PageLoadingFallback />}><TermsOfService /></Suspense>} />
                 <Route path="/story" element={<Suspense fallback={<PageLoadingFallback />}><Story /></Suspense>} />
 
                 {/* Admin routes with lazy loading */}

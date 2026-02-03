@@ -269,6 +269,52 @@
     "contact": "For any questions, please contact us via the"
   },
 
+  "termsOfService": {
+    "title": "Terms of Service",
+    "seo": {
+      "title": "Terms of Service - Rif Raw Straw",
+      "description": "Terms of service for the Rif Raw Straw website. Discover the rules governing the use of our services."
+    },
+    "heading": "Terms of Service",
+    "intro": "These terms of service govern your access and use of the Rif Raw Straw website. By accessing our site, you agree to be bound by these terms.",
+    "lastUpdated": "Last updated",
+    "sections": {
+      "acceptance": {
+        "title": "Acceptance of Terms",
+        "content": "By accessing this website, you agree to be bound by these terms of use, all applicable laws and regulations, and you agree that you are responsible for compliance with any applicable local laws. If you do not agree with any of these terms, you are prohibited from using or accessing this site."
+      },
+      "eligibility": {
+        "title": "Eligibility",
+        "content": "This site is intended for persons who are at least 18 years old. By using this site, you represent and warrant that you are at least 18 years old and have the legal capacity to enter into a binding contract."
+      },
+      "account": {
+        "title": "User Account",
+        "content": "To access certain features of the site, you may need to create an account. You are responsible for maintaining the confidentiality of your account and password, and for accepting responsibility for all activities that occur under your account. You must notify us immediately of any unauthorized use of your account."
+      },
+      "intellectualProperty": {
+        "title": "Intellectual Property",
+        "content": "All content on this site, including but not limited to text, graphics, logos, images, audio clips, digital downloads, and data compilations, is the property of Rif Raw Straw or its content providers and is protected by French and international copyright laws."
+      },
+      "prohibitedUse": {
+        "title": "Prohibited Uses",
+        "content": "You agree not to use the site for any unlawful purpose or any purpose prohibited by these terms. This includes, but is not limited to: reproducing, distributing, or modifying content without permission, using robots or automated tools to access the site, transmitting viruses or malicious code, and any attempt to compromise the security of the site."
+      },
+      "privacy": {
+        "title": "Privacy and Data Protection",
+        "content": "Your use of this site is also governed by our Privacy Policy. We are committed to protecting your personal data in accordance with the General Data Protection Regulation (GDPR) and applicable data protection laws."
+      },
+      "jurisdiction": {
+        "title": "Applicable Law and Jurisdiction",
+        "content": "These terms are governed by and construed in accordance with French law, without regard to principles of conflicts of law. Any dispute arising from these terms will be subject to the exclusive jurisdiction of the French courts."
+      }
+    },
+    "contact": {
+      "title": "Have Questions?",
+      "description": "If you have any questions regarding these terms of service, please feel free to contact us."
+    }
+  },
+
+
   "faq": {
     "title": "Frequently Asked Questions",
     "seo": {
