@@ -86,7 +86,7 @@ serve(async (req) => {
       logStep("User authenticated", { userId: user?.id });
     }
 
-    // Calculate totals
+    // Calculate totals with proper rounding to avoid floating point issues
     const subtotal = items.reduce((sum: number, item: any) => 
       sum + (item.product.price * item.quantity), 0);
     
@@ -98,9 +98,14 @@ serve(async (req) => {
     }
     
     const shippingCost = hasFreeShipping ? 0 : (subtotal > 0 ? 6.95 : 0);
-    const totalAmount = subtotal - discountAmount + shippingCost;
+    
+    // Round all amounts to 2 decimal places to avoid PayPal AMOUNT_MISMATCH errors
+    const roundedSubtotal = Math.round(subtotal * 100) / 100;
+    const roundedDiscount = Math.round(discountAmount * 100) / 100;
+    const roundedShipping = Math.round(shippingCost * 100) / 100;
+    const totalAmount = Math.round((roundedSubtotal - roundedDiscount + roundedShipping) * 100) / 100;
 
-    logStep("Calculated totals", { subtotal, discountAmount, shippingCost, totalAmount });
+    logStep("Calculated totals", { subtotal: roundedSubtotal, discountAmount: roundedDiscount, shippingCost: roundedShipping, totalAmount });
 
     // Create order in database first
     const { data: orderData, error: orderError } = await supabaseService
@@ -143,28 +148,44 @@ serve(async (req) => {
     const accessToken = await getAccessToken();
     logStep("Got PayPal access token");
 
-    // Build PayPal order items
+    // Build PayPal order items - use original prices, discount goes in breakdown
     const paypalItems = items.map((item: any) => {
-      const itemPrice = discountAmount > 0
-        ? Math.max(0.01, item.product.price * (1 - discountAmount / subtotal))
-        : item.product.price;
-      
       return {
         name: item.product.name.substring(0, 127),
         unit_amount: {
           currency_code: "EUR",
-          value: itemPrice.toFixed(2)
+          value: item.product.price.toFixed(2)
         },
         quantity: item.quantity.toString()
       };
     });
 
-    // Calculate item total for PayPal
-    const itemTotal = paypalItems.reduce((sum: number, item: any) => 
-      sum + (parseFloat(item.unit_amount.value) * parseInt(item.quantity)), 0);
+    // Calculate item total for PayPal (original prices, before discount)
+    const itemTotal = Math.round(items.reduce((sum: number, item: any) => 
+      sum + (item.product.price * item.quantity), 0) * 100) / 100;
 
     // Prepare PayPal order payload
     const origin = req.headers.get("origin") || "https://rif-raw-straw.lovable.app";
+    
+    // Build breakdown - PayPal formula: amount = item_total + shipping - discount
+    const breakdown: any = {
+      item_total: {
+        currency_code: "EUR",
+        value: itemTotal.toFixed(2)
+      },
+      shipping: {
+        currency_code: "EUR",
+        value: roundedShipping.toFixed(2)
+      }
+    };
+    
+    // Only add discount if there is one
+    if (roundedDiscount > 0) {
+      breakdown.discount = {
+        currency_code: "EUR",
+        value: roundedDiscount.toFixed(2)
+      };
+    }
     
     const paypalOrderPayload = {
       intent: "CAPTURE",
@@ -174,20 +195,7 @@ serve(async (req) => {
         amount: {
           currency_code: "EUR",
           value: totalAmount.toFixed(2),
-          breakdown: {
-            item_total: {
-              currency_code: "EUR",
-              value: itemTotal.toFixed(2)
-            },
-            shipping: {
-              currency_code: "EUR",
-              value: shippingCost.toFixed(2)
-            },
-            discount: {
-              currency_code: "EUR",
-              value: discountAmount > 0 ? discountAmount.toFixed(2) : "0.00"
-            }
-          }
+          breakdown
         },
         items: paypalItems
       }],
