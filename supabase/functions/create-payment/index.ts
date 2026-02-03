@@ -394,44 +394,110 @@ serve(async (req) => {
       }
     }
 
-    // Create checkout session with discount if applicable
-    // IMPORTANT: Explicitly set payment_method_types to control what's shown
-    // For France: only card is supported (no iDEAL which is Netherlands-only)
+    // Create checkout session with complete configuration
+    // IMPORTANT: Pre-fill customer data to avoid double entry
+    // Configure proper branding, shipping, and order summary
+    
+    // Build pre-filled shipping address for Stripe
+    const prefillShippingAddress = shippingAddress ? {
+      line1: shippingAddress.address_line1 || '',
+      line2: shippingAddress.address_line2 || '',
+      city: shippingAddress.city || '',
+      postal_code: shippingAddress.postal_code || '',
+      country: shippingAddress.country || 'FR',
+    } : undefined;
+    
     const sessionParams: any = {
       customer: customerId,
-      customer_email: customerId ? undefined : customerInfo?.email || "guest@example.com",
+      customer_email: customerId ? undefined : customerInfo?.email,
       customer_creation: customerId ? undefined : 'always',
       line_items: lineItems,
       mode: "payment",
-      // CRITICAL: Explicitly define payment methods to prevent iDEAL from showing in France
-      // Do NOT use automatic_payment_methods which would enable region-inappropriate methods
+      // CRITICAL: Explicitly define payment methods for France (no iDEAL)
       payment_method_types: ['card'],
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/checkout`,
-      shipping_address_collection: {
+      // Pre-fill shipping address from checkout form to avoid double entry
+      shipping_address_collection: shippingAddress ? undefined : {
         allowed_countries: ['FR', 'BE', 'CH', 'MC', 'LU'],
       },
-      billing_address_collection: 'required',
+      billing_address_collection: 'auto',
+      // Pre-fill phone number
+      phone_number_collection: {
+        enabled: false, // Already collected in our forms
+      },
+      // Locale for French customers
+      locale: 'fr',
+      // Custom branding and business info
+      custom_text: {
+        submit: {
+          message: discount?.code 
+            ? `Code promo ${discount.code} appliqué (-${(discount.amount || 0).toFixed(2)}€)${hasFreeShipping ? ' + Livraison offerte' : ''}`
+            : undefined,
+        },
+        shipping_address: {
+          message: shippingAddress 
+            ? `Livraison à: ${shippingAddress.first_name} ${shippingAddress.last_name}, ${shippingAddress.address_line1}, ${shippingAddress.postal_code} ${shippingAddress.city}`
+            : undefined,
+        },
+      },
+      // Invoice creation for record keeping
+      invoice_creation: {
+        enabled: true,
+        invoice_data: {
+          description: `Commande Rif Raw Straw${discount?.code ? ` - Code: ${discount.code}` : ''}`,
+          metadata: {
+            order_id: orderData.id,
+            discount_code: discount?.code || '',
+          },
+          custom_fields: discount?.code ? [
+            {
+              name: 'Code promo',
+              value: discount.code,
+            },
+          ] : undefined,
+          footer: 'Merci pour votre commande ! Rif Raw Straw - Artisanat berbère authentique',
+        },
+      },
+      // Order metadata for correlation
       metadata: {
         order_id: orderData.id,
-        // Guest session for Stripe correlation
         guest_id: guestMetadata?.guest_id || '',
-        // Customer info
         customer_name: customerInfo ? `${customerInfo.firstName} ${customerInfo.lastName}` : 'Guest',
         customer_phone: customerInfo?.phone || '',
-        // Device metadata
+        customer_address: shippingAddress ? `${shippingAddress.address_line1}, ${shippingAddress.postal_code} ${shippingAddress.city}` : '',
         device_type: guestMetadata?.device_type || '',
         client_country: clientCountry || '',
-        // Discount info
         discount_code: discount?.code || '',
         discount_amount: discount?.amount?.toString() || '0',
+        free_shipping: hasFreeShipping ? 'true' : 'false',
+      },
+      // Payment intent data for direct metadata
+      payment_intent_data: {
+        description: `Commande Rif Raw Straw #${orderData.id.substring(0, 8).toUpperCase()}`,
+        metadata: {
+          order_id: orderData.id,
+          discount_code: discount?.code || '',
+        },
+        // Pre-fill shipping for payment intent
+        shipping: shippingAddress ? {
+          name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
+          phone: shippingAddress.phone || '',
+          address: prefillShippingAddress,
+        } : undefined,
+      },
+      // Consent collection for newsletter (optional)
+      consent_collection: {
+        terms_of_service: 'required',
       },
     };
 
-    logStep("Creating Stripe session", { paymentMethods: ['card'], country: shippingAddress?.country || 'FR' });
-
-    // Note: Discount is already applied proportionally to line items above
-    // No need for Stripe coupon since we don't have coupon_write permissions
+    logStep("Creating Stripe session", { 
+      paymentMethods: ['card'], 
+      hasShippingPrefill: !!shippingAddress,
+      hasDiscount: !!discount?.code,
+      locale: 'fr'
+    });
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 
