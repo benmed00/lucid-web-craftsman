@@ -178,6 +178,52 @@
     "contact": "Pour toute question, contactez-nous via la page"
   },
 
+  "termsOfService": {
+    "title": "Conditions d'Utilisation",
+    "seo": {
+      "title": "Conditions d'Utilisation - Rif Raw Straw",
+      "description": "Conditions d'utilisation du site Rif Raw Straw. Découvrez les règles régissant l'utilisation de nos services."
+    },
+    "heading": "Conditions d'Utilisation",
+    "intro": "Ces conditions d'utilisation régissent votre accès et utilisation du site web Rif Raw Straw. En accédant à notre site, vous acceptez d'être lié par ces conditions.",
+    "lastUpdated": "Dernière mise à jour",
+    "sections": {
+      "acceptance": {
+        "title": "Acceptation des Conditions",
+        "content": "En accédant à ce site web, vous acceptez d'être lié par ces conditions d'utilisation, toutes les lois et réglementations applicables, et vous acceptez que vous êtes responsable du respect des lois locales applicables. Si vous n'acceptez pas l'une de ces conditions, vous n'êtes pas autorisé à utiliser ou à accéder à ce site."
+      },
+      "eligibility": {
+        "title": "Éligibilité",
+        "content": "Ce site est destiné aux personnes âgées d'au moins 18 ans. En utilisant ce site, vous déclarez et garantissez que vous avez au moins 18 ans et que vous avez la capacité juridique de conclure un contrat contraignant."
+      },
+      "account": {
+        "title": "Compte Utilisateur",
+        "content": "Pour accéder à certaines fonctionnalités du site, vous devrez peut-être créer un compte. Vous êtes responsable de maintenir la confidentialité de votre compte et mot de passe, et d'accepter la responsabilité de toutes les activités qui se produisent sous votre compte. Vous devez nous informer immédiatement de toute utilisation non autorisée de votre compte."
+      },
+      "intellectualProperty": {
+        "title": "Propriété Intellectuelle",
+        "content": "Tout le contenu présent sur ce site, y compris mais sans s'y limiter, les textes, graphiques, logos, images, clips audio, téléchargements numériques et compilations de données, est la propriété de Rif Raw Straw ou de ses fournisseurs de contenu et est protégé par les lois françaises et internationales sur le droit d'auteur."
+      },
+      "prohibitedUse": {
+        "title": "Utilisations Interdites",
+        "content": "Vous vous engagez à ne pas utiliser le site à des fins illégales ou interdites par ces conditions. Cela inclut, sans s'y limiter : la reproduction, distribution ou modification du contenu sans autorisation, l'utilisation de robots ou d'outils automatisés pour accéder au site, la transmission de virus ou de code malveillant, et toute tentative de compromettre la sécurité du site."
+      },
+      "privacy": {
+        "title": "Confidentialité et Protection des Données",
+        "content": "Votre utilisation de ce site est également régie par notre Politique de Confidentialité. Nous nous engageons à protéger vos données personnelles conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi Informatique et Libertés."
+      },
+      "jurisdiction": {
+        "title": "Loi Applicable et Juridiction",
+        "content": "Ces conditions sont régies par et interprétées conformément aux lois françaises, sans égard aux principes de conflits de lois. Tout litige découlant de ces conditions sera soumis à la compétence exclusive des tribunaux français."
+      }
+    },
+    "contact": {
+      "title": "Des Questions ?",
+      "description": "Si vous avez des questions concernant ces conditions d'utilisation, n'hésitez pas à nous contacter."
+    }
+  },
+
+
   "faq": {
     "title": "Questions Fréquentes",
     "seo": {

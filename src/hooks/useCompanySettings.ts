@@ -32,7 +32,7 @@ export interface CompanySettings {
 const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
   name: "Rif Raw Straw",
   email: "contact@rifstraw.com",
-  phone: "+33 1 23 45 67 89",
+  phone: "+33 7 52 26 71 00",
   address: {
     street: "6 allée de la Sèvre",
     postalCode: "44400",

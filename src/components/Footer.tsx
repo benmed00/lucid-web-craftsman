@@ -131,6 +131,15 @@ const Footer = () => {
                   {t('footer.cgv')}
                 </a>
               </li>
+              <li>
+                <a 
+                  href="/terms-of-service" 
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
+                  aria-label={t('footer.termsOfServiceAria')}
+                >
+                  {t('footer.termsOfService')}
+                </a>
+              </li>
             </ul>
           </div>
         </div>
