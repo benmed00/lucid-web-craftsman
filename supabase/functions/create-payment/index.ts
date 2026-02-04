@@ -428,19 +428,20 @@ serve(async (req) => {
       },
       // Locale for French customers
       locale: 'fr',
-      // Custom branding and business info
-      custom_text: {
-        submit: {
-          message: discount?.code 
-            ? `Code promo ${discount.code} appliqué (-${(discount.amount || 0).toFixed(2)}€)${hasFreeShipping ? ' + Livraison offerte' : ''}`
-            : undefined,
-        },
-        shipping_address: {
-          message: shippingAddress 
-            ? `Livraison à: ${shippingAddress.first_name} ${shippingAddress.last_name}, ${shippingAddress.address_line1}, ${shippingAddress.postal_code} ${shippingAddress.city}`
-            : undefined,
-        },
+    // Custom branding and business info
+    custom_text: {
+      submit: {
+        message: discount?.code 
+          ? `Code promo ${discount.code} appliqué (-${(discount.amount || 0).toFixed(2)}€)${hasFreeShipping ? ' + Livraison offerte' : ''}`
+          : undefined,
       },
+      // Only use shipping_address custom_text when Stripe collects the address
+      ...(shippingAddress ? {} : {
+        shipping_address: {
+          message: 'Veuillez entrer votre adresse de livraison',
+        },
+      }),
+    },
       // Invoice creation for record keeping
       invoice_creation: {
         enabled: true,
