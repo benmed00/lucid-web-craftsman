@@ -85,7 +85,13 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
         }
       }
 
-      // Call edge function to create user with admin privileges
+      // Get current session for authentication
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error("Vous devez être connecté pour créer un client");
+      }
+
+      // Call edge function to create user with admin privileges (requires super_admin role)
       const { data, error } = await supabase.functions.invoke('create-admin-user', {
         body: {
           email: formData.email,

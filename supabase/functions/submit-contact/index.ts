@@ -25,8 +25,70 @@ const validatePhone = (phone: string): boolean => {
   return phoneRegex.test(cleanPhone)
 }
 
-const sanitizeInput = (input: string): string => {
-  return input.trim().replace(/[<>]/g, '').substring(0, 1000)
+/**
+ * HTML escape special characters to prevent XSS
+ */
+const htmlEscape = (str: string): string => {
+  const htmlEntities: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#x27;',
+    '/': '&#x2F;',
+    '`': '&#x60;',
+    '=': '&#x3D;'
+  }
+  return str.replace(/[&<>"'`=/]/g, char => htmlEntities[char] || char)
+}
+
+/**
+ * Comprehensive input sanitization to prevent XSS attacks
+ * - Removes HTML tags completely
+ * - Escapes special HTML characters
+ * - Removes null bytes and control characters
+ * - Limits length
+ */
+const sanitizeInput = (input: string, maxLength: number = 1000): string => {
+  if (!input || typeof input !== 'string') return ''
+  
+  // Step 1: Trim whitespace
+  let sanitized = input.trim()
+  
+  // Step 2: Remove null bytes and control characters (except newlines/tabs)
+  sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+  
+  // Step 3: Remove all HTML tags (including malformed ones)
+  sanitized = sanitized.replace(/<[^>]*>?/gm, '')
+  
+  // Step 4: Remove javascript: and data: URLs that could be used in event handlers
+  sanitized = sanitized.replace(/javascript:/gi, '')
+  sanitized = sanitized.replace(/data:/gi, '')
+  sanitized = sanitized.replace(/vbscript:/gi, '')
+  
+  // Step 5: Remove event handlers (onclick, onerror, onload, etc.)
+  sanitized = sanitized.replace(/on\w+\s*=/gi, '')
+  
+  // Step 6: HTML-escape special characters to prevent XSS in HTML contexts
+  sanitized = htmlEscape(sanitized)
+  
+  // Step 7: Limit length
+  return sanitized.substring(0, maxLength)
+}
+
+/**
+ * Sanitize for plain text email (more lenient, just prevent injection)
+ */
+const sanitizeForPlainText = (input: string, maxLength: number = 1000): string => {
+  if (!input || typeof input !== 'string') return ''
+  
+  let sanitized = input.trim()
+  
+  // Remove control characters except newlines
+  sanitized = sanitized.replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, '')
+  
+  // Limit length
+  return sanitized.substring(0, maxLength)
 }
 
 const checkRateLimit = async (supabaseClient: any, identifier: string): Promise<boolean> => {
@@ -143,17 +205,17 @@ serve(async (req) => {
       )
     }
 
-    // Sanitize inputs
+    // Sanitize inputs with XSS protection
     const sanitizedData = {
-      first_name: sanitizeInput(firstName),
-      last_name: sanitizeInput(lastName),
-      email: sanitizeInput(email),
-      phone: phone ? sanitizeInput(phone) : null,
-      company: company ? sanitizeInput(company) : null,
-      subject: sanitizeInput(subject),
-      message: sanitizeInput(message),
+      first_name: sanitizeInput(firstName, 50),
+      last_name: sanitizeInput(lastName, 50),
+      email: sanitizeInput(email, 254),
+      phone: phone ? sanitizeInput(phone, 20) : null,
+      company: company ? sanitizeInput(company, 100) : null,
+      subject: sanitizeInput(subject, 200),
+      message: sanitizeForPlainText(message, 5000), // Allow longer messages, plain text safe
       ip_address: clientIP,
-      user_agent: userAgent
+      user_agent: userAgent.substring(0, 500) // Limit user agent length
     }
 
     // Insert contact message
