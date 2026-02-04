@@ -529,7 +529,13 @@ const Checkout = () => {
 
       if (data?.url) {
         // Redirect to Stripe or PayPal Checkout
-        window.location.href = data.url;
+        // Use window.open to avoid iframe restrictions in preview environments
+        // Stripe Checkout requires top-level navigation, not iframe navigation
+        const newWindow = window.open(data.url, '_blank');
+        if (!newWindow) {
+          // Fallback: try top-level redirect if popup blocked
+          window.top ? (window.top.location.href = data.url) : (window.location.href = data.url);
+        }
       } else {
         throw new Error("No checkout URL received");
       }
