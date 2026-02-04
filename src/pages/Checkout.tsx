@@ -176,6 +176,21 @@ const Checkout = () => {
     fetchFreeShippingSettings();
   }, []);
 
+  // Reset processing state when user returns to tab (after payment in new tab)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isProcessing) {
+        // User returned to the tab - reset processing state
+        setIsProcessing(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isProcessing]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [step]);
