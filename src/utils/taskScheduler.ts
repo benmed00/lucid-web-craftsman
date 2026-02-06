@@ -5,17 +5,7 @@ import React from 'react';
  * Helps break tasks into smaller chunks to avoid blocking the main thread
  */
 
-// Type for experimental scheduler API
-interface SchedulerAPI {
-  postTask: (callback: () => void, options?: { priority: string }) => void;
-}
-
-// Extend Window for scheduler API
-declare global {
-  interface Window {
-    scheduler?: SchedulerAPI;
-  }
-}
+// Use native Scheduler type if available, no need to redeclare Window
 
 class TaskScheduler {
   private taskQueue: Array<() => void> = [];
@@ -97,8 +87,8 @@ class TaskScheduler {
 
       if (this.taskQueue.length > 0) {
         // Use scheduler.postTask if available for better FID
-        if (window.scheduler?.postTask) {
-          window.scheduler.postTask(runTasksInFrame, {
+        if ('scheduler' in window && (window as any).scheduler?.postTask) {
+          (window as any).scheduler.postTask(runTasksInFrame, {
             priority: 'user-visible',
           });
         } else if (typeof MessageChannel !== 'undefined') {

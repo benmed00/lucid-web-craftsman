@@ -1,15 +1,10 @@
 import { lazy, Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Extend Window interface for global Stripe key
-declare global {
-  interface Window {
-    STRIPE_PUBLIC_KEY?: string;
-  }
-}
+// No global Window extension needed - use type assertion below
 
 const getStripePublicKey = (): string => {
-  return (typeof window !== 'undefined' && window.STRIPE_PUBLIC_KEY) || 'pk_test_placeholder';
+  return (typeof window !== 'undefined' && (window as any).STRIPE_PUBLIC_KEY) || 'pk_test_placeholder';
 };
 
 // Lazy load Stripe components only when needed
