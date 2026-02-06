@@ -3214,6 +3214,7 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: number
       }
+      get_request_guest_id: { Args: never; Returns: string }
       get_security_setting: { Args: { setting_key: string }; Returns: Json }
       get_user_newsletter_subscription: {
         Args: never
