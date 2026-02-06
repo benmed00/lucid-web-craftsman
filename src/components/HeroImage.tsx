@@ -1,4 +1,4 @@
-import { AspectRatio } from "@/components/ui/aspect-ratio";
+// Using native CSS aspect-ratio instead of Radix AspectRatio to avoid forced reflow
 import { useHeroImage } from "@/hooks/useHeroImage";
 import { HeroImage as HeroImageComponent } from "@/components/ui/GlobalImage";
 import { useTranslation } from 'react-i18next';
@@ -10,11 +10,8 @@ const HeroImage = () => {
   // Render default image immediately while loading data
   if (isLoading) {
     return (
-      <div className="group relative rounded-lg overflow-hidden shadow-lg">
-        <AspectRatio
-          ratio={4 / 5}
-          className="bg-muted"
-        >
+      <div className="group relative rounded-lg overflow-hidden shadow-lg" style={{ contain: 'layout style paint' }}>
+        <div className="bg-muted" style={{ aspectRatio: '4 / 5' }}>
           {/* Show default image immediately to optimize LCP */}
           <HeroImageComponent
             src="/assets/images/home_page_image.webp"
@@ -25,7 +22,7 @@ const HeroImage = () => {
             showLoadingSpinner={false}
             showRetryButton={false}
           />
-        </AspectRatio>
+        </div>
         
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent rounded-lg" />
@@ -46,11 +43,8 @@ const HeroImage = () => {
   }
 
   return (
-    <div className="group relative rounded-lg overflow-hidden shadow-lg">
-      <AspectRatio
-        ratio={4 / 5}
-        className="bg-muted"
-      >
+    <div className="group relative rounded-lg overflow-hidden shadow-lg" style={{ contain: 'layout style paint' }}>
+      <div className="bg-muted" style={{ aspectRatio: '4 / 5' }}>
         {/* Main hero image with advanced loading and fallback */}
         <HeroImageComponent
           src={heroImageData.imageUrl}
@@ -61,7 +55,7 @@ const HeroImage = () => {
           showLoadingSpinner={true}
           showRetryButton={false}
         />
-      </AspectRatio>
+      </div>
       
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-foreground/30 via-transparent to-transparent rounded-lg" />
