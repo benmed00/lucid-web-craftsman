@@ -219,6 +219,8 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(({
           onLoad={handleLoad}
           onError={handleError}
           loading={preload ? "eager" : "lazy"}
+          decoding={preload ? "sync" : "async"}
+          fetchPriority={category === "hero" ? "high" : undefined}
           {...props}
         />
       </picture>
