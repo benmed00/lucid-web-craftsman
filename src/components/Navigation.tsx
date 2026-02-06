@@ -94,6 +94,7 @@ const Navigation = () => {
                 className="group flex items-center space-x-2 md:space-x-3 min-w-0"
                 onClick={() => setIsMenuOpen(false)}
               >
+                <span className="sr-only sm:hidden">{t('common:brand.name')}</span>
                 <div className="p-2 rounded-full bg-primary group-hover:bg-primary/90 transition-all duration-300 shadow-md group-hover:shadow-lg flex-shrink-0">
                   <Leaf className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
                 </div>
