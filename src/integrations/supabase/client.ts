@@ -46,7 +46,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       // Include guest_id in all requests for RLS policies to validate guest sessions
       'x-guest-id': getGuestId()
     }
-  }
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 2,
+    },
+    // Reduce reconnection attempts to minimize console errors in restricted environments
+    timeout: 30000,
+    heartbeatIntervalMs: 30000,
+  },
 });
 
 /**
