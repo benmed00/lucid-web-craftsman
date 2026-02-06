@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, createGuestClient } from '@/integrations/supabase/client';
 import { useGuestSession } from '@/hooks/useGuestSession';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 
@@ -131,7 +131,8 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
             .maybeSingle();
           existingSession = data;
         } else if (guestId) {
-          const { data } = await supabase
+          const guestClient = createGuestClient();
+          const { data } = await guestClient
             .from('checkout_sessions')
             .select('*')
             .eq('guest_id', guestId)
@@ -178,7 +179,9 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
             os: guestData?.os || null,
           };
 
-          const { data, error: insertError } = await supabase
+          // Use createGuestClient to ensure x-guest-id header is current
+          const guestClient = createGuestClient();
+          const { data, error: insertError } = await guestClient
             .from('checkout_sessions')
             .insert(newSession)
             .select('id')
@@ -234,7 +237,8 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
     if (!sessionId) return;
 
     try {
-      const { error: updateError } = await supabase
+      const guestClient = createGuestClient();
+      const { error: updateError } = await guestClient
         .from('checkout_sessions')
         .update({
           ...updates,
