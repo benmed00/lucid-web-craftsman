@@ -8,16 +8,9 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Guest session key constant
 const GUEST_SESSION_KEY = 'guest_session';
 
-interface GuestSession {
-  guest_id: string;
-  device_type?: string;
-  os?: string;
-  browser?: string;
-}
-
 /**
  * Get the current guest ID from storage (if exists)
- * This is used to identify guest checkout sessions
+ * This is called DYNAMICALLY on each request, not frozen at init time
  */
 const getGuestId = (): string => {
   try {
@@ -44,16 +37,22 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   },
   global: {
-    headers: {
-      // Include guest_id in all requests for RLS policies to validate guest sessions
-      'x-guest-id': getGuestId()
-    }
+    // 🔒 FIX: Use a function to dynamically resolve x-guest-id on EVERY request
+    // Previously this was frozen at initialization, causing 401s when guest ID
+    // wasn't yet generated
+    fetch: (url: RequestInfo | URL, options?: RequestInit) => {
+      const guestId = getGuestId();
+      const headers = new Headers(options?.headers);
+      if (guestId) {
+        headers.set('x-guest-id', guestId);
+      }
+      return fetch(url, { ...options, headers });
+    },
   },
   realtime: {
     params: {
       eventsPerSecond: 2,
     },
-    // Reduce reconnection attempts to minimize console errors in restricted environments
     timeout: 30000,
     heartbeatIntervalMs: 30000,
   },
