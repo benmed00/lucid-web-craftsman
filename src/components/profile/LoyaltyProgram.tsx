@@ -91,7 +91,7 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
 
       if (!pointsData) {
         // Initialize loyalty account for existing user
-        await supabase.rpc('init_loyalty_account', { user_uuid: user.id });
+        await supabase.rpc('init_loyalty_account', { p_user_id: user.id });
         // Reload data
         const { data: newPointsData, error: newPointsError } = await supabase
           .from('loyalty_points')
@@ -195,12 +195,11 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
 
       // Deduct points
       await supabase.rpc('add_loyalty_points', {
-        user_uuid: user.id,
-        points: -reward.points_cost,
-        transaction_type: 'spent',
-        source_type: 'manual',
-        source_id: rewardId,
-        description: `Échange: ${reward.name}`
+        p_user_id: user.id,
+        p_points: -reward.points_cost,
+        p_source_type: 'redemption',
+        p_source_id: rewardId,
+        p_description: `Échange: ${reward.name}`
       });
 
       toast.success(`${reward.name} échangée avec succès !`);

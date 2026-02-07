@@ -90,7 +90,7 @@ const AdminOrders = () => {
 
       if (error) throw error;
 
-      setOrders((data as Order[]) || []);
+      setOrders((data as unknown as Order[]) || []);
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast.error('Erreur lors du chargement des commandes');
@@ -165,7 +165,7 @@ const AdminOrders = () => {
       .single();
 
     if (!error && data) {
-      setOrders(prev => [data as Order, ...prev]);
+      setOrders(prev => [data as unknown as Order, ...prev]);
     }
   };
 
