@@ -248,9 +248,71 @@ serve(async (req) => {
     
     logStep("Carrier identified", { carrier });
     
-    // Parse request body
-    const body = await req.json();
-    logStep("Payload received", { body });
+    // Parse request body as text first for signature verification
+    const rawBody = await req.text();
+    
+    // --- Webhook Signature Verification ---
+    const carrierUpper = carrier.toUpperCase();
+    const webhookSecret = Deno.env.get(`${carrierUpper}_WEBHOOK_SECRET`) || Deno.env.get('CARRIER_WEBHOOK_SECRET');
+    
+    if (webhookSecret) {
+      const signature = req.headers.get('x-webhook-signature') 
+        || req.headers.get('x-signature') 
+        || req.headers.get('x-hub-signature-256')
+        || '';
+      
+      if (!signature) {
+        logStep("Missing webhook signature", { carrier });
+        await supabaseService.from('security_events').insert({
+          event_type: 'WEBHOOK_SIGNATURE_MISSING',
+          severity: 'high',
+          event_data: { carrier, url: req.url },
+        });
+        return new Response(JSON.stringify({ success: false, error: "Missing signature" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        });
+      }
+      
+      // HMAC-SHA256 verification
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        'raw', encoder.encode(webhookSecret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+      );
+      const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody));
+      const expectedSignature = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      // Constant-time comparison
+      const sigToCheck = signature.replace(/^sha256=/, '').toLowerCase();
+      if (expectedSignature.length !== sigToCheck.length || expectedSignature !== sigToCheck) {
+        logStep("Invalid webhook signature", { carrier });
+        await supabaseService.from('security_events').insert({
+          event_type: 'WEBHOOK_SIGNATURE_INVALID',
+          severity: 'critical',
+          event_data: { carrier, url: req.url },
+        });
+        return new Response(JSON.stringify({ success: false, error: "Invalid signature" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        });
+      }
+      
+      logStep("Webhook signature verified", { carrier });
+    } else {
+      logStep("WARNING: No webhook secret configured, skipping signature verification", { carrier });
+    }
+    
+    // Parse the body as JSON
+    let body: unknown;
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return new Response(JSON.stringify({ success: false, error: "Invalid JSON" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+    logStep("Payload received");
     
     // Parse carrier-specific format
     const event = parseCarrierWebhook(carrier, body);
