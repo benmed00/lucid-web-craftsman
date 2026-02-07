@@ -1762,7 +1762,14 @@ export type Database = {
           {
             foreignKeyName: "fk_payments_order"
             columns: ["order_id"]
-            isOneToOne: false
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_order_fk"
+            columns: ["order_id"]
+            isOneToOne: true
             referencedRelation: "orders"
             referencedColumns: ["id"]
           },
@@ -3058,17 +3065,28 @@ export type Database = {
         }
         Returns: undefined
       }
-      add_loyalty_points: {
-        Args: {
-          description?: string
-          points: number
-          source_id?: string
-          source_type: string
-          transaction_type: string
-          user_uuid: string
-        }
-        Returns: undefined
-      }
+      add_loyalty_points:
+        | {
+            Args: {
+              p_description: string
+              p_points: number
+              p_source_id?: string
+              p_source_type: string
+              p_user_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              description?: string
+              points: number
+              source_id?: string
+              source_type: string
+              transaction_type: string
+              user_uuid: string
+            }
+            Returns: undefined
+          }
       anonymize_sensitive_data: { Args: { input_data: Json }; Returns: Json }
       archive_old_payment_data: { Args: never; Returns: undefined }
       calculate_fraud_score: {
@@ -3097,6 +3115,15 @@ export type Database = {
           p_window_minutes?: number
         }
         Returns: boolean
+      }
+      confirm_order_payment: {
+        Args: {
+          p_amount: number
+          p_currency: string
+          p_order_id: string
+          p_payment_intent: string
+        }
+        Returns: undefined
       }
       create_order_anomaly: {
         Args: {
@@ -3236,7 +3263,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      init_loyalty_account: { Args: { user_uuid: string }; Returns: undefined }
+      init_loyalty_account: { Args: { p_user_id: string }; Returns: undefined }
       is_admin_user: { Args: { user_uuid: string }; Returns: boolean }
       is_authenticated_user: { Args: never; Returns: boolean }
       is_profile_owner: { Args: { profile_user_id: string }; Returns: boolean }
@@ -3314,7 +3341,7 @@ export type Database = {
         Returns: boolean
       }
       restore_contact_data_access: { Args: never; Returns: undefined }
-      update_loyalty_tier: { Args: { user_uuid: string }; Returns: undefined }
+      update_loyalty_tier: { Args: { p_user_id: string }; Returns: undefined }
       update_order_status: {
         Args: {
           p_actor?: Database["public"]["Enums"]["status_change_actor"]
