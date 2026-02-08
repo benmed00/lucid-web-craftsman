@@ -7,13 +7,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-csrf-token, x-csrf-nonce, x-csrf-hash, x-guest-id, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Helper logging function
 const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-PAYMENT] ${step}${detailsStr}`);
 };
 
-// Rate limiting configuration
+// Rate limiting
 const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
 const MAX_PAYMENT_ATTEMPTS = 3;
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -32,7 +31,6 @@ const checkRateLimit = (identifier: string): { allowed: boolean; remaining: numb
   return { allowed: true, remaining: MAX_PAYMENT_ATTEMPTS - record.count };
 };
 
-// Verify CSRF token hash
 const verifyCsrfToken = async (token: string, nonce: string, hash: string): Promise<boolean> => {
   if (!token || !nonce || !hash) return false;
   try {
@@ -72,7 +70,6 @@ serve(async (req) => {
     { auth: { persistSession: false } }
   );
 
-  // Helper to log payment events for observability
   const logPaymentEvent = async (event: {
     order_id?: string; event_type: string; status: string; actor: string;
     correlation_id?: string; error_message?: string; details?: Record<string, unknown>;
@@ -145,7 +142,6 @@ serve(async (req) => {
       os: sanitizeString(guestSession.os),
       browser: sanitizeString(guestSession.browser),
     } : null;
-    logStep("Guest session data", guestMetadata);
 
     // Validate items
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -158,11 +154,10 @@ serve(async (req) => {
       throw new Error("Invalid email format");
     }
 
-    logStep("Received order data", { itemCount: items.length, hasDiscount: !!discount, discountAmount: discount?.amount });
+    logStep("Received order data", { itemCount: items.length, hasDiscount: !!discount });
 
     // ========================================================================
-    // 🔒 SERVER-SIDE PRICE VERIFICATION
-    // Fetch real prices from database - NEVER trust client-provided prices
+    // 🔒 SERVER-SIDE PRICE VERIFICATION — NEVER trust client prices
     // ========================================================================
     const productIds = items.map((item: any) => item.product.id).filter(Boolean);
     if (productIds.length === 0) {
@@ -181,7 +176,6 @@ serve(async (req) => {
 
     const productMap = new Map(dbProducts.map(p => [p.id, p]));
 
-    // Validate each item: check existence, availability, stock, and price
     const verifiedItems: Array<{
       product: { id: number; name: string; price: number; description: string; images: string[] };
       quantity: number;
@@ -199,12 +193,10 @@ serve(async (req) => {
         throw new Error(`Stock insuffisant pour ${dbProduct.name}: ${dbProduct.stock_quantity} restant(s)`);
       }
 
-      // Log price discrepancy for audit (client may show cached prices)
-      const clientPrice = item.product.price;
-      if (Math.abs(clientPrice - dbProduct.price) > 0.01) {
+      if (Math.abs((item.product.price || 0) - dbProduct.price) > 0.01) {
         logStep("Price discrepancy detected", {
           productId: dbProduct.id,
-          clientPrice,
+          clientPrice: item.product.price,
           dbPrice: dbProduct.price,
         });
       }
@@ -213,7 +205,7 @@ serve(async (req) => {
         product: {
           id: dbProduct.id,
           name: dbProduct.name,
-          price: dbProduct.price, // USE DB PRICE
+          price: dbProduct.price, // USE DB PRICE — never client price
           description: dbProduct.description || dbProduct.name,
           images: dbProduct.images || [],
         },
@@ -224,12 +216,12 @@ serve(async (req) => {
     logStep("Server-side price verification passed", { itemCount: verifiedItems.length });
 
     // ========================================================================
-    // DISCOUNT CALCULATION (using verified prices)
+    // DISCOUNT VERIFICATION — server-side coupon validation
     // ========================================================================
     let discountAmountCents = 0;
-    const hasFreeShipping = discount?.includesFreeShipping === true;
+    let hasFreeShipping = discount?.includesFreeShipping === true;
+    let verifiedDiscountCode: string | null = null;
 
-    // Server-side discount verification
     if (discount?.code) {
       const { data: coupon, error: couponError } = await supabaseService
         .from('discount_coupons')
@@ -240,19 +232,15 @@ serve(async (req) => {
 
       if (couponError || !coupon) {
         logStep("Invalid discount code", { code: discount.code });
-        // Don't block payment, just ignore invalid discount
       } else {
-        // Verify coupon validity dates
         const now = new Date();
         const validFrom = coupon.valid_from ? new Date(coupon.valid_from) : null;
         const validUntil = coupon.valid_until ? new Date(coupon.valid_until) : null;
 
         if ((!validFrom || now >= validFrom) && (!validUntil || now <= validUntil)) {
-          // Verify usage limits
           if (!coupon.usage_limit || (coupon.usage_count || 0) < coupon.usage_limit) {
             const subtotal = verifiedItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
 
-            // Check minimum order amount
             if (!coupon.minimum_order_amount || subtotal >= coupon.minimum_order_amount) {
               if (coupon.type === 'percentage') {
                 discountAmountCents = Math.round(subtotal * 100 * (coupon.value / 100));
@@ -262,33 +250,30 @@ serve(async (req) => {
               } else {
                 discountAmountCents = Math.round(coupon.value * 100);
               }
-              logStep("Server-verified discount", { code: coupon.code, type: coupon.type, value: coupon.value, discountCents: discountAmountCents });
-            } else {
-              logStep("Minimum order amount not met", { minimum: coupon.minimum_order_amount, subtotal });
+              verifiedDiscountCode = coupon.code;
+              hasFreeShipping = hasFreeShipping || (coupon.includes_free_shipping === true);
+              logStep("Server-verified discount", { code: coupon.code, discountCents: discountAmountCents });
             }
-          } else {
-            logStep("Coupon usage limit reached", { code: coupon.code });
           }
-        } else {
-          logStep("Coupon expired or not yet valid", { code: coupon.code });
         }
       }
     } else if (discount && discount.amount > 0) {
-      // Fallback: if no code but amount provided, ignore (don't trust client amounts)
-      logStep("WARNING: Discount amount provided without code - ignoring for security");
+      logStep("WARNING: Discount amount provided without code — ignoring for security");
     }
 
-    // Calculate subtotal from verified prices
-    const subtotal = verifiedItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-    const subtotalCents = Math.round(subtotal * 100);
+    // ========================================================================
+    // AMOUNT CALCULATION (all amounts in CENTS for Stripe)
+    // ========================================================================
+    const subtotalEuros = verifiedItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    const subtotalCents = Math.round(subtotalEuros * 100);
 
     const discountRatio = discountAmountCents > 0 && subtotalCents > 0
       ? discountAmountCents / subtotalCents
       : 0;
 
-    logStep("Discount calculation", { subtotalCents, discountAmountCents, discountRatio: (discountRatio * 100).toFixed(2) + '%' });
+    logStep("Amount calculation", { subtotalCents, discountAmountCents, discountRatio: (discountRatio * 100).toFixed(2) + '%' });
 
-    // Create line items for Stripe with verified prices
+    // Create Stripe line items with verified prices
     const lineItems: any[] = [];
     verifiedItems.forEach((item) => {
       const originalPriceCents = Math.round(item.product.price * 100);
@@ -314,19 +299,25 @@ serve(async (req) => {
       });
     });
 
-    // Shipping
-    if (subtotal > 0 && !hasFreeShipping) {
+    // Shipping line item
+    const SHIPPING_COST_CENTS = 695;
+    if (subtotalEuros > 0 && !hasFreeShipping) {
       lineItems.push({
         price_data: {
           currency: "eur",
           product_data: { name: "Frais de livraison", description: "Livraison standard" },
-          unit_amount: 695,
+          unit_amount: SHIPPING_COST_CENTS,
         },
         quantity: 1,
       });
     }
 
-    logStep("Line items created", { itemCount: lineItems.length, discountApplied: discountRatio > 0 });
+    // ========================================================================
+    // TOTAL in CENTS (stored in DB as cents for consistency)
+    // ========================================================================
+    const totalAmountCents = lineItems.reduce((sum: number, item: any) => sum + (item.price_data.unit_amount * item.quantity), 0);
+
+    logStep("Total calculated", { totalAmountCents, lineItemCount: lineItems.length });
 
     // Stripe customer lookup
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -351,9 +342,6 @@ serve(async (req) => {
       logStep("User authenticated", { userId: user?.id });
     }
 
-    const totalAmount = lineItems.reduce((sum: number, item: any) => sum + (item.price_data.unit_amount * item.quantity), 0);
-    logStep("Calculated total amount", { totalAmount });
-
     // VIP threshold check
     const { data: businessRulesData } = await supabaseService
       .from('app_settings')
@@ -363,7 +351,7 @@ serve(async (req) => {
 
     const businessRules = businessRulesData?.setting_value as any || {};
     const vipThreshold = (businessRules?.cart?.highValueThreshold || 1000) * 100;
-    const isVipOrder = totalAmount >= vipThreshold;
+    const isVipOrder = totalAmountCents >= vipThreshold;
 
     // Build shipping address
     const shippingAddress = customerInfo ? {
@@ -378,8 +366,6 @@ serve(async (req) => {
       country: sanitizeString(customerInfo.country) || 'FR',
     } : null;
 
-    logStep("Shipping address prepared", { hasAddress: !!shippingAddress });
-
     // Generate correlation ID for end-to-end traceability
     const correlationId = crypto.randomUUID();
 
@@ -391,20 +377,24 @@ serve(async (req) => {
       browser: guestMetadata?.browser || null,
       client_ip: clientIP,
       client_country: clientCountry,
-      discount_code: discount?.code || null,
+      discount_code: verifiedDiscountCode,
       discount_amount_cents: discountAmountCents,
       is_vip_order: isVipOrder,
       verified_subtotal_cents: subtotalCents,
     };
 
-    // Create order
+    // ========================================================================
+    // CREATE ORDER — both `status` and `order_status` set to 'pending'
+    // Amount stored in CENTS for consistency with Stripe
+    // ========================================================================
     const { data: orderData, error: orderError } = await supabaseService
       .from('orders')
       .insert({
         user_id: user?.id || null,
-        amount: totalAmount,
+        amount: totalAmountCents,
         currency: 'eur',
         status: 'pending',
+        order_status: 'payment_pending',
         shipping_address: shippingAddress,
         billing_address: shippingAddress,
         metadata: orderMetadata,
@@ -417,9 +407,9 @@ serve(async (req) => {
       throw new Error(`Failed to create order: ${orderError.message}`);
     }
 
-    logStep("Order created", { orderId: orderData.id, correlationId, isVipOrder });
+    logStep("Order created", { orderId: orderData.id, correlationId, isVipOrder, totalAmountCents });
 
-    // Create order items with VERIFIED prices
+    // Create order items with VERIFIED prices (stored in euros)
     const orderItems = verifiedItems.map((item) => ({
       order_id: orderData.id,
       product_id: item.product.id,
@@ -453,7 +443,7 @@ serve(async (req) => {
             order_id: orderData.id,
             customer_email: customerInfo.email,
             customer_name: `${customerInfo.firstName || ''} ${customerInfo.lastName || ''}`.trim() || 'Client',
-            order_total: totalAmount / 100,
+            order_total: totalAmountCents / 100,
             threshold: vipThreshold / 100
           }
         });
@@ -463,7 +453,9 @@ serve(async (req) => {
       }
     }
 
-    // Stripe session
+    // ========================================================================
+    // CREATE STRIPE CHECKOUT SESSION
+    // ========================================================================
     const prefillShippingAddress = shippingAddress ? {
       line1: shippingAddress.address_line1 || '',
       line2: shippingAddress.address_line2 || '',
@@ -489,8 +481,8 @@ serve(async (req) => {
       locale: 'fr',
       custom_text: {
         submit: {
-          message: discount?.code
-            ? `Code promo ${discount.code} appliqué (-${(discountAmountCents / 100).toFixed(2)}€)${hasFreeShipping ? ' + Livraison offerte' : ''}`
+          message: verifiedDiscountCode
+            ? `Code promo ${verifiedDiscountCode} appliqué (-${(discountAmountCents / 100).toFixed(2)}€)${hasFreeShipping ? ' + Livraison offerte' : ''}`
             : undefined,
         },
         ...(shippingAddress ? {} : {
@@ -500,9 +492,9 @@ serve(async (req) => {
       invoice_creation: {
         enabled: true,
         invoice_data: {
-          description: `Commande Rif Raw Straw${discount?.code ? ` - Code: ${discount.code}` : ''}`,
+          description: `Commande Rif Raw Straw${verifiedDiscountCode ? ` - Code: ${verifiedDiscountCode}` : ''}`,
           metadata: { order_id: orderData.id, correlation_id: correlationId },
-          custom_fields: discount?.code ? [{ name: 'Code promo', value: discount.code }] : undefined,
+          custom_fields: verifiedDiscountCode ? [{ name: 'Code promo', value: verifiedDiscountCode }] : undefined,
           footer: 'Merci pour votre commande ! Rif Raw Straw - Artisanat berbère authentique',
         },
       },
@@ -512,7 +504,7 @@ serve(async (req) => {
         guest_id: guestMetadata?.guest_id || '',
         customer_name: customerInfo ? `${customerInfo.firstName} ${customerInfo.lastName}` : 'Guest',
         customer_phone: customerInfo?.phone || '',
-        discount_code: discount?.code || '',
+        discount_code: verifiedDiscountCode || '',
         discount_amount_cents: String(discountAmountCents),
         free_shipping: hasFreeShipping ? 'true' : 'false',
       },
@@ -521,7 +513,7 @@ serve(async (req) => {
         metadata: {
           order_id: orderData.id,
           correlation_id: correlationId,
-          discount_code: discount?.code || '',
+          discount_code: verifiedDiscountCode || '',
         },
         shipping: shippingAddress ? {
           name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
@@ -533,9 +525,8 @@ serve(async (req) => {
     };
 
     logStep("Creating Stripe session", {
-      paymentMethods: ['card'],
       hasShippingPrefill: !!shippingAddress,
-      hasDiscount: !!discount?.code,
+      hasDiscount: !!verifiedDiscountCode,
       correlationId,
     });
 
@@ -543,16 +534,12 @@ serve(async (req) => {
     logStep("Stripe session created", { sessionId: session.id });
 
     // Update order with Stripe session ID
-    const { error: updateError } = await supabaseService
+    await supabaseService
       .from('orders')
       .update({ stripe_session_id: session.id })
       .eq('id', orderData.id);
 
-    if (updateError) {
-      logStep("Error updating order with session ID", updateError);
-    }
-
-    // Log payment event for observability
+    // Log payment event
     await logPaymentEvent({
       order_id: orderData.id,
       event_type: 'stripe_session_created',
@@ -565,8 +552,9 @@ serve(async (req) => {
         stripe_session_id: session.id,
         item_count: verifiedItems.length,
         subtotal_cents: subtotalCents,
+        total_cents: totalAmountCents,
         discount_cents: discountAmountCents,
-        discount_code: discount?.code || null,
+        discount_code: verifiedDiscountCode || null,
         is_vip: isVipOrder,
         has_user: !!user?.id,
       },
@@ -579,7 +567,6 @@ serve(async (req) => {
   } catch (error) {
     console.error("Payment creation error:", error);
 
-    // Log failure event
     await logPaymentEvent({
       event_type: 'payment_initiation_failed',
       status: 'error',
@@ -589,7 +576,6 @@ serve(async (req) => {
       details: { error_type: error.constructor?.name || 'Unknown' },
     });
 
-    // Categorize errors for frontend
     const isValidationError = error.message.includes('introuvable') ||
       error.message.includes('indisponible') ||
       error.message.includes('insuffisant') ||
