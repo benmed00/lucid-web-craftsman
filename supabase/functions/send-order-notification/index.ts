@@ -6,7 +6,7 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface OrderNotificationRequest {
@@ -54,7 +54,6 @@ const getEmailContent = (status: string, orderData: OrderNotificationRequest): {
           </div>
         `
       };
-      
     case 'processing':
       return {
         subject: `Votre commande #${orderData.order_id.slice(-8)} est en préparation`,
@@ -69,7 +68,6 @@ const getEmailContent = (status: string, orderData: OrderNotificationRequest): {
           </div>
         `
       };
-      
     case 'shipped':
       return {
         subject: `Votre commande #${orderData.order_id.slice(-8)} a été expédiée`,
@@ -85,7 +83,6 @@ const getEmailContent = (status: string, orderData: OrderNotificationRequest): {
           </div>
         `
       };
-      
     case 'delivered':
       return {
         subject: `Votre commande #${orderData.order_id.slice(-8)} a été livrée`,
@@ -101,7 +98,6 @@ const getEmailContent = (status: string, orderData: OrderNotificationRequest): {
           </div>
         `
       };
-      
     default:
       return {
         subject: `Mise à jour de votre commande #${orderData.order_id.slice(-8)}`,
@@ -119,12 +115,37 @@ const getEmailContent = (status: string, orderData: OrderNotificationRequest): {
 };
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Validate caller is an authenticated admin
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
+    // Verify admin role
+    const userId = claimsData.claims.sub;
+    const adminCheck = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: isAdmin } = await adminCheck.rpc("is_admin_user", { user_uuid: userId });
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
     const orderData: OrderNotificationRequest = await req.json();
     
     console.log('Sending order notification:', {
@@ -135,7 +156,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { subject, html } = getEmailContent(orderData.status, orderData);
 
-    // Use onboarding@resend.dev for testing, switch to commandes@rifrawstraw.com after domain verification
     const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "Rif Raw Straw <onboarding@resend.dev>";
     
     const emailResponse = await resend.emails.send({
@@ -152,25 +172,13 @@ const handler = async (req: Request): Promise<Response> => {
       emailId: emailResponse.data?.id
     }), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
     console.error("Error in send-order-notification function:", error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        success: false 
-      }),
-      {
-        status: 500,
-        headers: { 
-          "Content-Type": "application/json", 
-          ...corsHeaders 
-        },
-      }
+      JSON.stringify({ error: error.message, success: false }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };
