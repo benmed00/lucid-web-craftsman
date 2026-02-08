@@ -539,13 +539,22 @@ const Checkout = () => {
       });
 
       if (error) {
-        throw new Error(error.message);
+        // Categorize error for user-friendly messaging
+        const errorMsg = error.message || '';
+        if (errorMsg.includes('rate limit') || errorMsg.includes('429')) {
+          toast.error(t("errors.rateLimited", "Trop de tentatives. Veuillez patienter quelques minutes."));
+        } else if (errorMsg.includes('stock') || errorMsg.includes('indisponible') || errorMsg.includes('insuffisant')) {
+          toast.error(errorMsg);
+        } else {
+          throw new Error(errorMsg);
+        }
+        setIsProcessing(false);
+        return;
       }
 
       if (data?.url) {
         // Redirect to Stripe or PayPal Checkout
         // Use window.open to avoid iframe restrictions in preview environments
-        // Stripe Checkout requires top-level navigation, not iframe navigation
         const newWindow = window.open(data.url, '_blank');
         if (!newWindow) {
           // Fallback: try top-level redirect if popup blocked
@@ -557,7 +566,18 @@ const Checkout = () => {
 
     } catch (error) {
       console.error("Payment error:", error);
-      toast.error(t("errors.paymentFailed"));
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      // Distinguish error types for user messaging
+      if (errorMessage.includes('introuvable') || errorMessage.includes('indisponible') || errorMessage.includes('insuffisant')) {
+        toast.error(errorMessage); // Show exact product error
+      } else if (errorMessage.includes('Invalid email') || errorMessage.includes('invalide')) {
+        toast.error(t("errors.invalidEmail", "Veuillez vérifier vos informations."));
+      } else if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('Failed to fetch')) {
+        toast.error(t("errors.networkError", "Erreur réseau. Vérifiez votre connexion et réessayez."));
+      } else {
+        toast.error(t("errors.paymentFailed"));
+      }
       setIsProcessing(false);
     }
   };

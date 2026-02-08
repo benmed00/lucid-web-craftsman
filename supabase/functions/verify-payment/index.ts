@@ -323,12 +323,57 @@ serve(async (req) => {
           customer_email: session.customer_details?.email,
           payment_method: session.payment_method_types?.[0],
           client_ip: clientIP,
-          discount_code: enrichedMetadata.discount_code
+          discount_code: enrichedMetadata.discount_code,
+          source: 'client_redirect',
         }
       });
 
     if (paymentError) {
       logStep("Error creating payment record", paymentError);
+    }
+
+    // Increment coupon usage after successful payment
+    const discountCode = enrichedMetadata.discount_code || session.metadata?.discount_code;
+    if (discountCode) {
+      try {
+        const { data: coupon } = await supabaseService
+          .from('discount_coupons')
+          .select('usage_count')
+          .eq('code', discountCode)
+          .single();
+        if (coupon) {
+          await supabaseService
+            .from('discount_coupons')
+            .update({ usage_count: (coupon.usage_count || 0) + 1 })
+            .eq('code', discountCode);
+          logStep("Coupon usage incremented", { code: discountCode });
+        }
+      } catch (couponErr) {
+        logStep("Coupon usage increment error (non-fatal)", { error: (couponErr as Error).message });
+      }
+    }
+
+    // Log payment event for observability
+    try {
+      await supabaseService.from('payment_events').insert({
+        order_id: orderData.id,
+        correlation_id: enrichedMetadata.correlation_id,
+        event_type: 'payment_confirmed',
+        status: 'success',
+        actor: 'edge_function',
+        ip_address: clientIP,
+        user_agent: userAgent,
+        details: {
+          payment_intent: enrichedMetadata.payment_intent_id,
+          amount: orderData.amount,
+          currency: orderData.currency,
+          discount_code: discountCode || null,
+          stock_updates_count: stockUpdates.length,
+          source: 'client_redirect',
+        },
+      });
+    } catch (eventErr) {
+      logStep("Payment event logging error (non-fatal)", { error: (eventErr as Error).message });
     }
 
     // Send confirmation email (non-blocking)
