@@ -10,7 +10,8 @@ const GUEST_SESSION_KEY = 'guest_session';
 
 /**
  * Get the current guest ID from storage (if exists)
- * This is called DYNAMICALLY on each request, not frozen at init time
+ * This is called DYNAMICALLY on each request via the fetch wrapper,
+ * NOT frozen at init time — prevents 42501 RLS errors.
  */
 const getGuestId = (): string => {
   try {
@@ -38,8 +39,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   },
   global: {
     // 🔒 FIX: Use a function to dynamically resolve x-guest-id on EVERY request
-    // Previously this was frozen at initialization, causing 401s when guest ID
-    // wasn't yet generated
+    // Previously this was frozen at initialization, causing 42501 RLS errors when guest ID
+    // wasn't yet generated. This single client handles both authenticated and guest flows.
     fetch: (url: RequestInfo | URL, options?: RequestInit) => {
       const guestId = getGuestId();
       const headers = new Headers(options?.headers);
@@ -58,22 +59,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   },
 });
 
-/**
- * Create a supabase client with specific guest ID for checkout operations
- * This ensures the guest_id header is current at the time of the request
- */
-export const createGuestClient = () => {
-  const guestId = getGuestId();
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-    auth: {
-      storage: localStorage,
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-    global: {
-      headers: {
-        'x-guest-id': guestId
-      }
-    }
-  });
-};
+// NOTE: createGuestClient was REMOVED to prevent "Multiple GoTrueClient instances" warnings.
+// The main `supabase` client already resolves x-guest-id dynamically on every request
+// via the fetch wrapper above — no need for a separate client.

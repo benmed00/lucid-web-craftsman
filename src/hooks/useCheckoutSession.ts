@@ -1,11 +1,14 @@
 /**
  * Checkout Session Hook
  * Persists checkout progress to database for tracking abandoned checkouts
- * and enabling admin visibility into incomplete orders
+ * and enabling admin visibility into incomplete orders.
+ * 
+ * Uses the single `supabase` client which dynamically resolves x-guest-id
+ * on every request via its fetch wrapper — no separate guest client needed.
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { supabase, createGuestClient } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { useGuestSession } from '@/hooks/useGuestSession';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 
@@ -75,21 +78,13 @@ interface UseCheckoutSessionReturn {
   sessionId: string | null;
   isLoading: boolean;
   error: string | null;
-  // Save personal info (step 1)
   savePersonalInfo: (data: PersonalInfo) => Promise<void>;
-  // Save shipping info (step 2)
   saveShippingInfo: (data: ShippingInfo) => Promise<void>;
-  // Save promo code (at any step)
   savePromoCode: (data: PromoCodeData | null) => Promise<void>;
-  // Save cart snapshot
   saveCartSnapshot: (items: CartItemSnapshot[], subtotal: number, shipping: number, total: number) => Promise<void>;
-  // Update step
   updateStep: (currentStep: number, lastCompletedStep: number) => Promise<void>;
-  // Mark as completed (linked to order)
   markCompleted: (orderId: string) => Promise<void>;
-  // Mark as payment failed
   markPaymentFailed: () => Promise<void>;
-  // Get current session data
   getSessionData: () => CheckoutSessionData | null;
 }
 
@@ -131,8 +126,8 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
             .maybeSingle();
           existingSession = data;
         } else if (guestId) {
-          const guestClient = createGuestClient();
-          const { data } = await guestClient
+          // supabase client already injects x-guest-id dynamically
+          const { data } = await supabase
             .from('checkout_sessions')
             .select('*')
             .eq('guest_id', guestId)
@@ -179,9 +174,8 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
             os: guestData?.os || null,
           };
 
-          // Use createGuestClient to ensure x-guest-id header is current
-          const guestClient = createGuestClient();
-          const { data, error: insertError } = await guestClient
+          // supabase client already injects x-guest-id dynamically
+          const { data, error: insertError } = await supabase
             .from('checkout_sessions')
             .insert(newSession)
             .select('id')
@@ -232,13 +226,12 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
     return saveQueue.current;
   }, []);
 
-  // Update session in database
+  // Update session in database — uses single supabase client with dynamic x-guest-id
   const updateSession = useCallback(async (updates: Record<string, unknown>) => {
     if (!sessionId) return;
 
     try {
-      const guestClient = createGuestClient();
-      const { error: updateError } = await guestClient
+      const { error: updateError } = await supabase
         .from('checkout_sessions')
         .update({
           ...updates,
@@ -364,7 +357,7 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
         status: 'completed',
         order_id: orderId,
         completed_at: new Date().toISOString(),
-        last_completed_step: 3, // Payment step
+        last_completed_step: 3,
       });
       setSessionData(prev => prev ? {
         ...prev,
