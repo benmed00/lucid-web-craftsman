@@ -9,13 +9,11 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Initialize Supabase client for logging
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface CancellationRequest {
   orderId: string;
@@ -26,11 +24,7 @@ interface CancellationRequest {
   refundAmount?: number;
   orderAmount?: number;
   currency?: string;
-  items: Array<{
-    name: string;
-    quantity: number;
-    price?: number;
-  }>;
+  items: Array<{ name: string; quantity: number; price?: number; }>;
   refundMethod?: string;
   refundDelay?: string;
   previewOnly?: boolean;
@@ -41,28 +35,16 @@ const logStep = (step: string, details?: any) => {
 };
 
 const logEmailToDatabase = async (
-  templateName: string,
-  recipientEmail: string,
-  recipientName: string | null,
-  orderId: string | null,
-  status: string,
-  errorMessage: string | null,
-  metadata: any
+  supabase: any, templateName: string, recipientEmail: string, recipientName: string | null,
+  orderId: string | null, status: string, errorMessage: string | null, metadata: any
 ) => {
   try {
     await supabase.from('email_logs').insert({
-      template_name: templateName,
-      recipient_email: recipientEmail,
-      recipient_name: recipientName,
-      order_id: orderId,
-      status: status,
-      error_message: errorMessage,
-      metadata: metadata,
+      template_name: templateName, recipient_email: recipientEmail, recipient_name: recipientName,
+      order_id: orderId, status, error_message: errorMessage, metadata,
       sent_at: status === 'sent' ? new Date().toISOString() : null
     });
-  } catch (error) {
-    console.error('Failed to log email:', error);
-  }
+  } catch (error) { console.error('Failed to log email:', error); }
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -70,20 +52,35 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+
   try {
+    // Validate caller is an authenticated admin
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+    const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+    const userId = claimsData.claims.sub;
+    const { data: isAdmin } = await serviceClient.rpc("is_admin_user", { user_uuid: userId });
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
     logStep('Starting cancellation/refund email send');
-    
     const data: CancellationRequest = await req.json();
-    
-    // Handle both isRefund and refundAmount to determine if it's a refund
     const isRefund = data.isRefund ?? (data.refundAmount !== undefined && data.refundAmount > 0);
     
     logStep('Received cancellation data', {
-      orderId: data.orderId,
-      customerEmail: data.customerEmail,
-      isRefund: isRefund,
-      refundAmount: data.refundAmount,
-      previewOnly: data.previewOnly
+      orderId: data.orderId, customerEmail: data.customerEmail,
+      isRefund, refundAmount: data.refundAmount, previewOnly: data.previewOnly
     });
 
     if (!data.orderId || !data.customerEmail || !data.customerName) {
@@ -91,42 +88,25 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const cancellationDate = new Date().toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+      day: 'numeric', month: 'long', year: 'numeric'
     });
 
     logStep('Rendering email template');
-    
     const html = await renderAsync(
       React.createElement(CancellationEmail, {
         customerName: data.customerName,
         orderNumber: data.orderId.slice(-8).toUpperCase(),
-        cancellationDate: cancellationDate,
-        reason: data.reason,
-        isRefund: isRefund,
-        refundAmount: data.refundAmount,
-        currency: data.currency || 'EUR',
-        items: data.items || [],
-        refundMethod: data.refundMethod,
-        refundDelay: data.refundDelay
+        cancellationDate, reason: data.reason, isRefund,
+        refundAmount: data.refundAmount, currency: data.currency || 'EUR',
+        items: data.items || [], refundMethod: data.refundMethod, refundDelay: data.refundDelay
       })
     );
-
     logStep('Email template rendered successfully');
 
-    // If preview only, return the HTML without sending
     if (data.previewOnly) {
       return new Response(
-        JSON.stringify({
-          success: true,
-          previewHtml: html,
-          message: 'Email preview generated'
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
+        JSON.stringify({ success: true, previewHtml: html, message: 'Email preview generated' }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
@@ -136,59 +116,27 @@ const handler = async (req: Request): Promise<Response> => {
       : `Annulation de votre commande #${data.orderId.slice(-8).toUpperCase()}`;
     
     logStep('Sending email', { to: data.customerEmail, from: fromEmail, subject });
-    
     const emailResponse = await resend.emails.send({
-      from: fromEmail,
-      to: [data.customerEmail],
-      subject: subject,
-      html: html,
+      from: fromEmail, to: [data.customerEmail], subject, html,
     });
 
     logStep('Email sent successfully', { emailId: emailResponse.data?.id });
-
-    // Log successful email
-    await logEmailToDatabase(
-      isRefund ? 'refund-notification' : 'cancellation-notification',
-      data.customerEmail,
-      data.customerName,
-      data.orderId,
-      'sent',
-      null,
-      { emailId: emailResponse.data?.id, isRefund, refundAmount: data.refundAmount }
-    );
+    await logEmailToDatabase(serviceClient, isRefund ? 'refund-notification' : 'cancellation-notification',
+      data.customerEmail, data.customerName, data.orderId, 'sent', null,
+      { emailId: emailResponse.data?.id, isRefund, refundAmount: data.refundAmount });
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        emailId: emailResponse.data?.id,
-        message: 'Cancellation/refund email sent successfully'
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      JSON.stringify({ success: true, emailId: emailResponse.data?.id, message: 'Cancellation/refund email sent successfully' }),
+      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
     logStep('Error sending cancellation email', { error: error.message });
-
-    // Log failed email
     const body = await req.clone().json().catch(() => ({}));
-    await logEmailToDatabase(
-      'cancellation-notification',
-      body.customerEmail || 'unknown',
-      body.customerName || null,
-      body.orderId || null,
-      'failed',
-      error.message,
-      {}
-    );
-    
+    await logEmailToDatabase(serviceClient, 'cancellation-notification', body.customerEmail || 'unknown',
+      body.customerName || null, body.orderId || null, 'failed', error.message, {});
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };
