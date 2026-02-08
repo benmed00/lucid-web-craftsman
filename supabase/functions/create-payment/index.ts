@@ -72,6 +72,29 @@ serve(async (req) => {
     { auth: { persistSession: false } }
   );
 
+  // Helper to log payment events for observability
+  const logPaymentEvent = async (event: {
+    order_id?: string; event_type: string; status: string; actor: string;
+    correlation_id?: string; error_message?: string; details?: Record<string, unknown>;
+    ip_address?: string; duration_ms?: number;
+  }) => {
+    try {
+      await supabaseService.from('payment_events').insert({
+        order_id: event.order_id || null,
+        correlation_id: event.correlation_id || null,
+        event_type: event.event_type,
+        status: event.status,
+        actor: event.actor,
+        details: event.details || {},
+        error_message: event.error_message || null,
+        ip_address: event.ip_address || null,
+        duration_ms: event.duration_ms || null,
+      });
+    } catch (err) { console.error('[CREATE-PAYMENT] Failed to log event:', err); }
+  };
+
+  const startTime = Date.now();
+
   try {
     logStep("Function started");
 
@@ -529,15 +552,56 @@ serve(async (req) => {
       logStep("Error updating order with session ID", updateError);
     }
 
+    // Log payment event for observability
+    await logPaymentEvent({
+      order_id: orderData.id,
+      event_type: 'stripe_session_created',
+      status: 'success',
+      actor: 'edge_function',
+      correlation_id: correlationId,
+      ip_address: clientIP,
+      duration_ms: Date.now() - startTime,
+      details: {
+        stripe_session_id: session.id,
+        item_count: verifiedItems.length,
+        subtotal_cents: subtotalCents,
+        discount_cents: discountAmountCents,
+        discount_code: discount?.code || null,
+        is_vip: isVipOrder,
+        has_user: !!user?.id,
+      },
+    });
+
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
     console.error("Payment creation error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+
+    // Log failure event
+    await logPaymentEvent({
+      event_type: 'payment_initiation_failed',
+      status: 'error',
+      actor: 'edge_function',
+      error_message: error.message,
+      duration_ms: Date.now() - startTime,
+      details: { error_type: error.constructor?.name || 'Unknown' },
+    });
+
+    // Categorize errors for frontend
+    const isValidationError = error.message.includes('introuvable') ||
+      error.message.includes('indisponible') ||
+      error.message.includes('insuffisant') ||
+      error.message.includes('Invalid') ||
+      error.message.includes('No items');
+
+    return new Response(JSON.stringify({
+      error: error.message,
+      error_type: isValidationError ? 'validation' : 'internal',
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+      status: isValidationError ? 422 : 500,
     });
   }
 });

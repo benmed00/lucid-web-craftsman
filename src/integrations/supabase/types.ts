@@ -1703,6 +1703,59 @@ export type Database = {
           },
         ]
       }
+      payment_events: {
+        Row: {
+          actor: string
+          correlation_id: string | null
+          created_at: string
+          details: Json | null
+          duration_ms: number | null
+          error_message: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          order_id: string | null
+          status: string
+          user_agent: string | null
+        }
+        Insert: {
+          actor?: string
+          correlation_id?: string | null
+          created_at?: string
+          details?: Json | null
+          duration_ms?: number | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          order_id?: string | null
+          status?: string
+          user_agent?: string | null
+        }
+        Update: {
+          actor?: string
+          correlation_id?: string | null
+          created_at?: string
+          details?: Json | null
+          duration_ms?: number | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          order_id?: string | null
+          status?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
