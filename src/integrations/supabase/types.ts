@@ -3316,6 +3316,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_coupon_usage: { Args: { p_code: string }; Returns: undefined }
       init_loyalty_account: { Args: { p_user_id: string }; Returns: undefined }
       is_admin_user: { Args: { user_uuid: string }; Returns: boolean }
       is_authenticated_user: { Args: never; Returns: boolean }
