@@ -142,10 +142,8 @@ const MaintenanceWrapper = ({ children }: { children: React.ReactNode }) => {
   // Allow admin routes even in maintenance mode
   const isAdminRoute = location.pathname.startsWith('/admin');
   
-  // Show a minimal loading state while checking maintenance mode
-  if (isLoading) {
-    return <div className="min-h-screen bg-background" />;
-  }
+  // Don't block rendering while checking maintenance mode — show content immediately
+  // This prevents blank screens caused by slow/failing Supabase queries
   
   // If in maintenance mode and not an admin route, show maintenance page WITHOUT navigation
   if (isMaintenanceMode && !isAdminRoute) {
