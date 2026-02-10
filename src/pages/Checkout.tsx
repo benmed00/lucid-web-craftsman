@@ -540,7 +540,10 @@ const Checkout = () => {
             includesFreeShipping: appliedCoupon.includes_free_shipping || false
           } : null
         },
-        headers: csrfHeaders
+        headers: {
+          ...csrfHeaders,
+          ...(checkoutSessionId ? { 'x-checkout-session-id': checkoutSessionId } : {}),
+        }
       });
 
       if (error) {
