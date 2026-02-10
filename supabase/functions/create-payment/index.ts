@@ -533,10 +533,14 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create(sessionParams);
     logStep("Stripe session created", { sessionId: session.id });
 
-    // Update order with Stripe session ID
+    // Update order with Stripe session ID and link to checkout session
+    const checkoutSessionId = req.headers.get("x-checkout-session-id") || null;
     await supabaseService
       .from('orders')
-      .update({ stripe_session_id: session.id })
+      .update({
+        stripe_session_id: session.id,
+        ...(checkoutSessionId ? { checkout_session_id: checkoutSessionId } : {}),
+      })
       .eq('id', orderData.id);
 
     // Log payment event

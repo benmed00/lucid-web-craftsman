@@ -452,13 +452,20 @@ async function handleCheckoutExpired(
   logStep("Processing checkout.session.expired", { sessionId: session.id, orderId });
 
   if (orderId) {
-    // Only cancel if still pending
+    // Fetch existing metadata to merge, then cancel if still pending
+    const { data: existingOrder } = await supabase
+      .from('orders')
+      .select('metadata')
+      .eq('id', orderId)
+      .single();
+
     const { data: updated } = await supabase
       .from('orders')
       .update({
         status: 'cancelled',
         order_status: 'cancelled',
         metadata: {
+          ...(existingOrder?.metadata || {}),
           cancelled_reason: 'stripe_session_expired',
           cancelled_at: new Date().toISOString(),
           correlation_id: correlationId,
@@ -506,11 +513,20 @@ async function handlePaymentFailed(
   logStep("Processing payment_intent.payment_failed", { orderId });
 
   if (orderId) {
+    // Fetch existing metadata to merge
+    const { data: existingOrder } = await supabase
+      .from('orders')
+      .select('metadata')
+      .eq('id', orderId)
+      .single();
+
     await supabase
       .from('orders')
       .update({
+        status: 'payment_failed',
         order_status: 'payment_failed',
         metadata: {
+          ...(existingOrder?.metadata || {}),
           payment_failed_at: new Date().toISOString(),
           failure_message: paymentIntent.last_payment_error?.message || 'Unknown',
           failure_code: paymentIntent.last_payment_error?.code || 'unknown',
