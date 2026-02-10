@@ -176,12 +176,17 @@ const Checkout = () => {
     fetchFreeShippingSettings();
   }, []);
 
+  // Track if payment was initiated (to distinguish from regular processing)
+  const [paymentInitiated, setPaymentInitiated] = useState(false);
+
   // Reset processing state when user returns to tab (after payment in new tab)
+  // Only reset if payment was actually initiated (URL opened), not during form processing
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && isProcessing) {
-        // User returned to the tab - reset processing state
+      if (document.visibilityState === 'visible' && isProcessing && paymentInitiated) {
+        // User returned to the tab after Stripe redirect - safe to reset
         setIsProcessing(false);
+        setPaymentInitiated(false);
       }
     };
 
@@ -189,7 +194,7 @@ const Checkout = () => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isProcessing]);
+  }, [isProcessing, paymentInitiated]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
