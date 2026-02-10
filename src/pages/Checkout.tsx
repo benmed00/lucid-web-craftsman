@@ -558,6 +558,8 @@ const Checkout = () => {
       }
 
       if (data?.url) {
+        // Mark payment as initiated so visibilitychange knows to reset
+        setPaymentInitiated(true);
         // Redirect to Stripe or PayPal Checkout
         // Use window.open to avoid iframe restrictions in preview environments
         const newWindow = window.open(data.url, '_blank');

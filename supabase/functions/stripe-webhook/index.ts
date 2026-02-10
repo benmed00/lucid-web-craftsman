@@ -452,13 +452,20 @@ async function handleCheckoutExpired(
   logStep("Processing checkout.session.expired", { sessionId: session.id, orderId });
 
   if (orderId) {
-    // Only cancel if still pending
+    // Fetch existing metadata to merge, then cancel if still pending
+    const { data: existingOrder } = await supabase
+      .from('orders')
+      .select('metadata')
+      .eq('id', orderId)
+      .single();
+
     const { data: updated } = await supabase
       .from('orders')
       .update({
         status: 'cancelled',
         order_status: 'cancelled',
         metadata: {
+          ...(existingOrder?.metadata || {}),
           cancelled_reason: 'stripe_session_expired',
           cancelled_at: new Date().toISOString(),
           correlation_id: correlationId,
