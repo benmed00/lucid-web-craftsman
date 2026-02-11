@@ -506,6 +506,24 @@
     "help": {
       "title": "Need Help?",
       "description": "If you have any questions about your order, don't hesitate to contact us."
+    },
+    "invoice": {
+      "download": "Download Invoice",
+      "title": "Invoice",
+      "orderNumber": "Order #",
+      "date": "Date",
+      "billTo": "Bill to",
+      "product": "Product",
+      "qty": "Qty",
+      "unitPrice": "Unit Price",
+      "total": "Total",
+      "subtotal": "Subtotal",
+      "shipping": "Shipping",
+      "discount": "Discount",
+      "grandTotal": "Grand Total",
+      "thankYou": "Thank you for your order!",
+      "company": "Rif Raw Straw",
+      "freeShipping": "Free"
     }
   }
 }

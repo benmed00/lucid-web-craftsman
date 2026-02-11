@@ -401,6 +401,24 @@
     "help": {
       "title": "Besoin d'Aide ?",
       "description": "Si vous avez des questions sur votre commande, n'hésitez pas à nous contacter."
+    },
+    "invoice": {
+      "download": "Télécharger la facture",
+      "title": "Facture",
+      "orderNumber": "N° de commande",
+      "date": "Date",
+      "billTo": "Facturer à",
+      "product": "Produit",
+      "qty": "Qté",
+      "unitPrice": "Prix unitaire",
+      "total": "Total",
+      "subtotal": "Sous-total",
+      "shipping": "Livraison",
+      "discount": "Réduction",
+      "grandTotal": "Total TTC",
+      "thankYou": "Merci pour votre commande !",
+      "company": "Rif Raw Straw",
+      "freeShipping": "Offerte"
     }
   },
 
