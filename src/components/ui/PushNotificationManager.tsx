@@ -75,7 +75,7 @@ export const PushNotificationManager = () => {
       const registration = await navigator.serviceWorker.ready;
       const publicVapidKey = 'YOUR_VAPID_PUBLIC_KEY';
       
-      const subscription = await registration.pushManager.subscribe({
+      const subscription = await (registration as any).pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: publicVapidKey
       });
