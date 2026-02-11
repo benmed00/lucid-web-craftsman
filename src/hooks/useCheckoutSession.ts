@@ -3,8 +3,7 @@
  * Persists checkout progress to database for tracking abandoned checkouts
  * and enabling admin visibility into incomplete orders.
  * 
- * Uses the single `supabase` client which dynamically resolves x-guest-id
- * on every request via its fetch wrapper — no separate guest client needed.
+ * NON-BLOCKING: Session tracking failures never prevent the user from checking out.
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
@@ -90,23 +89,24 @@ interface UseCheckoutSessionReturn {
 
 export function useCheckoutSession(): UseCheckoutSessionReturn {
   const { user } = useOptimizedAuth();
-  const { getSessionData: getGuestData } = useGuestSession();
+  const { getSessionData: getGuestData, isInitialized: isGuestReady } = useGuestSession();
   
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionData, setSessionData] = useState<CheckoutSessionData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // NON-BLOCKING: start as false so checkout form renders immediately
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const initRef = useRef(false);
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
 
-  // Initialize or retrieve existing session
+  // Initialize or retrieve existing session — runs in background, never blocks checkout
   useEffect(() => {
+    if (!isGuestReady) return;
     if (initRef.current) return;
     initRef.current = true;
 
     const initSession = async () => {
-      setIsLoading(true);
       try {
         const guestData = getGuestData();
         const guestId = guestData?.guest_id || null;
@@ -126,7 +126,6 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
             .maybeSingle();
           existingSession = data;
         } else if (guestId) {
-          // supabase client already injects x-guest-id dynamically
           const { data } = await supabase
             .from('checkout_sessions')
             .select('*')
@@ -174,7 +173,6 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
             os: guestData?.os || null,
           };
 
-          // supabase client already injects x-guest-id dynamically
           const { data, error: insertError } = await supabase
             .from('checkout_sessions')
             .insert(newSession)
@@ -182,8 +180,8 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
             .single();
 
           if (insertError) {
-            console.error('[useCheckoutSession] Error creating session:', insertError);
-            setError('Failed to create checkout session');
+            // Non-blocking: log warning but don't prevent checkout
+            console.warn('[useCheckoutSession] Session creation failed (non-blocking):', insertError.message);
           } else if (data) {
             setSessionId(data.id);
             setSessionData({
@@ -210,23 +208,23 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
           }
         }
       } catch (err) {
-        console.error('[useCheckoutSession] Init error:', err);
-        setError('Failed to initialize checkout session');
-      } finally {
-        setIsLoading(false);
+        // Non-blocking: checkout works even if session tracking fails
+        console.warn('[useCheckoutSession] Init failed (non-blocking):', err);
       }
     };
 
     initSession();
-  }, [user, getGuestData]);
+  }, [user, getGuestData, isGuestReady]);
 
   // Queue-based update to prevent race conditions
   const queueUpdate = useCallback((updateFn: () => Promise<void>) => {
-    saveQueue.current = saveQueue.current.then(updateFn).catch(console.error);
+    saveQueue.current = saveQueue.current.then(updateFn).catch(() => {
+      // Non-blocking: silently handle update failures
+    });
     return saveQueue.current;
   }, []);
 
-  // Update session in database — uses single supabase client with dynamic x-guest-id
+  // Update session in database
   const updateSession = useCallback(async (updates: Record<string, unknown>) => {
     if (!sessionId) return;
 
@@ -240,10 +238,10 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
         .eq('id', sessionId);
 
       if (updateError) {
-        console.error('[useCheckoutSession] Update error:', updateError);
+        console.warn('[useCheckoutSession] Update failed (non-blocking):', updateError.message);
       }
     } catch (err) {
-      console.error('[useCheckoutSession] Update exception:', err);
+      // Non-blocking
     }
   }, [sessionId]);
 
