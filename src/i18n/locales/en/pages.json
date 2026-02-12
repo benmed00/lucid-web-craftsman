@@ -63,9 +63,17 @@
         "sarah": "Customer service was fantastic and delivery was very fast. Highly recommend!"
       }
     },
+    "heroImage": {
+      "alt": "Authentic Rif craftsmanship — handmade hats and bags",
+      "fallback": "Image unavailable",
+      "title": "Authentic Rif Craftsmanship",
+      "subtitle": "Hand-woven hat and natural bag — Made with love"
+    },
     "instagram": {
       "follow": "@rifrawstraw",
-      "title": "Follow us on Instagram"
+      "title": "Follow us on Instagram",
+      "postAlt": "Instagram post #{{id}}",
+      "imageUnavailable": "Image unavailable"
     }
   },
 
