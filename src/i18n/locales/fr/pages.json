@@ -64,9 +64,17 @@
         "sarah": "Le service client était fantastique et la livraison très rapide. Je recommande vivement !"
       }
     },
+    "heroImage": {
+      "alt": "Artisanat authentique du Rif — chapeaux et sacs faits main",
+      "fallback": "Image non disponible",
+      "title": "Artisanat Authentique du Rif",
+      "subtitle": "Chapeau tressé et sac naturel — Fait main avec amour"
+    },
     "instagram": {
       "follow": "@rifrawstraw",
-      "title": "Suivez-nous sur Instagram"
+      "title": "Suivez-nous sur Instagram",
+      "postAlt": "Publication Instagram #{{id}}",
+      "imageUnavailable": "Image non disponible"
     }
   },
 
