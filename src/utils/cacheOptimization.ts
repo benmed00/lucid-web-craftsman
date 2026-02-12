@@ -84,17 +84,7 @@ export const registerServiceWorker = async (): Promise<void> => {
     
     console.log('ServiceWorker registered:', registration);
     
-    // Trigger cache cleanup periodically
-    if (registration.active) {
-      registration.active.postMessage({ type: 'CACHE_CLEANUP' });
-    }
-    
-    // Setup periodic cache cleanup
-    setInterval(() => {
-      if (registration.active) {
-        registration.active.postMessage({ type: 'CACHE_CLEANUP' });
-      }
-    }, 60 * 60 * 1000); // Every hour
+    // Service worker registered successfully
     
   } catch (error) {
     console.log('ServiceWorker registration failed:', error);
