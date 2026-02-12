@@ -98,8 +98,8 @@ if (!i18n.isInitialized) {
         useSuspense: false,
       },
 
-      // Debug in development
-      debug: import.meta.env.DEV,
+      // Debug disabled to keep console clean
+      debug: false,
     });
 }
 
