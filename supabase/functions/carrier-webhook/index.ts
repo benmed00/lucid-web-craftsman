@@ -299,7 +299,19 @@ serve(async (req) => {
       
       logStep("Webhook signature verified", { carrier });
     } else {
-      logStep("WARNING: No webhook secret configured, skipping signature verification", { carrier });
+      logStep("REJECTED: No webhook secret configured", { carrier });
+      await supabaseService.from('security_events').insert({
+        event_type: 'WEBHOOK_SECRET_NOT_CONFIGURED',
+        severity: 'critical',
+        event_data: { carrier, url: req.url },
+      });
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: "Webhook not configured" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 503,
+      });
     }
     
     // Parse the body as JSON
