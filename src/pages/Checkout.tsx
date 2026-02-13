@@ -176,25 +176,8 @@ const Checkout = () => {
     fetchFreeShippingSettings();
   }, []);
 
-  // Track if payment was initiated (to distinguish from regular processing)
+  // Track if payment was initiated (to prevent double submissions)
   const [paymentInitiated, setPaymentInitiated] = useState(false);
-
-  // Reset processing state when user returns to tab (after payment in new tab)
-  // Only reset if payment was actually initiated (URL opened), not during form processing
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && isProcessing && paymentInitiated) {
-        // User returned to the tab after Stripe redirect - safe to reset
-        setIsProcessing(false);
-        setPaymentInitiated(false);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [isProcessing, paymentInitiated]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -561,15 +544,10 @@ const Checkout = () => {
       }
 
       if (data?.url) {
-        // Mark payment as initiated so visibilitychange knows to reset
+        // Mark payment as initiated
         setPaymentInitiated(true);
-        // Redirect to Stripe or PayPal Checkout
-        // Use window.open to avoid iframe restrictions in preview environments
-        const newWindow = window.open(data.url, '_blank');
-        if (!newWindow) {
-          // Fallback: try top-level redirect if popup blocked
-          window.top ? (window.top.location.href = data.url) : (window.location.href = data.url);
-        }
+        // Redirect to Stripe/PayPal Checkout in the SAME tab (no popups)
+        window.location.href = data.url;
       } else {
         throw new Error("No checkout URL received");
       }
