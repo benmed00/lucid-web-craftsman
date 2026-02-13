@@ -1,9 +1,9 @@
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Quote, MapPin, Clock, Heart } from "lucide-react";
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Artisan {
@@ -18,16 +18,17 @@ interface Artisan {
 }
 
 const ArtisansSection = () => {
-  const { t, i18n } = useTranslation(['pages', 'common']);
-  const currentLocale = i18n.language?.split('-')[0] || 'fr';
+  const { t, i18n } = useTranslation(["pages", "common"]);
+  const currentLocale = i18n.language?.split("-")[0] || "fr";
 
   // Fetch artisans directly from the artisans table
   const { data: artisans = [], isLoading } = useQuery({
-    queryKey: ['artisans', currentLocale],
+    queryKey: ["artisans", currentLocale],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('artisans')
-        .select(`
+        .from("artisans")
+        .select(
+          `
           id,
           name,
           specialty,
@@ -41,21 +42,20 @@ const ArtisansSection = () => {
             quote,
             bio_short
           )
-        `)
-        .eq('is_active', true)
-        .order('created_at', { ascending: true })
+        `,
+        )
+        .eq("is_active", true)
+        .order("created_at", { ascending: true })
         .limit(4);
 
       if (error) {
-        console.error('Error fetching artisans:', error);
+        console.error("Error fetching artisans:", error);
         return [];
       }
 
       // Map with translation fallback
       return (data || []).map((artisan: any) => {
-        const translation = artisan.artisan_translations?.find(
-          (t: any) => t.locale === currentLocale
-        );
+        const translation = artisan.artisan_translations?.find((t: any) => t.locale === currentLocale);
         return {
           ...artisan,
           specialty: translation?.specialty || artisan.specialty,
@@ -97,20 +97,23 @@ const ArtisansSection = () => {
         <div className="max-w-3xl mx-auto text-center mb-12 md:mb-16">
           <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20 border-none px-4 py-2">
             <Heart className="w-3 h-3 mr-2 inline" />
-            {t('pages:home.artisans.badge', 'Les mains derrière l\'art')}
+            {t("pages:home.artisans.badge", "Les mains derrière l'art")}
           </Badge>
           <h2 className="font-serif text-2xl md:text-4xl lg:text-5xl text-foreground mb-4 leading-tight">
-            {t('pages:home.artisans.title', 'Nos Artisans')}
+            {t("pages:home.artisans.title", "Nos Artisans")}
           </h2>
           <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto">
-            {t('pages:home.artisans.description', 'Découvrez les artisans talentueux qui perpétuent un savoir-faire ancestral dans les montagnes du Rif marocain.')}
+            {t(
+              "pages:home.artisans.description",
+              "Découvrez les artisans talentueux qui perpétuent un savoir-faire ancestral dans les montagnes du Rif marocain.",
+            )}
           </p>
         </div>
 
         {/* Artisans Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
           {artisans.map((artisan, index) => (
-            <Card 
+            <Card
               key={artisan.id}
               className="group bg-card border-none shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden rounded-2xl hover-lift"
               style={{ animationDelay: `${index * 0.1}s` }}
@@ -119,23 +122,23 @@ const ArtisansSection = () => {
                 <div className="flex flex-col sm:flex-row">
                   {/* Artisan Image */}
                   <div className="relative w-full sm:w-2/5 h-48 sm:h-auto min-h-[200px] overflow-hidden">
-                    <img 
-                      src={artisan.photo_url || '/placeholder.svg'} 
+                    <img
+                      src={artisan.photo_url || "/placeholder.svg"}
                       alt={`Portrait de ${artisan.name}`}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       loading="lazy"
                       decoding="async"
                       width={400}
                       height={400}
-                      fetchPriority="low"
+                      fetchpriority="low"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent sm:bg-gradient-to-r" />
-                    
+
                     {/* Location Badge - Mobile */}
                     <div className="absolute bottom-3 left-3 sm:hidden">
                       <Badge variant="secondary" className="bg-white/90 text-foreground backdrop-blur-sm">
                         <MapPin className="w-3 h-3 mr-1" />
-                        {artisan.region || 'Rif, Maroc'}
+                        {artisan.region || "Rif, Maroc"}
                       </Badge>
                     </div>
                   </div>
@@ -151,22 +154,20 @@ const ArtisansSection = () => {
                           </h3>
                           <p className="text-sm text-muted-foreground hidden sm:block">
                             <MapPin className="w-3 h-3 inline mr-1" />
-                            {artisan.region || 'Rif, Maroc'}
+                            {artisan.region || "Rif, Maroc"}
                           </p>
                         </div>
                         {artisan.experience_years && (
                           <Badge variant="outline" className="text-xs hidden sm:flex">
                             <Clock className="w-3 h-3 mr-1" />
-                            {artisan.experience_years} {t('common:years', 'ans')}
+                            {artisan.experience_years} {t("common:years", "ans")}
                           </Badge>
                         )}
                       </div>
 
                       {/* Specialty */}
                       {artisan.specialty && (
-                        <Badge className="mb-4 bg-primary/10 text-primary text-xs">
-                          {artisan.specialty}
-                        </Badge>
+                        <Badge className="mb-4 bg-primary/10 text-primary text-xs">{artisan.specialty}</Badge>
                       )}
 
                       {/* Quote */}
@@ -185,7 +186,7 @@ const ArtisansSection = () => {
                       <div className="mt-4 pt-3 border-t border-border/50 sm:hidden">
                         <span className="text-xs text-muted-foreground flex items-center">
                           <Clock className="w-3 h-3 mr-1" />
-                          {artisan.experience_years} {t('common:years', 'ans')} d'expérience
+                          {artisan.experience_years} {t("common:years", "ans")} d'expérience
                         </span>
                       </div>
                     )}
@@ -199,7 +200,10 @@ const ArtisansSection = () => {
         {/* Bottom CTA */}
         <div className="mt-12 text-center">
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            {t('pages:home.artisans.cta', 'Chaque achat soutient directement ces artisans et leurs familles, préservant un patrimoine culturel unique.')}
+            {t(
+              "pages:home.artisans.cta",
+              "Chaque achat soutient directement ces artisans et leurs familles, préservant un patrimoine culturel unique.",
+            )}
           </p>
         </div>
       </div>
