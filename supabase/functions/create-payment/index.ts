@@ -316,7 +316,21 @@ serve(async (req) => {
     // ========================================================================
     // TOTAL in CENTS (stored in DB as cents for consistency)
     // ========================================================================
-    const totalAmountCents = lineItems.reduce((sum: number, item: any) => sum + (item.price_data.unit_amount * item.quantity), 0);
+    let totalAmountCents = lineItems.reduce((sum: number, item: any) => sum + (item.price_data.unit_amount * item.quantity), 0);
+
+    // Stripe requires a minimum of €0.50 (50 cents). If discount brings total below, enforce minimum.
+    const STRIPE_MINIMUM_CENTS = 50;
+    if (totalAmountCents > 0 && totalAmountCents < STRIPE_MINIMUM_CENTS) {
+      logStep("Total below Stripe minimum, adjusting", { original: totalAmountCents, adjusted: STRIPE_MINIMUM_CENTS });
+      totalAmountCents = STRIPE_MINIMUM_CENTS;
+      // Also adjust the line item to reflect the minimum
+      if (lineItems.length > 0) {
+        const diff = STRIPE_MINIMUM_CENTS - lineItems.reduce((s: number, i: any) => s + (i.price_data.unit_amount * i.quantity), 0);
+        if (diff > 0) {
+          lineItems[0].price_data.unit_amount += diff;
+        }
+      }
+    }
 
     logStep("Total calculated", { totalAmountCents, lineItemCount: lineItems.length });
 
