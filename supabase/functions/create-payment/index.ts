@@ -268,6 +268,15 @@ serve(async (req) => {
     const subtotalEuros = verifiedItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
     const subtotalCents = Math.round(subtotalEuros * 100);
 
+    // Stripe requires minimum €0.50. Cap discount so total (including shipping) stays >= 50 cents.
+    const STRIPE_MINIMUM_CENTS = 50;
+    const shippingCentsEstimate = (subtotalEuros > 0 && !hasFreeShipping) ? 695 : 0;
+    const maxAllowedDiscount = Math.max(0, subtotalCents + shippingCentsEstimate - STRIPE_MINIMUM_CENTS);
+    if (discountAmountCents > maxAllowedDiscount) {
+      logStep("Capping discount to meet Stripe minimum", { original: discountAmountCents, capped: maxAllowedDiscount });
+      discountAmountCents = maxAllowedDiscount;
+    }
+
     const discountRatio = discountAmountCents > 0 && subtotalCents > 0
       ? discountAmountCents / subtotalCents
       : 0;
@@ -316,21 +325,7 @@ serve(async (req) => {
     // ========================================================================
     // TOTAL in CENTS (stored in DB as cents for consistency)
     // ========================================================================
-    let totalAmountCents = lineItems.reduce((sum: number, item: any) => sum + (item.price_data.unit_amount * item.quantity), 0);
-
-    // Stripe requires a minimum of €0.50 (50 cents). If discount brings total below, enforce minimum.
-    const STRIPE_MINIMUM_CENTS = 50;
-    if (totalAmountCents > 0 && totalAmountCents < STRIPE_MINIMUM_CENTS) {
-      logStep("Total below Stripe minimum, adjusting", { original: totalAmountCents, adjusted: STRIPE_MINIMUM_CENTS });
-      totalAmountCents = STRIPE_MINIMUM_CENTS;
-      // Also adjust the line item to reflect the minimum
-      if (lineItems.length > 0) {
-        const diff = STRIPE_MINIMUM_CENTS - lineItems.reduce((s: number, i: any) => s + (i.price_data.unit_amount * i.quantity), 0);
-        if (diff > 0) {
-          lineItems[0].price_data.unit_amount += diff;
-        }
-      }
-    }
+    const totalAmountCents = lineItems.reduce((sum: number, item: any) => sum + (item.price_data.unit_amount * item.quantity), 0);
 
     logStep("Total calculated", { totalAmountCents, lineItemCount: lineItems.length });
 
