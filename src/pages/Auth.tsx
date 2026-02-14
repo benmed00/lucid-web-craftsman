@@ -107,12 +107,35 @@ export default function Auth() {
       }
 
       setIsLoading(true);
-      await signUp(sanitizedEmail, password, sanitizedFullName, phone || undefined);
-      toast({
-        title: t('auth:messages.accountCreated'),
-        description: t('auth:messages.welcome')
-      });
+      const result = await signUp(sanitizedEmail, password, sanitizedFullName, phone || undefined);
+      
+      // Detect duplicate email: Supabase returns user with empty identities array
+      // when "Confirm email" is ON and email already exists (to prevent email enumeration)
+      if (result.user && result.user.identities && result.user.identities.length === 0) {
+        toast({
+          title: t('auth:errors.emailAlreadyUsed', 'Email déjà utilisé'),
+          description: t('auth:errors.emailAlreadyUsedDescription', 'Un compte avec cet email existe déjà. Essayez de vous connecter.'),
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Handle email confirmation flow: session is null when confirm email is ON
+      if (result.user && !result.session) {
+        toast({
+          title: t('auth:messages.confirmEmail', 'Vérifiez votre email'),
+          description: t('auth:messages.confirmEmailDescription', 'Un lien de confirmation a été envoyé à votre adresse email. Veuillez cliquer dessus pour activer votre compte.'),
+          duration: 10000,
+        });
+      } else {
+        // Email confirmation OFF: session returned immediately
+        toast({
+          title: t('auth:messages.accountCreated'),
+          description: t('auth:messages.welcome')
+        });
+      }
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast({
         title: t('auth:errors.networkError'),
         description: error.message || t('auth:errors.networkError'),
