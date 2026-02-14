@@ -48,15 +48,14 @@ export function OrderHistory({ user }: OrderHistoryProps) {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select(`
-          *,
-          shipments(*)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setOrders(data || []);
+      
+      // Map orders without shipments join (no FK relationship)
+      setOrders((data || []).map(order => ({ ...order, shipments: [] })));
     } catch (error: any) {
       console.error('Error loading orders:', error);
       toast.error('Erreur lors du chargement des commandes');

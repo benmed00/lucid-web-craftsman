@@ -47,19 +47,20 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
 
   const loadPreferences = async () => {
     try {
-      const { data, error } = await supabase
+  const { data, error } = await supabase
         .from('user_preferences')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          // No preferences found, create default ones
-          await createDefaultPreferences();
-        } else {
-          throw error;
-        }
+        console.error('Error loading preferences:', error);
+        toast.error('Erreur lors du chargement des préférences');
+        return;
+      }
+      
+      if (!data) {
+        await createDefaultPreferences();
       } else {
         setPreferences(data);
       }
