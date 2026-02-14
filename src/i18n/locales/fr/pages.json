@@ -535,5 +535,50 @@
       "returns": "Retours",
       "returnsValue": "Retours gratuits sous 14 jours"
     }
+  },
+  "profile": {
+    "title": "Mon Profil",
+    "subtitle": "Gérez vos informations personnelles et vos préférences",
+    "buttons": {
+      "home": "Accueil",
+      "signOut": "Déconnexion",
+      "deleteAccount": "Supprimer le compte"
+    },
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "overviewShort": "Profil",
+      "personal": "Informations personnelles",
+      "personalShort": "Infos",
+      "loyalty": "Programme de fidélité",
+      "loyaltyShort": "Fidélité",
+      "preferences": "Préférences",
+      "preferencesShort": "Prefs",
+      "orders": "Mes commandes",
+      "ordersShort": "Commandes"
+    },
+    "deleteDialog": {
+      "title": "Supprimer votre compte ?",
+      "description": "Cette action est irréversible. Toutes vos données personnelles, commandes et préférences seront définitivement supprimées.",
+      "cancel": "Annuler",
+      "confirm": "Supprimer définitivement"
+    },
+    "messages": {
+      "loadError": "Erreur lors du chargement du profil",
+      "createError": "Erreur lors de la création du profil",
+      "deleteSuccess": "Votre compte a été supprimé avec succès",
+      "deleteError": "Erreur lors de la suppression du compte",
+      "signOutError": "Erreur lors de la déconnexion"
+    },
+    "footer": {
+      "contact": "Contact",
+      "importantLinks": "Liens importants",
+      "legal": "Mentions légales",
+      "terms": "Conditions d'utilisation",
+      "cgv": "Conditions générales de vente",
+      "privacy": "Politique de confidentialité",
+      "legalNotices": "Mentions légales",
+      "cookies": "Politique de cookies",
+      "copyright": "© 2026 Rif Raw Straw. Tous droits réservés."
+    }
   }
 }

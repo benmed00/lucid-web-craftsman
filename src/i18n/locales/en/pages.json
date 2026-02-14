@@ -533,5 +533,50 @@
       "company": "Rif Raw Straw",
       "freeShipping": "Free"
     }
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your personal information and preferences",
+    "buttons": {
+      "home": "Home",
+      "signOut": "Sign Out",
+      "deleteAccount": "Delete Account"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "overviewShort": "Profile",
+      "personal": "Personal Info",
+      "personalShort": "Info",
+      "loyalty": "Loyalty Program",
+      "loyaltyShort": "Loyalty",
+      "preferences": "Preferences",
+      "preferencesShort": "Prefs",
+      "orders": "My Orders",
+      "ordersShort": "Orders"
+    },
+    "deleteDialog": {
+      "title": "Delete your account?",
+      "description": "This action is irreversible. All your personal data, orders, and preferences will be permanently deleted.",
+      "cancel": "Cancel",
+      "confirm": "Delete permanently"
+    },
+    "messages": {
+      "loadError": "Error loading profile",
+      "createError": "Error creating profile",
+      "deleteSuccess": "Your account has been successfully deleted",
+      "deleteError": "Error deleting account",
+      "signOutError": "Error signing out"
+    },
+    "footer": {
+      "contact": "Contact",
+      "importantLinks": "Important Links",
+      "legal": "Legal",
+      "terms": "Terms of Use",
+      "cgv": "Terms of Sale",
+      "privacy": "Privacy Policy",
+      "legalNotices": "Legal Notices",
+      "cookies": "Cookie Policy",
+      "copyright": "© 2026 Rif Raw Straw. All rights reserved."
+    }
   }
 }
