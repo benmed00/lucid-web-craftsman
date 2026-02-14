@@ -571,7 +571,7 @@ const Contact = () => {
             <p className="text-sm text-muted-foreground">
               <MapPin className="inline-block h-4 w-4 mr-1" />
               {isLoadingSettings ? (
-                <Skeleton className="inline-block h-4 w-48" />
+                <span className="inline-block h-4 w-48 animate-pulse rounded-md bg-muted" />
               ) : (
                 formatFullAddress(companySettings.address)
               )}
