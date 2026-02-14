@@ -18,8 +18,16 @@ const getGuestId = (): string => {
     const raw = localStorage.getItem(GUEST_SESSION_KEY);
     if (raw) {
       const session = JSON.parse(raw);
-      // Support both camelCase (from useGuestSession hook) and snake_case formats
-      const id = session?.guestId || session?.guest_id || session?.value?.guestId || session?.value?.guest_id;
+      // Support all storage formats:
+      // - Direct: { guestId: "..." } or { guest_id: "..." }
+      // - safeStorage wrapper: { data: { guestId: "..." }, timestamp: ..., ttl: ... }
+      // - Legacy wrapper: { value: { guestId: "..." } }
+      const id = session?.guestId
+        || session?.guest_id
+        || session?.data?.guestId
+        || session?.data?.guest_id
+        || session?.value?.guestId
+        || session?.value?.guest_id;
       if (id) return id;
     }
   } catch {
