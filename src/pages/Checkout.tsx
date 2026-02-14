@@ -27,6 +27,7 @@ import {
   type CheckoutFormData
 } from "@/utils/checkoutValidation";
 import { sanitizeUserInput } from "@/utils/xssProtection";
+import { retryWithBackoff } from "@/lib/retryWithBackoff";
 import { useCsrfToken } from "@/hooks/useCsrfToken";
 import { useBusinessRules } from "@/hooks/useBusinessRules";
 import { useCheckoutFormPersistence } from "@/hooks/useCheckoutFormPersistence";
@@ -429,9 +430,15 @@ const Checkout = () => {
     setStep(nextStep);
     saveStepState(nextStep, newCompletedSteps);
     
+    // Auto-clear invalid promo code when navigating steps
+    if (promoError) {
+      setPromoCode('');
+      setPromoError('');
+    }
+    
     // Update checkout session step tracking
     updateStep(nextStep, Math.max(...newCompletedSteps, 0));
-  }, [step, formData, honeypot, completedSteps, saveStepState, savePersonalInfo, saveShippingInfo, saveCartSnapshot, updateStep, cartItems, t]);
+  }, [step, formData, honeypot, completedSteps, promoError, saveStepState, savePersonalInfo, saveShippingInfo, saveCartSnapshot, updateStep, cartItems, t]);
 
   // Handle editing a previous step
   const handleEditStep = useCallback((targetStep: number) => {
@@ -510,24 +517,42 @@ const Checkout = () => {
       // Determine which edge function to call based on payment method
       const functionName = paymentMethod === "paypal" ? "create-paypal-payment" : "create-payment";
       
-      // Call appropriate edge function with guest session metadata
-      const { data, error } = await supabase.functions.invoke(functionName, {
-        body: {
-          items: cartItems,
-          customerInfo: sanitizedFormData,
-          guestSession, // GDPR-compliant device metadata
-          discount: appliedCoupon ? {
-            couponId: appliedCoupon.id,
-            code: sanitizeUserInput(appliedCoupon.code),
-            amount: discount,
-            includesFreeShipping: appliedCoupon.includes_free_shipping || false
-          } : null
+      // Call appropriate edge function with retry for transient failures
+      const { data, error } = await retryWithBackoff(
+        async () => {
+          const result = await supabase.functions.invoke(functionName, {
+            body: {
+              items: cartItems,
+              customerInfo: sanitizedFormData,
+              guestSession,
+              discount: appliedCoupon ? {
+                couponId: appliedCoupon.id,
+                code: sanitizeUserInput(appliedCoupon.code),
+                amount: discount,
+                includesFreeShipping: appliedCoupon.includes_free_shipping || false
+              } : null
+            },
+            headers: {
+              ...csrfHeaders,
+              ...(checkoutSessionId ? { 'x-checkout-session-id': checkoutSessionId } : {}),
+            }
+          });
+          if (result.error) {
+            const msg = result.error.message || '';
+            const isTransient = msg.includes('fetch') || msg.includes('network') || msg.includes('503') || msg.includes('502') || msg.includes('timeout');
+            if (isTransient) throw result.error;
+          }
+          return result;
         },
-        headers: {
-          ...csrfHeaders,
-          ...(checkoutSessionId ? { 'x-checkout-session-id': checkoutSessionId } : {}),
+        {
+          maxAttempts: 2,
+          baseDelayMs: 1000,
+          onRetry: (attempt) => {
+            toast.info('Nouvelle tentative de paiement...', { duration: 2000 });
+            console.warn(`[Checkout] Payment retry #${attempt}`);
+          },
         }
-      });
+      );
 
       if (error) {
         // Categorize error for user-friendly messaging
@@ -902,6 +927,16 @@ const Checkout = () => {
                         return null;
                       }}
                     />
+                    {/* Postal code format hint */}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formData.country === 'FR' || formData.country === 'MC'
+                        ? '5 chiffres (ex: 75001)'
+                        : formData.country === 'BE' || formData.country === 'LU'
+                          ? '4 chiffres (ex: 1000)'
+                          : formData.country === 'CH'
+                            ? '4 chiffres (ex: 1200)'
+                            : ''}
+                    </p>
 
                     <div className="md:col-span-2">
                       <FormFieldWithValidation
