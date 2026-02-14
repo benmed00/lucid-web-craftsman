@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { User } from '@supabase/supabase-js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,7 +19,7 @@ import { EnhancedProfileManager } from '@/components/profile/EnhancedProfileMana
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useCompanySettings } from '@/hooks/useCompanySettings';
+import Footer from '@/components/Footer';
 
 interface Profile {
   id: string;
@@ -41,14 +41,47 @@ interface Profile {
   updated_at: string;
 }
 
+const VALID_TABS = ['overview', 'personal', 'loyalty', 'preferences', 'orders'] as const;
+type ProfileTab = typeof VALID_TABS[number];
+
 export default function EnhancedProfile() {
   const { t } = useTranslation('pages');
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, signOut, isLoading: authLoading, session } = useOptimizedAuth();
-  const { settings: companySettings, isLoading: isLoadingSettings } = useCompanySettings();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+
+  // Derive active tab from URL hash
+  const getTabFromHash = (): ProfileTab => {
+    const hash = location.hash.replace('#', '') as ProfileTab;
+    return VALID_TABS.includes(hash) ? hash : 'overview';
+  };
+  const [activeTab, setActiveTab] = useState<ProfileTab>(getTabFromHash);
+
+  // Sync tab with URL hash
+  useEffect(() => {
+    setActiveTab(getTabFromHash());
+  }, [location.hash]);
+
+  const handleTabChange = (tab: string) => {
+    const validTab = tab as ProfileTab;
+    setActiveTab(validTab);
+    navigate(`/profile#${validTab}`, { replace: true });
+  };
+
+  // Safety timeout: force render after 5s to prevent infinite skeleton
+  const [forceRender, setForceRender] = useState(false);
+  useEffect(() => {
+    if (authLoading || isProfileLoading) {
+      const timeout = setTimeout(() => {
+        console.warn('[EnhancedProfile] Loading timed out after 5s, force rendering');
+        setForceRender(true);
+        setIsProfileLoading(false);
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [authLoading, isProfileLoading]);
 
   // Track if profile has been loaded to prevent duplicate requests
   const hasLoadedProfile = useRef(false);
@@ -167,7 +200,7 @@ export default function EnhancedProfile() {
     }
   };
 
-  if (authLoading || isProfileLoading) {
+  if ((authLoading || isProfileLoading) && !forceRender) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
@@ -249,7 +282,7 @@ export default function EnhancedProfile() {
         </div>
 
         {/* Profile Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <UserIcon className="h-4 w-4" />
@@ -304,73 +337,7 @@ export default function EnhancedProfile() {
         </Tabs>
       </div>
 
-      {/* Footer */}
-      <footer className="border-t bg-muted/20 mt-12">
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Contact Info */}
-            <div>
-              <h3 className="font-semibold mb-4">{t('profile.footer.contact')}</h3>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>Email: {companySettings?.email || 'contact@rifstraw.com'}</p>
-                <p>{t('profile.footer.contact')}: {companySettings?.phone || '+33 1 23 45 67 89'}</p>
-              </div>
-            </div>
-
-            {/* Important Links */}
-            <div>
-              <h3 className="font-semibold mb-4">{t('profile.footer.importantLinks')}</h3>
-              <div className="space-y-2 text-sm">
-                <Button 
-                  variant="link" 
-                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
-                  onClick={() => navigate('/terms')}
-                >
-                  {t('profile.footer.terms')}
-                </Button>
-                <Button 
-                  variant="link" 
-                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
-                  onClick={() => navigate('/cgv')}
-                >
-                  {t('profile.footer.cgv')}
-                </Button>
-                <Button 
-                  variant="link" 
-                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
-                  onClick={() => window.open('/privacy-policy', '_blank')}
-                >
-                  {t('profile.footer.privacy')}
-                </Button>
-              </div>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h3 className="font-semibold mb-4">{t('profile.footer.legal')}</h3>
-              <div className="space-y-2 text-sm">
-                <Button 
-                  variant="link" 
-                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
-                  onClick={() => window.open('/legal-notices', '_blank')}
-                >
-                  {t('profile.footer.legalNotices')}
-                </Button>
-                <Button 
-                  variant="link" 
-                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
-                  onClick={() => window.open('/cookie-policy', '_blank')}
-                >
-                  {t('profile.footer.cookies')}
-                </Button>
-                <p className="text-xs text-muted-foreground mt-4">
-                  {t('profile.footer.copyright')}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
