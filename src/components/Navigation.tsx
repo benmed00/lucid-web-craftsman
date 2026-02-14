@@ -272,7 +272,7 @@ const Navigation = () => {
                       variant="ghost" 
                       size="sm" 
                       onClick={handleSignOut} 
-                      className="group relative flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hidden xl:inline-flex hover:bg-primary/10 text-foreground hover:text-primary rounded-lg transition-all duration-300"
+                      className="hidden md:inline-flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hover:bg-primary/10 text-foreground hover:text-primary rounded-lg transition-all duration-300"
                       aria-label={t('common:nav.logout')}
                     >
                       <LogOut className="h-4 w-4 transition-colors" />
