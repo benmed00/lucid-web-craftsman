@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useTranslation } from 'react-i18next';
@@ -43,6 +43,18 @@ const Products = () => {
     error: fetchError,
     refetch 
   } = useProductsWithTranslations();
+
+  // Safety timeout: never show skeleton for more than 5 seconds
+  const [forceRender, setForceRender] = useState(false);
+  useEffect(() => {
+    if (loading) {
+      const timeout = setTimeout(() => {
+        console.warn('[Products] Loading timed out, rendering page');
+        setForceRender(true);
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [loading]);
 
   // Create a map of product ID to fallback info
   const fallbackInfo = useMemo(() => {
@@ -161,7 +173,7 @@ const Products = () => {
     setQuickViewProduct(null);
   };
 
-  if (loading) {
+  if (loading && !forceRender) {
     return (
       <div className="min-h-screen bg-background">
         
