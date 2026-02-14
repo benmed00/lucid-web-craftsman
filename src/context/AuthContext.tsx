@@ -158,6 +158,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (event, session) => {
         if (!isMounted) return;
 
+        // Handle token refresh errors — force re-login
+        if (event === 'TOKEN_REFRESHED' && !session) {
+          console.warn('[AuthContext] Token refresh failed, clearing session');
+          profileCache.invalidate();
+          setAuthState({
+            user: null, session: null, profile: null,
+            isLoading: false, isInitialized: true,
+          });
+          initializeWishlistStore(null);
+          return;
+        }
+
         // Synchronous state updates only
         setAuthState(prev => ({
           ...prev,
@@ -266,13 +278,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ============= Auth Methods =============
   const signIn = useCallback(async (email: string, password: string) => {
+    // Only clean up local storage tokens — do NOT call signOut({ scope: 'global' })
+    // as that revokes sessions in ALL tabs/devices, which is destructive and unnecessary.
     cleanupAuthState();
-    
-    try {
-      await supabase.auth.signOut({ scope: 'global' });
-    } catch {
-      // Continue even if this fails
-    }
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -280,6 +288,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) throw error;
+
+    // Notify other tabs about the new session
+    try {
+      const ch = new BroadcastChannel('auth-sync');
+      ch.postMessage({ type: 'SIGNED_IN', userId: data.user?.id });
+      ch.close();
+    } catch { /* BroadcastChannel not supported */ }
+
     return data;
   }, []);
 
@@ -290,12 +306,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     phone?: string
   ) => {
     cleanupAuthState();
-    
-    try {
-      await supabase.auth.signOut({ scope: 'global' });
-    } catch {
-      // Continue even if this fails
-    }
 
     const { data, error } = await supabase.auth.signUp({
       email,
