@@ -91,6 +91,7 @@ export const CSP_CONFIG = {
     EXTERNAL_SERVICES.lovable.app,
     EXTERNAL_SERVICES.lovable.project,
   ],
+  'manifest-src': ["'self'"],
   'upgrade-insecure-requests': [],
 } as const;
 
