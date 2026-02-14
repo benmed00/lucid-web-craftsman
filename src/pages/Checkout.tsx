@@ -219,7 +219,7 @@ const Checkout = () => {
         .select('*')
         .eq('code', sanitizedCode)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (error || !data) {
         setPromoError(t("promo.invalid"));
