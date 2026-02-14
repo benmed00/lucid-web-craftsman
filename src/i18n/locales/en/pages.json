@@ -375,6 +375,12 @@
     "content": "Born from a passion for Berber culture, Rif Raw Straw works directly with artisans to preserve ancestral know-how."
   },
 
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist.",
+    "backHome": "Back to home"
+  },
+
   "contact": {
     "seo": {
       "title": "Contact | Rifstraw",
