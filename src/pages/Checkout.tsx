@@ -883,7 +883,7 @@ const Checkout = () => {
                         });
                       }}
                       error={formErrors.postalCode}
-                      placeholder="75001"
+                      placeholder={formData.country === 'BE' || formData.country === 'CH' || formData.country === 'LU' ? "1000" : "ex: 75001"}
                       required
                       autoComplete="postal-code"
                       maxLength={10}
