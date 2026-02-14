@@ -10,6 +10,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuestSession } from '@/hooks/useGuestSession';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
+import { retryWithBackoffSilent } from '@/lib/retryWithBackoff';
 
 // Session status types
 export type CheckoutSessionStatus = 'in_progress' | 'completed' | 'abandoned' | 'payment_failed';
@@ -161,7 +162,7 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
             order_id: existingSession.order_id,
           });
         } else {
-          // Create new session
+          // Create new session with retry logic
           const newSession = {
             guest_id: guestId,
             user_id: userId,
@@ -173,19 +174,30 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
             os: guestData?.os || null,
           };
 
-          const { data, error: insertError } = await supabase
-            .from('checkout_sessions')
-            .insert(newSession)
-            .select('id')
-            .single();
+          const result = await retryWithBackoffSilent(
+            async () => {
+              const { data, error: insertError } = await supabase
+                .from('checkout_sessions')
+                .insert(newSession)
+                .select('id')
+                .single();
+              if (insertError) throw insertError;
+              return data;
+            },
+            null,
+            {
+              maxAttempts: 3,
+              baseDelayMs: 500,
+              onRetry: (attempt, err) => {
+                console.warn(`[useCheckoutSession] Session creation retry #${attempt}:`, err);
+              },
+            }
+          );
 
-          if (insertError) {
-            // Non-blocking: log warning but don't prevent checkout
-            console.warn('[useCheckoutSession] Session creation failed (non-blocking):', insertError.message);
-          } else if (data) {
-            setSessionId(data.id);
+          if (result) {
+            setSessionId(result.id);
             setSessionData({
-              id: data.id,
+              id: result.id,
               guest_id: guestId,
               user_id: userId,
               current_step: 1,
