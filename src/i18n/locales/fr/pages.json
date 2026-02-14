@@ -578,7 +578,55 @@
       "privacy": "Politique de confidentialité",
       "legalNotices": "Mentions légales",
       "cookies": "Politique de cookies",
-      "copyright": "© 2026 Rif Raw Straw. Tous droits réservés."
+    "copyright": "© 2026 Rif Raw Straw. Tous droits réservés."
+    }
+  },
+  "orders": {
+    "title": "Mes Commandes",
+    "subtitle": "Suivez et gérez vos commandes",
+    "refresh": "Actualiser",
+    "empty": {
+      "title": "Aucune commande",
+      "description": "Vous n'avez pas encore passé de commande. Commencez vos achats pour voir vos commandes ici.",
+      "cta": "Parcourir les produits"
+    },
+    "loginRequired": {
+      "title": "Connexion requise",
+      "description": "Veuillez vous connecter pour voir votre historique de commandes."
+    },
+    "orderNumber": "Commande #{{id}}",
+    "articles": "{{count}} article(s)",
+    "viewDetails": "Voir le détail",
+    "status": {
+      "pending": "En attente",
+      "paid": "Payée",
+      "processing": "En préparation",
+      "shipped": "Expédiée",
+      "delivered": "Livrée",
+      "cancelled": "Annulée",
+      "refunded": "Remboursée"
+    },
+    "statusDescription": {
+      "pending": "Votre commande est en attente de confirmation de paiement.",
+      "paid": "Paiement reçu. Votre commande sera traitée sous peu.",
+      "processing": "Votre commande est en cours de préparation par nos artisans.",
+      "shipped": "Votre commande est en route !",
+      "delivered": "Votre commande a été livrée.",
+      "cancelled": "Cette commande a été annulée.",
+      "refunded": "Cette commande a été remboursée."
+    },
+    "details": {
+      "orderedItems": "Articles commandés",
+      "product": "Produit",
+      "total": "Total",
+      "orderStatus": "Statut de la commande",
+      "sessionId": "ID de session",
+      "deliveryInfo": "Informations de livraison",
+      "deliveredMessage": "Votre commande a été livrée avec succès.",
+      "inTransitMessage": "Votre commande est actuellement en transit."
+    },
+    "messages": {
+      "loadError": "Erreur lors du chargement des commandes"
     }
   }
 }

@@ -582,7 +582,55 @@
       "privacy": "Privacy Policy",
       "legalNotices": "Legal Notices",
       "cookies": "Cookie Policy",
-      "copyright": "© 2026 Rif Raw Straw. All rights reserved."
+    "copyright": "© 2026 Rif Raw Straw. All rights reserved."
+    }
+  },
+  "orders": {
+    "title": "My Orders",
+    "subtitle": "Track and manage your orders",
+    "refresh": "Refresh",
+    "empty": {
+      "title": "No orders yet",
+      "description": "You haven't placed any orders yet. Start shopping to see your orders here.",
+      "cta": "Browse Products"
+    },
+    "loginRequired": {
+      "title": "Login Required",
+      "description": "Please sign in to view your order history."
+    },
+    "orderNumber": "Order #{{id}}",
+    "articles": "{{count}} item(s)",
+    "viewDetails": "View Details",
+    "status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded"
+    },
+    "statusDescription": {
+      "pending": "Your order is awaiting payment confirmation.",
+      "paid": "Payment received. Your order will be processed shortly.",
+      "processing": "Your order is being prepared by our artisans.",
+      "shipped": "Your order is on its way!",
+      "delivered": "Your order has been delivered.",
+      "cancelled": "This order has been cancelled.",
+      "refunded": "This order has been refunded."
+    },
+    "details": {
+      "orderedItems": "Ordered Items",
+      "product": "Product",
+      "total": "Total",
+      "orderStatus": "Order Status",
+      "sessionId": "Session ID",
+      "deliveryInfo": "Delivery Information",
+      "deliveredMessage": "Your order has been delivered successfully.",
+      "inTransitMessage": "Your order is currently in transit."
+    },
+    "messages": {
+      "loadError": "Error loading orders"
     }
   }
 }
