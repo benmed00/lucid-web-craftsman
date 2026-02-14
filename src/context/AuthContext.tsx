@@ -153,6 +153,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
+    // Safety timeout: force isLoading to false after 8s to prevent UI deadlock
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted) {
+        setAuthState(prev => {
+          if (prev.isLoading) {
+            console.warn('[AuthContext] Auth initialization timed out after 8s, forcing ready state');
+            return { ...prev, isLoading: false, isInitialized: true };
+          }
+          return prev;
+        });
+      }
+    }, 8000);
+
     // Set up auth state listener FIRST (to not miss any events)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -271,6 +284,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       isMounted = false;
+      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
       try { authChannel?.close(); } catch { /* ignore */ }
     };
