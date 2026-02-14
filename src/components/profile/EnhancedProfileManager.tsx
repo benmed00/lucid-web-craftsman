@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -173,7 +173,19 @@ export const EnhancedProfileManager: React.FC = () => {
     return 'outline';
   };
 
-  if (authLoading || profileLoading) {
+  // Safety timeout: never block profile page for more than 3 seconds
+  const [forceRender, setForceRender] = useState(false);
+  useEffect(() => {
+    if (authLoading || profileLoading) {
+      const timeout = setTimeout(() => {
+        console.warn('[EnhancedProfileManager] Loading timed out, rendering profile');
+        setForceRender(true);
+      }, 3000);
+      return () => clearTimeout(timeout);
+    }
+  }, [authLoading, profileLoading]);
+
+  if ((authLoading || profileLoading) && !forceRender) {
     return (
       <div className="container mx-auto py-8 px-4">
         <div className="space-y-6">
