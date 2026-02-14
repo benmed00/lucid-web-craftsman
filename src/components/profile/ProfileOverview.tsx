@@ -38,7 +38,7 @@ interface Profile {
 interface ProfileOverviewProps {
   user: User;
   profile: Profile | null;
-  onProfileUpdate: (updatedProfile: Profile) => void;
+  onProfileUpdate: (updatedProfile?: any) => void;
 }
 
 export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverviewProps) {
@@ -91,7 +91,7 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
 
       if (error) throw error;
 
-      onProfileUpdate(data);
+      onProfileUpdate();
       setIsEditing(false);
       toast.success('Profil mis à jour avec succès');
     } catch (error: any) {
@@ -130,9 +130,7 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
 
       if (updateError) throw updateError;
 
-      if (profile) {
-        onProfileUpdate({ ...profile, avatar_url: data.publicUrl });
-      }
+      onProfileUpdate();
 
       toast.success('Avatar mis à jour avec succès');
     } catch (error: any) {
@@ -150,9 +148,7 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
 
       if (error) throw error;
 
-      if (profile) {
-        onProfileUpdate({ ...profile, avatar_url: null });
-      }
+      onProfileUpdate();
 
       toast.success('Avatar supprimé avec succès');
     } catch (error: any) {
