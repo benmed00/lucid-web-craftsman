@@ -49,10 +49,12 @@ const Navigation = () => {
     try {
       await signOut();
       setIsMenuOpen(false);
+      navigate('/auth');
     } catch (error) {
       console.error("Sign out error:", error);
+      toast.error(t('common:nav.signOutError', 'Erreur lors de la déconnexion'));
     }
-  }, [signOut]);
+  }, [signOut, navigate, t]);
 
   // Smart navigation with "already on page" feedback
   const handleNavClick = useCallback((targetPath: string, e?: React.MouseEvent) => {
