@@ -1,6 +1,6 @@
-const CACHE_NAME = 'rif-raw-straw-v5';
-const STATIC_CACHE_NAME = 'rif-static-v5';
-const IMAGE_CACHE_NAME = 'rif-images-v5';
+const CACHE_NAME = 'rif-raw-straw-v4';
+const STATIC_CACHE_NAME = 'rif-static-v4';
+const IMAGE_CACHE_NAME = 'rif-images-v4';
 
 const CACHE_DURATIONS = {
   STATIC_ASSETS: 365 * 24 * 60 * 60 * 1000,
