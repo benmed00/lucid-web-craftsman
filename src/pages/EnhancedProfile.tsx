@@ -60,11 +60,7 @@ export default function EnhancedProfile() {
     }
   }, [authLoading, isProfileLoading]);
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    }
-  }, [user, authLoading]);
+  // Don't auto-redirect — show a friendly "login required" message instead
 
   const handleProfileUpdate = async (_updatedProfile?: any) => {
     // Refresh profile from AuthContext (single source of truth)
@@ -126,7 +122,27 @@ export default function EnhancedProfile() {
   }
 
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-16 max-w-md text-center">
+          <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+              <UserIcon className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-2xl font-serif font-bold text-foreground mb-3">
+              {t('profile.loginRequired', 'Connexion requise')}
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              {t('profile.loginRequiredDescription', 'Veuillez vous connecter pour accéder à votre profil et gérer vos informations.')}
+            </p>
+            <Button onClick={() => navigate('/auth')} className="w-full">
+              {t('profile.buttons.login', 'Se connecter')}
+            </Button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   return (
