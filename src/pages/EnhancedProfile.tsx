@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { User } from '@supabase/supabase-js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,31 +14,11 @@ import { PreferencesSettings } from '@/components/profile/PreferencesSettings';
 import { OrderHistory } from '@/components/profile/OrderHistory';
 import { LoyaltyProgram } from '@/components/profile/LoyaltyProgram';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
+import type { Profile } from '@/context/AuthContext';
 import { EnhancedProfileManager } from '@/components/profile/EnhancedProfileManager';
 import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import Footer from '@/components/Footer';
-
-interface Profile {
-  id: string;
-  full_name: string | null;
-  bio: string | null;
-  avatar_url: string | null;
-  phone: string | null;
-  location: string | null;
-  address_line1: string | null;
-  address_line2: string | null;
-  city: string | null;
-  postal_code: string | null;
-  country: string | null;
-  website_url: string | null;
-  instagram_handle: string | null;
-  facebook_url: string | null;
-  twitter_handle: string | null;
-  created_at: string;
-  updated_at: string;
-}
 
 const VALID_TABS = ['overview', 'personal', 'loyalty', 'preferences', 'orders'] as const;
 type ProfileTab = typeof VALID_TABS[number];
@@ -48,9 +27,8 @@ export default function EnhancedProfile() {
   const { t } = useTranslation('pages');
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signOut, isLoading: authLoading, session } = useOptimizedAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const { user, signOut, isLoading: authLoading, profile, refreshProfile } = useOptimizedAuth();
+  const isProfileLoading = authLoading && !profile;
 
   // Derive active tab from URL hash
   const getTabFromHash = (): ProfileTab => {
@@ -77,92 +55,27 @@ export default function EnhancedProfile() {
       const timeout = setTimeout(() => {
         console.warn('[EnhancedProfile] Loading timed out after 5s, force rendering');
         setForceRender(true);
-        setIsProfileLoading(false);
       }, 5000);
       return () => clearTimeout(timeout);
     }
   }, [authLoading, isProfileLoading]);
 
-  // Track if profile has been loaded to prevent duplicate requests
-  const hasLoadedProfile = useRef(false);
-  
   useEffect(() => {
-    // Don't redirect while auth is still loading
-    if (authLoading) return;
-    
-    if (!user) {
+    if (!authLoading && !user) {
       navigate('/auth');
-      return;
     }
+  }, [user, authLoading]);
 
-    // Only load profile once per session
-    if (!hasLoadedProfile.current) {
-      hasLoadedProfile.current = true;
-      loadProfile();
-    }
-  }, [user, authLoading]); // Removed navigate from deps to prevent re-runs
-
-  const loadProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // No profile found, create one
-          await createProfile();
-        } else {
-          throw error;
-        }
-      } else {
-        setProfile(data);
-      }
-    } catch (error: any) {
-      console.error('Error loading profile:', error);
-      toast.error(t('profile.messages.loadError'));
-    } finally {
-      setIsProfileLoading(false);
-    }
-  };
-
-  const createProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert([{
-          id: user.id,
-          full_name: user.user_metadata?.full_name || null,
-          bio: null,
-          avatar_url: null
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      setProfile(data);
-    } catch (error: any) {
-      console.error('Error creating profile:', error);
-      toast.error(t('profile.messages.createError'));
-    }
-  };
-
-  const handleProfileUpdate = (updatedProfile: Profile) => {
-    setProfile(updatedProfile);
+  const handleProfileUpdate = async (_updatedProfile?: any) => {
+    // Refresh profile from AuthContext (single source of truth)
+    await refreshProfile();
   };
 
   const handleDeleteAccount = async () => {
     if (!user) return;
 
-    setIsProfileLoading(true);
     try {
-      // Delete profile data
+      const { supabase } = await import('@/integrations/supabase/client');
       const { error } = await supabase
         .from('profiles')
         .delete()
@@ -170,30 +83,19 @@ export default function EnhancedProfile() {
 
       if (error) throw error;
 
-      // Sign out user
       await signOut();
       navigate('/auth');
       toast.success(t('profile.messages.deleteSuccess'));
     } catch (error: any) {
       console.error('Error deleting account:', error);
       toast.error(t('profile.messages.deleteError'));
-    } finally {
-      setIsProfileLoading(false);
     }
   };
 
   const handleSignOut = async () => {
     try {
-      // Clean up auth state properly
-      Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-          localStorage.removeItem(key);
-        }
-      });
-      
       await signOut();
-      // Force page reload for clean state
-      window.location.href = '/auth';
+      navigate('/auth');
     } catch (error: any) {
       console.error('Error signing out:', error);
       toast.error(t('profile.messages.signOutError'));

@@ -223,7 +223,9 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(
             onError={handleError}
             loading={preload ? "eager" : "lazy"}
             decoding={preload ? "sync" : "async"}
-            fetchPriority={category === "hero" ? "high" : undefined}
+            // Use lowercase 'fetchpriority' to avoid React DOM warning
+            // React doesn't recognize camelCase 'fetchPriority' and warns
+            {...(category === "hero" ? { fetchpriority: "high" } : {})}
             {...props}
           />
         </picture>
