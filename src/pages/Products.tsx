@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
 import { ProductRecommendations } from "@/components/ProductRecommendations";
 import SEOHelmet from "@/components/seo/SEOHelmet";
+import { useSafetyTimeout } from "@/hooks/useSafetyTimeout";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,20 +46,10 @@ const Products = () => {
   } = useProductsWithTranslations();
 
   // Safety timeout: never show skeleton for more than 8 seconds
-  const [forceRender, setForceRender] = useState(false);
-  useEffect(() => {
-    if (loading) {
-      setForceRender(false);
-      const timeout = setTimeout(() => {
-        console.warn('[Products] Loading timed out, rendering page');
-        setForceRender(true);
-      }, 8000);
-      return () => clearTimeout(timeout);
-    } else {
-      // Data loaded, ensure forceRender is reset
-      setForceRender(false);
-    }
-  }, [loading]);
+  const { hasTimedOut: forceRender } = useSafetyTimeout(loading, {
+    timeout: 8000,
+    onTimeout: () => console.warn('[Products] Loading timed out, rendering page'),
+  });
 
   // Create a map of product ID to fallback info
   const fallbackInfo = useMemo(() => {
