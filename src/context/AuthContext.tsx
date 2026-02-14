@@ -341,8 +341,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       cleanupAuthState();
       profileCache.invalidate();
-      await supabase.auth.signOut({ scope: 'global' });
-      // Notify other tabs
+      // Use 'local' scope to only clear THIS browser's session.
+      // Cross-tab sync is handled via BroadcastChannel below.
+      // 'global' would revoke ALL sessions on ALL devices, which is too destructive for a normal logout.
+      await supabase.auth.signOut({ scope: 'local' });
+      // Notify other tabs in this browser
       try {
         const ch = new BroadcastChannel('auth-sync');
         ch.postMessage({ type: 'SIGNED_OUT' });
