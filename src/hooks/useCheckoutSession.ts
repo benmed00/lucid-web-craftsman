@@ -110,6 +110,11 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
     const initSession = async () => {
       try {
         const guestData = getGuestData();
+        // If guest session isn't ready yet, guestData may be null — wait for next render
+        if (!guestData && !user) {
+          console.warn('[useCheckoutSession] No guest data or user — skipping session init');
+          return;
+        }
         const guestId = guestData?.guest_id || null;
         const userId = user?.id || null;
 
@@ -260,9 +265,12 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
   // Save personal info (step 1 complete)
   const savePersonalInfo = useCallback(async (data: PersonalInfo) => {
     await queueUpdate(async () => {
+      // Read latest step from ref-like state to avoid stale closure
+      const currentStep = sessionData?.last_completed_step || 0;
+      const newStep = Math.max(currentStep, 1);
       await updateSession({
         personal_info: data,
-        last_completed_step: Math.max(sessionData?.last_completed_step || 0, 1),
+        last_completed_step: newStep,
       });
       setSessionData(prev => prev ? {
         ...prev,
@@ -270,14 +278,16 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
         last_completed_step: Math.max(prev.last_completed_step, 1),
       } : null);
     });
-  }, [queueUpdate, updateSession, sessionData?.last_completed_step]);
+  }, [queueUpdate, updateSession]);
 
   // Save shipping info (step 2 complete)
   const saveShippingInfo = useCallback(async (data: ShippingInfo) => {
     await queueUpdate(async () => {
+      const currentStep = sessionData?.last_completed_step || 0;
+      const newStep = Math.max(currentStep, 2);
       await updateSession({
         shipping_info: data,
-        last_completed_step: Math.max(sessionData?.last_completed_step || 0, 2),
+        last_completed_step: newStep,
       });
       setSessionData(prev => prev ? {
         ...prev,
@@ -285,7 +295,7 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
         last_completed_step: Math.max(prev.last_completed_step, 2),
       } : null);
     });
-  }, [queueUpdate, updateSession, sessionData?.last_completed_step]);
+  }, [queueUpdate, updateSession]);
 
   // Save promo code data
   const savePromoCode = useCallback(async (data: PromoCodeData | null) => {

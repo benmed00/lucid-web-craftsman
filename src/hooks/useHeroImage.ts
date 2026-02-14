@@ -83,22 +83,9 @@ export const useHeroImage = () => {
     }
   };
 
-  // Listen for real-time updates (optional - for when multiple admins)
-  useEffect(() => {
-    const handleStorageChange = async () => {
-      try {
-        const data = await heroImageService.get();
-        setHeroImageData(data);
-      } catch (error) {
-        console.error('Error reloading hero image:', error);
-      }
-    };
-
-    // Could implement real-time subscriptions here if needed
-    // For now, we'll just reload on window focus
-    window.addEventListener('focus', handleStorageChange);
-    return () => window.removeEventListener('focus', handleStorageChange);
-  }, []);
+  // Removed: window focus listener was triggering unnecessary Supabase queries
+  // on every tab focus for all visitors. Hero image changes are admin-only
+  // and will be picked up on next page load.
 
   return {
     heroImageData,

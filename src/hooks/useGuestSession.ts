@@ -159,16 +159,12 @@ export function useGuestSession() {
 
   /**
    * Get session data for API calls (checkout, analytics, etc.)
+   * IMPORTANT: Never generate a random UUID here — return null if not ready
+   * to prevent orphaned checkout sessions with mismatched guest IDs.
    */
   const getSessionData = useCallback(() => {
     if (!session) {
-      // Return a temporary session if not yet initialized
-      return {
-        guest_id: generateUUID(),
-        device_type: getDeviceType(),
-        os: getOS(),
-        browser: getBrowser(),
-      };
+      return null;
     }
 
     return {
