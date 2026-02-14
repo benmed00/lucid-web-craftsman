@@ -98,18 +98,26 @@ export const useWishlistStore = create<WishlistState>()(
           return false;
         }
 
-        // Check if already in wishlist
-        if (items.some(item => item.product_id === productId)) {
-          return true;
-        }
+        if (items.some(item => item.product_id === productId)) return true;
 
-        // Check max items limit
         if (items.length >= maxItems) {
           toast.warning('Limite de favoris atteinte', {
-            description: `Maximum ${maxItems} produits dans vos favoris. Retirez un produit pour en ajouter un nouveau.`,
+            description: `Maximum ${maxItems} produits dans vos favoris.`,
           });
           return false;
         }
+
+        // Optimistic: add a temporary item immediately
+        const optimisticItem: WishlistItem = {
+          id: `optimistic-${productId}`,
+          user_id: userId,
+          product_id: productId,
+          created_at: new Date().toISOString(),
+        };
+        set({ items: [optimisticItem, ...items] });
+
+        // Haptic feedback
+        if ('vibrate' in navigator) navigator.vibrate(50);
 
         try {
           const { data, error } = await supabase
@@ -120,34 +128,32 @@ export const useWishlistStore = create<WishlistState>()(
 
           if (error) throw error;
 
-          // Optimistic update
-          if (data) {
-            set({ items: [data, ...items] });
-          }
-
-          // Haptic feedback
-          if ('vibrate' in navigator) {
-            navigator.vibrate(50);
-          }
+          // Replace optimistic item with real one
+          set((state) => ({
+            items: state.items.map((item) =>
+              item.id === optimisticItem.id && data ? data : item
+            ),
+          }));
 
           toast.success('Produit ajouté aux favoris', {
             action: {
               label: 'Voir mes favoris',
-              onClick: () => {
-                window.location.href = `/wishlist?highlight=${productId}`;
-              }
+              onClick: () => { window.location.href = `/wishlist?highlight=${productId}`; },
             },
             cancel: {
               label: 'Annuler',
               onClick: async () => {
                 await get().removeFromWishlist(productId);
                 toast.success('Ajout annulé');
-              }
-            }
+              },
+            },
           });
-
           return true;
         } catch (error) {
+          // Rollback optimistic update
+          set((state) => ({
+            items: state.items.filter((item) => item.id !== optimisticItem.id),
+          }));
           console.error('Error adding to wishlist:', error);
           toast.error("Erreur lors de l'ajout aux favoris");
           return false;
@@ -158,6 +164,10 @@ export const useWishlistStore = create<WishlistState>()(
         const { userId, items } = get();
         if (!userId) return false;
 
+        // Optimistic: remove immediately, keep snapshot for rollback
+        const removedItem = items.find((item) => item.product_id === productId);
+        set({ items: items.filter((item) => item.product_id !== productId) });
+
         try {
           const { error } = await supabase
             .from('wishlist')
@@ -167,11 +177,13 @@ export const useWishlistStore = create<WishlistState>()(
 
           if (error) throw error;
 
-          // Optimistic update
-          set({ items: items.filter(item => item.product_id !== productId) });
           toast.success('Produit retiré des favoris');
           return true;
         } catch (error) {
+          // Rollback: restore the removed item
+          if (removedItem) {
+            set((state) => ({ items: [removedItem, ...state.items] }));
+          }
           console.error('Error removing from wishlist:', error);
           toast.error('Erreur lors de la suppression des favoris');
           return false;
