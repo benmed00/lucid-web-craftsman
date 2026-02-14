@@ -44,15 +44,19 @@ const Products = () => {
     refetch 
   } = useProductsWithTranslations();
 
-  // Safety timeout: never show skeleton for more than 5 seconds
+  // Safety timeout: never show skeleton for more than 8 seconds
   const [forceRender, setForceRender] = useState(false);
   useEffect(() => {
     if (loading) {
+      setForceRender(false);
       const timeout = setTimeout(() => {
         console.warn('[Products] Loading timed out, rendering page');
         setForceRender(true);
-      }, 5000);
+      }, 8000);
       return () => clearTimeout(timeout);
+    } else {
+      // Data loaded, ensure forceRender is reset
+      setForceRender(false);
     }
   }, [loading]);
 
@@ -172,6 +176,13 @@ const Products = () => {
 
     setQuickViewProduct(null);
   };
+
+  // If force-rendered but still no data, trigger a refetch
+  useEffect(() => {
+    if (forceRender && products.length === 0 && !fetchError) {
+      refetch();
+    }
+  }, [forceRender, products.length, fetchError, refetch]);
 
   if (loading && !forceRender) {
     return (

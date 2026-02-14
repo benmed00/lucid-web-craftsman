@@ -176,10 +176,11 @@ export async function getProductWithTranslation(
 export async function getProductsWithTranslations(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<ProductWithTranslation[]> {
-  // Get all products
+  // Get all active products
   const { data: products, error: productsError } = await supabase
     .from('products')
     .select('*')
+    .eq('is_active', true)
     .order('created_at', { ascending: false });
 
   if (productsError || !products) {
