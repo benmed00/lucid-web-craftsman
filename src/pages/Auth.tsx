@@ -431,6 +431,7 @@ export default function Auth() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
+                          minLength={8}
                           className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6 pr-12"
                         />
                         <Button
@@ -442,6 +443,21 @@ export default function Auth() {
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
+                      </div>
+                      {/* Password requirements */}
+                      <div className="text-xs text-muted-foreground space-y-1 mt-1 pl-1">
+                        <p className={password.length >= 8 ? 'text-green-600' : ''}>
+                          {password.length >= 8 ? '✓' : '○'} {t('auth:register.passwordRules.minLength', 'Au moins 8 caractères')}
+                        </p>
+                        <p className={/[A-Z]/.test(password) ? 'text-green-600' : ''}>
+                          {/[A-Z]/.test(password) ? '✓' : '○'} {t('auth:register.passwordRules.uppercase', 'Une lettre majuscule')}
+                        </p>
+                        <p className={/[a-z]/.test(password) ? 'text-green-600' : ''}>
+                          {/[a-z]/.test(password) ? '✓' : '○'} {t('auth:register.passwordRules.lowercase', 'Une lettre minuscule')}
+                        </p>
+                        <p className={/[0-9]/.test(password) ? 'text-green-600' : ''}>
+                          {/[0-9]/.test(password) ? '✓' : '○'} {t('auth:register.passwordRules.number', 'Un chiffre')}
+                        </p>
                       </div>
                     </div>
                     <div className="space-y-2">

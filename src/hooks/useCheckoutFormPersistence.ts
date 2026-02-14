@@ -81,6 +81,14 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
     if (hasInitialized.current) return;
     hasInitialized.current = true;
 
+    // Safety timeout: never block checkout for more than 3 seconds
+    const safetyTimeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn('[useCheckoutFormPersistence] Loading timed out, rendering form');
+        setIsLoading(false);
+      }
+    }, 3000);
+
     const loadFormData = async () => {
       setIsLoading(true);
       let loadedData: Partial<CheckoutFormData> = {};
@@ -252,9 +260,12 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
       });
 
       setIsLoading(false);
+      clearTimeout(safetyTimeout);
     };
 
     loadFormData();
+
+    return () => clearTimeout(safetyTimeout);
   }, [user]);
 
   // Save form data to localStorage (persists across redirects like Stripe)
