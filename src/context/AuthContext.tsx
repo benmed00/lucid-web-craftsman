@@ -187,6 +187,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
+    // Cross-tab auth sync via BroadcastChannel
+    let authChannel: BroadcastChannel | null = null;
+    try {
+      authChannel = new BroadcastChannel('auth-sync');
+      authChannel.onmessage = (event) => {
+        if (event.data?.type === 'SIGNED_OUT' && isMounted) {
+          profileCache.invalidate();
+          setAuthState({
+            user: null,
+            session: null,
+            profile: null,
+            isLoading: false,
+            isInitialized: true,
+          });
+          initializeWishlistStore(null);
+        } else if (event.data?.type === 'SIGNED_IN' && isMounted) {
+          // Refresh session from Supabase to pick up new auth state
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session?.user && isMounted) {
+              setAuthState(prev => ({
+                ...prev,
+                session,
+                user: session.user,
+                isLoading: false,
+                isInitialized: true,
+              }));
+              initializeWishlistStore(session.user.id);
+              loadUserProfile(session.user.id);
+            }
+          });
+        }
+      };
+    } catch {
+      // BroadcastChannel not supported — silent fallback
+    }
+
     // THEN check for existing session
     const initAuth = async () => {
       try {
@@ -224,6 +260,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
       subscription.unsubscribe();
+      try { authChannel?.close(); } catch { /* ignore */ }
     };
   }, [loadUserProfile]);
 
@@ -281,6 +318,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cleanupAuthState();
       profileCache.invalidate();
       await supabase.auth.signOut({ scope: 'global' });
+      // Notify other tabs
+      try {
+        const ch = new BroadcastChannel('auth-sync');
+        ch.postMessage({ type: 'SIGNED_OUT' });
+        ch.close();
+      } catch { /* ignore */ }
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;

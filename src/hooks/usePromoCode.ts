@@ -42,10 +42,16 @@ interface CouponValidationResult {
 }
 
 export function usePromoCode({ subtotal }: UsePromoCodeOptions): UsePromoCodeReturn {
-  const [promoCode, setPromoCode] = useState('');
+  const [promoCode, setPromoCodeRaw] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState('');
+
+  // Clear error when user types a new promo code
+  const setPromoCode = useCallback((code: string) => {
+    setPromoCodeRaw(code);
+    if (error) setError('');
+  }, [error]);
   const { formatPrice } = useCurrency();
 
   // Calculate discount amount

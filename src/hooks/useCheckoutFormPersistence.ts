@@ -75,10 +75,15 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
   const [savedCompletedSteps, setSavedCompletedSteps] = useState<number[]>([]);
   const [savedCoupon, setSavedCoupon] = useState<SavedCoupon | null>(null);
   const hasInitialized = useRef(false);
+  const previousUserId = useRef<string | undefined>(undefined);
 
-  // Load data on mount - first from cache, then from profile if logged in
+  // Load data on mount — and re-merge if user signs in mid-checkout
   useEffect(() => {
-    if (hasInitialized.current) return;
+    const userId = user?.id;
+    const userChanged = userId !== previousUserId.current;
+    previousUserId.current = userId;
+
+    if (hasInitialized.current && !userChanged) return;
     hasInitialized.current = true;
 
     // Safety timeout: never block checkout for more than 3 seconds
