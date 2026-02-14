@@ -113,12 +113,9 @@ export function usePromoCode({ subtotal }: UsePromoCodeOptions): UsePromoCodeRet
         .select('*')
         .eq('code', sanitizedCode)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (fetchError) {
-        if (fetchError.code === 'PGRST116') {
-          throw new ValidationError('Code promo invalide ou expiré');
-        }
         throw new DatabaseError(`Failed to validate promo code: ${fetchError.message}`, fetchError.code);
       }
 
