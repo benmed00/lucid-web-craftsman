@@ -10,8 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  Users, Search, Eye, RefreshCw, UserPlus, Mail, Phone, MapPin, Calendar,
-  ShoppingBag, Star, ChevronLeft, ChevronRight, Download, TrendingUp, Award, Package
+  Users, Search, Eye, RefreshCw, Mail, Phone, MapPin, Calendar,
+  ShoppingBag, Star, ChevronLeft, ChevronRight, Download, TrendingUp, Award, Package, ShoppingCart
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -36,6 +36,15 @@ interface CustomerProfile {
   updated_at: string;
 }
 
+interface OrderItem {
+  id: string;
+  product_id: number | null;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  product_snapshot: Record<string, unknown> | null;
+}
+
 interface CustomerOrder {
   id: string;
   amount: number | null;
@@ -43,6 +52,17 @@ interface CustomerOrder {
   order_status: string | null;
   created_at: string;
   payment_method: string | null;
+  tracking_number: string | null;
+  carrier: string | null;
+  items?: OrderItem[];
+}
+
+interface CartItem {
+  id: string;
+  product_id: number | null;
+  quantity: number;
+  created_at: string;
+  product_name?: string;
 }
 
 interface LoyaltyInfo {
@@ -64,6 +84,7 @@ interface Customer extends CustomerProfile {
   status: 'active' | 'inactive' | 'premium';
   loyalty?: LoyaltyInfo | null;
   orders?: CustomerOrder[];
+  cart_items?: CartItem[];
 }
 
 const ITEMS_PER_PAGE = 15;
@@ -87,11 +108,24 @@ const AdminCustomers = () => {
       // Batch fetch: profiles + all orders + loyalty points in parallel
       const [profilesRes, ordersRes, loyaltyRes] = await Promise.all([
         supabase.from('profiles').select('*').order('created_at', { ascending: false }),
-        supabase.from('orders').select('id, user_id, amount, status, created_at'),
+        supabase.from('orders').select('id, user_id, amount, status, order_status, created_at'),
         supabase.from('loyalty_points').select('user_id, points_balance, tier, total_points_earned')
       ]);
 
       if (profilesRes.error) throw profilesRes.error;
+
+      // Fetch emails for all profile IDs via admin RPC
+      const profileIds = (profilesRes.data || []).map(p => p.id);
+      const emailsByUser = new Map<string, string>();
+      
+      if (profileIds.length > 0) {
+        const { data: emailData } = await supabase.rpc('get_user_emails_for_admin', {
+          p_user_ids: profileIds
+        });
+        (emailData || []).forEach((e: { user_id: string; email: string }) => {
+          emailsByUser.set(e.user_id, e.email);
+        });
+      }
 
       // Index orders by user_id
       const ordersByUser = new Map<string, typeof ordersRes.data>();
@@ -114,13 +148,15 @@ const AdminCustomers = () => {
 
       const customersWithStats = (profilesRes.data || []).map(profile => {
         const userOrders = ordersByUser.get(profile.id) || [];
+        // Count all orders except explicitly failed ones
+        const countableStatuses = ['paid', 'validated', 'preparing', 'shipped', 'in_transit', 'delivered', 'processing'];
         const validOrders = userOrders.filter(o =>
-          ['paid', 'processing', 'shipped', 'delivered'].includes(o.status || '')
+          countableStatuses.includes(o.order_status || o.status || '')
         );
 
         const totalOrders = validOrders.length;
         const totalSpent = validOrders.reduce((sum, o) => sum + ((o.amount || 0) / 100), 0);
-        const sorted = [...validOrders].sort((a, b) =>
+        const sorted = [...userOrders].sort((a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         const lastOrderDate = sorted.length > 0 ? sorted[0].created_at : null;
@@ -128,10 +164,11 @@ const AdminCustomers = () => {
 
         let status: 'active' | 'inactive' | 'premium' = 'inactive';
         if (totalSpent > 500) status = 'premium';
-        else if (totalOrders > 0) status = 'active';
+        else if (userOrders.length > 0) status = 'active';
 
         return {
           ...profile,
+          email: emailsByUser.get(profile.id),
           stats: { total_orders: totalOrders, total_spent: totalSpent, last_order_date: lastOrderDate, avg_order_value: avgOrderValue },
           status,
           loyalty: loyaltyByUser.get(profile.id) || null
@@ -149,23 +186,67 @@ const AdminCustomers = () => {
 
   useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
 
-  // Open detail & fetch order history for selected customer
+  // Open detail & fetch orders with items + cart for selected customer
   const openCustomerDetail = useCallback(async (customer: Customer) => {
     setSelectedCustomer(customer);
     setDetailOpen(true);
     setDetailLoading(true);
 
     try {
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('id, amount, status, order_status, created_at, payment_method')
-        .eq('user_id', customer.id)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      const [ordersRes, cartRes] = await Promise.all([
+        supabase
+          .from('orders')
+          .select(`
+            id, amount, status, order_status, created_at, payment_method, tracking_number, carrier,
+            order_items (id, product_id, quantity, unit_price, total_price, product_snapshot)
+          `)
+          .eq('user_id', customer.id)
+          .order('created_at', { ascending: false })
+          .limit(30),
+        supabase
+          .from('cart_items')
+          .select('id, product_id, quantity, created_at')
+          .eq('user_id', customer.id)
+      ]);
 
-      setSelectedCustomer(prev => prev ? { ...prev, orders: orders || [] } : null);
+      const orders: CustomerOrder[] = (ordersRes.data || []).map((o: Record<string, unknown>) => ({
+        id: o.id as string,
+        amount: o.amount as number | null,
+        status: o.status as string | null,
+        order_status: o.order_status as string | null,
+        created_at: o.created_at as string,
+        payment_method: o.payment_method as string | null,
+        tracking_number: o.tracking_number as string | null,
+        carrier: o.carrier as string | null,
+        items: (o.order_items as OrderItem[]) || [],
+      }));
+
+      // Enrich cart items with product names from products table
+      let cartItems: CartItem[] = (cartRes.data || []).map(c => ({
+        id: c.id,
+        product_id: c.product_id,
+        quantity: c.quantity,
+        created_at: c.created_at,
+      }));
+
+      if (cartItems.length > 0) {
+        const productIds = cartItems.map(c => c.product_id).filter(Boolean) as number[];
+        if (productIds.length > 0) {
+          const { data: products } = await supabase
+            .from('products')
+            .select('id, name')
+            .in('id', productIds);
+          const productMap = new Map((products || []).map(p => [p.id, p.name]));
+          cartItems = cartItems.map(c => ({
+            ...c,
+            product_name: c.product_id ? productMap.get(c.product_id) || `Produit #${c.product_id}` : 'Inconnu'
+          }));
+        }
+      }
+
+      setSelectedCustomer(prev => prev ? { ...prev, orders, cart_items: cartItems } : null);
     } catch (e) {
-      console.error('Error fetching customer orders:', e);
+      console.error('Error fetching customer details:', e);
     } finally {
       setDetailLoading(false);
     }
@@ -178,6 +259,7 @@ const AdminCustomers = () => {
       const matchesSearch = !q ||
         (customer.full_name?.toLowerCase() || '').includes(q) ||
         customer.id.toLowerCase().includes(q) ||
+        (customer.email?.toLowerCase() || '').includes(q) ||
         (customer.phone?.toLowerCase() || '').includes(q) ||
         (customer.city?.toLowerCase() || '').includes(q);
       const matchesStatus = filterStatus === "all" || customer.status === filterStatus;
@@ -216,16 +298,27 @@ const AdminCustomers = () => {
     }
   };
 
+  const ORDER_STATUS_MAP: Record<string, { label: string; className: string }> = {
+    created: { label: 'Créée', className: 'bg-slate-500/20 text-slate-400' },
+    payment_pending: { label: 'Paiement en attente', className: 'bg-yellow-500/20 text-yellow-400' },
+    payment_failed: { label: 'Paiement échoué', className: 'bg-red-500/20 text-red-400' },
+    paid: { label: 'Payée', className: 'bg-blue-500/20 text-blue-400' },
+    validation_in_progress: { label: 'En validation', className: 'bg-indigo-500/20 text-indigo-400' },
+    validated: { label: 'Validée', className: 'bg-indigo-500/20 text-indigo-400' },
+    preparing: { label: 'En préparation', className: 'bg-purple-500/20 text-purple-400' },
+    shipped: { label: 'Expédiée', className: 'bg-purple-500/20 text-purple-400' },
+    in_transit: { label: 'En transit', className: 'bg-violet-500/20 text-violet-400' },
+    delivered: { label: 'Livrée', className: 'bg-emerald-500/20 text-emerald-400' },
+    delivery_failed: { label: 'Échec livraison', className: 'bg-red-500/20 text-red-400' },
+    cancelled: { label: 'Annulée', className: 'bg-red-500/20 text-red-400' },
+    refunded: { label: 'Remboursée', className: 'bg-orange-500/20 text-orange-400' },
+    return_requested: { label: 'Retour demandé', className: 'bg-orange-500/20 text-orange-400' },
+    returned: { label: 'Retournée', className: 'bg-orange-500/20 text-orange-400' },
+    archived: { label: 'Archivée', className: 'bg-muted text-muted-foreground' },
+  };
+
   const getOrderStatusBadge = (status: string | null) => {
-    const map: Record<string, { label: string; className: string }> = {
-      pending: { label: 'En attente', className: 'bg-yellow-500/20 text-yellow-400' },
-      paid: { label: 'Payée', className: 'bg-blue-500/20 text-blue-400' },
-      processing: { label: 'En cours', className: 'bg-indigo-500/20 text-indigo-400' },
-      shipped: { label: 'Expédiée', className: 'bg-purple-500/20 text-purple-400' },
-      delivered: { label: 'Livrée', className: 'bg-emerald-500/20 text-emerald-400' },
-      cancelled: { label: 'Annulée', className: 'bg-red-500/20 text-red-400' },
-    };
-    const s = map[status || ''] || { label: status || 'Inconnu', className: 'bg-muted text-muted-foreground' };
+    const s = ORDER_STATUS_MAP[status || ''] || { label: status || 'Inconnu', className: 'bg-muted text-muted-foreground' };
     return <Badge className={s.className}>{s.label}</Badge>;
   };
 
@@ -242,9 +335,10 @@ const AdminCustomers = () => {
 
   // CSV export
   const exportCSV = () => {
-    const headers = ['Nom', 'Téléphone', 'Ville', 'Pays', 'Commandes', 'CA Total', 'Statut', 'Inscription'];
+    const headers = ['Nom', 'Email', 'Téléphone', 'Ville', 'Pays', 'Commandes', 'CA Total', 'Statut', 'Inscription'];
     const rows = filteredCustomers.map(c => [
       c.full_name || 'Anonyme',
+      c.email || '',
       c.phone || '',
       c.city || '',
       c.country || '',
@@ -266,6 +360,14 @@ const AdminCustomers = () => {
 
   const getInitials = (name: string | null) =>
     (name || 'C').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+  const getProductName = (item: OrderItem): string => {
+    if (item.product_snapshot && typeof item.product_snapshot === 'object') {
+      const snap = item.product_snapshot as Record<string, unknown>;
+      return (snap.name as string) || (snap.title as string) || `Produit #${item.product_id}`;
+    }
+    return `Produit #${item.product_id}`;
+  };
 
   if (loading) {
     return (
@@ -364,7 +466,7 @@ const AdminCustomers = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Rechercher par nom, téléphone, ville..."
+                placeholder="Rechercher par nom, email, téléphone, ville..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -427,25 +529,35 @@ const AdminCustomers = () => {
                           <p className="font-medium text-foreground truncate">
                             {customer.full_name || 'Client anonyme'}
                           </p>
-                          <p className="text-xs text-muted-foreground">#{customer.id.slice(-8)}</p>
+                          {customer.email ? (
+                            <p className="text-xs text-muted-foreground truncate">{customer.email}</p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">#{customer.id.slice(-8)}</p>
+                          )}
                         </div>
                       </div>
                     </td>
                     <td className="p-4 hidden md:table-cell">
                       <div className="space-y-0.5">
+                        {customer.email && (
+                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <Mail className="h-3 w-3 shrink-0" />
+                            <span className="truncate max-w-[180px]">{customer.email}</span>
+                          </div>
+                        )}
                         {customer.phone && (
                           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <Phone className="h-3 w-3" />
+                            <Phone className="h-3 w-3 shrink-0" />
                             <span>{customer.phone}</span>
                           </div>
                         )}
                         {customer.city && (
                           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
+                            <MapPin className="h-3 w-3 shrink-0" />
                             <span>{customer.city}{customer.country ? `, ${customer.country}` : ''}</span>
                           </div>
                         )}
-                        {!customer.phone && !customer.city && (
+                        {!customer.email && !customer.phone && !customer.city && (
                           <span className="text-sm text-muted-foreground">—</span>
                         )}
                       </div>
@@ -560,21 +672,33 @@ const AdminCustomers = () => {
                     <DialogTitle className="text-xl">
                       {selectedCustomer.full_name || 'Client anonyme'}
                     </DialogTitle>
-                    <DialogDescription className="flex items-center gap-2 mt-1">
-                      <Calendar className="h-3 w-3" />
-                      Client depuis le {format(new Date(selectedCustomer.created_at), 'dd MMMM yyyy', { locale: fr })}
-                      <span className="ml-2">{getStatusBadge(selectedCustomer.status)}</span>
-                      {selectedCustomer.loyalty && <span>{getLoyaltyBadge(selectedCustomer.loyalty.tier)}</span>}
+                    <DialogDescription asChild>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          Client depuis le {format(new Date(selectedCustomer.created_at), 'dd MMMM yyyy', { locale: fr })}
+                        </span>
+                        {getStatusBadge(selectedCustomer.status)}
+                        {selectedCustomer.loyalty && getLoyaltyBadge(selectedCustomer.loyalty.tier)}
+                      </div>
                     </DialogDescription>
                   </div>
                 </div>
               </DialogHeader>
 
               <Tabs defaultValue="info" className="mt-4">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="info">Informations</TabsTrigger>
-                  <TabsTrigger value="orders">Commandes</TabsTrigger>
-                  <TabsTrigger value="stats">Statistiques</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="info">Infos</TabsTrigger>
+                  <TabsTrigger value="orders">
+                    Commandes {selectedCustomer.orders ? `(${selectedCustomer.orders.length})` : ''}
+                  </TabsTrigger>
+                  <TabsTrigger value="cart">
+                    Panier {selectedCustomer.cart_items && selectedCustomer.cart_items.length > 0
+                      ? `(${selectedCustomer.cart_items.length})`
+                      : ''
+                    }
+                  </TabsTrigger>
+                  <TabsTrigger value="stats">Stats</TabsTrigger>
                 </TabsList>
 
                 {/* Info Tab */}
@@ -586,7 +710,11 @@ const AdminCustomers = () => {
                       </h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone className="h-3.5 w-3.5" />
+                          <Mail className="h-3.5 w-3.5 shrink-0" />
+                          <span>{selectedCustomer.email || 'Non renseigné'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Phone className="h-3.5 w-3.5 shrink-0" />
                           <span>{selectedCustomer.phone || 'Non renseigné'}</span>
                         </div>
                       </div>
@@ -649,24 +777,56 @@ const AdminCustomers = () => {
                       {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
                     </div>
                   ) : selectedCustomer.orders && selectedCustomer.orders.length > 0 ? (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {selectedCustomer.orders.map(order => (
-                        <div key={order.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border">
-                          <div className="flex items-center gap-3">
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-sm font-medium text-foreground">#{order.id.slice(-8)}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {format(new Date(order.created_at), 'dd MMM yyyy à HH:mm', { locale: fr })}
-                              </p>
+                        <div key={order.id} className="rounded-lg bg-muted/30 border border-border overflow-hidden">
+                          {/* Order header */}
+                          <div className="flex items-center justify-between p-3">
+                            <div className="flex items-center gap-3">
+                              <Package className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <p className="text-sm font-medium text-foreground">#{order.id.slice(-8)}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {format(new Date(order.created_at), 'dd MMM yyyy à HH:mm', { locale: fr })}
+                                  {order.payment_method && <span> • {order.payment_method}</span>}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              {getOrderStatusBadge(order.order_status || order.status)}
+                              <span className="font-medium text-foreground text-sm">
+                                {formatPrice((order.amount || 0) / 100)}
+                              </span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            {getOrderStatusBadge(order.order_status || order.status)}
-                            <span className="font-medium text-foreground text-sm">
-                              {formatPrice((order.amount || 0) / 100)}
-                            </span>
-                          </div>
+
+                          {/* Order items */}
+                          {order.items && order.items.length > 0 && (
+                            <div className="border-t border-border px-3 py-2 bg-muted/20">
+                              <p className="text-xs text-muted-foreground mb-1.5 font-medium">
+                                {order.items.length} article{order.items.length > 1 ? 's' : ''}
+                              </p>
+                              <div className="space-y-1">
+                                {order.items.map(item => (
+                                  <div key={item.id} className="flex items-center justify-between text-xs">
+                                    <span className="text-foreground truncate max-w-[60%]">
+                                      {getProductName(item)} × {item.quantity}
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      {formatPrice(item.total_price / 100)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Tracking info */}
+                          {order.tracking_number && (
+                            <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
+                              📦 {order.carrier || 'Transporteur'}: {order.tracking_number}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -674,6 +834,42 @@ const AdminCustomers = () => {
                     <div className="text-center p-8">
                       <ShoppingBag className="h-10 w-10 text-muted-foreground mx-auto mb-2 opacity-40" />
                       <p className="text-muted-foreground text-sm">Aucune commande</p>
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Cart Tab */}
+                <TabsContent value="cart" className="mt-4">
+                  {detailLoading ? (
+                    <div className="space-y-3">
+                      {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+                    </div>
+                  ) : selectedCustomer.cart_items && selectedCustomer.cart_items.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {selectedCustomer.cart_items.length} article{selectedCustomer.cart_items.length > 1 ? 's' : ''} dans le panier
+                      </p>
+                      {selectedCustomer.cart_items.map(item => (
+                        <div key={item.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border">
+                          <div className="flex items-center gap-3">
+                            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm font-medium text-foreground">
+                                {item.product_name || `Produit #${item.product_id}`}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Ajouté le {format(new Date(item.created_at), 'dd MMM yyyy', { locale: fr })}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge variant="outline">× {item.quantity}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center p-8">
+                      <ShoppingCart className="h-10 w-10 text-muted-foreground mx-auto mb-2 opacity-40" />
+                      <p className="text-muted-foreground text-sm">Panier vide</p>
                     </div>
                   )}
                 </TabsContent>

@@ -3296,6 +3296,13 @@ export type Database = {
       }
       get_request_guest_id: { Args: never; Returns: string }
       get_security_setting: { Args: { setting_key: string }; Returns: Json }
+      get_user_emails_for_admin: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          email: string
+          user_id: string
+        }[]
+      }
       get_user_newsletter_subscription: {
         Args: never
         Returns: {
