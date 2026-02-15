@@ -160,7 +160,7 @@ const PaymentSuccess = () => {
   const handleDownloadInvoice = useCallback(() => {
     if (!invoiceData) return;
 
-    const formatCents = (cents: number) => (cents / 100).toFixed(2) + ' €';
+    const formatPrice = (value: number) => value.toFixed(2) + ' €';
 
     const invoiceHtml = `
 <!DOCTYPE html>
@@ -227,8 +227,8 @@ const PaymentSuccess = () => {
       <tr>
         <td>${item.product_name}</td>
         <td class="text-right">${item.quantity}</td>
-        <td class="text-right">${formatCents(item.unit_price)}</td>
-        <td class="text-right">${formatCents(item.total_price)}</td>
+        <td class="text-right">${formatPrice(item.unit_price)}</td>
+        <td class="text-right">${formatPrice(item.total_price)}</td>
       </tr>`).join('')}
     </tbody>
   </table>
@@ -236,20 +236,20 @@ const PaymentSuccess = () => {
   <div class="totals">
     <div class="totals-row">
       <span>${t('pages:paymentSuccess.invoice.subtotal')}</span>
-      <span>${formatCents(invoiceData.subtotal)}</span>
+      <span>${formatPrice(invoiceData.subtotal)}</span>
     </div>
     <div class="totals-row">
       <span>${t('pages:paymentSuccess.invoice.shipping')}</span>
-      <span>${invoiceData.shipping > 0 ? formatCents(invoiceData.shipping) : t('pages:paymentSuccess.invoice.freeShipping')}</span>
+      <span>${invoiceData.shipping > 0 ? formatPrice(invoiceData.shipping) : t('pages:paymentSuccess.invoice.freeShipping')}</span>
     </div>
     ${invoiceData.discount > 0 ? `
     <div class="totals-row">
       <span>${t('pages:paymentSuccess.invoice.discount')}</span>
-      <span>-${formatCents(invoiceData.discount)}</span>
+      <span>-${formatPrice(invoiceData.discount)}</span>
     </div>` : ''}
     <div class="totals-row grand">
       <span>${t('pages:paymentSuccess.invoice.grandTotal')}</span>
-      <span>${formatCents(invoiceData.total)}</span>
+      <span>${formatPrice(invoiceData.total)}</span>
     </div>
   </div>
 
