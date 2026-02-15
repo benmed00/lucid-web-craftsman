@@ -179,22 +179,22 @@ const Checkout = () => {
 
   // Track if payment was initiated (to prevent double submissions)
   const [paymentInitiated, setPaymentInitiated] = useState(false);
-  // Track if PayPal was opened in a new tab (so we can reset processing on return)
-  const [paypalOpenedInTab, setPaypalOpenedInTab] = useState(false);
+  // Track if payment was opened in a new tab (Stripe or PayPal)
+  const [paymentOpenedInTab, setPaymentOpenedInTab] = useState(false);
 
-  // Reset processing state when user returns from PayPal tab
+  // Reset processing state when user returns from payment tab (Stripe or PayPal)
   useEffect(() => {
-    if (!paypalOpenedInTab) return;
+    if (!paymentOpenedInTab) return;
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible' && paypalOpenedInTab) {
+      if (document.visibilityState === 'visible') {
         setIsProcessing(false);
-        setPaypalOpenedInTab(false);
+        setPaymentOpenedInTab(false);
         setPaymentInitiated(false);
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [paypalOpenedInTab]);
+  }, [paymentOpenedInTab]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -598,10 +598,8 @@ const Checkout = () => {
         } catch {
           // Cross-origin iframe restriction — open in new tab as fallback
           window.open(data.url, '_blank');
-          // Mark that PayPal was opened in a new tab so we can reset on return
-          if (paymentMethod === 'paypal') {
-            setPaypalOpenedInTab(true);
-          }
+          // Mark that payment was opened in a new tab so we can reset on return
+          setPaymentOpenedInTab(true);
         }
       } else {
         throw new Error("No checkout URL received");
