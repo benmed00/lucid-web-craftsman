@@ -5,6 +5,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { User, Session, AuthOtpResponse } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { initializeWishlistStore } from '@/stores';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
 
 // ============= Auth State Cleanup Utility =============
 export const cleanupAuthState = () => {
@@ -109,6 +110,14 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 // ============= Provider =============
 export function AuthProvider({ children }: { children: ReactNode }) {
+  // Access QueryClient for cache clearing on signOut
+  let queryClient: QueryClient | null = null;
+  try {
+    queryClient = useQueryClient();
+  } catch {
+    // QueryClientProvider might not be an ancestor — safe to ignore
+  }
+
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     session: null,
@@ -369,13 +378,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     try {
+      // 1. Clear auth storage tokens
       cleanupAuthState();
       profileCache.invalidate();
-      // Use 'local' scope to only clear THIS browser's session.
-      // Cross-tab sync is handled via BroadcastChannel below.
-      // 'global' would revoke ALL sessions on ALL devices, which is too destructive for a normal logout.
+
+      // 2. Reset React state immediately (don't wait for listener)
+      setAuthState({
+        user: null,
+        session: null,
+        profile: null,
+        isLoading: false,
+        isInitialized: true,
+      });
+
+      // 3. Clear wishlist store
+      initializeWishlistStore(null);
+
+      // 4. Clear React Query cache to remove stale data
+      try {
+        queryClient?.clear();
+      } catch { /* ignore if no QueryClient */ }
+
+      // 5. Sign out from Supabase (local scope only)
       await supabase.auth.signOut({ scope: 'local' });
-      // Notify other tabs in this browser
+
+      // 6. Notify other tabs
       try {
         const ch = new BroadcastChannel('auth-sync');
         ch.postMessage({ type: 'SIGNED_OUT' });
@@ -383,9 +410,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch { /* ignore */ }
     } catch (error) {
       console.error('Error signing out:', error);
+      // Even if signOut fails, ensure state is cleared
+      setAuthState({
+        user: null,
+        session: null,
+        profile: null,
+        isLoading: false,
+        isInitialized: true,
+      });
       throw error;
     }
-  }, []);
+  }, [queryClient]);
 
   const signInWithOtp = useCallback(async (
     email: string, 

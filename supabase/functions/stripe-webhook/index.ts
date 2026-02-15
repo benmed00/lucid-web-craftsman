@@ -34,7 +34,7 @@ serve(async (req) => {
     // Verify webhook signature if secret is configured
     if (webhookSecret && signature) {
       try {
-        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+        event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
         logStep("Webhook signature verified", { type: event.type });
       } catch (err) {
         logStep("Webhook signature verification failed", { error: (err as Error).message });
@@ -326,63 +326,83 @@ async function handleCheckoutCompleted(
   });
 
   // ========================================================================
-  // SEND CONFIRMATION EMAIL (non-blocking)
+  // SEND CONFIRMATION EMAIL (idempotent, non-blocking)
   // ========================================================================
   try {
     const customerEmail = session.customer_details?.email;
     const customerName = session.customer_details?.name || session.metadata?.customer_name || 'Client';
 
     if (customerEmail) {
-      const productIds = (order.order_items || []).map((item: any) => item.product_id);
-      const { data: products } = await supabase
-        .from('products')
-        .select('id, name, images, price')
-        .in('id', productIds);
+      // IDEMPOTENCY: Check if email was already sent for this order
+      const { data: existingEmail } = await supabase
+        .from('email_logs')
+        .select('id')
+        .eq('order_id', orderId)
+        .eq('template_name', 'order-confirmation')
+        .eq('status', 'sent')
+        .maybeSingle();
 
-      const productMap = new Map((products || []).map((p: any) => [p.id, p]));
+      if (existingEmail) {
+        logStep("IDEMPOTENCY: Confirmation email already sent, skipping", { orderId });
+      } else {
+        const productIds = (order.order_items || []).map((item: any) => item.product_id);
+        const { data: products } = await supabase
+          .from('products')
+          .select('id, name, images, price')
+          .in('id', productIds);
 
-      const emailItems = (order.order_items || []).map((item: any) => {
-        const product = productMap.get(item.product_id);
-        return {
-          name: product?.name || `Product #${item.product_id}`,
-          quantity: item.quantity,
-          price: item.unit_price / 100,
-          image: product?.images?.[0] || undefined,
-        };
-      });
+        const productMap = new Map((products || []).map((p: any) => [p.id, p]));
 
-      const emailSubtotal = emailItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
-      const total = order.amount / 100;
-      const shipping = total - emailSubtotal > 0 ? total - emailSubtotal : 0;
+        const emailItems = (order.order_items || []).map((item: any) => {
+          const product = productMap.get(item.product_id);
+          return {
+            name: product?.name || `Product #${item.product_id}`,
+            quantity: item.quantity,
+            price: item.unit_price / 100,
+            image: product?.images?.[0] || undefined,
+          };
+        });
 
-      const shippingAddr = order.shipping_address as any;
+        const emailSubtotal = emailItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+        const total = order.amount / 100;
+        const shipping = total - emailSubtotal > 0 ? total - emailSubtotal : 0;
 
-      await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-order-confirmation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-        },
-        body: JSON.stringify({
-          orderId,
-          customerEmail,
-          customerName,
-          items: emailItems,
-          subtotal: emailSubtotal,
-          shipping,
-          discount: session.metadata?.discount_amount_cents ? parseInt(session.metadata.discount_amount_cents) / 100 : 0,
-          total,
-          currency: order.currency?.toUpperCase() || 'EUR',
-          shippingAddress: shippingAddr ? {
-            address: shippingAddr.address_line1 || '',
-            city: shippingAddr.city || '',
-            postalCode: shippingAddr.postal_code || '',
-            country: shippingAddr.country === 'FR' ? 'France' : shippingAddr.country || 'France',
-          } : undefined,
-        }),
-      });
+        const shippingAddr = order.shipping_address as any;
 
-      logStep("Confirmation email triggered via webhook");
+        const emailResponse = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-order-confirmation`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({
+            orderId,
+            customerEmail,
+            customerName,
+            items: emailItems,
+            subtotal: emailSubtotal,
+            shipping,
+            discount: session.metadata?.discount_amount_cents ? parseInt(session.metadata.discount_amount_cents) / 100 : 0,
+            total,
+            currency: order.currency?.toUpperCase() || 'EUR',
+            shippingAddress: shippingAddr ? {
+              address: shippingAddr.address_line1 || '',
+              city: shippingAddr.city || '',
+              postalCode: shippingAddr.postal_code || '',
+              country: shippingAddr.country === 'FR' ? 'France' : shippingAddr.country || 'France',
+            } : undefined,
+          }),
+        });
+
+        if (!emailResponse.ok) {
+          const errBody = await emailResponse.text();
+          logStep("Email function returned error", { status: emailResponse.status, body: errBody });
+        } else {
+          logStep("Confirmation email triggered via webhook", { orderId, customerEmail });
+        }
+      }
+    } else {
+      logStep("No customer email available, skipping confirmation email");
     }
   } catch (emailErr) {
     logStep("Email send error (non-fatal)", { error: (emailErr as Error).message });
