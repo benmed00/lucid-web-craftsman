@@ -87,11 +87,37 @@ serve(async (req) => {
 
     logStep("Order found", { orderId: orderData.id, status: orderData.status, order_status: orderData.order_status });
 
+    // Helper: fetch order items for invoice
+    const fetchOrderItems = async (oid: string) => {
+      const { data: items } = await supabaseService
+        .from('order_items')
+        .select('quantity, unit_price, total_price, product_snapshot')
+        .eq('order_id', oid);
+      return (items || []).map(item => {
+        const snapshot = item.product_snapshot as any;
+        return {
+          product_name: snapshot?.name || 'Product',
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total_price: item.total_price,
+        };
+      });
+    };
+
+    const buildInvoiceData = async (oid: string) => {
+      const orderItems = await fetchOrderItems(oid);
+      const itemsSubtotal = orderItems.reduce((sum: number, i: any) => sum + i.total_price, 0);
+      const orderTotal = orderData.amount || itemsSubtotal;
+      const shipping = Math.max(0, orderTotal - itemsSubtotal);
+      return { items: orderItems, subtotal: itemsSubtotal, shipping, total: orderTotal };
+    };
+
     // ========================================================================
     // CASE 1: Already processed (by webhook or previous verify call)
     // ========================================================================
     if (orderData.status === 'paid' || orderData.status === 'completed') {
       logStep("Order already processed — returning current status", { orderId: orderData.id });
+      const invoice = await buildInvoiceData(orderData.id);
       return new Response(JSON.stringify({
         success: true,
         message: "Commande confirmée",
@@ -101,6 +127,10 @@ serve(async (req) => {
           lastName: session.customer_details.name?.split(' ').slice(1).join(' ') || '',
           email: session.customer_details.email || '',
         } : null,
+        invoiceData: {
+          ...invoice,
+          date: orderData.created_at || new Date().toISOString(),
+        },
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -351,6 +381,8 @@ serve(async (req) => {
 
     logStep("Verification completed", { orderId: orderData.id });
 
+    const invoice = await buildInvoiceData(orderData.id);
+
     return new Response(JSON.stringify({
       success: true,
       message: "Commande confirmée",
@@ -360,6 +392,10 @@ serve(async (req) => {
         lastName: session.customer_details.name?.split(' ').slice(1).join(' ') || '',
         email: session.customer_details.email || '',
       } : null,
+      invoiceData: {
+        ...invoice,
+        date: orderData.created_at || new Date().toISOString(),
+      },
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
