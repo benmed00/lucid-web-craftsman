@@ -7,6 +7,7 @@ import clsx from "clsx";
 import { useCartUI } from "@/hooks/useCartUI";
 import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import type { Profile } from "@/context/AuthContext";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -21,7 +22,7 @@ const Navigation = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const { itemCount } = useCartUI();
-  const { user, isLoading, signOut } = useAuth();
+  const { user, isLoading, signOut, profile } = useAuth();
   const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
   const location = useLocation();
@@ -78,10 +79,10 @@ const Navigation = () => {
 
   return (
     <>
-      {/* Skip to main content */}
+      {/* Skip to main content — visually hidden until focused */}
       <a 
         href="#main-content" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-primary-foreground px-4 py-2 rounded-md z-50 focus:ring-2 focus:ring-primary/50"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-sm font-medium"
       >
         {t('common:accessibility.skipToContent')}
       </a>
@@ -264,8 +265,16 @@ const Navigation = () => {
                       </Link>
                     </Button>
                     <Button variant="ghost" size="sm" asChild className="group relative hover:bg-primary/10 rounded-lg transition-all duration-300 touch-manipulation">
-                      <Link to="/profile" className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 text-foreground hover:text-primary transition-colors duration-300">
-                        <User className="h-4 w-4 transition-colors" />
+                      <Link to="/profile" className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 transition-colors duration-300">
+                        {profile?.avatar_url ? (
+                          <img 
+                            src={profile.avatar_url} 
+                            alt={profile.full_name || 'Profile'} 
+                            className="w-7 h-7 lg:w-8 lg:h-8 rounded-full object-cover border-2 border-border group-hover:border-primary transition-colors"
+                          />
+                        ) : (
+                          <User className="h-4 w-4 text-foreground group-hover:text-primary transition-colors" />
+                        )}
                       </Link>
                     </Button>
                     <Button 

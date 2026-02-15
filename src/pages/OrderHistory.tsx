@@ -48,7 +48,10 @@ const OrderHistory = () => {
   const dateLocale = i18n.language === 'fr' ? fr : enUS;
 
   const fetchOrders = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
