@@ -253,19 +253,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (isMounted) {
-          setAuthState(prev => ({
-            ...prev,
-            session,
-            user: session?.user ?? null,
-            isLoading: false,
-            isInitialized: true,
-          }));
-
-          if (session?.user) {
-            // Initialize wishlist store with existing session
-            initializeWishlistStore(session.user.id);
-            loadUserProfile(session.user.id);
+        if (session) {
+          // CRITICAL: Validate the token server-side with getUser()
+          // getSession() only reads from localStorage and does NOT verify the JWT signature.
+          // If the token is corrupted/expired, API calls will fail with 403.
+          const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+          
+          if (userError || !validatedUser) {
+            // Token is invalid — clean up stale session
+            console.warn('[AuthContext] Stale JWT detected, cleaning up:', userError?.message);
+            cleanupAuthState();
+            await supabase.auth.signOut({ scope: 'local' });
+            
+            if (isMounted) {
+              setAuthState({
+                user: null, session: null, profile: null,
+                isLoading: false, isInitialized: true,
+              });
+            }
+            return;
+          }
+          
+          // Token is valid
+          if (isMounted) {
+            setAuthState(prev => ({
+              ...prev,
+              session,
+              user: validatedUser,
+              isLoading: false,
+              isInitialized: true,
+            }));
+            initializeWishlistStore(validatedUser.id);
+            loadUserProfile(validatedUser.id);
+          }
+        } else {
+          // No session at all
+          if (isMounted) {
+            setAuthState(prev => ({
+              ...prev,
+              session: null,
+              user: null,
+              isLoading: false,
+              isInitialized: true,
+            }));
           }
         }
       } catch (error) {
