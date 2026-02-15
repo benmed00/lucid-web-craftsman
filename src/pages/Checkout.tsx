@@ -179,6 +179,22 @@ const Checkout = () => {
 
   // Track if payment was initiated (to prevent double submissions)
   const [paymentInitiated, setPaymentInitiated] = useState(false);
+  // Track if PayPal was opened in a new tab (so we can reset processing on return)
+  const [paypalOpenedInTab, setPaypalOpenedInTab] = useState(false);
+
+  // Reset processing state when user returns from PayPal tab
+  useEffect(() => {
+    if (!paypalOpenedInTab) return;
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && paypalOpenedInTab) {
+        setIsProcessing(false);
+        setPaypalOpenedInTab(false);
+        setPaymentInitiated(false);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [paypalOpenedInTab]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -582,6 +598,10 @@ const Checkout = () => {
         } catch {
           // Cross-origin iframe restriction — open in new tab as fallback
           window.open(data.url, '_blank');
+          // Mark that PayPal was opened in a new tab so we can reset on return
+          if (paymentMethod === 'paypal') {
+            setPaypalOpenedInTab(true);
+          }
         }
       } else {
         throw new Error("No checkout URL received");
