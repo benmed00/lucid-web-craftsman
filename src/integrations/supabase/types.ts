@@ -3121,7 +3121,7 @@ export type Database = {
       add_loyalty_points:
         | {
             Args: {
-              p_description: string
+              p_description?: string
               p_points: number
               p_source_id?: string
               p_source_type: string
