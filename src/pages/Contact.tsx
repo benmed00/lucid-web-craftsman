@@ -127,14 +127,16 @@ const Contact = () => {
       setIsSubmitting(true);
       
       // Use centralized API client for consistent error handling
+      const session = await supabase.auth.getSession();
+      const headers: Record<string, string> = {};
+      if (session.data.session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+      }
+      
       await apiClient.post(
         `${EXTERNAL_SERVICES.supabase.url}/functions/v1/submit-contact`,
         sanitizedData,
-        {
-          headers: {
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || 'anon'}`
-          }
-        }
+        { headers }
       );
       
       toast.success(t('contact.form.success'));
