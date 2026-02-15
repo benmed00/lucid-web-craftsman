@@ -109,7 +109,23 @@ serve(async (req) => {
       const itemsSubtotal = orderItems.reduce((sum: number, i: any) => sum + i.total_price, 0);
       const orderTotal = orderData.amount || itemsSubtotal;
       const shipping = Math.max(0, orderTotal - itemsSubtotal);
-      return { items: orderItems, subtotal: itemsSubtotal, shipping, total: orderTotal };
+      const shippingAddr = orderData.shipping_address as any;
+      return {
+        items: orderItems,
+        subtotal: itemsSubtotal,
+        shipping,
+        total: orderTotal,
+        shippingAddress: shippingAddr ? {
+          line1: shippingAddr.address_line1 || shippingAddr.line1 || '',
+          line2: shippingAddr.address_line2 || shippingAddr.line2 || '',
+          city: shippingAddr.city || '',
+          postalCode: shippingAddr.postal_code || shippingAddr.postalCode || '',
+          country: shippingAddr.country || 'FR',
+        } : null,
+        paymentMethod: session.payment_method_types?.[0] || 'card',
+        currency: orderData.currency?.toUpperCase() || 'EUR',
+        stripeSessionId: session_id,
+      };
     };
 
     // ========================================================================
