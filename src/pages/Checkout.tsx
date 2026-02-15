@@ -182,6 +182,17 @@ const Checkout = () => {
   // Track if payment was opened in a new tab (Stripe or PayPal)
   const [paymentOpenedInTab, setPaymentOpenedInTab] = useState(false);
 
+  // On mount: if returning from a payment redirect that completed, reset state
+  useEffect(() => {
+    const paymentPending = localStorage.getItem('checkout_payment_pending');
+    if (paymentPending) {
+      // User navigated back to checkout — clear the flag and reset state
+      localStorage.removeItem('checkout_payment_pending');
+      setIsProcessing(false);
+      setPaymentInitiated(false);
+    }
+  }, []);
+
   // Reset processing state when user returns from payment tab (Stripe or PayPal)
   useEffect(() => {
     if (!paymentOpenedInTab) return;
@@ -190,6 +201,7 @@ const Checkout = () => {
         setIsProcessing(false);
         setPaymentOpenedInTab(false);
         setPaymentInitiated(false);
+        localStorage.removeItem('checkout_payment_pending');
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
@@ -585,8 +597,9 @@ const Checkout = () => {
       }
 
       if (data?.url) {
-        // Mark payment as initiated
+        // Mark payment as initiated and persist flag for cross-page state
         setPaymentInitiated(true);
+        localStorage.setItem('checkout_payment_pending', 'true');
         // Redirect to Stripe/PayPal Checkout
         // Use window.top to escape iframe (Lovable preview), fallback to window.location
         try {

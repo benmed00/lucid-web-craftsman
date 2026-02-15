@@ -1,4 +1,4 @@
-import { CheckCircle, ShoppingBag, Home, Loader2, Mail, Download } from "lucide-react";
+import { CheckCircle, ShoppingBag, Home, Loader2, Mail, Download, Package } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -98,6 +98,9 @@ const PaymentSuccess = () => {
   }, []);
 
   useEffect(() => {
+    // Clear checkout processing flag on payment success page load
+    localStorage.removeItem('checkout_payment_pending');
+
     const verifyPayment = async () => {
       if (isPayPal && paypalOrderId && orderId) {
         try {
@@ -521,7 +524,7 @@ const PaymentSuccess = () => {
           </div>
 
           {!isVerifying && (
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
               {/* Invoice Download Button */}
               {verificationResult?.success && invoiceData && (
                 <Button
@@ -531,6 +534,16 @@ const PaymentSuccess = () => {
                 >
                   <Download className="w-4 h-4" />
                   {t('pages:paymentSuccess.invoice.download')}
+                </Button>
+              )}
+
+              {/* Order History Button — only when logged in */}
+              {user && verificationResult?.success && (
+                <Button asChild variant="outline" className="gap-2">
+                  <Link to="/orders">
+                    <Package className="w-4 h-4" />
+                    {t('pages:paymentSuccess.viewOrders', { defaultValue: 'Mes commandes' })}
+                  </Link>
                 </Button>
               )}
 
