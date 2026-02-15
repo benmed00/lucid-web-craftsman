@@ -76,7 +76,7 @@ serve(async (req) => {
     // Find order by stripe_session_id
     const { data: orderData, error: orderError } = await supabaseService
       .from('orders')
-      .select('id, status, order_status, amount, currency, shipping_address, metadata')
+      .select('id, status, order_status, amount, currency, shipping_address, metadata, created_at')
       .eq('stripe_session_id', session_id)
       .maybeSingle();
 
