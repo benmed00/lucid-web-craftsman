@@ -63,6 +63,7 @@ interface CartItem {
   quantity: number;
   created_at: string;
   product_name?: string;
+  product_price?: number;
 }
 
 interface LoyaltyInfo {
@@ -73,6 +74,8 @@ interface LoyaltyInfo {
 
 interface CustomerStats {
   total_orders: number;
+  paid_orders: number;
+  cancelled_orders: number;
   total_spent: number;
   last_order_date: string | null;
   avg_order_value: number;
@@ -148,19 +151,23 @@ const AdminCustomers = () => {
 
       const customersWithStats = (profilesRes.data || []).map(profile => {
         const userOrders = ordersByUser.get(profile.id) || [];
-        // Count all orders except explicitly failed ones
-        const countableStatuses = ['paid', 'validated', 'preparing', 'shipped', 'in_transit', 'delivered', 'processing'];
-        const validOrders = userOrders.filter(o =>
-          countableStatuses.includes(o.order_status || o.status || '')
+        // Revenue-countable statuses (exclude cancelled/failed/refunded)
+        const revenueStatuses = ['paid', 'validated', 'preparing', 'shipped', 'in_transit', 'delivered', 'processing'];
+        const revenueOrders = userOrders.filter(o =>
+          revenueStatuses.includes(o.order_status || o.status || '')
+        );
+        const cancelledOrders = userOrders.filter(o =>
+          ['cancelled', 'refunded', 'payment_failed', 'delivery_failed'].includes(o.order_status || o.status || '')
         );
 
-        const totalOrders = validOrders.length;
-        const totalSpent = validOrders.reduce((sum, o) => sum + ((o.amount || 0) / 100), 0);
+        const totalOrders = userOrders.length; // All orders for display
+        const paidOrders = revenueOrders.length;
+        const totalSpent = revenueOrders.reduce((sum, o) => sum + ((o.amount || 0) / 100), 0);
         const sorted = [...userOrders].sort((a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         const lastOrderDate = sorted.length > 0 ? sorted[0].created_at : null;
-        const avgOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
+        const avgOrderValue = paidOrders > 0 ? totalSpent / paidOrders : 0;
 
         let status: 'active' | 'inactive' | 'premium' = 'inactive';
         if (totalSpent > 500) status = 'premium';
@@ -169,7 +176,14 @@ const AdminCustomers = () => {
         return {
           ...profile,
           email: emailsByUser.get(profile.id),
-          stats: { total_orders: totalOrders, total_spent: totalSpent, last_order_date: lastOrderDate, avg_order_value: avgOrderValue },
+          stats: {
+            total_orders: totalOrders,
+            paid_orders: paidOrders,
+            cancelled_orders: cancelledOrders.length,
+            total_spent: totalSpent,
+            last_order_date: lastOrderDate,
+            avg_order_value: avgOrderValue
+          },
           status,
           loyalty: loyaltyByUser.get(profile.id) || null
         } as Customer;
@@ -234,12 +248,13 @@ const AdminCustomers = () => {
         if (productIds.length > 0) {
           const { data: products } = await supabase
             .from('products')
-            .select('id, name')
+            .select('id, name, price')
             .in('id', productIds);
-          const productMap = new Map((products || []).map(p => [p.id, p.name]));
+          const productMap = new Map((products || []).map(p => [p.id, { name: p.name, price: p.price }]));
           cartItems = cartItems.map(c => ({
             ...c,
-            product_name: c.product_id ? productMap.get(c.product_id) || `Produit #${c.product_id}` : 'Inconnu'
+            product_name: c.product_id ? productMap.get(c.product_id)?.name || `Produit #${c.product_id}` : 'Inconnu',
+            product_price: c.product_id ? productMap.get(c.product_id)?.price : undefined
           }));
         }
       }
@@ -299,9 +314,11 @@ const AdminCustomers = () => {
   };
 
   const ORDER_STATUS_MAP: Record<string, { label: string; className: string }> = {
+    pending: { label: 'En attente', className: 'bg-yellow-500/20 text-yellow-400' },
     created: { label: 'Créée', className: 'bg-slate-500/20 text-slate-400' },
     payment_pending: { label: 'Paiement en attente', className: 'bg-yellow-500/20 text-yellow-400' },
     payment_failed: { label: 'Paiement échoué', className: 'bg-red-500/20 text-red-400' },
+    processing: { label: 'En cours', className: 'bg-blue-500/20 text-blue-400' },
     paid: { label: 'Payée', className: 'bg-blue-500/20 text-blue-400' },
     validation_in_progress: { label: 'En validation', className: 'bg-indigo-500/20 text-indigo-400' },
     validated: { label: 'Validée', className: 'bg-indigo-500/20 text-indigo-400' },
@@ -570,6 +587,11 @@ const AdminCustomers = () => {
                     </td>
                     <td className="p-4">
                       <p className="font-medium text-foreground">{customer.stats.total_orders}</p>
+                      {customer.stats.cancelled_orders > 0 && (
+                        <p className="text-xs text-red-400">
+                          dont {customer.stats.cancelled_orders} annulée{customer.stats.cancelled_orders > 1 ? 's' : ''}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         {customer.stats.last_order_date
                           ? `Dernière: ${format(new Date(customer.stats.last_order_date), 'dd/MM/yy', { locale: fr })}`
@@ -862,7 +884,14 @@ const AdminCustomers = () => {
                               </p>
                             </div>
                           </div>
-                          <Badge variant="outline">× {item.quantity}</Badge>
+                          <div className="flex items-center gap-2">
+                            {item.product_price && (
+                              <span className="text-sm text-foreground font-medium">
+                                {formatPrice(item.product_price)}
+                              </span>
+                            )}
+                            <Badge variant="outline">× {item.quantity}</Badge>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -876,10 +905,18 @@ const AdminCustomers = () => {
 
                 {/* Stats Tab */}
                 <TabsContent value="stats" className="mt-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-muted/50 rounded-lg">
                       <p className="text-3xl font-bold text-foreground">{selectedCustomer.stats.total_orders}</p>
                       <p className="text-sm text-muted-foreground">Commandes totales</p>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <p className="text-3xl font-bold text-emerald-400">{selectedCustomer.stats.paid_orders}</p>
+                      <p className="text-sm text-muted-foreground">Validées / Payées</p>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <p className="text-3xl font-bold text-red-400">{selectedCustomer.stats.cancelled_orders}</p>
+                      <p className="text-sm text-muted-foreground">Annulées / Échouées</p>
                     </div>
                     <div className="text-center p-4 bg-muted/50 rounded-lg">
                       <p className="text-3xl font-bold text-foreground">{formatPrice(selectedCustomer.stats.total_spent)}</p>
