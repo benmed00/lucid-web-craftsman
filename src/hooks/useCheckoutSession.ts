@@ -186,13 +186,23 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
                 .insert(newSession)
                 .select('id')
                 .single();
-              if (insertError) throw insertError;
+              if (insertError) {
+                // If 401/403 due to stale JWT, clear it so next retry uses anon key
+                const msg = insertError.message || '';
+                if (msg.includes('401') || msg.includes('JWT') || msg.includes('row-level security')) {
+                  console.warn('[useCheckoutSession] Stale JWT detected, cleaning auth state');
+                  const { cleanupAuthState } = await import('@/context/AuthContext');
+                  cleanupAuthState();
+                  await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+                }
+                throw insertError;
+              }
               return data;
             },
             null,
             {
               maxAttempts: 3,
-              baseDelayMs: 500,
+              baseDelayMs: 1000,
               onRetry: (attempt, err) => {
                 console.warn(`[useCheckoutSession] Session creation retry #${attempt}:`, err);
               },
