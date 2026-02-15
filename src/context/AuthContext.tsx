@@ -110,13 +110,9 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 // ============= Provider =============
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Access QueryClient for cache clearing on signOut
-  let queryClient: QueryClient | null = null;
-  try {
-    queryClient = useQueryClient();
-  } catch {
-    // QueryClientProvider might not be an ancestor — safe to ignore
-  }
+  // useQueryClient is safe here because AuthProvider is always rendered
+  // inside QueryClientProvider (see App.tsx). Never wrap hooks in try/catch.
+  const queryClient = useQueryClient();
 
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
