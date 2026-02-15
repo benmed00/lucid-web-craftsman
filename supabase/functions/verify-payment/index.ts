@@ -35,6 +35,26 @@ serve(async (req) => {
     { auth: { persistSession: false } }
   );
 
+  // Try to get authenticated user from request (for order association)
+  let authenticatedUserId: string | null = null;
+  try {
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader) {
+      const anonClient = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      );
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user } } = await anonClient.auth.getUser(token);
+      authenticatedUserId = user?.id || null;
+      if (authenticatedUserId) {
+        logStep("Authenticated user detected", { userId: authenticatedUserId });
+      }
+    }
+  } catch {
+    logStep("Could not extract user from auth header (non-fatal)");
+  }
+
   try {
     logStep("Function started");
 
@@ -86,6 +106,25 @@ serve(async (req) => {
     }
 
     logStep("Order found", { orderId: orderData.id, status: orderData.status, order_status: orderData.order_status });
+
+    // ========================================================================
+    // ASSOCIATE ORDER WITH AUTHENTICATED USER (if user_id is null)
+    // This handles cases where the order was created from a context without auth
+    // (e.g., iframe preview opening Stripe in a new tab)
+    // ========================================================================
+    if (!orderData.user_id && authenticatedUserId) {
+      const { error: assocError } = await supabaseService
+        .from('orders')
+        .update({ user_id: authenticatedUserId })
+        .eq('id', orderData.id)
+        .is('user_id', null);
+
+      if (!assocError) {
+        logStep("Order associated with authenticated user", { orderId: orderData.id, userId: authenticatedUserId });
+      } else {
+        logStep("Failed to associate order (non-fatal)", { error: assocError.message });
+      }
+    }
 
     // Helper: fetch order items for invoice
     const fetchOrderItems = async (oid: string) => {
