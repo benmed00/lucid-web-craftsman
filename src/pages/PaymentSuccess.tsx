@@ -1,5 +1,5 @@
 import { CheckCircle, ShoppingBag, Home, Loader2, Mail, Download, Package } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -61,6 +61,7 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
 const PaymentSuccess = () => {
   const { t } = useTranslation(['pages', 'common']);
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const sessionId = searchParams.get('session_id');
   const isPayPal = searchParams.get('paypal') === 'true';
   const paypalOrderId = searchParams.get('token');
@@ -75,6 +76,7 @@ const PaymentSuccess = () => {
   } | null>(null);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
   const { clearCart } = useCart();
   const { user, profile } = useAuth();
 
@@ -96,6 +98,25 @@ const PaymentSuccess = () => {
       stripeSessionId: responseInvoice.stripeSessionId || '',
     });
   }, []);
+
+  // Auto-redirect to orders after successful payment (authenticated users)
+  useEffect(() => {
+    if (!user || !verificationResult?.success || isVerifying) return;
+    
+    setRedirectCountdown(8);
+    const interval = setInterval(() => {
+      setRedirectCountdown(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          navigate('/orders');
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [user, verificationResult?.success, isVerifying, navigate]);
 
   useEffect(() => {
     // Clear checkout processing flag on payment success page load
@@ -524,42 +545,57 @@ const PaymentSuccess = () => {
           </div>
 
           {!isVerifying && (
-            <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
-              {/* Invoice Download Button */}
-              {verificationResult?.success && invoiceData && (
-                <Button
-                  onClick={handleDownloadInvoice}
-                  variant="default"
-                  className="bg-primary hover:bg-primary/90 gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  {t('pages:paymentSuccess.invoice.download')}
-                </Button>
+            <div className="space-y-4">
+              {/* Auto-redirect notice */}
+              {user && verificationResult?.success && redirectCountdown !== null && (
+                <p className="text-sm text-muted-foreground">
+                  Redirection vers vos commandes dans {redirectCountdown}s…{' '}
+                  <button 
+                    onClick={() => setRedirectCountdown(null)} 
+                    className="underline text-primary hover:text-primary/80"
+                  >
+                    Annuler
+                  </button>
+                </p>
               )}
 
-              {/* Order History Button — only when logged in */}
-              {user && verificationResult?.success && (
-                <Button asChild variant="outline" className="gap-2">
-                  <Link to="/orders">
-                    <Package className="w-4 h-4" />
-                    {t('pages:paymentSuccess.viewOrders', { defaultValue: 'Mes commandes' })}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
+                {/* Primary CTA: View Orders (logged in) */}
+                {user && verificationResult?.success && (
+                  <Button asChild size="lg" className="gap-2">
+                    <Link to="/orders">
+                      <Package className="w-5 h-5" />
+                      {t('pages:paymentSuccess.viewOrders', { defaultValue: 'Voir mes commandes' })}
+                    </Link>
+                  </Button>
+                )}
+
+                {/* Invoice Download */}
+                {verificationResult?.success && invoiceData && (
+                  <Button
+                    onClick={handleDownloadInvoice}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    {t('pages:paymentSuccess.invoice.download')}
+                  </Button>
+                )}
+
+                <Button asChild variant="secondary" className="gap-2">
+                  <Link to="/products">
+                    <ShoppingBag className="w-4 h-4" />
+                    {t('common:buttons.continueShopping')}
                   </Link>
                 </Button>
-              )}
-
-              <Button asChild className="bg-secondary hover:bg-secondary/90 text-secondary-foreground">
-                <Link to="/products" className="flex items-center">
-                  <ShoppingBag className="w-4 h-4 mr-2" />
-                  {t('common:buttons.continueShopping')}
-                </Link>
-              </Button>
-              
-              <Button variant="outline" asChild>
-                <Link to="/" className="flex items-center">
-                  <Home className="w-4 h-4 mr-2" />
-                  {t('common:buttons.backToHome')}
-                </Link>
-              </Button>
+                
+                <Button variant="ghost" asChild className="gap-2">
+                  <Link to="/">
+                    <Home className="w-4 h-4" />
+                    {t('common:buttons.backToHome')}
+                  </Link>
+                </Button>
+              </div>
             </div>
           )}
 
