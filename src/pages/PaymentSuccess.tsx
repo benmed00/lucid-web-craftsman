@@ -55,49 +55,19 @@ const PaymentSuccess = () => {
   const { clearCart } = useCart();
   const { user, profile } = useAuth();
 
-  // Fetch order details for invoice
-  const fetchInvoiceData = useCallback(async (fetchedOrderId: string, customer: CustomerInfo) => {
-    try {
-      const { data: order } = await supabase
-        .from('orders')
-        .select('id, amount, created_at, shipping_address')
-        .eq('id', fetchedOrderId)
-        .maybeSingle();
-
-      const { data: items } = await supabase
-        .from('order_items')
-        .select('quantity, unit_price, total_price, product_snapshot')
-        .eq('order_id', fetchedOrderId);
-
-      if (order) {
-        const orderItems: OrderItem[] = (items || []).map(item => {
-          const snapshot = item.product_snapshot as any;
-          return {
-            product_name: snapshot?.name || 'Product',
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            total_price: item.total_price,
-          };
-        });
-
-        const itemsSubtotal = orderItems.reduce((sum, i) => sum + i.total_price, 0);
-        const orderTotal = order.amount || itemsSubtotal;
-        const shipping = Math.max(0, orderTotal - itemsSubtotal);
-
-        setInvoiceData({
-          orderId: fetchedOrderId,
-          date: new Date(order.created_at).toLocaleDateString('fr-FR'),
-          customer,
-          items: orderItems,
-          subtotal: itemsSubtotal,
-          shipping,
-          discount: 0,
-          total: orderTotal,
-        });
-      }
-    } catch (err) {
-      console.warn('Could not load invoice data:', err);
-    }
+  // Build invoice data from verify-payment response
+  const buildInvoiceFromResponse = useCallback((responseInvoice: any, fetchedOrderId: string, customer: CustomerInfo) => {
+    if (!responseInvoice?.items) return;
+    setInvoiceData({
+      orderId: fetchedOrderId,
+      date: new Date(responseInvoice.date || Date.now()).toLocaleDateString('fr-FR'),
+      customer,
+      items: responseInvoice.items,
+      subtotal: responseInvoice.subtotal || 0,
+      shipping: responseInvoice.shipping || 0,
+      discount: 0,
+      total: responseInvoice.total || 0,
+    });
   }, []);
 
   useEffect(() => {
@@ -126,7 +96,7 @@ const PaymentSuccess = () => {
               cust.email = user?.email || '';
             }
             setCustomerInfo(cust);
-            fetchInvoiceData(finalOrderId, cust);
+            if (data.invoiceData) buildInvoiceFromResponse(data.invoiceData, finalOrderId, cust);
             clearCart();
             localStorage.removeItem('cart');
             toast.success(t('pages:paymentSuccess.success.confirmed'));
@@ -165,7 +135,7 @@ const PaymentSuccess = () => {
               };
             }
             setCustomerInfo(cust);
-            if (data.orderId) fetchInvoiceData(data.orderId, cust);
+            if (data.invoiceData && data.orderId) buildInvoiceFromResponse(data.invoiceData, data.orderId, cust);
             clearCart();
             localStorage.removeItem('cart');
             toast.success(t('pages:paymentSuccess.success.confirmed'));
@@ -184,7 +154,7 @@ const PaymentSuccess = () => {
     };
 
     verifyPayment();
-  }, [sessionId, isPayPal, paypalOrderId, orderId, clearCart, t, profile, user, fetchInvoiceData]);
+  }, [sessionId, isPayPal, paypalOrderId, orderId, clearCart, t, profile, user, buildInvoiceFromResponse]);
 
   // Generate and download invoice as printable HTML
   const handleDownloadInvoice = useCallback(() => {
