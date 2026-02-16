@@ -1,32 +1,51 @@
-const CACHE_NAME = 'rif-raw-straw-v4';
-const STATIC_CACHE_NAME = 'rif-static-v4';
-const IMAGE_CACHE_NAME = 'rif-images-v4';
+/**
+ * Service Worker — Rif Raw Straw
+ *
+ * Caching strategy:
+ *   - Fingerprinted static assets (JS/CSS/fonts in /assets/) → cache-first
+ *   - Images (local + Supabase storage)                      → cache-first
+ *   - HTML / navigation requests                             → network-only (NEVER cached)
+ *   - Supabase API / Auth / Functions                        → bypassed entirely
+ *   - Stripe                                                 → bypassed entirely
+ *   - Everything else                                        → network-only
+ *
+ * Why HTML is never cached:
+ *   Caching the HTML shell can serve stale auth state after login/logout or
+ *   stale code after deployments. Since the SPA shell is tiny and always
+ *   available from the CDN, the cost of a network round-trip is negligible
+ *   compared to the risk of state incoherence.
+ *
+ * Cache versioning:
+ *   Bump the version suffix (e.g. v5 → v6) to force all clients to purge
+ *   old caches on the next service worker activation.
+ */
 
-const CACHE_DURATIONS = {
-  STATIC_ASSETS: 365 * 24 * 60 * 60 * 1000,
-  IMAGES: 30 * 24 * 60 * 60 * 1000,
-  HTML_PAGES: 24 * 60 * 60 * 1000
-};
+const STATIC_CACHE_NAME = 'rif-static-v5';
+const IMAGE_CACHE_NAME = 'rif-images-v5';
 
-const STATIC_CACHE_URLS = [
-  '/',
-  '/manifest.json',
-  '/favicon.ico'
-];
+const MAX_CACHE_SIZE = 100; // per bucket
 
-// Install Service Worker
+// Trim a cache to MAX_CACHE_SIZE (FIFO)
+async function trimCache(cacheName, maxItems) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length > maxItems) {
+    for (let i = 0; i < keys.length - maxItems; i++) {
+      await cache.delete(keys[i]);
+    }
+  }
+}
+
+// ── Install ──────────────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(STATIC_CACHE_URLS))
-      .then(() => self.skipWaiting())
-  );
+  // Skip waiting so the new SW activates immediately
+  event.waitUntil(self.skipWaiting());
 });
 
-// Activate Service Worker - clean old caches
+// ── Activate — purge old caches ──────────────────────────────────────
 self.addEventListener('activate', (event) => {
-  const currentCaches = [CACHE_NAME, STATIC_CACHE_NAME, IMAGE_CACHE_NAME];
-  
+  const currentCaches = [STATIC_CACHE_NAME, IMAGE_CACHE_NAME];
+
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -38,65 +57,76 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event
+// ── Fetch ────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  
+
   // Skip non-GET requests
   if (request.method !== 'GET') return;
-  
-  // Skip non-http requests  
+
+  // Skip non-http(s) requests
   if (!request.url.startsWith('http')) return;
-  
+
   const url = new URL(request.url);
-  
-  // NEVER cache Supabase API/auth calls - they need fresh auth tokens
-  if (request.url.includes('supabase.co') && !request.url.includes('/storage/')) {
+
+  // ── BYPASS: Supabase API / Auth / Functions (everything except /storage/) ──
+  if (url.hostname.endsWith('supabase.co') && !url.pathname.startsWith('/storage/')) {
+    return; // network-only, no interception
+  }
+
+  // ── BYPASS: Stripe ──
+  if (url.hostname.endsWith('stripe.com') || url.hostname.endsWith('stripe.network')) {
     return;
   }
-  
-  // NEVER cache Stripe requests
-  if (request.url.includes('stripe.com') || request.url.includes('stripe.network')) {
-    return;
-  }
-  
-  // NEVER cache extension or chrome requests
+
+  // ── BYPASS: browser extensions ──
   if (request.url.startsWith('chrome-extension://') || request.url.startsWith('moz-extension://')) {
     return;
   }
 
-  // Static assets with content hashes (JS, CSS, fonts) → cache-first
+  // ── BYPASS: API / auth / function paths on same origin ──
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/') || url.pathname.startsWith('/functions/')) {
+    return;
+  }
+
+  // ── Static assets with content hashes (JS, CSS, fonts) → cache-first ──
   if (request.url.match(/\.(js|css|woff|woff2|ttf|eot)(\?.*)?$/) && request.url.includes('/assets/')) {
     event.respondWith(cacheFirst(request, STATIC_CACHE_NAME));
     return;
   }
-  
-  // Images (local + Supabase storage) → cache-first
-  if (request.url.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)(\?.*)?$/) || 
-      (request.url.includes('supabase.co') && request.url.includes('/storage/'))) {
+
+  // ── Images (local + Supabase storage) → cache-first ──
+  if (
+    request.url.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)(\?.*)?$/) ||
+    (url.hostname.endsWith('supabase.co') && url.pathname.startsWith('/storage/'))
+  ) {
     event.respondWith(cacheFirst(request, IMAGE_CACHE_NAME));
     return;
   }
-  
-  // HTML navigation → network-first
+
+  // ── HTML navigation → network-only (NEVER cache) ──
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirst(request, CACHE_NAME));
+    event.respondWith(
+      fetch(request).catch(() => new Response('Offline', { status: 503 }))
+    );
     return;
   }
-  
-  // Everything else → network only (don't cache unknown requests)
+
+  // ── Everything else → network only ──
 });
 
-// Simple Cache First
+// ── Cache-first helper ───────────────────────────────────────────────
 async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
-  
+
   try {
     const response = await fetch(request);
     if (response.ok) {
       cache.put(request, response.clone());
+      // Non-blocking trim
+      trimCache(cacheName, MAX_CACHE_SIZE);
     }
     return response;
   } catch (error) {
@@ -104,30 +134,13 @@ async function cacheFirst(request, cacheName) {
   }
 }
 
-// Simple Network First
-async function networkFirst(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch (error) {
-    const cached = await cache.match(request);
-    if (cached) return cached;
-    return caches.match('/') || new Response('Offline', { status: 503 });
-  }
-}
-
-// Push Notification
+// ── Push Notifications ───────────────────────────────────────────────
 self.addEventListener('push', (event) => {
   const options = {
     body: event.data ? event.data.text() : 'Nouvelle notification de Rif Raw Straw',
     icon: '/favicon.ico',
     badge: '/favicon.ico',
-    vibrate: [200, 100, 200]
+    vibrate: [200, 100, 200],
   };
 
   event.waitUntil(
@@ -135,7 +148,6 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(clients.openWindow('/'));
