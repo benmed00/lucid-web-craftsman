@@ -134,7 +134,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
-      .select(`*, profiles!orders_user_id_fkey (full_name)`)
+      .select(`*`)
       .eq('id', payload.order_id)
       .single();
 
@@ -147,7 +147,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`User not found: ${userError?.message || 'Unknown error'}`);
     }
 
-    const customerName = orderData.profiles?.full_name || user.user_metadata?.full_name || 'Client';
+    const customerName = user.user_metadata?.full_name || 'Client';
     const customerEmail = user.email;
     if (!customerEmail) throw new Error('Customer email not found');
 
