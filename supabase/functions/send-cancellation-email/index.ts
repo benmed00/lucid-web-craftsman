@@ -83,6 +83,21 @@ const handler = async (req: Request): Promise<Response> => {
     const data: CancellationRequest = await req.json();
     const isRefund = data.isRefund ?? (data.refundAmount !== undefined && data.refundAmount > 0);
     
+    // Idempotency check
+    const templateName = isRefund ? 'refund-notification' : 'cancellation-notification';
+    const { data: existingLog } = await serviceClient
+      .from('email_logs')
+      .select('id')
+      .eq('order_id', data.orderId)
+      .eq('template_name', templateName)
+      .eq('status', 'sent')
+      .maybeSingle();
+
+    if (existingLog && !data.previewOnly) {
+      logStep('Email already sent for this order and status (Idempotency)');
+      return new Response(JSON.stringify({ success: true, message: 'Already sent' }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
     logStep('Received cancellation data', {
       orderId: data.orderId, customerEmail: data.customerEmail,
       isRefund, refundAmount: data.refundAmount, previewOnly: data.previewOnly
