@@ -1,6 +1,6 @@
 // File_name: src/App.tsx
 
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useWebVitals } from "@/hooks/useWebVitals";
 import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
@@ -208,6 +208,7 @@ const App = () => {
                 {/* Critical routes loaded immediately */}
                 <Route path="/" element={<Index />} />
                 <Route path="/products" element={<Products />} />
+                <Route path="/shop" element={<Navigate to="/products" replace />} />
                 <Route path="/products/:id" element={<ProductDetail />} />
                 
                 {/* Non-critical routes with lazy loading */}

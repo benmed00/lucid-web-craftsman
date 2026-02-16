@@ -585,6 +585,14 @@
     "copyright": "© 2026 Rif Raw Straw. All rights reserved."
     }
   },
+  "wishlist": {
+    "title": "My Wishlist",
+    "loginRequired": "Please sign in to view and manage your wishlist.",
+    "empty": "Your wishlist is empty",
+    "emptyMessage": "Browse our collection and add your favorite items to your wishlist.",
+    "itemCount": "{{count}} item(s)",
+    "remove": "Remove from wishlist"
+  },
   "orders": {
     "title": "My Orders",
     "subtitle": "Track and manage your orders",
