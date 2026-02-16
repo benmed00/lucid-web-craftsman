@@ -11,6 +11,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      "/api": { target: "http://localhost:3001", changeOrigin: true },
+      "/health": { target: "http://localhost:3001", changeOrigin: true },
+    },
     headers: {
       // Security headers for development - no X-Frame-Options to allow Lovable preview
       'X-Content-Type-Options': 'nosniff',
@@ -49,9 +53,6 @@ export default defineConfig(({ mode }) => ({
     cssCodeSplit: true, // Enable CSS code splitting for better caching
     rollupOptions: {
       output: {
-        // Ensure source maps are generated for all chunks
-        sourcemap: true,
-        sourcemapExcludeSources: false,
         // Optimize chunk names for better caching
         assetFileNames: (assetInfo) => {
           const name = assetInfo.name || 'asset';

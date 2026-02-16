@@ -1,0 +1,19 @@
+{
+  "name": "lucid-mock-api",
+  "version": "1.0.0",
+  "description": "Enterprise mock API server for dev/staging - products, posts, cart, orders, newsletter, contact",
+  "private": true,
+  "type": "commonjs",
+  "main": "server.cjs",
+  "scripts": {
+    "start": "node server.cjs",
+    "dev": "node server.cjs"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.2.0",
+    "helmet": "^7.1.0",
+    "json-server": "^0.17.4"
+  }
+}
