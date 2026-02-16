@@ -77,6 +77,20 @@ const handler = async (req: Request): Promise<Response> => {
     logStep('Starting delivery confirmation email send');
     const data: DeliveryConfirmationRequest = await req.json();
     
+    // Idempotency check
+    const { data: existingLog } = await serviceClient
+      .from('email_logs')
+      .select('id')
+      .eq('order_id', data.orderId)
+      .eq('template_name', 'delivery-confirmation')
+      .eq('status', 'sent')
+      .maybeSingle();
+
+    if (existingLog && !data.previewOnly) {
+      logStep('Email already sent for this order and status (Idempotency)');
+      return new Response(JSON.stringify({ success: true, message: 'Already sent' }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
     logStep('Received delivery data', {
       orderId: data.orderId, customerEmail: data.customerEmail,
       itemCount: data.items?.length || 0, previewOnly: data.previewOnly

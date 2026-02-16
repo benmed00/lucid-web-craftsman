@@ -9,8 +9,6 @@ verify_jwt = false
 [functions.stripe-webhook]
 verify_jwt = false
 
-[functions.send-order-notification]
-verify_jwt = false
 
 [functions.send-order-notification-improved]
 verify_jwt = false

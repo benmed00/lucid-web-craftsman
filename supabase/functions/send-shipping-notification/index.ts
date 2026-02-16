@@ -85,6 +85,20 @@ const handler = async (req: Request): Promise<Response> => {
     logStep('Starting shipping notification email send');
     const data: ShippingNotificationRequest = await req.json();
     
+    // Idempotency check
+    const { data: existingLog } = await serviceClient
+      .from('email_logs')
+      .select('id')
+      .eq('order_id', data.orderId)
+      .eq('template_name', 'shipping-notification')
+      .eq('status', 'sent')
+      .maybeSingle();
+
+    if (existingLog && !data.previewOnly) {
+      logStep('Email already sent for this order and status (Idempotency)');
+      return new Response(JSON.stringify({ success: true, message: 'Already sent' }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
     logStep('Received shipping data', {
       orderId: data.orderId, customerEmail: data.customerEmail,
       trackingNumber: data.trackingNumber, carrier: data.carrier, previewOnly: data.previewOnly

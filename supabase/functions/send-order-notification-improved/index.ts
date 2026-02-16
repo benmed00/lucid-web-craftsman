@@ -29,25 +29,36 @@ const getStatusText = (status: string): string => {
   return statusMap[status] || status;
 };
 
-const getEmailContent = (status: string, orderData: any): { subject: string; html: string } => {
+const checkIdempotency = async (supabase: any, orderId: string, status: string): Promise<boolean> => {
+  const { data } = await supabase
+    .from('email_logs')
+    .select('id')
+    .eq('order_id', orderId)
+    .eq('metadata->>status', status)
+    .eq('status', 'sent')
+    .maybeSingle();
+  return !!data;
+};
+
+const getEmailContent = (status: string, orderData: any): { subject: string; html: string; templateName: string } => {
   const statusText = getStatusText(status);
-  const formattedTotal = `${(orderData.amount / 100).toFixed(2)} ${orderData.currency.toUpperCase()}`;
-  const orderNumber = orderData.id.slice(-8);
+  const formattedTotal = `${(orderData.amount / 100).toFixed(2)} ${orderData.currency?.toUpperCase() || 'EUR'}`;
+  const orderNumber = orderData.id.slice(-8).toUpperCase();
   
   switch (status) {
     case 'paid':
       return {
+        templateName: 'order-confirmation',
         subject: `Confirmation de commande #${orderNumber}`,
         html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;"><h1 style="color: #2c5530;">Merci pour votre commande !</h1></div>
           <p>Bonjour ${orderData.customer_name},</p>
-          <p>Nous avons bien reçu votre paiement et votre commande est confirmée.</p>
+          <p>Nous avons bien reçu votre paiement et votre commande #${orderNumber} est confirmée.</p>
           <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2c5530;">
             <h3 style="margin-top: 0; color: #2c5530;">Détails de la commande</h3>
             <table style="width: 100%; border-collapse: collapse;">
               <tr><td style="padding: 5px 0;"><strong>Numéro:</strong></td><td>#${orderNumber}</td></tr>
               <tr><td style="padding: 5px 0;"><strong>Montant:</strong></td><td>${formattedTotal}</td></tr>
-              <tr><td style="padding: 5px 0;"><strong>Statut:</strong></td><td>${statusText}</td></tr>
               <tr><td style="padding: 5px 0;"><strong>Date:</strong></td><td>${new Date(orderData.created_at).toLocaleDateString('fr-FR')}</td></tr>
             </table>
           </div>
@@ -56,38 +67,43 @@ const getEmailContent = (status: string, orderData: any): { subject: string; htm
             <p>Cordialement,<br><strong style="color: #2c5530;">L'équipe Rif Raw Straw</strong></p>
           </div></div>`
       };
-    case 'processing':
-      return {
-        subject: `Votre commande #${orderNumber} est en préparation`,
-        html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #2c5530; text-align: center;">Votre commande est en préparation</h1>
-          <p>Bonjour ${orderData.customer_name},</p>
-          <p>Votre commande #${orderNumber} est en préparation dans nos ateliers.</p>
-          <p>Vous recevrez une notification dès qu'elle sera expédiée.</p>
-          <div style="margin-top: 30px; text-align: center; color: #666;"><p>Cordialement,<br><strong style="color: #2c5530;">L'équipe Rif Raw Straw</strong></p></div></div>`
-      };
     case 'shipped':
       return {
+        templateName: 'shipping-notification',
         subject: `📦 Votre commande #${orderNumber} a été expédiée`,
         html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h1 style="color: #2c5530; text-align: center;">Votre commande est en route !</h1>
           <p>Bonjour ${orderData.customer_name},</p>
           <p>Votre commande #${orderNumber} vient d'être expédiée.</p>
+          ${orderData.tracking_number ? `<p>N° de suivi: <strong>${orderData.tracking_number}</strong> (${orderData.carrier || ''})</p>` : ''}
           <p>Vous devriez la recevoir dans les prochains jours.</p>
           <div style="margin-top: 30px; text-align: center; color: #666;"><p>Cordialement,<br><strong style="color: #2c5530;">L'équipe Rif Raw Straw</strong></p></div></div>`
       };
     case 'delivered':
       return {
+        templateName: 'delivery-confirmation',
         subject: `✅ Votre commande #${orderNumber} a été livrée`,
         html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h1 style="color: #2c5530; text-align: center;">Commande livrée !</h1>
           <p>Bonjour ${orderData.customer_name},</p>
           <p>Votre commande #${orderNumber} a été livrée.</p>
-          <p>N'hésitez pas à laisser un avis !</p>
+          <p>Nous espérons que vos articles vous plaisent !</p>
+          <div style="margin-top: 30px; text-align: center; color: #666;"><p>Cordialement,<br><strong style="color: #2c5530;">L'équipe Rif Raw Straw</strong></p></div></div>`
+      };
+    case 'cancelled':
+      return {
+        templateName: 'cancellation-notification',
+        subject: `Annulation de votre commande #${orderNumber}`,
+        html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #dc2626; text-align: center;">Commande annulée</h1>
+          <p>Bonjour ${orderData.customer_name},</p>
+          <p>Le statut de votre commande #${orderNumber} est passé à: <strong>Annulée</strong></p>
+          <p>Si vous avez déjà été débité, un remboursement sera effectué sous peu.</p>
           <div style="margin-top: 30px; text-align: center; color: #666;"><p>Cordialement,<br><strong style="color: #2c5530;">L'équipe Rif Raw Straw</strong></p></div></div>`
       };
     default:
       return {
+        templateName: 'order-status-update',
         subject: `Mise à jour de votre commande #${orderNumber}`,
         html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2 style="color: #2c5530;">Mise à jour de commande</h2>
@@ -104,7 +120,6 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Validate caller: either service role key (internal) or authenticated admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
@@ -112,7 +127,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     const token = authHeader.replace("Bearer ", "");
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const isInternalCall = token === supabaseServiceKey;
+    
+    // Auth logic: Support Service Role Key OR Internal Secret OR Admin JWT
+    const internalSecret = req.headers.get("X-Internal-Secret");
+    const isInternalCall = (token === supabaseServiceKey) || (internalSecret === "rif_straw_internal_secure_notify_2026_v1");
 
     if (!isInternalCall) {
       const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -132,14 +150,21 @@ const handler = async (req: Request): Promise<Response> => {
     const payload: OrderNotificationPayload = await req.json();
     console.log('Processing order notification:', payload);
 
+    // Idempotency check
+    const alreadySent = await checkIdempotency(supabase, payload.order_id, payload.new_status);
+    if (alreadySent) {
+      console.log(`Email already sent for order ${payload.order_id} and status ${payload.new_status}`);
+      return new Response(JSON.stringify({ success: true, message: "Already sent" }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .select(`*`)
       .eq('id', payload.order_id)
       .single();
 
-    if (orderError) {
-      throw new Error(`Order not found: ${orderError.message}`);
+    if (orderError || !orderData) {
+      throw new Error(`Order not found: ${orderError?.message || 'Unknown error'}`);
     }
 
     const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(orderData.user_id);
@@ -152,20 +177,34 @@ const handler = async (req: Request): Promise<Response> => {
     if (!customerEmail) throw new Error('Customer email not found');
 
     const emailOrderData = { ...orderData, customer_name: customerName, customer_email: customerEmail };
-    const { subject, html } = getEmailContent(payload.new_status, emailOrderData);
+    const { subject, html, templateName } = getEmailContent(payload.new_status, emailOrderData);
 
     console.log(`Sending email to ${customerEmail} for order ${payload.order_id} status: ${payload.new_status}`);
 
     const emailResponse = await resend.emails.send({
       from: "Rif Raw Straw <commandes@rifrawstraw.com>",
-      to: [customerEmail], subject, html,
+      to: [customerEmail],
+      subject,
+      html,
     });
 
     console.log("Email sent successfully:", emailResponse);
 
+    // Log the email
+    await supabase.from('email_logs').insert({
+      template_name: templateName,
+      recipient_email: customerEmail,
+      recipient_name: customerName,
+      order_id: payload.order_id,
+      status: 'sent',
+      metadata: { status: payload.new_status, email_id: emailResponse.data?.id }
+    });
+
     return new Response(JSON.stringify({
-      success: true, emailId: emailResponse.data?.id,
-      order_id: payload.order_id, status: payload.new_status
+      success: true,
+      emailId: emailResponse.data?.id,
+      order_id: payload.order_id,
+      status: payload.new_status
     }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
   } catch (error: any) {
     console.error("Error in send-order-notification-improved:", error);
