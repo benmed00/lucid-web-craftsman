@@ -249,8 +249,14 @@ export default function EnhancedProfile() {
             <PreferencesSettings user={user} />
           </TabsContent>
 
-          <TabsContent value="orders" className="mt-4">
+          <TabsContent value="orders" className="mt-4 space-y-4">
             <OrderHistory user={user} />
+            <div className="flex justify-center">
+              <Button variant="outline" onClick={() => navigate('/orders')} className="gap-2">
+                <Package className="h-4 w-4" />
+                Voir l'historique complet des commandes
+              </Button>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
