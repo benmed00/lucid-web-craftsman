@@ -40,7 +40,7 @@ interface Order {
 
 const OrderHistory = () => {
   const { t, i18n } = useTranslation('pages');
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { formatPrice } = useCurrency();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -86,8 +86,10 @@ const OrderHistory = () => {
   };
 
   useEffect(() => {
-    fetchOrders();
-  }, [user]);
+    if (!authLoading) {
+      fetchOrders();
+    }
+  }, [user, authLoading]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { 
