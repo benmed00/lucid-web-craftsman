@@ -55,6 +55,21 @@ const isValidEmail = (email: string): boolean => {
   return emailRegex.test(email) && email.length <= 254;
 };
 
+// Origin allowlist for Stripe redirect URLs
+const ALLOWED_ORIGINS = [
+  'https://rif-raw-straw.lovable.app',
+  'https://id-preview--1ed5c182-2490-4180-9969-ca6a7e19e8ca.lovable.app',
+];
+const DEFAULT_ORIGIN = ALLOWED_ORIGINS[0]; // production
+
+const getValidOrigin = (req: Request): string => {
+  const origin = req.headers.get("origin") || '';
+  if (ALLOWED_ORIGINS.includes(origin)) return origin;
+  // Also allow any *.lovable.app or *.lovableproject.com origin
+  if (/^https:\/\/[a-z0-9._-]+\.lovable(project\.com|\.app)$/.test(origin)) return origin;
+  return DEFAULT_ORIGIN;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -300,7 +315,7 @@ serve(async (req) => {
               ? `Prix original: ${(originalPriceCents / 100).toFixed(2)}€`
               : (item.product.description || item.product.name),
             images: item.product.images?.length > 0 ? [
-              `${req.headers.get("origin")}${item.product.images[0]}`
+              `${getValidOrigin(req)}${item.product.images[0]}`
             ] : [],
           },
           unit_amount: discountedPriceCents,
@@ -481,8 +496,8 @@ serve(async (req) => {
       line_items: lineItems,
       mode: "payment",
       payment_method_types: ['card'],
-      success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/checkout`,
+      success_url: `${getValidOrigin(req)}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${getValidOrigin(req)}/checkout`,
       shipping_address_collection: shippingAddress ? undefined : {
         allowed_countries: ['FR', 'BE', 'CH', 'MC', 'LU'],
       },

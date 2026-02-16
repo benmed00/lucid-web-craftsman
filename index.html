@@ -77,34 +77,7 @@
   <body>
     <div id="root"></div>
     
-    <!-- Optimized Service Worker registration for better TTI -->
-    <script>
-      // Defer service worker registration to not block TTI
-      window.addEventListener('load', function() {
-        // Additional delay to ensure TTI is not impacted
-        setTimeout(function() {
-          if ('serviceWorker' in navigator && 'caches' in window) {
-            // Clean up old caches first
-            caches.keys().then(function(names) {
-              for (let name of names) {
-                if (name.includes('v1') || name.includes('old')) {
-                  caches.delete(name);
-                }
-              }
-            });
-            
-            // Register service worker
-            navigator.serviceWorker.register('/sw.js')
-              .then(function(registration) {
-                console.log('ServiceWorker registered');
-              })
-              .catch(function(error) {
-                console.log('ServiceWorker registration failed');
-              });
-          }
-        }, 1000); // Delay to ensure TTI is not blocked
-      });
-    </script>
+    <!-- Service Worker is registered via src/utils/cacheOptimization.ts (single registration path) -->
     
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <!-- Google Analytics Configuration Override -->

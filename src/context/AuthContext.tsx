@@ -158,18 +158,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
-    // Safety timeout: force isLoading to false after 8s to prevent UI deadlock
-    const safetyTimeout = setTimeout(() => {
-      if (isMounted) {
-        setAuthState(prev => {
-          if (prev.isLoading) {
-            console.warn('[AuthContext] Auth initialization timed out after 8s, forcing ready state');
-            return { ...prev, isLoading: false, isInitialized: true };
+    // Safety timeout: force isLoading to false after 4s, with one retry
+    let retried = false;
+    const safetyTimeout = setTimeout(async () => {
+      if (!isMounted) return;
+
+      // One retry before giving up
+      if (!retried) {
+        retried = true;
+        console.warn('[AuthContext] Auth initialization slow, retrying getSession...');
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (isMounted && session?.user) {
+            setAuthState(prev => ({
+              ...prev,
+              session,
+              user: session.user,
+              isLoading: false,
+              isInitialized: true,
+            }));
+            loadUserProfile(session.user.id);
+            return;
           }
-          return prev;
-        });
+        } catch { /* ignore retry error */ }
       }
-    }, 8000);
+
+      setAuthState(prev => {
+        if (prev.isLoading) {
+          console.warn('[AuthContext] Auth initialization timed out after 4s, forcing ready state');
+          return { ...prev, isLoading: false, isInitialized: true };
+        }
+        return prev;
+      });
+    }, 4000);
 
     // Set up auth state listener FIRST (to not miss any events)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -213,6 +234,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           profileCache.invalidate();
           setAuthState(prev => ({ ...prev, profile: null }));
+
+          // Purge Service Worker caches to prevent stale authenticated content
+          if ('caches' in self) {
+            caches.keys().then(names => names.forEach(name => caches.delete(name)));
+          }
+        } else if (event === 'SIGNED_IN') {
+          // Invalidate any cached HTML by purging SW caches (images will re-cache on demand)
+          if ('caches' in self) {
+            caches.keys().then(names => {
+              names.forEach(name => {
+                if (!name.includes('images')) caches.delete(name);
+              });
+            });
+          }
         }
       }
     );
