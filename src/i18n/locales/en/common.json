@@ -31,7 +31,9 @@
     "shipping": "Shipping",
     "returns": "Returns",
     "faq": "FAQ",
-    "terms": "Terms",
+    "terms": "Legal Notice",
+    "termsOfService": "Terms of Service",
+    "termsOfServiceAria": "Read our terms of service",
     "privacy": "Privacy",
     "cgv": "T&C",
     "help": "Help",
@@ -39,8 +41,8 @@
     "bags": "Bags",
     "hats": "Hats",
     "allProductsAria": "All products - View all our handmade products",
-    "bagsAria": "Discover our bag collection",
-    "hatsAria": "Discover our hat collection",
+    "bagsAria": "Bags - Discover our bag collection",
+    "hatsAria": "Hats - Discover our hat collection",
     "storyAria": "Learn more about our story and values",
     "blogAria": "Read our blog articles about craftsmanship",
     "contactAria": "Contact us for any questions",
@@ -137,5 +139,16 @@
     "consentText": "I agree to receive the Rif Raw Straw newsletter and confirm I have read the",
     "privacyPolicy": "privacy policy",
     "unsubscribeNote": "You can unsubscribe at any time by clicking the unsubscribe link in each email."
+  },
+  "notifications": {
+    "title": "Stay Informed",
+    "description": "Receive our exclusive offers and latest news directly.",
+    "exclusive": "Exclusive",
+    "enable": "Enable",
+    "later": "Later",
+    "welcomeMessage": "You will now receive our notifications for new products and special offers!"
+  },
+  "common": {
+    "close": "Close"
   }
 }

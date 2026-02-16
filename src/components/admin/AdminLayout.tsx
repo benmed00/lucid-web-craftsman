@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useOrderNotifications } from "@/hooks/useOrderNotifications";
+
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 
@@ -39,8 +39,6 @@ const AdminLayout = () => {
   const { user: adminUser, isAuthenticated, isLoading } = useAdminAuth();
   const { signOut } = useAuth();
   
-  // Initialize order notifications
-  useOrderNotifications();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -108,7 +106,7 @@ const AdminLayout = () => {
     {
       icon: ShoppingCart,
       label: "Commandes",
-      path: "/admin/orders",
+      path: "/admin/orders-enhanced",
     },
     {
       icon: Users,

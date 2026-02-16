@@ -19,11 +19,12 @@ interface WorkerResponse {
 
 class MainThreadOptimizer {
   private worker: Worker | null = null;
+  private workerInitialized = false;
   private pendingTasks = new Map<string, { resolve: Function; reject: Function }>();
   private taskCounter = 0;
 
   constructor() {
-    this.initializeWorker();
+    // Defer worker creation to avoid blocking main thread during module load
   }
 
   private initializeWorker() {
@@ -174,6 +175,11 @@ class MainThreadOptimizer {
    * Execute heavy task in web worker to keep main thread free
    */
   async executeInWorker<T>(type: string, payload: any): Promise<T> {
+    // Lazy-init the worker on first use
+    if (!this.workerInitialized) {
+      this.workerInitialized = true;
+      this.initializeWorker();
+    }
     if (!this.worker) {
       // Fallback to main thread if worker not available
       return this.executeOnMainThread(type, payload);

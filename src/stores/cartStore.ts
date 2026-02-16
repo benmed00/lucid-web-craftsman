@@ -305,6 +305,40 @@ export function initializeCartStore() {
   if (initialized) return;
   initialized = true;
 
+  // --- BroadcastChannel: sync cart across tabs ---
+  let cartChannel: BroadcastChannel | null = null;
+  let ignoreNextBroadcast = false;
+
+  try {
+    cartChannel = new BroadcastChannel('cart-sync');
+    cartChannel.onmessage = (event) => {
+      if (event.data?.type === 'CART_UPDATE' && Array.isArray(event.data.items)) {
+        ignoreNextBroadcast = true;
+        useCartStore.setState({ items: event.data.items });
+      }
+    };
+  } catch {
+    // BroadcastChannel not supported (e.g., older browsers) — silent fallback
+  }
+
+  function broadcastCartUpdate(items: CartItem[]) {
+    if (ignoreNextBroadcast) {
+      ignoreNextBroadcast = false;
+      return;
+    }
+    try {
+      cartChannel?.postMessage({ type: 'CART_UPDATE', items });
+    } catch {
+      // Ignore broadcast errors
+    }
+  }
+
+  // Subscribe to cart item changes and broadcast
+  useCartStore.subscribe(
+    (state) => state.items,
+    (items) => broadcastCartUpdate(items)
+  );
+
   // Debounced save function
   const debouncedSave = async () => {
     if (saveTimeout) clearTimeout(saveTimeout);

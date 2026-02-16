@@ -7,6 +7,7 @@ import clsx from "clsx";
 import { useCartUI } from "@/hooks/useCartUI";
 import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import type { Profile } from "@/context/AuthContext";
 import { useWishlist } from "@/hooks/useWishlist";
 import CurrencySelector from "@/components/CurrencySelector";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -21,7 +22,7 @@ const Navigation = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const { itemCount } = useCartUI();
-  const { user, isLoading, signOut } = useAuth();
+  const { user, isLoading, signOut, profile } = useAuth();
   const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,10 +50,12 @@ const Navigation = () => {
     try {
       await signOut();
       setIsMenuOpen(false);
+      navigate('/auth');
     } catch (error) {
       console.error("Sign out error:", error);
+      toast.error(t('common:nav.signOutError', 'Erreur lors de la déconnexion'));
     }
-  }, [signOut]);
+  }, [signOut, navigate, t]);
 
   // Smart navigation with "already on page" feedback
   const handleNavClick = useCallback((targetPath: string, e?: React.MouseEvent) => {
@@ -76,10 +79,10 @@ const Navigation = () => {
 
   return (
     <>
-      {/* Skip to main content */}
+      {/* Skip to main content — visually hidden until focused */}
       <a 
         href="#main-content" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-primary-foreground px-4 py-2 rounded-md z-50 focus:ring-2 focus:ring-primary/50"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-sm font-medium"
       >
         {t('common:accessibility.skipToContent')}
       </a>
@@ -92,9 +95,9 @@ const Navigation = () => {
               <Link 
                 to="/" 
                 className="group flex items-center space-x-2 md:space-x-3 min-w-0"
-                aria-label={t('common:brand.name')}
                 onClick={() => setIsMenuOpen(false)}
               >
+                <span className="sr-only sm:hidden">{t('common:brand.name')}</span>
                 <div className="p-2 rounded-full bg-primary group-hover:bg-primary/90 transition-all duration-300 shadow-md group-hover:shadow-lg flex-shrink-0">
                   <Leaf className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
                 </div>
@@ -267,15 +270,23 @@ const Navigation = () => {
                       </Link>
                     </Button>
                     <Button variant="ghost" size="sm" asChild className="group relative hover:bg-primary/10 rounded-lg transition-all duration-300 touch-manipulation">
-                      <Link to="/profile" className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 text-foreground hover:text-primary transition-colors duration-300">
-                        <User className="h-4 w-4 transition-colors" />
+                      <Link to="/profile" className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 transition-colors duration-300">
+                        {profile?.avatar_url ? (
+                          <img 
+                            src={profile.avatar_url} 
+                            alt={profile.full_name || 'Profile'} 
+                            className="w-7 h-7 lg:w-8 lg:h-8 rounded-full object-cover border-2 border-border group-hover:border-primary transition-colors"
+                          />
+                        ) : (
+                          <User className="h-4 w-4 text-foreground group-hover:text-primary transition-colors" />
+                        )}
                       </Link>
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       onClick={handleSignOut} 
-                      className="group relative flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hidden xl:inline-flex hover:bg-primary/10 text-foreground hover:text-primary rounded-lg transition-all duration-300"
+                      className="hidden md:inline-flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hover:bg-primary/10 text-foreground hover:text-primary rounded-lg transition-all duration-300"
                       aria-label={t('common:nav.logout')}
                     >
                       <LogOut className="h-4 w-4 transition-colors" />
@@ -347,7 +358,9 @@ const Navigation = () => {
         className={`md:hidden fixed top-0 right-0 h-full w-full max-w-xs sm:max-w-sm bg-background shadow-2xl z-mobile-menu transform transition-transform duration-300 ease-out flex flex-col ${
           isMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
-        {...(!isMenuOpen ? { 'aria-hidden': 'true' as const, tabIndex: -1 } : {})}
+        aria-hidden={!isMenuOpen}
+        // @ts-expect-error - inert is a valid HTML attribute but not yet in React types
+        inert={!isMenuOpen ? '' : undefined}
         role="menu"
         aria-label={t('common:accessibility.mobileNav')}
       >

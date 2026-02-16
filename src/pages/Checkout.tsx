@@ -27,9 +27,12 @@ import {
   type CheckoutFormData
 } from "@/utils/checkoutValidation";
 import { sanitizeUserInput } from "@/utils/xssProtection";
+import { retryWithBackoff } from "@/lib/retryWithBackoff";
 import { useCsrfToken } from "@/hooks/useCsrfToken";
 import { useBusinessRules } from "@/hooks/useBusinessRules";
 import { useCheckoutFormPersistence } from "@/hooks/useCheckoutFormPersistence";
+import { useGuestSession } from "@/hooks/useGuestSession";
+import { useCheckoutSession, type PersonalInfo, type ShippingInfo, type CartItemSnapshot } from "@/hooks/useCheckoutSession";
 import CheckoutProgress from "@/components/checkout/CheckoutProgress";
 import FormFieldWithValidation from "@/components/checkout/FormFieldWithValidation";
 import StepSummary from "@/components/checkout/StepSummary";
@@ -62,6 +65,20 @@ const Checkout = () => {
   const { formatPrice } = useCurrency();
   const { getCsrfHeaders, regenerateToken } = useCsrfToken();
   const { rules: businessRules } = useBusinessRules();
+  
+  // Guest session for GDPR-compliant tracking
+  const { getSessionData: getGuestSessionData } = useGuestSession();
+  
+  // Checkout session tracking for admin visibility (persists to DB)
+  const {
+    sessionId: checkoutSessionId,
+    savePersonalInfo,
+    saveShippingInfo,
+    savePromoCode,
+    saveCartSnapshot,
+    updateStep,
+    isLoading: isSessionLoading,
+  } = useCheckoutSession();
   
   // Use checkout form persistence hook for pre-filling and caching
   const { 
@@ -160,6 +177,37 @@ const Checkout = () => {
     fetchFreeShippingSettings();
   }, []);
 
+  // Track if payment was initiated (to prevent double submissions)
+  const [paymentInitiated, setPaymentInitiated] = useState(false);
+  // Track if payment was opened in a new tab (Stripe or PayPal)
+  const [paymentOpenedInTab, setPaymentOpenedInTab] = useState(false);
+
+  // On mount: if returning from a payment redirect that completed, reset state
+  useEffect(() => {
+    const paymentPending = localStorage.getItem('checkout_payment_pending');
+    if (paymentPending) {
+      // User navigated back to checkout — clear the flag and reset state
+      localStorage.removeItem('checkout_payment_pending');
+      setIsProcessing(false);
+      setPaymentInitiated(false);
+    }
+  }, []);
+
+  // Reset processing state when user returns from payment tab (Stripe or PayPal)
+  useEffect(() => {
+    if (!paymentOpenedInTab) return;
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        setIsProcessing(false);
+        setPaymentOpenedInTab(false);
+        setPaymentInitiated(false);
+        localStorage.removeItem('checkout_payment_pending');
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [paymentOpenedInTab]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [step]);
@@ -200,7 +248,7 @@ const Checkout = () => {
         .select('*')
         .eq('code', sanitizedCode)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (error || !data) {
         setPromoError(t("promo.invalid"));
@@ -244,6 +292,19 @@ const Checkout = () => {
       saveCoupon(coupon as any); // Persist coupon for Stripe redirect
       setPromoCode("");
       toast.success(t("promo.applied"));
+      
+      // Save promo code to checkout session for admin visibility
+      const discountApplied = coupon.type === 'percentage' 
+        ? (subtotal * coupon.value) / 100 
+        : coupon.value;
+      savePromoCode({
+        code: coupon.code,
+        valid: true,
+        discount_type: coupon.type as 'percentage' | 'fixed',
+        discount_value: coupon.value,
+        discount_applied: Math.round(Math.min(discountApplied, subtotal) * 100),
+        free_shipping: coupon.includes_free_shipping || false,
+      });
     } catch (err) {
       console.error("Error validating promo code:", err);
       setPromoError(t("errors.genericError"));
@@ -256,6 +317,7 @@ const Checkout = () => {
   const removePromoCode = () => {
     setAppliedCoupon(null);
     saveCoupon(null); // Clear persisted coupon
+    savePromoCode(null); // Clear from checkout session
     toast.info(t("promo.remove"));
   };
 
@@ -310,13 +372,22 @@ const Checkout = () => {
       }
       
       // Update formData with sanitized values
-      setFormData(prev => ({
-        ...prev,
+      const sanitizedData = {
         firstName: validation.data!.firstName,
         lastName: validation.data!.lastName,
         email: validation.data!.email,
         phone: validation.data!.phone || '',
-      }));
+      };
+      
+      setFormData(prev => ({ ...prev, ...sanitizedData }));
+      
+      // Save personal info to checkout session (database persistence for admin)
+      savePersonalInfo({
+        first_name: sanitizedData.firstName,
+        last_name: sanitizedData.lastName,
+        email: sanitizedData.email,
+        phone: sanitizedData.phone || undefined,
+      });
       
       // Mark step as completed
       if (!newCompletedSteps.includes(1)) {
@@ -342,14 +413,38 @@ const Checkout = () => {
       }
       
       // Update formData with sanitized values
-      setFormData(prev => ({
-        ...prev,
+      const sanitizedData = {
         address: validation.data!.address,
         addressComplement: validation.data!.addressComplement || '',
         postalCode: validation.data!.postalCode,
         city: validation.data!.city,
         country: validation.data!.country,
+      };
+      
+      setFormData(prev => ({ ...prev, ...sanitizedData }));
+      
+      // Save shipping info to checkout session (database persistence for admin)
+      saveShippingInfo({
+        address_line1: sanitizedData.address,
+        address_line2: sanitizedData.addressComplement || undefined,
+        postal_code: sanitizedData.postalCode,
+        city: sanitizedData.city,
+        country: sanitizedData.country,
+      });
+      
+      // Save cart snapshot for admin visibility
+      const cartSnapshot: CartItemSnapshot[] = cartItems.map(item => ({
+        product_id: item.product.id,
+        product_name: item.product.name,
+        quantity: item.quantity,
+        unit_price: Math.round(item.product.price * 100),
+        total_price: Math.round(item.product.price * item.quantity * 100),
       }));
+      const discountCents = Math.round(discount * 100);
+      const subtotalCents = Math.round(subtotal * 100);
+      const shippingCents = Math.round(shipping * 100);
+      const totalCents = Math.round(total * 100);
+      saveCartSnapshot(cartSnapshot, subtotalCents, shippingCents, totalCents);
       
       // Mark step as completed
       if (!newCompletedSteps.includes(2)) {
@@ -362,7 +457,16 @@ const Checkout = () => {
     const nextStep = step + 1;
     setStep(nextStep);
     saveStepState(nextStep, newCompletedSteps);
-  }, [step, formData, honeypot, completedSteps, saveStepState]);
+    
+    // Auto-clear invalid promo code when navigating steps
+    if (promoError) {
+      setPromoCode('');
+      setPromoError('');
+    }
+    
+    // Update checkout session step tracking
+    updateStep(nextStep, Math.max(...newCompletedSteps, 0));
+  }, [step, formData, honeypot, completedSteps, promoError, saveStepState, savePersonalInfo, saveShippingInfo, saveCartSnapshot, updateStep, cartItems, t]);
 
   // Handle editing a previous step
   const handleEditStep = useCallback((targetStep: number) => {
@@ -435,35 +539,99 @@ const Checkout = () => {
       // Get CSRF headers for secure request
       const csrfHeaders = await getCsrfHeaders();
       
-      // Call Supabase edge function to create Stripe checkout session with sanitized data
-      const { data, error } = await supabase.functions.invoke('create-payment', {
-        body: {
-          items: cartItems,
-          customerInfo: sanitizedFormData,
-          discount: appliedCoupon ? {
-            couponId: appliedCoupon.id,
-            code: sanitizeUserInput(appliedCoupon.code),
-            amount: discount,
-            includesFreeShipping: appliedCoupon.includes_free_shipping || false
-          } : null
+      // Get guest session data for GDPR-compliant tracking
+      const guestSession = getGuestSessionData();
+      
+      // Determine which edge function to call based on payment method
+      const functionName = paymentMethod === "paypal" ? "create-paypal-payment" : "create-payment";
+      
+      // Call appropriate edge function with retry for transient failures
+      const { data, error } = await retryWithBackoff(
+        async () => {
+          const result = await supabase.functions.invoke(functionName, {
+            body: {
+              items: cartItems,
+              customerInfo: sanitizedFormData,
+              guestSession,
+              discount: appliedCoupon ? {
+                couponId: appliedCoupon.id,
+                code: sanitizeUserInput(appliedCoupon.code),
+                amount: discount,
+                includesFreeShipping: appliedCoupon.includes_free_shipping || false
+              } : null
+            },
+            headers: {
+              ...csrfHeaders,
+              ...(checkoutSessionId ? { 'x-checkout-session-id': checkoutSessionId } : {}),
+            }
+          });
+          if (result.error) {
+            const msg = result.error.message || '';
+            const isTransient = msg.includes('fetch') || msg.includes('network') || msg.includes('503') || msg.includes('502') || msg.includes('timeout');
+            if (isTransient) throw result.error;
+          }
+          return result;
         },
-        headers: csrfHeaders
-      });
+        {
+          maxAttempts: 2,
+          baseDelayMs: 1000,
+          onRetry: (attempt) => {
+            toast.info('Nouvelle tentative de paiement...', { duration: 2000 });
+            console.warn(`[Checkout] Payment retry #${attempt}`);
+          },
+        }
+      );
 
       if (error) {
-        throw new Error(error.message);
+        // Categorize error for user-friendly messaging
+        const errorMsg = error.message || '';
+        if (errorMsg.includes('rate limit') || errorMsg.includes('429')) {
+          toast.error(t("errors.rateLimited", "Trop de tentatives. Veuillez patienter quelques minutes."));
+        } else if (errorMsg.includes('stock') || errorMsg.includes('indisponible') || errorMsg.includes('insuffisant')) {
+          toast.error(errorMsg);
+        } else {
+          throw new Error(errorMsg);
+        }
+        setIsProcessing(false);
+        return;
       }
 
       if (data?.url) {
-        // Redirect to Stripe Checkout
-        window.location.href = data.url;
+        // Mark payment as initiated and persist flag for cross-page state
+        setPaymentInitiated(true);
+        localStorage.setItem('checkout_payment_pending', 'true');
+        // Redirect to Stripe/PayPal Checkout
+        // Use window.top to escape iframe (Lovable preview), fallback to window.location
+        try {
+          if (window.top && window.top !== window) {
+            window.top.location.href = data.url;
+          } else {
+            window.location.href = data.url;
+          }
+        } catch {
+          // Cross-origin iframe restriction — open in new tab as fallback
+          window.open(data.url, '_blank');
+          // Mark that payment was opened in a new tab so we can reset on return
+          setPaymentOpenedInTab(true);
+        }
       } else {
         throw new Error("No checkout URL received");
       }
 
     } catch (error) {
       console.error("Payment error:", error);
-      toast.error(t("errors.paymentFailed"));
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      // Distinguish error types for user messaging
+      if (errorMessage.includes('introuvable') || errorMessage.includes('indisponible') || errorMessage.includes('insuffisant')) {
+        toast.error(errorMessage); // Show exact product error
+      } else if (errorMessage.includes('Invalid email') || errorMessage.includes('invalide')) {
+        toast.error(t("errors.invalidEmail", "Veuillez vérifier vos informations."));
+      } else if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('Failed to fetch')) {
+        toast.error(t("errors.networkError", "Erreur réseau. Vérifiez votre connexion et réessayez."));
+      } else {
+        toast.error(t("errors.paymentFailed"));
+      }
       setIsProcessing(false);
     }
   };
@@ -781,7 +949,7 @@ const Checkout = () => {
                         });
                       }}
                       error={formErrors.postalCode}
-                      placeholder="75001"
+                      placeholder={formData.country === 'BE' || formData.country === 'CH' || formData.country === 'LU' ? "1000" : "ex: 75001"}
                       required
                       autoComplete="postal-code"
                       maxLength={10}
@@ -800,6 +968,16 @@ const Checkout = () => {
                         return null;
                       }}
                     />
+                    {/* Postal code format hint */}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formData.country === 'FR' || formData.country === 'MC'
+                        ? '5 chiffres (ex: 75001)'
+                        : formData.country === 'BE' || formData.country === 'LU'
+                          ? '4 chiffres (ex: 1000)'
+                          : formData.country === 'CH'
+                            ? '4 chiffres (ex: 1200)'
+                            : ''}
+                    </p>
 
                     <div className="md:col-span-2">
                       <FormFieldWithValidation

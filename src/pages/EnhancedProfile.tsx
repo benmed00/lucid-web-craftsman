@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { User } from '@supabase/supabase-js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,121 +14,64 @@ import { PreferencesSettings } from '@/components/profile/PreferencesSettings';
 import { OrderHistory } from '@/components/profile/OrderHistory';
 import { LoyaltyProgram } from '@/components/profile/LoyaltyProgram';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
+import type { Profile } from '@/context/AuthContext';
 import { EnhancedProfileManager } from '@/components/profile/EnhancedProfileManager';
 import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useCompanySettings } from '@/hooks/useCompanySettings';
+import Footer from '@/components/Footer';
 
-interface Profile {
-  id: string;
-  full_name: string | null;
-  bio: string | null;
-  avatar_url: string | null;
-  phone: string | null;
-  location: string | null;
-  address_line1: string | null;
-  address_line2: string | null;
-  city: string | null;
-  postal_code: string | null;
-  country: string | null;
-  website_url: string | null;
-  instagram_handle: string | null;
-  facebook_url: string | null;
-  twitter_handle: string | null;
-  created_at: string;
-  updated_at: string;
-}
+const VALID_TABS = ['overview', 'personal', 'loyalty', 'preferences', 'orders'] as const;
+type ProfileTab = typeof VALID_TABS[number];
 
 export default function EnhancedProfile() {
   const { t } = useTranslation('pages');
   const navigate = useNavigate();
-  const { user, signOut, isLoading: authLoading, session } = useOptimizedAuth();
-  const { settings: companySettings, isLoading: isLoadingSettings } = useCompanySettings();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [isProfileLoading, setIsProfileLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+  const location = useLocation();
+  const { user, signOut, isLoading: authLoading, profile, refreshProfile } = useOptimizedAuth();
+  const isProfileLoading = authLoading && !profile;
 
-  // Track if profile has been loaded to prevent duplicate requests
-  const hasLoadedProfile = useRef(false);
-  
+  // Derive active tab from URL hash
+  const getTabFromHash = (): ProfileTab => {
+    const hash = location.hash.replace('#', '') as ProfileTab;
+    return VALID_TABS.includes(hash) ? hash : 'overview';
+  };
+  const [activeTab, setActiveTab] = useState<ProfileTab>(getTabFromHash);
+
+  // Sync tab with URL hash
   useEffect(() => {
-    // Don't redirect while auth is still loading
-    if (authLoading) return;
-    
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
+    setActiveTab(getTabFromHash());
+  }, [location.hash]);
 
-    // Only load profile once per session
-    if (!hasLoadedProfile.current) {
-      hasLoadedProfile.current = true;
-      loadProfile();
-    }
-  }, [user, authLoading]); // Removed navigate from deps to prevent re-runs
-
-  const loadProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // No profile found, create one
-          await createProfile();
-        } else {
-          throw error;
-        }
-      } else {
-        setProfile(data);
-      }
-    } catch (error: any) {
-      console.error('Error loading profile:', error);
-      toast.error(t('profile.messages.loadError'));
-    } finally {
-      setIsProfileLoading(false);
-    }
+  const handleTabChange = (tab: string) => {
+    const validTab = tab as ProfileTab;
+    setActiveTab(validTab);
+    navigate(`/profile#${validTab}`, { replace: true });
   };
 
-  const createProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert([{
-          id: user.id,
-          full_name: user.user_metadata?.full_name || null,
-          bio: null,
-          avatar_url: null
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      setProfile(data);
-    } catch (error: any) {
-      console.error('Error creating profile:', error);
-      toast.error(t('profile.messages.createError'));
+  // Safety timeout: force render after 5s to prevent infinite skeleton
+  const [forceRender, setForceRender] = useState(false);
+  useEffect(() => {
+    if (authLoading || isProfileLoading) {
+      const timeout = setTimeout(() => {
+        console.warn('[EnhancedProfile] Loading timed out after 5s, force rendering');
+        setForceRender(true);
+      }, 5000);
+      return () => clearTimeout(timeout);
     }
-  };
+  }, [authLoading, isProfileLoading]);
 
-  const handleProfileUpdate = (updatedProfile: Profile) => {
-    setProfile(updatedProfile);
+  // Don't auto-redirect — show a friendly "login required" message instead
+
+  const handleProfileUpdate = async (_updatedProfile?: any) => {
+    // Refresh profile from AuthContext (single source of truth)
+    await refreshProfile();
   };
 
   const handleDeleteAccount = async () => {
     if (!user) return;
 
-    setIsProfileLoading(true);
     try {
-      // Delete profile data
+      const { supabase } = await import('@/integrations/supabase/client');
       const { error } = await supabase
         .from('profiles')
         .delete()
@@ -137,37 +79,26 @@ export default function EnhancedProfile() {
 
       if (error) throw error;
 
-      // Sign out user
       await signOut();
       navigate('/auth');
       toast.success(t('profile.messages.deleteSuccess'));
     } catch (error: any) {
       console.error('Error deleting account:', error);
       toast.error(t('profile.messages.deleteError'));
-    } finally {
-      setIsProfileLoading(false);
     }
   };
 
   const handleSignOut = async () => {
     try {
-      // Clean up auth state properly
-      Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-          localStorage.removeItem(key);
-        }
-      });
-      
       await signOut();
-      // Force page reload for clean state
-      window.location.href = '/auth';
+      navigate('/auth');
     } catch (error: any) {
       console.error('Error signing out:', error);
       toast.error(t('profile.messages.signOutError'));
     }
   };
 
-  if (authLoading || isProfileLoading) {
+  if ((authLoading || isProfileLoading) && !forceRender) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
@@ -191,7 +122,27 @@ export default function EnhancedProfile() {
   }
 
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-16 max-w-md text-center">
+          <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+              <UserIcon className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-2xl font-serif font-bold text-foreground mb-3">
+              {t('profile.loginRequired', 'Connexion requise')}
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              {t('profile.loginRequiredDescription', 'Veuillez vous connecter pour accéder à votre profil et gérer vos informations.')}
+            </p>
+            <Button onClick={() => navigate('/auth')} className="w-full">
+              {t('profile.buttons.login', 'Se connecter')}
+            </Button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   return (
@@ -249,7 +200,7 @@ export default function EnhancedProfile() {
         </div>
 
         {/* Profile Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <UserIcon className="h-4 w-4" />
@@ -298,79 +249,19 @@ export default function EnhancedProfile() {
             <PreferencesSettings user={user} />
           </TabsContent>
 
-          <TabsContent value="orders" className="mt-4">
+          <TabsContent value="orders" className="mt-4 space-y-4">
             <OrderHistory user={user} />
+            <div className="flex justify-center">
+              <Button variant="outline" onClick={() => navigate('/orders')} className="gap-2">
+                <Package className="h-4 w-4" />
+                Voir l'historique complet des commandes
+              </Button>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
 
-      {/* Footer */}
-      <footer className="border-t bg-muted/20 mt-12">
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Contact Info */}
-            <div>
-              <h3 className="font-semibold mb-4">{t('profile.footer.contact')}</h3>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>Email: {companySettings?.email || 'contact@rifstraw.com'}</p>
-                <p>{t('profile.footer.contact')}: {companySettings?.phone || '+33 1 23 45 67 89'}</p>
-              </div>
-            </div>
-
-            {/* Important Links */}
-            <div>
-              <h3 className="font-semibold mb-4">{t('profile.footer.importantLinks')}</h3>
-              <div className="space-y-2 text-sm">
-                <Button 
-                  variant="link" 
-                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
-                  onClick={() => navigate('/terms')}
-                >
-                  {t('profile.footer.terms')}
-                </Button>
-                <Button 
-                  variant="link" 
-                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
-                  onClick={() => navigate('/cgv')}
-                >
-                  {t('profile.footer.cgv')}
-                </Button>
-                <Button 
-                  variant="link" 
-                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
-                  onClick={() => window.open('/privacy-policy', '_blank')}
-                >
-                  {t('profile.footer.privacy')}
-                </Button>
-              </div>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h3 className="font-semibold mb-4">{t('profile.footer.legal')}</h3>
-              <div className="space-y-2 text-sm">
-                <Button 
-                  variant="link" 
-                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
-                  onClick={() => window.open('/legal-notices', '_blank')}
-                >
-                  {t('profile.footer.legalNotices')}
-                </Button>
-                <Button 
-                  variant="link" 
-                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
-                  onClick={() => window.open('/cookie-policy', '_blank')}
-                >
-                  {t('profile.footer.cookies')}
-                </Button>
-                <p className="text-xs text-muted-foreground mt-4">
-                  {t('profile.footer.copyright')}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

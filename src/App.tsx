@@ -1,6 +1,6 @@
 // File_name: src/App.tsx
 
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useWebVitals } from "@/hooks/useWebVitals";
 import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
@@ -53,6 +53,7 @@ const Returns = lazyWithRetry(() => import("./pages/Returns"));
 const Shipping = lazyWithRetry(() => import("./pages/Shipping"));
 const Story = lazyWithRetry(() => import("./pages/Story"));
 const Terms = lazyWithRetry(() => import("./pages/Terms"));
+const TermsOfService = lazyWithRetry(() => import("./pages/TermsOfService"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 // Essential context providers (Auth only - Cart/Wishlist/Currency/Theme migrated to Zustand)
@@ -81,6 +82,7 @@ const ProtectedAdminRoute = lazy(() => import("./components/ProtectedAdminRoute"
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
+const AdminOrdersEnhanced = lazy(() => import("./pages/admin/AdminOrdersEnhanced"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminCustomers = lazy(() => import("./pages/admin/AdminCustomers"));
 const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics"));
@@ -140,14 +142,17 @@ const MaintenanceWrapper = ({ children }: { children: React.ReactNode }) => {
   // Allow admin routes even in maintenance mode
   const isAdminRoute = location.pathname.startsWith('/admin');
   
-  // Show a minimal loading state while checking maintenance mode
-  if (isLoading) {
-    return <div className="min-h-screen bg-background" />;
-  }
+  // Don't block rendering while checking maintenance mode — show content immediately
+  // This prevents blank screens caused by slow/failing Supabase queries
   
   // If in maintenance mode and not an admin route, show maintenance page WITHOUT navigation
   if (isMaintenanceMode && !isAdminRoute) {
     return <Maintenance />;
+  }
+  
+  // Admin routes should NOT show the main navigation
+  if (isAdminRoute) {
+    return <>{children}</>;
   }
   
   // Normal operation: show navigation + children
@@ -203,6 +208,7 @@ const App = () => {
                 {/* Critical routes loaded immediately */}
                 <Route path="/" element={<Index />} />
                 <Route path="/products" element={<Products />} />
+                <Route path="/shop" element={<Navigate to="/products" replace />} />
                 <Route path="/products/:id" element={<ProductDetail />} />
                 
                 {/* Non-critical routes with lazy loading */}
@@ -223,6 +229,7 @@ const App = () => {
                 <Route path="/about" element={<Suspense fallback={<PageLoadingFallback />}><About /></Suspense>} />
                 <Route path="/terms" element={<Suspense fallback={<PageLoadingFallback />}><Terms /></Suspense>} />
                 <Route path="/cgv" element={<Suspense fallback={<PageLoadingFallback />}><CGV /></Suspense>} />
+                <Route path="/terms-of-service" element={<Suspense fallback={<PageLoadingFallback />}><TermsOfService /></Suspense>} />
                 <Route path="/story" element={<Suspense fallback={<PageLoadingFallback />}><Story /></Suspense>} />
 
                 {/* Admin routes with lazy loading */}
@@ -238,6 +245,7 @@ const App = () => {
                   <Route path="hero-image" element={<Suspense fallback={<PageLoadingFallback />}><AdminHeroImage /></Suspense>} />
                   <Route path="inventory" element={<Suspense fallback={<PageLoadingFallback />}><AdminInventory /></Suspense>} />
                   <Route path="orders" element={<Suspense fallback={<PageLoadingFallback />}><AdminOrders /></Suspense>} />
+                  <Route path="orders-enhanced" element={<Suspense fallback={<PageLoadingFallback />}><AdminOrdersEnhanced /></Suspense>} />
                   <Route path="customers" element={<Suspense fallback={<PageLoadingFallback />}><AdminCustomers /></Suspense>} />
                   <Route path="marketing" element={<Suspense fallback={<PageLoadingFallback />}><AdminMarketing /></Suspense>} />
                   <Route path="promo-codes" element={<Suspense fallback={<PageLoadingFallback />}><AdminPromoCodes /></Suspense>} />

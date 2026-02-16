@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Bell, Globe, Shield, Palette } from 'lucide-react';
+import { Bell, Globe, Shield, Palette, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -36,14 +36,11 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
     document.documentElement.classList.contains('dark')
   );
 
-  // Load user preferences once on mount
-  const hasLoadedRef = useRef(false);
-  
   useEffect(() => {
-    if (hasLoadedRef.current) return;
-    hasLoadedRef.current = true;
     loadPreferences();
-  }, []); // Empty deps - only run once
+  }, [user.id]);
+
+  const [loadError, setLoadError] = useState(false);
 
   const loadPreferences = async () => {
     try {
@@ -51,21 +48,22 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
         .from('user_preferences')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          // No preferences found, create default ones
-          await createDefaultPreferences();
-        } else {
-          throw error;
-        }
+        console.error('Error loading preferences:', error);
+        setLoadError(true);
+        return;
+      }
+      
+      if (!data) {
+        await createDefaultPreferences();
       } else {
         setPreferences(data);
       }
     } catch (error: any) {
       console.error('Error loading preferences:', error);
-      toast.error('Erreur lors du chargement des préférences');
+      setLoadError(true);
     }
   };
 
@@ -133,6 +131,20 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
   };
 
   if (!preferences) {
+    if (loadError) {
+      return (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <Settings className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Préférences indisponibles</h3>
+              <p className="text-muted-foreground mb-4">Impossible de charger vos préférences pour le moment.</p>
+              <Button variant="outline" onClick={() => { setLoadError(false); loadPreferences(); }}>Réessayer</Button>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
     return (
       <div className="space-y-6">
         <Card>

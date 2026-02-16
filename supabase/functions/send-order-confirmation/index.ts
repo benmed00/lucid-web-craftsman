@@ -9,13 +9,11 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Initialize Supabase client for logging
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface OrderItem {
   name: string;
@@ -48,6 +46,7 @@ const logStep = (step: string, details?: any) => {
 };
 
 const logEmailToDatabase = async (
+  supabase: any,
   templateName: string,
   recipientEmail: string,
   recipientName: string | null,
@@ -73,12 +72,44 @@ const logEmailToDatabase = async (
 };
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+
   try {
+    // Validate caller: either service role key (internal webhook) or authenticated admin
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const isInternalCall = token === serviceRoleKey;
+
+    if (!isInternalCall) {
+      // External call — require admin JWT
+      const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+        global: { headers: { Authorization: authHeader } }
+      });
+
+      const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims) {
+        return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      }
+
+      const userId = claimsData.claims.sub;
+      const { data: isAdmin } = await serviceClient.rpc("is_admin_user", { user_uuid: userId });
+      if (!isAdmin) {
+        return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      }
+      logStep('Authorized via admin JWT', { userId });
+    } else {
+      logStep('Authorized via service role key (internal webhook call)');
+    }
+
     logStep('Starting order confirmation email send');
     
     const data: OrderConfirmationRequest = await req.json();
@@ -91,24 +122,20 @@ const handler = async (req: Request): Promise<Response> => {
       previewOnly: data.previewOnly
     });
 
-    // Validate required fields
     if (!data.orderId || !data.customerEmail || !data.customerName) {
       throw new Error('Missing required fields: orderId, customerEmail, or customerName');
     }
 
-    // Format order date
     const orderDate = new Date().toLocaleDateString('fr-FR', {
       day: 'numeric',
       month: 'long',
       year: 'numeric'
     });
 
-    // Estimate delivery (5-7 business days)
     const deliveryDate = new Date();
     deliveryDate.setDate(deliveryDate.getDate() + 7);
     const estimatedDelivery = `${deliveryDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`;
 
-    // Render React Email template
     logStep('Rendering email template');
     
     const html = await renderAsync(
@@ -134,22 +161,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     logStep('Email template rendered successfully');
 
-    // If preview only, return the HTML without sending
     if (data.previewOnly) {
       return new Response(
-        JSON.stringify({
-          success: true,
-          previewHtml: html,
-          message: 'Email preview generated'
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
+        JSON.stringify({ success: true, previewHtml: html, message: 'Email preview generated' }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    // Send email via Resend
     const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "Rif Raw Straw <onboarding@resend.dev>";
     
     logStep('Sending email', { to: data.customerEmail, from: fromEmail });
@@ -163,8 +181,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     logStep('Email sent successfully', { emailId: emailResponse.data?.id });
 
-    // Log successful email
     await logEmailToDatabase(
+      serviceClient,
       'order-confirmation',
       data.customerEmail,
       data.customerName,
@@ -175,25 +193,15 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        emailId: emailResponse.data?.id,
-        message: 'Order confirmation email sent successfully'
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
-      }
+      JSON.stringify({ success: true, emailId: emailResponse.data?.id, message: 'Order confirmation email sent successfully' }),
+      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
     logStep('Error sending order confirmation', { error: error.message });
 
-    // Log failed email
     const body = await req.clone().json().catch(() => ({}));
     await logEmailToDatabase(
+      serviceClient,
       'order-confirmation',
       body.customerEmail || 'unknown',
       body.customerName || null,
@@ -204,17 +212,8 @@ const handler = async (req: Request): Promise<Response> => {
     );
     
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message
-      }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
-      }
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };

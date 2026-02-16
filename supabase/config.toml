@@ -1,7 +1,14 @@
 project_id = "xcvlijchkmhjonhfildm"
 
-[functions.send-order-notification]
+[functions.create-payment]
 verify_jwt = false
+
+[functions.verify-payment]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
 
 [functions.send-order-notification-improved]
 verify_jwt = false
@@ -28,4 +35,13 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.security-alert-notification]
+verify_jwt = false
+
+[functions.carrier-webhook]
+verify_jwt = false
+
+[functions.create-paypal-payment]
+verify_jwt = false
+
+[functions.verify-paypal-payment]
 verify_jwt = false

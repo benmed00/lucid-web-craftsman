@@ -132,6 +132,15 @@ const PageFooter = () => {
                   {t('common:footer.terms')}
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/terms-of-service"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={t('common:footer.termsOfServiceAria')}
+                >
+                  {t('common:footer.termsOfService')}
+                </Link>
+              </li>
             </ul>
           </div>
 

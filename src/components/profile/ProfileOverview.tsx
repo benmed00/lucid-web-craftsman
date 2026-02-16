@@ -38,7 +38,7 @@ interface Profile {
 interface ProfileOverviewProps {
   user: User;
   profile: Profile | null;
-  onProfileUpdate: (updatedProfile: Profile) => void;
+  onProfileUpdate: (updatedProfile?: any) => void;
 }
 
 export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverviewProps) {
@@ -91,7 +91,7 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
 
       if (error) throw error;
 
-      onProfileUpdate(data);
+      onProfileUpdate();
       setIsEditing(false);
       toast.success('Profil mis à jour avec succès');
     } catch (error: any) {
@@ -102,15 +102,22 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
     }
   };
 
-  const handleAvatarUpload = async (file: File) => {
+  const handleAvatarUpload = async (file: File, _previewUrl?: string) => {
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      // Upload with timeout to prevent hanging
+      const uploadPromise = supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, { upsert: true });
+      
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Upload timeout after 30s')), 30000)
+      );
+
+      const { error: uploadError } = await Promise.race([uploadPromise, timeoutPromise]);
 
       if (uploadError) throw uploadError;
 
@@ -123,14 +130,12 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
 
       if (updateError) throw updateError;
 
-      if (profile) {
-        onProfileUpdate({ ...profile, avatar_url: data.publicUrl });
-      }
+      onProfileUpdate();
 
       toast.success('Avatar mis à jour avec succès');
     } catch (error: any) {
       console.error('Error uploading avatar:', error);
-      toast.error('Erreur lors du téléchargement de l\'avatar');
+      toast.error(error.message || 'Erreur lors du téléchargement de l\'avatar');
     }
   };
 
@@ -143,9 +148,7 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
 
       if (error) throw error;
 
-      if (profile) {
-        onProfileUpdate({ ...profile, avatar_url: null });
-      }
+      onProfileUpdate();
 
       toast.success('Avatar supprimé avec succès');
     } catch (error: any) {

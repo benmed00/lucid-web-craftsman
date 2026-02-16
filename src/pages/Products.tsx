@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
 import { ProductRecommendations } from "@/components/ProductRecommendations";
 import SEOHelmet from "@/components/seo/SEOHelmet";
+import { useSafetyTimeout } from "@/hooks/useSafetyTimeout";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,6 +44,12 @@ const Products = () => {
     error: fetchError,
     refetch 
   } = useProductsWithTranslations();
+
+  // Safety timeout: never show skeleton for more than 8 seconds
+  const { hasTimedOut: forceRender } = useSafetyTimeout(loading, {
+    timeout: 8000,
+    onTimeout: () => console.warn('[Products] Loading timed out, rendering page'),
+  });
 
   // Create a map of product ID to fallback info
   const fallbackInfo = useMemo(() => {
@@ -161,7 +168,14 @@ const Products = () => {
     setQuickViewProduct(null);
   };
 
-  if (loading) {
+  // If force-rendered but still no data, trigger a refetch
+  useEffect(() => {
+    if (forceRender && products.length === 0 && !fetchError) {
+      refetch();
+    }
+  }, [forceRender, products.length, fetchError, refetch]);
+
+  if (loading && !forceRender) {
     return (
       <div className="min-h-screen bg-background">
         

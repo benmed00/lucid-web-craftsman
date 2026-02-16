@@ -30,6 +30,51 @@
       "description": "Découvrez notre collection de sacs et chapeaux fabriqués à la main, créés avec des matériaux durables et un savoir-faire traditionnel marocain.",
       "discoverButton": "Découvrir la Collection",
       "storyButton": "Notre Histoire"
+    },
+    "features": {
+      "badge": "Nos Valeurs",
+      "title": "Un savoir-faire ancestral au service du durable",
+      "description": "Chaque pièce raconte une histoire, celle d'un artisanat transmis de génération en génération.",
+      "eco": {
+        "title": "Éco-responsable",
+        "description": "Matériaux naturels et durables, respectueux de l'environnement."
+      },
+      "craft": {
+        "title": "Fait Main",
+        "description": "Chaque pièce est unique, créée par des artisans talentueux."
+      },
+      "design": {
+        "title": "Design Authentique",
+        "description": "Des styles intemporels inspirés de la tradition berbère."
+      }
+    },
+    "products": {
+      "badge": "Notre Collection",
+      "title": "Découvrez nos créations artisanales",
+      "description": "Une sélection de pièces uniques, fabriquées à la main avec passion.",
+      "viewAll": "Voir toute la collection",
+      "viewAllMobile": "Voir tous les produits"
+    },
+    "testimonials": {
+      "badge": "Témoignages",
+      "title": "Ce que disent nos clients",
+      "reviews": {
+        "emma": "La qualité de l'artisanat est exceptionnelle. Mon chapeau est devenu mon accessoire d'été préféré.",
+        "michael": "J'adore que chaque pièce soit unique. Le sac que j'ai acheté a reçu tant de compliments !",
+        "sarah": "Le service client était fantastique et la livraison très rapide. Je recommande vivement !"
+      }
+    },
+    "heroImage": {
+      "alt": "Artisanat authentique du Rif — chapeaux et sacs faits main",
+      "fallback": "Image non disponible",
+      "title": "Artisanat Authentique du Rif",
+      "subtitle": "Chapeau tressé et sac naturel — Fait main avec amour"
+    },
+    "instagram": {
+      "follow": "@rifrawstraw",
+      "title": "Suivez-nous sur Instagram",
+      "postAlt": "Publication Instagram #{{id}}",
+      "imageUnavailable": "Image non disponible"
     }
   },
 
@@ -140,6 +185,52 @@
     },
     "contact": "Pour toute question, contactez-nous via la page"
   },
+
+  "termsOfService": {
+    "title": "Conditions d'Utilisation",
+    "seo": {
+      "title": "Conditions d'Utilisation - Rif Raw Straw",
+      "description": "Conditions d'utilisation du site Rif Raw Straw. Découvrez les règles régissant l'utilisation de nos services."
+    },
+    "heading": "Conditions d'Utilisation",
+    "intro": "Ces conditions d'utilisation régissent votre accès et utilisation du site web Rif Raw Straw. En accédant à notre site, vous acceptez d'être lié par ces conditions.",
+    "lastUpdated": "Dernière mise à jour",
+    "sections": {
+      "acceptance": {
+        "title": "Acceptation des Conditions",
+        "content": "En accédant à ce site web, vous acceptez d'être lié par ces conditions d'utilisation, toutes les lois et réglementations applicables, et vous acceptez que vous êtes responsable du respect des lois locales applicables. Si vous n'acceptez pas l'une de ces conditions, vous n'êtes pas autorisé à utiliser ou à accéder à ce site."
+      },
+      "eligibility": {
+        "title": "Éligibilité",
+        "content": "Ce site est destiné aux personnes âgées d'au moins 18 ans. En utilisant ce site, vous déclarez et garantissez que vous avez au moins 18 ans et que vous avez la capacité juridique de conclure un contrat contraignant."
+      },
+      "account": {
+        "title": "Compte Utilisateur",
+        "content": "Pour accéder à certaines fonctionnalités du site, vous devrez peut-être créer un compte. Vous êtes responsable de maintenir la confidentialité de votre compte et mot de passe, et d'accepter la responsabilité de toutes les activités qui se produisent sous votre compte. Vous devez nous informer immédiatement de toute utilisation non autorisée de votre compte."
+      },
+      "intellectualProperty": {
+        "title": "Propriété Intellectuelle",
+        "content": "Tout le contenu présent sur ce site, y compris mais sans s'y limiter, les textes, graphiques, logos, images, clips audio, téléchargements numériques et compilations de données, est la propriété de Rif Raw Straw ou de ses fournisseurs de contenu et est protégé par les lois françaises et internationales sur le droit d'auteur."
+      },
+      "prohibitedUse": {
+        "title": "Utilisations Interdites",
+        "content": "Vous vous engagez à ne pas utiliser le site à des fins illégales ou interdites par ces conditions. Cela inclut, sans s'y limiter : la reproduction, distribution ou modification du contenu sans autorisation, l'utilisation de robots ou d'outils automatisés pour accéder au site, la transmission de virus ou de code malveillant, et toute tentative de compromettre la sécurité du site."
+      },
+      "privacy": {
+        "title": "Confidentialité et Protection des Données",
+        "content": "Votre utilisation de ce site est également régie par notre Politique de Confidentialité. Nous nous engageons à protéger vos données personnelles conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi Informatique et Libertés."
+      },
+      "jurisdiction": {
+        "title": "Loi Applicable et Juridiction",
+        "content": "Ces conditions sont régies par et interprétées conformément aux lois françaises, sans égard aux principes de conflits de lois. Tout litige découlant de ces conditions sera soumis à la compétence exclusive des tribunaux français."
+      }
+    },
+    "contact": {
+      "title": "Des Questions ?",
+      "description": "Si vous avez des questions concernant ces conditions d'utilisation, n'hésitez pas à nous contacter."
+    }
+  },
+
 
   "faq": {
     "title": "Questions Fréquentes",
@@ -263,7 +354,7 @@
       "message": "Message",
       "messageRequired": "Message *",
       "messagePlaceholder": "Décrivez votre demande en détail",
-      "characters": "0/2000 caractères",
+      "characters": "caractères",
       "minCharacters": "Le message doit contenir au moins 20 caractères.",
 
       "privacy": "J’accepte la politique de confidentialité et le traitement de mes données.",
@@ -274,6 +365,276 @@
     "map": {
       "title": "Notre localisation",
       "description": "Retrouvez-nous facilement grâce à la carte ci-dessous."
+    }
+  },
+
+  "paymentSuccess": {
+    "verifying": {
+      "title": "Vérification du paiement...",
+      "description": "Veuillez patienter pendant que nous confirmons votre transaction."
+    },
+    "success": {
+      "title": "Paiement Réussi !",
+      "thanks": "Merci pour votre commande !",
+      "verified": "Votre paiement a été vérifié.",
+      "transactionId": "ID de transaction",
+      "orderId": "N° de commande",
+      "confirmed": "Votre commande a été confirmée !"
+    },
+    "error": {
+      "title": "Échec de la vérification",
+      "description": "Nous n'avons pas pu vérifier votre paiement. Veuillez contacter le support."
+    },
+    "errors": {
+      "missingSession": "Session de paiement manquante. Veuillez réessayer.",
+      "verificationError": "Une erreur est survenue lors de la vérification.",
+      "verificationFailed": "La vérification du paiement a échoué.",
+      "unexpectedError": "Une erreur inattendue s'est produite."
+    },
+    "nextSteps": {
+      "title": "Prochaines Étapes",
+      "step1": {
+        "title": "Email de Confirmation",
+        "description": "Vous recevrez un email de confirmation sous peu."
+      },
+      "step2": {
+        "title": "Préparation de la Commande",
+        "description": "Nos artisans prépareront votre commande avec soin."
+      },
+      "step3": {
+        "title": "Expédition",
+        "description": "Vous recevrez un numéro de suivi une fois expédiée."
+      }
+    },
+    "help": {
+      "title": "Besoin d'Aide ?",
+      "description": "Si vous avez des questions sur votre commande, n'hésitez pas à nous contacter."
+    },
+    "invoice": {
+      "download": "Télécharger la facture",
+      "title": "Facture",
+      "orderNumber": "N° de commande",
+      "date": "Date",
+      "billTo": "Facturer à",
+      "product": "Produit",
+      "qty": "Qté",
+      "unitPrice": "Prix unitaire",
+      "total": "Total",
+      "subtotal": "Sous-total",
+      "shipping": "Livraison",
+      "discount": "Réduction",
+      "grandTotal": "Total TTC",
+      "thankYou": "Merci pour votre commande !",
+      "company": "Rif Raw Straw",
+      "freeShipping": "Offerte"
+    }
+  },
+
+  "productDetail": {
+    "reviews": "avis",
+    "recommendations": "Produits similaires",
+    "seo": {
+      "handmadeBy": "fabriqué par",
+      "berberCraft": "artisanat berbère",
+      "handmade": "fait main",
+      "naturalFibers": "fibres naturelles"
+    },
+    "error": {
+      "missingId": "ID du produit manquant",
+      "invalidId": "ID de produit invalide",
+      "notFound": "Produit non trouvé",
+      "loadError": "Erreur lors du chargement du produit",
+      "description": "Le produit que vous recherchez n'existe pas ou a été supprimé.",
+      "back": "Retour",
+      "viewAll": "Voir tous les produits",
+      "cartError": "Erreur lors de l'ajout au panier"
+    },
+    "cart": {
+      "added": "ajouté au panier",
+      "add": "Ajouter au panier",
+      "outOfStock": "Rupture de stock"
+    },
+    "share": {
+      "brandName": "Rif Raw Straw",
+      "shareText": "Découvrez {{name}} - artisanat berbère authentique",
+      "copied": "Lien copié !",
+      "error": "Erreur lors du partage",
+      "title": "Partager ce produit",
+      "description": "Partagez ce produit avec vos amis",
+      "copy": "Copier le lien"
+    },
+    "breadcrumb": {
+      "home": "Accueil",
+      "shop": "Boutique"
+    },
+    "images": {
+      "ariaLabel": "Galerie d'images du produit",
+      "view": "voir",
+      "of": "sur",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "viewImage": "Voir l'image",
+      "thumbnail": "miniature",
+      "enlarged": "Vue agrandie",
+      "fullSizeDescription": "Image du produit en taille réelle"
+    },
+    "productInfo": {
+      "ariaLabel": "Informations sur le produit"
+    },
+    "badges": {
+      "new": "Nouveau",
+      "favorite": "Favori"
+    },
+    "price": {
+      "vatIncluded": "TTC"
+    },
+    "description": {
+      "showMore": "Voir plus",
+      "showLess": "Voir moins"
+    },
+    "quantity": {
+      "decrease": "Diminuer la quantité",
+      "increase": "Augmenter la quantité"
+    },
+    "stock": {
+      "inStock": "En stock",
+      "available": "disponible(s)",
+      "outOfStock": "Rupture de stock"
+    },
+    "shipping": {
+      "free": "Livraison gratuite",
+      "freeFrom": "Livraison gratuite dès 80€ d'achat"
+    },
+    "tabs": {
+      "details": "Description",
+      "specs": "Caractéristiques",
+      "care": "Entretien",
+      "shipping": "Livraison"
+    },
+    "detailsTab": {
+      "title": "Description du produit"
+    },
+    "specsTab": {
+      "title": "Caractéristiques",
+      "material": "Matériau",
+      "color": "Couleur",
+      "dimensions": "Dimensions",
+      "weight": "Poids",
+      "artisan": "Artisan",
+      "category": "Catégorie"
+    },
+    "careTab": {
+      "title": "Instructions d'entretien"
+    },
+    "shippingTab": {
+      "title": "Informations de livraison",
+      "deliveryTime": "Délai de livraison",
+      "deliveryTimeValue": "3-5 jours ouvrés pour la France métropolitaine",
+      "shippingCost": "Frais de livraison",
+      "shippingCostValue": "Livraison gratuite dès 80€ d'achat",
+      "returns": "Retours",
+      "returnsValue": "Retours gratuits sous 14 jours"
+    }
+  },
+  "profile": {
+    "title": "Mon Profil",
+    "subtitle": "Gérez vos informations personnelles et vos préférences",
+    "buttons": {
+      "home": "Accueil",
+      "signOut": "Déconnexion",
+      "deleteAccount": "Supprimer le compte"
+    },
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "overviewShort": "Profil",
+      "personal": "Informations personnelles",
+      "personalShort": "Infos",
+      "loyalty": "Programme de fidélité",
+      "loyaltyShort": "Fidélité",
+      "preferences": "Préférences",
+      "preferencesShort": "Prefs",
+      "orders": "Mes commandes",
+      "ordersShort": "Commandes"
+    },
+    "deleteDialog": {
+      "title": "Supprimer votre compte ?",
+      "description": "Cette action est irréversible. Toutes vos données personnelles, commandes et préférences seront définitivement supprimées.",
+      "cancel": "Annuler",
+      "confirm": "Supprimer définitivement"
+    },
+    "messages": {
+      "loadError": "Erreur lors du chargement du profil",
+      "createError": "Erreur lors de la création du profil",
+      "deleteSuccess": "Votre compte a été supprimé avec succès",
+      "deleteError": "Erreur lors de la suppression du compte",
+      "signOutError": "Erreur lors de la déconnexion"
+    },
+    "footer": {
+      "contact": "Contact",
+      "importantLinks": "Liens importants",
+      "legal": "Mentions légales",
+      "terms": "Conditions d'utilisation",
+      "cgv": "Conditions générales de vente",
+      "privacy": "Politique de confidentialité",
+      "legalNotices": "Mentions légales",
+      "cookies": "Politique de cookies",
+    "copyright": "© 2026 Rif Raw Straw. Tous droits réservés."
+    }
+  },
+  "wishlist": {
+    "title": "Mes Favoris",
+    "loginRequired": "Veuillez vous connecter pour consulter et gérer vos favoris.",
+    "empty": "Votre liste de favoris est vide",
+    "emptyMessage": "Parcourez notre collection et ajoutez vos articles préférés à vos favoris.",
+    "itemCount": "{{count}} article(s)",
+    "remove": "Retirer des favoris"
+  },
+  "orders": {
+    "title": "Mes Commandes",
+    "subtitle": "Suivez et gérez vos commandes",
+    "refresh": "Actualiser",
+    "empty": {
+      "title": "Aucune commande",
+      "description": "Vous n'avez pas encore passé de commande. Commencez vos achats pour voir vos commandes ici.",
+      "cta": "Parcourir les produits"
+    },
+    "loginRequired": {
+      "title": "Connexion requise",
+      "description": "Veuillez vous connecter pour voir votre historique de commandes."
+    },
+    "orderNumber": "Commande #{{id}}",
+    "articles": "{{count}} article(s)",
+    "viewDetails": "Voir le détail",
+    "status": {
+      "pending": "En attente",
+      "paid": "Payée",
+      "processing": "En préparation",
+      "shipped": "Expédiée",
+      "delivered": "Livrée",
+      "cancelled": "Annulée",
+      "refunded": "Remboursée"
+    },
+    "statusDescription": {
+      "pending": "Votre commande est en attente de confirmation de paiement.",
+      "paid": "Paiement reçu. Votre commande sera traitée sous peu.",
+      "processing": "Votre commande est en cours de préparation par nos artisans.",
+      "shipped": "Votre commande est en route !",
+      "delivered": "Votre commande a été livrée.",
+      "cancelled": "Cette commande a été annulée.",
+      "refunded": "Cette commande a été remboursée."
+    },
+    "details": {
+      "orderedItems": "Articles commandés",
+      "product": "Produit",
+      "total": "Total",
+      "orderStatus": "Statut de la commande",
+      "sessionId": "ID de session",
+      "deliveryInfo": "Informations de livraison",
+      "deliveredMessage": "Votre commande a été livrée avec succès.",
+      "inTransitMessage": "Votre commande est actuellement en transit."
+    },
+    "messages": {
+      "loadError": "Erreur lors du chargement des commandes"
     }
   }
 }

@@ -71,7 +71,7 @@ const Index = () => {
 
       <main id="main-content" className="flex-grow">
         {/* Hero Section - Mobile-First Optimized */}
-        <section className="container mx-auto px-4 sm:px-6 py-8 sm:py-10 md:py-12 lg:py-16 xl:py-24 flex flex-col lg:flex-row items-center gap-8 sm:gap-10 lg:gap-12">
+        <section className="container mx-auto px-4 sm:px-6 py-8 sm:py-10 md:py-12 lg:py-16 xl:py-24 flex flex-col lg:flex-row items-center gap-8 sm:gap-10 lg:gap-12" style={{ contain: 'layout style' }}>
           {/* Left: Copy and CTA - Mobile optimized with larger touch targets */}
           <div className="lg:w-1/2 w-full text-center lg:text-left space-y-5 sm:space-y-6 hero-text-animation order-2 lg:order-1">
             <Badge className="inline-flex items-center bg-secondary text-secondary-foreground hover:bg-secondary/80 border-none animate-scale-in hover-glow px-3 sm:px-4 py-2 text-xs sm:text-sm">

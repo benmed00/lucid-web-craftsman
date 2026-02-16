@@ -13,13 +13,14 @@ export const sanitizeHtmlContent = (content: string): string => {
 
 export const sanitizeUserInput = (input: string): string => {
   // Remove any HTML tags and encode special characters
+  // IMPORTANT: & must be replaced FIRST to avoid double-encoding entities
   return input
+    .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#x27;')
     .replace(/\//g, '&#x2F;')
-    .replace(/&/g, '&amp;')
     .trim();
 };
 

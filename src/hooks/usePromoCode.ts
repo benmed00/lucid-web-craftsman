@@ -42,10 +42,16 @@ interface CouponValidationResult {
 }
 
 export function usePromoCode({ subtotal }: UsePromoCodeOptions): UsePromoCodeReturn {
-  const [promoCode, setPromoCode] = useState('');
+  const [promoCode, setPromoCodeRaw] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState('');
+
+  // Clear error when user types a new promo code
+  const setPromoCode = useCallback((code: string) => {
+    setPromoCodeRaw(code);
+    if (error) setError('');
+  }, [error]);
   const { formatPrice } = useCurrency();
 
   // Calculate discount amount
@@ -113,12 +119,9 @@ export function usePromoCode({ subtotal }: UsePromoCodeOptions): UsePromoCodeRet
         .select('*')
         .eq('code', sanitizedCode)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (fetchError) {
-        if (fetchError.code === 'PGRST116') {
-          throw new ValidationError('Code promo invalide ou expiré');
-        }
         throw new DatabaseError(`Failed to validate promo code: ${fetchError.message}`, fetchError.code);
       }
 
