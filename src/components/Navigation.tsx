@@ -84,7 +84,7 @@ const Navigation = () => {
         {t('common:accessibility.skipToContent')}
       </a>
       
-      <header className="sticky top-0 z-header w-full bg-background border-b border-border shadow-sm">
+      <header className="header-nav-root sticky top-0 z-header w-full bg-background border-b border-border shadow-sm">
         <div className="w-full max-w-none px-4 sm:px-4 md:px-6 lg:px-8 xl:px-12">
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-16 lg:h-16 w-full gap-2 md:gap-4">
             {/* Logo Section */}
@@ -110,68 +110,73 @@ const Navigation = () => {
             </div>
 
             {/* Navigation Links - Desktop & Tablet */}
-            <nav className="hidden md:flex items-center justify-center flex-1 max-w-md lg:max-w-lg xl:max-w-xl mx-2" role="navigation" aria-label={t('common:accessibility.mainNav')}>
-              <div className="flex items-center justify-center space-x-2 lg:space-x-3">
-                <Link
-                  to="/"
-                  onClick={(e) => handleNavClick("/", e)}
-                  className={clsx(
-                    "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center",
-                    currentPath === "/" ? "text-primary bg-primary/10" : "text-foreground"
-                  )}
-                  aria-current={currentPath === "/" ? "page" : undefined}
-                >
-                  {t('common:nav.home')}
-                  {currentPath === "/" && (
-                    <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
-                  )}
-                </Link>
-                
-                <Link
-                  to="/products"
+            <nav className="header-nav hidden md:flex items-center justify-center flex-1 max-w-md lg:max-w-lg xl:max-w-xl mx-2" role="navigation" aria-label={t('common:accessibility.mainNav')}>
+              <ul className="flex items-center justify-center space-x-2 lg:space-x-3 list-none m-0 p-0">
+                <li>
+                  <Link
+                    to="/"
+                    onClick={(e) => handleNavClick("/", e)}
+                    className={clsx(
+                      "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center block",
+                      currentPath === "/" ? "text-primary bg-primary/10" : "text-foreground"
+                    )}
+                    aria-current={currentPath === "/" ? "page" : undefined}
+                  >
+                    {t('common:nav.home')}
+                    {currentPath === "/" && (
+                      <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
+                    )}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/products"
                   onClick={(e) => handleNavClick("/products", e)}
-                  className={clsx(
-                    "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center",
-                    currentPath === "/products" ? "text-primary bg-primary/10" : "text-foreground"
-                  )}
-                  aria-current={currentPath === "/products" ? "page" : undefined}
-                >
-                  {t('common:nav.shop')}
-                  {currentPath === "/products" && (
-                    <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
-                  )}
-                </Link>
-                
-                <Link
-                  to="/blog"
+                    className={clsx(
+                      "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center block",
+                      currentPath === "/products" ? "text-primary bg-primary/10" : "text-foreground"
+                    )}
+                    aria-current={currentPath === "/products" ? "page" : undefined}
+                  >
+                    {t('common:nav.shop')}
+                    {currentPath === "/products" && (
+                      <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
+                    )}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/blog"
                   onClick={(e) => handleNavClick("/blog", e)}
-                  className={clsx(
-                    "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center",
-                    currentPath === "/blog" ? "text-primary bg-primary/10" : "text-foreground"
-                  )}
-                  aria-current={currentPath === "/blog" ? "page" : undefined}
-                >
-                  {t('common:nav.blog')}
-                  {currentPath === "/blog" && (
-                    <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
-                  )}
-                </Link>
-                
-                <Link
-                  to="/contact"
+                    className={clsx(
+                      "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center block",
+                      currentPath === "/blog" ? "text-primary bg-primary/10" : "text-foreground"
+                    )}
+                    aria-current={currentPath === "/blog" ? "page" : undefined}
+                  >
+                    {t('common:nav.blog')}
+                    {currentPath === "/blog" && (
+                      <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
+                    )}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/contact"
                   onClick={(e) => handleNavClick("/contact", e)}
-                  className={clsx(
-                    "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center",
-                    currentPath === "/contact" ? "text-primary bg-primary/10" : "text-foreground"
-                  )}
-                  aria-current={currentPath === "/contact" ? "page" : undefined}
-                >
-                  {t('common:nav.contact')}
-                  {currentPath === "/contact" && (
-                    <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
-                  )}
-                </Link>
-              </div>
+                    className={clsx(
+                      "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center block",
+                      currentPath === "/contact" ? "text-primary bg-primary/10" : "text-foreground"
+                    )}
+                    aria-current={currentPath === "/contact" ? "page" : undefined}
+                  >
+                    {t('common:nav.contact')}
+                    {currentPath === "/contact" && (
+                      <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
+                    )}
+                  </Link>
+                </li>
+              </ul>
             </nav>
 
             {/* Actions Section - Desktop & Tablet */}
