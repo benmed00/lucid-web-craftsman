@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -40,6 +41,7 @@ interface Order {
 const OrderHistory = () => {
   const { t, i18n } = useTranslation('pages');
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { formatPrice } = useCurrency();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,13 +119,19 @@ const OrderHistory = () => {
     return t(`orders.statusDescription.${status}`, { defaultValue: t('orders.statusDescription.pending') });
   };
 
-  if (!user) {
+  if (!user && !loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-4">{t('orders.loginRequired.title')}</h1>
-            <p className="text-muted-foreground">{t('orders.loginRequired.description')}</p>
+        <div className="container mx-auto px-4 py-16 max-w-md text-center">
+          <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+              <Package className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h1 className="text-2xl font-serif font-bold text-foreground mb-3">{t('orders.loginRequired.title')}</h1>
+            <p className="text-muted-foreground mb-6">{t('orders.loginRequired.description')}</p>
+            <Button onClick={() => navigate('/auth')} className="w-full">
+              Se connecter
+            </Button>
           </div>
         </div>
         <PageFooter />
@@ -279,12 +287,12 @@ const OrderHistory = () => {
                               </div>
 
                               {(selectedOrder.status === 'shipped' || selectedOrder.status === 'delivered') && (
-                                <div className="bg-blue-500/10 p-4 rounded-lg">
-                                  <h4 className="font-medium text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-2">
+                                <div className="bg-primary/10 p-4 rounded-lg">
+                                  <h4 className="font-medium text-primary mb-2 flex items-center gap-2">
                                     <Truck className="h-4 w-4" />
                                     {t('orders.details.deliveryInfo')}
                                   </h4>
-                                  <p className="text-blue-600 dark:text-blue-400">
+                                  <p className="text-primary">
                                     {selectedOrder.status === 'delivered' 
                                       ? t('orders.details.deliveredMessage') 
                                       : t('orders.details.inTransitMessage')}
