@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,14 +67,9 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isRedeeming, setIsRedeeming] = useState<string | null>(null);
 
-  // Load data once on mount - use ref to prevent repeated calls
-  const hasLoadedRef = useRef(false);
-  
   useEffect(() => {
-    if (hasLoadedRef.current) return;
-    hasLoadedRef.current = true;
     loadLoyaltyData();
-  }, []); // Empty deps - only run once
+  }, [user.id]);
 
   const loadLoyaltyData = async () => {
     try {
