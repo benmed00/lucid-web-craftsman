@@ -58,24 +58,28 @@ const handler = async (req: Request): Promise<Response> => {
   const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    // Validate caller is an authenticated admin
+    // Validate caller: either service role key (internal) or authenticated admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      global: { headers: { Authorization: authHeader } }
-    });
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
-    }
-    const userId = claimsData.claims.sub;
-    const { data: isAdmin } = await serviceClient.rpc("is_admin_user", { user_uuid: userId });
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    const isInternalCall = token === supabaseServiceKey;
+
+    if (!isInternalCall) {
+      const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+        global: { headers: { Authorization: authHeader } }
+      });
+      const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims) {
+        return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      }
+      const userId = claimsData.claims.sub;
+      const { data: isAdmin } = await serviceClient.rpc("is_admin_user", { user_uuid: userId });
+      if (!isAdmin) {
+        return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      }
     }
 
     logStep('Starting shipping notification email send');
