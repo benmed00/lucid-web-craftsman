@@ -145,7 +145,7 @@ const OrderHistory = () => {
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
                 {t('orders.title')}
@@ -154,15 +154,27 @@ const OrderHistory = () => {
                 {t('orders.subtitle')}
               </p>
             </div>
-            <Button 
-              onClick={fetchOrders} 
-              variant="outline" 
-              className="gap-2"
-              disabled={loading}
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              {t('orders.refresh')}
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/profile#orders')}
+                className="gap-2"
+              >
+                <Package className="h-4 w-4" />
+                Mon profil
+              </Button>
+              <Button 
+                onClick={fetchOrders} 
+                variant="outline" 
+                size="sm"
+                className="gap-2"
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                {t('orders.refresh')}
+              </Button>
+            </div>
           </div>
 
           {loading ? (
