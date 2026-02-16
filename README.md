@@ -131,31 +131,43 @@ cd rif-raw-straw
 npm install
 
 # Configurer les variables d'environnement
-cp .env.example .env.local
+cp .env.example .env
+
+# Éditer .env avec vos clés (Supabase, Stripe, etc.)
 
 # Démarrer le serveur de développement
 npm run dev
+
+# Optionnel : Mock API pour produits/posts (autre terminal)
+npm run start:api
 ```
 
 ### Variables d'Environnement
 
-```env
-# Configuration Supabase
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+Copiez `.env.example` vers `.env` et renseignez les valeurs. Voir `.env.example` pour la liste complète. Variables principales :
 
-# Configuration Stripe
+```env
+# Configuration Supabase (obligatoire)
+VITE_SUPABASE_URL=https://your_project_id.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+
+# Configuration Stripe (optionnel, pour les paiements)
 VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
 
 # Configuration Générale
-VITE_APP_URL=http://localhost:5173
-VITE_API_URL=your_api_url
+VITE_API_URL=http://localhost:8080
+VITE_PROD_URL=https://yourdomain.com
 ```
 
 ## 📁 Structure du Projet
 
 ```
 rif-raw-straw/
+├── 📁 backend/                   # Mock API (dev/staging)
+│   ├── server.cjs               # Serveur Express + json-server
+│   ├── db.json                  # Données produits/posts
+│   ├── package.json
+│   └── README.md
 ├── 📁 public/                    # Fichiers statiques
 │   ├── 📁 assets/               # Images et ressources
 │   └── 📄 manifest.json         # Configuration PWA
@@ -228,7 +240,9 @@ npm run test
 npm run test:coverage
 
 # Tests e2e
-npm run test:e2e
+npm run e2e:run
+# ou en mode interactif
+npm run e2e:open
 ```
 
 ### Linting & Formatage
@@ -236,7 +250,7 @@ npm run test:e2e
 # Vérification du code
 npm run lint
 
-# Correction automatique
+# Correction automatique (lint)
 npm run lint:fix
 
 # Formatage Prettier
