@@ -129,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       try {
         await resend.emails.send({
-          from: "Douar Artisan <onboarding@resend.dev>",
+          from: Deno.env.get("RESEND_FROM_EMAIL") || "Douar Artisan <onboarding@resend.dev>",
           to: [config.admin_email],
           subject: `[Alertes Promo] ${alerts.total} code(s) nécessitent attention`,
           html: emailHtml,
