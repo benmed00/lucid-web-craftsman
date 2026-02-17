@@ -113,7 +113,7 @@ serve(async (req: Request): Promise<Response> => {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
       body: JSON.stringify({
-        from: "Sécurité <onboarding@resend.dev>",
+        from: Deno.env.get("RESEND_FROM_EMAIL") || "Sécurité <onboarding@resend.dev>",
         to: [ADMIN_EMAIL],
         subject: `🚨 [URGENT] ${criticalCount + highCount} Alerte(s) de Sécurité`,
         html: emailHtml,
