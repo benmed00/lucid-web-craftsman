@@ -600,20 +600,8 @@ const Checkout = () => {
         // Mark payment as initiated and persist flag for cross-page state
         setPaymentInitiated(true);
         localStorage.setItem('checkout_payment_pending', 'true');
-        // Redirect to Stripe/PayPal Checkout
-        // Use window.top to escape iframe (Lovable preview), fallback to window.location
-        try {
-          if (window.top && window.top !== window) {
-            window.top.location.href = data.url;
-          } else {
-            window.location.href = data.url;
-          }
-        } catch {
-          // Cross-origin iframe restriction — open in new tab as fallback
-          window.open(data.url, '_blank');
-          // Mark that payment was opened in a new tab so we can reset on return
-          setPaymentOpenedInTab(true);
-        }
+        // Redirect to Stripe/PayPal Checkout — always same tab
+        window.location.href = data.url;
       } else {
         throw new Error("No checkout URL received");
       }
