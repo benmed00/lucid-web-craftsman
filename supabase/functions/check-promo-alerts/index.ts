@@ -1,11 +1,14 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
+const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@rifelegance.com";
+const FROM_NAME = "Rif Raw Straw";
 
 interface DiscountCoupon {
   id: string; code: string; type: string; value: number;
@@ -19,6 +22,22 @@ interface AlertConfig {
   admin_email: string;
 }
 
+const sendBrevoEmail = async (to: string, subject: string, htmlContent: string): Promise<{ messageId?: string }> => {
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
+      to: [{ email: to }],
+      subject,
+      htmlContent,
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Brevo error: ${JSON.stringify(data)}`);
+  return { messageId: data.messageId };
+};
+
 const handler = async (req: Request): Promise<Response> => {
   console.log("check-promo-alerts function called");
 
@@ -29,16 +48,14 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
-    if (!resendApiKey) {
+    if (!BREVO_API_KEY) {
       return new Response(
         JSON.stringify({ error: "Email service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Validate caller is an authenticated admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
@@ -60,8 +77,6 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    const resend = new Resend(resendApiKey);
-
     let config: AlertConfig = {
       days_before_expiry: 3,
       usage_threshold_percent: 80,
@@ -79,8 +94,6 @@ const handler = async (req: Request): Promise<Response> => {
       .from("discount_coupons").select("*").eq("is_active", true);
 
     if (fetchError) throw fetchError;
-
-    console.log(`Found ${coupons?.length || 0} active coupons`);
 
     const now = new Date();
     const alertThreshold = new Date();
@@ -128,12 +141,7 @@ const handler = async (req: Request): Promise<Response> => {
       </div>`;
 
       try {
-        await resend.emails.send({
-          from: Deno.env.get("RESEND_FROM_EMAIL") || "Douar Artisan <onboarding@resend.dev>",
-          to: [config.admin_email],
-          subject: `[Alertes Promo] ${alerts.total} code(s) nécessitent attention`,
-          html: emailHtml,
-        });
+        await sendBrevoEmail(config.admin_email, `[Alertes Promo] ${alerts.total} code(s) nécessitent attention`, emailHtml);
       } catch (emailError) {
         console.error("Error sending email:", emailError);
       }
