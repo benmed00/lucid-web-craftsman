@@ -35,19 +35,27 @@ const checkIdempotency = async (supabase: any, orderId: string, status: string):
 };
 
 const sendBrevoEmail = async (to: string, subject: string, htmlContent: string): Promise<{ messageId?: string }> => {
-  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
-      to: [{ email: to }],
-      subject,
-      htmlContent,
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(`Brevo error: ${JSON.stringify(data)}`);
-  return { messageId: data.messageId };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
+        to: [{ email: to }],
+        subject,
+        htmlContent,
+      }),
+      signal: controller.signal,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(`Brevo error (${res.status}): ${JSON.stringify(data)}`);
+    return { messageId: data.messageId };
+  } finally {
+    clearTimeout(timeout);
+  }
 };
 
 const getEmailContent = (status: string, orderData: any): { subject: string; html: string; templateName: string } => {
@@ -139,7 +147,8 @@ const handler = async (req: Request): Promise<Response> => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     const internalSecret = req.headers.get("X-Internal-Secret");
-    const isInternalCall = (token === supabaseServiceKey) || (internalSecret === "rif_straw_internal_secure_notify_2026_v1");
+    const configuredSecret = Deno.env.get("INTERNAL_NOTIFY_SECRET");
+    const isInternalCall = (token === supabaseServiceKey) || (configuredSecret && internalSecret === configuredSecret);
 
     if (!isInternalCall) {
       const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {

@@ -31,19 +31,27 @@ const logStep = (step: string, details?: any) => {
 };
 
 const sendBrevoEmail = async (to: string, subject: string, htmlContent: string): Promise<{ messageId?: string }> => {
-  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
-      to: [{ email: to }],
-      subject,
-      htmlContent,
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(`Brevo error: ${JSON.stringify(data)}`);
-  return { messageId: data.messageId };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
+        to: [{ email: to }],
+        subject,
+        htmlContent,
+      }),
+      signal: controller.signal,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(`Brevo error (${res.status}): ${JSON.stringify(data)}`);
+    return { messageId: data.messageId };
+  } finally {
+    clearTimeout(timeout);
+  }
 };
 
 const logEmailToDatabase = async (
