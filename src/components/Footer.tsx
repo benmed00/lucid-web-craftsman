@@ -26,7 +26,7 @@ const Footer = () => {
             <h3 className="font-serif text-base sm:text-lg font-medium mb-3 sm:mb-4">
               {t('nav.shop')}
             </h3>
-            <ul className="space-y-1.5 sm:space-y-2" role="list">
+            <ul className="space-y-1.5 sm:space-y-2">
               <li>
                 <a 
                   href="/products" 
@@ -59,7 +59,7 @@ const Footer = () => {
             <h3 className="font-serif text-base sm:text-lg font-medium mb-3 sm:mb-4">
               {t('footer.about')}
             </h3>
-            <ul className="space-y-1.5 sm:space-y-2" role="list">
+            <ul className="space-y-1.5 sm:space-y-2">
               <li>
                 <a 
                   href="/about" 
@@ -85,7 +85,7 @@ const Footer = () => {
             <h3 className="font-serif text-base sm:text-lg font-medium mb-3 sm:mb-4">
               {t('footer.help')}
             </h3>
-            <ul className="space-y-1.5 sm:space-y-2" role="list">
+            <ul className="space-y-1.5 sm:space-y-2">
               <li>
                 <a 
                   href="/contact" 

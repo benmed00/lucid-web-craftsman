@@ -78,6 +78,7 @@ Cypress.Commands.add("mockSupabaseResponse", (method: Method, path: string, scen
 });
 
 declare global {
+  /* eslint-disable @typescript-eslint/no-namespace -- Cypress Chainable augmentation requires namespace */
   namespace Cypress {
     interface Chainable {
       addProductToCart(options?: { productId?: number }): Chainable<void>;

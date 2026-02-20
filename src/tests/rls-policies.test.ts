@@ -252,6 +252,46 @@ const POLICY_TESTS: PolicyTest[] = [
     expectedForSuperAdmin: 'allow',
     notes: 'Only admins can delete products'
   },
+
+  // security_events table - super_admin only
+  {
+    table: 'security_events',
+    operation: 'SELECT',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can view security events'
+  },
+  {
+    table: 'security_events',
+    operation: 'UPDATE',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can update security events'
+  },
+
+  // security_config table - super_admin only
+  {
+    table: 'security_config',
+    operation: 'SELECT',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can view security config'
+  },
+  {
+    table: 'security_config',
+    operation: 'UPDATE',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can manage security config'
+  },
 ];
 
 // Test utility functions

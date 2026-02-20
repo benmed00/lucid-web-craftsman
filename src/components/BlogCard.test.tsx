@@ -1,8 +1,20 @@
 // src/components/BlogCard.test.tsx
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom'; // Required because BlogCard uses <Link>
 import BlogCard from './BlogCard';
+
+// Mock useImageLoader to avoid jsdom canvas/toDataURL errors and async image loading
+vi.mock('@/hooks/useImageLoader', () => ({
+  useImageLoader: (src: string) => ({
+    currentSrc: src,
+    isLoading: false,
+    hasError: false,
+    handleError: vi.fn(),
+    handleLoad: vi.fn(),
+    retry: vi.fn(),
+  }),
+}));
 
 // Mock data for the BlogCardProps['post']
 const mockPostData = {
@@ -35,11 +47,11 @@ describe('BlogCard Component', () => {
     // Check for the category
     expect(getByText(mockPostData.category)).toBeInTheDocument();
 
-    // Check for the author
-    expect(getByText(mockPostData.author)).toBeInTheDocument();
+    // Check for the author (rendered as "Par {author}" in French)
+    expect(getByText(/John Doe/)).toBeInTheDocument();
 
-    // Check for the image (by alt text, which is the title)
-    expect(getByAltText(mockPostData.title)).toBeInTheDocument();
+    // Check for the image (alt is "Image de l'article: {title}")
+    expect(getByAltText(`Image de l'article: ${mockPostData.title}`)).toBeInTheDocument();
 
     // Check for the "Lire la suite" (Read more) link/button text
     // The Link component wraps the Button, so we might look for the button's content
@@ -55,7 +67,7 @@ describe('BlogCard Component', () => {
         <BlogCard post={mockPostData} />
       </MemoryRouter>
     );
-    const imageElement = getByAltText(mockPostData.title) as HTMLImageElement;
+    const imageElement = getByAltText(`Image de l'article: ${mockPostData.title}`) as HTMLImageElement;
     expect(imageElement.src).toContain(mockPostData.image);
   });
 });
