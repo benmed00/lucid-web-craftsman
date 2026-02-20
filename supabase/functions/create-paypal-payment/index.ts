@@ -11,7 +11,6 @@ const logStep = (step: string, details?: any) => {
   console.log(`[PAYPAL-PAYMENT] ${step}${detailsStr}`);
 };
 
-// Get PayPal API base URL
 const getPayPalBaseUrl = () => {
   const mode = Deno.env.get("PAYPAL_MODE") || "sandbox";
   return mode === "live" 
@@ -19,7 +18,6 @@ const getPayPalBaseUrl = () => {
     : "https://api-m.sandbox.paypal.com";
 };
 
-// Get PayPal access token
 const getAccessToken = async (): Promise<string> => {
   const clientId = Deno.env.get("PAYPAL_CLIENT_ID");
   const clientSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
@@ -29,24 +27,31 @@ const getAccessToken = async (): Promise<string> => {
   }
 
   const auth = btoa(`${clientId}:${clientSecret}`);
-  
-  const response = await fetch(`${getPayPalBaseUrl()}/v1/oauth2/token`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Basic ${auth}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: "grant_type=client_credentials",
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
 
-  if (!response.ok) {
-    const error = await response.text();
-    logStep("Token error", { status: response.status, error });
-    throw new Error(`Failed to get PayPal access token: ${error}`);
+  try {
+    const response = await fetch(`${getPayPalBaseUrl()}/v1/oauth2/token`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${auth}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: "grant_type=client_credentials",
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      logStep("Token error", { status: response.status, error });
+      throw new Error(`Failed to get PayPal access token: ${error}`);
+    }
+
+    const data = await response.json();
+    return data.access_token;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const data = await response.json();
-  return data.access_token;
 };
 
 serve(async (req) => {
@@ -74,6 +79,10 @@ serve(async (req) => {
       throw new Error("No items provided for payment");
     }
 
+    if (items.length > 50) {
+      throw new Error("Too many items (max 50)");
+    }
+
     logStep("Received order data", { itemCount: items.length, hasDiscount: !!discount });
 
     // Get authenticated user (optional for guest checkout)
@@ -86,33 +95,95 @@ serve(async (req) => {
       logStep("User authenticated", { userId: user?.id });
     }
 
-    // Calculate totals with proper rounding to avoid floating point issues
-    const subtotal = items.reduce((sum: number, item: any) => 
-      sum + (item.product.price * item.quantity), 0);
+    // --- SERVER-SIDE PRICE VERIFICATION ---
+    const productIds = items.map((item: any) => item.product.id);
+    const { data: dbProducts, error: productError } = await supabaseService
+      .from('products')
+      .select('id, price, name, stock_quantity')
+      .in('id', productIds);
+
+    if (productError || !dbProducts) {
+      throw new Error(`Failed to fetch product prices: ${productError?.message}`);
+    }
+
+    const productMap = new Map(dbProducts.map((p: any) => [p.id, p]));
+    
+    // Validate each item against DB prices
+    const verifiedItems = items.map((item: any) => {
+      const dbProduct = productMap.get(item.product.id);
+      if (!dbProduct) {
+        throw new Error(`Product not found: ${item.product.id}`);
+      }
+      if (item.quantity <= 0 || item.quantity > 99) {
+        throw new Error(`Invalid quantity for ${dbProduct.name}`);
+      }
+      // Use DB price, not client price
+      return {
+        ...item,
+        product: {
+          ...item.product,
+          price: dbProduct.price, // override with server price
+          name: dbProduct.name,
+        },
+        _dbPrice: dbProduct.price,
+      };
+    });
+
+    // Calculate totals with SERVER-VERIFIED prices
+    const subtotal = verifiedItems.reduce((sum: number, item: any) => 
+      sum + (item._dbPrice * item.quantity), 0);
     
     let discountAmount = 0;
-    const hasFreeShipping = discount?.includesFreeShipping === true;
+    let hasFreeShipping = false;
     
-    if (discount && discount.amount > 0) {
-      discountAmount = Math.min(discount.amount, subtotal);
+    // Validate discount against DB
+    if (discount && discount.code) {
+      const { data: dbCoupon } = await supabaseService
+        .from('discount_coupons')
+        .select('*')
+        .eq('code', discount.code.toUpperCase())
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (dbCoupon) {
+        const now = new Date();
+        const validFrom = dbCoupon.valid_from ? new Date(dbCoupon.valid_from) : null;
+        const validUntil = dbCoupon.valid_until ? new Date(dbCoupon.valid_until) : null;
+        
+        if ((!validFrom || now >= validFrom) && (!validUntil || now <= validUntil)) {
+          if (!dbCoupon.usage_limit || dbCoupon.usage_count < dbCoupon.usage_limit) {
+            if (!dbCoupon.minimum_order_amount || subtotal >= dbCoupon.minimum_order_amount) {
+              if (dbCoupon.type === 'percentage') {
+                discountAmount = subtotal * (dbCoupon.value / 100);
+                if (dbCoupon.maximum_discount_amount) {
+                  discountAmount = Math.min(discountAmount, dbCoupon.maximum_discount_amount);
+                }
+              } else {
+                discountAmount = dbCoupon.value;
+              }
+              discountAmount = Math.min(discountAmount, subtotal);
+              hasFreeShipping = dbCoupon.includes_free_shipping === true;
+            }
+          }
+        }
+      }
     }
     
     const shippingCost = hasFreeShipping ? 0 : (subtotal > 0 ? 6.95 : 0);
     
-    // Round all amounts to 2 decimal places to avoid PayPal AMOUNT_MISMATCH errors
     const roundedSubtotal = Math.round(subtotal * 100) / 100;
     const roundedDiscount = Math.round(discountAmount * 100) / 100;
     const roundedShipping = Math.round(shippingCost * 100) / 100;
     const totalAmount = Math.round((roundedSubtotal - roundedDiscount + roundedShipping) * 100) / 100;
 
-    logStep("Calculated totals", { subtotal: roundedSubtotal, discountAmount: roundedDiscount, shippingCost: roundedShipping, totalAmount });
+    logStep("Server-verified totals", { subtotal: roundedSubtotal, discountAmount: roundedDiscount, shippingCost: roundedShipping, totalAmount });
 
-    // Create order in database first
+    // Create order in database
     const { data: orderData, error: orderError } = await supabaseService
       .from('orders')
       .insert({
         user_id: user?.id || null,
-        amount: Math.round(totalAmount * 100), // Store in cents
+        amount: Math.round(totalAmount * 100),
         currency: 'eur',
         status: 'pending',
         payment_method: 'paypal'
@@ -127,18 +198,18 @@ serve(async (req) => {
 
     logStep("Order created", { orderId: orderData.id });
 
-    // Create order items
-    const orderItems = items.map((item: any) => ({
+    // Create order items with DB-verified prices
+    const orderItems = verifiedItems.map((item: any) => ({
       order_id: orderData.id,
       product_id: item.product.id,
       quantity: item.quantity,
-      unit_price: item.product.price,
-      total_price: item.product.price * item.quantity,
+      unit_price: item._dbPrice,
+      total_price: item._dbPrice * item.quantity,
       product_snapshot: {
         name: item.product.name,
         description: item.product.description,
         images: item.product.images,
-        price: item.product.price
+        price: item._dbPrice
       }
     }));
 
@@ -148,43 +219,28 @@ serve(async (req) => {
     const accessToken = await getAccessToken();
     logStep("Got PayPal access token");
 
-    // Build PayPal order items - use original prices, discount goes in breakdown
-    const paypalItems = items.map((item: any) => {
-      return {
-        name: item.product.name.substring(0, 127),
-        unit_amount: {
-          currency_code: "EUR",
-          value: item.product.price.toFixed(2)
-        },
-        quantity: item.quantity.toString()
-      };
-    });
+    // Build PayPal order items with server prices
+    const paypalItems = verifiedItems.map((item: any) => ({
+      name: item.product.name.substring(0, 127),
+      unit_amount: {
+        currency_code: "EUR",
+        value: item._dbPrice.toFixed(2)
+      },
+      quantity: item.quantity.toString()
+    }));
 
-    // Calculate item total for PayPal (original prices, before discount)
-    const itemTotal = Math.round(items.reduce((sum: number, item: any) => 
-      sum + (item.product.price * item.quantity), 0) * 100) / 100;
+    const itemTotal = Math.round(verifiedItems.reduce((sum: number, item: any) => 
+      sum + (item._dbPrice * item.quantity), 0) * 100) / 100;
 
-    // Prepare PayPal order payload
     const origin = req.headers.get("origin") || "https://rif-raw-straw.lovable.app";
     
-    // Build breakdown - PayPal formula: amount = item_total + shipping - discount
     const breakdown: any = {
-      item_total: {
-        currency_code: "EUR",
-        value: itemTotal.toFixed(2)
-      },
-      shipping: {
-        currency_code: "EUR",
-        value: roundedShipping.toFixed(2)
-      }
+      item_total: { currency_code: "EUR", value: itemTotal.toFixed(2) },
+      shipping: { currency_code: "EUR", value: roundedShipping.toFixed(2) }
     };
     
-    // Only add discount if there is one
     if (roundedDiscount > 0) {
-      breakdown.discount = {
-        currency_code: "EUR",
-        value: roundedDiscount.toFixed(2)
-      };
+      breakdown.discount = { currency_code: "EUR", value: roundedDiscount.toFixed(2) };
     }
     
     const paypalOrderPayload = {
@@ -217,24 +273,33 @@ serve(async (req) => {
 
     logStep("Creating PayPal order", { totalAmount });
 
-    // Create PayPal order
-    const paypalResponse = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        "Prefer": "return=representation"
-      },
-      body: JSON.stringify(paypalOrderPayload)
-    });
+    const paypalController = new AbortController();
+    const paypalTimeout = setTimeout(() => paypalController.abort(), 20000);
 
-    if (!paypalResponse.ok) {
-      const errorText = await paypalResponse.text();
-      logStep("PayPal order creation failed", { status: paypalResponse.status, error: errorText });
-      throw new Error(`PayPal order creation failed: ${errorText}`);
+    let paypalOrder: any;
+    try {
+      const paypalResponse = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=representation"
+        },
+        body: JSON.stringify(paypalOrderPayload),
+        signal: paypalController.signal,
+      });
+
+      if (!paypalResponse.ok) {
+        const errorText = await paypalResponse.text();
+        logStep("PayPal order creation failed", { status: paypalResponse.status, error: errorText });
+        throw new Error(`PayPal order creation failed: ${errorText}`);
+      }
+
+      paypalOrder = await paypalResponse.json();
+    } finally {
+      clearTimeout(paypalTimeout);
     }
-
-    const paypalOrder = await paypalResponse.json();
+    
     logStep("PayPal order created", { paypalOrderId: paypalOrder.id });
 
     // Update order with PayPal order ID
@@ -247,12 +312,11 @@ serve(async (req) => {
           customer_email: customerInfo?.email,
           customer_name: `${customerInfo?.firstName || ''} ${customerInfo?.lastName || ''}`.trim(),
           discount_code: discount?.code || null,
-          discount_amount: discountAmount
+          discount_amount: roundedDiscount
         }
       })
       .eq('id', orderData.id);
 
-    // Find approval URL
     const approvalLink = paypalOrder.links?.find((link: any) => link.rel === "approve");
     
     if (!approvalLink) {

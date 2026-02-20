@@ -23,19 +23,27 @@ interface AlertConfig {
 }
 
 const sendBrevoEmail = async (to: string, subject: string, htmlContent: string): Promise<{ messageId?: string }> => {
-  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
-      to: [{ email: to }],
-      subject,
-      htmlContent,
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(`Brevo error: ${JSON.stringify(data)}`);
-  return { messageId: data.messageId };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
+        to: [{ email: to }],
+        subject,
+        htmlContent,
+      }),
+      signal: controller.signal,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(`Brevo error (${res.status}): ${JSON.stringify(data)}`);
+    return { messageId: data.messageId };
+  } finally {
+    clearTimeout(timeout);
+  }
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -141,9 +149,32 @@ const handler = async (req: Request): Promise<Response> => {
       </div>`;
 
       try {
-        await sendBrevoEmail(config.admin_email, `[Alertes Promo] ${alerts.total} code(s) nécessitent attention`, emailHtml);
-      } catch (emailError) {
+        const emailResult = await sendBrevoEmail(config.admin_email, `[Alertes Promo] ${alerts.total} code(s) nécessitent attention`, emailHtml);
+        
+        // Log to email_logs for traceability
+        await supabase.from('email_logs').insert({
+          template_name: 'promo-alert-notification',
+          recipient_email: config.admin_email,
+          recipient_name: 'Promo Admin',
+          status: 'sent',
+          metadata: { 
+            messageId: emailResult.messageId, 
+            expiringCount: expiringCoupons.length, 
+            nearLimitCount: nearLimitCoupons.length 
+          },
+          sent_at: new Date().toISOString()
+        });
+      } catch (emailError: any) {
         console.error("Error sending email:", emailError);
+        // Log failure
+        await supabase.from('email_logs').insert({
+          template_name: 'promo-alert-notification',
+          recipient_email: config.admin_email,
+          recipient_name: 'Promo Admin',
+          status: 'failed',
+          error_message: emailError.message,
+          metadata: { expiringCount: expiringCoupons.length, nearLimitCount: nearLimitCoupons.length }
+        });
       }
     }
 

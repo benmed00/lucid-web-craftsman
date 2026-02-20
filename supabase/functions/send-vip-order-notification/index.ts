@@ -21,19 +21,27 @@ interface VipOrderPayload {
 }
 
 const sendBrevoEmail = async (to: string, subject: string, htmlContent: string): Promise<{ messageId?: string }> => {
-  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
-      to: [{ email: to }],
-      subject,
-      htmlContent,
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(`Brevo error: ${JSON.stringify(data)}`);
-  return { messageId: data.messageId };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
+        to: [{ email: to }],
+        subject,
+        htmlContent,
+      }),
+      signal: controller.signal,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(`Brevo error (${res.status}): ${JSON.stringify(data)}`);
+    return { messageId: data.messageId };
+  } finally {
+    clearTimeout(timeout);
+  }
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -69,6 +77,18 @@ const handler = async (req: Request): Promise<Response> => {
     const payload: VipOrderPayload = await req.json();
     console.log('Processing VIP order notification:', payload);
 
+    // Idempotency check
+    const { data: existingLog } = await supabase
+      .from('email_logs').select('id')
+      .eq('order_id', payload.order_id)
+      .eq('template_name', 'vip-order-notification')
+      .eq('status', 'sent').maybeSingle();
+
+    if (existingLog) {
+      console.log('VIP notification already sent (idempotent)');
+      return new Response(JSON.stringify({ success: true, message: "Already sent" }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
     const { data: settingsData } = await supabase
       .from('app_settings').select('setting_value').eq('setting_key', 'business_rules').single();
 
@@ -100,6 +120,17 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResult = await sendBrevoEmail(vipEmail, `🌟 Commande VIP #${orderNumber} - ${formattedTotal}`, emailHtml);
     console.log("VIP notification sent:", emailResult);
+
+    // Log to email_logs for traceability
+    await supabase.from('email_logs').insert({
+      template_name: 'vip-order-notification',
+      recipient_email: vipEmail,
+      recipient_name: 'VIP Admin',
+      order_id: payload.order_id,
+      status: 'sent',
+      metadata: { messageId: emailResult.messageId, order_total: payload.order_total, threshold: payload.threshold },
+      sent_at: new Date().toISOString()
+    });
 
     await supabase.from('audit_logs').insert({
       action: 'VIP_ORDER_NOTIFICATION_SENT', resource_type: 'order', resource_id: payload.order_id,
