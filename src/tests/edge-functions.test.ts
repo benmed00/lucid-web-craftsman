@@ -255,13 +255,6 @@ describe('send-vip-order-notification', () => {
 });
 
 describe('send-order-notification-improved', () => {
-  let supabase: SupabaseClient;
-
-  beforeAll(() => {
-    if (!hasServiceRole) return;
-    supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-  });
-
   it('should require auth (reject anon)', async () => {
     if (!hasAnonConfig) return;
     const { data, error } = await anonClient.functions.invoke('send-order-notification-improved', {
