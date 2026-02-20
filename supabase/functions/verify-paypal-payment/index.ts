@@ -11,7 +11,6 @@ const logStep = (step: string, details?: any) => {
   console.log(`[VERIFY-PAYPAL] ${step}${detailsStr}`);
 };
 
-// Get PayPal API base URL
 const getPayPalBaseUrl = () => {
   const mode = Deno.env.get("PAYPAL_MODE") || "sandbox";
   return mode === "live" 
@@ -19,7 +18,6 @@ const getPayPalBaseUrl = () => {
     : "https://api-m.sandbox.paypal.com";
 };
 
-// Get PayPal access token
 const getAccessToken = async (): Promise<string> => {
   const clientId = Deno.env.get("PAYPAL_CLIENT_ID");
   const clientSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
@@ -29,23 +27,30 @@ const getAccessToken = async (): Promise<string> => {
   }
 
   const auth = btoa(`${clientId}:${clientSecret}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
   
-  const response = await fetch(`${getPayPalBaseUrl()}/v1/oauth2/token`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Basic ${auth}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: "grant_type=client_credentials",
-  });
+  try {
+    const response = await fetch(`${getPayPalBaseUrl()}/v1/oauth2/token`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${auth}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: "grant_type=client_credentials",
+      signal: controller.signal,
+    });
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to get PayPal access token: ${error}`);
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to get PayPal access token: ${error}`);
+    }
+
+    const data = await response.json();
+    return data.access_token;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const data = await response.json();
-  return data.access_token;
 };
 
 serve(async (req) => {
@@ -60,6 +65,35 @@ serve(async (req) => {
   );
 
   try {
+    // --- AUTH CHECK: require either internal secret or authenticated user ---
+    const authHeader = req.headers.get("Authorization");
+    const internalSecret = Deno.env.get("INTERNAL_NOTIFY_SECRET");
+    const isInternalCall = authHeader === `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`;
+
+    if (!isInternalCall) {
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Verify the user token is valid (any authenticated user who owns the order can verify)
+      const authClient = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+        { global: { headers: { Authorization: authHeader } } }
+      );
+      const token = authHeader.replace("Bearer ", "");
+      const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims) {
+        logStep("Auth failed", { error: claimsError?.message });
+        return new Response(JSON.stringify({ error: "Invalid token" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Store userId for ownership check below
+      (req as any)._userId = claimsData.claims.sub;
+    }
+
     const { paypal_order_id, order_id } = await req.json();
     
     logStep("Verifying PayPal payment", { paypal_order_id, order_id });
@@ -67,60 +101,124 @@ serve(async (req) => {
     if (!paypal_order_id) {
       throw new Error("PayPal order ID is required");
     }
+    if (!order_id) {
+      throw new Error("Order ID is required");
+    }
+
+    // --- IDEMPOTENCY CHECK: if order is already paid, return success ---
+    const { data: existingOrder } = await supabaseService
+      .from('orders')
+      .select('status, user_id')
+      .eq('id', order_id)
+      .single();
+
+    if (!existingOrder) {
+      throw new Error("Order not found");
+    }
+
+    // Ownership check for non-internal calls
+    const userId = (req as any)._userId;
+    if (userId && existingOrder.user_id && existingOrder.user_id !== userId) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (existingOrder.status === 'paid') {
+      logStep("Order already paid (idempotent)", { order_id });
+      return new Response(JSON.stringify({
+        success: true, status: "COMPLETED", order_id,
+        message: "Payment already completed"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     // Get PayPal access token
     const accessToken = await getAccessToken();
 
     // Get PayPal order details
-    const orderResponse = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders/${paypal_order_id}`, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${accessToken}`,
-        "Content-Type": "application/json"
-      }
-    });
-
-    if (!orderResponse.ok) {
-      const errorText = await orderResponse.text();
-      logStep("Failed to get PayPal order", { error: errorText });
-      throw new Error(`Failed to get PayPal order: ${errorText}`);
-    }
-
-    const paypalOrder = await orderResponse.json();
-    logStep("PayPal order status", { status: paypalOrder.status });
-
-    // If order is APPROVED, capture the payment
-    if (paypalOrder.status === "APPROVED") {
-      logStep("Capturing PayPal payment");
-      
-      const captureResponse = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders/${paypal_order_id}/capture`, {
-        method: "POST",
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    
+    let paypalOrder: any;
+    try {
+      const orderResponse = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders/${paypal_order_id}`, {
+        method: "GET",
         headers: {
           "Authorization": `Bearer ${accessToken}`,
           "Content-Type": "application/json"
-        }
+        },
+        signal: controller.signal,
       });
 
-      if (!captureResponse.ok) {
-        const errorText = await captureResponse.text();
-        logStep("Capture failed", { error: errorText });
-        throw new Error(`PayPal capture failed: ${errorText}`);
+      if (!orderResponse.ok) {
+        const errorText = await orderResponse.text();
+        logStep("Failed to get PayPal order", { error: errorText });
+        throw new Error(`Failed to get PayPal order: ${errorText}`);
       }
 
-      const captureData = await captureResponse.json();
+      paypalOrder = await orderResponse.json();
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    logStep("PayPal order status", { status: paypalOrder.status });
+
+    // --- SERVER-SIDE AMOUNT VERIFICATION ---
+    const paypalAmount = parseFloat(paypalOrder.purchase_units?.[0]?.amount?.value || "0");
+    const dbAmountEur = existingOrder.status === 'pending' ? (await supabaseService
+      .from('orders').select('amount').eq('id', order_id).single()).data?.amount : null;
+    
+    if (dbAmountEur !== null) {
+      const expectedEur = dbAmountEur / 100; // DB stores cents
+      if (Math.abs(paypalAmount - expectedEur) > 0.02) {
+        logStep("AMOUNT MISMATCH", { paypal: paypalAmount, expected: expectedEur });
+        throw new Error(`Payment amount mismatch: PayPal=${paypalAmount}, expected=${expectedEur}`);
+      }
+    }
+
+    if (paypalOrder.status === "APPROVED") {
+      logStep("Capturing PayPal payment");
+      
+      const captureController = new AbortController();
+      const captureTimeout = setTimeout(() => captureController.abort(), 20000);
+      
+      let captureData: any;
+      try {
+        const captureResponse = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders/${paypal_order_id}/capture`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+          },
+          signal: captureController.signal,
+        });
+
+        if (!captureResponse.ok) {
+          const errorText = await captureResponse.text();
+          logStep("Capture failed", { error: errorText });
+          throw new Error(`PayPal capture failed: ${errorText}`);
+        }
+
+        captureData = await captureResponse.json();
+      } finally {
+        clearTimeout(captureTimeout);
+      }
+      
       logStep("Payment captured", { status: captureData.status });
 
       if (captureData.status === "COMPLETED") {
-        // Get capture details
         const capture = captureData.purchase_units?.[0]?.payments?.captures?.[0];
         const payer = captureData.payer;
 
-        // Update order status to paid
-        const { error: updateError } = await supabaseService
+        // Optimistic lock: only update if still pending
+        const { data: updated, error: updateError } = await supabaseService
           .from('orders')
           .update({
             status: 'paid',
-            order_status: 'PAID',
+            order_status: 'paid',
             payment_reference: paypal_order_id,
             metadata: {
               paypal_order_id,
@@ -132,14 +230,28 @@ serve(async (req) => {
               captured_at: new Date().toISOString()
             }
           })
-          .eq('id', order_id);
+          .eq('id', order_id)
+          .eq('status', 'pending') // optimistic lock
+          .select('id')
+          .maybeSingle();
+
+        if (!updated) {
+          logStep("Order already processed (optimistic lock)", { order_id });
+          return new Response(JSON.stringify({
+            success: true, status: "COMPLETED", order_id,
+            message: "Payment already processed"
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
 
         if (updateError) {
           logStep("Error updating order", updateError);
           throw new Error(`Failed to update order: ${updateError.message}`);
         }
 
-        // Create initial status history entry
+        // Create status history entry
         await supabaseService
           .from('order_status_history')
           .insert({
@@ -156,7 +268,7 @@ serve(async (req) => {
 
         logStep("Order updated to paid", { orderId: order_id });
 
-        // Send order confirmation email
+        // Send order confirmation email (non-fatal)
         try {
           await supabaseService.functions.invoke('send-order-confirmation', {
             body: { order_id }
@@ -178,11 +290,8 @@ serve(async (req) => {
         });
       }
     } else if (paypalOrder.status === "COMPLETED") {
-      // Already captured
       return new Response(JSON.stringify({
-        success: true,
-        status: "COMPLETED",
-        order_id,
+        success: true, status: "COMPLETED", order_id,
         message: "Payment already completed"
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

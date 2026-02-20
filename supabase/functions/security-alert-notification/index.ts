@@ -6,10 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
+const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@rifelegance.com";
+const FROM_NAME = "Sécurité Rif Raw Straw";
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
 const ADMIN_EMAIL = "ben94med@gmail.com";
 
 interface SecurityAlert {
@@ -24,13 +25,36 @@ interface SecurityAlert {
   created_at: string;
 }
 
+const sendBrevoEmail = async (to: string, subject: string, htmlContent: string): Promise<{ messageId?: string }> => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
+        to: [{ email: to }],
+        subject,
+        htmlContent,
+      }),
+      signal: controller.signal,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(`Brevo error (${res.status}): ${JSON.stringify(data)}`);
+    return { messageId: data.messageId };
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
 serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Validate caller: either service role key (internal) or authenticated admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
@@ -58,10 +82,7 @@ serve(async (req: Request): Promise<Response> => {
     console.log("[Security Alert] Starting alert notification process...");
 
     const { data: alerts, error: fetchError } = await supabase.rpc("get_pending_security_alerts");
-    if (fetchError) {
-      console.error("[Security Alert] Error fetching alerts:", fetchError);
-      throw fetchError;
-    }
+    if (fetchError) throw fetchError;
 
     console.log(`[Security Alert] Found ${alerts?.length || 0} pending alerts`);
 
@@ -108,25 +129,23 @@ serve(async (req: Request): Promise<Response> => {
       <p style="color: #9ca3af; font-size: 12px; text-align: center;">Email automatique - Système de sécurité.</p>
     </body></html>`;
 
-    console.log("[Security Alert] Sending email notification...");
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
-      body: JSON.stringify({
-        from: "Sécurité <onboarding@resend.dev>",
-        to: [ADMIN_EMAIL],
-        subject: `🚨 [URGENT] ${criticalCount + highCount} Alerte(s) de Sécurité`,
-        html: emailHtml,
-      }),
-    });
+    console.log("[Security Alert] Sending email via Brevo...");
+    const emailResult = await sendBrevoEmail(ADMIN_EMAIL, `🚨 [URGENT] ${criticalCount + highCount} Alerte(s) de Sécurité`, emailHtml);
+    console.log("[Security Alert] Email sent:", emailResult);
 
-    const emailResult = await emailResponse.json();
-    console.log("[Security Alert] Email response:", JSON.stringify(emailResult));
+    // Log to email_logs for traceability
+    await supabase.from('email_logs').insert({
+      template_name: 'security-alert-notification',
+      recipient_email: ADMIN_EMAIL,
+      recipient_name: 'Security Admin',
+      status: 'sent',
+      metadata: { messageId: emailResult.messageId, alertCount: alerts.length, criticalCount, highCount },
+      sent_at: new Date().toISOString()
+    });
 
     const alertIds = alerts.map((a: SecurityAlert) => a.id);
     const { error: updateError } = await supabase.rpc("mark_alerts_notified", { alert_ids: alertIds });
     if (updateError) console.error("[Security Alert] Error marking alerts:", updateError);
-    else console.log(`[Security Alert] Marked ${alertIds.length} alerts as notified`);
 
     return new Response(
       JSON.stringify({ success: true, alertsProcessed: alerts.length, emailResponse: emailResult }),

@@ -1,8 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
-import { Resend } from "npm:resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
+const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@rifelegance.com";
+const FROM_NAME = "Rif Raw Straw";
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -19,13 +20,36 @@ interface VipOrderPayload {
   threshold: number;
 }
 
+const sendBrevoEmail = async (to: string, subject: string, htmlContent: string): Promise<{ messageId?: string }> => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
+        to: [{ email: to }],
+        subject,
+        htmlContent,
+      }),
+      signal: controller.signal,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(`Brevo error (${res.status}): ${JSON.stringify(data)}`);
+    return { messageId: data.messageId };
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Validate caller: either service role key (internal) or authenticated admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
@@ -53,11 +77,20 @@ const handler = async (req: Request): Promise<Response> => {
     const payload: VipOrderPayload = await req.json();
     console.log('Processing VIP order notification:', payload);
 
+    // Idempotency check
+    const { data: existingLog } = await supabase
+      .from('email_logs').select('id')
+      .eq('order_id', payload.order_id)
+      .eq('template_name', 'vip-order-notification')
+      .eq('status', 'sent').maybeSingle();
+
+    if (existingLog) {
+      console.log('VIP notification already sent (idempotent)');
+      return new Response(JSON.stringify({ success: true, message: "Already sent" }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
     const { data: settingsData } = await supabase
-      .from('app_settings')
-      .select('setting_value')
-      .eq('setting_key', 'business_rules')
-      .single();
+      .from('app_settings').select('setting_value').eq('setting_key', 'business_rules').single();
 
     const businessRules = settingsData?.setting_value as any || {};
     const vipEmail = businessRules?.contact?.vipEmail || 'vip@rifrawstraw.com';
@@ -66,11 +99,7 @@ const handler = async (req: Request): Promise<Response> => {
     const formattedTotal = `${payload.order_total.toFixed(2)} €`;
     const formattedThreshold = `${payload.threshold.toFixed(2)} €`;
 
-    const adminEmailResponse = await resend.emails.send({
-      from: "Rif Raw Straw <notifications@rifrawstraw.com>",
-      to: [vipEmail],
-      subject: `🌟 Commande VIP #${orderNumber} - ${formattedTotal}`,
-      html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    const emailHtml = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); padding: 20px; border-radius: 12px;">
           <h1 style="color: #333; margin: 0;">🌟 Nouvelle Commande VIP</h1>
         </div>
@@ -87,15 +116,24 @@ const handler = async (req: Request): Promise<Response> => {
         <div style="background: #fff3cd; padding: 15px; border-radius: 8px;">
           <p style="margin: 0; color: #856404;"><strong>⚠️ Action recommandée:</strong> Suivi personnalisé recommandé.</p>
         </div>
-      </div>`,
+      </div>`;
+
+    const emailResult = await sendBrevoEmail(vipEmail, `🌟 Commande VIP #${orderNumber} - ${formattedTotal}`, emailHtml);
+    console.log("VIP notification sent:", emailResult);
+
+    // Log to email_logs for traceability
+    await supabase.from('email_logs').insert({
+      template_name: 'vip-order-notification',
+      recipient_email: vipEmail,
+      recipient_name: 'VIP Admin',
+      order_id: payload.order_id,
+      status: 'sent',
+      metadata: { messageId: emailResult.messageId, order_total: payload.order_total, threshold: payload.threshold },
+      sent_at: new Date().toISOString()
     });
 
-    console.log("VIP notification sent:", adminEmailResponse);
-
     await supabase.from('audit_logs').insert({
-      action: 'VIP_ORDER_NOTIFICATION_SENT',
-      resource_type: 'order',
-      resource_id: payload.order_id,
+      action: 'VIP_ORDER_NOTIFICATION_SENT', resource_type: 'order', resource_id: payload.order_id,
       new_values: {
         order_total: payload.order_total, threshold: payload.threshold,
         customer_email: payload.customer_email, notification_sent_to: vipEmail
@@ -103,7 +141,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     return new Response(JSON.stringify({
-      success: true, emailId: adminEmailResponse.data?.id,
+      success: true, emailId: emailResult.messageId,
       order_id: payload.order_id, notified_email: vipEmail
     }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
   } catch (error: any) {

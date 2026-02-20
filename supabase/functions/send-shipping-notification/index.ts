@@ -1,11 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@4.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 import * as React from 'npm:react@18.3.1';
 import { renderAsync } from 'npm:@react-email/components@0.0.22';
 import { ShippingNotificationEmail } from './_templates/shipping-notification.tsx';
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
+const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@rifelegance.com";
+const FROM_NAME = "Rif Raw Straw";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,18 +24,37 @@ interface ShippingNotificationRequest {
   carrier?: string;
   trackingUrl?: string;
   estimatedDelivery?: string;
-  shippingAddress: {
-    address: string;
-    city: string;
-    postalCode: string;
-    country: string;
-  };
+  shippingAddress: { address: string; city: string; postalCode: string; country: string; };
   items: Array<{ name: string; quantity: number; image?: string; }>;
   previewOnly?: boolean;
 }
 
 const logStep = (step: string, details?: any) => {
   console.log(`[send-shipping-notification] ${step}`, details ? JSON.stringify(details) : '');
+};
+
+const sendBrevoEmail = async (to: string, subject: string, htmlContent: string): Promise<{ messageId?: string }> => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
+        to: [{ email: to }],
+        subject,
+        htmlContent,
+      }),
+      signal: controller.signal,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(`Brevo error (${res.status}): ${JSON.stringify(data)}`);
+    return { messageId: data.messageId };
+  } finally {
+    clearTimeout(timeout);
+  }
 };
 
 const logEmailToDatabase = async (
@@ -58,7 +78,6 @@ const handler = async (req: Request): Promise<Response> => {
   const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    // Validate caller: either service role key (internal) or authenticated admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
@@ -85,24 +104,14 @@ const handler = async (req: Request): Promise<Response> => {
     logStep('Starting shipping notification email send');
     const data: ShippingNotificationRequest = await req.json();
     
-    // Idempotency check
     const { data: existingLog } = await serviceClient
-      .from('email_logs')
-      .select('id')
-      .eq('order_id', data.orderId)
-      .eq('template_name', 'shipping-notification')
-      .eq('status', 'sent')
-      .maybeSingle();
+      .from('email_logs').select('id').eq('order_id', data.orderId)
+      .eq('template_name', 'shipping-notification').eq('status', 'sent').maybeSingle();
 
     if (existingLog && !data.previewOnly) {
-      logStep('Email already sent for this order and status (Idempotency)');
+      logStep('Email already sent (Idempotency)');
       return new Response(JSON.stringify({ success: true, message: 'Already sent' }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
-
-    logStep('Received shipping data', {
-      orderId: data.orderId, customerEmail: data.customerEmail,
-      trackingNumber: data.trackingNumber, carrier: data.carrier, previewOnly: data.previewOnly
-    });
 
     if (!data.orderId || !data.customerEmail || !data.customerName) {
       throw new Error('Missing required fields: orderId, customerEmail, or customerName');
@@ -119,7 +128,6 @@ const handler = async (req: Request): Promise<Response> => {
         items: data.items || []
       })
     );
-    logStep('Email template rendered successfully');
 
     if (data.previewOnly) {
       return new Response(
@@ -128,22 +136,16 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "Rif Raw Straw <onboarding@resend.dev>";
-    logStep('Sending email', { to: data.customerEmail, from: fromEmail });
-    
-    const emailResponse = await resend.emails.send({
-      from: fromEmail, to: [data.customerEmail],
-      subject: `Votre commande #${data.orderId.slice(-8).toUpperCase()} a été expédiée ! 📦`,
-      html: html,
-    });
-
-    logStep('Email sent successfully', { emailId: emailResponse.data?.id });
+    const subject = `Votre commande #${data.orderId.slice(-8).toUpperCase()} a été expédiée ! 📦`;
+    logStep('Sending email via Brevo', { to: data.customerEmail });
+    const emailResult = await sendBrevoEmail(data.customerEmail, subject, html);
+    logStep('Email sent successfully', { messageId: emailResult.messageId });
 
     await logEmailToDatabase(serviceClient, 'shipping-notification', data.customerEmail, data.customerName,
-      data.orderId, 'sent', null, { emailId: emailResponse.data?.id, trackingNumber: data.trackingNumber, carrier: data.carrier });
+      data.orderId, 'sent', null, { messageId: emailResult.messageId, trackingNumber: data.trackingNumber, carrier: data.carrier });
 
     return new Response(
-      JSON.stringify({ success: true, emailId: emailResponse.data?.id, message: 'Shipping notification email sent successfully' }),
+      JSON.stringify({ success: true, emailId: emailResult.messageId, message: 'Shipping notification email sent successfully' }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
