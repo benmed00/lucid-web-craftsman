@@ -20,8 +20,8 @@
  *   old caches on the next service worker activation.
  */
 
-const STATIC_CACHE_NAME = 'rif-static-v5';
-const IMAGE_CACHE_NAME = 'rif-images-v5';
+const STATIC_CACHE_NAME = 'rif-static-v6';
+const IMAGE_CACHE_NAME = 'rif-images-v6';
 
 const MAX_CACHE_SIZE = 100; // per bucket
 
@@ -84,8 +84,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ── BYPASS: API / auth / function paths on same origin ──
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/') || url.pathname.startsWith('/functions/')) {
+  // ── BYPASS: API / auth / function / payment paths on same origin ──
+  if (
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/auth/') ||
+    url.pathname.startsWith('/functions/') ||
+    url.pathname.startsWith('/payment-success') ||
+    url.pathname.startsWith('/checkout')
+  ) {
     return;
   }
 

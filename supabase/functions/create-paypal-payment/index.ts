@@ -232,7 +232,7 @@ serve(async (req) => {
     const itemTotal = Math.round(verifiedItems.reduce((sum: number, item: any) => 
       sum + (item._dbPrice * item.quantity), 0) * 100) / 100;
 
-    const origin = req.headers.get("origin") || "https://rif-raw-straw.lovable.app";
+    const origin = req.headers.get("origin") || Deno.env.get("SITE_URL") || "https://www.rifelegance.com";
     
     const breakdown: any = {
       item_total: { currency_code: "EUR", value: itemTotal.toFixed(2) },

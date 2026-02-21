@@ -55,19 +55,24 @@ const isValidEmail = (email: string): boolean => {
   return emailRegex.test(email) && email.length <= 254;
 };
 
+// Production domain — environment-aware
+const PRODUCTION_ORIGIN = Deno.env.get("SITE_URL") || 'https://www.rifelegance.com';
+
 // Origin allowlist for Stripe redirect URLs
 const ALLOWED_ORIGINS = [
+  'https://www.rifelegance.com',
+  'https://rifelegance.com',
   'https://rif-raw-straw.lovable.app',
   'https://id-preview--1ed5c182-2490-4180-9969-ca6a7e19e8ca.lovable.app',
 ];
-const DEFAULT_ORIGIN = ALLOWED_ORIGINS[0]; // production
 
 const getValidOrigin = (req: Request): string => {
   const origin = req.headers.get("origin") || '';
   if (ALLOWED_ORIGINS.includes(origin)) return origin;
-  // Also allow any *.lovable.app or *.lovableproject.com origin
+  // Also allow any *.lovable.app or *.lovableproject.com origin for staging
   if (/^https:\/\/[a-z0-9._-]+\.lovable(project\.com|\.app)$/.test(origin)) return origin;
-  return DEFAULT_ORIGIN;
+  // Default to production domain, never to lovable.app
+  return PRODUCTION_ORIGIN;
 };
 
 serve(async (req) => {

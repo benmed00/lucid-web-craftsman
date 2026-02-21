@@ -7,8 +7,13 @@ const corsHeaders = {
 };
 
 const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@rifelegance.com";
 const FROM_NAME = "Sécurité Rif Raw Straw";
+const parseFromEmail = (raw: string | undefined): string => {
+  if (!raw) return "noreply@rifelegance.com";
+  const match = raw.match(/<([^>]+)>/);
+  return match ? match[1].trim() : raw.trim();
+};
+const FROM_EMAIL = parseFromEmail(Deno.env.get("RESEND_FROM_EMAIL"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADMIN_EMAIL = "ben94med@gmail.com";

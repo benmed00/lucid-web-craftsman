@@ -2,8 +2,13 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
 
 const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@rifelegance.com";
 const FROM_NAME = "Rif Raw Straw";
+const parseFromEmail = (raw: string | undefined): string => {
+  if (!raw) return "noreply@rifelegance.com";
+  const match = raw.match(/<([^>]+)>/);
+  return match ? match[1].trim() : raw.trim();
+};
+const FROM_EMAIL = parseFromEmail(Deno.env.get("RESEND_FROM_EMAIL"));
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 

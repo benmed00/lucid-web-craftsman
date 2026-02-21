@@ -5,8 +5,15 @@ import { renderAsync } from 'npm:@react-email/components@0.0.22';
 import { OrderConfirmationEmail } from './_templates/order-confirmation.tsx';
 
 const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@rifelegance.com";
 const FROM_NAME = "Rif Raw Straw";
+
+// Extract clean email from RESEND_FROM_EMAIL (may be "Name <email>" or plain email)
+const parseFromEmail = (raw: string | undefined): string => {
+  if (!raw) return "noreply@rifelegance.com";
+  const match = raw.match(/<([^>]+)>/);
+  return match ? match[1].trim() : raw.trim();
+};
+const FROM_EMAIL = parseFromEmail(Deno.env.get("RESEND_FROM_EMAIL"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,12 +57,15 @@ const sendBrevoEmail = async (to: string, subject: string, htmlContent: string):
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
 
+  // Build clean sender email (strip "Name <email>" format if present)
+  const senderEmail = FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL;
+
   try {
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
       body: JSON.stringify({
-        sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
+        sender: { name: FROM_NAME, email: senderEmail },
         to: [{ email: to }],
         subject,
         htmlContent,
@@ -162,9 +172,13 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     logStep('Error sending order confirmation', { error: error.message });
-    const body = await req.clone().json().catch(() => ({}));
-    await logEmailToDatabase(serviceClient, 'order-confirmation', body.customerEmail || 'unknown',
-      body.customerName || null, body.orderId || null, 'failed', error.message, {});
+    // Safely extract body for logging — don't use req.clone() as body may already be consumed
+    try {
+      await logEmailToDatabase(serviceClient, 'order-confirmation', data?.customerEmail || 'unknown',
+        data?.customerName || null, data?.orderId || null, 'failed', error.message, {});
+    } catch (logErr) {
+      console.error('Failed to log email failure:', logErr);
+    }
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
