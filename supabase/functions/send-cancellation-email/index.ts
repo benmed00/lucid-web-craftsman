@@ -5,8 +5,13 @@ import { renderAsync } from 'npm:@react-email/components@0.0.22';
 import { CancellationEmail } from './_templates/cancellation-email.tsx';
 
 const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@rifelegance.com";
 const FROM_NAME = "Rif Raw Straw";
+const parseFromEmail = (raw: string | undefined): string => {
+  if (!raw) return "noreply@rifelegance.com";
+  const match = raw.match(/<([^>]+)>/);
+  return match ? match[1].trim() : raw.trim();
+};
+const FROM_EMAIL = parseFromEmail(Deno.env.get("RESEND_FROM_EMAIL"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

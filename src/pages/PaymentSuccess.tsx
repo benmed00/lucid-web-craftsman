@@ -337,7 +337,7 @@ const PaymentSuccess = () => {
         <div class="address-line"><strong>Rif Raw Straw</strong></div>
         <div class="address-line">Artisanat & Commerce</div>
         <div class="address-line">Email : contact@rifrawstraw.com</div>
-        <div class="address-line">Web : rif-raw-straw.lovable.app</div>
+        <div class="address-line">Web : www.rifelegance.com</div>
         <div class="address-line" style="margin-top:6px; font-size:10px; color:#aaa;">TVA non applicable, art. 293 B du CGI</div>
       </div>
       <div class="address-block">
@@ -430,7 +430,7 @@ const PaymentSuccess = () => {
       </div>
       <div class="footer-contact">
         <a href="mailto:contact@rifrawstraw.com">contact@rifrawstraw.com</a><br>
-        <a href="https://rif-raw-straw.lovable.app">rif-raw-straw.lovable.app</a><br>
+        <a href="https://www.rifelegance.com">www.rifelegance.com</a><br>
         Service client disponible par email
       </div>
     </div>
