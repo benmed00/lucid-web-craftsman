@@ -261,8 +261,8 @@ app.post('/api/orders', (req, res) => {
       return res.status(400).json({ error: 'Invalid order: items array required', code: 'VALIDATION_ERROR' });
     }
     const order = {
-      id: generateId(),
       ...body,
+      id: generateId(),
       status: 'pending',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
