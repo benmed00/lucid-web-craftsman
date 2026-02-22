@@ -1,2 +1,3 @@
 # Netlify _headers uses # for comments, not markdown headings
 public/_headers
+**/_headers

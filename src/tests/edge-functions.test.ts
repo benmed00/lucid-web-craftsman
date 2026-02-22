@@ -26,6 +26,11 @@ const SERVICE_ROLE_KEY =
 
 const hasAnonConfig = Boolean(SUPABASE_URL && ANON_KEY);
 const hasServiceRole = Boolean(SUPABASE_URL && SERVICE_ROLE_KEY);
+// Skip real invocation tests when using .env.test placeholders
+const isRealSupabase =
+  hasAnonConfig &&
+  !String(SUPABASE_URL).includes('test.supabase.co') &&
+  !String(ANON_KEY).startsWith('test-anon-key');
 
 // Single shared clients to avoid "Multiple GoTrueClient instances" warning
 let anonClient: SupabaseClient;
@@ -68,7 +73,7 @@ describe.each([
   'carrier-webhook',
 ])('Edge Function: %s', (functionName) => {
   it('should be invokable (returns response, not network error)', async () => {
-    if (!hasAnonConfig) return;
+    if (!isRealSupabase) return;
     const { data, error } = await anonClient.functions.invoke(functionName, {
       body: {},
     });
@@ -81,7 +86,7 @@ describe.each([
 
 describe('create-payment', () => {
   it('should reject empty items with validation error', async () => {
-    if (!hasAnonConfig) return;
+    if (!isRealSupabase) return;
     const { data, error } = await anonClient.functions.invoke('create-payment', {
       body: { items: [], customerInfo: {}, discount: null },
     });
@@ -90,7 +95,7 @@ describe('create-payment', () => {
   }, 15000);
 
   it('should reject missing items field', async () => {
-    if (!hasAnonConfig) return;
+    if (!isRealSupabase) return;
     const { data, error } = await anonClient.functions.invoke('create-payment', {
       body: { customerInfo: {} },
     });
@@ -98,7 +103,7 @@ describe('create-payment', () => {
   }, 15000);
 
   it('should reject invalid product (non-existent id)', async () => {
-    if (!hasAnonConfig) return;
+    if (!isRealSupabase) return;
     const { data, error } = await anonClient.functions.invoke('create-payment', {
       body: {
         items: [{ product: { id: '00000000-0000-0000-0000-000000000000', name: 'Test', price: 10 }, quantity: 1 }],
@@ -111,7 +116,7 @@ describe('create-payment', () => {
 
 describe('verify-payment', () => {
   it('should reject missing session_id', async () => {
-    if (!hasAnonConfig) return;
+    if (!isRealSupabase) return;
     const { data, error } = await anonClient.functions.invoke('verify-payment', {
       body: {},
     });
@@ -119,7 +124,7 @@ describe('verify-payment', () => {
   }, 15000);
 
   it('should return structured response for invalid session', async () => {
-    if (!hasAnonConfig) return;
+    if (!isRealSupabase) return;
     const { data, error } = await anonClient.functions.invoke('verify-payment', {
       body: { session_id: 'cs_invalid_test_123' },
     });
@@ -133,7 +138,7 @@ describe('verify-payment', () => {
 
 describe('create-paypal-payment', () => {
   it('should reject empty items', async () => {
-    if (!hasAnonConfig) return;
+    if (!isRealSupabase) return;
     const { data, error } = await anonClient.functions.invoke('create-paypal-payment', {
       body: { items: [], customerInfo: {}, discount: null },
     });
@@ -144,7 +149,7 @@ describe('create-paypal-payment', () => {
 
 describe('verify-paypal-payment', () => {
   it('should reject missing paypal_order_id', async () => {
-    if (!hasAnonConfig) return;
+    if (!isRealSupabase) return;
     const { data, error } = await anonClient.functions.invoke('verify-paypal-payment', {
       body: {},
     });
@@ -162,7 +167,7 @@ describe('send-order-confirmation', () => {
   });
 
   it('should require Authorization (anon key is not service role)', async () => {
-    if (!hasAnonConfig) return;
+    if (!isRealSupabase) return;
     const { data, error } = await anonClient.functions.invoke('send-order-confirmation', {
       body: {},
     });
@@ -256,7 +261,7 @@ describe('send-vip-order-notification', () => {
 
 describe('send-order-notification-improved', () => {
   it('should require auth (reject anon)', async () => {
-    if (!hasAnonConfig) return;
+    if (!isRealSupabase) return;
     const { data, error } = await anonClient.functions.invoke('send-order-notification-improved', {
       body: { order_id: 'test', new_status: 'paid' },
     });
@@ -267,7 +272,7 @@ describe('send-order-notification-improved', () => {
 
 describe('check-promo-alerts', () => {
   it('should require admin auth', async () => {
-    if (!hasAnonConfig) return;
+    if (!isRealSupabase) return;
     const { data, error } = await anonClient.functions.invoke('check-promo-alerts', {
       body: {},
     });
@@ -295,7 +300,7 @@ describe('process-scheduled-emails', () => {
   });
 
   it('should require admin auth', async () => {
-    if (!hasAnonConfig) return;
+    if (!isRealSupabase) return;
     const { data, error } = await anonClient.functions.invoke('process-scheduled-emails', {
       body: {},
     });
@@ -305,7 +310,7 @@ describe('process-scheduled-emails', () => {
 });
 
 describe('stripe-webhook', () => {
-  it.skipIf(!hasAnonConfig)('should reject non-POST method', async () => {
+  it.skipIf(!isRealSupabase)('should reject non-POST method', async () => {
     const response = await fetch(
       `${SUPABASE_URL}/functions/v1/stripe-webhook`,
       {
@@ -322,7 +327,7 @@ describe('stripe-webhook', () => {
 
 describe('carrier-webhook', () => {
   it('should respond to webhook payload (may require signature)', async () => {
-    if (!hasAnonConfig) return;
+    if (!isRealSupabase) return;
     const { data, error } = await anonClient.functions.invoke('carrier-webhook', {
       body: {
         event_type: 'LIVRE',

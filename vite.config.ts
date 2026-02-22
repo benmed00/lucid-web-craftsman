@@ -1,9 +1,19 @@
 // File_name: vite.config.ts
+/// <reference types="vitest" />
 
-import { componentTagger } from "lovable-tagger";
 import { defineConfig } from "vite";
+import type { PreRenderedAsset } from "rollup";
 import path from "path";
 import react from "@vitejs/plugin-react-swc";
+
+// Load lovable-tagger at config load (ESM-only; dynamic import required)
+let componentTaggerPlugin: ReturnType<typeof import("lovable-tagger")["componentTagger"]> | null = null;
+try {
+  const { componentTagger } = await import("lovable-tagger");
+  componentTaggerPlugin = componentTagger();
+} catch {
+  // lovable-tagger may be unavailable
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -34,8 +44,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === 'development' && componentTaggerPlugin,
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -48,13 +57,19 @@ export default defineConfig(({ mode }) => ({
     // Pre-bundle these dependencies to ensure single instance
     include: ['react', 'react-dom', 'react-i18next', 'i18next'],
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/tests/setupTests.ts',
+    css: true,
+  },
   build: {
     sourcemap: true, // Enable source maps for production builds
     cssCodeSplit: true, // Enable CSS code splitting for better caching
     rollupOptions: {
       output: {
         // Optimize chunk names for better caching
-        assetFileNames: (assetInfo) => {
+        assetFileNames: (assetInfo: PreRenderedAsset) => {
           const name = assetInfo.name || 'asset';
           const info = name.split('.');
           const ext = info[info.length - 1];

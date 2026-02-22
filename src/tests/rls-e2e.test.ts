@@ -19,6 +19,12 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
 
+// Skip when using .env.test placeholders (no real Supabase)
+const isRealSupabase =
+  Boolean(SUPABASE_URL && ANON_KEY) &&
+  !SUPABASE_URL.includes('test.supabase.co') &&
+  !ANON_KEY.startsWith('test-anon-key');
+
 // Test user credentials (should be set in environment for CI/CD)
 const TEST_USERS = {
   regular: {
@@ -290,7 +296,7 @@ class RLSTestRunner {
 }
 
 // Main test suite - single shared client, sign in/out between role blocks
-describe('RLS E2E Security Tests', () => {
+describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
   const runner = new RLSTestRunner();
   let client: SupabaseClient;
   let regularUserId: string | null = null;

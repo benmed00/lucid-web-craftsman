@@ -14,6 +14,12 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
 
+// Skip when using .env.test placeholders (no real Supabase)
+const isRealSupabase =
+  Boolean(SUPABASE_URL && ANON_KEY) &&
+  !SUPABASE_URL.includes('test.supabase.co') &&
+  !ANON_KEY.startsWith('test-anon-key');
+
 // Tables that MUST be protected from anonymous access
 const SENSITIVE_TABLES = [
   'profiles',
@@ -41,7 +47,7 @@ const PUBLIC_TABLES = [
   'loyalty_rewards',
 ];
 
-describe('RLS Quick Validation - Anonymous Access', () => {
+describe.skipIf(!isRealSupabase)('RLS Quick Validation - Anonymous Access', () => {
   let anonClient: SupabaseClient;
 
   beforeAll(() => {

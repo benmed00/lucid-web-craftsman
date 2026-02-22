@@ -16,6 +16,9 @@ vi.mock('@/hooks/useImageLoader', () => ({
   }),
 }));
 
+// React Router future flags to silence v7 migration warnings
+const futureFlags = { v7_startTransition: true, v7_relativeSplatPath: true };
+
 // Mock data for the BlogCardProps['post']
 const mockPostData = {
   id: 1,
@@ -30,7 +33,7 @@ const mockPostData = {
 describe('BlogCard Component', () => {
   it('renders the blog card with all essential post details', () => {
     const { getByText, getByAltText } = render(
-      <MemoryRouter>
+      <MemoryRouter future={futureFlags}>
         <BlogCard post={mockPostData} />
       </MemoryRouter>
     );
@@ -63,7 +66,7 @@ describe('BlogCard Component', () => {
 
   it('renders the image with correct src and alt attributes', () => {
     const { getByAltText } = render(
-      <MemoryRouter>
+      <MemoryRouter future={futureFlags}>
         <BlogCard post={mockPostData} />
       </MemoryRouter>
     );
