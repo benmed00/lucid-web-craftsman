@@ -210,17 +210,18 @@ describe('UnifiedCacheManager', () => {
     it('should return stale data and trigger background refresh', async () => {
       cache.set('key1', 'stale', { staleTime: 100, ttl: 10000 });
       vi.advanceTimersByTime(200);
-      
+
       const fetcher = vi.fn().mockResolvedValue('fresh');
-      
+
       const result = await cache.getOrSet('key1', fetcher);
-      
+
       expect(result.data).toBe('stale');
       expect(result.fromCache).toBe(true);
       expect(result.wasStale).toBe(true);
-      
-      // Background refresh should be triggered
-      await vi.runAllTimersAsync();
+
+      // Background refresh runs async; yield to let fetcher complete
+      await Promise.resolve();
+      await Promise.resolve();
       expect(fetcher).toHaveBeenCalled();
     });
   });

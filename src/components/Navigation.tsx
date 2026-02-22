@@ -110,7 +110,7 @@ const Navigation = () => {
             </div>
 
             {/* Navigation Links - Desktop & Tablet */}
-            <nav className="hidden md:flex items-center justify-center flex-1 max-w-md lg:max-w-lg xl:max-w-xl mx-2" role="navigation" aria-label={t('common:accessibility.mainNav')}>
+            <nav className="header-nav hidden md:flex items-center justify-center flex-1 max-w-md lg:max-w-lg xl:max-w-xl mx-2" role="navigation" aria-label={t('common:accessibility.mainNav')}>
               <div className="flex items-center justify-center space-x-2 lg:space-x-3">
                 <Link
                   to="/"

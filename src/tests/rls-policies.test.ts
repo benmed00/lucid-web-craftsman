@@ -176,7 +176,40 @@ const POLICY_TESTS: PolicyTest[] = [
     expectedForSuperAdmin: 'deny',
     notes: 'Payment deletion is blocked for all'
   },
-  
+
+  // Shipping addresses table
+  {
+    table: 'shipping_addresses',
+    operation: 'SELECT',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'own_only',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Users see own shipping addresses only'
+  },
+
+  // Security events table
+  {
+    table: 'security_events',
+    operation: 'SELECT',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can view security events'
+  },
+
+  // Security config table
+  {
+    table: 'security_config',
+    operation: 'SELECT',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can view security config'
+  },
+
   // Products table (public read)
   {
     table: 'products',
