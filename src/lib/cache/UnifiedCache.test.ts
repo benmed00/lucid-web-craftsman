@@ -219,8 +219,9 @@ describe('UnifiedCacheManager', () => {
       expect(result.fromCache).toBe(true);
       expect(result.wasStale).toBe(true);
       
-      // Background refresh should be triggered
-      await vi.runAllTimersAsync();
+      // Background refresh uses promises; flush microtask queue to let it complete
+      await Promise.resolve();
+      await Promise.resolve();
       expect(fetcher).toHaveBeenCalled();
     });
   });

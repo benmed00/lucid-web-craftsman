@@ -17,6 +17,7 @@ Valoriser l'artisanat berbère traditionnel en créant une vitrine numérique mo
 ## ✨ Fonctionnalités Principales
 
 ### 🛍️ Expérience d'Achat
+
 - **Catalogue de Produits** : Navigation intuitive avec filtres avancés
 - **Aperçu Rapide** : Prévisualisation immédiate des produits sans quitter la page
 - **Panier Intelligent** : Gestion d'état persistante avec calculs de livraison
@@ -24,6 +25,7 @@ Valoriser l'artisanat berbère traditionnel en créant une vitrine numérique mo
 - **Recherche Avancée** : Recherche par nom, catégorie, et caractéristiques
 
 ### 📱 Interface Utilisateur
+
 - **Design Responsive** : Optimisé pour tous les appareils (mobile-first)
 - **Interface Moderne** : Design épuré avec palette de couleurs terre
 - **Animations Fluides** : Transitions et micro-interactions raffinées
@@ -31,12 +33,14 @@ Valoriser l'artisanat berbère traditionnel en créant une vitrine numérique mo
 - **PWA Ready** : Installation possible sur mobile et desktop
 
 ### 🔐 Gestion Utilisateur
+
 - **Authentification** : Système d'inscription/connexion sécurisé
 - **Profil Utilisateur** : Gestion des informations personnelles
 - **Historique Commandes** : Suivi complet des achats
 - **Programme de Fidélité** : Système de points et récompenses
 
 ### 🏪 Fonctionnalités E-commerce
+
 - **Gestion Inventaire** : Suivi en temps réel des stocks
 - **Système de Paiement** : Intégration Stripe pour paiements sécurisés
 - **Calcul Livraison** : Estimation automatique des frais de port
@@ -44,6 +48,7 @@ Valoriser l'artisanat berbère traditionnel en créant une vitrine numérique mo
 - **Multi-devises** : Support EUR, USD, MAD
 
 ### 📊 Administration
+
 - **Dashboard Admin** : Interface de gestion complète
 - **Gestion Produits** : CRUD complet avec upload d'images
 - **Analytics** : Statistiques de vente et comportement utilisateur
@@ -53,44 +58,54 @@ Valoriser l'artisanat berbère traditionnel en créant une vitrine numérique mo
 ## 🖼️ Aperçus de l'Application
 
 ### Page d'Accueil
+
 ![Homepage Hero](./public/assets/screenshots/homepage-hero.jpg)
 *Interface principale avec navigation intuitive et mise en avant des produits*
 
 ### Cartes Produits
+
 ![Product Cards](./public/assets/screenshots/product-card-demo.jpg)
 *Design moderne des cartes produits avec fonctionnalités interactives*
 
 ### Détail Produit
+
 ![Product Detail](./public/assets/screenshots/product-detail.jpg)
 *Page produit complète avec galerie d'images et informations détaillées*
 
 ### Version Mobile
+
 ![Mobile Responsive](./public/assets/screenshots/mobile-responsive.jpg)
 *Interface responsive optimisée pour les appareils mobiles*
 
 ### Panier & Checkout
+
 ![Cart and Checkout](./public/assets/screenshots/cart-checkout.jpg)
 *Processus d'achat simplifié et sécurisé*
 
 ### Dashboard Utilisateur
+
 ![User Dashboard](./public/assets/screenshots/user-dashboard.jpg)
 *Interface utilisateur pour la gestion du profil et des commandes*
 
 ### Section Blog
+
 ![Blog Section](./public/assets/screenshots/blog-section.jpg)
 *Contenu éditorial sur la culture berbère et l'artisanat*
 
 ### Administration
+
 ![Admin Dashboard](./public/assets/screenshots/admin-dashboard.jpg)
 *Interface d'administration complète pour la gestion de la plateforme*
 
 ### Contact & Footer
+
 ![Contact and Footer](./public/assets/screenshots/contact-footer.jpg)
 *Page de contact et informations institutionnelles*
 
 ## 🚀 Technologies Utilisées
 
 ### Frontend
+
 - **React 18.3.1** - Framework JavaScript moderne
 - **TypeScript** - Typage statique pour plus de robustesse
 - **Vite** - Build tool ultra-rapide
@@ -98,16 +113,19 @@ Valoriser l'artisanat berbère traditionnel en créant une vitrine numérique mo
 - **Shadcn/ui** - Composants UI modernes et accessibles
 
 ### Backend & Services
+
 - **Supabase** - Backend-as-a-Service pour base de données et auth
 - **Stripe** - Processeur de paiements sécurisés
 - **Vercel** - Plateforme de déploiement et hébergement
 
 ### État & Navigation
+
 - **React Router DOM** - Navigation côté client
 - **Context API** - Gestion d'état globale
 - **TanStack Query** - Cache et synchronisation des données
 
 ### Outils de Développement
+
 - **ESLint** - Linting et qualité de code
 - **Prettier** - Formatage automatique
 - **Husky** - Hooks Git pour CI/CD
@@ -116,6 +134,7 @@ Valoriser l'artisanat berbère traditionnel en créant une vitrine numérique mo
 ## 🛠️ Installation & Configuration
 
 ### Prérequis
+
 - **Node.js** >= 18.0.0
 - **npm** >= 8.0.0 ou **yarn** >= 1.22.0
 - **Git** pour le contrôle de version
@@ -131,31 +150,43 @@ cd rif-raw-straw
 npm install
 
 # Configurer les variables d'environnement
-cp .env.example .env.local
+cp .env.example .env
+
+# Éditer .env avec vos clés (Supabase, Stripe, etc.)
 
 # Démarrer le serveur de développement
 npm run dev
+
+# Optionnel : Mock API pour produits/posts (autre terminal)
+npm run start:api
 ```
 
 ### Variables d'Environnement
 
-```env
-# Configuration Supabase
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+Copiez `.env.example` vers `.env` et renseignez les valeurs. Voir `.env.example` pour la liste complète. Variables principales :
 
-# Configuration Stripe
+```env
+# Configuration Supabase (obligatoire)
+VITE_SUPABASE_URL=https://your_project_id.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+
+# Configuration Stripe (optionnel, pour les paiements)
 VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
 
 # Configuration Générale
-VITE_APP_URL=http://localhost:5173
-VITE_API_URL=your_api_url
+VITE_API_URL=http://localhost:8080
+VITE_PROD_URL=https://yourdomain.com
 ```
 
 ## 📁 Structure du Projet
 
 ```
 rif-raw-straw/
+├── 📁 backend/                   # Mock API (dev/staging)
+│   ├── server.cjs               # Serveur Express + json-server
+│   ├── db.json                  # Données produits/posts
+│   ├── package.json
+│   └── README.md
 ├── 📁 public/                    # Fichiers statiques
 │   ├── 📁 assets/               # Images et ressources
 │   └── 📄 manifest.json         # Configuration PWA
@@ -184,17 +215,20 @@ rif-raw-straw/
 ## 🎨 Système de Design
 
 ### Palette de Couleurs
+
 - **Primaire** : Olive Green (#8B7A4D) - Inspiration terre berbère
 - **Secondaire** : Stone Gray (#78716C) - Neutralité moderne
 - **Accent** : Warm Amber (#F59E0B) - Touches dorées
 - **Fond** : Off-White (#FAFAF9) - Clarté et lisibilité
 
 ### Typographie
+
 - **Titre** : Police serif moderne pour l'élégance
 - **Corps** : Police sans-serif pour la lisibilité
 - **Interface** : Police système optimisée
 
 ### Composants UI
+
 - **Cartes** : Design épuré avec ombres subtiles
 - **Boutons** : États interactifs avec micro-animations
 - **Navigation** : Interface claire et intuitive
@@ -205,6 +239,7 @@ rif-raw-straw/
 L'application utilise un système d'identification uniforme pour tous les boutons interactifs. Consultez le fichier [`src/config/buttonIdentifiers.json`](./src/config/buttonIdentifiers.json) pour la documentation complète des identifiants.
 
 ### Exemples d'Identifiants
+
 ```javascript
 // Cartes produits
 quickViewBtn: "quick-view-btn-{productId}"
@@ -220,23 +255,32 @@ logoLink: "main-logo"
 ## 🧪 Tests & Qualité
 
 ### Lancement des Tests
+
 ```bash
 # Tests unitaires
 npm run test
 
+# Tests des Edge Functions Supabase
+npm run test:edge-functions
+
 # Tests avec couverture
-npm run test:coverage
+npm run coverage
 
 # Tests e2e
-npm run test:e2e
+npm run e2e:run
+# ou en mode interactif
+npm run e2e:open
 ```
 
+**Tests Edge Functions :** Les tests d'intégration des Edge Functions nécessitent `VITE_SUPABASE_URL` et `VITE_SUPABASE_PUBLISHABLE_KEY` dans `.env`. Pour les tests admin (preview email, etc.), ajoutez `SUPABASE_SERVICE_ROLE_KEY`. Les tests sans clé service role sont ignorés.
+
 ### Linting & Formatage
+
 ```bash
 # Vérification du code
 npm run lint
 
-# Correction automatique
+# Correction automatique (lint)
 npm run lint:fix
 
 # Formatage Prettier
@@ -246,11 +290,13 @@ npm run format
 ## 🚢 Déploiement
 
 ### Déploiement Automatique (Lovable)
+
 1. Connectez votre compte GitHub
 2. Poussez vos modifications sur la branche main
 3. Le déploiement se fait automatiquement
 
 ### Déploiement Manuel
+
 ```bash
 # Build de production
 npm run build
@@ -263,14 +309,17 @@ vercel --prod
 ```
 
 ### Configuration des Domaines
+
 Pour connecter un domaine personnalisé :
+
 1. Accédez aux paramètres du projet dans Lovable
-2. Section "Domains" 
+2. Section "Domains"
 3. Ajoutez votre domaine et suivez les instructions DNS
 
 ## 🤝 Contribution
 
 ### Processus de Contribution
+
 1. **Fork** le repository
 2. Créez une **branche feature** (`git checkout -b feature/amazing-feature`)
 3. **Committez** vos changements (`git commit -m 'Add amazing feature'`)
@@ -278,12 +327,14 @@ Pour connecter un domaine personnalisé :
 5. Ouvrez une **Pull Request**
 
 ### Standards de Code
+
 - Suivre les règles ESLint configurées
 - Utiliser TypeScript pour le typage
 - Écrire des tests pour les nouvelles fonctionnalités
 - Respecter les conventions de nommage
 
 ### Architecture des Composants
+
 - Composants fonctionnels avec hooks
 - Props typées avec TypeScript
 - Gestion d'état avec Context API
@@ -292,6 +343,7 @@ Pour connecter un domaine personnalisé :
 ## 🔒 Sécurité
 
 ### Bonnes Pratiques Implémentées
+
 - **Authentification** : JWT tokens sécurisés
 - **Validation** : Validation côté client et serveur
 - **Sanitization** : Protection XSS avec DOMPurify
@@ -299,6 +351,7 @@ Pour connecter un domaine personnalisé :
 - **CSRF** : Protection contre les attaques CSRF
 
 ### Variables Sensibles
+
 - Stockage sécurisé des clés API
 - Variables d'environnement pour les secrets
 - Rotation régulière des tokens d'accès
@@ -306,6 +359,7 @@ Pour connecter un domaine personnalisé :
 ## 📈 Performance
 
 ### Optimisations Implémentées
+
 - **Code Splitting** : Chargement lazy des composants
 - **Image Optimization** : Compression et formats modernes
 - **Caching** : Mise en cache intelligente des requêtes
@@ -313,6 +367,7 @@ Pour connecter un domaine personnalisé :
 - **Core Web Vitals** : Optimisation pour les métriques Google
 
 ### Monitoring
+
 - Analytics d'utilisation
 - Suivi des performances
 - Monitoring des erreurs
@@ -321,11 +376,13 @@ Pour connecter un domaine personnalisé :
 ## 🌐 Internationalisation
 
 ### Langues Supportées
+
 - **Français** (primaire) - Interface principale
 - **Arabe** (à venir) - Langue berbère moderne
 - **Anglais** (à venir) - Marché international
 
 ### Configuration i18n
+
 ```typescript
 // Configuration locale
 export const locales = {
@@ -338,14 +395,16 @@ export const locales = {
 ## 📞 Support & Contact
 
 ### Équipe de Développement
+
 - **Développeur Principal** : [Votre Nom]
 - **Designer UI/UX** : [Nom Designer]
 - **Product Owner** : [Nom PO]
 
 ### Canaux de Support
+
 - **Issues GitHub** : Bugs et demandes de fonctionnalités
 - **Discussions** : Questions générales et idées
-- **Email** : support@rifrawstraw.com
+- **Email** : <support@rifrawstraw.com>
 - **Discord** : Communauté des développeurs
 
 ## 📜 Licence
@@ -353,6 +412,7 @@ export const locales = {
 Ce projet est sous licence **MIT** - voir le fichier [LICENSE](./LICENSE) pour plus de détails.
 
 ### Droits d'Utilisation
+
 - ✅ Utilisation commerciale
 - ✅ Modification du code
 - ✅ Distribution
@@ -363,12 +423,14 @@ Ce projet est sous licence **MIT** - voir le fichier [LICENSE](./LICENSE) pour p
 ## 🙏 Remerciements
 
 ### Crédits
+
 - **Artisans Berbères** - Pour leur savoir-faire authentique
 - **Communauté Open Source** - Pour les outils et frameworks
 - **Équipe Lovable** - Pour la plateforme de développement
 - **Testeurs Bêta** - Pour leurs retours précieux
 
 ### Inspirations
+
 - Design inspiré de l'artisanat traditionnel berbère
 - Couleurs basées sur les paysages du Rif
 - Typographie respectueuse de l'identité culturelle
@@ -377,7 +439,7 @@ Ce projet est sous licence **MIT** - voir le fichier [LICENSE](./LICENSE) pour p
 
 <div align="center">
 
-**Fait avec ❤️ pour préserver et promouvoir l'artisanat berbère**
+** Fait avec ❤️ pour préserver et promouvoir l'artisanat berbère **
 
 [Site Web](https://rifrawstraw.lovable.app) • [Documentation](https://docs.rifrawstraw.com) • [Support](mailto:support@rifrawstraw.com)
 

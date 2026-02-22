@@ -2,8 +2,14 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://xcvlijchkmhjonhfildm.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdmxpamNoa21oam9uaGZpbGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2MDY3MDEsImV4cCI6MjA2MzE4MjcwMX0.3_FZWbV4qCqs1xQmh0Hws83xQxofSApzVRScSCEi9Pg";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  throw new Error(
+    'Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in your .env file.'
+  );
+}
 
 // Guest session key constant
 const GUEST_SESSION_KEY = 'guest_session';
@@ -46,9 +52,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   },
   global: {
-    // 🔒 FIX: Use a function to dynamically resolve x-guest-id on EVERY request
-    // Previously this was frozen at initialization, causing 42501 RLS errors when guest ID
-    // wasn't yet generated. This single client handles both authenticated and guest flows.
+    // Use a function to dynamically resolve x-guest-id on EVERY request
+    // Prevents 42501 RLS errors when guest ID wasn't yet generated
     fetch: (url: RequestInfo | URL, options?: RequestInit) => {
       const guestId = getGuestId();
       const headers = new Headers(options?.headers);
@@ -69,4 +74,3 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
 // NOTE: createGuestClient was REMOVED to prevent "Multiple GoTrueClient instances" warnings.
 // The main `supabase` client already resolves x-guest-id dynamically on every request
-// via the fetch wrapper above — no need for a separate client.

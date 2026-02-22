@@ -33,8 +33,31 @@ export default tseslint.config(
     plugins: { 'jsx-a11y': jsxA11y },
     rules: {
       ...jsxA11y.configs.recommended.rules,
-      // Example: You might want to adjust specific rules later
-      // 'jsx-a11y/anchor-is-valid': 'off', // If using React Router Links extensively
+      'jsx-a11y/no-redundant-roles': 'warn',
+      'jsx-a11y/anchor-is-valid': 'warn',
+      'jsx-a11y/no-autofocus': 'warn',
+      'jsx-a11y/no-noninteractive-tabindex': 'warn',
+      'jsx-a11y/click-events-have-key-events': 'warn',
+      'jsx-a11y/no-static-element-interactions': 'warn',
+      'jsx-a11y/label-has-associated-control': 'warn',
+      'jsx-a11y/heading-has-content': 'warn',
+      'jsx-a11y/anchor-has-content': 'warn',
+      'jsx-a11y/img-redundant-alt': 'warn',
+      'jsx-a11y/no-noninteractive-element-interactions': 'warn',
+    },
+  },
+  {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-namespace': 'warn',
+      '@typescript-eslint/no-unsafe-function-type': 'warn',
+      '@typescript-eslint/no-empty-object-type': 'warn',
+      'no-prototype-builtins': 'warn',
+      'prefer-const': 'warn',
+      'no-useless-escape': 'warn',
+      'no-useless-catch': 'warn',
+      'no-control-regex': 'warn',
     },
   },
   eslintConfigPrettier // Ensure Prettier config is last

@@ -20,7 +20,9 @@ interface Product {
 }
 
 interface ProductsResponse {
-  products: Product[];
+  products?: Product[];
+  /** Backend mock API returns paginated results under `items` */
+  items?: Product[];
   total?: number;
 }
 
@@ -36,7 +38,7 @@ export const fetchProducts = async (): Promise<Product[]> => {
       return response;
     }
     
-    return response.products || [];
+    return response.products ?? response.items ?? [];
   } catch (error) {
     const appError = handleError(error);
     console.error('Failed to fetch products:', appError.message);
@@ -70,7 +72,7 @@ export const fetchProductsByCategory = async (category: string): Promise<Product
       return response;
     }
     
-    return response.products || [];
+    return response.products ?? response.items ?? [];
   } catch (error) {
     const appError = handleError(error);
     console.error(`Failed to fetch products for category ${category}:`, appError.message);
@@ -91,7 +93,7 @@ export const searchProducts = async (query: string): Promise<Product[]> => {
       return response;
     }
     
-    return response.products || [];
+    return response.products ?? response.items ?? [];
   } catch (error) {
     const appError = handleError(error);
     console.error(`Failed to search products for "${query}":`, appError.message);

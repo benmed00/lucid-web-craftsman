@@ -269,7 +269,7 @@ const AdminCustomers = () => {
 
   // Filter + sort
   const filteredCustomers = useMemo(() => {
-    let result = customers.filter(customer => {
+    const result = customers.filter(customer => {
       const q = searchQuery.toLowerCase();
       const matchesSearch = !q ||
         (customer.full_name?.toLowerCase() || '').includes(q) ||

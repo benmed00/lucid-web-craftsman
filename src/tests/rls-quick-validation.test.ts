@@ -45,7 +45,7 @@ describe('RLS Quick Validation - Anonymous Access', () => {
   let anonClient: SupabaseClient;
 
   beforeAll(() => {
-    anonClient = createClient(SUPABASE_URL, ANON_KEY);
+    anonClient = createClient(SUPABASE_URL, ANON_KEY, { auth: { persistSession: false } });
   });
 
   describe('Sensitive Tables - Must Block Anonymous SELECT', () => {
@@ -163,52 +163,58 @@ describe('RLS Quick Validation - Anonymous Access', () => {
     });
 
     it('should BLOCK anonymous UPDATE on products', async () => {
-      const { error } = await anonClient
+      // RLS blocks return 0 rows affected, not an error
+      const { data, error } = await anonClient
         .from('products')
         .update({ price: 0 })
-        .eq('id', 1);
+        .eq('id', 1)
+        .select();
 
-      expect(error).not.toBeNull();
+      expect(error !== null || (data?.length ?? 0) === 0).toBe(true);
     });
 
     it('should BLOCK anonymous DELETE on products', async () => {
-      const { error } = await anonClient
+      // RLS blocks return 0 rows affected, not an error
+      const { data, error } = await anonClient
         .from('products')
         .delete()
-        .eq('id', 1);
+        .eq('id', 1)
+        .select();
 
-      expect(error).not.toBeNull();
+      expect(error !== null || (data?.length ?? 0) === 0).toBe(true);
     });
   });
 
   describe('Critical Security - Immutable Tables', () => {
     it('should NEVER allow DELETE on audit_logs (even with auth)', async () => {
-      // This tests the policy that should block ALL deletions
-      const { error } = await anonClient
+      // RLS blocks return 0 rows affected, not an error
+      const { data, error } = await anonClient
         .from('audit_logs')
         .delete()
-        .eq('id', '00000000-0000-0000-0000-000000000001');
+        .eq('id', '00000000-0000-0000-0000-000000000001')
+        .select();
 
-      // Should be blocked
-      expect(error).not.toBeNull();
+      expect(error !== null || (data?.length ?? 0) === 0).toBe(true);
     });
 
     it('should NEVER allow UPDATE on audit_logs', async () => {
-      const { error } = await anonClient
+      const { data, error } = await anonClient
         .from('audit_logs')
         .update({ action: 'TAMPERED' })
-        .eq('id', '00000000-0000-0000-0000-000000000001');
+        .eq('id', '00000000-0000-0000-0000-000000000001')
+        .select();
 
-      expect(error).not.toBeNull();
+      expect(error !== null || (data?.length ?? 0) === 0).toBe(true);
     });
 
     it('should NEVER allow DELETE on payments', async () => {
-      const { error } = await anonClient
+      const { data, error } = await anonClient
         .from('payments')
         .delete()
-        .eq('id', '00000000-0000-0000-0000-000000000001');
+        .eq('id', '00000000-0000-0000-0000-000000000001')
+        .select();
 
-      expect(error).not.toBeNull();
+      expect(error !== null || (data?.length ?? 0) === 0).toBe(true);
     });
   });
 });

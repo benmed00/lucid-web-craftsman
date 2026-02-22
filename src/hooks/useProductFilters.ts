@@ -47,7 +47,7 @@ export const useProductFilters = ({ products }: UseProductFiltersProps) => {
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
-    let filtered = products.filter(product => {
+    const filtered = products.filter(product => {
       // Category filter
       if (filters.category.length > 0 && !filters.category.includes(product.category)) {
         return false;

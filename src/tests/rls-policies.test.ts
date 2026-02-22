@@ -146,6 +146,44 @@ const POLICY_TESTS: PolicyTest[] = [
     notes: 'Admin deletion is blocked for all'
   },
   
+  // Shipping addresses table
+  {
+    table: 'shipping_addresses',
+    operation: 'SELECT',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'own_only',
+    expectedForAdmin: 'allow',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Users see own addresses, admins see all'
+  },
+  {
+    table: 'shipping_addresses',
+    operation: 'INSERT',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'own_only',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Users can add own addresses'
+  },
+  {
+    table: 'shipping_addresses',
+    operation: 'UPDATE',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'own_only',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Users can update own addresses'
+  },
+  {
+    table: 'shipping_addresses',
+    operation: 'DELETE',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'own_only',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Users can delete own addresses'
+  },
+  
   // Orders table
   {
     table: 'orders',
@@ -213,6 +251,46 @@ const POLICY_TESTS: PolicyTest[] = [
     expectedForAdmin: 'allow',
     expectedForSuperAdmin: 'allow',
     notes: 'Only admins can delete products'
+  },
+
+  // security_events table - super_admin only
+  {
+    table: 'security_events',
+    operation: 'SELECT',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can view security events'
+  },
+  {
+    table: 'security_events',
+    operation: 'UPDATE',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can update security events'
+  },
+
+  // security_config table - super_admin only
+  {
+    table: 'security_config',
+    operation: 'SELECT',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can view security config'
+  },
+  {
+    table: 'security_config',
+    operation: 'UPDATE',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can manage security config'
   },
 ];
 
