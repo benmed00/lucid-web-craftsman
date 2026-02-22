@@ -7,18 +7,18 @@ declare global {
       addProductToCart(options?: { productId?: number }): Chainable<void>;
       resetDatabase(): Chainable<void>;
       mockSupabaseResponse(
-        method: import("cypress/types/net-stubbing").Method,
+        method: import('cypress/types/net-stubbing').Method,
         path: string,
         scenario:
-          | "success"
-          | "error400"
-          | "error401"
-          | "error403"
-          | "error404"
-          | "error500"
-          | "errorTimeout"
-          | "invalidPayload"
-          | "latency",
+          | 'success'
+          | 'error400'
+          | 'error401'
+          | 'error403'
+          | 'error404'
+          | 'error500'
+          | 'errorTimeout'
+          | 'invalidPayload'
+          | 'latency',
         body?: unknown
       ): Chainable<void>;
     }

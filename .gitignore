@@ -53,3 +53,6 @@ coverage/
 # Bun lockfiles (project uses npm; bun.lockb causes update-browserslist-db to fail)
 bun.lockb
 bun.lock
+
+# Temporary commit message files (used for multi-line commit messages)
+docs/commit-msg-*.txt
