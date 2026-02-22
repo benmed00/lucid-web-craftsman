@@ -41,7 +41,7 @@ declare global {
 }
 
 // SECURITY NOTE: In production, this should be loaded from environment variables
-const DEFAULT_STRIPE_PUBLIC_KEY = "pk_test_YOUR_TEST_KEY_HERE";
+const DEFAULT_STRIPE_PUBLIC_KEY = 'pk_test_YOUR_TEST_KEY_HERE';
 
 // Get Stripe public key - prioritize environment variable if available
 export const STRIPE_PUBLIC_KEY =
@@ -120,7 +120,7 @@ export const initializeStripePayment = async (
     return { url: data.url, success: true };
   } catch (error) {
     const appError = handleError(error);
-    
+
     console.error('Payment initialization failed:', {
       code: appError.code,
       message: appError.message,

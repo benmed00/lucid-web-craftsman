@@ -1,7 +1,7 @@
 interface SocialMediaPost {
   id: number;
   media: {
-    type: "image" | "video";
+    type: 'image' | 'video';
     url: string;
     thumbnail?: string;
     duration?: number;

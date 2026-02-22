@@ -1,9 +1,9 @@
-import { useState, useCallback, useEffect } from "react";
-import { AlertCircle, Check, Info } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { useTranslation } from "react-i18next";
+import { useState, useCallback, useEffect } from 'react';
+import { AlertCircle, Check, Info } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface FormFieldWithValidationProps {
   id: string;
@@ -27,7 +27,7 @@ const FormFieldWithValidation = ({
   value,
   onChange,
   error: externalError,
-  type = "text",
+  type = 'text',
   placeholder,
   required = false,
   helpText,
@@ -55,12 +55,15 @@ const FormFieldWithValidation = ({
   }, [validate, value, required, t]);
 
   // Clear local error when typing
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
-    if (localError) {
-      setLocalError(null);
-    }
-  }, [onChange, localError]);
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChange(e.target.value);
+      if (localError) {
+        setLocalError(null);
+      }
+    },
+    [onChange, localError]
+  );
 
   // Clear local error when external value changes and clears
   useEffect(() => {
@@ -76,17 +79,17 @@ const FormFieldWithValidation = ({
 
   return (
     <div className="space-y-2">
-      <Label 
-        htmlFor={id} 
+      <Label
+        htmlFor={id}
         className={cn(
-          "flex items-center gap-1 transition-colors",
-          displayError && "text-destructive"
+          'flex items-center gap-1 transition-colors',
+          displayError && 'text-destructive'
         )}
       >
         {label}
         {required && <span className="text-destructive">*</span>}
       </Label>
-      
+
       <div className="relative">
         <Input
           id={id}
@@ -101,19 +104,17 @@ const FormFieldWithValidation = ({
           aria-required={required}
           aria-invalid={!!displayError}
           aria-describedby={
-            displayError 
-              ? `${id}-error` 
-              : helpText 
-                ? `${id}-help` 
-                : undefined
+            displayError ? `${id}-error` : helpText ? `${id}-help` : undefined
           }
           className={cn(
-            "pr-10 transition-all",
-            displayError && "border-destructive focus-visible:ring-destructive",
-            isValid && showSuccessState && "border-primary/50 focus-visible:ring-primary"
+            'pr-10 transition-all',
+            displayError && 'border-destructive focus-visible:ring-destructive',
+            isValid &&
+              showSuccessState &&
+              'border-primary/50 focus-visible:ring-primary'
           )}
         />
-        
+
         {/* Status icon */}
         <div className="absolute right-3 top-1/2 -translate-y-1/2">
           {displayError && (
@@ -127,8 +128,8 @@ const FormFieldWithValidation = ({
 
       {/* Error message */}
       {displayError && (
-        <p 
-          id={`${id}-error`} 
+        <p
+          id={`${id}-error`}
           className="text-xs text-destructive flex items-center gap-1 animate-in slide-in-from-top-1 duration-200"
           role="alert"
         >
@@ -139,8 +140,8 @@ const FormFieldWithValidation = ({
 
       {/* Help text */}
       {!displayError && helpText && (
-        <p 
-          id={`${id}-help`} 
+        <p
+          id={`${id}-help`}
           className="text-xs text-muted-foreground flex items-center gap-1"
         >
           <Info className="h-3 w-3 shrink-0" />

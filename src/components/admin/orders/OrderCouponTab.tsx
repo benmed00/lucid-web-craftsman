@@ -93,7 +93,10 @@ export function OrderCouponTab({ orderId }: OrderCouponTabProps) {
 
       if (fetchError) throw fetchError;
 
-      const currentMetadata = (order?.metadata || {}) as Record<string, unknown>;
+      const currentMetadata = (order?.metadata || {}) as Record<
+        string,
+        unknown
+      >;
       const newMetadata = {
         ...currentMetadata,
         coupon_code: newCouponCode.toUpperCase(),
@@ -116,13 +119,24 @@ export function OrderCouponTab({ orderId }: OrderCouponTabProps) {
       try {
         await supabase
           .from('discount_coupons')
-          .update({ usage_count: (await supabase.from('discount_coupons').select('usage_count').eq('code', newCouponCode.toUpperCase()).single()).data?.usage_count || 0 + 1 })
+          .update({
+            usage_count:
+              (
+                await supabase
+                  .from('discount_coupons')
+                  .select('usage_count')
+                  .eq('code', newCouponCode.toUpperCase())
+                  .single()
+              ).data?.usage_count || 0 + 1,
+          })
           .eq('code', newCouponCode.toUpperCase());
       } catch {
         // Ignore if update fails
       }
 
-      toast.success(`Code promo appliqué: -${validation.discount.toFixed(2)} €`);
+      toast.success(
+        `Code promo appliqué: -${validation.discount.toFixed(2)} €`
+      );
       setNewCouponCode('');
 
       // Refresh data
@@ -132,7 +146,7 @@ export function OrderCouponTab({ orderId }: OrderCouponTabProps) {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     } catch (error) {
       console.error('Error applying coupon:', error);
-      toast.error('Erreur lors de l\'application du code promo');
+      toast.error("Erreur lors de l'application du code promo");
     } finally {
       setIsApplying(false);
     }
@@ -148,13 +162,18 @@ export function OrderCouponTab({ orderId }: OrderCouponTabProps) {
 
       if (fetchError) throw fetchError;
 
-      const currentMetadata = (order?.metadata || {}) as Record<string, unknown>;
+      const currentMetadata = (order?.metadata || {}) as Record<
+        string,
+        unknown
+      >;
       const discountAmount = (currentMetadata.discount_amount as number) || 0;
 
       // Remove coupon from metadata - create a clean metadata object
       const cleanMetadata: Record<string, unknown> = {};
-      Object.keys(currentMetadata).forEach(key => {
-        if (!['coupon_code', 'discount_amount', 'coupon_used_at'].includes(key)) {
+      Object.keys(currentMetadata).forEach((key) => {
+        if (
+          !['coupon_code', 'discount_amount', 'coupon_used_at'].includes(key)
+        ) {
           cleanMetadata[key] = currentMetadata[key];
         }
       });
@@ -231,7 +250,8 @@ export function OrderCouponTab({ orderId }: OrderCouponTabProps) {
                     -{(couponUsage.discount_applied / 100).toFixed(2)} €
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Appliqué le {new Date(couponUsage.used_at).toLocaleDateString('fr-FR')}
+                    Appliqué le{' '}
+                    {new Date(couponUsage.used_at).toLocaleDateString('fr-FR')}
                   </p>
                 </div>
               </div>

@@ -95,16 +95,25 @@ function mapChronopostEvent(eventCode: string): StatusMapping | null {
 function mapGenericEvent(status: string): StatusMapping | null {
   const normalizedStatus = status.toLowerCase();
 
-  if (normalizedStatus.includes('picked') || normalizedStatus.includes('shipped')) {
+  if (
+    normalizedStatus.includes('picked') ||
+    normalizedStatus.includes('shipped')
+  ) {
     return { status: 'shipped' };
   }
-  if (normalizedStatus.includes('transit') || normalizedStatus.includes('out for delivery')) {
+  if (
+    normalizedStatus.includes('transit') ||
+    normalizedStatus.includes('out for delivery')
+  ) {
     return { status: 'in_transit' };
   }
   if (normalizedStatus.includes('delivered')) {
     return { status: 'delivered' };
   }
-  if (normalizedStatus.includes('failed') || normalizedStatus.includes('exception')) {
+  if (
+    normalizedStatus.includes('failed') ||
+    normalizedStatus.includes('exception')
+  ) {
     return {
       status: 'delivery_failed',
       createAnomaly: true,
@@ -165,7 +174,9 @@ describe('carrier-webhook: Colissimo event mappings', () => {
   });
 
   it('maps EN_COURS_ACHEMINEMENT and EN_LIVRAISON to in_transit', () => {
-    expect(mapColissimoEvent('EN_COURS_ACHEMINEMENT')).toEqual({ status: 'in_transit' });
+    expect(mapColissimoEvent('EN_COURS_ACHEMINEMENT')).toEqual({
+      status: 'in_transit',
+    });
     expect(mapColissimoEvent('EN_LIVRAISON')).toEqual({ status: 'in_transit' });
   });
 
@@ -181,7 +192,9 @@ describe('carrier-webhook: Colissimo event mappings', () => {
   });
 
   it('maps RETOUR_EXPEDITEUR to returned', () => {
-    expect(mapColissimoEvent('RETOUR_EXPEDITEUR')).toEqual({ status: 'returned' });
+    expect(mapColissimoEvent('RETOUR_EXPEDITEUR')).toEqual({
+      status: 'returned',
+    });
   });
 });
 
@@ -192,7 +205,9 @@ describe('carrier-webhook: Chronopost event mappings', () => {
 
   it('maps EN_COURS and EN_LIVRAISON to in_transit', () => {
     expect(mapChronopostEvent('EN_COURS')).toEqual({ status: 'in_transit' });
-    expect(mapChronopostEvent('EN_LIVRAISON')).toEqual({ status: 'in_transit' });
+    expect(mapChronopostEvent('EN_LIVRAISON')).toEqual({
+      status: 'in_transit',
+    });
   });
 
   it('maps LIVRE to delivered', () => {
@@ -218,7 +233,9 @@ describe('carrier-webhook: Generic event mappings', () => {
 
   it('maps transit keywords to in_transit', () => {
     expect(mapGenericEvent('in transit')).toEqual({ status: 'in_transit' });
-    expect(mapGenericEvent('out for delivery')).toEqual({ status: 'in_transit' });
+    expect(mapGenericEvent('out for delivery')).toEqual({
+      status: 'in_transit',
+    });
   });
 
   it('maps delivered keyword to delivered', () => {
@@ -232,7 +249,9 @@ describe('carrier-webhook: Generic event mappings', () => {
   });
 
   it('maps return keyword to returned', () => {
-    expect(mapGenericEvent('returned to sender')).toEqual({ status: 'returned' });
+    expect(mapGenericEvent('returned to sender')).toEqual({
+      status: 'returned',
+    });
   });
 
   it('returns null for unrecognized status', () => {

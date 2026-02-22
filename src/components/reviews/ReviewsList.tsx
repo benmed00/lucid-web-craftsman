@@ -14,7 +14,13 @@ interface ReviewsListProps {
   loading?: boolean;
 }
 
-const StarRating = ({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md' }) => {
+const StarRating = ({
+  rating,
+  size = 'sm',
+}: {
+  rating: number;
+  size?: 'sm' | 'md';
+}) => {
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map((star) => (
@@ -32,10 +38,16 @@ const StarRating = ({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md
   );
 };
 
-const ReviewCard = ({ review, onMarkHelpful }: { review: Review; onMarkHelpful?: (id: string) => void }) => {
+const ReviewCard = ({
+  review,
+  onMarkHelpful,
+}: {
+  review: Review;
+  onMarkHelpful?: (id: string) => void;
+}) => {
   const timeAgo = formatDistanceToNow(new Date(review.created_at), {
     addSuffix: true,
-    locale: fr
+    locale: fr,
   });
 
   return (
@@ -45,16 +57,14 @@ const ReviewCard = ({ review, onMarkHelpful }: { review: Review; onMarkHelpful?:
           {/* Header with user info and rating */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-                <Avatar className="w-10 h-10">
+              <Avatar className="w-10 h-10">
                 <AvatarFallback>
                   <User className="w-5 h-5" />
                 </AvatarFallback>
               </Avatar>
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="font-medium">
-                    Utilisateur vérifié
-                  </p>
+                  <p className="font-medium">Utilisateur vérifié</p>
                   {review.is_verified_purchase && (
                     <Badge variant="secondary" className="text-xs">
                       Achat vérifié
@@ -63,7 +73,9 @@ const ReviewCard = ({ review, onMarkHelpful }: { review: Review; onMarkHelpful?:
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   <StarRating rating={review.rating} />
-                  <span className="text-sm text-muted-foreground">{timeAgo}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {timeAgo}
+                  </span>
                 </div>
               </div>
             </div>
@@ -99,7 +111,11 @@ const ReviewCard = ({ review, onMarkHelpful }: { review: Review; onMarkHelpful?:
   );
 };
 
-export const ReviewsList = ({ reviews, onMarkHelpful, loading }: ReviewsListProps) => {
+export const ReviewsList = ({
+  reviews,
+  onMarkHelpful,
+  loading,
+}: ReviewsListProps) => {
   if (loading) {
     return (
       <div className="space-y-4">

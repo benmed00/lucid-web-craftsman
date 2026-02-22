@@ -43,11 +43,7 @@ export {
 } from './storage/safeStorage';
 
 // ============= Cache =============
-export {
-  cache,
-  CacheTTL,
-  CacheTags,
-} from './cache/UnifiedCache';
+export { cache, CacheTTL, CacheTags } from './cache/UnifiedCache';
 
 // ============= Utils =============
 export { cn } from './utils';

@@ -1,11 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AlertTriangle, Settings, Trash2, Save, RefreshCw, Loader2, Shield } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  AlertTriangle,
+  Settings,
+  Trash2,
+  Save,
+  RefreshCw,
+  Loader2,
+  Shield,
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -26,18 +47,44 @@ interface RateLimitConfig {
 }
 
 const DEFAULT_RATE_LIMITS: RateLimitConfig[] = [
-  { action_type: 'contact_submission', max_attempts: 5, window_minutes: 60, description: 'Soumissions formulaire contact' },
-  { action_type: 'login_attempt', max_attempts: 5, window_minutes: 15, description: 'Tentatives de connexion' },
-  { action_type: 'password_reset', max_attempts: 3, window_minutes: 60, description: 'Réinitialisation mot de passe' },
-  { action_type: 'api_request', max_attempts: 100, window_minutes: 1, description: 'Requêtes API' },
-  { action_type: 'cart_operation', max_attempts: 50, window_minutes: 5, description: 'Opérations panier' }
+  {
+    action_type: 'contact_submission',
+    max_attempts: 5,
+    window_minutes: 60,
+    description: 'Soumissions formulaire contact',
+  },
+  {
+    action_type: 'login_attempt',
+    max_attempts: 5,
+    window_minutes: 15,
+    description: 'Tentatives de connexion',
+  },
+  {
+    action_type: 'password_reset',
+    max_attempts: 3,
+    window_minutes: 60,
+    description: 'Réinitialisation mot de passe',
+  },
+  {
+    action_type: 'api_request',
+    max_attempts: 100,
+    window_minutes: 1,
+    description: 'Requêtes API',
+  },
+  {
+    action_type: 'cart_operation',
+    max_attempts: 50,
+    window_minutes: 5,
+    description: 'Opérations panier',
+  },
 ];
 
 export const RateLimitsConfig: React.FC = () => {
   const [entries, setEntries] = useState<RateLimitEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [configs, setConfigs] = useState<RateLimitConfig[]>(DEFAULT_RATE_LIMITS);
+  const [configs, setConfigs] =
+    useState<RateLimitConfig[]>(DEFAULT_RATE_LIMITS);
 
   const fetchRateLimits = async () => {
     setLoading(true);
@@ -72,7 +119,8 @@ export const RateLimitsConfig: React.FC = () => {
         .maybeSingle();
 
       if (!error && data?.setting_value) {
-        const storedConfigs = data.setting_value as unknown as RateLimitConfig[];
+        const storedConfigs =
+          data.setting_value as unknown as RateLimitConfig[];
         if (Array.isArray(storedConfigs) && storedConfigs.length > 0) {
           setConfigs(storedConfigs);
         }
@@ -99,23 +147,23 @@ export const RateLimitsConfig: React.FC = () => {
           .from('app_settings')
           .update({
             setting_value: configsJson,
-            description: 'Configuration des limites de taux'
+            description: 'Configuration des limites de taux',
           })
           .eq('setting_key', 'rate_limits_config');
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('app_settings')
-          .insert([{
+        const { error } = await supabase.from('app_settings').insert([
+          {
             setting_key: 'rate_limits_config',
             setting_value: configsJson,
-            description: 'Configuration des limites de taux'
-          }]);
+            description: 'Configuration des limites de taux',
+          },
+        ]);
 
         if (error) throw error;
       }
-      
+
       toast.success('Configuration sauvegardée');
     } catch (error) {
       console.error('Error saving configs:', error);
@@ -143,19 +191,29 @@ export const RateLimitsConfig: React.FC = () => {
     }
   };
 
-  const updateConfig = (index: number, field: keyof RateLimitConfig, value: string | number) => {
+  const updateConfig = (
+    index: number,
+    field: keyof RateLimitConfig,
+    value: string | number
+  ) => {
     const newConfigs = [...configs];
     newConfigs[index] = { ...newConfigs[index], [field]: value };
     setConfigs(newConfigs);
   };
 
   const getAttemptsBadge = (attempts: number, actionType: string) => {
-    const config = configs.find(c => c.action_type === actionType);
+    const config = configs.find((c) => c.action_type === actionType);
     const maxAttempts = config?.max_attempts || 10;
     const ratio = attempts / maxAttempts;
 
-    if (ratio >= 1) return <Badge variant="destructive">{attempts} (bloqué)</Badge>;
-    if (ratio >= 0.8) return <Badge className="bg-status-warning text-status-warning-foreground">{attempts}</Badge>;
+    if (ratio >= 1)
+      return <Badge variant="destructive">{attempts} (bloqué)</Badge>;
+    if (ratio >= 0.8)
+      return (
+        <Badge className="bg-status-warning text-status-warning-foreground">
+          {attempts}
+        </Badge>
+      );
     return <Badge variant="secondary">{attempts}</Badge>;
   };
 
@@ -164,16 +222,19 @@ export const RateLimitsConfig: React.FC = () => {
       day: '2-digit',
       month: '2-digit',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
-  const groupedEntries = entries.reduce((acc, entry) => {
-    const type = entry.action_type;
-    if (!acc[type]) acc[type] = [];
-    acc[type].push(entry);
-    return acc;
-  }, {} as Record<string, RateLimitEntry[]>);
+  const groupedEntries = entries.reduce(
+    (acc, entry) => {
+      const type = entry.action_type;
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(entry);
+      return acc;
+    },
+    {} as Record<string, RateLimitEntry[]>
+  );
 
   return (
     <Card>
@@ -183,7 +244,8 @@ export const RateLimitsConfig: React.FC = () => {
           Limites de taux (Rate Limits)
         </CardTitle>
         <CardDescription>
-          Configurez les limites d'utilisation pour protéger votre application contre les abus
+          Configurez les limites d'utilisation pour protéger votre application
+          contre les abus
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -193,13 +255,20 @@ export const RateLimitsConfig: React.FC = () => {
             <Settings className="h-4 w-4" />
             Configuration des limites
           </h3>
-          
+
           <div className="grid gap-4">
             {configs.map((config, index) => (
-              <div key={config.action_type} className="grid grid-cols-12 gap-3 items-center p-3 bg-muted/50 rounded-lg">
+              <div
+                key={config.action_type}
+                className="grid grid-cols-12 gap-3 items-center p-3 bg-muted/50 rounded-lg"
+              >
                 <div className="col-span-4">
-                  <Label className="text-sm font-medium">{config.description}</Label>
-                  <p className="text-xs text-muted-foreground">{config.action_type}</p>
+                  <Label className="text-sm font-medium">
+                    {config.description}
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    {config.action_type}
+                  </p>
                 </div>
                 <div className="col-span-3">
                   <Label className="text-xs">Max tentatives</Label>
@@ -208,7 +277,13 @@ export const RateLimitsConfig: React.FC = () => {
                     min={1}
                     max={1000}
                     value={config.max_attempts}
-                    onChange={(e) => updateConfig(index, 'max_attempts', parseInt(e.target.value) || 1)}
+                    onChange={(e) =>
+                      updateConfig(
+                        index,
+                        'max_attempts',
+                        parseInt(e.target.value) || 1
+                      )
+                    }
                     className="h-8"
                   />
                 </div>
@@ -219,7 +294,13 @@ export const RateLimitsConfig: React.FC = () => {
                     min={1}
                     max={1440}
                     value={config.window_minutes}
-                    onChange={(e) => updateConfig(index, 'window_minutes', parseInt(e.target.value) || 1)}
+                    onChange={(e) =>
+                      updateConfig(
+                        index,
+                        'window_minutes',
+                        parseInt(e.target.value) || 1
+                      )
+                    }
                     className="h-8"
                   />
                 </div>
@@ -234,7 +315,11 @@ export const RateLimitsConfig: React.FC = () => {
 
           <div className="flex gap-2">
             <Button onClick={saveConfigs} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              {saving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
               Sauvegarder la configuration
             </Button>
           </div>
@@ -248,8 +333,15 @@ export const RateLimitsConfig: React.FC = () => {
               Entrées actuelles ({entries.length})
             </h3>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={fetchRateLimits} disabled={loading}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchRateLimits}
+                disabled={loading}
+              >
+                <RefreshCw
+                  className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`}
+                />
                 Actualiser
               </Button>
               <Button variant="outline" size="sm" onClick={clearOldEntries}>
@@ -264,7 +356,9 @@ export const RateLimitsConfig: React.FC = () => {
             {Object.entries(groupedEntries).map(([type, typeEntries]) => (
               <div key={type} className="p-2 bg-muted rounded text-center">
                 <div className="text-lg font-bold">{typeEntries.length}</div>
-                <div className="text-xs text-muted-foreground truncate">{type}</div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {type}
+                </div>
               </div>
             ))}
           </div>
@@ -307,7 +401,7 @@ export const RateLimitsConfig: React.FC = () => {
               </TableBody>
             </Table>
           )}
-          
+
           {entries.length > 20 && (
             <p className="text-sm text-muted-foreground text-center">
               Affichage des 20 premières entrées sur {entries.length}

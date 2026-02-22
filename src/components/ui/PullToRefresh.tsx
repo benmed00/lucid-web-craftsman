@@ -9,11 +9,11 @@ interface PullToRefreshProps {
   className?: string;
 }
 
-export const PullToRefresh = ({ 
-  children, 
-  onRefresh, 
+export const PullToRefresh = ({
+  children,
+  onRefresh,
   disabled = false,
-  className = "" 
+  className = '',
 }: PullToRefreshProps) => {
   const {
     containerRef,
@@ -36,11 +36,9 @@ export const PullToRefresh = ({
       >
         <div className="bg-background/95 backdrop-blur-sm rounded-full shadow-lg p-3 flex items-center justify-center min-w-[60px] min-h-[60px] border border-border">
           {isRefreshing ? (
-            <RefreshCw 
-              className="h-5 w-5 text-primary animate-spin" 
-            />
+            <RefreshCw className="h-5 w-5 text-primary animate-spin" />
           ) : (
-            <ChevronDown 
+            <ChevronDown
               className={`h-5 w-5 text-muted-foreground transition-all duration-200 ${
                 shouldTrigger ? 'rotate-180 text-primary' : ''
               }`}
@@ -56,7 +54,9 @@ export const PullToRefresh = ({
       <div
         className="transition-transform duration-200"
         style={{
-          transform: isPulling ? `translateY(${Math.min(pullDistance * 0.3, 30)}px)` : 'translateY(0)',
+          transform: isPulling
+            ? `translateY(${Math.min(pullDistance * 0.3, 30)}px)`
+            : 'translateY(0)',
         }}
       >
         {children}

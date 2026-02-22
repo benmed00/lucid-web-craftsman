@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { XCircle, Send, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { XCircle, Send, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export const TestCancellationEmailButton = () => {
   const [open, setOpen] = useState(false);
@@ -29,13 +37,16 @@ export const TestCancellationEmailButton = () => {
         reason: 'Demande du client - Email de test',
         items: [
           { name: 'Chapeau de paille berbère', quantity: 1 },
-          { name: 'Sac à main tissé traditionnel', quantity: 2 }
-        ]
+          { name: 'Sac à main tissé traditionnel', quantity: 2 },
+        ],
       };
 
-      const { data, error } = await supabase.functions.invoke('send-cancellation-email', {
-        body: testData
-      });
+      const { data, error } = await supabase.functions.invoke(
+        'send-cancellation-email',
+        {
+          body: testData,
+        }
+      );
 
       if (error) throw error;
 
@@ -66,13 +77,16 @@ export const TestCancellationEmailButton = () => {
         <DialogHeader>
           <DialogTitle>Tester l'email d'annulation</DialogTitle>
           <DialogDescription>
-            Envoyez un email de test pour vérifier le template d'annulation/remboursement.
+            Envoyez un email de test pour vérifier le template
+            d'annulation/remboursement.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="test-cancellation-email">Adresse email de test</Label>
+            <Label htmlFor="test-cancellation-email">
+              Adresse email de test
+            </Label>
             <Input
               id="test-cancellation-email"
               type="email"
@@ -81,12 +95,15 @@ export const TestCancellationEmailButton = () => {
               onChange={(e) => setEmail(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Note: Avec Resend en mode test, l'email sera envoyé uniquement à l'adresse associée à votre compte Resend.
+              Note: Avec Resend en mode test, l'email sera envoyé uniquement à
+              l'adresse associée à votre compte Resend.
             </p>
           </div>
-          
+
           <div className="bg-red-50 dark:bg-red-950 p-3 rounded-lg text-sm space-y-1">
-            <p className="font-medium text-red-900 dark:text-red-100">Données de test incluses:</p>
+            <p className="font-medium text-red-900 dark:text-red-100">
+              Données de test incluses:
+            </p>
             <ul className="text-red-700 dark:text-red-300 list-disc list-inside">
               <li>Montant commande: 85,00 €</li>
               <li>Montant remboursé: 85,00 €</li>

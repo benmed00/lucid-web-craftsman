@@ -81,8 +81,8 @@ export function OrderStatsCards() {
       {statCards.map((stat) => {
         const Icon = stat.icon;
         return (
-          <Card 
-            key={stat.label} 
+          <Card
+            key={stat.label}
             className={stat.highlight ? 'ring-2 ring-orange-300' : ''}
           >
             <CardContent className="pt-6">

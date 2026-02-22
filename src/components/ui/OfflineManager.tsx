@@ -18,10 +18,10 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
       console.log('App: Back online');
       setIsOnline(true);
       setShowOfflineAlert(false);
-      
+
       toast({
-        title: "Connexion rétablie",
-        description: "Vous êtes de nouveau en ligne",
+        title: 'Connexion rétablie',
+        description: 'Vous êtes de nouveau en ligne',
       });
 
       // Sync offline actions
@@ -32,11 +32,12 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
       console.log('App: Gone offline');
       setIsOnline(false);
       setShowOfflineAlert(true);
-      
+
       toast({
-        title: "Mode hors ligne",
-        description: "Vous pouvez continuer à naviguer, certaines fonctionnalités sont limitées",
-        variant: "destructive"
+        title: 'Mode hors ligne',
+        description:
+          'Vous pouvez continuer à naviguer, certaines fonctionnalités sont limitées',
+        variant: 'destructive',
       });
     };
 
@@ -60,13 +61,13 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
       if (stored) {
         const actions = JSON.parse(stored);
         console.log('Syncing offline actions:', actions);
-        
+
         // For now, just simulate sync since background sync isn't universally supported
         // In a real app, you would send these to your server
         setTimeout(() => {
           console.log('Offline actions synced successfully');
         }, 1000);
-        
+
         // Clear local storage after sync
         localStorage.removeItem('offline-cart-actions');
         setOfflineActions([]);
@@ -77,7 +78,10 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
   };
 
   const addOfflineAction = (action: any) => {
-    const newActions = [...offlineActions, { ...action, timestamp: Date.now() }];
+    const newActions = [
+      ...offlineActions,
+      { ...action, timestamp: Date.now() },
+    ];
     setOfflineActions(newActions);
     localStorage.setItem('offline-cart-actions', JSON.stringify(newActions));
   };
@@ -92,9 +96,9 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
       })
       .catch(() => {
         toast({
-          title: "Toujours hors ligne",
-          description: "Vérifiez votre connexion internet",
-          variant: "destructive"
+          title: 'Toujours hors ligne',
+          description: 'Vérifiez votre connexion internet',
+          variant: 'destructive',
         });
       });
   };
@@ -107,7 +111,9 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
           <WifiOff className="h-4 w-4 text-status-warning" />
           <AlertDescription className="flex-1 text-status-warning">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-sm">Mode hors ligne - Fonctionnalités limitées</span>
+              <span className="text-sm">
+                Mode hors ligne - Fonctionnalités limitées
+              </span>
               <div className="flex items-center gap-2">
                 <Button
                   size="sm"
@@ -133,9 +139,11 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
       )}
 
       {/* Online Status Indicator */}
-      <div className={`fixed top-4 right-4 z-40 transition-all duration-300 ${
-        isOnline ? 'opacity-0 pointer-events-none' : 'opacity-100'
-      }`}>
+      <div
+        className={`fixed top-4 right-4 z-40 transition-all duration-300 ${
+          isOnline ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
         <div className="bg-status-error text-background px-3 py-2 rounded-full text-sm flex items-center shadow-lg">
           <WifiOff className="h-4 w-4 mr-2" />
           Hors ligne
@@ -143,9 +151,7 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
       </div>
 
       {/* Main Content */}
-      <div className={showOfflineAlert ? 'pt-12' : ''}>
-        {children}
-      </div>
+      <div className={showOfflineAlert ? 'pt-12' : ''}>{children}</div>
     </div>
   );
 };

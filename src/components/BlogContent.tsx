@@ -44,7 +44,7 @@ const BlogContent: React.FC<BlogContentProps> = ({ content }) => {
 
   for (const line of lines) {
     const trimmedLine = line.trim();
-    
+
     // Empty line - flush paragraph
     if (!trimmedLine) {
       flushParagraph();
@@ -56,7 +56,10 @@ const BlogContent: React.FC<BlogContentProps> = ({ content }) => {
       flushParagraph();
       const headingText = trimmedLine.slice(3);
       elements.push(
-        <h2 key={key++} className="text-2xl font-serif mt-8 mb-4 text-foreground">
+        <h2
+          key={key++}
+          className="text-2xl font-serif mt-8 mb-4 text-foreground"
+        >
           {headingText}
         </h2>
       );
@@ -68,7 +71,10 @@ const BlogContent: React.FC<BlogContentProps> = ({ content }) => {
       flushParagraph();
       const headingText = trimmedLine.slice(4);
       elements.push(
-        <h3 key={key++} className="text-xl font-serif mt-6 mb-3 text-foreground">
+        <h3
+          key={key++}
+          className="text-xl font-serif mt-6 mb-3 text-foreground"
+        >
           {headingText}
         </h3>
       );
@@ -82,7 +88,11 @@ const BlogContent: React.FC<BlogContentProps> = ({ content }) => {
   // Flush remaining paragraph
   flushParagraph();
 
-  return <div className="prose prose-stone dark:prose-invert lg:prose-lg max-w-none">{elements}</div>;
+  return (
+    <div className="prose prose-stone dark:prose-invert lg:prose-lg max-w-none">
+      {elements}
+    </div>
+  );
 };
 
 export default BlogContent;

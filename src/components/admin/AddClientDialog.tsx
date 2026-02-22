@@ -1,13 +1,20 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { UserPlus, Upload } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { UserPlus, Upload } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface AddClientDialogProps {
   onClientAdded: () => void;
@@ -19,17 +26,17 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    full_name: "",
-    phone: "",
-    address_line1: "",
-    address_line2: "",
-    city: "",
-    postal_code: "",
-    country: "France",
-    bio: "",
-    avatar_url: ""
+    email: '',
+    password: '',
+    full_name: '',
+    phone: '',
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    postal_code: '',
+    country: 'France',
+    bio: '',
+    avatar_url: '',
   });
 
   const handleAvatarUpload = async (file: File): Promise<string | null> => {
@@ -47,9 +54,7 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
         return null;
       }
 
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
       return data.publicUrl;
     } catch (error) {
@@ -88,39 +93,42 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
       // Get current session for authentication
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) {
-        throw new Error("Vous devez être connecté pour créer un client");
+        throw new Error('Vous devez être connecté pour créer un client');
       }
 
       // Call edge function to create user with admin privileges (requires super_admin role)
-      const { data, error } = await supabase.functions.invoke('create-admin-user', {
-        body: {
-          email: formData.email,
-          password: formData.password,
-          userData: {
-            ...formData,
-            avatar_url: avatarUrl
-          }
+      const { data, error } = await supabase.functions.invoke(
+        'create-admin-user',
+        {
+          body: {
+            email: formData.email,
+            password: formData.password,
+            userData: {
+              ...formData,
+              avatar_url: avatarUrl,
+            },
+          },
         }
-      });
+      );
 
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      toast.success("Client créé avec succès");
-      
+      toast.success('Client créé avec succès');
+
       // Reset form
       setFormData({
-        email: "",
-        password: "",
-        full_name: "",
-        phone: "",
-        address_line1: "",
-        address_line2: "",
-        city: "",
-        postal_code: "",
-        country: "France",
-        bio: "",
-        avatar_url: ""
+        email: '',
+        password: '',
+        full_name: '',
+        phone: '',
+        address_line1: '',
+        address_line2: '',
+        city: '',
+        postal_code: '',
+        country: 'France',
+        bio: '',
+        avatar_url: '',
       });
       setAvatarFile(null);
       setAvatarPreview(null);
@@ -135,7 +143,7 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -150,7 +158,8 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
         <DialogHeader>
           <DialogTitle>Ajouter un nouveau client</DialogTitle>
           <DialogDescription>
-            Créez un compte client manuellement avec toutes les informations nécessaires.
+            Créez un compte client manuellement avec toutes les informations
+            nécessaires.
           </DialogDescription>
         </DialogHeader>
 
@@ -159,9 +168,11 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
           <div className="flex flex-col items-center space-y-4">
             <div className="flex items-center space-x-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={avatarPreview || ""} />
+                <AvatarImage src={avatarPreview || ''} />
                 <AvatarFallback className="text-lg">
-                  {formData.full_name ? formData.full_name.charAt(0).toUpperCase() : "U"}
+                  {formData.full_name
+                    ? formData.full_name.charAt(0).toUpperCase()
+                    : 'U'}
                 </AvatarFallback>
               </Avatar>
               <div>
@@ -192,7 +203,7 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
+                onChange={(e) => handleInputChange('email', e.target.value)}
                 required
               />
             </div>
@@ -203,7 +214,7 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
                 id="password"
                 type="password"
                 value={formData.password}
-                onChange={(e) => handleInputChange("password", e.target.value)}
+                onChange={(e) => handleInputChange('password', e.target.value)}
                 required
                 minLength={6}
               />
@@ -214,7 +225,7 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
               <Input
                 id="full_name"
                 value={formData.full_name}
-                onChange={(e) => handleInputChange("full_name", e.target.value)}
+                onChange={(e) => handleInputChange('full_name', e.target.value)}
                 required
               />
             </div>
@@ -225,7 +236,7 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
                 id="phone"
                 type="tel"
                 value={formData.phone}
-                onChange={(e) => handleInputChange("phone", e.target.value)}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
               />
             </div>
 
@@ -234,7 +245,9 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
               <Input
                 id="address_line1"
                 value={formData.address_line1}
-                onChange={(e) => handleInputChange("address_line1", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange('address_line1', e.target.value)
+                }
               />
             </div>
 
@@ -243,7 +256,9 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
               <Input
                 id="address_line2"
                 value={formData.address_line2}
-                onChange={(e) => handleInputChange("address_line2", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange('address_line2', e.target.value)
+                }
               />
             </div>
 
@@ -252,7 +267,7 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
               <Input
                 id="city"
                 value={formData.city}
-                onChange={(e) => handleInputChange("city", e.target.value)}
+                onChange={(e) => handleInputChange('city', e.target.value)}
               />
             </div>
 
@@ -261,7 +276,9 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
               <Input
                 id="postal_code"
                 value={formData.postal_code}
-                onChange={(e) => handleInputChange("postal_code", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange('postal_code', e.target.value)
+                }
               />
             </div>
 
@@ -270,7 +287,7 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
               <Input
                 id="country"
                 value={formData.country}
-                onChange={(e) => handleInputChange("country", e.target.value)}
+                onChange={(e) => handleInputChange('country', e.target.value)}
               />
             </div>
           </div>
@@ -280,17 +297,21 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
             <Textarea
               id="bio"
               value={formData.bio}
-              onChange={(e) => handleInputChange("bio", e.target.value)}
+              onChange={(e) => handleInputChange('bio', e.target.value)}
               rows={3}
             />
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Annuler
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Création..." : "Créer le client"}
+              {loading ? 'Création...' : 'Créer le client'}
             </Button>
           </div>
         </form>

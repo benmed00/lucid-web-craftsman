@@ -19,7 +19,7 @@ export interface WishlistItem {
 function getWishlistLimits() {
   const rules = getBusinessRules();
   return {
-    maxItems: rules.wishlist.maxItems
+    maxItems: rules.wishlist.maxItems,
   };
 }
 
@@ -29,7 +29,7 @@ interface WishlistState {
   loading: boolean;
   userId: string | null;
   _realtimeChannel: ReturnType<typeof supabase.channel> | null;
-  
+
   // Actions
   setUserId: (userId: string | null) => void;
   fetchWishlist: () => Promise<void>;
@@ -37,7 +37,7 @@ interface WishlistState {
   removeFromWishlist: (productId: number) => Promise<boolean>;
   toggleWishlist: (productId: number) => Promise<boolean>;
   clearWishlist: () => void;
-  
+
   // Internal
   _setupRealtimeSubscription: () => void;
   _cleanupRealtimeSubscription: () => void;
@@ -56,9 +56,9 @@ export const useWishlistStore = create<WishlistState>()(
       setUserId: (userId) => {
         const currentUserId = get().userId;
         if (currentUserId === userId) return;
-        
+
         set({ userId, items: [], loading: !!userId });
-        
+
         if (userId) {
           get().fetchWishlist();
           get()._setupRealtimeSubscription();
@@ -92,13 +92,13 @@ export const useWishlistStore = create<WishlistState>()(
       addToWishlist: async (productId) => {
         const { userId, items } = get();
         const { maxItems } = getWishlistLimits();
-        
+
         if (!userId) {
           toast.error('Vous devez être connecté pour ajouter aux favoris');
           return false;
         }
 
-        if (items.some(item => item.product_id === productId)) return true;
+        if (items.some((item) => item.product_id === productId)) return true;
 
         if (items.length >= maxItems) {
           toast.warning('Limite de favoris atteinte', {
@@ -138,7 +138,9 @@ export const useWishlistStore = create<WishlistState>()(
           toast.success('Produit ajouté aux favoris', {
             action: {
               label: 'Voir mes favoris',
-              onClick: () => { window.location.href = `/wishlist?highlight=${productId}`; },
+              onClick: () => {
+                window.location.href = `/wishlist?highlight=${productId}`;
+              },
             },
             cancel: {
               label: 'Annuler',
@@ -192,8 +194,10 @@ export const useWishlistStore = create<WishlistState>()(
 
       toggleWishlist: async (productId) => {
         const { items } = get();
-        const isInWishlist = items.some(item => item.product_id === productId);
-        
+        const isInWishlist = items.some(
+          (item) => item.product_id === productId
+        );
+
         if (isInWishlist) {
           return get().removeFromWishlist(productId);
         } else {
@@ -217,19 +221,19 @@ export const useWishlistStore = create<WishlistState>()(
               event: '*',
               schema: 'public',
               table: 'wishlist',
-              filter: `user_id=eq.${userId}`
+              filter: `user_id=eq.${userId}`,
             },
             (payload) => {
               const { items } = get();
-              
+
               if (payload.eventType === 'INSERT') {
                 const newItem = payload.new as WishlistItem;
-                if (!items.some(item => item.id === newItem.id)) {
+                if (!items.some((item) => item.id === newItem.id)) {
                   set({ items: [newItem, ...items] });
                 }
               } else if (payload.eventType === 'DELETE') {
                 const deletedId = (payload.old as WishlistItem).id;
-                set({ items: items.filter(item => item.id !== deletedId) });
+                set({ items: items.filter((item) => item.id !== deletedId) });
               }
             }
           )
@@ -244,7 +248,7 @@ export const useWishlistStore = create<WishlistState>()(
           supabase.removeChannel(_realtimeChannel);
           set({ _realtimeChannel: null });
         }
-      }
+      },
     })),
     { name: 'wishlist-store' }
   )
@@ -254,27 +258,31 @@ export const useWishlistStore = create<WishlistState>()(
 export const selectWishlistItems = (state: WishlistState) => state.items;
 export const selectWishlistCount = (state: WishlistState) => state.items.length;
 export const selectWishlistLoading = (state: WishlistState) => state.loading;
-export const selectIsInWishlist = (productId: number) => (state: WishlistState) => 
-  state.items.some(item => item.product_id === productId);
+export const selectIsInWishlist =
+  (productId: number) => (state: WishlistState) =>
+    state.items.some((item) => item.product_id === productId);
 
 // ============= Hook for compatibility =============
 export const useWishlist = () => {
   const items = useWishlistStore(selectWishlistItems);
   const loading = useWishlistStore(selectWishlistLoading);
-  const addToWishlist = useWishlistStore(state => state.addToWishlist);
-  const removeFromWishlist = useWishlistStore(state => state.removeFromWishlist);
-  const toggleWishlist = useWishlistStore(state => state.toggleWishlist);
-  const fetchWishlist = useWishlistStore(state => state.fetchWishlist);
+  const addToWishlist = useWishlistStore((state) => state.addToWishlist);
+  const removeFromWishlist = useWishlistStore(
+    (state) => state.removeFromWishlist
+  );
+  const toggleWishlist = useWishlistStore((state) => state.toggleWishlist);
+  const fetchWishlist = useWishlistStore((state) => state.fetchWishlist);
 
   return {
     wishlistItems: items,
     loading,
     addToWishlist,
     removeFromWishlist,
-    isInWishlist: (productId: number) => items.some(item => item.product_id === productId),
+    isInWishlist: (productId: number) =>
+      items.some((item) => item.product_id === productId),
     toggleWishlist,
     refetch: fetchWishlist,
-    wishlistCount: items.length
+    wishlistCount: items.length,
   };
 };
 

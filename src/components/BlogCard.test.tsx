@@ -54,7 +54,9 @@ describe('BlogCard Component', () => {
     expect(getByText(/John Doe/)).toBeInTheDocument();
 
     // Check for the image (alt is "Image de l'article: {title}")
-    expect(getByAltText(`Image de l'article: ${mockPostData.title}`)).toBeInTheDocument();
+    expect(
+      getByAltText(`Image de l'article: ${mockPostData.title}`)
+    ).toBeInTheDocument();
 
     // Check for the "Lire la suite" (Read more) link/button text
     // The Link component wraps the Button, so we might look for the button's content
@@ -70,7 +72,9 @@ describe('BlogCard Component', () => {
         <BlogCard post={mockPostData} />
       </MemoryRouter>
     );
-    const imageElement = getByAltText(`Image de l'article: ${mockPostData.title}`) as HTMLImageElement;
+    const imageElement = getByAltText(
+      `Image de l'article: ${mockPostData.title}`
+    ) as HTMLImageElement;
     expect(imageElement.src).toContain(mockPostData.image);
   });
 });

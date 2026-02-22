@@ -1,14 +1,14 @@
 /**
  * RLS End-to-End Security Tests
- * 
+ *
  * These tests verify Row Level Security policies work correctly
  * by testing with different user contexts (anonymous, user, admin, super_admin).
- * 
+ *
  * SETUP REQUIRED:
  * 1. Create test users in Supabase Auth with known credentials
  * 2. Assign appropriate roles in user_roles table
  * 3. Set environment variables for test credentials
- * 
+ *
  * Run with: npx vitest src/tests/rls-e2e.test.ts
  */
 
@@ -37,7 +37,8 @@ const TEST_USERS = {
   },
   superAdmin: {
     email: process.env.TEST_SUPER_ADMIN_EMAIL || 'test-superadmin@example.com',
-    password: process.env.TEST_SUPER_ADMIN_PASSWORD || 'test-superadmin-password-123',
+    password:
+      process.env.TEST_SUPER_ADMIN_PASSWORD || 'test-superadmin-password-123',
   },
 };
 
@@ -54,7 +55,10 @@ async function signInClient(
   email: string,
   password: string
 ): Promise<string | null> {
-  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  const { data, error } = await client.auth.signInWithPassword({
+    email,
+    password,
+  });
   if (error) {
     console.warn(`Auth failed for ${email}: ${error.message}`);
     return null;
@@ -82,10 +86,7 @@ class RLSTestRunner {
     userType: string
   ): Promise<RLSTestResult> {
     try {
-      const { data, error } = await client
-        .from(table)
-        .select('*')
-        .limit(5);
+      const { data, error } = await client.from(table).select('*').limit(5);
 
       const result: RLSTestResult = {
         table,
@@ -161,7 +162,7 @@ class RLSTestRunner {
   ): Promise<RLSTestResult> {
     try {
       let query = client.from(table).update(updateData);
-      
+
       for (const [key, value] of Object.entries(filter)) {
         query = query.eq(key, value);
       }
@@ -200,7 +201,7 @@ class RLSTestRunner {
   ): Promise<RLSTestResult> {
     try {
       let query = client.from(table).delete();
-      
+
       for (const [key, value] of Object.entries(filter)) {
         query = query.eq(key, value);
       }
@@ -262,32 +263,53 @@ class RLSTestRunner {
 
   findSecurityIssues(): string[] {
     const issues: string[] = [];
-    
+
     // Check if anonymous can access sensitive tables
     const sensitiveTablesForAnonymous = [
-      'profiles', 'contact_messages', 'audit_logs', 
-      'newsletter_subscriptions', 'admin_users', 'orders', 
-      'payments', 'shipping_addresses'
+      'profiles',
+      'contact_messages',
+      'audit_logs',
+      'newsletter_subscriptions',
+      'admin_users',
+      'orders',
+      'payments',
+      'shipping_addresses',
     ];
 
     for (const result of this.results) {
       if (result.userType === 'anonymous' && result.allowed) {
         if (sensitiveTablesForAnonymous.includes(result.table)) {
           if (result.operation === 'SELECT' && (result.rowCount || 0) > 0) {
-            issues.push(`Anonymous users can SELECT from ${result.table} (${result.rowCount} rows)`);
+            issues.push(
+              `Anonymous users can SELECT from ${result.table} (${result.rowCount} rows)`
+            );
           }
           if (result.operation !== 'SELECT') {
-            issues.push(`Anonymous users can ${result.operation} on ${result.table}`);
+            issues.push(
+              `Anonymous users can ${result.operation} on ${result.table}`
+            );
           }
         }
       }
 
       // Check for any DELETE allowed on audit_logs or payments
-      if (result.table === 'audit_logs' && result.operation === 'DELETE' && result.allowed) {
-        issues.push(`${result.userType} can DELETE from audit_logs - this should be blocked!`);
+      if (
+        result.table === 'audit_logs' &&
+        result.operation === 'DELETE' &&
+        result.allowed
+      ) {
+        issues.push(
+          `${result.userType} can DELETE from audit_logs - this should be blocked!`
+        );
       }
-      if (result.table === 'payments' && result.operation === 'DELETE' && result.allowed) {
-        issues.push(`${result.userType} can DELETE from payments - this should be blocked!`);
+      if (
+        result.table === 'payments' &&
+        result.operation === 'DELETE' &&
+        result.allowed
+      ) {
+        issues.push(
+          `${result.userType} can DELETE from payments - this should be blocked!`
+        );
       }
     }
 
@@ -319,7 +341,11 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
     });
 
     it('should NOT be able to SELECT from contact_messages', async () => {
-      const result = await runner.testSelect(client, 'contact_messages', 'anonymous');
+      const result = await runner.testSelect(
+        client,
+        'contact_messages',
+        'anonymous'
+      );
       expect(result.rowCount).toBe(0);
     });
 
@@ -329,12 +355,20 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
     });
 
     it('should NOT be able to SELECT from newsletter_subscriptions', async () => {
-      const result = await runner.testSelect(client, 'newsletter_subscriptions', 'anonymous');
+      const result = await runner.testSelect(
+        client,
+        'newsletter_subscriptions',
+        'anonymous'
+      );
       expect(result.rowCount).toBe(0);
     });
 
     it('should NOT be able to SELECT from admin_users', async () => {
-      const result = await runner.testSelect(client, 'admin_users', 'anonymous');
+      const result = await runner.testSelect(
+        client,
+        'admin_users',
+        'anonymous'
+      );
       expect(result.rowCount).toBe(0);
     });
 
@@ -367,13 +401,15 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
         artisan: 'test',
         care: 'test',
         details: 'test',
-        images: []
+        images: [],
       });
       expect(result.allowed).toBe(false);
     });
 
     it('should NOT be able to DELETE from any sensitive table', async () => {
-      const result = await runner.testDelete(client, 'products', 'anonymous', { id: -1 });
+      const result = await runner.testDelete(client, 'products', 'anonymous', {
+        id: -1,
+      });
       expect(result.rowCount ?? 0).toBe(0);
     });
   });
@@ -381,7 +417,11 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
   // Authenticated regular user tests
   describe('Authenticated Regular User Access', () => {
     beforeAll(async () => {
-      regularUserId = await signInClient(client, TEST_USERS.regular.email, TEST_USERS.regular.password);
+      regularUserId = await signInClient(
+        client,
+        TEST_USERS.regular.email,
+        TEST_USERS.regular.password
+      );
     });
     afterAll(async () => {
       await client.auth.signOut();
@@ -393,7 +433,11 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
         return;
       }
 
-      const result = await runner.testSelect(client, 'profiles', 'regular_user');
+      const result = await runner.testSelect(
+        client,
+        'profiles',
+        'regular_user'
+      );
       expect(result.allowed).toBe(true);
       // Should only see own profile
       expect(result.rowCount).toBeLessThanOrEqual(1);
@@ -405,7 +449,11 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
         return;
       }
 
-      const result = await runner.testSelect(client, 'contact_messages', 'regular_user');
+      const result = await runner.testSelect(
+        client,
+        'contact_messages',
+        'regular_user'
+      );
       // Should be denied or return empty
       expect(result.rowCount).toBe(0);
     });
@@ -416,7 +464,11 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
         return;
       }
 
-      const result = await runner.testSelect(client, 'audit_logs', 'regular_user');
+      const result = await runner.testSelect(
+        client,
+        'audit_logs',
+        'regular_user'
+      );
       expect(result.rowCount).toBe(0);
     });
 
@@ -426,16 +478,21 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
         return;
       }
 
-      const result = await runner.testInsert(client, 'products', 'regular_user', {
-        name: 'Test Product',
-        price: 100,
-        description: 'Test',
-        category: 'test',
-        artisan: 'test',
-        care: 'test',
-        details: 'test',
-        images: []
-      });
+      const result = await runner.testInsert(
+        client,
+        'products',
+        'regular_user',
+        {
+          name: 'Test Product',
+          price: 100,
+          description: 'Test',
+          category: 'test',
+          artisan: 'test',
+          care: 'test',
+          details: 'test',
+          images: [],
+        }
+      );
       expect(result.allowed).toBe(false);
     });
 
@@ -456,7 +513,12 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
     let adminAuthenticated = false;
     beforeAll(async () => {
       await client.auth.signOut();
-      adminAuthenticated = (await signInClient(client, TEST_USERS.admin.email, TEST_USERS.admin.password)) !== null;
+      adminAuthenticated =
+        (await signInClient(
+          client,
+          TEST_USERS.admin.email,
+          TEST_USERS.admin.password
+        )) !== null;
     });
     afterAll(async () => {
       await client.auth.signOut();
@@ -478,7 +540,11 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
         return;
       }
 
-      const result = await runner.testSelect(client, 'contact_messages', 'admin');
+      const result = await runner.testSelect(
+        client,
+        'contact_messages',
+        'admin'
+      );
       // Regular admin should NOT be able to see contact messages
       expect(result.rowCount).toBe(0);
     });
@@ -501,8 +567,8 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
 
       // Test update with a filter that won't match anything
       const result = await runner.testUpdate(
-        client, 
-        'products', 
+        client,
+        'products',
         'admin',
         { id: -99999 },
         { name: 'Updated Test' }
@@ -517,7 +583,12 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
     let superAdminAuthenticated = false;
     beforeAll(async () => {
       await client.auth.signOut();
-      superAdminAuthenticated = (await signInClient(client, TEST_USERS.superAdmin.email, TEST_USERS.superAdmin.password)) !== null;
+      superAdminAuthenticated =
+        (await signInClient(
+          client,
+          TEST_USERS.superAdmin.email,
+          TEST_USERS.superAdmin.password
+        )) !== null;
     });
     afterAll(async () => {
       await client.auth.signOut();
@@ -529,7 +600,11 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
         return;
       }
 
-      const result = await runner.testSelect(client, 'contact_messages', 'super_admin');
+      const result = await runner.testSelect(
+        client,
+        'contact_messages',
+        'super_admin'
+      );
       expect(result.allowed).toBe(true);
     });
 
@@ -539,7 +614,11 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
         return;
       }
 
-      const result = await runner.testSelect(client, 'audit_logs', 'super_admin');
+      const result = await runner.testSelect(
+        client,
+        'audit_logs',
+        'super_admin'
+      );
       expect(result.allowed).toBe(true);
     });
 
@@ -549,7 +628,11 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
         return;
       }
 
-      const result = await runner.testSelect(client, 'admin_users', 'super_admin');
+      const result = await runner.testSelect(
+        client,
+        'admin_users',
+        'super_admin'
+      );
       expect(result.allowed).toBe(true);
     });
 
@@ -559,7 +642,12 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
         return;
       }
 
-      const result = await runner.testDelete(client, 'audit_logs', 'super_admin', { id: 'non-existent' });
+      const result = await runner.testDelete(
+        client,
+        'audit_logs',
+        'super_admin',
+        { id: 'non-existent' }
+      );
       expect(result.allowed).toBe(false);
     });
 
@@ -570,8 +658,8 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
       }
 
       const result = await runner.testUpdate(
-        client, 
-        'audit_logs', 
+        client,
+        'audit_logs',
         'super_admin',
         { id: 'non-existent' },
         { action: 'TAMPERED' }
@@ -585,7 +673,12 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
         return;
       }
 
-      const result = await runner.testDelete(client, 'payments', 'super_admin', { id: 'non-existent' });
+      const result = await runner.testDelete(
+        client,
+        'payments',
+        'super_admin',
+        { id: 'non-existent' }
+      );
       expect(result.allowed).toBe(false);
     });
   });
@@ -594,7 +687,11 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
   describe('Cross-User Access Prevention', () => {
     beforeAll(async () => {
       await client.auth.signOut();
-      regularUserId = await signInClient(client, TEST_USERS.regular.email, TEST_USERS.regular.password);
+      regularUserId = await signInClient(
+        client,
+        TEST_USERS.regular.email,
+        TEST_USERS.regular.password
+      );
     });
     afterAll(async () => {
       await client.auth.signOut();
@@ -624,10 +721,7 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
       }
 
       // RLS should filter to only own orders
-      const { data } = await client
-        .from('orders')
-        .select('user_id')
-        .limit(10);
+      const { data } = await client.from('orders').select('user_id').limit(10);
 
       // All returned orders should belong to this user
       if (data && data.length > 0) {
@@ -642,21 +736,22 @@ describe.skipIf(!isRealSupabase)('RLS E2E Security Tests', () => {
   describe('Security Report', () => {
     it('should generate report with no critical issues', () => {
       const issues = runner.findSecurityIssues();
-      
+
       // Log all issues for visibility
       if (issues.length > 0) {
         console.error('Security Issues Found:');
-        issues.forEach(issue => console.error(`  - ${issue}`));
+        issues.forEach((issue) => console.error(`  - ${issue}`));
       }
 
       // Critical issues that should fail the test
-      const criticalIssues = issues.filter(issue => 
-        issue.includes('anonymous') && 
-        (issue.includes('profiles') || 
-         issue.includes('contact_messages') || 
-         issue.includes('audit_logs') ||
-         issue.includes('payments') ||
-         issue.includes('orders'))
+      const criticalIssues = issues.filter(
+        (issue) =>
+          issue.includes('anonymous') &&
+          (issue.includes('profiles') ||
+            issue.includes('contact_messages') ||
+            issue.includes('audit_logs') ||
+            issue.includes('payments') ||
+            issue.includes('orders'))
       );
 
       expect(criticalIssues.length).toBe(0);

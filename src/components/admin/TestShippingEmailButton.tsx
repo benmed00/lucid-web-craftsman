@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Truck, Send, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Truck, Send, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export const TestShippingEmailButton = () => {
   const [open, setOpen] = useState(false);
@@ -26,31 +34,35 @@ export const TestShippingEmailButton = () => {
         customerName: 'Client Test',
         trackingNumber: '1Z999AA10123456784',
         carrier: 'La Poste',
-        trackingUrl: 'https://www.laposte.fr/outils/suivre-vos-envois?code=1Z999AA10123456784',
+        trackingUrl:
+          'https://www.laposte.fr/outils/suivre-vos-envois?code=1Z999AA10123456784',
         estimatedDelivery: '15-18 janvier 2025',
         shippingAddress: {
           address: '123 Rue de Test',
           city: 'Paris',
           postalCode: '75001',
-          country: 'France'
+          country: 'France',
         },
         items: [
           {
             name: 'Chapeau de paille berbère',
             quantity: 1,
-            image: '/assets/images/products/chapeau_de_paille_berbere.jpg'
+            image: '/assets/images/products/chapeau_de_paille_berbere.jpg',
           },
           {
             name: 'Sac à main tissé traditionnel',
             quantity: 2,
-            image: '/assets/images/products/sac_a_main_tisse_traditionnel.jpg'
-          }
-        ]
+            image: '/assets/images/products/sac_a_main_tisse_traditionnel.jpg',
+          },
+        ],
       };
 
-      const { data, error } = await supabase.functions.invoke('send-shipping-notification', {
-        body: testData
-      });
+      const { data, error } = await supabase.functions.invoke(
+        'send-shipping-notification',
+        {
+          body: testData,
+        }
+      );
 
       if (error) throw error;
 
@@ -81,10 +93,11 @@ export const TestShippingEmailButton = () => {
         <DialogHeader>
           <DialogTitle>Tester l'email d'expédition</DialogTitle>
           <DialogDescription>
-            Envoyez un email de test pour vérifier le template de notification d'expédition.
+            Envoyez un email de test pour vérifier le template de notification
+            d'expédition.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="test-shipping-email">Adresse email de test</Label>
@@ -96,10 +109,11 @@ export const TestShippingEmailButton = () => {
               onChange={(e) => setEmail(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Note: Avec Resend en mode test, l'email sera envoyé uniquement à l'adresse associée à votre compte Resend.
+              Note: Avec Resend en mode test, l'email sera envoyé uniquement à
+              l'adresse associée à votre compte Resend.
             </p>
           </div>
-          
+
           <div className="bg-muted p-3 rounded-lg text-sm space-y-1">
             <p className="font-medium">Données de test incluses:</p>
             <ul className="text-muted-foreground list-disc list-inside">

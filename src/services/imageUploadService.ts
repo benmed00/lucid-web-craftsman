@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 export interface UploadResult {
   url: string;
@@ -19,13 +19,16 @@ export class ImageUploadService {
   /**
    * Upload a product image to Supabase Storage
    */
-  async uploadProductImage(file: File, productId?: number): Promise<UploadResult> {
+  async uploadProductImage(
+    file: File,
+    productId?: number
+  ): Promise<UploadResult> {
     try {
       // Generate unique filename
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 15);
       const fileExtension = file.name.split('.').pop() || 'jpg';
-      const fileName = productId 
+      const fileName = productId
         ? `product-${productId}-${timestamp}-${randomString}.${fileExtension}`
         : `product-${timestamp}-${randomString}.${fileExtension}`;
 
@@ -34,7 +37,7 @@ export class ImageUploadService {
         .from(this.bucketName)
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
         });
 
       if (error) {
@@ -43,7 +46,7 @@ export class ImageUploadService {
       }
 
       if (!data) {
-        throw new Error('Aucune donnée retournée après l\'upload');
+        throw new Error("Aucune donnée retournée après l'upload");
       }
 
       // Get public URL
@@ -53,12 +56,13 @@ export class ImageUploadService {
 
       return {
         url: urlData.publicUrl,
-        path: data.path
+        path: data.path,
       };
-
     } catch (error) {
       console.error('Image upload service error:', error);
-      throw error instanceof Error ? error : new Error('Erreur inconnue lors de l\'upload');
+      throw error instanceof Error
+        ? error
+        : new Error("Erreur inconnue lors de l'upload");
     }
   }
 
@@ -69,7 +73,7 @@ export class ImageUploadService {
     try {
       // Extract filename from full URL if needed
       const fileName = this.extractFileNameFromPath(imagePath);
-      
+
       const { error } = await supabase.storage
         .from(this.bucketName)
         .remove([fileName]);
@@ -78,25 +82,31 @@ export class ImageUploadService {
         console.error('Delete error:', error);
         throw new Error(`Erreur de suppression: ${error.message}`);
       }
-
     } catch (error) {
       console.error('Image delete service error:', error);
-      throw error instanceof Error ? error : new Error('Erreur inconnue lors de la suppression');
+      throw error instanceof Error
+        ? error
+        : new Error('Erreur inconnue lors de la suppression');
     }
   }
 
   /**
    * Upload multiple images for a product
    */
-  async uploadMultipleImages(files: File[], productId?: number): Promise<UploadResult[]> {
-    const uploadPromises = files.map(file => this.uploadProductImage(file, productId));
-    
+  async uploadMultipleImages(
+    files: File[],
+    productId?: number
+  ): Promise<UploadResult[]> {
+    const uploadPromises = files.map((file) =>
+      this.uploadProductImage(file, productId)
+    );
+
     try {
       const results = await Promise.all(uploadPromises);
       return results;
     } catch (error) {
       console.error('Multiple upload error:', error);
-      throw new Error('Erreur lors de l\'upload de plusieurs images');
+      throw new Error("Erreur lors de l'upload de plusieurs images");
     }
   }
 
@@ -110,14 +120,14 @@ export class ImageUploadService {
     if (!allowedTypes.includes(file.type)) {
       return {
         isValid: false,
-        error: `Type de fichier non supporté. Formats acceptés: ${allowedTypes.map(t => t.split('/')[1]).join(', ')}`
+        error: `Type de fichier non supporté. Formats acceptés: ${allowedTypes.map((t) => t.split('/')[1]).join(', ')}`,
       };
     }
 
     if (file.size > maxSize) {
       return {
         isValid: false,
-        error: 'Fichier trop volumineux. Taille maximum: 5MB'
+        error: 'Fichier trop volumineux. Taille maximum: 5MB',
       };
     }
 
@@ -142,11 +152,14 @@ export class ImageUploadService {
   /**
    * Get optimized image URL with transformations
    */
-  getOptimizedImageUrl(originalUrl: string, options?: {
-    width?: number;
-    height?: number;
-    quality?: number;
-  }): string {
+  getOptimizedImageUrl(
+    originalUrl: string,
+    options?: {
+      width?: number;
+      height?: number;
+      quality?: number;
+    }
+  ): string {
     // For now, return original URL
     // In the future, we could add image optimization params
     return originalUrl;
@@ -155,7 +168,11 @@ export class ImageUploadService {
   /**
    * Compress image before upload (client-side)
    */
-  async compressImage(file: File, maxWidth = 1200, quality = 0.8): Promise<File> {
+  async compressImage(
+    file: File,
+    maxWidth = 1200,
+    quality = 0.8
+  ): Promise<File> {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -172,13 +189,13 @@ export class ImageUploadService {
 
         // Draw and compress
         ctx?.drawImage(img, 0, 0, newWidth, newHeight);
-        
+
         canvas.toBlob(
           (blob) => {
             if (blob) {
               const compressedFile = new File([blob], file.name, {
                 type: file.type,
-                lastModified: Date.now()
+                lastModified: Date.now(),
               });
               resolve(compressedFile);
             } else {
@@ -190,7 +207,7 @@ export class ImageUploadService {
         );
       };
 
-      img.onerror = () => reject(new Error('Erreur de chargement de l\'image'));
+      img.onerror = () => reject(new Error("Erreur de chargement de l'image"));
       img.src = URL.createObjectURL(file);
     });
   }

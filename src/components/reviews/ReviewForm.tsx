@@ -15,7 +15,11 @@ interface ReviewFormProps {
   onSuccess?: () => void;
 }
 
-export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProps) => {
+export const ReviewForm = ({
+  productId,
+  productName,
+  onSuccess,
+}: ReviewFormProps) => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState('');
@@ -25,7 +29,7 @@ export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!rating) {
       return;
     }
@@ -34,7 +38,7 @@ export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProp
       product_id: productId,
       rating,
       title: title.trim() || undefined,
-      comment: comment.trim() || undefined
+      comment: comment.trim() || undefined,
     });
 
     if (success) {
@@ -79,10 +83,10 @@ export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProp
                 >
                   <Star
                     className={cn(
-                      "w-8 h-8 transition-colors",
+                      'w-8 h-8 transition-colors',
                       star <= (hoverRating || rating)
-                        ? "fill-rating-star text-rating-star"
-                        : "text-rating-empty"
+                        ? 'fill-rating-star text-rating-star'
+                        : 'text-rating-empty'
                     )}
                   />
                 </button>
@@ -90,11 +94,11 @@ export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProp
             </div>
             {rating > 0 && (
               <p className="text-sm text-muted-foreground">
-                {rating === 1 && "Très décevant"}
-                {rating === 2 && "Décevant"}
-                {rating === 3 && "Moyen"}
-                {rating === 4 && "Bien"}
-                {rating === 5 && "Excellent"}
+                {rating === 1 && 'Très décevant'}
+                {rating === 2 && 'Décevant'}
+                {rating === 3 && 'Moyen'}
+                {rating === 4 && 'Bien'}
+                {rating === 5 && 'Excellent'}
               </p>
             )}
           </div>
@@ -133,7 +137,7 @@ export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProp
             disabled={!rating || submitting}
             className="w-full"
           >
-            {submitting ? "Envoi en cours..." : "Publier l'avis"}
+            {submitting ? 'Envoi en cours...' : "Publier l'avis"}
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">

@@ -21,7 +21,9 @@ const memoryFallback = new Map<string, string>();
 /**
  * Check if localStorage is available
  */
-export function isStorageAvailable(type: StorageType = 'localStorage'): boolean {
+export function isStorageAvailable(
+  type: StorageType = 'localStorage'
+): boolean {
   try {
     const storage = window[type];
     const testKey = '__storage_test__';
@@ -40,11 +42,11 @@ function getStorage(type: StorageType): Storage | Map<string, string> {
   if (typeof window === 'undefined') {
     return memoryFallback;
   }
-  
+
   if (isStorageAvailable(type)) {
     return window[type];
   }
-  
+
   console.warn(`${type} not available, using memory fallback`);
   return memoryFallback;
 }
@@ -52,10 +54,14 @@ function getStorage(type: StorageType): Storage | Map<string, string> {
 /**
  * Get remaining storage quota (approximate)
  */
-export function getStorageQuota(): { used: number; remaining: number; total: number } {
+export function getStorageQuota(): {
+  used: number;
+  remaining: number;
+  total: number;
+} {
   const total = 5 * 1024 * 1024; // 5MB typical limit
   let used = 0;
-  
+
   try {
     for (const key in localStorage) {
       if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
@@ -65,7 +71,7 @@ export function getStorageQuota(): { used: number; remaining: number; total: num
   } catch {
     // Ignore errors
   }
-  
+
   return {
     used,
     remaining: Math.max(0, total - used),
@@ -81,27 +87,27 @@ export function safeGetItem<T>(
   options: StorageOptions = {}
 ): T | null {
   const { storage = 'localStorage' } = options;
-  
+
   try {
     const store = getStorage(storage);
     let raw: string | null | undefined;
-    
+
     if (store instanceof Map) {
       raw = store.get(key);
     } else {
       raw = store.getItem(key);
     }
-    
+
     if (!raw) return null;
-    
+
     const parsed: StoredItem<T> = JSON.parse(raw);
-    
+
     // Check TTL if set
     if (parsed.ttl && Date.now() - parsed.timestamp > parsed.ttl) {
       safeRemoveItem(key, options);
       return null;
     }
-    
+
     return parsed.data;
   } catch (error) {
     // If parsing fails, try to return raw value (legacy data)
@@ -127,24 +133,26 @@ export function safeSetItem<T>(
   options: StorageOptions = {}
 ): boolean {
   const { storage = 'localStorage', ttl, maxSize } = options;
-  
+
   try {
     const store = getStorage(storage);
-    
+
     const item: StoredItem<T> = {
       data: value,
       timestamp: Date.now(),
       ...(ttl && { ttl }),
     };
-    
+
     const serialized = JSON.stringify(item);
-    
+
     // Check max size if specified
     if (maxSize && serialized.length * 2 > maxSize) {
-      console.warn(`Storage item "${key}" exceeds max size (${serialized.length * 2} > ${maxSize})`);
+      console.warn(
+        `Storage item "${key}" exceeds max size (${serialized.length * 2} > ${maxSize})`
+      );
       return false;
     }
-    
+
     // Try to set the item
     if (store instanceof Map) {
       store.set(key, serialized);
@@ -153,16 +161,20 @@ export function safeSetItem<T>(
         store.setItem(key, serialized);
       } catch (e) {
         // Quota exceeded - try to free up space
-        if (e instanceof DOMException && 
-            (e.code === 22 || e.name === 'QuotaExceededError')) {
+        if (
+          e instanceof DOMException &&
+          (e.code === 22 || e.name === 'QuotaExceededError')
+        ) {
           console.warn('Storage quota exceeded, clearing old items...');
           clearExpiredItems(storage);
-          
+
           // Try again
           try {
             store.setItem(key, serialized);
           } catch {
-            console.error(`Failed to save "${key}" even after clearing expired items`);
+            console.error(
+              `Failed to save "${key}" even after clearing expired items`
+            );
             // Use memory fallback
             memoryFallback.set(key, serialized);
             return false;
@@ -172,13 +184,16 @@ export function safeSetItem<T>(
         }
       }
     }
-    
+
     return true;
   } catch (error) {
     console.error(`Failed to save storage item "${key}":`, error);
     // Fallback to memory
     try {
-      memoryFallback.set(key, JSON.stringify({ data: value, timestamp: Date.now() }));
+      memoryFallback.set(
+        key,
+        JSON.stringify({ data: value, timestamp: Date.now() })
+      );
     } catch {
       // Ignore
     }
@@ -194,19 +209,19 @@ export function safeRemoveItem(
   options: StorageOptions = {}
 ): boolean {
   const { storage = 'localStorage' } = options;
-  
+
   try {
     const store = getStorage(storage);
-    
+
     if (store instanceof Map) {
       store.delete(key);
     } else {
       store.removeItem(key);
     }
-    
+
     // Also remove from memory fallback
     memoryFallback.delete(key);
-    
+
     return true;
   } catch (error) {
     console.error(`Failed to remove storage item "${key}":`, error);
@@ -219,38 +234,42 @@ export function safeRemoveItem(
  */
 export function clearExpiredItems(type: StorageType = 'localStorage'): number {
   let cleared = 0;
-  
+
   try {
     if (!isStorageAvailable(type)) return 0;
-    
+
     const storage = window[type];
     const keysToRemove: string[] = [];
-    
+
     for (let i = 0; i < storage.length; i++) {
       const key = storage.key(i);
       if (!key) continue;
-      
+
       try {
         const raw = storage.getItem(key);
         if (!raw) continue;
-        
+
         const item = JSON.parse(raw);
-        if (item.ttl && item.timestamp && Date.now() - item.timestamp > item.ttl) {
+        if (
+          item.ttl &&
+          item.timestamp &&
+          Date.now() - item.timestamp > item.ttl
+        ) {
           keysToRemove.push(key);
         }
       } catch {
         // Not a JSON item or no TTL, skip
       }
     }
-    
-    keysToRemove.forEach(key => {
+
+    keysToRemove.forEach((key) => {
       storage.removeItem(key);
       cleared++;
     });
   } catch (error) {
     console.error('Error clearing expired items:', error);
   }
-  
+
   return cleared;
 }
 
@@ -262,21 +281,21 @@ export function clearOldestItems(
   bytesToFree: number = 100 * 1024 // 100KB default
 ): number {
   let freed = 0;
-  
+
   try {
     if (!isStorageAvailable(type)) return 0;
-    
+
     const storage = window[type];
     const items: Array<{ key: string; timestamp: number; size: number }> = [];
-    
+
     // Collect all items with timestamps
     for (let i = 0; i < storage.length; i++) {
       const key = storage.key(i);
       if (!key) continue;
-      
+
       const value = storage.getItem(key);
       if (!value) continue;
-      
+
       try {
         const parsed = JSON.parse(value);
         items.push({
@@ -293,21 +312,21 @@ export function clearOldestItems(
         });
       }
     }
-    
+
     // Sort by timestamp (oldest first)
     items.sort((a, b) => a.timestamp - b.timestamp);
-    
+
     // Remove oldest items until we've freed enough space
     for (const item of items) {
       if (freed >= bytesToFree) break;
-      
+
       storage.removeItem(item.key);
       freed += item.size;
     }
   } catch (error) {
     console.error('Error clearing oldest items:', error);
   }
-  
+
   return freed;
 }
 

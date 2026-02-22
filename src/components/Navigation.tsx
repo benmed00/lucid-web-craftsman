@@ -1,25 +1,35 @@
-import React from "react";
-import { Leaf, Menu, ShoppingBag, X, User, LogOut, Heart, Package, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import clsx from "clsx";
-import { useCartUI } from "@/hooks/useCartUI";
-import { useState, useCallback, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import type { Profile } from "@/context/AuthContext";
-import { useWishlist } from "@/hooks/useWishlist";
-import CurrencySelector from "@/components/CurrencySelector";
-import ThemeToggle from "@/components/ThemeToggle";
-import LanguageSelector from "@/components/LanguageSelector";
-import CompactSettingsMenu from "@/components/CompactSettingsMenu";
-import { toast } from "sonner";
-import { useTranslation } from "react-i18next";
+import React from 'react';
+import {
+  Leaf,
+  Menu,
+  ShoppingBag,
+  X,
+  User,
+  LogOut,
+  Heart,
+  Package,
+  Search,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import clsx from 'clsx';
+import { useCartUI } from '@/hooks/useCartUI';
+import { useState, useCallback, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import type { Profile } from '@/context/AuthContext';
+import { useWishlist } from '@/hooks/useWishlist';
+import CurrencySelector from '@/components/CurrencySelector';
+import ThemeToggle from '@/components/ThemeToggle';
+import LanguageSelector from '@/components/LanguageSelector';
+import CompactSettingsMenu from '@/components/CompactSettingsMenu';
+import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const Navigation = () => {
   const { t } = useTranslation(['common', 'pages']);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const { itemCount } = useCartUI();
   const { user, isLoading, signOut, profile } = useAuth();
@@ -52,26 +62,31 @@ const Navigation = () => {
       setIsMenuOpen(false);
       navigate('/auth');
     } catch (error) {
-      console.error("Sign out error:", error);
-      toast.error(t('common:nav.signOutError', 'Erreur lors de la déconnexion'));
+      console.error('Sign out error:', error);
+      toast.error(
+        t('common:nav.signOutError', 'Erreur lors de la déconnexion')
+      );
     }
   }, [signOut, navigate, t]);
 
   // Smart navigation with "already on page" feedback
-  const handleNavClick = useCallback((targetPath: string, e?: React.MouseEvent) => {
-    if (currentPath === targetPath) {
-      e?.preventDefault();
-      toast.info(t('common:messages.alreadyOnPage'), { duration: 2000 });
-      return false;
-    }
-    return true;
-  }, [currentPath, t]);
+  const handleNavClick = useCallback(
+    (targetPath: string, e?: React.MouseEvent) => {
+      if (currentPath === targetPath) {
+        e?.preventDefault();
+        toast.info(t('common:messages.alreadyOnPage'), { duration: 2000 });
+        return false;
+      }
+      return true;
+    },
+    [currentPath, t]
+  );
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery("");
+      setSearchQuery('');
       setShowSearch(false);
       setIsMenuOpen(false);
     }
@@ -80,24 +95,26 @@ const Navigation = () => {
   return (
     <>
       {/* Skip to main content — visually hidden until focused */}
-      <a 
-        href="#main-content" 
+      <a
+        href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-sm font-medium"
       >
         {t('common:accessibility.skipToContent')}
       </a>
-      
+
       <header className="header-nav-root sticky top-0 z-header w-full bg-background border-b border-border shadow-sm">
         <div className="w-full max-w-none px-4 sm:px-4 md:px-6 lg:px-8 xl:px-12">
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-16 lg:h-16 w-full gap-2 md:gap-4">
             {/* Logo Section */}
             <div className="flex items-center flex-shrink-0 min-w-fit w-auto md:w-48 lg:w-52">
-              <Link 
-                to="/" 
+              <Link
+                to="/"
                 className="group flex items-center space-x-2 md:space-x-3 min-w-0"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <span className="sr-only sm:hidden">{t('common:brand.name')}</span>
+                <span className="sr-only sm:hidden">
+                  {t('common:brand.name')}
+                </span>
                 <div className="p-2 rounded-full bg-primary group-hover:bg-primary/90 transition-all duration-300 shadow-md group-hover:shadow-lg flex-shrink-0">
                   <Leaf className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
                 </div>
@@ -113,20 +130,26 @@ const Navigation = () => {
             </div>
 
             {/* Navigation Links - Desktop & Tablet */}
-            <nav className="header-nav hidden md:flex items-center justify-center flex-1 max-w-md lg:max-w-lg xl:max-w-xl mx-2" role="navigation" aria-label={t('common:accessibility.mainNav')}>
+            <nav
+              className="header-nav hidden md:flex items-center justify-center flex-1 max-w-md lg:max-w-lg xl:max-w-xl mx-2"
+              role="navigation"
+              aria-label={t('common:accessibility.mainNav')}
+            >
               <ul className="flex items-center justify-center space-x-2 lg:space-x-3 list-none m-0 p-0">
                 <li>
                   <Link
                     to="/"
-                    onClick={(e) => handleNavClick("/", e)}
+                    onClick={(e) => handleNavClick('/', e)}
                     className={clsx(
-                      "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center block",
-                      currentPath === "/" ? "text-primary bg-primary/10" : "text-foreground"
+                      'relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center block',
+                      currentPath === '/'
+                        ? 'text-primary bg-primary/10'
+                        : 'text-foreground'
                     )}
-                    aria-current={currentPath === "/" ? "page" : undefined}
+                    aria-current={currentPath === '/' ? 'page' : undefined}
                   >
                     {t('common:nav.home')}
-                    {currentPath === "/" && (
+                    {currentPath === '/' && (
                       <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
                     )}
                   </Link>
@@ -134,15 +157,19 @@ const Navigation = () => {
                 <li>
                   <Link
                     to="/products"
-                  onClick={(e) => handleNavClick("/products", e)}
+                    onClick={(e) => handleNavClick('/products', e)}
                     className={clsx(
-                      "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center block",
-                      currentPath === "/products" ? "text-primary bg-primary/10" : "text-foreground"
+                      'relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center block',
+                      currentPath === '/products'
+                        ? 'text-primary bg-primary/10'
+                        : 'text-foreground'
                     )}
-                    aria-current={currentPath === "/products" ? "page" : undefined}
+                    aria-current={
+                      currentPath === '/products' ? 'page' : undefined
+                    }
                   >
                     {t('common:nav.shop')}
-                    {currentPath === "/products" && (
+                    {currentPath === '/products' && (
                       <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
                     )}
                   </Link>
@@ -150,15 +177,17 @@ const Navigation = () => {
                 <li>
                   <Link
                     to="/blog"
-                  onClick={(e) => handleNavClick("/blog", e)}
+                    onClick={(e) => handleNavClick('/blog', e)}
                     className={clsx(
-                      "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center block",
-                      currentPath === "/blog" ? "text-primary bg-primary/10" : "text-foreground"
+                      'relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center block',
+                      currentPath === '/blog'
+                        ? 'text-primary bg-primary/10'
+                        : 'text-foreground'
                     )}
-                    aria-current={currentPath === "/blog" ? "page" : undefined}
+                    aria-current={currentPath === '/blog' ? 'page' : undefined}
                   >
                     {t('common:nav.blog')}
-                    {currentPath === "/blog" && (
+                    {currentPath === '/blog' && (
                       <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
                     )}
                   </Link>
@@ -166,15 +195,19 @@ const Navigation = () => {
                 <li>
                   <Link
                     to="/contact"
-                  onClick={(e) => handleNavClick("/contact", e)}
+                    onClick={(e) => handleNavClick('/contact', e)}
                     className={clsx(
-                      "relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center block",
-                      currentPath === "/contact" ? "text-primary bg-primary/10" : "text-foreground"
+                      'relative px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-lg whitespace-nowrap touch-manipulation text-center block',
+                      currentPath === '/contact'
+                        ? 'text-primary bg-primary/10'
+                        : 'text-foreground'
                     )}
-                    aria-current={currentPath === "/contact" ? "page" : undefined}
+                    aria-current={
+                      currentPath === '/contact' ? 'page' : undefined
+                    }
                   >
                     {t('common:nav.contact')}
-                    {currentPath === "/contact" && (
+                    {currentPath === '/contact' && (
                       <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
                     )}
                   </Link>
@@ -196,25 +229,29 @@ const Navigation = () => {
               </Button>
 
               {/* Wishlist button - Desktop only (hidden on tablet for space) */}
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="hidden lg:flex relative items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hover:bg-primary/10 rounded-lg transition-all duration-300 touch-manipulation"
                 onClick={() => {
                   if (!user) return;
-                  if (currentPath === "/wishlist") {
-                    toast.info(t('common:messages.alreadyOnPage'), { duration: 2000 });
+                  if (currentPath === '/wishlist') {
+                    toast.info(t('common:messages.alreadyOnPage'), {
+                      duration: 2000,
+                    });
                   } else {
-                    navigate("/wishlist");
+                    navigate('/wishlist');
                   }
                 }}
                 disabled={!user}
                 aria-label={t('common:nav.wishlist')}
               >
-                <span className={clsx(
-                  "flex items-center justify-center w-full h-full text-foreground hover:text-primary transition-colors duration-300",
-                  !user && "opacity-30"
-                )}>
+                <span
+                  className={clsx(
+                    'flex items-center justify-center w-full h-full text-foreground hover:text-primary transition-colors duration-300',
+                    !user && 'opacity-30'
+                  )}
+                >
                   <Heart className="h-4 w-4 transition-colors" />
                   {user && wishlistCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center min-w-[16px] font-medium">
@@ -246,12 +283,23 @@ const Navigation = () => {
                   variant="outline"
                   size="sm"
                   className={clsx(
-                    "border-border transition-all duration-300 flex items-center group relative text-sm px-2 lg:px-3 py-2 rounded-lg hover:shadow-md touch-manipulation font-medium whitespace-nowrap",
-                    itemCount >= 1 ? "bg-primary text-primary-foreground border-primary shadow-md" : "bg-background text-foreground hover:bg-primary/10",
-                    itemCount >= 1 ? "hover:bg-background hover:text-primary hover:border-primary" : "hover:bg-primary/10 hover:text-primary hover:border-border"
+                    'border-border transition-all duration-300 flex items-center group relative text-sm px-2 lg:px-3 py-2 rounded-lg hover:shadow-md touch-manipulation font-medium whitespace-nowrap',
+                    itemCount >= 1
+                      ? 'bg-primary text-primary-foreground border-primary shadow-md'
+                      : 'bg-background text-foreground hover:bg-primary/10',
+                    itemCount >= 1
+                      ? 'hover:bg-background hover:text-primary hover:border-primary'
+                      : 'hover:bg-primary/10 hover:text-primary hover:border-border'
                   )}
                 >
-                  <ShoppingBag className={clsx("h-4 w-4 transition-colors lg:mr-1", itemCount >= 1 ? "text-primary-foreground group-hover:text-primary" : "text-foreground group-hover:text-primary")} />
+                  <ShoppingBag
+                    className={clsx(
+                      'h-4 w-4 transition-colors lg:mr-1',
+                      itemCount >= 1
+                        ? 'text-primary-foreground group-hover:text-primary'
+                        : 'text-foreground group-hover:text-primary'
+                    )}
+                  />
                   <span className="hidden lg:inline">({itemCount})</span>
                 </Button>
               </Link>
@@ -264,17 +312,33 @@ const Navigation = () => {
                   </div>
                 ) : user ? (
                   <>
-                    <Button variant="ghost" size="sm" asChild className="group relative hidden xl:inline-flex hover:bg-primary/10 rounded-lg transition-all duration-300">
-                      <Link to="/orders" className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 text-foreground hover:text-primary transition-colors duration-300">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                      className="group relative hidden xl:inline-flex hover:bg-primary/10 rounded-lg transition-all duration-300"
+                    >
+                      <Link
+                        to="/orders"
+                        className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 text-foreground hover:text-primary transition-colors duration-300"
+                      >
                         <Package className="h-4 w-4 transition-colors" />
                       </Link>
                     </Button>
-                    <Button variant="ghost" size="sm" asChild className="group relative hover:bg-primary/10 rounded-lg transition-all duration-300 touch-manipulation">
-                      <Link to="/profile" className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 transition-colors duration-300">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                      className="group relative hover:bg-primary/10 rounded-lg transition-all duration-300 touch-manipulation"
+                    >
+                      <Link
+                        to="/profile"
+                        className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 transition-colors duration-300"
+                      >
                         {profile?.avatar_url ? (
-                          <img 
-                            src={profile.avatar_url} 
-                            alt={profile.full_name || 'Profile'} 
+                          <img
+                            src={profile.avatar_url}
+                            alt={profile.full_name || 'Profile'}
                             className="w-7 h-7 lg:w-8 lg:h-8 rounded-full object-cover border-2 border-border group-hover:border-primary transition-colors"
                           />
                         ) : (
@@ -282,10 +346,10 @@ const Navigation = () => {
                         )}
                       </Link>
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={handleSignOut} 
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSignOut}
                       className="hidden md:inline-flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hover:bg-primary/10 text-foreground hover:text-primary rounded-lg transition-all duration-300"
                       aria-label={t('common:nav.logout')}
                     >
@@ -293,7 +357,12 @@ const Navigation = () => {
                     </Button>
                   </>
                 ) : (
-                  <Button variant="ghost" size="sm" asChild className="text-xs lg:text-sm px-2 lg:px-3 py-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all duration-300 touch-manipulation font-medium whitespace-nowrap">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    asChild
+                    className="text-xs lg:text-sm px-2 lg:px-3 py-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all duration-300 touch-manipulation font-medium whitespace-nowrap"
+                  >
                     <Link to="/auth">{t('common:nav.login')}</Link>
                   </Button>
                 )}
@@ -305,12 +374,20 @@ const Navigation = () => {
                   isMenuOpen ? 'relative z-mobile-toggle' : ''
                 }`}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                aria-label={isMenuOpen ? t('common:accessibility.closeMenu') : t('common:accessibility.openMenu')}
+                aria-label={
+                  isMenuOpen
+                    ? t('common:accessibility.closeMenu')
+                    : t('common:accessibility.openMenu')
+                }
                 aria-expanded={isMenuOpen}
                 aria-haspopup="true"
                 aria-controls="mobile-menu"
               >
-                {isMenuOpen ? <X className="h-6 w-6 transition-colors" /> : <Menu className="h-6 w-6 transition-colors" />}
+                {isMenuOpen ? (
+                  <X className="h-6 w-6 transition-colors" />
+                ) : (
+                  <Menu className="h-6 w-6 transition-colors" />
+                )}
               </button>
             </div>
           </div>
@@ -320,7 +397,10 @@ const Navigation = () => {
         {showSearch && (
           <div className="absolute top-full left-0 right-0 bg-background border-b border-border shadow-lg z-dropdown hidden md:block">
             <div className="container mx-auto px-4 md:px-6 lg:px-4 py-4 md:py-6 lg:py-4">
-              <form onSubmit={handleSearch} className="flex gap-3 md:gap-4 lg:gap-2">
+              <form
+                onSubmit={handleSearch}
+                className="flex gap-3 md:gap-4 lg:gap-2"
+              >
                 <Input
                   type="text"
                   placeholder={t('common:nav.searchPlaceholder')}
@@ -329,13 +409,18 @@ const Navigation = () => {
                   className="flex-1 h-11 md:h-12 lg:h-11 text-base md:text-lg lg:text-base rounded-lg border-border focus:border-primary focus:ring-primary touch-manipulation"
                   autoFocus
                 />
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={!searchQuery.trim()}
                   className="bg-primary hover:bg-primary/90 px-4 md:px-6 lg:px-4 h-11 md:h-12 lg:h-11 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 touch-manipulation"
                 >
-                  <Search size={18} className="md:w-5 md:h-5 lg:w-[18px] lg:h-[18px]" />
-                  <span className="ml-2 text-base md:text-lg lg:text-base font-medium">{t('common:nav.search')}</span>
+                  <Search
+                    size={18}
+                    className="md:w-5 md:h-5 lg:w-[18px] lg:h-[18px]"
+                  />
+                  <span className="ml-2 text-base md:text-lg lg:text-base font-medium">
+                    {t('common:nav.search')}
+                  </span>
                 </Button>
               </form>
             </div>
@@ -345,7 +430,7 @@ const Navigation = () => {
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
-        <div 
+        <div
           className="md:hidden fixed inset-0 bg-foreground/50 z-mobile-overlay"
           onClick={() => setIsMenuOpen(false)}
           aria-hidden="true"
@@ -353,7 +438,7 @@ const Navigation = () => {
       )}
 
       {/* Mobile Menu - Slide in from right - responsive width */}
-      <div 
+      <div
         id="mobile-menu"
         className={`md:hidden fixed top-0 right-0 h-full w-full max-w-xs sm:max-w-sm bg-background shadow-2xl z-mobile-menu transform transition-transform duration-300 ease-out flex flex-col ${
           isMenuOpen ? 'translate-x-0' : 'translate-x-full'
@@ -374,7 +459,9 @@ const Navigation = () => {
               <span className="font-serif text-lg font-semibold text-foreground">
                 {t('common:brand.name')}
               </span>
-              <p className="text-sm text-muted-foreground">{t('common:brand.tagline')}</p>
+              <p className="text-sm text-muted-foreground">
+                {t('common:brand.tagline')}
+              </p>
             </div>
           </div>
           {/* Close button */}
@@ -401,9 +488,9 @@ const Navigation = () => {
                 className="flex-1 rounded-lg"
                 tabIndex={isMenuOpen ? 0 : -1}
               />
-              <Button 
-                type="submit" 
-                disabled={!searchQuery.trim()} 
+              <Button
+                type="submit"
+                disabled={!searchQuery.trim()}
                 size="sm"
                 className="bg-primary hover:bg-primary/90"
                 tabIndex={isMenuOpen ? 0 : -1}
@@ -418,77 +505,101 @@ const Navigation = () => {
             <Link
               to="/"
               className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 touch-manipulation ${
-                currentPath === "/" 
-                  ? "bg-primary text-primary-foreground" 
-                  : "text-foreground hover:bg-primary/10 hover:text-primary"
+                currentPath === '/'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-foreground hover:bg-primary/10 hover:text-primary'
               }`}
               onClick={(e) => {
-                if (!handleNavClick("/", e)) return;
+                if (!handleNavClick('/', e)) return;
                 setIsMenuOpen(false);
               }}
               tabIndex={isMenuOpen ? 0 : -1}
             >
-              <div className={`p-2 rounded-lg ${currentPath === "/" ? "bg-primary-foreground/20" : "bg-muted"}`}>
-                <Leaf className={`h-5 w-5 ${currentPath === "/" ? "text-primary-foreground" : "text-primary"}`} />
+              <div
+                className={`p-2 rounded-lg ${currentPath === '/' ? 'bg-primary-foreground/20' : 'bg-muted'}`}
+              >
+                <Leaf
+                  className={`h-5 w-5 ${currentPath === '/' ? 'text-primary-foreground' : 'text-primary'}`}
+                />
               </div>
-              <span className="font-medium text-lg">{t('common:nav.home')}</span>
+              <span className="font-medium text-lg">
+                {t('common:nav.home')}
+              </span>
             </Link>
 
             <Link
               to="/products"
               className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 touch-manipulation ${
-                currentPath === "/products" 
-                  ? "bg-primary text-primary-foreground" 
-                  : "text-foreground hover:bg-primary/10 hover:text-primary"
+                currentPath === '/products'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-foreground hover:bg-primary/10 hover:text-primary'
               }`}
               onClick={(e) => {
-                if (!handleNavClick("/products", e)) return;
+                if (!handleNavClick('/products', e)) return;
                 setIsMenuOpen(false);
               }}
               tabIndex={isMenuOpen ? 0 : -1}
             >
-              <div className={`p-2 rounded-lg ${currentPath === "/products" ? "bg-primary-foreground/20" : "bg-muted"}`}>
-                <ShoppingBag className={`h-5 w-5 ${currentPath === "/products" ? "text-primary-foreground" : "text-primary"}`} />
+              <div
+                className={`p-2 rounded-lg ${currentPath === '/products' ? 'bg-primary-foreground/20' : 'bg-muted'}`}
+              >
+                <ShoppingBag
+                  className={`h-5 w-5 ${currentPath === '/products' ? 'text-primary-foreground' : 'text-primary'}`}
+                />
               </div>
-              <span className="font-medium text-lg">{t('common:nav.shop')}</span>
+              <span className="font-medium text-lg">
+                {t('common:nav.shop')}
+              </span>
             </Link>
 
             <Link
               to="/blog"
               className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 touch-manipulation ${
-                currentPath === "/blog" 
-                  ? "bg-primary text-primary-foreground" 
-                  : "text-foreground hover:bg-primary/10 hover:text-primary"
+                currentPath === '/blog'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-foreground hover:bg-primary/10 hover:text-primary'
               }`}
               onClick={(e) => {
-                if (!handleNavClick("/blog", e)) return;
+                if (!handleNavClick('/blog', e)) return;
                 setIsMenuOpen(false);
               }}
               tabIndex={isMenuOpen ? 0 : -1}
             >
-              <div className={`p-2 rounded-lg ${currentPath === "/blog" ? "bg-primary-foreground/20" : "bg-muted"}`}>
-                <Package className={`h-5 w-5 ${currentPath === "/blog" ? "text-primary-foreground" : "text-primary"}`} />
+              <div
+                className={`p-2 rounded-lg ${currentPath === '/blog' ? 'bg-primary-foreground/20' : 'bg-muted'}`}
+              >
+                <Package
+                  className={`h-5 w-5 ${currentPath === '/blog' ? 'text-primary-foreground' : 'text-primary'}`}
+                />
               </div>
-              <span className="font-medium text-lg">{t('common:nav.blog')}</span>
+              <span className="font-medium text-lg">
+                {t('common:nav.blog')}
+              </span>
             </Link>
 
             <Link
               to="/contact"
               className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 touch-manipulation ${
-                currentPath === "/contact" 
-                  ? "bg-primary text-primary-foreground" 
-                  : "text-foreground hover:bg-primary/10 hover:text-primary"
+                currentPath === '/contact'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-foreground hover:bg-primary/10 hover:text-primary'
               }`}
               onClick={(e) => {
-                if (!handleNavClick("/contact", e)) return;
+                if (!handleNavClick('/contact', e)) return;
                 setIsMenuOpen(false);
               }}
               tabIndex={isMenuOpen ? 0 : -1}
             >
-              <div className={`p-2 rounded-lg ${currentPath === "/contact" ? "bg-primary-foreground/20" : "bg-muted"}`}>
-                <User className={`h-5 w-5 ${currentPath === "/contact" ? "text-primary-foreground" : "text-primary"}`} />
+              <div
+                className={`p-2 rounded-lg ${currentPath === '/contact' ? 'bg-primary-foreground/20' : 'bg-muted'}`}
+              >
+                <User
+                  className={`h-5 w-5 ${currentPath === '/contact' ? 'text-primary-foreground' : 'text-primary'}`}
+                />
               </div>
-              <span className="font-medium text-lg">{t('common:nav.contact')}</span>
+              <span className="font-medium text-lg">
+                {t('common:nav.contact')}
+              </span>
             </Link>
           </div>
 
@@ -504,13 +615,15 @@ const Navigation = () => {
               <Button
                 className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-medium text-lg transition-all duration-200 ${
                   itemCount >= 1
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
                 tabIndex={isMenuOpen ? 0 : -1}
               >
                 <ShoppingBag className="h-5 w-5" />
-                <span>{t('common:nav.cart')} {itemCount > 0 && `(${itemCount})`}</span>
+                <span>
+                  {t('common:nav.cart')} {itemCount > 0 && `(${itemCount})`}
+                </span>
               </Button>
             </Link>
 
@@ -524,7 +637,9 @@ const Navigation = () => {
                       <div className="p-2 bg-primary rounded-full">
                         <User className="h-4 w-4 text-primary-foreground" />
                       </div>
-                      <span className="text-sm font-medium text-secondary-foreground">{t('auth:messages.loggedIn')}</span>
+                      <span className="text-sm font-medium text-secondary-foreground">
+                        {t('auth:messages.loggedIn')}
+                      </span>
                     </div>
 
                     {/* User Menu Items */}
@@ -553,10 +668,12 @@ const Navigation = () => {
                         className="flex items-center justify-between p-3 text-foreground hover:bg-muted rounded-lg transition-colors w-full"
                         onClick={() => {
                           setIsMenuOpen(false);
-                          if (currentPath === "/wishlist") {
-                            toast.info(t('common:messages.alreadyOnPage'), { duration: 2000 });
+                          if (currentPath === '/wishlist') {
+                            toast.info(t('common:messages.alreadyOnPage'), {
+                              duration: 2000,
+                            });
                           } else {
-                            navigate("/wishlist");
+                            navigate('/wishlist');
                           }
                         }}
                         tabIndex={isMenuOpen ? 0 : -1}
@@ -583,9 +700,9 @@ const Navigation = () => {
                     </div>
                   </>
                 ) : (
-                  <Button 
-                    variant="default" 
-                    asChild 
+                  <Button
+                    variant="default"
+                    asChild
                     className="w-full py-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                     tabIndex={isMenuOpen ? 0 : -1}
                   >
@@ -603,19 +720,25 @@ const Navigation = () => {
           <div className="px-6 py-4 border-t border-border space-y-4">
             {/* Language Selector */}
             <div className="flex items-center justify-between">
-              <span className="text-foreground font-medium">{t('common:language.label')}:</span>
+              <span className="text-foreground font-medium">
+                {t('common:language.label')}:
+              </span>
               <LanguageSelector variant="minimal" />
             </div>
-            
+
             {/* Theme Toggle */}
             <div className="flex items-center justify-between">
-              <span className="text-foreground font-medium">{t('common:theme.label')}:</span>
+              <span className="text-foreground font-medium">
+                {t('common:theme.label')}:
+              </span>
               <ThemeToggle />
             </div>
-            
+
             {/* Currency Selector */}
             <div className="flex items-center justify-between">
-              <span className="text-foreground font-medium">{t('common:currency.label')}:</span>
+              <span className="text-foreground font-medium">
+                {t('common:currency.label')}:
+              </span>
               <div tabIndex={isMenuOpen ? 0 : -1}>
                 <CurrencySelector />
               </div>

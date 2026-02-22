@@ -2,7 +2,13 @@
 // Admin panel for configuring business rules
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,17 +17,21 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  ShoppingCart, 
-  Heart, 
-  CreditCard, 
-  Phone, 
-  Save, 
+import {
+  ShoppingCart,
+  Heart,
+  CreditCard,
+  Phone,
+  Save,
   RefreshCw,
   AlertTriangle,
-  Settings
+  Settings,
 } from 'lucide-react';
-import { DEFAULT_BUSINESS_RULES, type BusinessRules, clearBusinessRulesCache } from '@/hooks/useBusinessRules';
+import {
+  DEFAULT_BUSINESS_RULES,
+  type BusinessRules,
+  clearBusinessRulesCache,
+} from '@/hooks/useBusinessRules';
 
 export const BusinessRulesConfig: React.FC = () => {
   const [rules, setRules] = useState<BusinessRules>(DEFAULT_BUSINESS_RULES);
@@ -50,9 +60,18 @@ export const BusinessRulesConfig: React.FC = () => {
         const fetchedRules = data.setting_value as Partial<BusinessRules>;
         setRules({
           cart: { ...DEFAULT_BUSINESS_RULES.cart, ...fetchedRules.cart },
-          wishlist: { ...DEFAULT_BUSINESS_RULES.wishlist, ...fetchedRules.wishlist },
-          checkout: { ...DEFAULT_BUSINESS_RULES.checkout, ...fetchedRules.checkout },
-          contact: { ...DEFAULT_BUSINESS_RULES.contact, ...fetchedRules.contact }
+          wishlist: {
+            ...DEFAULT_BUSINESS_RULES.wishlist,
+            ...fetchedRules.wishlist,
+          },
+          checkout: {
+            ...DEFAULT_BUSINESS_RULES.checkout,
+            ...fetchedRules.checkout,
+          },
+          contact: {
+            ...DEFAULT_BUSINESS_RULES.contact,
+            ...fetchedRules.contact,
+          },
         });
       }
     } catch (err) {
@@ -83,8 +102,9 @@ export const BusinessRulesConfig: React.FC = () => {
           .from('app_settings')
           .update({
             setting_value: newRulesJson,
-            description: 'Business rules for cart, wishlist, and checkout. Configurable from admin dashboard.',
-            updated_at: new Date().toISOString()
+            description:
+              'Business rules for cart, wishlist, and checkout. Configurable from admin dashboard.',
+            updated_at: new Date().toISOString(),
           })
           .eq('setting_key', 'business_rules');
 
@@ -93,11 +113,14 @@ export const BusinessRulesConfig: React.FC = () => {
         // Insert new
         const { error: insertError } = await supabase
           .from('app_settings')
-          .insert([{
-            setting_key: 'business_rules',
-            setting_value: newRulesJson,
-            description: 'Business rules for cart, wishlist, and checkout. Configurable from admin dashboard.'
-          }]);
+          .insert([
+            {
+              setting_key: 'business_rules',
+              setting_value: newRulesJson,
+              description:
+                'Business rules for cart, wishlist, and checkout. Configurable from admin dashboard.',
+            },
+          ]);
 
         if (insertError) throw insertError;
       }
@@ -110,14 +133,14 @@ export const BusinessRulesConfig: React.FC = () => {
         resource_type: 'app_settings',
         resource_id: 'business_rules',
         old_values: oldRules ? JSON.parse(JSON.stringify(oldRules)) : null,
-        new_values: newRulesJson
+        new_values: newRulesJson,
       });
 
       // Clear cache so new values are loaded
       clearBusinessRulesCache();
-      
+
       toast.success('Règles sauvegardées', {
-        description: 'Les nouvelles limites seront appliquées immédiatement.'
+        description: 'Les nouvelles limites seront appliquées immédiatement.',
       });
       setHasChanges(false);
     } catch (err) {
@@ -129,33 +152,42 @@ export const BusinessRulesConfig: React.FC = () => {
   };
 
   const updateCartRule = (key: keyof BusinessRules['cart'], value: number) => {
-    setRules(prev => ({
+    setRules((prev) => ({
       ...prev,
-      cart: { ...prev.cart, [key]: value }
+      cart: { ...prev.cart, [key]: value },
     }));
     setHasChanges(true);
   };
 
-  const updateWishlistRule = (key: keyof BusinessRules['wishlist'], value: number) => {
-    setRules(prev => ({
+  const updateWishlistRule = (
+    key: keyof BusinessRules['wishlist'],
+    value: number
+  ) => {
+    setRules((prev) => ({
       ...prev,
-      wishlist: { ...prev.wishlist, [key]: value }
+      wishlist: { ...prev.wishlist, [key]: value },
     }));
     setHasChanges(true);
   };
 
-  const updateCheckoutRule = (key: keyof BusinessRules['checkout'], value: boolean) => {
-    setRules(prev => ({
+  const updateCheckoutRule = (
+    key: keyof BusinessRules['checkout'],
+    value: boolean
+  ) => {
+    setRules((prev) => ({
       ...prev,
-      checkout: { ...prev.checkout, [key]: value }
+      checkout: { ...prev.checkout, [key]: value },
     }));
     setHasChanges(true);
   };
 
-  const updateContactRule = (key: keyof BusinessRules['contact'], value: string) => {
-    setRules(prev => ({
+  const updateContactRule = (
+    key: keyof BusinessRules['contact'],
+    value: string
+  ) => {
+    setRules((prev) => ({
       ...prev,
-      contact: { ...prev.contact, [key]: value }
+      contact: { ...prev.contact, [key]: value },
     }));
     setHasChanges(true);
   };
@@ -180,20 +212,33 @@ export const BusinessRulesConfig: React.FC = () => {
             Règles Métier
           </h2>
           <p className="text-muted-foreground text-sm mt-1">
-            Configurez les limites et comportements du panier et de la liste de souhaits
+            Configurez les limites et comportements du panier et de la liste de
+            souhaits
           </p>
         </div>
         <div className="flex gap-2">
           {hasChanges && (
-            <Badge variant="outline" className="text-amber-600 border-amber-600">
+            <Badge
+              variant="outline"
+              className="text-amber-600 border-amber-600"
+            >
               Modifications non sauvegardées
             </Badge>
           )}
-          <Button variant="outline" size="sm" onClick={loadRules} disabled={loading}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadRules}
+            disabled={loading}
+          >
             <RefreshCw className="h-4 w-4 mr-2" />
             Actualiser
           </Button>
-          <Button size="sm" onClick={saveRules} disabled={saving || !hasChanges}>
+          <Button
+            size="sm"
+            onClick={saveRules}
+            disabled={saving || !hasChanges}
+          >
             <Save className="h-4 w-4 mr-2" />
             {saving ? 'Sauvegarde...' : 'Sauvegarder'}
           </Button>
@@ -214,14 +259,21 @@ export const BusinessRulesConfig: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="maxQuantityPerItem">Quantité max par article</Label>
+              <Label htmlFor="maxQuantityPerItem">
+                Quantité max par article
+              </Label>
               <Input
                 id="maxQuantityPerItem"
                 type="number"
                 min={1}
                 max={100}
                 value={rules.cart.maxQuantityPerItem}
-                onChange={(e) => updateCartRule('maxQuantityPerItem', parseInt(e.target.value) || 1)}
+                onChange={(e) =>
+                  updateCartRule(
+                    'maxQuantityPerItem',
+                    parseInt(e.target.value) || 1
+                  )
+                }
               />
               <p className="text-xs text-muted-foreground">
                 Au-delà, le client doit vous contacter directement
@@ -229,14 +281,21 @@ export const BusinessRulesConfig: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="maxProductTypes">Nombre max de produits différents</Label>
+              <Label htmlFor="maxProductTypes">
+                Nombre max de produits différents
+              </Label>
               <Input
                 id="maxProductTypes"
                 type="number"
                 min={1}
                 max={50}
                 value={rules.cart.maxProductTypes}
-                onChange={(e) => updateCartRule('maxProductTypes', parseInt(e.target.value) || 1)}
+                onChange={(e) =>
+                  updateCartRule(
+                    'maxProductTypes',
+                    parseInt(e.target.value) || 1
+                  )
+                }
               />
               <p className="text-xs text-muted-foreground">
                 Limite le nombre de références dans le panier
@@ -253,7 +312,12 @@ export const BusinessRulesConfig: React.FC = () => {
                 min={0}
                 step={100}
                 value={rules.cart.highValueThreshold}
-                onChange={(e) => updateCartRule('highValueThreshold', parseInt(e.target.value) || 0)}
+                onChange={(e) =>
+                  updateCartRule(
+                    'highValueThreshold',
+                    parseInt(e.target.value) || 0
+                  )
+                }
               />
               <p className="text-xs text-muted-foreground">
                 Affiche un message de contact personnalisé au-delà de ce montant
@@ -268,7 +332,12 @@ export const BusinessRulesConfig: React.FC = () => {
                   type="number"
                   min={0}
                   value={rules.cart.minOrderAmount}
-                  onChange={(e) => updateCartRule('minOrderAmount', parseInt(e.target.value) || 0)}
+                  onChange={(e) =>
+                    updateCartRule(
+                      'minOrderAmount',
+                      parseInt(e.target.value) || 0
+                    )
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -278,7 +347,12 @@ export const BusinessRulesConfig: React.FC = () => {
                   type="number"
                   min={0}
                   value={rules.cart.maxOrderAmount}
-                  onChange={(e) => updateCartRule('maxOrderAmount', parseInt(e.target.value) || 10000)}
+                  onChange={(e) =>
+                    updateCartRule(
+                      'maxOrderAmount',
+                      parseInt(e.target.value) || 10000
+                    )
+                  }
                 />
               </div>
             </div>
@@ -292,9 +366,7 @@ export const BusinessRulesConfig: React.FC = () => {
               <Heart className="h-5 w-5 text-primary" />
               Liste de Souhaits
             </CardTitle>
-            <CardDescription>
-              Limites pour les favoris
-            </CardDescription>
+            <CardDescription>Limites pour les favoris</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -305,7 +377,9 @@ export const BusinessRulesConfig: React.FC = () => {
                 min={1}
                 max={100}
                 value={rules.wishlist.maxItems}
-                onChange={(e) => updateWishlistRule('maxItems', parseInt(e.target.value) || 1)}
+                onChange={(e) =>
+                  updateWishlistRule('maxItems', parseInt(e.target.value) || 1)
+                }
               />
               <p className="text-xs text-muted-foreground">
                 Limite le nombre de produits dans les favoris
@@ -321,9 +395,7 @@ export const BusinessRulesConfig: React.FC = () => {
               <CreditCard className="h-5 w-5 text-primary" />
               Checkout
             </CardTitle>
-            <CardDescription>
-              Options de paiement et validation
-            </CardDescription>
+            <CardDescription>Options de paiement et validation</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
@@ -335,7 +407,9 @@ export const BusinessRulesConfig: React.FC = () => {
               </div>
               <Switch
                 checked={rules.checkout.requireEmailVerification}
-                onCheckedChange={(checked) => updateCheckoutRule('requireEmailVerification', checked)}
+                onCheckedChange={(checked) =>
+                  updateCheckoutRule('requireEmailVerification', checked)
+                }
               />
             </div>
 
@@ -348,7 +422,9 @@ export const BusinessRulesConfig: React.FC = () => {
               </div>
               <Switch
                 checked={rules.checkout.allowGuestCheckout}
-                onCheckedChange={(checked) => updateCheckoutRule('allowGuestCheckout', checked)}
+                onCheckedChange={(checked) =>
+                  updateCheckoutRule('allowGuestCheckout', checked)
+                }
               />
             </div>
 
@@ -361,7 +437,9 @@ export const BusinessRulesConfig: React.FC = () => {
               </div>
               <Switch
                 checked={rules.checkout.showVipContactForHighValue}
-                onCheckedChange={(checked) => updateCheckoutRule('showVipContactForHighValue', checked)}
+                onCheckedChange={(checked) =>
+                  updateCheckoutRule('showVipContactForHighValue', checked)
+                }
               />
             </div>
           </CardContent>
@@ -409,8 +487,9 @@ export const BusinessRulesConfig: React.FC = () => {
           <div>
             <p className="font-medium text-amber-800">Note importante</p>
             <p className="text-sm text-amber-700">
-              Les modifications sont appliquées immédiatement après la sauvegarde. 
-              Les utilisateurs actuellement sur le site verront les nouvelles limites lors de leur prochaine action.
+              Les modifications sont appliquées immédiatement après la
+              sauvegarde. Les utilisateurs actuellement sur le site verront les
+              nouvelles limites lors de leur prochaine action.
             </p>
           </div>
         </CardContent>

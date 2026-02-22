@@ -1,6 +1,6 @@
-import { Leaf } from "lucide-react";
-import { ErrorReportButton } from "./ui/ErrorReportButton";
-import { useTranslation } from "react-i18next";
+import { Leaf } from 'lucide-react';
+import { ErrorReportButton } from './ui/ErrorReportButton';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
   const { t } = useTranslation('common');
@@ -21,15 +21,15 @@ const Footer = () => {
               {t('footer.aboutText')}
             </p>
           </div>
-          
+
           <div>
             <h3 className="font-serif text-base sm:text-lg font-medium mb-3 sm:mb-4">
               {t('nav.shop')}
             </h3>
             <ul className="space-y-1.5 sm:space-y-2">
               <li>
-                <a 
-                  href="/products" 
+                <a
+                  href="/products"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.allProductsAria')}
                 >
@@ -37,16 +37,16 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a 
-                  href="/products?category=Sacs" 
+                <a
+                  href="/products?category=Sacs"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                 >
                   {t('footer.bags')}
                 </a>
               </li>
               <li>
-                <a 
-                  href="/products?category=Chapeaux" 
+                <a
+                  href="/products?category=Chapeaux"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                 >
                   {t('footer.hats')}
@@ -54,15 +54,15 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-          
+
           <div>
             <h3 className="font-serif text-base sm:text-lg font-medium mb-3 sm:mb-4">
               {t('footer.about')}
             </h3>
             <ul className="space-y-1.5 sm:space-y-2">
               <li>
-                <a 
-                  href="/about" 
+                <a
+                  href="/about"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.storyAria')}
                 >
@@ -70,8 +70,8 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a 
-                  href="/blog" 
+                <a
+                  href="/blog"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.blogAria')}
                 >
@@ -80,15 +80,15 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-          
+
           <div>
             <h3 className="font-serif text-base sm:text-lg font-medium mb-3 sm:mb-4">
               {t('footer.help')}
             </h3>
             <ul className="space-y-1.5 sm:space-y-2">
               <li>
-                <a 
-                  href="/contact" 
+                <a
+                  href="/contact"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.contactAria')}
                 >
@@ -96,8 +96,8 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a 
-                  href="/shipping" 
+                <a
+                  href="/shipping"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.shippingAria')}
                 >
@@ -105,8 +105,8 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a 
-                  href="/returns" 
+                <a
+                  href="/returns"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.returnsAria')}
                 >
@@ -114,8 +114,8 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a 
-                  href="/faq" 
+                <a
+                  href="/faq"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.faqAria')}
                 >
@@ -123,8 +123,8 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a 
-                  href="/cgv" 
+                <a
+                  href="/cgv"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.cgvAria')}
                 >
@@ -132,8 +132,8 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a 
-                  href="/terms-of-service" 
+                <a
+                  href="/terms-of-service"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.termsOfServiceAria')}
                 >
@@ -143,9 +143,11 @@ const Footer = () => {
             </ul>
           </div>
         </div>
-        
+
         <div className="border-t border-border mt-8 sm:mt-12 pt-4 sm:pt-6 text-center sm:text-left sm:flex sm:justify-between sm:items-center">
-          <p className="text-muted-foreground text-sm sm:text-base">{t('footer.copyright', { year: currentYear })}</p>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            {t('footer.copyright', { year: currentYear })}
+          </p>
           <div className="mt-3 sm:mt-0">
             <ErrorReportButton />
           </div>

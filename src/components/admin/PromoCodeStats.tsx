@@ -1,6 +1,6 @@
-import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   BarChart,
   Bar,
@@ -14,11 +14,17 @@ import {
   PieChart,
   Pie,
   Cell,
-} from "recharts";
-import { TrendingUp, Award, Euro, Users, Calendar } from "lucide-react";
-import { format, subDays, eachDayOfInterval, parseISO, startOfDay } from "date-fns";
-import { fr } from "date-fns/locale";
-import { useCurrency } from "@/stores/currencyStore";
+} from 'recharts';
+import { TrendingUp, Award, Euro, Users, Calendar } from 'lucide-react';
+import {
+  format,
+  subDays,
+  eachDayOfInterval,
+  parseISO,
+  startOfDay,
+} from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { useCurrency } from '@/stores/currencyStore';
 
 interface DiscountCoupon {
   id: string;
@@ -38,27 +44,27 @@ interface PromoCodeStatsProps {
 }
 
 const CHART_COLORS = [
-  "hsl(var(--primary))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
+  'hsl(var(--primary))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
 ];
 
 const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
   const { formatPrice } = useCurrency();
-  
+
   // Calculate total estimated savings
   const totalSavings = useMemo(() => {
     return coupons.reduce((sum, coupon) => {
       // Estimate average order value at 75€ for calculation
       const avgOrderValue = 75;
       const usageCount = coupon.usage_count || 0;
-      
-      if (coupon.type === "percentage") {
-        return sum + (avgOrderValue * (coupon.value / 100) * usageCount);
+
+      if (coupon.type === 'percentage') {
+        return sum + avgOrderValue * (coupon.value / 100) * usageCount;
       }
-      return sum + (coupon.value * usageCount);
+      return sum + coupon.value * usageCount;
     }, 0);
   }, [coupons]);
 
@@ -70,22 +76,35 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
       .map((coupon) => ({
         code: coupon.code,
         usage: coupon.usage_count || 0,
-        value: coupon.type === "percentage" ? `${coupon.value}%` : `${coupon.value}€`,
+        value:
+          coupon.type === 'percentage'
+            ? `${coupon.value}%`
+            : `${coupon.value}€`,
         type: coupon.type,
       }));
   }, [coupons]);
 
   // Usage distribution by type
   const usageByType = useMemo(() => {
-    const percentageCoupons = coupons.filter((c) => c.type === "percentage");
-    const fixedCoupons = coupons.filter((c) => c.type === "fixed");
-    
-    const percentageUsage = percentageCoupons.reduce((sum, c) => sum + (c.usage_count || 0), 0);
-    const fixedUsage = fixedCoupons.reduce((sum, c) => sum + (c.usage_count || 0), 0);
-    
+    const percentageCoupons = coupons.filter((c) => c.type === 'percentage');
+    const fixedCoupons = coupons.filter((c) => c.type === 'fixed');
+
+    const percentageUsage = percentageCoupons.reduce(
+      (sum, c) => sum + (c.usage_count || 0),
+      0
+    );
+    const fixedUsage = fixedCoupons.reduce(
+      (sum, c) => sum + (c.usage_count || 0),
+      0
+    );
+
     return [
-      { name: "Pourcentage", value: percentageUsage, count: percentageCoupons.length },
-      { name: "Montant fixe", value: fixedUsage, count: fixedCoupons.length },
+      {
+        name: 'Pourcentage',
+        value: percentageUsage,
+        count: percentageCoupons.length,
+      },
+      { name: 'Montant fixe', value: fixedUsage, count: fixedCoupons.length },
     ].filter((item) => item.value > 0 || item.count > 0);
   }, [coupons]);
 
@@ -104,17 +123,20 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
       }).length;
 
       return {
-        date: format(day, "dd/MM", { locale: fr }),
-        fullDate: format(day, "dd MMM", { locale: fr }),
+        date: format(day, 'dd/MM', { locale: fr }),
+        fullDate: format(day, 'dd MMM', { locale: fr }),
         count,
       };
     });
   }, [coupons]);
 
   // Calculate some additional stats
-  const freeShippingCount = coupons.filter((c) => c.includes_free_shipping).length;
+  const freeShippingCount = coupons.filter(
+    (c) => c.includes_free_shipping
+  ).length;
   const totalUsage = coupons.reduce((sum, c) => sum + (c.usage_count || 0), 0);
-  const avgUsagePerCode = coupons.length > 0 ? (totalUsage / coupons.length).toFixed(1) : "0";
+  const avgUsagePerCode =
+    coupons.length > 0 ? (totalUsage / coupons.length).toFixed(1) : '0';
 
   // Status distribution
   const statusDistribution = useMemo(() => {
@@ -125,16 +147,24 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
       if (c.valid_from && new Date(c.valid_from) > now) return false;
       return true;
     }).length;
-    
+
     const inactive = coupons.filter((c) => !c.is_active).length;
-    const expired = coupons.filter((c) => c.is_active && c.valid_until && new Date(c.valid_until) < now).length;
-    const scheduled = coupons.filter((c) => c.is_active && c.valid_from && new Date(c.valid_from) > now).length;
+    const expired = coupons.filter(
+      (c) => c.is_active && c.valid_until && new Date(c.valid_until) < now
+    ).length;
+    const scheduled = coupons.filter(
+      (c) => c.is_active && c.valid_from && new Date(c.valid_from) > now
+    ).length;
 
     return [
-      { name: "Actifs", value: active, color: "hsl(var(--primary))" },
-      { name: "Inactifs", value: inactive, color: "hsl(var(--muted-foreground))" },
-      { name: "Expirés", value: expired, color: "hsl(var(--destructive))" },
-      { name: "Planifiés", value: scheduled, color: "hsl(var(--chart-4))" },
+      { name: 'Actifs', value: active, color: 'hsl(var(--primary))' },
+      {
+        name: 'Inactifs',
+        value: inactive,
+        color: 'hsl(var(--muted-foreground))',
+      },
+      { name: 'Expirés', value: expired, color: 'hsl(var(--destructive))' },
+      { name: 'Planifiés', value: scheduled, color: 'hsl(var(--chart-4))' },
     ].filter((item) => item.value > 0);
   }, [coupons]);
 
@@ -144,50 +174,66 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
       <div className="grid gap-4 md:grid-cols-4">
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Économies générées</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Économies générées
+            </CardTitle>
             <Euro className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
               ~{formatPrice(totalSavings)}
             </div>
-            <p className="text-xs text-muted-foreground">Estimation basée sur panier moyen {formatPrice(75)}</p>
+            <p className="text-xs text-muted-foreground">
+              Estimation basée sur panier moyen {formatPrice(75)}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Moyenne par code</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Moyenne par code
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{avgUsagePerCode}</div>
-            <p className="text-xs text-muted-foreground">utilisations par code</p>
+            <p className="text-xs text-muted-foreground">
+              utilisations par code
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Livraison offerte</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Livraison offerte
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{freeShippingCount}</div>
-            <p className="text-xs text-muted-foreground">codes avec livraison gratuite</p>
+            <p className="text-xs text-muted-foreground">
+              codes avec livraison gratuite
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Codes créés (30j)</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Codes créés (30j)
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {coupons.filter((c) => {
-                const created = new Date(c.created_at);
-                return created >= subDays(new Date(), 30);
-              }).length}
+              {
+                coupons.filter((c) => {
+                  const created = new Date(c.created_at);
+                  return created >= subDays(new Date(), 30);
+                }).length
+              }
             </div>
             <p className="text-xs text-muted-foreground">nouveaux codes</p>
           </CardContent>
@@ -208,12 +254,19 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
             {topCodes.length > 0 ? (
               <div className="h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topCodes} layout="vertical" margin={{ left: 20, right: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <BarChart
+                    data={topCodes}
+                    layout="vertical"
+                    margin={{ left: 20, right: 20 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      className="stroke-muted"
+                    />
                     <XAxis type="number" className="text-xs" />
-                    <YAxis 
-                      dataKey="code" 
-                      type="category" 
+                    <YAxis
+                      dataKey="code"
+                      type="category"
                       width={80}
                       className="text-xs"
                       tick={{ fontSize: 11 }}
@@ -237,9 +290,9 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
                         return null;
                       }}
                     />
-                    <Bar 
-                      dataKey="usage" 
-                      fill="hsl(var(--primary))" 
+                    <Bar
+                      dataKey="usage"
+                      fill="hsl(var(--primary))"
                       radius={[0, 4, 4, 0]}
                     />
                   </BarChart>
@@ -330,7 +383,10 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
               <div className="h-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={usageByType} margin={{ top: 10 }}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      className="stroke-muted"
+                    />
                     <XAxis dataKey="name" className="text-xs" />
                     <YAxis className="text-xs" />
                     <Tooltip
@@ -354,7 +410,10 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
                     />
                     <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                       {usageByType.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={CHART_COLORS[index % CHART_COLORS.length]}
+                        />
                       ))}
                     </Bar>
                   </BarChart>
@@ -371,15 +430,20 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
         {/* Creation Trend Line Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Création de codes (30 derniers jours)</CardTitle>
+            <CardTitle className="text-base">
+              Création de codes (30 derniers jours)
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={creationTrend} margin={{ top: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis 
-                    dataKey="date" 
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-muted"
+                  />
+                  <XAxis
+                    dataKey="date"
                     className="text-xs"
                     tick={{ fontSize: 10 }}
                     interval="preserveStartEnd"
@@ -393,7 +457,8 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
                           <div className="rounded-lg border bg-background p-2 shadow-sm">
                             <p className="font-medium">{data.fullDate}</p>
                             <p className="text-sm text-primary">
-                              {data.count} code{data.count > 1 ? "s" : ""} créé{data.count > 1 ? "s" : ""}
+                              {data.count} code{data.count > 1 ? 's' : ''} créé
+                              {data.count > 1 ? 's' : ''}
                             </p>
                           </div>
                         );
@@ -406,8 +471,8 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
                     dataKey="count"
                     stroke="hsl(var(--primary))"
                     strokeWidth={2}
-                    dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 3 }}
-                    activeDot={{ r: 5, fill: "hsl(var(--primary))" }}
+                    dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 3 }}
+                    activeDot={{ r: 5, fill: 'hsl(var(--primary))' }}
                   />
                 </LineChart>
               </ResponsiveContainer>

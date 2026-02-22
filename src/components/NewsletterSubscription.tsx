@@ -21,10 +21,10 @@ interface NewsletterSubscriptionProps {
   description?: string;
 }
 
-const NewsletterSubscription = ({ 
+const NewsletterSubscription = ({
   variant = 'footer',
   title,
-  description
+  description,
 }: NewsletterSubscriptionProps) => {
   const { t } = useTranslation('common');
   const displayTitle = title || t('newsletter.title');
@@ -36,7 +36,7 @@ const NewsletterSubscription = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim()) {
       toast.error(t('newsletter.errorEmail'));
       return;
@@ -51,12 +51,11 @@ const NewsletterSubscription = ({
 
     try {
       const normalizedEmail = email.trim().toLowerCase();
-      
+
       // Use upsert to handle both new subscriptions and reactivations
       // This avoids needing SELECT permission which anonymous users don't have
-      const { error } = await supabase
-        .from('newsletter_subscriptions')
-        .upsert({
+      const { error } = await supabase.from('newsletter_subscriptions').upsert(
+        {
           email: normalizedEmail,
           status: 'active',
           consent_given: true,
@@ -68,12 +67,14 @@ const NewsletterSubscription = ({
           metadata: {
             subscription_variant: variant,
             user_agent: navigator.userAgent,
-            timestamp: Date.now()
-          }
-        }, {
+            timestamp: Date.now(),
+          },
+        },
+        {
           onConflict: 'email',
-          ignoreDuplicates: false
-        });
+          ignoreDuplicates: false,
+        }
+      );
 
       if (error) {
         // Check if it's a duplicate error (email already active)
@@ -87,11 +88,10 @@ const NewsletterSubscription = ({
         setEmail('');
         setConsent(false);
         toast.success(t('newsletter.success'));
-        
+
         // Reset success state after 5 seconds
         setTimeout(() => setIsSubscribed(false), 5000);
       }
-
     } catch (error) {
       console.error('Newsletter subscription error:', error);
       toast.error(t('newsletter.errorGeneric'));
@@ -127,8 +127,8 @@ const NewsletterSubscription = ({
         <TooltipProvider>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label 
-                htmlFor="newsletter-email" 
+              <Label
+                htmlFor="newsletter-email"
                 className={`sr-only ${variant === 'footer' ? 'text-white' : 'text-foreground'}`}
               >
                 {t('newsletter.emailLabel')}
@@ -146,20 +146,26 @@ const NewsletterSubscription = ({
                 />
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span tabIndex={isSubscribing || !email.trim() || !consent ? 0 : -1}>
+                    <span
+                      tabIndex={
+                        isSubscribing || !email.trim() || !consent ? 0 : -1
+                      }
+                    >
                       <Button
                         type="submit"
                         disabled={isSubscribing || !email.trim() || !consent}
                         className="h-12 px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                       >
-                        {isSubscribing ? t('newsletter.sending') : t('newsletter.subscribe')}
+                        {isSubscribing
+                          ? t('newsletter.sending')
+                          : t('newsletter.subscribe')}
                       </Button>
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="top">
-                    {!email.trim() 
+                    {!email.trim()
                       ? t('newsletter.tooltipEmail')
-                      : !consent 
+                      : !consent
                         ? t('newsletter.tooltipConsent')
                         : t('newsletter.tooltipSubscribe')}
                   </TooltipContent>
@@ -174,7 +180,9 @@ const NewsletterSubscription = ({
                     <Checkbox
                       id="newsletter-consent"
                       checked={consent}
-                      onCheckedChange={(checked) => setConsent(checked as boolean)}
+                      onCheckedChange={(checked) =>
+                        setConsent(checked as boolean)
+                      }
                       className="mt-0.5 border-input data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground"
                     />
                   </div>
@@ -188,7 +196,10 @@ const NewsletterSubscription = ({
                 className="text-xs leading-relaxed cursor-pointer text-muted-foreground"
               >
                 {t('newsletter.consentText')}{' '}
-                <a href="/privacy" className="underline hover:no-underline text-primary">
+                <a
+                  href="/privacy"
+                  className="underline hover:no-underline text-primary"
+                >
                   {t('newsletter.privacyPolicy')}
                 </a>
                 .
@@ -198,9 +209,7 @@ const NewsletterSubscription = ({
             {variant !== 'footer' && (
               <div className="flex items-start gap-2 text-xs text-muted-foreground">
                 <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <p>
-                  {t('newsletter.unsubscribeNote')}
-                </p>
+                <p>{t('newsletter.unsubscribeNote')}</p>
               </div>
             )}
           </form>
@@ -212,9 +221,7 @@ const NewsletterSubscription = ({
   if (variant === 'popup') {
     return (
       <Card className="max-w-md">
-        <CardContent className="p-6">
-          {renderContent()}
-        </CardContent>
+        <CardContent className="p-6">{renderContent()}</CardContent>
       </Card>
     );
   }
@@ -228,11 +235,7 @@ const NewsletterSubscription = ({
   }
 
   // Footer variant (default)
-  return (
-    <div className="space-y-4">
-      {renderContent()}
-    </div>
-  );
+  return <div className="space-y-4">{renderContent()}</div>;
 };
 
 export default NewsletterSubscription;

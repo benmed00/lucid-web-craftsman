@@ -13,8 +13,8 @@ import {
   Column,
   Hr,
   Button,
-} from 'https://esm.sh/@react-email/components@0.0.22'
-import * as React from 'https://esm.sh/react@18.3.1'
+} from 'https://esm.sh/@react-email/components@0.0.22';
+import * as React from 'https://esm.sh/react@18.3.1';
 
 interface ShippingNotificationEmailProps {
   customerName: string;
@@ -100,7 +100,8 @@ export const ShippingNotificationEmail = ({
                 </Button>
               ) : (
                 <Text style={trackingNote}>
-                  Utilisez ce numéro sur le site du transporteur pour suivre votre livraison.
+                  Utilisez ce numéro sur le site du transporteur pour suivre
+                  votre livraison.
                 </Text>
               )}
             </Section>
@@ -174,7 +175,8 @@ export const ShippingNotificationEmail = ({
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              © {new Date().getFullYear()} Rif Raw Straw - Artisanat berbère authentique
+              © {new Date().getFullYear()} Rif Raw Straw - Artisanat berbère
+              authentique
             </Text>
             <Text style={footerLinks}>
               <Link href="https://rifrawstraw.com" style={footerLink}>
@@ -201,7 +203,8 @@ export default ShippingNotificationEmail;
 // Styles
 const main = {
   backgroundColor: '#f6f9fc',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
+  fontFamily:
+    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
 };
 
 const container = {

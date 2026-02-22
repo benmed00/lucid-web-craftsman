@@ -1,15 +1,23 @@
-import { CheckCircle, ShoppingBag, Home, Loader2, Mail, Download, Package } from "lucide-react";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import { useEffect, useState, useCallback } from "react";
-import { useTranslation } from "react-i18next";
+import {
+  CheckCircle,
+  ShoppingBag,
+  Home,
+  Loader2,
+  Mail,
+  Download,
+  Package,
+} from 'lucide-react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 
-import PageFooter from "@/components/PageFooter";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useCart } from "@/stores";
-import { useAuth } from "@/context/AuthContext";
+import PageFooter from '@/components/PageFooter';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useCart } from '@/stores';
+import { useAuth } from '@/context/AuthContext';
 
 interface CustomerInfo {
   firstName: string;
@@ -48,13 +56,23 @@ interface InvoiceData {
 }
 
 const COUNTRY_NAMES: Record<string, string> = {
-  FR: 'France', DE: 'Allemagne', BE: 'Belgique', CH: 'Suisse',
-  ES: 'Espagne', IT: 'Italie', NL: 'Pays-Bas', GB: 'Royaume-Uni',
-  US: 'États-Unis', CA: 'Canada', MA: 'Maroc',
+  FR: 'France',
+  DE: 'Allemagne',
+  BE: 'Belgique',
+  CH: 'Suisse',
+  ES: 'Espagne',
+  IT: 'Italie',
+  NL: 'Pays-Bas',
+  GB: 'Royaume-Uni',
+  US: 'États-Unis',
+  CA: 'Canada',
+  MA: 'Maroc',
 };
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  card: 'Carte bancaire', paypal: 'PayPal', sepa_debit: 'Prélèvement SEPA',
+  card: 'Carte bancaire',
+  paypal: 'PayPal',
+  sepa_debit: 'Prélèvement SEPA',
   bank_transfer: 'Virement bancaire',
 };
 
@@ -66,7 +84,7 @@ const PaymentSuccess = () => {
   const isPayPal = searchParams.get('paypal') === 'true';
   const paypalOrderId = searchParams.get('token');
   const orderId = searchParams.get('order_id');
-  
+
   const [isVerifying, setIsVerifying] = useState(true);
   const [verificationResult, setVerificationResult] = useState<{
     success: boolean;
@@ -76,36 +94,43 @@ const PaymentSuccess = () => {
   } | null>(null);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
-  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(
+    null
+  );
   const { clearCart } = useCart();
   const { user, profile } = useAuth();
 
   // Build invoice data from verify-payment response
-  const buildInvoiceFromResponse = useCallback((responseInvoice: any, fetchedOrderId: string, customer: CustomerInfo) => {
-    if (!responseInvoice?.items) return;
-    setInvoiceData({
-      orderId: fetchedOrderId,
-      date: new Date(responseInvoice.date || Date.now()).toLocaleDateString('fr-FR'),
-      customer,
-      items: responseInvoice.items,
-      subtotal: responseInvoice.subtotal || 0,
-      shipping: responseInvoice.shipping || 0,
-      discount: 0,
-      total: responseInvoice.total || 0,
-      shippingAddress: responseInvoice.shippingAddress || null,
-      paymentMethod: responseInvoice.paymentMethod || 'card',
-      currency: responseInvoice.currency || 'EUR',
-      stripeSessionId: responseInvoice.stripeSessionId || '',
-    });
-  }, []);
+  const buildInvoiceFromResponse = useCallback(
+    (responseInvoice: any, fetchedOrderId: string, customer: CustomerInfo) => {
+      if (!responseInvoice?.items) return;
+      setInvoiceData({
+        orderId: fetchedOrderId,
+        date: new Date(responseInvoice.date || Date.now()).toLocaleDateString(
+          'fr-FR'
+        ),
+        customer,
+        items: responseInvoice.items,
+        subtotal: responseInvoice.subtotal || 0,
+        shipping: responseInvoice.shipping || 0,
+        discount: 0,
+        total: responseInvoice.total || 0,
+        shippingAddress: responseInvoice.shippingAddress || null,
+        paymentMethod: responseInvoice.paymentMethod || 'card',
+        currency: responseInvoice.currency || 'EUR',
+        stripeSessionId: responseInvoice.stripeSessionId || '',
+      });
+    },
+    []
+  );
 
   // Auto-redirect to orders after successful payment (authenticated users)
   useEffect(() => {
     if (!user || !verificationResult?.success || isVerifying) return;
-    
+
     setRedirectCountdown(8);
     const interval = setInterval(() => {
-      setRedirectCountdown(prev => {
+      setRedirectCountdown((prev) => {
         if (prev === null || prev <= 1) {
           clearInterval(interval);
           navigate('/orders');
@@ -114,7 +139,7 @@ const PaymentSuccess = () => {
         return prev - 1;
       });
     }, 1000);
-    
+
     return () => clearInterval(interval);
   }, [user, verificationResult?.success, isVerifying, navigate]);
 
@@ -125,17 +150,24 @@ const PaymentSuccess = () => {
     const verifyPayment = async () => {
       if (isPayPal && paypalOrderId && orderId) {
         try {
-          const { data, error } = await supabase.functions.invoke('verify-paypal-payment', {
-            body: { paypal_order_id: paypalOrderId, order_id: orderId }
-          });
+          const { data, error } = await supabase.functions.invoke(
+            'verify-paypal-payment',
+            {
+              body: { paypal_order_id: paypalOrderId, order_id: orderId },
+            }
+          );
 
           if (error) {
-            setVerificationResult({ success: false, message: t('pages:paymentSuccess.errors.verificationError') });
+            setVerificationResult({
+              success: false,
+              message: t('pages:paymentSuccess.errors.verificationError'),
+            });
           } else if (data?.success) {
             const finalOrderId = data.order_id || orderId;
             setVerificationResult({
               success: true,
-              message: data.message || t('pages:paymentSuccess.success.verified'),
+              message:
+                data.message || t('pages:paymentSuccess.success.verified'),
               orderId: finalOrderId,
               transactionId: data.transaction_id,
             });
@@ -147,30 +179,46 @@ const PaymentSuccess = () => {
               cust.email = user?.email || '';
             }
             setCustomerInfo(cust);
-            if (data.invoiceData) buildInvoiceFromResponse(data.invoiceData, finalOrderId, cust);
+            if (data.invoiceData)
+              buildInvoiceFromResponse(data.invoiceData, finalOrderId, cust);
             clearCart();
             localStorage.removeItem('cart');
             toast.success(t('pages:paymentSuccess.success.confirmed'));
           } else {
-            setVerificationResult({ success: false, message: data?.message || t('pages:paymentSuccess.errors.verificationFailed') });
+            setVerificationResult({
+              success: false,
+              message:
+                data?.message ||
+                t('pages:paymentSuccess.errors.verificationFailed'),
+            });
           }
         } catch {
-          setVerificationResult({ success: false, message: t('pages:paymentSuccess.errors.unexpectedError') });
+          setVerificationResult({
+            success: false,
+            message: t('pages:paymentSuccess.errors.unexpectedError'),
+          });
         } finally {
           setIsVerifying(false);
         }
       } else if (sessionId) {
         try {
-          const { data, error } = await supabase.functions.invoke('verify-payment', {
-            body: { session_id: sessionId }
-          });
+          const { data, error } = await supabase.functions.invoke(
+            'verify-payment',
+            {
+              body: { session_id: sessionId },
+            }
+          );
 
           if (error) {
-            setVerificationResult({ success: false, message: t('pages:paymentSuccess.errors.verificationError') });
+            setVerificationResult({
+              success: false,
+              message: t('pages:paymentSuccess.errors.verificationError'),
+            });
           } else if (data?.success) {
             setVerificationResult({
               success: true,
-              message: data.message || t('pages:paymentSuccess.success.verified'),
+              message:
+                data.message || t('pages:paymentSuccess.success.verified'),
               orderId: data.orderId,
               transactionId: sessionId.slice(-8).toUpperCase(),
             });
@@ -186,26 +234,48 @@ const PaymentSuccess = () => {
               };
             }
             setCustomerInfo(cust);
-            if (data.invoiceData && data.orderId) buildInvoiceFromResponse(data.invoiceData, data.orderId, cust);
+            if (data.invoiceData && data.orderId)
+              buildInvoiceFromResponse(data.invoiceData, data.orderId, cust);
             clearCart();
             localStorage.removeItem('cart');
             toast.success(t('pages:paymentSuccess.success.confirmed'));
           } else {
-            setVerificationResult({ success: false, message: data?.message || t('pages:paymentSuccess.errors.verificationFailed') });
+            setVerificationResult({
+              success: false,
+              message:
+                data?.message ||
+                t('pages:paymentSuccess.errors.verificationFailed'),
+            });
           }
         } catch {
-          setVerificationResult({ success: false, message: t('pages:paymentSuccess.errors.unexpectedError') });
+          setVerificationResult({
+            success: false,
+            message: t('pages:paymentSuccess.errors.unexpectedError'),
+          });
         } finally {
           setIsVerifying(false);
         }
       } else {
-        setVerificationResult({ success: false, message: t('pages:paymentSuccess.errors.missingSession') });
+        setVerificationResult({
+          success: false,
+          message: t('pages:paymentSuccess.errors.missingSession'),
+        });
         setIsVerifying(false);
       }
     };
 
     verifyPayment();
-  }, [sessionId, isPayPal, paypalOrderId, orderId, clearCart, t, profile, user, buildInvoiceFromResponse]);
+  }, [
+    sessionId,
+    isPayPal,
+    paypalOrderId,
+    orderId,
+    clearCart,
+    t,
+    profile,
+    user,
+    buildInvoiceFromResponse,
+  ]);
 
   // Generate and download invoice as printable HTML
   const handleDownloadInvoice = useCallback(() => {
@@ -213,9 +283,12 @@ const PaymentSuccess = () => {
 
     const formatPrice = (value: number) => value.toFixed(2) + ' €';
     const invoiceNumber = `${new Date().getFullYear()}-${invoiceData.orderId.slice(-8).toUpperCase()}`;
-    const paymentLabel = PAYMENT_METHOD_LABELS[invoiceData.paymentMethod] || invoiceData.paymentMethod;
+    const paymentLabel =
+      PAYMENT_METHOD_LABELS[invoiceData.paymentMethod] ||
+      invoiceData.paymentMethod;
     const countryName = invoiceData.shippingAddress?.country
-      ? (COUNTRY_NAMES[invoiceData.shippingAddress.country] || invoiceData.shippingAddress.country)
+      ? COUNTRY_NAMES[invoiceData.shippingAddress.country] ||
+        invoiceData.shippingAddress.country
       : '';
 
     const invoiceHtml = `
@@ -344,7 +417,9 @@ const PaymentSuccess = () => {
         <div class="address-title">Client</div>
         <div class="address-line"><strong>${invoiceData.customer.firstName} ${invoiceData.customer.lastName}</strong></div>
         <div class="address-line">${invoiceData.customer.email}</div>
-        ${invoiceData.shippingAddress ? `
+        ${
+          invoiceData.shippingAddress
+            ? `
         <div class="address-line" style="margin-top:8px;">
           <span style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#999;font-weight:600;">Adresse de livraison</span>
         </div>
@@ -352,7 +427,9 @@ const PaymentSuccess = () => {
         ${invoiceData.shippingAddress.line2 ? `<div class="address-line">${invoiceData.shippingAddress.line2}</div>` : ''}
         <div class="address-line">${invoiceData.shippingAddress.postalCode} ${invoiceData.shippingAddress.city}</div>
         <div class="address-line">${countryName}</div>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
     </div>
 
@@ -367,13 +444,17 @@ const PaymentSuccess = () => {
         </tr>
       </thead>
       <tbody>
-        ${invoiceData.items.map(item => `
+        ${invoiceData.items
+          .map(
+            (item) => `
         <tr>
           <td class="product-name">${item.product_name}</td>
           <td class="right">${item.quantity}</td>
           <td class="right">${formatPrice(item.unit_price)}</td>
           <td class="right">${formatPrice(item.total_price)}</td>
-        </tr>`).join('')}
+        </tr>`
+          )
+          .join('')}
       </tbody>
     </table>
 
@@ -388,11 +469,15 @@ const PaymentSuccess = () => {
           <span>Frais de livraison</span>
           <span class="totals-value">${invoiceData.shipping > 0 ? formatPrice(invoiceData.shipping) : 'Offerts'}</span>
         </div>
-        ${invoiceData.discount > 0 ? `
+        ${
+          invoiceData.discount > 0
+            ? `
         <div class="totals-row discount">
           <span>Réduction</span>
           <span class="totals-value">-${formatPrice(invoiceData.discount)}</span>
-        </div>` : ''}
+        </div>`
+            : ''
+        }
         <div class="totals-row grand">
           <span>Total TTC</span>
           <span class="totals-value">${formatPrice(invoiceData.total)}</span>
@@ -459,7 +544,8 @@ const PaymentSuccess = () => {
     if (customerInfo.firstName) params.set('firstName', customerInfo.firstName);
     if (customerInfo.lastName) params.set('lastName', customerInfo.lastName);
     if (customerInfo.email) params.set('email', customerInfo.email);
-    if (verificationResult?.orderId) params.set('orderId', verificationResult.orderId);
+    if (verificationResult?.orderId)
+      params.set('orderId', verificationResult.orderId);
     return `/contact?${params.toString()}`;
   };
 
@@ -485,31 +571,45 @@ const PaymentSuccess = () => {
                   {t('pages:paymentSuccess.success.title')}
                 </h1>
                 <p className="text-lg text-muted-foreground mb-2">
-                  {t('pages:paymentSuccess.success.thanks')} {verificationResult.message}
+                  {t('pages:paymentSuccess.success.thanks')}{' '}
+                  {verificationResult.message}
                 </p>
                 {verificationResult.transactionId && (
                   <p className="text-sm text-muted-foreground mb-2">
-                    {t('pages:paymentSuccess.success.transactionId')}: {verificationResult.transactionId.slice(-8).toUpperCase()}
+                    {t('pages:paymentSuccess.success.transactionId')}:{' '}
+                    {verificationResult.transactionId.slice(-8).toUpperCase()}
                   </p>
                 )}
                 {verificationResult.orderId && (
                   <p className="text-sm text-muted-foreground mb-6">
-                    {t('pages:paymentSuccess.success.orderId')}: {verificationResult.orderId.slice(-8).toUpperCase()}
+                    {t('pages:paymentSuccess.success.orderId')}:{' '}
+                    {verificationResult.orderId.slice(-8).toUpperCase()}
                   </p>
                 )}
               </>
             ) : (
               <>
                 <div className="w-20 h-20 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-10 h-10"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </div>
                 <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
                   {t('pages:paymentSuccess.error.title')}
                 </h1>
                 <p className="text-lg text-muted-foreground mb-6">
-                  {verificationResult?.message || t('pages:paymentSuccess.error.description')}
+                  {verificationResult?.message ||
+                    t('pages:paymentSuccess.error.description')}
                 </p>
               </>
             )}
@@ -521,24 +621,42 @@ const PaymentSuccess = () => {
             </h2>
             <div className="space-y-3 text-left max-w-md mx-auto">
               <div className="flex items-start">
-                <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3 mt-1">1</div>
+                <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3 mt-1">
+                  1
+                </div>
                 <div>
-                  <p className="text-foreground font-medium">{t('pages:paymentSuccess.nextSteps.step1.title')}</p>
-                  <p className="text-sm text-muted-foreground">{t('pages:paymentSuccess.nextSteps.step1.description')}</p>
+                  <p className="text-foreground font-medium">
+                    {t('pages:paymentSuccess.nextSteps.step1.title')}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {t('pages:paymentSuccess.nextSteps.step1.description')}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start">
-                <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3 mt-1">2</div>
+                <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3 mt-1">
+                  2
+                </div>
                 <div>
-                  <p className="text-foreground font-medium">{t('pages:paymentSuccess.nextSteps.step2.title')}</p>
-                  <p className="text-sm text-muted-foreground">{t('pages:paymentSuccess.nextSteps.step2.description')}</p>
+                  <p className="text-foreground font-medium">
+                    {t('pages:paymentSuccess.nextSteps.step2.title')}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {t('pages:paymentSuccess.nextSteps.step2.description')}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start">
-                <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3 mt-1">3</div>
+                <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3 mt-1">
+                  3
+                </div>
                 <div>
-                  <p className="text-foreground font-medium">{t('pages:paymentSuccess.nextSteps.step3.title')}</p>
-                  <p className="text-sm text-muted-foreground">{t('pages:paymentSuccess.nextSteps.step3.description')}</p>
+                  <p className="text-foreground font-medium">
+                    {t('pages:paymentSuccess.nextSteps.step3.title')}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {t('pages:paymentSuccess.nextSteps.step3.description')}
+                  </p>
                 </div>
               </div>
             </div>
@@ -547,17 +665,19 @@ const PaymentSuccess = () => {
           {!isVerifying && (
             <div className="space-y-4">
               {/* Auto-redirect notice */}
-              {user && verificationResult?.success && redirectCountdown !== null && (
-                <p className="text-sm text-muted-foreground">
-                  Redirection vers vos commandes dans {redirectCountdown}s…{' '}
-                  <button 
-                    onClick={() => setRedirectCountdown(null)} 
-                    className="underline text-primary hover:text-primary/80"
-                  >
-                    Annuler
-                  </button>
-                </p>
-              )}
+              {user &&
+                verificationResult?.success &&
+                redirectCountdown !== null && (
+                  <p className="text-sm text-muted-foreground">
+                    Redirection vers vos commandes dans {redirectCountdown}s…{' '}
+                    <button
+                      onClick={() => setRedirectCountdown(null)}
+                      className="underline text-primary hover:text-primary/80"
+                    >
+                      Annuler
+                    </button>
+                  </p>
+                )}
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
                 {/* Primary CTA: View Orders (logged in) */}
@@ -565,7 +685,9 @@ const PaymentSuccess = () => {
                   <Button asChild size="lg" className="gap-2">
                     <Link to="/orders">
                       <Package className="w-5 h-5" />
-                      {t('pages:paymentSuccess.viewOrders', { defaultValue: 'Voir mes commandes' })}
+                      {t('pages:paymentSuccess.viewOrders', {
+                        defaultValue: 'Voir mes commandes',
+                      })}
                     </Link>
                   </Button>
                 )}
@@ -588,7 +710,7 @@ const PaymentSuccess = () => {
                     {t('common:buttons.continueShopping')}
                   </Link>
                 </Button>
-                
+
                 <Button variant="ghost" asChild className="gap-2">
                   <Link to="/">
                     <Home className="w-4 h-4" />

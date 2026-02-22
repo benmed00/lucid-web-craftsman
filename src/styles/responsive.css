@@ -3,17 +3,17 @@
 /* Mobile-first typography scale */
 :root {
   /* Mobile font sizes - optimized for readability */
-  --text-xs: 0.75rem;   /* 12px */
-  --text-sm: 0.875rem;  /* 14px */
-  --text-base: 1rem;    /* 16px */
-  --text-lg: 1.125rem;  /* 18px */
-  --text-xl: 1.25rem;   /* 20px */
-  --text-2xl: 1.5rem;   /* 24px */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-base: 1rem; /* 16px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.25rem; /* 20px */
+  --text-2xl: 1.5rem; /* 24px */
   --text-3xl: 1.875rem; /* 30px */
-  --text-4xl: 2.25rem;  /* 36px */
-  --text-5xl: 3rem;     /* 48px */
-  --text-6xl: 3.75rem;  /* 60px */
-  
+  --text-4xl: 2.25rem; /* 36px */
+  --text-5xl: 3rem; /* 48px */
+  --text-6xl: 3.75rem; /* 60px */
+
   /* Mobile-optimized spacing */
   --mobile-padding: 1rem;
   --mobile-gap: 1rem;
@@ -79,7 +79,7 @@
     min-height: 48px;
     min-width: 48px;
   }
-  
+
   /* Better tap feedback on mobile */
   .touch-target:active {
     transform: scale(0.97);
@@ -93,14 +93,16 @@
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   /* Prevent horizontal scroll */
   body {
     overflow-x: hidden;
   }
-  
+
   /* Improve text readability on mobile */
-  p, li, span {
+  p,
+  li,
+  span {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -132,12 +134,12 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
   }
-  
+
   /* Tablet-specific grid for better spacing */
   .tablet-grid-2 {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .tablet-grid-3 {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -163,11 +165,11 @@
     padding-left: 0.5rem;
     padding-right: 0.5rem;
   }
-  
+
   .tablet-text-sm {
     font-size: 0.875rem;
   }
-  
+
   .tablet-header-height {
     height: 4rem; /* 64px */
   }
@@ -270,12 +272,12 @@
   .mobile-hidden {
     display: none !important;
   }
-  
+
   .mobile-full-width {
     width: 100vw;
     margin-left: calc(-50vw + 50%);
   }
-  
+
   .mobile-padding {
     padding-left: 1rem;
     padding-right: 1rem;
@@ -331,15 +333,15 @@
   .safe-area-inset-top {
     padding-top: max(1rem, env(safe-area-inset-top));
   }
-  
+
   .safe-area-inset-bottom {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
-  
+
   .safe-area-inset-left {
     padding-left: max(1rem, env(safe-area-inset-left));
   }
-  
+
   .safe-area-inset-right {
     padding-right: max(1rem, env(safe-area-inset-right));
   }
@@ -350,11 +352,11 @@
   .print-hidden {
     display: none !important;
   }
-  
+
   .print-break-before {
     break-before: page;
   }
-  
+
   .print-break-after {
     break-after: page;
   }

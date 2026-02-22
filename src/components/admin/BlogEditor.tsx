@@ -1,64 +1,76 @@
 /**
  * Enhanced Blog Editor Component
- * 
+ *
  * Features:
  * - Markdown editor with live preview
  * - Image upload with drag & drop
  * - Translation management with language tabs
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import MDEditor from "@uiw/react-md-editor";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
-import { 
-  Globe, 
-  Upload, 
-  Image as ImageIcon, 
-  X, 
-  Check, 
-  Loader2, 
-  Tag, 
+import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import MDEditor from '@uiw/react-md-editor';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
+import {
+  Globe,
+  Upload,
+  Image as ImageIcon,
+  X,
+  Check,
+  Loader2,
+  Tag,
   Languages,
   Eye,
   FileText,
-  AlertCircle
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { blogImageUploadService } from "@/services/blogImageUploadService";
-import TagAutocomplete from "./TagAutocomplete";
+  AlertCircle,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { blogImageUploadService } from '@/services/blogImageUploadService';
+import TagAutocomplete from './TagAutocomplete';
 
 // Supported locales
-const SUPPORTED_LOCALES = ["fr", "en", "ar", "es", "de"] as const;
-type SupportedLocale = typeof SUPPORTED_LOCALES[number];
+const SUPPORTED_LOCALES = ['fr', 'en', 'ar', 'es', 'de'] as const;
+type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 const LOCALE_LABELS: Record<SupportedLocale, string> = {
-  fr: "Français",
-  en: "English",
-  ar: "العربية",
-  es: "Español",
-  de: "Deutsch"
+  fr: 'Français',
+  en: 'English',
+  ar: 'العربية',
+  es: 'Español',
+  de: 'Deutsch',
 };
 
 const LOCALE_FLAGS: Record<SupportedLocale, string> = {
-  fr: "🇫🇷",
-  en: "🇬🇧",
-  ar: "🇲🇦",
-  es: "🇪🇸",
-  de: "🇩🇪"
+  fr: '🇫🇷',
+  en: '🇬🇧',
+  ar: '🇲🇦',
+  es: '🇪🇸',
+  de: '🇩🇪',
 };
 
 interface BlogPostFormData {
@@ -96,7 +108,7 @@ interface BlogEditorProps {
   onCancel: () => void;
   isSubmitting: boolean;
   isValid: boolean;
-  mode: "create" | "edit";
+  mode: 'create' | 'edit';
   generateSlug: (title: string) => string;
   editingPostId?: string;
 }
@@ -112,16 +124,55 @@ export default function BlogEditor({
   isValid,
   mode,
   generateSlug,
-  editingPostId
+  editingPostId,
 }: BlogEditorProps) {
-  const [activeTab, setActiveTab] = useState<"content" | "translations" | "media">("content");
-  const [activeLocale, setActiveLocale] = useState<SupportedLocale>("en");
-  const [translations, setTranslations] = useState<Record<SupportedLocale, Partial<BlogTranslation>>>({
-    fr: { locale: "fr", title: "", excerpt: "", content: "", seo_title: "", seo_description: "" },
-    en: { locale: "en", title: "", excerpt: "", content: "", seo_title: "", seo_description: "" },
-    ar: { locale: "ar", title: "", excerpt: "", content: "", seo_title: "", seo_description: "" },
-    es: { locale: "es", title: "", excerpt: "", content: "", seo_title: "", seo_description: "" },
-    de: { locale: "de", title: "", excerpt: "", content: "", seo_title: "", seo_description: "" },
+  const [activeTab, setActiveTab] = useState<
+    'content' | 'translations' | 'media'
+  >('content');
+  const [activeLocale, setActiveLocale] = useState<SupportedLocale>('en');
+  const [translations, setTranslations] = useState<
+    Record<SupportedLocale, Partial<BlogTranslation>>
+  >({
+    fr: {
+      locale: 'fr',
+      title: '',
+      excerpt: '',
+      content: '',
+      seo_title: '',
+      seo_description: '',
+    },
+    en: {
+      locale: 'en',
+      title: '',
+      excerpt: '',
+      content: '',
+      seo_title: '',
+      seo_description: '',
+    },
+    ar: {
+      locale: 'ar',
+      title: '',
+      excerpt: '',
+      content: '',
+      seo_title: '',
+      seo_description: '',
+    },
+    es: {
+      locale: 'es',
+      title: '',
+      excerpt: '',
+      content: '',
+      seo_title: '',
+      seo_description: '',
+    },
+    de: {
+      locale: 'de',
+      title: '',
+      excerpt: '',
+      content: '',
+      seo_title: '',
+      seo_description: '',
+    },
   });
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [contentImages, setContentImages] = useState<string[]>([]);
@@ -143,17 +194,17 @@ export default function BlogEditor({
 
   // Fetch existing translations when editing
   const { data: existingTranslations } = useQuery({
-    queryKey: ["blog-post-translations", editingPostId],
+    queryKey: ['blog-post-translations', editingPostId],
     queryFn: async () => {
       if (!editingPostId) return [];
       const { data, error } = await supabase
-        .from("blog_post_translations")
-        .select("*")
-        .eq("blog_post_id", editingPostId);
+        .from('blog_post_translations')
+        .select('*')
+        .eq('blog_post_id', editingPostId);
       if (error) throw error;
       return data as BlogTranslationRow[];
     },
-    enabled: mode === "edit" && !!editingPostId,
+    enabled: mode === 'edit' && !!editingPostId,
   });
 
   // Load existing translations into state
@@ -167,11 +218,11 @@ export default function BlogEditor({
             id: trans.id,
             blog_post_id: trans.blog_post_id,
             locale: trans.locale,
-            title: trans.title || "",
-            excerpt: trans.excerpt || "",
-            content: trans.content || "",
-            seo_title: trans.seo_title || "",
-            seo_description: trans.seo_description || "",
+            title: trans.title || '',
+            excerpt: trans.excerpt || '',
+            content: trans.content || '',
+            seo_title: trans.seo_title || '',
+            seo_description: trans.seo_description || '',
           };
         }
       });
@@ -181,15 +232,21 @@ export default function BlogEditor({
 
   // Save translation mutation
   const saveTranslationMutation = useMutation({
-    mutationFn: async ({ locale, translation }: { locale: SupportedLocale; translation: Partial<BlogTranslation> }) => {
-      if (!editingPostId) throw new Error("Post ID required");
-      
+    mutationFn: async ({
+      locale,
+      translation,
+    }: {
+      locale: SupportedLocale;
+      translation: Partial<BlogTranslation>;
+    }) => {
+      if (!editingPostId) throw new Error('Post ID required');
+
       const translationData = {
         blog_post_id: editingPostId,
         locale,
-        title: translation.title || "",
+        title: translation.title || '',
         excerpt: translation.excerpt || null,
-        content: translation.content || "",
+        content: translation.content || '',
         seo_title: translation.seo_title || null,
         seo_description: translation.seo_description || null,
       };
@@ -197,67 +254,81 @@ export default function BlogEditor({
       if (translation.id) {
         // Update existing
         const { error } = await supabase
-          .from("blog_post_translations")
+          .from('blog_post_translations')
           .update(translationData)
-          .eq("id", translation.id);
+          .eq('id', translation.id);
         if (error) throw error;
       } else {
         // Insert new
         const { error } = await supabase
-          .from("blog_post_translations")
+          .from('blog_post_translations')
           .insert(translationData);
         if (error) throw error;
       }
     },
     onSuccess: (_, { locale }) => {
       toast.success(`Traduction ${LOCALE_LABELS[locale]} enregistrée`);
-      queryClient.invalidateQueries({ queryKey: ["blog-post-translations", editingPostId] });
+      queryClient.invalidateQueries({
+        queryKey: ['blog-post-translations', editingPostId],
+      });
     },
     onError: (error) => {
-      console.error("Error saving translation:", error);
-      toast.error("Erreur lors de la sauvegarde de la traduction");
+      console.error('Error saving translation:', error);
+      toast.error('Erreur lors de la sauvegarde de la traduction');
     },
   });
 
   // Handle featured image upload
-  const handleFeaturedImageUpload = useCallback(async (file: File) => {
-    const validation = blogImageUploadService.validateImageFile(file);
-    if (!validation.isValid) {
-      toast.error(validation.error);
-      return;
-    }
+  const handleFeaturedImageUpload = useCallback(
+    async (file: File) => {
+      const validation = blogImageUploadService.validateImageFile(file);
+      if (!validation.isValid) {
+        toast.error(validation.error);
+        return;
+      }
 
-    setIsUploadingImage(true);
-    try {
-      const result = await blogImageUploadService.uploadBlogImage(file, editingPostId);
-      setFormData({ ...formData, featured_image_url: result.url });
-      toast.success("Image principale uploadée avec succès");
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Erreur lors de l'upload de l'image");
-    } finally {
-      setIsUploadingImage(false);
-    }
-  }, [formData, setFormData, editingPostId]);
+      setIsUploadingImage(true);
+      try {
+        const result = await blogImageUploadService.uploadBlogImage(
+          file,
+          editingPostId
+        );
+        setFormData({ ...formData, featured_image_url: result.url });
+        toast.success('Image principale uploadée avec succès');
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast.error("Erreur lors de l'upload de l'image");
+      } finally {
+        setIsUploadingImage(false);
+      }
+    },
+    [formData, setFormData, editingPostId]
+  );
 
   // Handle content image upload (for markdown)
-  const handleContentImageUpload = useCallback(async (file: File) => {
-    const validation = blogImageUploadService.validateImageFile(file);
-    if (!validation.isValid) {
-      toast.error(validation.error);
-      return null;
-    }
+  const handleContentImageUpload = useCallback(
+    async (file: File) => {
+      const validation = blogImageUploadService.validateImageFile(file);
+      if (!validation.isValid) {
+        toast.error(validation.error);
+        return null;
+      }
 
-    try {
-      const result = await blogImageUploadService.uploadBlogImage(file, editingPostId);
-      setContentImages(prev => [...prev, result.url]);
-      return result.url;
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Erreur lors de l'upload de l'image");
-      return null;
-    }
-  }, [editingPostId]);
+      try {
+        const result = await blogImageUploadService.uploadBlogImage(
+          file,
+          editingPostId
+        );
+        setContentImages((prev) => [...prev, result.url]);
+        return result.url;
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast.error("Erreur lors de l'upload de l'image");
+        return null;
+      }
+    },
+    [editingPostId]
+  );
 
   // Insert image into markdown content
   const insertImageIntoContent = async (file: File) => {
@@ -268,45 +339,58 @@ export default function BlogEditor({
     }
   };
 
-  const updateTranslation = (locale: SupportedLocale, field: keyof BlogTranslation, value: string) => {
-    setTranslations(prev => ({
+  const updateTranslation = (
+    locale: SupportedLocale,
+    field: keyof BlogTranslation,
+    value: string
+  ) => {
+    setTranslations((prev) => ({
       ...prev,
       [locale]: {
         ...prev[locale],
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
   const handleSaveTranslation = (locale: SupportedLocale) => {
     if (!editingPostId) {
-      toast.error("Veuillez d'abord créer l'article avant d'ajouter des traductions");
+      toast.error(
+        "Veuillez d'abord créer l'article avant d'ajouter des traductions"
+      );
       return;
     }
-    saveTranslationMutation.mutate({ locale, translation: translations[locale] });
+    saveTranslationMutation.mutate({
+      locale,
+      translation: translations[locale],
+    });
   };
 
   const getTranslationStatus = (locale: SupportedLocale) => {
     const trans = translations[locale];
-    if (!trans.title && !trans.content) return "empty";
-    if (trans.title && trans.content) return "complete";
-    return "partial";
+    if (!trans.title && !trans.content) return 'empty';
+    if (trans.title && trans.content) return 'complete';
+    return 'partial';
   };
 
   return (
     <DialogContent className="max-w-5xl max-h-[95vh] p-0">
       <DialogHeader className="px-6 pt-6 pb-0">
         <DialogTitle className="text-xl">
-          {mode === "create" ? "Nouvel article" : "Modifier l'article"}
+          {mode === 'create' ? 'Nouvel article' : "Modifier l'article"}
         </DialogTitle>
         <DialogDescription>
-          {mode === "create"
-            ? "Créez un nouvel article de blog avec traductions"
+          {mode === 'create'
+            ? 'Créez un nouvel article de blog avec traductions'
             : "Modifiez les informations de l'article et ses traductions"}
         </DialogDescription>
       </DialogHeader>
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="flex-1">
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as typeof activeTab)}
+        className="flex-1"
+      >
         <div className="px-6 pt-4">
           <TabsList className="w-full">
             <TabsTrigger value="content" className="flex-1 gap-2">
@@ -316,9 +400,14 @@ export default function BlogEditor({
             <TabsTrigger value="translations" className="flex-1 gap-2">
               <Languages className="h-4 w-4" />
               Traductions
-              {mode === "edit" && (
+              {mode === 'edit' && (
                 <Badge variant="secondary" className="ml-1 text-xs">
-                  {SUPPORTED_LOCALES.filter(l => getTranslationStatus(l) !== "empty").length}/{SUPPORTED_LOCALES.length}
+                  {
+                    SUPPORTED_LOCALES.filter(
+                      (l) => getTranslationStatus(l) !== 'empty'
+                    ).length
+                  }
+                  /{SUPPORTED_LOCALES.length}
                 </Badge>
               )}
             </TabsTrigger>
@@ -329,7 +418,10 @@ export default function BlogEditor({
           </TabsList>
         </div>
 
-        <ScrollArea className="flex-1 px-6 py-4" style={{ height: "calc(95vh - 250px)" }}>
+        <ScrollArea
+          className="flex-1 px-6 py-4"
+          style={{ height: 'calc(95vh - 250px)' }}
+        >
           {/* Content Tab */}
           <TabsContent value="content" className="mt-0 space-y-6">
             {/* Title & Slug */}
@@ -339,7 +431,9 @@ export default function BlogEditor({
                 <Input
                   id="title"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   placeholder="Titre de l'article"
                 />
               </div>
@@ -351,7 +445,12 @@ export default function BlogEditor({
                     variant="link"
                     size="sm"
                     className="ml-2 h-auto p-0 text-xs"
-                    onClick={() => setFormData({ ...formData, slug: generateSlug(formData.title) })}
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        slug: generateSlug(formData.title),
+                      })
+                    }
                   >
                     Générer
                   </Button>
@@ -359,7 +458,9 @@ export default function BlogEditor({
                 <Input
                   id="slug"
                   value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, slug: e.target.value })
+                  }
                   placeholder="url-de-larticle"
                 />
               </div>
@@ -370,8 +471,10 @@ export default function BlogEditor({
               <Label htmlFor="excerpt">Extrait</Label>
               <Textarea
                 id="excerpt"
-                value={formData.excerpt || ""}
-                onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                value={formData.excerpt || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, excerpt: e.target.value })
+                }
                 placeholder="Résumé court de l'article..."
                 rows={2}
               />
@@ -402,10 +505,15 @@ export default function BlogEditor({
                   </Button>
                 </div>
               </div>
-              <div data-color-mode="light" className="border rounded-lg overflow-hidden">
+              <div
+                data-color-mode="light"
+                className="border rounded-lg overflow-hidden"
+              >
                 <MDEditor
                   value={formData.content}
-                  onChange={(val) => setFormData({ ...formData, content: val || "" })}
+                  onChange={(val) =>
+                    setFormData({ ...formData, content: val || '' })
+                  }
                   height={400}
                   preview="live"
                   hideToolbar={false}
@@ -428,7 +536,7 @@ export default function BlogEditor({
               <div className="space-y-2">
                 <Label htmlFor="status">Statut</Label>
                 <Select
-                  value={formData.status || "draft"}
+                  value={formData.status || 'draft'}
                   onValueChange={(v) => setFormData({ ...formData, status: v })}
                 >
                   <SelectTrigger>
@@ -450,7 +558,9 @@ export default function BlogEditor({
                 </div>
                 <Switch
                   checked={formData.is_featured || false}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, is_featured: checked })
+                  }
                 />
               </div>
             </div>
@@ -466,8 +576,10 @@ export default function BlogEditor({
                     <Label htmlFor="seo_title">Titre SEO</Label>
                     <Input
                       id="seo_title"
-                      value={formData.seo_title || ""}
-                      onChange={(e) => setFormData({ ...formData, seo_title: e.target.value })}
+                      value={formData.seo_title || ''}
+                      onChange={(e) =>
+                        setFormData({ ...formData, seo_title: e.target.value })
+                      }
                       placeholder="Titre optimisé pour les moteurs"
                     />
                   </div>
@@ -475,8 +587,13 @@ export default function BlogEditor({
                     <Label htmlFor="seo_description">Description SEO</Label>
                     <Input
                       id="seo_description"
-                      value={formData.seo_description || ""}
-                      onChange={(e) => setFormData({ ...formData, seo_description: e.target.value })}
+                      value={formData.seo_description || ''}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          seo_description: e.target.value,
+                        })
+                      }
                       placeholder="Description pour les résultats"
                     />
                   </div>
@@ -487,15 +604,18 @@ export default function BlogEditor({
 
           {/* Translations Tab */}
           <TabsContent value="translations" className="mt-0 space-y-4">
-            {mode === "create" && (
+            {mode === 'create' && (
               <Card className="border-amber-200 bg-amber-50">
                 <CardContent className="pt-4">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-medium text-amber-800">Article non créé</p>
+                      <p className="font-medium text-amber-800">
+                        Article non créé
+                      </p>
                       <p className="text-sm text-amber-700">
-                        Veuillez d'abord créer l'article avant d'ajouter des traductions.
+                        Veuillez d'abord créer l'article avant d'ajouter des
+                        traductions.
                       </p>
                     </div>
                   </div>
@@ -509,22 +629,28 @@ export default function BlogEditor({
                 return (
                   <Button
                     key={locale}
-                    variant={activeLocale === locale ? "default" : "outline"}
+                    variant={activeLocale === locale ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setActiveLocale(locale)}
                     className="gap-2"
-                    disabled={mode === "create"}
+                    disabled={mode === 'create'}
                   >
                     <span>{LOCALE_FLAGS[locale]}</span>
                     <span>{LOCALE_LABELS[locale]}</span>
-                    {status === "complete" && <Check className="h-3 w-3 text-green-500" />}
-                    {status === "partial" && <Badge variant="secondary" className="text-xs">Partiel</Badge>}
+                    {status === 'complete' && (
+                      <Check className="h-3 w-3 text-green-500" />
+                    )}
+                    {status === 'partial' && (
+                      <Badge variant="secondary" className="text-xs">
+                        Partiel
+                      </Badge>
+                    )}
                   </Button>
                 );
               })}
             </div>
 
-            {mode === "edit" && (
+            {mode === 'edit' && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
@@ -536,17 +662,25 @@ export default function BlogEditor({
                   <div className="space-y-2">
                     <Label>Titre</Label>
                     <Input
-                      value={translations[activeLocale]?.title || ""}
-                      onChange={(e) => updateTranslation(activeLocale, "title", e.target.value)}
+                      value={translations[activeLocale]?.title || ''}
+                      onChange={(e) =>
+                        updateTranslation(activeLocale, 'title', e.target.value)
+                      }
                       placeholder={`Titre en ${LOCALE_LABELS[activeLocale]}`}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label>Extrait</Label>
                     <Textarea
-                      value={translations[activeLocale]?.excerpt || ""}
-                      onChange={(e) => updateTranslation(activeLocale, "excerpt", e.target.value)}
+                      value={translations[activeLocale]?.excerpt || ''}
+                      onChange={(e) =>
+                        updateTranslation(
+                          activeLocale,
+                          'excerpt',
+                          e.target.value
+                        )
+                      }
                       placeholder={`Extrait en ${LOCALE_LABELS[activeLocale]}`}
                       rows={2}
                     />
@@ -554,10 +688,15 @@ export default function BlogEditor({
 
                   <div className="space-y-2">
                     <Label>Contenu (Markdown)</Label>
-                    <div data-color-mode="light" className="border rounded-lg overflow-hidden">
+                    <div
+                      data-color-mode="light"
+                      className="border rounded-lg overflow-hidden"
+                    >
                       <MDEditor
-                        value={translations[activeLocale]?.content || ""}
-                        onChange={(val) => updateTranslation(activeLocale, "content", val || "")}
+                        value={translations[activeLocale]?.content || ''}
+                        onChange={(val) =>
+                          updateTranslation(activeLocale, 'content', val || '')
+                        }
                         height={300}
                         preview="live"
                       />
@@ -570,16 +709,30 @@ export default function BlogEditor({
                     <div className="space-y-2">
                       <Label>Titre SEO</Label>
                       <Input
-                        value={translations[activeLocale]?.seo_title || ""}
-                        onChange={(e) => updateTranslation(activeLocale, "seo_title", e.target.value)}
+                        value={translations[activeLocale]?.seo_title || ''}
+                        onChange={(e) =>
+                          updateTranslation(
+                            activeLocale,
+                            'seo_title',
+                            e.target.value
+                          )
+                        }
                         placeholder="Titre SEO"
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>Description SEO</Label>
                       <Input
-                        value={translations[activeLocale]?.seo_description || ""}
-                        onChange={(e) => updateTranslation(activeLocale, "seo_description", e.target.value)}
+                        value={
+                          translations[activeLocale]?.seo_description || ''
+                        }
+                        onChange={(e) =>
+                          updateTranslation(
+                            activeLocale,
+                            'seo_description',
+                            e.target.value
+                          )
+                        }
                         placeholder="Description SEO"
                       />
                     </div>
@@ -619,7 +772,9 @@ export default function BlogEditor({
                 <FeaturedImageUpload
                   currentImage={formData.featured_image_url}
                   onUpload={handleFeaturedImageUpload}
-                  onRemove={() => setFormData({ ...formData, featured_image_url: null })}
+                  onRemove={() =>
+                    setFormData({ ...formData, featured_image_url: null })
+                  }
                   isUploading={isUploadingImage}
                 />
               </CardContent>
@@ -634,15 +789,22 @@ export default function BlogEditor({
                 <CardContent>
                   <div className="grid grid-cols-3 gap-4">
                     {contentImages.map((url, index) => (
-                      <div key={index} className="relative group rounded-lg overflow-hidden border">
-                        <img src={url} alt={`Content ${index + 1}`} className="w-full h-24 object-cover" />
+                      <div
+                        key={index}
+                        className="relative group rounded-lg overflow-hidden border"
+                      >
+                        <img
+                          src={url}
+                          alt={`Content ${index + 1}`}
+                          className="w-full h-24 object-cover"
+                        />
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <Button
                             size="sm"
                             variant="secondary"
                             onClick={() => {
                               navigator.clipboard.writeText(`![Image](${url})`);
-                              toast.success("Markdown copié !");
+                              toast.success('Markdown copié !');
                             }}
                           >
                             Copier Markdown
@@ -658,7 +820,9 @@ export default function BlogEditor({
             {/* Upload new content image */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Ajouter une image au contenu</CardTitle>
+                <CardTitle className="text-base">
+                  Ajouter une image au contenu
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <ContentImageUploader onUpload={insertImageIntoContent} />
@@ -674,10 +838,10 @@ export default function BlogEditor({
         </Button>
         <Button onClick={onSubmit} disabled={isSubmitting || !isValid}>
           {isSubmitting
-            ? "Enregistrement..."
-            : mode === "create"
-            ? "Créer l'article"
-            : "Enregistrer"}
+            ? 'Enregistrement...'
+            : mode === 'create'
+              ? "Créer l'article"
+              : 'Enregistrer'}
         </Button>
       </DialogFooter>
     </DialogContent>
@@ -689,7 +853,7 @@ function FeaturedImageUpload({
   currentImage,
   onUpload,
   onRemove,
-  isUploading
+  isUploading,
 }: {
   currentImage: string | null;
   onUpload: (file: File) => void;
@@ -713,12 +877,17 @@ function FeaturedImageUpload({
   return (
     <div
       className={cn(
-        "relative border-2 border-dashed rounded-lg transition-all cursor-pointer",
-        isDragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
-        isUploading && "pointer-events-none opacity-50"
+        'relative border-2 border-dashed rounded-lg transition-all cursor-pointer',
+        isDragOver
+          ? 'border-primary bg-primary/5'
+          : 'border-border hover:border-primary/50',
+        isUploading && 'pointer-events-none opacity-50'
       )}
       onDrop={handleDrop}
-      onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDragOver(true);
+      }}
       onDragLeave={() => setIsDragOver(false)}
       onClick={() => document.getElementById('featured-image-input')?.click()}
     >
@@ -732,12 +901,29 @@ function FeaturedImageUpload({
 
       {currentImage ? (
         <div className="relative group">
-          <img src={currentImage} alt="Featured" className="w-full h-48 object-cover rounded-lg" />
+          <img
+            src={currentImage}
+            alt="Featured"
+            className="w-full h-48 object-cover rounded-lg"
+          />
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
-            <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); }}>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
               Changer
             </Button>
-            <Button size="sm" variant="destructive" onClick={(e) => { e.stopPropagation(); onRemove(); }}>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
+            >
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -758,8 +944,12 @@ function FeaturedImageUpload({
               )}
             </div>
             <div>
-              <p className="font-medium">Glissez une image ou cliquez pour sélectionner</p>
-              <p className="text-sm text-muted-foreground">JPG, PNG, WEBP • Max 5MB</p>
+              <p className="font-medium">
+                Glissez une image ou cliquez pour sélectionner
+              </p>
+              <p className="text-sm text-muted-foreground">
+                JPG, PNG, WEBP • Max 5MB
+              </p>
             </div>
           </div>
         </div>
@@ -769,7 +959,11 @@ function FeaturedImageUpload({
 }
 
 // Content Image Uploader Component
-function ContentImageUploader({ onUpload }: { onUpload: (file: File) => void }) {
+function ContentImageUploader({
+  onUpload,
+}: {
+  onUpload: (file: File) => void;
+}) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -796,12 +990,17 @@ function ContentImageUploader({ onUpload }: { onUpload: (file: File) => void }) 
   return (
     <div
       className={cn(
-        "border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer",
-        isDragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
-        isUploading && "pointer-events-none opacity-50"
+        'border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer',
+        isDragOver
+          ? 'border-primary bg-primary/5'
+          : 'border-border hover:border-primary/50',
+        isUploading && 'pointer-events-none opacity-50'
       )}
       onDrop={handleDrop}
-      onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDragOver(true);
+      }}
       onDragLeave={() => setIsDragOver(false)}
       onClick={() => document.getElementById('content-image-input')?.click()}
     >
@@ -819,7 +1018,9 @@ function ContentImageUploader({ onUpload }: { onUpload: (file: File) => void }) 
           <ImageIcon className="h-8 w-8 text-muted-foreground" />
         )}
         <p className="text-sm text-muted-foreground">
-          {isUploading ? "Upload en cours..." : "Glissez une image ou cliquez pour l'ajouter au contenu"}
+          {isUploading
+            ? 'Upload en cours...'
+            : "Glissez une image ou cliquez pour l'ajouter au contenu"}
         </p>
       </div>
     </div>

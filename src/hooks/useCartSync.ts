@@ -5,7 +5,13 @@ import { useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductService } from '@/services/productService';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
-import { safeGetItem, safeSetItem, safeRemoveItem, StorageKeys, StorageTTL } from '@/lib/storage/safeStorage';
+import {
+  safeGetItem,
+  safeSetItem,
+  safeRemoveItem,
+  StorageKeys,
+  StorageTTL,
+} from '@/lib/storage/safeStorage';
 import { toast } from 'sonner';
 import { getBusinessRules } from '@/hooks/useBusinessRules';
 
@@ -68,7 +74,10 @@ export async function loadProductsForCartItems(
         }
 
         if (sanitizedQuantity <= 0) {
-          console.warn(`Skipping cart item ${item.id} with invalid quantity:`, item.quantity);
+          console.warn(
+            `Skipping cart item ${item.id} with invalid quantity:`,
+            item.quantity
+          );
           return null;
         }
 
@@ -89,9 +98,10 @@ export async function loadProductsForCartItems(
 // Load cart from local storage
 export async function loadLocalCart(): Promise<CartItem[]> {
   const savedCart = safeGetItem<
-    { items: Array<{ id: number; quantity: number }> } | Array<{ id: number; quantity: number }>
+    | { items: Array<{ id: number; quantity: number }> }
+    | Array<{ id: number; quantity: number }>
   >(StorageKeys.CART);
-  
+
   if (!savedCart) return [];
 
   const items = Array.isArray(savedCart) ? savedCart : savedCart?.items || [];
@@ -116,7 +126,10 @@ export async function loadAndMergeSupabaseCart(
 
   const supabaseItems = data
     ? await loadProductsForCartItems(
-        data.map((item) => ({ id: item.product_id as number, quantity: item.quantity }))
+        data.map((item) => ({
+          id: item.product_id as number,
+          quantity: item.quantity,
+        }))
       )
     : [];
 
@@ -162,11 +175,15 @@ export async function saveToSupabase(
       .select('product_id')
       .eq('user_id', userId);
 
-    const existingProductIds = new Set((existingItems || []).map((i) => i.product_id));
+    const existingProductIds = new Set(
+      (existingItems || []).map((i) => i.product_id)
+    );
     const currentProductIds = new Set(items.map((i) => i.id));
 
     // Delete items no longer in cart
-    const toDelete = [...existingProductIds].filter((id) => !currentProductIds.has(id));
+    const toDelete = [...existingProductIds].filter(
+      (id) => !currentProductIds.has(id)
+    );
     if (toDelete.length > 0) {
       await supabase
         .from('cart_items')
@@ -226,9 +243,11 @@ export async function processOfflineQueue(
                 .eq('user_id', userId)
                 .eq('product_id', op.productId);
             } else {
-              await supabase
-                .from('cart_items')
-                .insert({ user_id: userId, product_id: op.productId, quantity: op.quantity });
+              await supabase.from('cart_items').insert({
+                user_id: userId,
+                product_id: op.productId,
+                quantity: op.quantity,
+              });
             }
             successCount++;
           }
@@ -312,7 +331,9 @@ export function useCartSyncListeners(
     window.addEventListener('offline', handleOffline);
 
     // Auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         onAuthChange(session.user.id);
       } else if (event === 'SIGNED_OUT') {
@@ -347,12 +368,18 @@ export function useDebouncedCartSave(
     timeoutRef.current = setTimeout(async () => {
       if (!isInitialized) return;
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (user && isOnline) {
         await saveToSupabase(user.id, itemsRef.current, isOnline);
       } else {
-        safeSetItem(StorageKeys.CART, { items: itemsRef.current }, { ttl: StorageTTL.WEEK });
+        safeSetItem(
+          StorageKeys.CART,
+          { items: itemsRef.current },
+          { ttl: StorageTTL.WEEK }
+        );
       }
     }, delay);
   }, [isOnline, isInitialized, delay]);

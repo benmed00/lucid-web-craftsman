@@ -4,8 +4,16 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { Product, normalizeProducts, normalizeProduct } from '../shared/interfaces/Iproduct.interface';
-import { DatabaseError, NotFoundError, handleError } from '@/lib/errors/AppError';
+import {
+  Product,
+  normalizeProducts,
+  normalizeProduct,
+} from '../shared/interfaces/Iproduct.interface';
+import {
+  DatabaseError,
+  NotFoundError,
+  handleError,
+} from '@/lib/errors/AppError';
 
 export class ProductService {
   private static readonly TABLE = 'products';
@@ -22,7 +30,10 @@ export class ProductService {
         .order('id');
 
       if (error) {
-        throw new DatabaseError(`Failed to fetch products: ${error.message}`, error.code);
+        throw new DatabaseError(
+          `Failed to fetch products: ${error.message}`,
+          error.code
+        );
       }
 
       return normalizeProducts(data || []);
@@ -48,7 +59,10 @@ export class ProductService {
         if (error.code === 'PGRST116') {
           return null; // No rows returned
         }
-        throw new DatabaseError(`Failed to fetch product ${id}: ${error.message}`, error.code);
+        throw new DatabaseError(
+          `Failed to fetch product ${id}: ${error.message}`,
+          error.code
+        );
       }
 
       return data ? normalizeProduct(data) : null;
@@ -78,7 +92,10 @@ export class ProductService {
         .order('id');
 
       if (error) {
-        throw new DatabaseError(`Failed to fetch products for category ${category}: ${error.message}`, error.code);
+        throw new DatabaseError(
+          `Failed to fetch products for category ${category}: ${error.message}`,
+          error.code
+        );
       }
 
       return normalizeProducts(data || []);
@@ -101,7 +118,10 @@ export class ProductService {
         .order('id');
 
       if (error) {
-        throw new DatabaseError(`Failed to fetch featured products: ${error.message}`, error.code);
+        throw new DatabaseError(
+          `Failed to fetch featured products: ${error.message}`,
+          error.code
+        );
       }
 
       return normalizeProducts(data || []);
@@ -124,7 +144,10 @@ export class ProductService {
         .order('created_at', { ascending: false });
 
       if (error) {
-        throw new DatabaseError(`Failed to fetch new products: ${error.message}`, error.code);
+        throw new DatabaseError(
+          `Failed to fetch new products: ${error.message}`,
+          error.code
+        );
       }
 
       return normalizeProducts(data || []);
@@ -145,7 +168,7 @@ export class ProductService {
 
       // Sanitize the query to prevent injection
       const sanitizedQuery = query.trim().replace(/[%_]/g, '\\$&');
-      
+
       if (sanitizedQuery.length < 2) {
         return [];
       }
@@ -153,12 +176,17 @@ export class ProductService {
       const { data, error } = await supabase
         .from(this.TABLE)
         .select('*')
-        .or(`name.ilike.%${sanitizedQuery}%,description.ilike.%${sanitizedQuery}%,category.ilike.%${sanitizedQuery}%`)
+        .or(
+          `name.ilike.%${sanitizedQuery}%,description.ilike.%${sanitizedQuery}%,category.ilike.%${sanitizedQuery}%`
+        )
         .eq('is_active', true)
         .order('id');
 
       if (error) {
-        throw new DatabaseError(`Failed to search products: ${error.message}`, error.code);
+        throw new DatabaseError(
+          `Failed to search products: ${error.message}`,
+          error.code
+        );
       }
 
       return normalizeProducts(data || []);
@@ -171,7 +199,9 @@ export class ProductService {
   /**
    * Get product stock information
    */
-  static async getProductStock(id: number): Promise<{ stock: number; lowStockThreshold: number } | null> {
+  static async getProductStock(
+    id: number
+  ): Promise<{ stock: number; lowStockThreshold: number } | null> {
     try {
       const { data, error } = await supabase
         .from(this.TABLE)
@@ -183,13 +213,18 @@ export class ProductService {
         if (error.code === 'PGRST116') {
           return null;
         }
-        throw new DatabaseError(`Failed to fetch stock for product ${id}: ${error.message}`, error.code);
+        throw new DatabaseError(
+          `Failed to fetch stock for product ${id}: ${error.message}`,
+          error.code
+        );
       }
 
-      return data ? {
-        stock: data.stock_quantity ?? 0,
-        lowStockThreshold: data.min_stock_level ?? 5
-      } : null;
+      return data
+        ? {
+            stock: data.stock_quantity ?? 0,
+            lowStockThreshold: data.min_stock_level ?? 5,
+          }
+        : null;
     } catch (error) {
       handleError(error, 'ProductService.getProductStock');
       throw error;

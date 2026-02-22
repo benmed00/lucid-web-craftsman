@@ -4,7 +4,12 @@
 
 import { create } from 'zustand';
 import { persist, devtools } from 'zustand/middleware';
-import { safeGetItem, safeSetItem, StorageKeys, StorageTTL } from '@/lib/storage/safeStorage';
+import {
+  safeGetItem,
+  safeSetItem,
+  StorageKeys,
+  StorageTTL,
+} from '@/lib/storage/safeStorage';
 import { cache, CacheTTL, CacheTags } from '@/lib/cache/UnifiedCache';
 import { currencyApi } from '@/lib/api/apiClient';
 import { handleError, NetworkError } from '@/lib/errors/AppError';
@@ -25,12 +30,12 @@ interface CurrencyState {
   exchangeRates: ExchangeRates;
   isLoading: boolean;
   lastUpdated: number | null;
-  
+
   // Actions
   setCurrency: (currency: Currency) => void;
   fetchExchangeRates: () => Promise<void>;
   refreshRates: () => Promise<void>;
-  
+
   // Computed (as functions)
   convertPrice: (price: number, fromCurrency?: Currency) => number;
   formatPrice: (price: number, fromCurrency?: Currency) => string;
@@ -41,21 +46,21 @@ const DEFAULT_EXCHANGE_RATES: ExchangeRates = {
   EUR: { EUR: 1, USD: 1.09, GBP: 0.86, MAD: 10.85 },
   USD: { EUR: 0.92, USD: 1, GBP: 0.79, MAD: 9.95 },
   GBP: { EUR: 1.16, USD: 1.27, GBP: 1, MAD: 12.62 },
-  MAD: { EUR: 0.092, USD: 0.10, GBP: 0.079, MAD: 1 }
+  MAD: { EUR: 0.092, USD: 0.1, GBP: 0.079, MAD: 1 },
 };
 
 const CURRENCY_SYMBOLS: Record<Currency, string> = {
   EUR: '€',
   USD: '$',
   GBP: '£',
-  MAD: 'DH'
+  MAD: 'DH',
 };
 
 const CURRENCY_LOCALE: Record<Currency, string> = {
   EUR: 'fr-FR',
   USD: 'en-US',
   GBP: 'en-GB',
-  MAD: 'fr-MA'
+  MAD: 'fr-MA',
 };
 
 const RATES_CACHE_KEY = 'exchange_rates';
@@ -74,7 +79,9 @@ export const useCurrencyStore = create<CurrencyState>()(
         setCurrency: (currency) => {
           set({ currency });
           // Also persist to safeStorage for compatibility
-          safeSetItem(StorageKeys.CURRENCY, currency, { ttl: StorageTTL.MONTH });
+          safeSetItem(StorageKeys.CURRENCY, currency, {
+            ttl: StorageTTL.MONTH,
+          });
         },
 
         fetchExchangeRates: async () => {
@@ -94,7 +101,7 @@ export const useCurrencyStore = create<CurrencyState>()(
             const data = await currencyApi.get<{
               rates?: { USD?: number; GBP?: number };
             }>('/latest?from=EUR&to=USD,GBP');
-            
+
             // Frankfurter API returns { rates: { USD: x, GBP: y } }
             if (!data.rates) {
               set({ isLoading: false, lastUpdated: Date.now() });
@@ -104,29 +111,29 @@ export const useCurrencyStore = create<CurrencyState>()(
             const rates = {
               USD: data.rates.USD ?? DEFAULT_EXCHANGE_RATES.EUR.USD,
               GBP: data.rates.GBP ?? DEFAULT_EXCHANGE_RATES.EUR.GBP,
-              MAD: DEFAULT_EXCHANGE_RATES.EUR.MAD // MAD not supported by frankfurter, use default
+              MAD: DEFAULT_EXCHANGE_RATES.EUR.MAD, // MAD not supported by frankfurter, use default
             };
 
             const newRates: ExchangeRates = {
               EUR: { EUR: 1, USD: rates.USD, GBP: rates.GBP, MAD: rates.MAD },
-              USD: { 
-                EUR: 1 / rates.USD, 
-                USD: 1, 
-                GBP: rates.GBP / rates.USD, 
-                MAD: rates.MAD / rates.USD 
+              USD: {
+                EUR: 1 / rates.USD,
+                USD: 1,
+                GBP: rates.GBP / rates.USD,
+                MAD: rates.MAD / rates.USD,
               },
-              GBP: { 
-                EUR: 1 / rates.GBP, 
-                USD: rates.USD / rates.GBP, 
-                GBP: 1, 
-                MAD: rates.MAD / rates.GBP 
+              GBP: {
+                EUR: 1 / rates.GBP,
+                USD: rates.USD / rates.GBP,
+                GBP: 1,
+                MAD: rates.MAD / rates.GBP,
               },
-              MAD: { 
-                EUR: 1 / rates.MAD, 
-                USD: rates.USD / rates.MAD, 
-                GBP: rates.GBP / rates.MAD, 
-                MAD: 1 
-              }
+              MAD: {
+                EUR: 1 / rates.MAD,
+                USD: rates.USD / rates.MAD,
+                GBP: rates.GBP / rates.MAD,
+                MAD: 1,
+              },
             };
 
             // Cache the new rates (with safety check)
@@ -134,20 +141,27 @@ export const useCurrencyStore = create<CurrencyState>()(
               cache.set(RATES_CACHE_KEY, newRates, {
                 ttl: CacheTTL.HOUR,
                 staleTime: CacheTTL.MEDIUM,
-                tags: [CacheTags.PROFILE]
+                tags: [CacheTags.PROFILE],
               });
             }
 
-            set({ exchangeRates: newRates, lastUpdated: Date.now(), isLoading: false });
+            set({
+              exchangeRates: newRates,
+              lastUpdated: Date.now(),
+              isLoading: false,
+            });
           } catch (error) {
             // Convert to AppError for consistent handling, but don't display to user
             const appError = handleError(error);
-            
+
             // Log network errors for monitoring (could be sent to analytics)
             if (appError instanceof NetworkError) {
-              console.debug('Currency fetch failed, using defaults:', appError.code);
+              console.debug(
+                'Currency fetch failed, using defaults:',
+                appError.code
+              );
             }
-            
+
             // Silently fall back to default rates
             set({ isLoading: false, lastUpdated: Date.now() });
           }
@@ -191,11 +205,11 @@ export const useCurrencyStore = create<CurrencyState>()(
                 return `${convertedPrice.toFixed(0)} ${symbol}`;
             }
           }
-        }
+        },
       }),
       {
         name: 'currency-storage',
-        partialize: (state) => ({ currency: state.currency })
+        partialize: (state) => ({ currency: state.currency }),
       }
     ),
     { name: 'currency-store' }
@@ -230,7 +244,7 @@ export const useCurrency = () => {
     convertPrice,
     isLoading,
     lastUpdated: lastUpdated ? new Date(lastUpdated) : null,
-    refreshRates
+    refreshRates,
   };
 };
 

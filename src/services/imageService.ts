@@ -1,4 +1,4 @@
-import { ImageFallbackConfig, ImageCategory } from "@/types/image.types";
+import { ImageFallbackConfig, ImageCategory } from '@/types/image.types';
 
 /**
  * CENTRALIZED IMAGE SERVICE - HANDLES ALL IMAGE OPERATIONS
@@ -11,37 +11,29 @@ class ImageService {
 
   // Comprehensive fallback system with actual available images
   private readonly fallbackConfig: ImageFallbackConfig = {
-    product: [
-      "/assets/images/handmade_products.webp",
-      "/placeholder.svg"
-    ],
+    product: ['/assets/images/handmade_products.webp', '/placeholder.svg'],
     hero: [
-      "/assets/images/home_page_image.webp", 
-      "/assets/images/handmade_products.webp",
-      "/placeholder.svg"
+      '/assets/images/home_page_image.webp',
+      '/assets/images/handmade_products.webp',
+      '/placeholder.svg',
     ],
     blog: [
-      "/assets/images/blog/tissage.jpg",
-      "/assets/images/blog/fibre_vegetal.jpg", 
-      "/assets/images/blog/symboles_berberes.webp",
-      "/placeholder.svg"
+      '/assets/images/blog/tissage.jpg',
+      '/assets/images/blog/fibre_vegetal.jpg',
+      '/assets/images/blog/symboles_berberes.webp',
+      '/placeholder.svg',
     ],
     instagram: [
-      "/assets/images/instagram/insta_image_1.webp",
-      "/assets/images/instagram/insta_image_2.webp",
-      "/assets/images/instagram/insta_image_3.webp",
-      "/assets/images/instagram/insta_image_4.webp",
-      "/assets/images/instagram/insta_image_1.jpg",
-      "/assets/images/instagram/insta_image_4.jpg",
-      "/placeholder.svg"
+      '/assets/images/instagram/insta_image_1.webp',
+      '/assets/images/instagram/insta_image_2.webp',
+      '/assets/images/instagram/insta_image_3.webp',
+      '/assets/images/instagram/insta_image_4.webp',
+      '/assets/images/instagram/insta_image_1.jpg',
+      '/assets/images/instagram/insta_image_4.jpg',
+      '/placeholder.svg',
     ],
-    avatar: [
-      "/assets/images/handmade_products.webp",
-      "/placeholder.svg"
-    ],
-    default: [
-      "/placeholder.svg"
-    ]
+    avatar: ['/assets/images/handmade_products.webp', '/placeholder.svg'],
+    default: ['/placeholder.svg'],
   };
 
   static getInstance(): ImageService {
@@ -88,18 +80,21 @@ class ImageService {
   /**
    * Get the next fallback image when current one fails
    */
-  getNextFallback(currentSrc: string, category: ImageCategory = 'default'): string | null {
+  getNextFallback(
+    currentSrc: string,
+    category: ImageCategory = 'default'
+  ): string | null {
     const fallbacks = this.getFallbacks(category);
     const currentIndex = fallbacks.indexOf(currentSrc);
-    
+
     if (currentIndex === -1) {
       return fallbacks[0];
     }
-    
+
     if (currentIndex < fallbacks.length - 1) {
       return fallbacks[currentIndex + 1];
     }
-    
+
     return null;
   }
 
@@ -108,7 +103,7 @@ class ImageService {
    */
   async checkImage(src: string): Promise<boolean> {
     const normalizedSrc = this.normalizeUrl(src);
-    
+
     // Check cache first
     if (this.imageCache.has(normalizedSrc)) {
       return this.imageCache.get(normalizedSrc)!;
@@ -146,8 +141,10 @@ class ImageService {
    * Preload images for better performance
    */
   async preloadImages(sources: string[]): Promise<void> {
-    const uniqueSources = [...new Set(sources.map(src => this.normalizeUrl(src)))];
-    
+    const uniqueSources = [
+      ...new Set(sources.map((src) => this.normalizeUrl(src))),
+    ];
+
     const preloadPromises = uniqueSources.map(async (src) => {
       if (!this.preloadQueue.has(src)) {
         this.preloadQueue.add(src);
@@ -185,7 +182,7 @@ class ImageService {
       // Return unmodified URL for /object endpoint to avoid 400 errors
       return src;
     }
-    
+
     // For local assets, don't auto-convert to webp since files may not exist
     // The webp files need to actually be present in the assets folder
     return src;
@@ -194,9 +191,12 @@ class ImageService {
   /**
    * Get optimized image source with WebP preference and fallback cascade
    */
-  async getOptimizedSource(originalSrc: string, category: ImageCategory = 'default'): Promise<string> {
+  async getOptimizedSource(
+    originalSrc: string,
+    category: ImageCategory = 'default'
+  ): Promise<string> {
     const normalizedSrc = this.normalizeUrl(originalSrc);
-    
+
     // Try WebP version first if browser supports it
     if (this.supportWebP()) {
       const webpSrc = this.getWebPVersion(normalizedSrc);
@@ -207,7 +207,7 @@ class ImageService {
         }
       }
     }
-    
+
     // Try original source
     const isOriginalValid = await this.checkImage(normalizedSrc);
     if (isOriginalValid) {
@@ -227,7 +227,7 @@ class ImageService {
           }
         }
       }
-      
+
       // Try original fallback
       const isValid = await this.checkImage(fallback);
       if (isValid) {
@@ -253,7 +253,7 @@ class ImageService {
   getCacheStats(): { cached: number; queued: number } {
     return {
       cached: this.imageCache.size,
-      queued: this.preloadQueue.size
+      queued: this.preloadQueue.size,
     };
   }
 }

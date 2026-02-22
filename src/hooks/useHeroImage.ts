@@ -3,13 +3,15 @@ import { heroImageService, HeroImageData } from '@/services/heroImageService';
 
 const defaultHeroImage: HeroImageData = {
   imageUrl: '/assets/images/home_page_image.webp',
-  altText: 'Chapeau artisanal et sac traditionnel fait main - Artisanat authentique du Rif',
+  altText:
+    'Chapeau artisanal et sac traditionnel fait main - Artisanat authentique du Rif',
   title: 'Artisanat Authentique du Rif',
-  subtitle: 'Chapeau tressé et sac naturel - Fait main avec amour'
+  subtitle: 'Chapeau tressé et sac naturel - Fait main avec amour',
 };
 
 export const useHeroImage = () => {
-  const [heroImageData, setHeroImageData] = useState<HeroImageData>(defaultHeroImage);
+  const [heroImageData, setHeroImageData] =
+    useState<HeroImageData>(defaultHeroImage);
   const [isLoading, setIsLoading] = useState(false); // Start with false to show default image immediately
 
   // Load hero image data on mount - but don't show loading state
@@ -20,7 +22,7 @@ export const useHeroImage = () => {
         // Only update if we got different data than default
         if (data.imageUrl !== defaultHeroImage.imageUrl) {
           setHeroImageData(data);
-          
+
           // Add dynamic preload for LCP optimization
           if (data.imageUrl.includes('supabase.co/storage')) {
             const preloadLink = document.createElement('link');
@@ -28,9 +30,11 @@ export const useHeroImage = () => {
             preloadLink.as = 'image';
             preloadLink.href = data.imageUrl;
             preloadLink.setAttribute('fetchpriority', 'high');
-            
+
             // Only add if not already present
-            const existingPreload = document.querySelector(`link[href="${data.imageUrl}"]`);
+            const existingPreload = document.querySelector(
+              `link[href="${data.imageUrl}"]`
+            );
             if (!existingPreload) {
               document.head.appendChild(preloadLink);
             }
@@ -48,7 +52,7 @@ export const useHeroImage = () => {
   const updateHeroImage = async (data: HeroImageData): Promise<void> => {
     try {
       let savedData: HeroImageData;
-      
+
       if (data.id) {
         // Update existing
         savedData = await heroImageService.update(data.id, data);
@@ -56,7 +60,7 @@ export const useHeroImage = () => {
         // Create new
         savedData = await heroImageService.save(data);
       }
-      
+
       setHeroImageData(savedData);
     } catch (error) {
       console.error('Error updating hero image:', error);
@@ -92,6 +96,6 @@ export const useHeroImage = () => {
     isLoading,
     updateHeroImage,
     resetHeroImage,
-    uploadImage
+    uploadImage,
   };
 };

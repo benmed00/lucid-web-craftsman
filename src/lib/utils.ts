@@ -1,14 +1,14 @@
-import { clsx, type ClassValue } from "clsx";
-import React from "react";
-import { toast } from "sonner";
-import { twMerge } from "tailwind-merge";
+import { clsx, type ClassValue } from 'clsx';
+import React from 'react';
+import { toast } from 'sonner';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 // Keep in sync with `vite.config.ts` (`base`).
-export const BASE_PATH = "/";
+export const BASE_PATH = '/';
 
 declare global {
   interface Window {
@@ -36,7 +36,7 @@ export class ErrorBoundary extends React.Component<
 
   componentDidCatch(_error: Error, _errorInfo: React.ErrorInfo) {
     console.error(_error, _errorInfo);
-    toast.error("Une erreur est survenue. Veuillez réessayer.");
+    toast.error('Une erreur est survenue. Veuillez réessayer.');
   }
 
   render() {

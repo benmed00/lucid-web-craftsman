@@ -2,7 +2,14 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Send, Upload, X, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,10 +29,12 @@ export const ErrorReportButton = () => {
   const [form, setForm] = useState<ErrorReportForm>({
     email: '',
     description: '',
-    errorType: 'bug_report'
+    errorType: 'bug_report',
   });
   const [screenshot, setScreenshot] = useState<File | null>(null);
-  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(
+    null
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,9 +84,9 @@ export const ErrorReportButton = () => {
       }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('error-screenshots')
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('error-screenshots').getPublicUrl(filePath);
 
       return publicUrl;
     } catch (error) {
@@ -88,23 +97,25 @@ export const ErrorReportButton = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!form.email || !form.description) {
       toast.error(t('report.validation.requiredFields'));
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       // Upload screenshot if present
       let screenshotUrl: string | null = null;
       if (screenshot) {
         screenshotUrl = await uploadScreenshot(screenshot);
       }
-      
+
       const reportData = {
         user_id: user?.id || null,
         email: form.email,
@@ -120,13 +131,13 @@ export const ErrorReportButton = () => {
           onLine: navigator.onLine,
           screen: {
             width: screen.width,
-            height: screen.height
+            height: screen.height,
           },
           viewport: {
             width: window.innerWidth,
-            height: window.innerHeight
-          }
-        }
+            height: window.innerHeight,
+          },
+        },
       };
 
       const { error } = await supabase
@@ -168,7 +179,7 @@ export const ErrorReportButton = () => {
           {t('report.button')}
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -187,7 +198,9 @@ export const ErrorReportButton = () => {
               id="error-email"
               type="email"
               value={form.email}
-              onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, email: e.target.value }))
+              }
               placeholder={t('report.form.emailPlaceholder')}
               required
             />
@@ -198,23 +211,33 @@ export const ErrorReportButton = () => {
             <select
               id="error-type"
               value={form.errorType}
-              onChange={(e) => setForm(prev => ({ ...prev, errorType: e.target.value }))}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, errorType: e.target.value }))
+              }
               className="w-full h-10 px-3 py-2 border border-border rounded-md focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-background text-foreground"
             >
               <option value="bug_report">{t('report.form.types.bug')}</option>
               <option value="ui_issue">{t('report.form.types.ui')}</option>
-              <option value="performance">{t('report.form.types.performance')}</option>
-              <option value="feature_request">{t('report.form.types.feature')}</option>
+              <option value="performance">
+                {t('report.form.types.performance')}
+              </option>
+              <option value="feature_request">
+                {t('report.form.types.feature')}
+              </option>
               <option value="other">{t('report.form.types.other')}</option>
             </select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="error-description">{t('report.form.descriptionLabel')} *</Label>
+            <Label htmlFor="error-description">
+              {t('report.form.descriptionLabel')} *
+            </Label>
             <Textarea
               id="error-description"
               value={form.description}
-              onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, description: e.target.value }))
+              }
               placeholder={t('report.form.descriptionPlaceholder')}
               rows={4}
               required
@@ -224,9 +247,9 @@ export const ErrorReportButton = () => {
           {/* Screenshot Upload */}
           <div className="space-y-2">
             <Label>{t('report.form.screenshot')}</Label>
-            
+
             {!screenshot ? (
-              <div 
+              <div
                 className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors"
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -247,9 +270,9 @@ export const ErrorReportButton = () => {
               </div>
             ) : (
               <div className="relative border border-border rounded-lg overflow-hidden">
-                <img 
-                  src={screenshotPreview || ''} 
-                  alt={t('report.form.screenshotAlt')} 
+                <img
+                  src={screenshotPreview || ''}
+                  alt={t('report.form.screenshotAlt')}
                   className="w-full h-32 object-cover"
                 />
                 <button

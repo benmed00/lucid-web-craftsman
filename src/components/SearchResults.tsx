@@ -6,15 +6,15 @@ interface SearchResultsHeaderProps {
   showingCount: number;
 }
 
-export const SearchResultsHeader = ({ 
-  searchQuery, 
-  totalResults, 
-  showingCount 
+export const SearchResultsHeader = ({
+  searchQuery,
+  totalResults,
+  showingCount,
 }: SearchResultsHeaderProps) => {
   if (!searchQuery) return null;
 
   return (
-    <div 
+    <div
       className="mb-6 p-4 bg-secondary rounded-lg border border-border"
       role="region"
       aria-label="Résultats de recherche"
@@ -25,23 +25,27 @@ export const SearchResultsHeader = ({
           Résultats de recherche
         </h2>
       </div>
-      
+
       <p className="text-muted-foreground" aria-live="polite">
         {totalResults === 0 ? (
           <>
-            Aucun résultat trouvé pour <strong className="text-foreground">"{searchQuery}"</strong>
+            Aucun résultat trouvé pour{' '}
+            <strong className="text-foreground">"{searchQuery}"</strong>
           </>
         ) : totalResults === 1 ? (
           <>
-            1 résultat trouvé pour <strong className="text-foreground">"{searchQuery}"</strong>
+            1 résultat trouvé pour{' '}
+            <strong className="text-foreground">"{searchQuery}"</strong>
           </>
         ) : showingCount === totalResults ? (
           <>
-            {totalResults} résultats trouvés pour <strong className="text-foreground">"{searchQuery}"</strong>
+            {totalResults} résultats trouvés pour{' '}
+            <strong className="text-foreground">"{searchQuery}"</strong>
           </>
         ) : (
           <>
-            Affichage de {showingCount} sur {totalResults} résultats pour <strong className="text-foreground">"{searchQuery}"</strong>
+            Affichage de {showingCount} sur {totalResults} résultats pour{' '}
+            <strong className="text-foreground">"{searchQuery}"</strong>
           </>
         )}
       </p>
@@ -55,7 +59,11 @@ interface HighlightTextProps {
   className?: string;
 }
 
-export const HighlightText = ({ text, query, className = '' }: HighlightTextProps) => {
+export const HighlightText = ({
+  text,
+  query,
+  className = '',
+}: HighlightTextProps) => {
   if (!query.trim()) {
     return <span className={className}>{text}</span>;
   }
@@ -69,8 +77,8 @@ export const HighlightText = ({ text, query, className = '' }: HighlightTextProp
         <span
           key={index}
           className={
-            part.toLowerCase() === query.toLowerCase() 
-              ? 'bg-primary/20 text-foreground px-1 rounded font-medium' 
+            part.toLowerCase() === query.toLowerCase()
+              ? 'bg-primary/20 text-foreground px-1 rounded font-medium'
               : ''
           }
         >

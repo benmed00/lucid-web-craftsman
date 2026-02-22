@@ -4,14 +4,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useCsrfToken } from '@/hooks/useCsrfToken';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Mail, Calendar } from 'lucide-react';
 import ImageUpload from '@/components/ui/ImageUpload';
-import { validateAndSanitizeName, sanitizeUserInput } from '@/utils/xssProtection';
+import {
+  validateAndSanitizeName,
+  sanitizeUserInput,
+} from '@/utils/xssProtection';
 
 import PageFooter from '@/components/PageFooter';
 
@@ -63,26 +72,33 @@ export default function Profile() {
       setIsUpdating(true);
       // Update auth metadata full name
       const { error: authError } = await supabase.auth.updateUser({
-        data: { full_name: sanitizedFullName }
+        data: { full_name: sanitizedFullName },
       });
       if (authError) throw authError;
 
       // Upsert profile with full name, bio, and current avatar URL
       const sanitizedBio = sanitizeUserInput(bio).slice(0, 500);
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({ id: user.id, full_name: sanitizedFullName, bio: sanitizedBio, avatar_url: avatarUrl || null }, { onConflict: 'id' });
+      const { error: profileError } = await supabase.from('profiles').upsert(
+        {
+          id: user.id,
+          full_name: sanitizedFullName,
+          bio: sanitizedBio,
+          avatar_url: avatarUrl || null,
+        },
+        { onConflict: 'id' }
+      );
       if (profileError) throw profileError;
 
       toast({
-        title: "Profil mis à jour",
-        description: "Vos informations ont été sauvegardées avec succès."
+        title: 'Profil mis à jour',
+        description: 'Vos informations ont été sauvegardées avec succès.',
       });
     } catch (error: any) {
       toast({
-        title: "Erreur",
-        description: error.message || "Une erreur s'est produite lors de la mise à jour",
-        variant: "destructive"
+        title: 'Erreur',
+        description:
+          error.message || "Une erreur s'est produite lors de la mise à jour",
+        variant: 'destructive',
       });
     } finally {
       setIsUpdating(false);
@@ -100,26 +116,33 @@ export default function Profile() {
       .upload(filePath, file, { upsert: true, contentType: file.type });
     if (uploadError) throw uploadError;
 
-    const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+    const { data: publicData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
     const publicUrl = publicData.publicUrl;
     setAvatarUrl(publicUrl);
 
-    await supabase.from('profiles').upsert({ id: user.id, avatar_url: publicUrl }, { onConflict: 'id' });
+    await supabase
+      .from('profiles')
+      .upsert({ id: user.id, avatar_url: publicUrl }, { onConflict: 'id' });
   };
 
   const handleRemoveAvatar = async () => {
     if (!user) return;
-    await supabase.from('profiles').update({ avatar_url: null }).eq('id', user.id);
+    await supabase
+      .from('profiles')
+      .update({ avatar_url: null })
+      .eq('id', user.id);
     setAvatarUrl('');
   };
 
   const handleDeleteAccount = async () => {
     if (!user) return;
-    
+
     const confirmed = window.confirm(
-      "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible."
+      'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.'
     );
-    
+
     if (!confirmed) return;
 
     setIsLoading(true);
@@ -128,14 +151,15 @@ export default function Profile() {
       // For now, we'll just sign out the user
       await signOut();
       toast({
-        title: "Compte supprimé",
-        description: "Votre compte a été supprimé avec succès."
+        title: 'Compte supprimé',
+        description: 'Votre compte a été supprimé avec succès.',
       });
     } catch (error: any) {
       toast({
-        title: "Erreur",
-        description: error.message || "Une erreur s'est produite lors de la suppression",
-        variant: "destructive"
+        title: 'Erreur',
+        description:
+          error.message || "Une erreur s'est produite lors de la suppression",
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -148,10 +172,8 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background">
-      
       <main className="pt-4 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
@@ -165,7 +187,7 @@ export default function Profile() {
           {/* Quick Actions - Mobile Optimized */}
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4 justify-center mb-8">
             <Button
-              variant="outline" 
+              variant="outline"
               size="sm"
               onClick={() => navigate('/')}
               className="flex items-center gap-2 text-xs sm:text-sm py-3 px-4"
@@ -176,7 +198,7 @@ export default function Profile() {
             </Button>
             <Button
               variant="outline"
-              size="sm" 
+              size="sm"
               onClick={signOut}
               className="flex items-center gap-2 text-xs sm:text-sm py-3 px-4"
             >
@@ -198,7 +220,6 @@ export default function Profile() {
 
           {/* Two Column Layout for Desktop, Single Column for Mobile */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-            
             {/* Left Column - Profile Overview */}
             <div className="space-y-6">
               {/* Profile Card with Tab-like navigation */}
@@ -207,11 +228,15 @@ export default function Profile() {
                 <div className="grid grid-cols-2 border-b border-border">
                   <div className="flex items-center justify-center gap-2 p-4 bg-primary/10 border-r border-border">
                     <User className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium text-primary">Profil</span>
+                    <span className="text-sm font-medium text-primary">
+                      Profil
+                    </span>
                   </div>
                   <div className="flex items-center justify-center gap-2 p-4 bg-muted">
                     <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">Infos</span>
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Infos
+                    </span>
                   </div>
                 </div>
 
@@ -219,11 +244,15 @@ export default function Profile() {
                 <div className="grid grid-cols-2 border-b border-border">
                   <div className="flex items-center justify-center gap-2 p-3 bg-muted border-r border-border">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">Points</span>
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Points
+                    </span>
                   </div>
                   <div className="flex items-center justify-center gap-2 p-3 bg-muted">
                     <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">Préfs</span>
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Préfs
+                    </span>
                   </div>
                 </div>
 
@@ -232,14 +261,14 @@ export default function Profile() {
                     Vue d'ensemble du profil
                   </CardTitle>
                 </CardHeader>
-                
+
                 <CardContent className="text-center pb-8">
                   {/* Avatar - Centered */}
                   <div className="flex justify-center mb-6">
                     {avatarUrl ? (
-                      <img 
-                        src={avatarUrl} 
-                        alt="Photo de profil" 
+                      <img
+                        src={avatarUrl}
+                        alt="Photo de profil"
                         className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-border shadow-lg"
                       />
                     ) : (
@@ -248,7 +277,7 @@ export default function Profile() {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* User Info - Centered */}
                   <div className="space-y-3">
                     <h3 className="text-xl sm:text-2xl font-bold text-foreground">
@@ -257,29 +286,37 @@ export default function Profile() {
                     <p className="text-sm sm:text-base text-muted-foreground break-all">
                       {user.email}
                     </p>
-                    
+
                     {/* Status and Member Info */}
                     <div className="space-y-3">
                       <div className="flex justify-center">
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs ${user.email_confirmed_at ? 'bg-status-success/10 text-status-success' : 'bg-status-warning/10 text-status-warning'}`}>
-                          {user.email_confirmed_at ? '✓ Vérifié' : '⚠️ Non vérifié'}
+                        <span
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs ${user.email_confirmed_at ? 'bg-status-success/10 text-status-success' : 'bg-status-warning/10 text-status-warning'}`}
+                        >
+                          {user.email_confirmed_at
+                            ? '✓ Vérifié'
+                            : '⚠️ Non vérifié'}
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>
-                          Membre depuis {new Date(user.created_at).toLocaleDateString('fr-FR', {
-                            year: 'numeric',
-                            month: 'long'
-                          })}
+                          Membre depuis{' '}
+                          {new Date(user.created_at).toLocaleDateString(
+                            'fr-FR',
+                            {
+                              year: 'numeric',
+                              month: 'long',
+                            }
+                          )}
                         </span>
                       </div>
                     </div>
 
                     {/* Action Button */}
                     <div className="pt-4">
-                      <Button 
+                      <Button
                         variant="default"
                         className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-xl font-medium"
                       >
@@ -309,21 +346,32 @@ export default function Profile() {
 
                     {/* Avatar Upload */}
                     <div className="space-y-3">
-                      <Label className="text-sm font-medium text-foreground">Photo de profil</Label>
+                      <Label className="text-sm font-medium text-foreground">
+                        Photo de profil
+                      </Label>
                       <ImageUpload
                         currentImage={avatarUrl || undefined}
-                        onImageUpload={async (file) => { await onAvatarImageUpload(file); }}
+                        onImageUpload={async (file) => {
+                          await onAvatarImageUpload(file);
+                        }}
                         onImageRemove={handleRemoveAvatar}
                         title="Photo de profil"
                         description="JPEG, PNG, WEBP (max 5MB)"
-                        acceptedTypes={['image/jpeg','image/png','image/webp']}
+                        acceptedTypes={[
+                          'image/jpeg',
+                          'image/png',
+                          'image/webp',
+                        ]}
                       />
                     </div>
 
                     {/* Form Fields */}
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="fullName" className="text-sm font-medium text-foreground">
+                        <Label
+                          htmlFor="fullName"
+                          className="text-sm font-medium text-foreground"
+                        >
                           Nom complet
                         </Label>
                         <Input
@@ -338,7 +386,10 @@ export default function Profile() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                        <Label
+                          htmlFor="email"
+                          className="text-sm font-medium text-foreground"
+                        >
                           Email
                         </Label>
                         <Input
@@ -356,7 +407,10 @@ export default function Profile() {
 
                     {/* Bio */}
                     <div className="space-y-2">
-                      <Label htmlFor="bio" className="text-sm font-medium text-foreground">
+                      <Label
+                        htmlFor="bio"
+                        className="text-sm font-medium text-foreground"
+                      >
                         Bio
                       </Label>
                       <Textarea
@@ -374,12 +428,14 @@ export default function Profile() {
                     </div>
 
                     {/* Submit Button */}
-                    <Button 
-                      type="submit" 
-                      disabled={isUpdating} 
+                    <Button
+                      type="submit"
+                      disabled={isUpdating}
                       className="w-full bg-primary hover:bg-primary/90 text-primary-foreground min-h-[48px] text-sm font-medium rounded-lg"
                     >
-                      {isUpdating ? "Mise à jour..." : "Sauvegarder les modifications"}
+                      {isUpdating
+                        ? 'Mise à jour...'
+                        : 'Sauvegarder les modifications'}
                     </Button>
                   </form>
                 </CardContent>
@@ -398,10 +454,14 @@ export default function Profile() {
               <CardContent>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p>
-                    <span className="font-medium text-foreground">Email:</span> contact@rifstraw.com
+                    <span className="font-medium text-foreground">Email:</span>{' '}
+                    contact@rifstraw.com
                   </p>
                   <p>
-                    <span className="font-medium text-foreground">Téléphone:</span> +33 1 23 45 67 89
+                    <span className="font-medium text-foreground">
+                      Téléphone:
+                    </span>{' '}
+                    +33 1 23 45 67 89
                   </p>
                 </div>
               </CardContent>

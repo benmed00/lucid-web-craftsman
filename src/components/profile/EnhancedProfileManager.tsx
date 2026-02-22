@@ -45,7 +45,7 @@ export const EnhancedProfileManager: React.FC = () => {
             </p>
             <Button
               className="mt-4"
-              onClick={() => window.location.href = '/auth'}
+              onClick={() => (window.location.href = '/auth')}
               id="profile-login-redirect"
               name="profile-login-button"
             >

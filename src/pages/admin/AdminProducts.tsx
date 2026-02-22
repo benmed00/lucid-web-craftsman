@@ -1,46 +1,64 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Package, 
-  Plus, 
-  Edit, 
-  Trash2, 
+import { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Package,
+  Plus,
+  Edit,
+  Trash2,
   Search,
   Filter,
   Eye,
   EyeOff,
   ImageIcon,
-  RefreshCw
-} from "lucide-react";
-import { ProductImageManager } from "@/components/admin/ProductImageManager";
-import { ProductFormWithImages } from "@/components/admin/ProductFormWithImages";
-import { ProductService } from "@/services/productService";
-import { Product } from "@/shared/interfaces/Iproduct.interface";
-import { toast } from "sonner";
-import { Link } from "react-router-dom";
-import { useAuditLog } from "@/hooks/useAuditLog";
-import { supabase } from "@/integrations/supabase/client";
-import { usePagination } from "@/hooks/usePagination";
-import TablePagination from "@/components/admin/TablePagination";
+  RefreshCw,
+} from 'lucide-react';
+import { ProductImageManager } from '@/components/admin/ProductImageManager';
+import { ProductFormWithImages } from '@/components/admin/ProductFormWithImages';
+import { ProductService } from '@/services/productService';
+import { Product } from '@/shared/interfaces/Iproduct.interface';
+import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
+import { useAuditLog } from '@/hooks/useAuditLog';
+import { supabase } from '@/integrations/supabase/client';
+import { usePagination } from '@/hooks/usePagination';
+import TablePagination from '@/components/admin/TablePagination';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterCategory, setFilterCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState('all');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const { logAction } = useAuditLog();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isNewProduct, setIsNewProduct] = useState(false);
-  const [categories] = useState<string[]>(["Sacs", "Chapeaux"]);
+  const [categories] = useState<string[]>(['Sacs', 'Chapeaux']);
   const [formData, setFormData] = useState<Partial<Product>>({});
 
   useEffect(() => {
@@ -53,17 +71,20 @@ const AdminProducts = () => {
       const data = await ProductService.getAllProducts();
       setProducts(data);
     } catch (error) {
-      console.error("Error loading products:", error);
-      toast.error("Erreur lors du chargement des produits");
+      console.error('Error loading products:', error);
+      toast.error('Erreur lors du chargement des produits');
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.artisan?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = filterCategory === "all" || product.category.toLowerCase() === filterCategory.toLowerCase();
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.artisan?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      filterCategory === 'all' ||
+      product.category.toLowerCase() === filterCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
 
@@ -104,7 +125,7 @@ const AdminProducts = () => {
       short_description: product.short_description,
       seo_title: product.seo_title,
       seo_description: product.seo_description,
-      slug: product.slug
+      slug: product.slug,
     });
     setIsNewProduct(false);
     setIsDialogOpen(true);
@@ -113,16 +134,16 @@ const AdminProducts = () => {
   const handleNewProduct = () => {
     setEditingProduct(null);
     setFormData({
-      name: "",
+      name: '',
       price: 0,
       images: [],
-      category: "Sacs",
-      description: "",
-      details: "",
-      care: "",
+      category: 'Sacs',
+      description: '',
+      details: '',
+      care: '',
       is_new: false,
-      artisan: "",
-      artisan_story: ""
+      artisan: '',
+      artisan_story: '',
     });
     setIsNewProduct(true);
     setIsDialogOpen(true);
@@ -131,18 +152,20 @@ const AdminProducts = () => {
   const handleSaveProduct = async () => {
     try {
       if (!formData.name || !formData.price || !formData.category) {
-        toast.error("Veuillez remplir tous les champs obligatoires");
+        toast.error('Veuillez remplir tous les champs obligatoires');
         return;
       }
 
       const productData = {
         ...formData,
-        images: formData.images || []
+        images: formData.images || [],
       };
 
       if (isNewProduct) {
         // This shouldn't happen as we use ProductFormWithImages for new products
-        toast.info("Utilisez le bouton 'Ajouter un produit' pour créer de nouveaux produits");
+        toast.info(
+          "Utilisez le bouton 'Ajouter un produit' pour créer de nouveaux produits"
+        );
         return;
       } else {
         // Update existing product
@@ -156,10 +179,16 @@ const AdminProducts = () => {
         if (error) throw error;
 
         // Update local state
-        setProducts(prev => prev.map(p => p.id === editingProduct?.id ? data : p));
-        
-        toast.success("Produit modifié avec succès");
-        logAction('UPDATE_PRODUCT', 'products', editingProduct?.id?.toString() || '');
+        setProducts((prev) =>
+          prev.map((p) => (p.id === editingProduct?.id ? data : p))
+        );
+
+        toast.success('Produit modifié avec succès');
+        logAction(
+          'UPDATE_PRODUCT',
+          'products',
+          editingProduct?.id?.toString() || ''
+        );
       }
 
       setIsDialogOpen(false);
@@ -167,7 +196,7 @@ const AdminProducts = () => {
       setEditingProduct(null);
     } catch (error) {
       console.error('Error saving product:', error);
-      toast.error("Erreur lors de la sauvegarde du produit");
+      toast.error('Erreur lors de la sauvegarde du produit');
     }
   };
 
@@ -179,8 +208,10 @@ const AdminProducts = () => {
             <Label htmlFor="name">Nom du produit</Label>
             <Input
               id="name"
-              value={formData.name || ""}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              value={formData.name || ''}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="Nom du produit"
             />
           </div>
@@ -191,7 +222,9 @@ const AdminProducts = () => {
               id="price"
               type="number"
               value={formData.price || 0}
-              onChange={(e) => setFormData({...formData, price: Number(e.target.value)})}
+              onChange={(e) =>
+                setFormData({ ...formData, price: Number(e.target.value) })
+              }
               placeholder="Prix"
             />
           </div>
@@ -200,9 +233,11 @@ const AdminProducts = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="category">Catégorie</Label>
-            <Select 
-              value={formData.category || "Sacs"} 
-              onValueChange={(value) => setFormData({...formData, category: value})}
+            <Select
+              value={formData.category || 'Sacs'}
+              onValueChange={(value) =>
+                setFormData({ ...formData, category: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner une catégorie" />
@@ -218,8 +253,10 @@ const AdminProducts = () => {
             <Label htmlFor="artisan">Artisan</Label>
             <Input
               id="artisan"
-              value={formData.artisan || ""}
-              onChange={(e) => setFormData({...formData, artisan: e.target.value})}
+              value={formData.artisan || ''}
+              onChange={(e) =>
+                setFormData({ ...formData, artisan: e.target.value })
+              }
               placeholder="Nom de l'artisan"
             />
           </div>
@@ -230,7 +267,7 @@ const AdminProducts = () => {
           <Label>Images du produit</Label>
           <ProductImageManager
             images={formData.images || []}
-            onImagesChange={(images) => setFormData({...formData, images})}
+            onImagesChange={(images) => setFormData({ ...formData, images })}
             productId={editingProduct?.id}
             maxImages={5}
           />
@@ -240,8 +277,10 @@ const AdminProducts = () => {
           <Label htmlFor="description">Description</Label>
           <Textarea
             id="description"
-            value={formData.description || ""}
-            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            value={formData.description || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
             placeholder="Description du produit"
             rows={3}
           />
@@ -251,8 +290,10 @@ const AdminProducts = () => {
           <Label htmlFor="details">Détails techniques</Label>
           <Textarea
             id="details"
-            value={formData.details || ""}
-            onChange={(e) => setFormData({...formData, details: e.target.value})}
+            value={formData.details || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, details: e.target.value })
+            }
             placeholder="Dimensions, matériaux, etc."
             rows={3}
           />
@@ -262,8 +303,8 @@ const AdminProducts = () => {
           <Label htmlFor="care">Instructions d'entretien</Label>
           <Textarea
             id="care"
-            value={formData.care || ""}
-            onChange={(e) => setFormData({...formData, care: e.target.value})}
+            value={formData.care || ''}
+            onChange={(e) => setFormData({ ...formData, care: e.target.value })}
             placeholder="Instructions d'entretien"
             rows={2}
           />
@@ -273,8 +314,10 @@ const AdminProducts = () => {
           <Label htmlFor="artisan_story">Histoire de l'artisan</Label>
           <Textarea
             id="artisan_story"
-            value={formData.artisan_story || ""}
-            onChange={(e) => setFormData({...formData, artisan_story: e.target.value})}
+            value={formData.artisan_story || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, artisan_story: e.target.value })
+            }
             placeholder="L'histoire derrière la création..."
             rows={3}
           />
@@ -285,8 +328,10 @@ const AdminProducts = () => {
             <Label htmlFor="material">Matériau</Label>
             <Input
               id="material"
-              value={formData.material || ""}
-              onChange={(e) => setFormData({...formData, material: e.target.value})}
+              value={formData.material || ''}
+              onChange={(e) =>
+                setFormData({ ...formData, material: e.target.value })
+              }
               placeholder="Matériau principal"
             />
           </div>
@@ -295,8 +340,10 @@ const AdminProducts = () => {
             <Label htmlFor="color">Couleur</Label>
             <Input
               id="color"
-              value={formData.color || ""}
-              onChange={(e) => setFormData({...formData, color: e.target.value})}
+              value={formData.color || ''}
+              onChange={(e) =>
+                setFormData({ ...formData, color: e.target.value })
+              }
               placeholder="Couleur principale"
             />
           </div>
@@ -307,8 +354,10 @@ const AdminProducts = () => {
             <Label htmlFor="dimensions">Dimensions (cm)</Label>
             <Input
               id="dimensions"
-              value={formData.dimensions_cm || ""}
-              onChange={(e) => setFormData({...formData, dimensions_cm: e.target.value})}
+              value={formData.dimensions_cm || ''}
+              onChange={(e) =>
+                setFormData({ ...formData, dimensions_cm: e.target.value })
+              }
               placeholder="L x l x H"
             />
           </div>
@@ -319,7 +368,12 @@ const AdminProducts = () => {
               id="weight"
               type="number"
               value={formData.weight_grams || 0}
-              onChange={(e) => setFormData({...formData, weight_grams: Number(e.target.value)})}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  weight_grams: Number(e.target.value),
+                })
+              }
               placeholder="Poids en grammes"
             />
           </div>
@@ -332,7 +386,12 @@ const AdminProducts = () => {
               id="stock"
               type="number"
               value={formData.stock_quantity || 0}
-              onChange={(e) => setFormData({...formData, stock_quantity: Number(e.target.value)})}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  stock_quantity: Number(e.target.value),
+                })
+              }
               placeholder="Quantité en stock"
             />
           </div>
@@ -343,7 +402,12 @@ const AdminProducts = () => {
               id="min_stock"
               type="number"
               value={formData.min_stock_level || 5}
-              onChange={(e) => setFormData({...formData, min_stock_level: Number(e.target.value)})}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  min_stock_level: Number(e.target.value),
+                })
+              }
               placeholder="Niveau de stock minimum"
             />
           </div>
@@ -355,7 +419,9 @@ const AdminProducts = () => {
               <Switch
                 id="new"
                 checked={formData.is_new || false}
-                onCheckedChange={(checked) => setFormData({...formData, is_new: checked})}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, is_new: checked })
+                }
               />
               <Label htmlFor="new">Marquer comme nouveau</Label>
             </div>
@@ -364,7 +430,9 @@ const AdminProducts = () => {
               <Switch
                 id="featured"
                 checked={formData.is_featured || false}
-                onCheckedChange={(checked) => setFormData({...formData, is_featured: checked})}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, is_featured: checked })
+                }
               />
               <Label htmlFor="featured">Produit en vedette</Label>
             </div>
@@ -373,7 +441,9 @@ const AdminProducts = () => {
               <Switch
                 id="active"
                 checked={formData.is_active !== false}
-                onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, is_active: checked })
+                }
               />
               <Label htmlFor="active">Produit actif</Label>
             </div>
@@ -403,7 +473,7 @@ const AdminProducts = () => {
             {products.length} produits dans votre catalogue
           </p>
         </div>
-        
+
         <div className="flex space-x-2">
           <ProductFormWithImages onProductAdded={fetchProducts} />
           <Link to="/admin/hero-image">
@@ -434,7 +504,7 @@ const AdminProducts = () => {
                 />
               </div>
             </div>
-            
+
             <div className="flex gap-2">
               <Select value={filterCategory} onValueChange={setFilterCategory}>
                 <SelectTrigger className="w-40">
@@ -443,7 +513,7 @@ const AdminProducts = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Toutes catégories</SelectItem>
-                  {categories.map(category => (
+                  {categories.map((category) => (
                     <SelectItem key={category} value={category.toLowerCase()}>
                       {category}
                     </SelectItem>
@@ -470,22 +540,27 @@ const AdminProducts = () => {
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {paginatedProducts.map((product) => (
-          <Card key={product.id} className="group hover:shadow-lg transition-shadow">
+          <Card
+            key={product.id}
+            className="group hover:shadow-lg transition-shadow"
+          >
             <CardHeader className="p-0">
               <div className="relative h-48 overflow-hidden rounded-t-lg">
                 <img
-                  src={product.images?.[0] || "/placeholder.svg"}
+                  src={product.images?.[0] || '/placeholder.svg'}
                   alt={product.name}
                   className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-2 right-2 flex gap-2">
                   {product.is_new && (
-                    <Badge className="bg-primary text-primary-foreground">Nouveau</Badge>
+                    <Badge className="bg-primary text-primary-foreground">
+                      Nouveau
+                    </Badge>
                   )}
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent className="p-4">
               <div className="space-y-2">
                 <div className="flex items-start justify-between">
@@ -493,20 +568,22 @@ const AdminProducts = () => {
                     <h3 className="font-medium text-foreground line-clamp-2">
                       {product.name}
                     </h3>
-                    <p className="text-sm text-muted-foreground">{product.artisan}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {product.artisan}
+                    </p>
                   </div>
                   <p className="font-semibold text-primary">{product.price}€</p>
                 </div>
-                
+
                 <Badge variant="outline" className="text-xs">
                   {product.category}
                 </Badge>
-                
+
                 <p className="text-sm text-muted-foreground line-clamp-2">
                   {product.description}
                 </p>
               </div>
-              
+
               <div className="flex gap-2 mt-4">
                 <Button
                   variant="outline"
@@ -532,11 +609,11 @@ const AdminProducts = () => {
               Aucun produit trouvé
             </h3>
             <p className="text-muted-foreground mb-4">
-              {searchQuery || filterCategory !== "all" 
-                ? "Essayez de modifier vos critères de recherche"
-                : "Commencez par ajouter votre premier produit"}
+              {searchQuery || filterCategory !== 'all'
+                ? 'Essayez de modifier vos critères de recherche'
+                : 'Commencez par ajouter votre premier produit'}
             </p>
-            {!searchQuery && filterCategory === "all" && (
+            {!searchQuery && filterCategory === 'all' && (
               <ProductFormWithImages onProductAdded={fetchProducts} />
             )}
           </CardContent>
@@ -562,23 +639,23 @@ const AdminProducts = () => {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {isNewProduct ? "Ajouter un produit" : "Modifier le produit"}
+              {isNewProduct ? 'Ajouter un produit' : 'Modifier le produit'}
             </DialogTitle>
             <DialogDescription>
-              {isNewProduct 
-                ? "Remplissez les informations du nouveau produit"
-                : "Modifiez les informations du produit"}
+              {isNewProduct
+                ? 'Remplissez les informations du nouveau produit'
+                : 'Modifiez les informations du produit'}
             </DialogDescription>
           </DialogHeader>
-          
+
           <ProductForm />
-          
+
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Annuler
             </Button>
             <Button onClick={handleSaveProduct}>
-              {isNewProduct ? "Créer" : "Enregistrer"}
+              {isNewProduct ? 'Créer' : 'Enregistrer'}
             </Button>
           </div>
         </DialogContent>

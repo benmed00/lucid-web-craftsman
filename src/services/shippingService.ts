@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 export interface ShippingZone {
   id: string;
@@ -43,11 +43,10 @@ export class ShippingService {
 
       if (error) throw error;
 
-      this.zones = data.map(zone => ({
+      this.zones = data.map((zone) => ({
         ...zone,
-        postal_codes: zone.postal_codes as string[]
+        postal_codes: zone.postal_codes as string[],
       }));
-
     } catch (error) {
       console.error('Error loading shipping zones:', error);
       this.zones = this.getDefaultZones();
@@ -57,7 +56,10 @@ export class ShippingService {
   /**
    * Calculate shipping for a postal code and order amount
    */
-  async calculateShipping(postalCode: string, orderAmount: number): Promise<ShippingCalculation | null> {
+  async calculateShipping(
+    postalCode: string,
+    orderAmount: number
+  ): Promise<ShippingCalculation | null> {
     if (this.zones.length === 0) {
       await this.loadShippingZones();
     }
@@ -67,7 +69,7 @@ export class ShippingService {
 
     const isFree = this.isShippingFree(zone, orderAmount);
     const cost = isFree ? 0 : zone.shipping_cost;
-    
+
     let savings: number | undefined;
     if (!isFree && zone.free_shipping_threshold) {
       const remaining = zone.free_shipping_threshold - orderAmount;
@@ -81,7 +83,7 @@ export class ShippingService {
       cost,
       is_free: isFree,
       delivery_estimate: this.getDeliveryEstimate(zone),
-      savings
+      savings,
     };
   }
 
@@ -99,10 +101,12 @@ export class ShippingService {
    * Check if postal code is in Nantes Métropole
    */
   isNantesMetropole(postalCode: string): boolean {
-    const nantesZone = this.zones.find(zone => zone.name === 'Nantes Métropole');
+    const nantesZone = this.zones.find(
+      (zone) => zone.name === 'Nantes Métropole'
+    );
     if (!nantesZone) return false;
-    
-    return nantesZone.postal_codes.some(code => 
+
+    return nantesZone.postal_codes.some((code) =>
       this.isPostalCodeInRange(postalCode, code)
     );
   }
@@ -114,7 +118,11 @@ export class ShippingService {
     // Check specific zones first (like Nantes Métropole)
     for (const zone of this.zones) {
       if (zone.name === 'Nantes Métropole') {
-        if (zone.postal_codes.some(code => this.isPostalCodeInRange(postalCode, code))) {
+        if (
+          zone.postal_codes.some((code) =>
+            this.isPostalCodeInRange(postalCode, code)
+          )
+        ) {
           return zone;
         }
       }
@@ -123,7 +131,11 @@ export class ShippingService {
     // Check other zones
     for (const zone of this.zones) {
       if (zone.name !== 'Nantes Métropole') {
-        if (zone.postal_codes.some(code => this.isPostalCodeInRange(postalCode, code))) {
+        if (
+          zone.postal_codes.some((code) =>
+            this.isPostalCodeInRange(postalCode, code)
+          )
+        ) {
           return zone;
         }
       }
@@ -177,23 +189,32 @@ export class ShippingService {
       {
         id: '1',
         name: 'Nantes Métropole',
-        postal_codes: ['44000', '44100', '44200', '44300', '44400', '44470', '44800', '44900'],
+        postal_codes: [
+          '44000',
+          '44100',
+          '44200',
+          '44300',
+          '44400',
+          '44470',
+          '44800',
+          '44900',
+        ],
         delivery_days_min: 1,
         delivery_days_max: 2,
         shipping_cost: 0,
         free_shipping_threshold: 0,
-        is_active: true
+        is_active: true,
       },
       {
-        id: '2', 
+        id: '2',
         name: 'France Métropolitaine',
         postal_codes: ['01000-95999'],
         delivery_days_min: 2,
         delivery_days_max: 5,
         shipping_cost: 6.95,
         free_shipping_threshold: 80,
-        is_active: true
-      }
+        is_active: true,
+      },
     ];
   }
 }

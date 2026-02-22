@@ -1,8 +1,8 @@
-import { Loader2, Lock, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { useCurrency } from "@/stores/currencyStore";
-import { useTranslation } from "react-i18next";
+import { Loader2, Lock, ShieldCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { useCurrency } from '@/stores/currencyStore';
+import { useTranslation } from 'react-i18next';
 
 interface PaymentButtonProps {
   total: number;
@@ -11,18 +11,23 @@ interface PaymentButtonProps {
   disabled?: boolean;
 }
 
-const PaymentButton = ({ total, isProcessing, onClick, disabled }: PaymentButtonProps) => {
+const PaymentButton = ({
+  total,
+  isProcessing,
+  onClick,
+  disabled,
+}: PaymentButtonProps) => {
   const { formatPrice } = useCurrency();
   const { t } = useTranslation('checkout');
-  
+
   return (
     <div className="space-y-4">
       <Button
         className={cn(
-          "w-full h-14 text-lg font-medium transition-all duration-300",
-          "bg-primary hover:bg-primary/90 text-primary-foreground",
-          "shadow-lg hover:shadow-xl",
-          isProcessing && "cursor-wait"
+          'w-full h-14 text-lg font-medium transition-all duration-300',
+          'bg-primary hover:bg-primary/90 text-primary-foreground',
+          'shadow-lg hover:shadow-xl',
+          isProcessing && 'cursor-wait'
         )}
         onClick={onClick}
         disabled={isProcessing || disabled}
@@ -54,9 +59,15 @@ const PaymentButton = ({ total, isProcessing, onClick, disabled }: PaymentButton
 
       {/* Payment logos */}
       <div className="flex items-center justify-center gap-3 opacity-60">
-        <div className="text-xs font-medium px-2 py-1 bg-muted rounded">VISA</div>
-        <div className="text-xs font-medium px-2 py-1 bg-muted rounded">Mastercard</div>
-        <div className="text-xs font-medium px-2 py-1 bg-muted rounded">AMEX</div>
+        <div className="text-xs font-medium px-2 py-1 bg-muted rounded">
+          VISA
+        </div>
+        <div className="text-xs font-medium px-2 py-1 bg-muted rounded">
+          Mastercard
+        </div>
+        <div className="text-xs font-medium px-2 py-1 bg-muted rounded">
+          AMEX
+        </div>
       </div>
     </div>
   );

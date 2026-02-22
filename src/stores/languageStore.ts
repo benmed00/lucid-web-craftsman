@@ -1,43 +1,47 @@
 // Language store for managing the current locale
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import i18n, { type SupportedLanguage, supportedLanguages, languageConfig } from '@/i18n';
+import i18n, {
+  type SupportedLanguage,
+  supportedLanguages,
+  languageConfig,
+} from '@/i18n';
 
 interface LanguageState {
   locale: SupportedLanguage;
   setLocale: (locale: SupportedLanguage) => void;
   isRTL: () => boolean;
-  getLanguageConfig: () => typeof languageConfig[SupportedLanguage];
+  getLanguageConfig: () => (typeof languageConfig)[SupportedLanguage];
 }
 
 export const useLanguageStore = create<LanguageState>()(
   persist(
     (set, get) => ({
       locale: (i18n.language as SupportedLanguage) || 'fr',
-      
+
       setLocale: (locale: SupportedLanguage) => {
         if (!supportedLanguages.includes(locale)) {
           console.warn(`Unsupported language: ${locale}`);
           return;
         }
-        
+
         // Update i18next
         i18n.changeLanguage(locale);
-        
+
         // Update store
         set({ locale });
-        
+
         // Update HTML attributes
         const config = languageConfig[locale];
         document.documentElement.lang = locale;
         document.documentElement.dir = config.dir;
       },
-      
+
       isRTL: () => {
         const { locale } = get();
         return languageConfig[locale]?.dir === 'rtl';
       },
-      
+
       getLanguageConfig: () => {
         const { locale } = get();
         return languageConfig[locale] || languageConfig.fr;

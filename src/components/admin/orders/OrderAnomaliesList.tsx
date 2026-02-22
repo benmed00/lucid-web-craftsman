@@ -15,15 +15,13 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AnomalySeverityBadge, AnomalyTypeBadge } from './OrderAnomalyBadge';
-import { useOrderAnomalies, useResolveAnomaly } from '@/hooks/useOrderManagement';
+import {
+  useOrderAnomalies,
+  useResolveAnomaly,
+} from '@/hooks/useOrderManagement';
 import type { OrderAnomaly } from '@/types/order.types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  CheckCircle, 
-  AlertTriangle, 
-  Loader2,
-  Clock,
-} from 'lucide-react';
+import { CheckCircle, AlertTriangle, Loader2, Clock } from 'lucide-react';
 
 interface OrderAnomaliesListProps {
   orderId?: string;
@@ -31,16 +29,25 @@ interface OrderAnomaliesListProps {
   compact?: boolean;
 }
 
-export function OrderAnomaliesList({ orderId, showResolved = false, compact = false }: OrderAnomaliesListProps) {
-  const [selectedAnomaly, setSelectedAnomaly] = useState<OrderAnomaly | null>(null);
+export function OrderAnomaliesList({
+  orderId,
+  showResolved = false,
+  compact = false,
+}: OrderAnomaliesListProps) {
+  const [selectedAnomaly, setSelectedAnomaly] = useState<OrderAnomaly | null>(
+    null
+  );
   const [resolutionNotes, setResolutionNotes] = useState('');
-  
-  const { data: anomalies = [], isLoading } = useOrderAnomalies(orderId, !showResolved);
+
+  const { data: anomalies = [], isLoading } = useOrderAnomalies(
+    orderId,
+    !showResolved
+  );
   const resolveAnomaly = useResolveAnomaly();
 
   const handleResolve = () => {
     if (!selectedAnomaly || !resolutionNotes.trim()) return;
-    
+
     resolveAnomaly.mutate(
       { anomalyId: selectedAnomaly.id, resolutionNotes },
       {
@@ -72,7 +79,7 @@ export function OrderAnomaliesList({ orderId, showResolved = false, compact = fa
     );
   }
 
-  const unresolvedCount = anomalies.filter(a => !a.resolved_at).length;
+  const unresolvedCount = anomalies.filter((a) => !a.resolved_at).length;
 
   return (
     <>
@@ -97,8 +104,8 @@ export function OrderAnomaliesList({ orderId, showResolved = false, compact = fa
                 <div
                   key={anomaly.id}
                   className={`p-3 rounded-lg border ${
-                    anomaly.resolved_at 
-                      ? 'bg-muted/50 border-muted' 
+                    anomaly.resolved_at
+                      ? 'bg-muted/50 border-muted'
                       : anomaly.severity === 'critical'
                         ? 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-900'
                         : 'bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-900'
@@ -107,10 +114,16 @@ export function OrderAnomaliesList({ orderId, showResolved = false, compact = fa
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <AnomalySeverityBadge severity={anomaly.severity} />
-                      <AnomalyTypeBadge type={anomaly.anomaly_type} showIcon={false} />
+                      <AnomalyTypeBadge
+                        type={anomaly.anomaly_type}
+                        showIcon={false}
+                      />
                     </div>
                     {anomaly.resolved_at ? (
-                      <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                      <Badge
+                        variant="outline"
+                        className="bg-green-100 text-green-700 border-green-300"
+                      >
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Résolu
                       </Badge>
@@ -124,19 +137,21 @@ export function OrderAnomaliesList({ orderId, showResolved = false, compact = fa
                       </Button>
                     )}
                   </div>
-                  
+
                   <h4 className="font-medium text-sm mb-1">{anomaly.title}</h4>
-                  
+
                   {anomaly.description && (
                     <p className="text-xs text-muted-foreground mb-2">
                       {anomaly.description}
                     </p>
                   )}
-                  
+
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {format(new Date(anomaly.detected_at), 'Pp', { locale: fr })}
+                      {format(new Date(anomaly.detected_at), 'Pp', {
+                        locale: fr,
+                      })}
                     </span>
                     {anomaly.retry_count > 0 && (
                       <span>
@@ -147,7 +162,8 @@ export function OrderAnomaliesList({ orderId, showResolved = false, compact = fa
 
                   {anomaly.resolved_at && anomaly.resolution_notes && (
                     <div className="mt-2 p-2 bg-background rounded text-xs">
-                      <span className="font-medium">Résolution:</span> {anomaly.resolution_notes}
+                      <span className="font-medium">Résolution:</span>{' '}
+                      {anomaly.resolution_notes}
                     </div>
                   )}
                 </div>
@@ -165,7 +181,10 @@ export function OrderAnomaliesList({ orderId, showResolved = false, compact = fa
       </Card>
 
       {/* Resolution Dialog */}
-      <Dialog open={!!selectedAnomaly} onOpenChange={() => setSelectedAnomaly(null)}>
+      <Dialog
+        open={!!selectedAnomaly}
+        onOpenChange={() => setSelectedAnomaly(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Résoudre l'anomalie</DialogTitle>
@@ -176,7 +195,9 @@ export function OrderAnomaliesList({ orderId, showResolved = false, compact = fa
                     <AnomalySeverityBadge severity={selectedAnomaly.severity} />
                     <AnomalyTypeBadge type={selectedAnomaly.anomaly_type} />
                   </div>
-                  <p className="font-medium text-foreground">{selectedAnomaly.title}</p>
+                  <p className="font-medium text-foreground">
+                    {selectedAnomaly.title}
+                  </p>
                 </div>
               )}
             </DialogDescription>

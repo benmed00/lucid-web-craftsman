@@ -36,21 +36,25 @@ interface PersonalInfoProps {
   onProfileUpdate: (updatedProfile?: any) => void;
 }
 
-export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoProps) {
+export function PersonalInfo({
+  user,
+  profile,
+  onProfileUpdate,
+}: PersonalInfoProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [addressData, setAddressData] = useState({
     address_line1: '',
     address_line2: '',
     city: '',
     postal_code: '',
-    country: ''
+    country: '',
   });
 
   const [socialData, setSocialData] = useState({
     website_url: '',
     instagram_handle: '',
     facebook_url: '',
-    twitter_handle: ''
+    twitter_handle: '',
   });
 
   // Sync state when profile changes
@@ -61,13 +65,13 @@ export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoPro
         address_line2: profile.address_line2 || '',
         city: profile.city || '',
         postal_code: profile.postal_code || '',
-        country: profile.country || ''
+        country: profile.country || '',
       });
       setSocialData({
         website_url: profile.website_url || '',
         instagram_handle: profile.instagram_handle || '',
         facebook_url: profile.facebook_url || '',
-        twitter_handle: profile.twitter_handle || ''
+        twitter_handle: profile.twitter_handle || '',
       });
     }
   }, [profile]);
@@ -78,11 +82,19 @@ export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoPro
 
     try {
       const sanitizedData = {
-        address_line1: addressData.address_line1 ? sanitizeUserInput(addressData.address_line1) : null,
-        address_line2: addressData.address_line2 ? sanitizeUserInput(addressData.address_line2) : null,
+        address_line1: addressData.address_line1
+          ? sanitizeUserInput(addressData.address_line1)
+          : null,
+        address_line2: addressData.address_line2
+          ? sanitizeUserInput(addressData.address_line2)
+          : null,
         city: addressData.city ? sanitizeUserInput(addressData.city) : null,
-        postal_code: addressData.postal_code ? sanitizeUserInput(addressData.postal_code) : null,
-        country: addressData.country ? sanitizeUserInput(addressData.country) : null
+        postal_code: addressData.postal_code
+          ? sanitizeUserInput(addressData.postal_code)
+          : null,
+        country: addressData.country
+          ? sanitizeUserInput(addressData.country)
+          : null,
       };
 
       const { data, error } = await supabase
@@ -98,7 +110,7 @@ export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoPro
       toast.success('Adresse mise à jour avec succès');
     } catch (error: any) {
       console.error('Error updating address:', error);
-      toast.error('Erreur lors de la mise à jour de l\'adresse');
+      toast.error("Erreur lors de la mise à jour de l'adresse");
     } finally {
       setIsLoading(false);
     }
@@ -110,10 +122,18 @@ export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoPro
 
     try {
       const sanitizedData = {
-        website_url: socialData.website_url ? sanitizeUserInput(socialData.website_url) : null,
-        instagram_handle: socialData.instagram_handle ? sanitizeUserInput(socialData.instagram_handle.replace('@', '')) : null,
-        facebook_url: socialData.facebook_url ? sanitizeUserInput(socialData.facebook_url) : null,
-        twitter_handle: socialData.twitter_handle ? sanitizeUserInput(socialData.twitter_handle.replace('@', '')) : null
+        website_url: socialData.website_url
+          ? sanitizeUserInput(socialData.website_url)
+          : null,
+        instagram_handle: socialData.instagram_handle
+          ? sanitizeUserInput(socialData.instagram_handle.replace('@', ''))
+          : null,
+        facebook_url: socialData.facebook_url
+          ? sanitizeUserInput(socialData.facebook_url)
+          : null,
+        twitter_handle: socialData.twitter_handle
+          ? sanitizeUserInput(socialData.twitter_handle.replace('@', ''))
+          : null,
       };
 
       const { data, error } = await supabase
@@ -152,7 +172,12 @@ export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoPro
               <Input
                 id="address_line1"
                 value={addressData.address_line1}
-                onChange={(e) => setAddressData({ ...addressData, address_line1: e.target.value })}
+                onChange={(e) =>
+                  setAddressData({
+                    ...addressData,
+                    address_line1: e.target.value,
+                  })
+                }
                 placeholder="123 Rue de la Paix"
               />
             </div>
@@ -162,7 +187,12 @@ export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoPro
               <Input
                 id="address_line2"
                 value={addressData.address_line2}
-                onChange={(e) => setAddressData({ ...addressData, address_line2: e.target.value })}
+                onChange={(e) =>
+                  setAddressData({
+                    ...addressData,
+                    address_line2: e.target.value,
+                  })
+                }
                 placeholder="Appartement, étage..."
               />
             </div>
@@ -173,7 +203,9 @@ export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoPro
                 <Input
                   id="city"
                   value={addressData.city}
-                  onChange={(e) => setAddressData({ ...addressData, city: e.target.value })}
+                  onChange={(e) =>
+                    setAddressData({ ...addressData, city: e.target.value })
+                  }
                   placeholder="Paris"
                 />
               </div>
@@ -182,7 +214,12 @@ export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoPro
                 <Input
                   id="postal_code"
                   value={addressData.postal_code}
-                  onChange={(e) => setAddressData({ ...addressData, postal_code: e.target.value })}
+                  onChange={(e) =>
+                    setAddressData({
+                      ...addressData,
+                      postal_code: e.target.value,
+                    })
+                  }
                   placeholder="75001"
                 />
               </div>
@@ -191,14 +228,16 @@ export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoPro
                 <Input
                   id="country"
                   value={addressData.country}
-                  onChange={(e) => setAddressData({ ...addressData, country: e.target.value })}
+                  onChange={(e) =>
+                    setAddressData({ ...addressData, country: e.target.value })
+                  }
                   placeholder="France"
                 />
               </div>
             </div>
 
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Sauvegarde...' : 'Mettre à jour l\'adresse'}
+              {isLoading ? 'Sauvegarde...' : "Mettre à jour l'adresse"}
             </Button>
           </form>
         </CardContent>
@@ -223,7 +262,9 @@ export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoPro
                 id="website_url"
                 type="url"
                 value={socialData.website_url}
-                onChange={(e) => setSocialData({ ...socialData, website_url: e.target.value })}
+                onChange={(e) =>
+                  setSocialData({ ...socialData, website_url: e.target.value })
+                }
                 placeholder="https://votre-site.com"
               />
             </div>
@@ -232,16 +273,26 @@ export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoPro
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="instagram_handle" className="flex items-center gap-2">
+                <Label
+                  htmlFor="instagram_handle"
+                  className="flex items-center gap-2"
+                >
                   <Instagram className="h-4 w-4" />
                   Instagram
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">@</span>
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    @
+                  </span>
                   <Input
                     id="instagram_handle"
                     value={socialData.instagram_handle}
-                    onChange={(e) => setSocialData({ ...socialData, instagram_handle: e.target.value })}
+                    onChange={(e) =>
+                      setSocialData({
+                        ...socialData,
+                        instagram_handle: e.target.value,
+                      })
+                    }
                     placeholder="nom_utilisateur"
                     className="pl-8"
                   />
@@ -249,7 +300,10 @@ export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoPro
               </div>
 
               <div>
-                <Label htmlFor="facebook_url" className="flex items-center gap-2">
+                <Label
+                  htmlFor="facebook_url"
+                  className="flex items-center gap-2"
+                >
                   <Facebook className="h-4 w-4" />
                   Facebook
                 </Label>
@@ -257,22 +311,37 @@ export function PersonalInfo({ user, profile, onProfileUpdate }: PersonalInfoPro
                   id="facebook_url"
                   type="url"
                   value={socialData.facebook_url}
-                  onChange={(e) => setSocialData({ ...socialData, facebook_url: e.target.value })}
+                  onChange={(e) =>
+                    setSocialData({
+                      ...socialData,
+                      facebook_url: e.target.value,
+                    })
+                  }
                   placeholder="https://facebook.com/profil"
                 />
               </div>
 
               <div>
-                <Label htmlFor="twitter_handle" className="flex items-center gap-2">
+                <Label
+                  htmlFor="twitter_handle"
+                  className="flex items-center gap-2"
+                >
                   <Twitter className="h-4 w-4" />
                   Twitter
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">@</span>
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    @
+                  </span>
                   <Input
                     id="twitter_handle"
                     value={socialData.twitter_handle}
-                    onChange={(e) => setSocialData({ ...socialData, twitter_handle: e.target.value })}
+                    onChange={(e) =>
+                      setSocialData({
+                        ...socialData,
+                        twitter_handle: e.target.value,
+                      })
+                    }
                     placeholder="nom_utilisateur"
                     className="pl-8"
                   />

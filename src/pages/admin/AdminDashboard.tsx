@@ -1,27 +1,27 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { SecurityStatusCard } from "@/components/admin/SecurityStatusCard";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Package, 
-  ShoppingCart, 
-  Users, 
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { SecurityStatusCard } from '@/components/admin/SecurityStatusCard';
+import {
+  TrendingUp,
+  TrendingDown,
+  Package,
+  ShoppingCart,
+  Users,
   DollarSign,
   AlertTriangle,
   Plus,
   Eye,
   Settings,
-  BarChart3
-} from "lucide-react";
-import { Product } from "@/shared/interfaces/Iproduct.interface";
-import { ProductService } from "@/services/productService";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useCurrency } from "@/stores/currencyStore";
+  BarChart3,
+} from 'lucide-react';
+import { Product } from '@/shared/interfaces/Iproduct.interface';
+import { ProductService } from '@/services/productService';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useCurrency } from '@/stores/currencyStore';
 
 interface Order {
   id: string;
@@ -73,14 +73,16 @@ const AdminDashboard = () => {
         // Load orders
         const { data: ordersData, error: ordersError } = await supabase
           .from('orders')
-          .select(`
+          .select(
+            `
             id,
             user_id,
             amount,
             status,
             currency,
             created_at
-          `)
+          `
+          )
           .order('created_at', { ascending: false })
           .limit(10);
 
@@ -92,19 +94,19 @@ const AdminDashboard = () => {
             if (!order.user_id) {
               return {
                 ...order,
-                profiles: null
+                profiles: null,
               };
             }
-            
+
             const { data: profile } = await supabase
               .from('profiles')
               .select('full_name')
               .eq('id', order.user_id)
               .single();
-            
+
             return {
               ...order,
-              profiles: profile
+              profiles: profile,
             };
           })
         );
@@ -120,11 +122,17 @@ const AdminDashboard = () => {
 
         // Calculate statistics
         const totalProducts = productData.length;
-        const activeProducts = productData.filter(p => p.is_active !== false).length;
-        const lowStockProducts = productData.filter(p => (p.stock_quantity || 0) <= (p.min_stock_level || 5)).length;
+        const activeProducts = productData.filter(
+          (p) => p.is_active !== false
+        ).length;
+        const lowStockProducts = productData.filter(
+          (p) => (p.stock_quantity || 0) <= (p.min_stock_level || 5)
+        ).length;
         const totalOrders = ordersData?.length || 0;
-        const pendingOrders = ordersData?.filter(o => o.status === 'pending').length || 0;
-        const totalRevenue = ordersData?.reduce((sum, order) => sum + (order.amount / 100), 0) || 0;
+        const pendingOrders =
+          ordersData?.filter((o) => o.status === 'pending').length || 0;
+        const totalRevenue =
+          ordersData?.reduce((sum, order) => sum + order.amount / 100, 0) || 0;
         const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
         setStats({
@@ -140,31 +148,33 @@ const AdminDashboard = () => {
 
         // Generate recent activity from real data
         const activities = [];
-        
+
         // Recent orders
-        ordersData?.slice(0, 3).forEach(order => {
+        ordersData?.slice(0, 3).forEach((order) => {
           activities.push({
-            type: "order",
+            type: 'order',
             message: `Nouvelle commande #${order.id.slice(-8)} de ${formatPrice(order.amount / 100)}`,
-            time: formatTimeAgo(order.created_at)
+            time: formatTimeAgo(order.created_at),
           });
         });
 
         // Low stock products
-        productData.filter(p => (p.stock_quantity || 0) <= (p.min_stock_level || 5)).slice(0, 2).forEach(product => {
-          const stock = product.stock_quantity || 0;
-          activities.push({
-            type: "product",
-            message: `Stock faible: ${product.name} (${stock} restant${stock > 1 ? 's' : ''})`,
-            time: "Il y a 1h"
+        productData
+          .filter((p) => (p.stock_quantity || 0) <= (p.min_stock_level || 5))
+          .slice(0, 2)
+          .forEach((product) => {
+            const stock = product.stock_quantity || 0;
+            activities.push({
+              type: 'product',
+              message: `Stock faible: ${product.name} (${stock} restant${stock > 1 ? 's' : ''})`,
+              time: 'Il y a 1h',
+            });
           });
-        });
 
         setRecentActivity(activities.slice(0, 5));
-
       } catch (error) {
-        console.error("Erreur lors du chargement des données:", error);
-        toast.error("Erreur lors du chargement des données du tableau de bord");
+        console.error('Erreur lors du chargement des données:', error);
+        toast.error('Erreur lors du chargement des données du tableau de bord');
       } finally {
         setLoading(false);
       }
@@ -176,8 +186,10 @@ const AdminDashboard = () => {
   const formatTimeAgo = (dateString: string): string => {
     const now = new Date();
     const date = new Date(dateString);
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+    const diffInHours = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    );
+
     if (diffInHours < 1) return "Il y a moins d'1h";
     if (diffInHours < 24) return `Il y a ${diffInHours}h`;
     const diffInDays = Math.floor(diffInHours / 24);
@@ -186,39 +198,57 @@ const AdminDashboard = () => {
 
   const getStatusColor = (status: string): string => {
     switch (status) {
-      case "pending": return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20";
-      case "processing": return "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20";
-      case "shipped": return "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20";
-      case "delivered": return "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20";
-      case "cancelled": return "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20";
-      default: return "bg-muted text-muted-foreground border-border";
+      case 'pending':
+        return 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20';
+      case 'processing':
+        return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
+      case 'shipped':
+        return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20';
+      case 'delivered':
+        return 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20';
+      case 'cancelled':
+        return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20';
+      default:
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
   const getStatusText = (status: string): string => {
     switch (status) {
-      case "pending": return "En attente";
-      case "processing": return "En cours";
-      case "shipped": return "Expédiée";
-      case "delivered": return "Livrée";
-      case "cancelled": return "Annulée";
-      default: return status;
+      case 'pending':
+        return 'En attente';
+      case 'processing':
+        return 'En cours';
+      case 'shipped':
+        return 'Expédiée';
+      case 'delivered':
+        return 'Livrée';
+      case 'cancelled':
+        return 'Annulée';
+      default:
+        return status;
     }
   };
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case "order": return ShoppingCart;
-      case "product": return Package;
-      case "customer": return Users;
-      default: return AlertTriangle;
+      case 'order':
+        return ShoppingCart;
+      case 'product':
+        return Package;
+      case 'customer':
+        return Users;
+      default:
+        return AlertTriangle;
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-muted-foreground">Chargement du tableau de bord...</div>
+        <div className="text-muted-foreground">
+          Chargement du tableau de bord...
+        </div>
       </div>
     );
   }
@@ -231,7 +261,8 @@ const AdminDashboard = () => {
           Tableau de bord
         </h1>
         <p className="text-muted-foreground">
-          Bienvenue dans votre espace d'administration. Voici un aperçu de votre activité.
+          Bienvenue dans votre espace d'administration. Voici un aperçu de votre
+          activité.
         </p>
       </div>
 
@@ -245,10 +276,13 @@ const AdminDashboard = () => {
             <Package className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{stats.totalProducts}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.activeProducts} actifs • {stats.lowStockProducts} stock faible
-              </p>
+            <div className="text-2xl font-bold text-foreground">
+              {stats.totalProducts}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {stats.activeProducts} actifs • {stats.lowStockProducts} stock
+              faible
+            </p>
           </CardContent>
         </Card>
 
@@ -260,7 +294,9 @@ const AdminDashboard = () => {
             <ShoppingCart className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{stats.totalOrders}</div>
+            <div className="text-2xl font-bold text-foreground">
+              {stats.totalOrders}
+            </div>
             <p className="text-xs text-muted-foreground">
               {stats.pendingOrders} en attente
             </p>
@@ -328,11 +364,16 @@ const AdminDashboard = () => {
                   </div>
                 ) : (
                   orders.slice(0, 5).map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                    <div
+                      key={order.id}
+                      className="flex items-center justify-between p-3 rounded-lg border border-border"
+                    >
                       <div className="flex-1">
                         <div className="flex items-center space-x-3">
                           <div>
-                            <p className="font-medium text-foreground">#{order.id.slice(-8)}</p>
+                            <p className="font-medium text-foreground">
+                              #{order.id.slice(-8)}
+                            </p>
                             <p className="text-sm text-muted-foreground">
                               {order.profiles?.full_name || 'Client anonyme'}
                             </p>
@@ -373,8 +414,12 @@ const AdminDashboard = () => {
                         <Icon className="h-3 w-3 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-foreground">{activity.message}</p>
-                        <p className="text-xs text-muted-foreground">{activity.time}</p>
+                        <p className="text-sm text-foreground">
+                          {activity.message}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {activity.time}
+                        </p>
                       </div>
                     </div>
                   );
@@ -395,31 +440,46 @@ const AdminDashboard = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link to="/admin/products">
-              <Button className="w-full justify-start h-auto p-4" variant="outline">
+              <Button
+                className="w-full justify-start h-auto p-4"
+                variant="outline"
+              >
                 <Plus className="h-5 w-5 mr-3" />
                 <div className="text-left">
                   <div className="font-medium">Ajouter un produit</div>
-                  <div className="text-sm text-muted-foreground">Créer un nouveau produit</div>
+                  <div className="text-sm text-muted-foreground">
+                    Créer un nouveau produit
+                  </div>
                 </div>
               </Button>
             </Link>
-            
+
             <Link to="/admin/orders">
-              <Button className="w-full justify-start h-auto p-4" variant="outline">
+              <Button
+                className="w-full justify-start h-auto p-4"
+                variant="outline"
+              >
                 <ShoppingCart className="h-5 w-5 mr-3" />
                 <div className="text-left">
                   <div className="font-medium">Voir les commandes</div>
-                  <div className="text-sm text-muted-foreground">Gérer les commandes clients</div>
+                  <div className="text-sm text-muted-foreground">
+                    Gérer les commandes clients
+                  </div>
                 </div>
               </Button>
             </Link>
 
             <Link to="/admin/settings">
-              <Button className="w-full justify-start h-auto p-4" variant="outline">
+              <Button
+                className="w-full justify-start h-auto p-4"
+                variant="outline"
+              >
                 <Settings className="h-5 w-5 mr-3" />
                 <div className="text-left">
                   <div className="font-medium">Paramètres</div>
-                  <div className="text-sm text-muted-foreground">Configurer la boutique</div>
+                  <div className="text-sm text-muted-foreground">
+                    Configurer la boutique
+                  </div>
                 </div>
               </Button>
             </Link>
@@ -442,17 +502,22 @@ const AdminDashboard = () => {
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <h4 className="font-medium text-foreground">Croissance des ventes</h4>
+                <h4 className="font-medium text-foreground">
+                  Croissance des ventes
+                </h4>
               </div>
               <p className="text-sm text-muted-foreground">
-                Les ventes ont augmenté de 15% ce mois par rapport au mois dernier.
+                Les ventes ont augmenté de 15% ce mois par rapport au mois
+                dernier.
               </p>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <h4 className="font-medium text-foreground">Produits populaires</h4>
+                <h4 className="font-medium text-foreground">
+                  Produits populaires
+                </h4>
               </div>
               <p className="text-sm text-muted-foreground">
                 Les chapeaux représentent 45% des ventes totales ce mois.
@@ -465,7 +530,9 @@ const AdminDashboard = () => {
                 <h4 className="font-medium text-foreground">Total clients</h4>
               </div>
               <p className="text-sm text-muted-foreground">
-                {stats.totalCustomers} client{stats.totalCustomers > 1 ? 's' : ''} inscrit{stats.totalCustomers > 1 ? 's' : ''} dans la boutique.
+                {stats.totalCustomers} client
+                {stats.totalCustomers > 1 ? 's' : ''} inscrit
+                {stats.totalCustomers > 1 ? 's' : ''} dans la boutique.
               </p>
             </div>
           </div>

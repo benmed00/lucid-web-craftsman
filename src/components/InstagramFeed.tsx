@@ -1,8 +1,8 @@
 // File_name: src\components\InstagramFeed.tsx
 // Description: Instagram feed component for displaying images with likes and comments.
 
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 interface InstagramPost {
   id: number;
   image: string;
@@ -42,27 +42,35 @@ interface InstagramPost {
 const instagramPosts: InstagramPost[] = [
   {
     id: 1,
-    image: "/assets/images/instagram/insta_image_1.webp",
+    image: '/assets/images/instagram/insta_image_1.webp',
     likes: 254,
   },
   {
     id: 2,
-    image: "/assets/images/instagram/insta_image_3.webp", 
+    image: '/assets/images/instagram/insta_image_3.webp',
     likes: 187,
   },
   {
     id: 3,
-    image: "/assets/images/instagram/insta_image_2.webp",
+    image: '/assets/images/instagram/insta_image_2.webp',
     likes: 315,
   },
   {
     id: 4,
-    image: "/assets/images/instagram/insta_image_4.webp",
+    image: '/assets/images/instagram/insta_image_4.webp',
     likes: 201,
   },
 ];
 
-const ImageWithFallback = ({ src, alt, unavailableText }: { src: string; alt: string; unavailableText: string }) => {
+const ImageWithFallback = ({
+  src,
+  alt,
+  unavailableText,
+}: {
+  src: string;
+  alt: string;
+  unavailableText: string;
+}) => {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -72,26 +80,27 @@ const ImageWithFallback = ({ src, alt, unavailableText }: { src: string; alt: st
   return (
     <div className="relative w-full h-full">
       {error ? (
-        <img 
-          src={fallbackSrc} 
-          alt={alt} 
+        <img
+          src={fallbackSrc}
+          alt={alt}
           className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
           onError={() => {
             // If fallback also fails, show placeholder
             const placeholder = document.createElement('div');
-            placeholder.className = "bg-muted w-full h-full flex items-center justify-center text-muted-foreground text-sm";
+            placeholder.className =
+              'bg-muted w-full h-full flex items-center justify-center text-muted-foreground text-sm';
             placeholder.textContent = unavailableText;
           }}
         />
       ) : (
         <>
-          <img 
-            src={src} 
-            alt={alt} 
+          <img
+            src={src}
+            alt={alt}
             className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
             style={{ opacity: loading ? 0 : 1 }}
-            onError={() => setError(true)} 
+            onError={() => setError(true)}
             onLoad={() => setLoading(false)}
             loading="lazy"
             sizes="(max-width: 768px) 50vw, 25vw"
@@ -107,7 +116,7 @@ const ImageWithFallback = ({ src, alt, unavailableText }: { src: string; alt: st
 
 const InstagramFeed = () => {
   const { t } = useTranslation('pages');
-  
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
       {instagramPosts.map((post) => (

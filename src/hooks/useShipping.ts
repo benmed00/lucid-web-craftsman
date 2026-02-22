@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { shippingService, ShippingCalculation, ShippingZone } from '@/services/shippingService';
+import {
+  shippingService,
+  ShippingCalculation,
+  ShippingZone,
+} from '@/services/shippingService';
 import { useCurrency } from '@/stores/currencyStore';
 
 export interface UseShippingOptions {
@@ -9,7 +13,9 @@ export interface UseShippingOptions {
 }
 
 export const useShipping = (options: UseShippingOptions = {}) => {
-  const [calculation, setCalculation] = useState<ShippingCalculation | null>(null);
+  const [calculation, setCalculation] = useState<ShippingCalculation | null>(
+    null
+  );
   const [zones, setZones] = useState<ShippingZone[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,11 +35,18 @@ export const useShipping = (options: UseShippingOptions = {}) => {
       setError(null);
 
       try {
-        const result = await shippingService.calculateShipping(postalCode, orderAmount);
+        const result = await shippingService.calculateShipping(
+          postalCode,
+          orderAmount
+        );
         setCalculation(result);
       } catch (err) {
         console.error('Error calculating shipping:', err);
-        setError(err instanceof Error ? err.message : 'Erreur lors du calcul de livraison');
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Erreur lors du calcul de livraison'
+        );
         setCalculation(null);
       } finally {
         setLoading(false);
@@ -50,7 +63,11 @@ export const useShipping = (options: UseShippingOptions = {}) => {
       setZones(shippingZones);
     } catch (err) {
       console.error('Error loading shipping zones:', err);
-      setError(err instanceof Error ? err.message : 'Erreur lors du chargement des zones');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Erreur lors du chargement des zones'
+      );
     }
   };
 
@@ -73,11 +90,11 @@ export const useShipping = (options: UseShippingOptions = {}) => {
       }
     } else {
       let message = `🚚 Livraison: ${formatPrice(cost)} • ${delivery_estimate}`;
-      
+
       if (savings && savings > 0) {
         message += ` • Plus que ${formatPrice(savings)} pour la livraison gratuite !`;
       }
-      
+
       return message;
     }
   };
@@ -89,6 +106,6 @@ export const useShipping = (options: UseShippingOptions = {}) => {
     error,
     loadZones,
     isNantesMetropole,
-    getShippingMessage
+    getShippingMessage,
   };
 };

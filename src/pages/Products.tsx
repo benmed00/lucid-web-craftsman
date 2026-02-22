@@ -1,59 +1,69 @@
-import { useState, useEffect, useMemo, useRef } from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
-import { ProductRecommendations } from "@/components/ProductRecommendations";
-import SEOHelmet from "@/components/seo/SEOHelmet";
-import { useSafetyTimeout } from "@/hooks/useSafetyTimeout";
+import { RecentlyViewedProducts } from '@/components/RecentlyViewedProducts';
+import { ProductRecommendations } from '@/components/ProductRecommendations';
+import SEOHelmet from '@/components/seo/SEOHelmet';
+import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
-import PageFooter from "@/components/PageFooter";
-import ProductCard from "@/components/ProductCard";
-import ProductGridSkeleton from "@/components/ProductGridSkeleton";
-import { ProductQuickView } from "@/components/ProductQuickView";
-import { AdvancedProductFilters } from "@/components/AdvancedProductFilters";
+import PageFooter from '@/components/PageFooter';
+import ProductCard from '@/components/ProductCard';
+import ProductGridSkeleton from '@/components/ProductGridSkeleton';
+import { ProductQuickView } from '@/components/ProductQuickView';
+import { AdvancedProductFilters } from '@/components/AdvancedProductFilters';
 
-import { SearchResultsHeader, HighlightText } from "@/components/SearchResults";
-import FloatingCartButton from "@/components/ui/FloatingCartButton";
-import { PullToRefresh } from "@/components/ui/PullToRefresh";
-import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { VoiceSearch } from "@/components/ui/VoiceSearch";
-import { MobilePromotions } from "@/components/ui/MobilePromotions";
+import { SearchResultsHeader, HighlightText } from '@/components/SearchResults';
+import FloatingCartButton from '@/components/ui/FloatingCartButton';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { VoiceSearch } from '@/components/ui/VoiceSearch';
+import { MobilePromotions } from '@/components/ui/MobilePromotions';
 
-import { useProductsWithTranslations, ProductWithTranslation, SupportedLocale } from "@/hooks/useTranslatedContent";
-import { useCart } from "@/stores";
-import { useAdvancedProductFilters } from "@/hooks/useAdvancedProductFilters";
-import { Product } from "@/shared/interfaces/Iproduct.interface";
-import { toast } from "sonner";
+import {
+  useProductsWithTranslations,
+  ProductWithTranslation,
+  SupportedLocale,
+} from '@/hooks/useTranslatedContent';
+import { useCart } from '@/stores';
+import { useAdvancedProductFilters } from '@/hooks/useAdvancedProductFilters';
+import { Product } from '@/shared/interfaces/Iproduct.interface';
+import { toast } from 'sonner';
 
 const Products = () => {
   const { t } = useTranslation(['products', 'common']);
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
-  
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(
+    null
+  );
+
   const { addItem } = useCart();
   const isMobile = useIsMobile();
 
   // Fetch products with translations based on current locale
-  const { 
-    data: translatedProducts = [], 
-    isLoading: loading, 
+  const {
+    data: translatedProducts = [],
+    isLoading: loading,
     error: fetchError,
-    refetch 
+    refetch,
   } = useProductsWithTranslations();
 
   // Safety timeout: never show skeleton for more than 8 seconds
   const { hasTimedOut: forceRender } = useSafetyTimeout(loading, {
     timeout: 8000,
-    onTimeout: () => console.warn('[Products] Loading timed out, rendering page'),
+    onTimeout: () =>
+      console.warn('[Products] Loading timed out, rendering page'),
   });
 
   // Create a map of product ID to fallback info
   const fallbackInfo = useMemo(() => {
-    const info: Record<number, { isFallback: boolean; locale: SupportedLocale }> = {};
+    const info: Record<
+      number,
+      { isFallback: boolean; locale: SupportedLocale }
+    > = {};
     translatedProducts.forEach((p: ProductWithTranslation) => {
       info[p.id] = { isFallback: p._fallbackUsed, locale: p._locale };
     });
@@ -61,23 +71,26 @@ const Products = () => {
   }, [translatedProducts]);
 
   // Convert translated products to Product interface for compatibility
-  const products = useMemo(() => 
-    translatedProducts.map((p): Product => ({
-      id: p.id,
-      name: p.name,
-      description: p.description,
-      price: p.price,
-      images: p.images,
-      category: p.category,
-      artisan: p.artisan,
-      details: p.details,
-      care: p.care,
-      is_new: p.is_new ?? false,
-      is_available: p.is_available ?? true,
-      stock_quantity: p.stock_quantity ?? 0,
-      rating_average: p.rating_average ?? 0,
-      rating_count: p.rating_count ?? 0,
-    })),
+  const products = useMemo(
+    () =>
+      translatedProducts.map(
+        (p): Product => ({
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          price: p.price,
+          images: p.images,
+          category: p.category,
+          artisan: p.artisan,
+          details: p.details,
+          care: p.care,
+          is_new: p.is_new ?? false,
+          is_available: p.is_available ?? true,
+          stock_quantity: p.stock_quantity ?? 0,
+          rating_average: p.rating_average ?? 0,
+          rating_count: p.rating_count ?? 0,
+        })
+      ),
     [translatedProducts]
   );
 
@@ -99,30 +112,33 @@ const Products = () => {
     totalProducts: totalProductsCount,
     filteredCount,
     getCacheStats,
-    invalidateCache
-  } = useAdvancedProductFilters({ 
+    invalidateCache,
+  } = useAdvancedProductFilters({
     products,
     enableAnalytics: true,
-    debounceMs: 300
+    debounceMs: 300,
   });
 
   // Get cache statistics
-  const cacheStats = getCacheStats?.() ?? { cachedQueries: 0, totalCacheSize: 0 };
+  const cacheStats = getCacheStats?.() ?? {
+    cachedQueries: 0,
+    totalCacheSize: 0,
+  };
 
   const handleClearCache = () => {
     invalidateCache?.();
     toast.success(t('cache.cleared'));
   };
 
-  // Infinite scroll for mobile with better performance  
+  // Infinite scroll for mobile with better performance
   const {
     visibleItems: visibleProducts,
     hasMore,
     isLoading: isLoadingMore,
     sentinelRef,
-  } = useInfiniteScroll({ 
-    items: filteredProducts, 
-    itemsPerPage: isMobile ? 8 : 16 
+  } = useInfiniteScroll({
+    items: filteredProducts,
+    itemsPerPage: isMobile ? 8 : 16,
   });
 
   const handleRefresh = async () => {
@@ -135,14 +151,17 @@ const Products = () => {
   }, []);
 
   // Memoized categories for performance
-  const displayCategories = useMemo(() => availableOptions.categories, [availableOptions.categories]);
+  const displayCategories = useMemo(
+    () => availableOptions.categories,
+    [availableOptions.categories]
+  );
 
   const handleAddToCart = (product: Product, event?: React.MouseEvent) => {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
     }
-    
+
     addItem(product, 1);
 
     toast.success(t('recommendations.addedToCart', { name: product.name }), {
@@ -161,9 +180,15 @@ const Products = () => {
   const handleQuickViewAddToCart = (product: Product, quantity: number) => {
     addItem(product, quantity);
 
-    toast.success(t('recommendations.addedToCartQuantity', { name: product.name, quantity }), {
-      duration: 2000,
-    });
+    toast.success(
+      t('recommendations.addedToCartQuantity', {
+        name: product.name,
+        quantity,
+      }),
+      {
+        duration: 2000,
+      }
+    );
 
     setQuickViewProduct(null);
   };
@@ -178,7 +203,6 @@ const Products = () => {
   if (loading && !forceRender) {
     return (
       <div className="min-h-screen bg-background">
-        
         {/* Hero Banner Skeleton */}
         <div className="bg-gradient-to-r from-secondary to-muted py-8 md:py-12 lg:py-16">
           <div className="container mx-auto px-4 text-center animate-pulse">
@@ -213,7 +237,7 @@ const Products = () => {
           {/* Products Grid Skeleton */}
           <ProductGridSkeleton count={isMobile ? 8 : 12} />
         </div>
-        
+
         <PageFooter />
       </div>
     );
@@ -241,13 +265,12 @@ const Products = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHelmet
-        title={t('title') + " | Rif Raw Straw"}
+        title={t('title') + ' | Rif Raw Straw'}
         description={t('subtitle')}
         keywords={t('seo.keywords', { returnObjects: true }) as string[]}
         url="/products"
         type="website"
       />
-      
 
       {/* Hero Banner */}
       <div className="bg-gradient-to-r from-secondary to-muted py-8 md:py-12 lg:py-16">
@@ -266,15 +289,17 @@ const Products = () => {
         {isMobile && (
           <div className="space-y-6 mb-6">
             {/* Voice Search */}
-            <VoiceSearch 
+            <VoiceSearch
               onSearch={handleVoiceSearch}
               placeholder={t('filters.searchPlaceholder')}
             />
-            
+
             {/* Mobile Promotions with Dynamic Cart Total */}
-            <MobilePromotions 
+            <MobilePromotions
               cartTotal={150} // Pass actual cart total
-              onPromotionApply={(code) => toast.success(t('promo.applied', { code }))}
+              onPromotionApply={(code) =>
+                toast.success(t('promo.applied', { code }))
+              }
             />
           </div>
         )}
@@ -296,7 +321,6 @@ const Products = () => {
           cacheStats={cacheStats}
         />
 
-
         {/* Enhanced Search Results Header */}
         <SearchResultsHeader
           searchQuery={filters.searchQuery}
@@ -309,7 +333,7 @@ const Products = () => {
           <div className="flex flex-wrap gap-2 mb-6 md:mb-8 overflow-x-auto mobile-scroll">
             <div className="flex gap-2 min-w-max">
               <Button
-                variant={filters.category.length === 0 ? "default" : "outline"}
+                variant={filters.category.length === 0 ? 'default' : 'outline'}
                 size="sm"
                 className="min-h-[44px] touch-manipulation whitespace-nowrap"
                 onClick={() => {
@@ -319,19 +343,27 @@ const Products = () => {
                 {t('filters.all')} ({totalProductsCount})
               </Button>
               {displayCategories.map((category) => {
-                const categoryCount = products.filter(p => p.category === category).length;
+                const categoryCount = products.filter(
+                  (p) => p.category === category
+                ).length;
                 const isSelected = filters.category.includes(category);
                 return (
                   <Button
                     key={category}
-                    variant={isSelected ? "default" : "outline"}
+                    variant={isSelected ? 'default' : 'outline'}
                     size="sm"
                     className="min-h-[44px] touch-manipulation whitespace-nowrap"
                     onClick={() => {
                       if (isSelected) {
-                        updateFilters({ category: filters.category.filter(c => c !== category) });
+                        updateFilters({
+                          category: filters.category.filter(
+                            (c) => c !== category
+                          ),
+                        });
                       } else {
-                        updateFilters({ category: [...filters.category, category] });
+                        updateFilters({
+                          category: [...filters.category, category],
+                        });
                       }
                     }}
                   >
@@ -353,10 +385,9 @@ const Products = () => {
                   {t('common:messages.noResults')}
                 </h2>
                 <p className="text-muted-foreground mb-6">
-                  {filters.searchQuery 
+                  {filters.searchQuery
                     ? t('common:messages.noResults')
-                    : t('common:messages.noResults')
-                  }
+                    : t('common:messages.noResults')}
                 </p>
                 <Button onClick={resetFilters} variant="outline">
                   {t('filters.clearFilters')}
@@ -370,59 +401,67 @@ const Products = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-center gap-2 text-muted-foreground py-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">{t('common:messages.loading')}...</span>
+                    <span className="text-sm">
+                      {t('common:messages.loading')}...
+                    </span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
-                    {Array.from({ length: isMobile ? 4 : 8 }).map((_, index) => (
-                      <div 
-                        key={`skeleton-${index}`}
-                        className="animate-pulse"
-                        style={{ animationDelay: `${index * 50}ms` }}
-                      >
-                        <div className="bg-card rounded-lg overflow-hidden border border-border">
-                          <div className="aspect-square bg-muted" />
-                          <div className="p-3 md:p-4 space-y-3">
-                            <div className="h-4 bg-muted rounded w-3/4" />
-                            <div className="h-3 bg-muted rounded w-1/2" />
-                            <div className="h-5 bg-muted rounded w-1/3" />
+                    {Array.from({ length: isMobile ? 4 : 8 }).map(
+                      (_, index) => (
+                        <div
+                          key={`skeleton-${index}`}
+                          className="animate-pulse"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <div className="bg-card rounded-lg overflow-hidden border border-border">
+                            <div className="aspect-square bg-muted" />
+                            <div className="p-3 md:p-4 space-y-3">
+                              <div className="h-4 bg-muted rounded w-3/4" />
+                              <div className="h-3 bg-muted rounded w-1/2" />
+                              <div className="h-5 bg-muted rounded w-1/3" />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
-                  {(isMobile ? visibleProducts : filteredProducts).map((product, index) => (
-                    <div 
-                      key={product.id}
-                      className="animate-fade-in mobile-product-card"
-                      style={{ 
-                        animationDelay: `${Math.min(index * 50, 400)}ms`,
-                        animationFillMode: 'both'
-                      }}
-                    >
-                      <ProductCard
-                        product={product}
-                        onAddToCart={handleAddToCart}
-                        onQuickView={handleQuickView}
-                        isFallback={fallbackInfo[product.id]?.isFallback}
-                        fallbackLocale={fallbackInfo[product.id]?.locale}
-                      />
-                    </div>
-                  ))}
+                  {(isMobile ? visibleProducts : filteredProducts).map(
+                    (product, index) => (
+                      <div
+                        key={product.id}
+                        className="animate-fade-in mobile-product-card"
+                        style={{
+                          animationDelay: `${Math.min(index * 50, 400)}ms`,
+                          animationFillMode: 'both',
+                        }}
+                      >
+                        <ProductCard
+                          product={product}
+                          onAddToCart={handleAddToCart}
+                          onQuickView={handleQuickView}
+                          isFallback={fallbackInfo[product.id]?.isFallback}
+                          fallbackLocale={fallbackInfo[product.id]?.locale}
+                        />
+                      </div>
+                    )
+                  )}
                 </div>
               )}
 
-                {/* Infinite Scroll Sentinel and Loading */}
+              {/* Infinite Scroll Sentinel and Loading */}
               {isMobile && hasMore && (
                 <div ref={sentinelRef} className="flex justify-center py-8">
-                {isLoadingMore && (
-                  <div className="flex items-center space-x-2 text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">{t('common:messages.loading')}...</span>
-                  </div>
-                )}
+                  {isLoadingMore && (
+                    <div className="flex items-center space-x-2 text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">
+                        {t('common:messages.loading')}...
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -435,9 +474,7 @@ const Products = () => {
             <h2 className="font-serif text-2xl text-foreground mb-4">
               {t('cta.title')}
             </h2>
-            <p className="text-muted-foreground mb-6">
-              {t('cta.description')}
-            </p>
+            <p className="text-muted-foreground mb-6">{t('cta.description')}</p>
             <Button asChild className="bg-primary hover:bg-primary/90">
               <Link to="/contact" className="inline-flex items-center">
                 {t('cta.button')}

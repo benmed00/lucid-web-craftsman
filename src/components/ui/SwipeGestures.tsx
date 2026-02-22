@@ -10,16 +10,18 @@ interface SwipeGesturesProps {
   className?: string;
 }
 
-export const SwipeGestures = ({ 
-  onSwipeLeft, 
-  onSwipeRight, 
-  onSwipeUp, 
+export const SwipeGestures = ({
+  onSwipeLeft,
+  onSwipeRight,
+  onSwipeUp,
   onSwipeDown,
   threshold = 50,
   children,
-  className = ""
+  className = '',
 }: SwipeGesturesProps) => {
-  const [startTouch, setStartTouch] = useState<{ x: number; y: number } | null>(null);
+  const [startTouch, setStartTouch] = useState<{ x: number; y: number } | null>(
+    null
+  );
   const [isScrolling, setIsScrolling] = useState(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -30,11 +32,11 @@ export const SwipeGestures = ({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!startTouch) return;
-    
+
     const touch = e.touches[0];
     const deltaX = Math.abs(touch.clientX - startTouch.x);
     const deltaY = Math.abs(touch.clientY - startTouch.y);
-    
+
     // If vertical movement is greater than horizontal, user is scrolling
     if (deltaY > deltaX && deltaY > 10) {
       setIsScrolling(true);
@@ -46,14 +48,14 @@ export const SwipeGestures = ({
       setStartTouch(null);
       return;
     }
-    
+
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - startTouch.x;
     const deltaY = touch.clientY - startTouch.y;
-    
+
     const absDeltaX = Math.abs(deltaX);
     const absDeltaY = Math.abs(deltaY);
-    
+
     // Horizontal swipe
     if (absDeltaX > threshold && absDeltaX > absDeltaY) {
       if (deltaX > 0 && onSwipeRight) {
@@ -70,12 +72,12 @@ export const SwipeGestures = ({
         onSwipeUp();
       }
     }
-    
+
     setStartTouch(null);
   };
 
   return (
-    <div 
+    <div
       className={className}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}

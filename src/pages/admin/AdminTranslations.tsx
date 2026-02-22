@@ -1,32 +1,70 @@
 /**
  * Admin Translations Page
- * 
+ *
  * Manage product and blog post translations from the admin dashboard.
  */
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
-import { Languages, Plus, Edit, Check, X, AlertTriangle, Globe } from "lucide-react";
-import { SUPPORTED_LOCALES, SupportedLocale, DEFAULT_LOCALE } from "@/services/translationService";
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { toast } from 'sonner';
+import {
+  Languages,
+  Plus,
+  Edit,
+  Check,
+  X,
+  AlertTriangle,
+  Globe,
+} from 'lucide-react';
+import {
+  SUPPORTED_LOCALES,
+  SupportedLocale,
+  DEFAULT_LOCALE,
+} from '@/services/translationService';
 
 const LOCALE_NAMES: Record<SupportedLocale, string> = {
-  fr: "Français",
-  en: "English",
-  ar: "العربية",
-  es: "Español",
-  de: "Deutsch",
+  fr: 'Français',
+  en: 'English',
+  ar: 'العربية',
+  es: 'Español',
+  de: 'Deutsch',
 };
 
 interface ProductForTranslation {
@@ -52,26 +90,26 @@ interface BlogPostForTranslation {
 }
 
 export default function AdminTranslations() {
-  const [activeTab, setActiveTab] = useState("products");
+  const [activeTab, setActiveTab] = useState('products');
   const [editingProduct, setEditingProduct] = useState<number | null>(null);
   const [editingBlogPost, setEditingBlogPost] = useState<string | null>(null);
-  const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>("en");
+  const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>('en');
   const queryClient = useQueryClient();
 
   // Fetch products with their translations
   const { data: products = [], isLoading: productsLoading } = useQuery({
-    queryKey: ["admin-products-translations"],
+    queryKey: ['admin-products-translations'],
     queryFn: async () => {
       const { data: products, error: productsError } = await supabase
-        .from("products")
-        .select("id, name, category")
-        .order("id");
+        .from('products')
+        .select('id, name, category')
+        .order('id');
 
       if (productsError) throw productsError;
 
       const { data: translations, error: transError } = await supabase
-        .from("product_translations")
-        .select("id, product_id, locale, name");
+        .from('product_translations')
+        .select('id, product_id, locale, name');
 
       if (transError) throw transError;
 
@@ -92,18 +130,18 @@ export default function AdminTranslations() {
 
   // Fetch blog posts with their translations
   const { data: blogPosts = [], isLoading: blogPostsLoading } = useQuery({
-    queryKey: ["admin-blog-translations"],
+    queryKey: ['admin-blog-translations'],
     queryFn: async () => {
       const { data: posts, error: postsError } = await supabase
-        .from("blog_posts")
-        .select("id, title, slug")
-        .order("created_at", { ascending: false });
+        .from('blog_posts')
+        .select('id, title, slug')
+        .order('created_at', { ascending: false });
 
       if (postsError) throw postsError;
 
       const { data: translations, error: transError } = await supabase
-        .from("blog_post_translations")
-        .select("id, blog_post_id, locale, title");
+        .from('blog_post_translations')
+        .select('id, blog_post_id, locale, title');
 
       if (transError) throw transError;
 
@@ -122,21 +160,37 @@ export default function AdminTranslations() {
     },
   });
 
-  const getMissingLocales = (translations: { locale: SupportedLocale }[]): SupportedLocale[] => {
+  const getMissingLocales = (
+    translations: { locale: SupportedLocale }[]
+  ): SupportedLocale[] => {
     const existingLocales = translations.map((t) => t.locale);
     return SUPPORTED_LOCALES.filter((l) => !existingLocales.includes(l));
   };
 
-  const getTranslationStatus = (translations: { locale: SupportedLocale }[]) => {
+  const getTranslationStatus = (
+    translations: { locale: SupportedLocale }[]
+  ) => {
     const count = translations.length;
     const total = SUPPORTED_LOCALES.length;
-    
+
     if (count === total) {
-      return { status: "complete", label: "Complet", variant: "default" as const };
+      return {
+        status: 'complete',
+        label: 'Complet',
+        variant: 'default' as const,
+      };
     } else if (count >= total / 2) {
-      return { status: "partial", label: `${count}/${total}`, variant: "secondary" as const };
+      return {
+        status: 'partial',
+        label: `${count}/${total}`,
+        variant: 'secondary' as const,
+      };
     } else {
-      return { status: "incomplete", label: `${count}/${total}`, variant: "destructive" as const };
+      return {
+        status: 'incomplete',
+        label: `${count}/${total}`,
+        variant: 'destructive' as const,
+      };
     }
   };
 
@@ -167,12 +221,12 @@ export default function AdminTranslations() {
             {SUPPORTED_LOCALES.map((locale) => (
               <Badge
                 key={locale}
-                variant={locale === DEFAULT_LOCALE ? "default" : "secondary"}
+                variant={locale === DEFAULT_LOCALE ? 'default' : 'secondary'}
                 className="text-sm"
               >
                 <Globe className="h-3 w-3 mr-1" />
                 {LOCALE_NAMES[locale]}
-                {locale === DEFAULT_LOCALE && " (par défaut)"}
+                {locale === DEFAULT_LOCALE && ' (par défaut)'}
               </Badge>
             ))}
           </div>
@@ -217,8 +271,10 @@ export default function AdminTranslations() {
                   <TableBody>
                     {products.map((product) => {
                       const status = getTranslationStatus(product.translations);
-                      const missingLocales = getMissingLocales(product.translations);
-                      
+                      const missingLocales = getMissingLocales(
+                        product.translations
+                      );
+
                       return (
                         <TableRow key={product.id}>
                           <TableCell className="font-mono text-sm">
@@ -233,12 +289,20 @@ export default function AdminTranslations() {
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
                               {product.translations.map((t) => (
-                                <Badge key={t.locale} variant="secondary" className="text-xs">
+                                <Badge
+                                  key={t.locale}
+                                  variant="secondary"
+                                  className="text-xs"
+                                >
                                   {t.locale.toUpperCase()}
                                 </Badge>
                               ))}
                               {missingLocales.map((locale) => (
-                                <Badge key={locale} variant="outline" className="text-xs text-muted-foreground">
+                                <Badge
+                                  key={locale}
+                                  variant="outline"
+                                  className="text-xs text-muted-foreground"
+                                >
                                   {locale.toUpperCase()}
                                 </Badge>
                               ))}
@@ -246,7 +310,7 @@ export default function AdminTranslations() {
                           </TableCell>
                           <TableCell>
                             <Badge variant={status.variant}>
-                              {status.status === "complete" ? (
+                              {status.status === 'complete' ? (
                                 <Check className="h-3 w-3 mr-1" />
                               ) : (
                                 <AlertTriangle className="h-3 w-3 mr-1" />
@@ -257,7 +321,11 @@ export default function AdminTranslations() {
                           <TableCell>
                             <ProductTranslationDialog
                               product={product}
-                              onSuccess={() => queryClient.invalidateQueries({ queryKey: ["admin-products-translations"] })}
+                              onSuccess={() =>
+                                queryClient.invalidateQueries({
+                                  queryKey: ['admin-products-translations'],
+                                })
+                              }
                             />
                           </TableCell>
                         </TableRow>
@@ -297,8 +365,10 @@ export default function AdminTranslations() {
                   <TableBody>
                     {blogPosts.map((post) => {
                       const status = getTranslationStatus(post.translations);
-                      const missingLocales = getMissingLocales(post.translations);
-                      
+                      const missingLocales = getMissingLocales(
+                        post.translations
+                      );
+
                       return (
                         <TableRow key={post.id}>
                           <TableCell className="font-medium max-w-[200px] truncate">
@@ -310,12 +380,20 @@ export default function AdminTranslations() {
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
                               {post.translations.map((t) => (
-                                <Badge key={t.locale} variant="secondary" className="text-xs">
+                                <Badge
+                                  key={t.locale}
+                                  variant="secondary"
+                                  className="text-xs"
+                                >
                                   {t.locale.toUpperCase()}
                                 </Badge>
                               ))}
                               {missingLocales.map((locale) => (
-                                <Badge key={locale} variant="outline" className="text-xs text-muted-foreground">
+                                <Badge
+                                  key={locale}
+                                  variant="outline"
+                                  className="text-xs text-muted-foreground"
+                                >
                                   {locale.toUpperCase()}
                                 </Badge>
                               ))}
@@ -323,7 +401,7 @@ export default function AdminTranslations() {
                           </TableCell>
                           <TableCell>
                             <Badge variant={status.variant}>
-                              {status.status === "complete" ? (
+                              {status.status === 'complete' ? (
                                 <Check className="h-3 w-3 mr-1" />
                               ) : (
                                 <AlertTriangle className="h-3 w-3 mr-1" />
@@ -334,7 +412,11 @@ export default function AdminTranslations() {
                           <TableCell>
                             <BlogTranslationDialog
                               blogPost={post}
-                              onSuccess={() => queryClient.invalidateQueries({ queryKey: ["admin-blog-translations"] })}
+                              onSuccess={() =>
+                                queryClient.invalidateQueries({
+                                  queryKey: ['admin-blog-translations'],
+                                })
+                              }
                             />
                           </TableCell>
                         </TableRow>
@@ -360,53 +442,55 @@ function ProductTranslationDialog({
   onSuccess: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>("en");
+  const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>('en');
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    short_description: "",
-    details: "",
-    care: "",
-    artisan_story: "",
-    seo_title: "",
-    seo_description: "",
+    name: '',
+    description: '',
+    short_description: '',
+    details: '',
+    care: '',
+    artisan_story: '',
+    seo_title: '',
+    seo_description: '',
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const existingTranslation = product.translations.find((t) => t.locale === selectedLocale);
+  const existingTranslation = product.translations.find(
+    (t) => t.locale === selectedLocale
+  );
 
   // Load existing translation data when locale changes
   const loadTranslation = async () => {
     if (!existingTranslation) {
       setFormData({
-        name: "",
-        description: "",
-        short_description: "",
-        details: "",
-        care: "",
-        artisan_story: "",
-        seo_title: "",
-        seo_description: "",
+        name: '',
+        description: '',
+        short_description: '',
+        details: '',
+        care: '',
+        artisan_story: '',
+        seo_title: '',
+        seo_description: '',
       });
       return;
     }
 
     const { data } = await supabase
-      .from("product_translations")
-      .select("*")
-      .eq("id", existingTranslation.id)
+      .from('product_translations')
+      .select('*')
+      .eq('id', existingTranslation.id)
       .single();
 
     if (data) {
       setFormData({
-        name: data.name || "",
-        description: data.description || "",
-        short_description: data.short_description || "",
-        details: data.details || "",
-        care: data.care || "",
-        artisan_story: data.artisan_story || "",
-        seo_title: data.seo_title || "",
-        seo_description: data.seo_description || "",
+        name: data.name || '',
+        description: data.description || '',
+        short_description: data.short_description || '',
+        details: data.details || '',
+        care: data.care || '',
+        artisan_story: data.artisan_story || '',
+        seo_title: data.seo_title || '',
+        seo_description: data.seo_description || '',
       });
     }
   };
@@ -417,32 +501,32 @@ function ProductTranslationDialog({
       if (existingTranslation) {
         // Update existing
         const { error } = await supabase
-          .from("product_translations")
+          .from('product_translations')
           .update({
             ...formData,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", existingTranslation.id);
+          .eq('id', existingTranslation.id);
 
         if (error) throw error;
-        toast.success("Traduction mise à jour");
+        toast.success('Traduction mise à jour');
       } else {
         // Insert new
-        const { error } = await supabase.from("product_translations").insert({
+        const { error } = await supabase.from('product_translations').insert({
           product_id: product.id,
           locale: selectedLocale,
           ...formData,
         });
 
         if (error) throw error;
-        toast.success("Traduction ajoutée");
+        toast.success('Traduction ajoutée');
       }
 
       onSuccess();
       setOpen(false);
     } catch (error) {
-      console.error("Error saving translation:", error);
-      toast.error("Erreur lors de la sauvegarde");
+      console.error('Error saving translation:', error);
+      toast.error('Erreur lors de la sauvegarde');
     } finally {
       setIsLoading(false);
     }
@@ -481,7 +565,8 @@ function ProductTranslationDialog({
                 {SUPPORTED_LOCALES.map((locale) => (
                   <SelectItem key={locale} value={locale}>
                     {LOCALE_NAMES[locale]}
-                    {product.translations.find((t) => t.locale === locale) && " ✓"}
+                    {product.translations.find((t) => t.locale === locale) &&
+                      ' ✓'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -497,7 +582,9 @@ function ProductTranslationDialog({
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="Nom traduit..."
               />
             </div>
@@ -507,7 +594,12 @@ function ProductTranslationDialog({
               <Input
                 id="short_description"
                 value={formData.short_description}
-                onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    short_description: e.target.value,
+                  })
+                }
                 placeholder="Description courte..."
               />
             </div>
@@ -517,7 +609,9 @@ function ProductTranslationDialog({
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="Description complète..."
                 rows={4}
               />
@@ -528,7 +622,9 @@ function ProductTranslationDialog({
               <Textarea
                 id="details"
                 value={formData.details}
-                onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, details: e.target.value })
+                }
                 placeholder="Détails du produit..."
                 rows={3}
               />
@@ -539,7 +635,9 @@ function ProductTranslationDialog({
               <Textarea
                 id="care"
                 value={formData.care}
-                onChange={(e) => setFormData({ ...formData, care: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, care: e.target.value })
+                }
                 placeholder="Instructions d'entretien..."
                 rows={2}
               />
@@ -550,7 +648,9 @@ function ProductTranslationDialog({
               <Textarea
                 id="artisan_story"
                 value={formData.artisan_story}
-                onChange={(e) => setFormData({ ...formData, artisan_story: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, artisan_story: e.target.value })
+                }
                 placeholder="Histoire de l'artisan..."
                 rows={3}
               />
@@ -562,7 +662,9 @@ function ProductTranslationDialog({
                 <Input
                   id="seo_title"
                   value={formData.seo_title}
-                  onChange={(e) => setFormData({ ...formData, seo_title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, seo_title: e.target.value })
+                  }
                   placeholder="Titre SEO..."
                 />
               </div>
@@ -571,7 +673,12 @@ function ProductTranslationDialog({
                 <Input
                   id="seo_description"
                   value={formData.seo_description}
-                  onChange={(e) => setFormData({ ...formData, seo_description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      seo_description: e.target.value,
+                    })
+                  }
                   placeholder="Description SEO..."
                 />
               </div>
@@ -583,7 +690,7 @@ function ProductTranslationDialog({
               Annuler
             </Button>
             <Button onClick={handleSave} disabled={isLoading || !formData.name}>
-              {isLoading ? "Enregistrement..." : "Enregistrer"}
+              {isLoading ? 'Enregistrement...' : 'Enregistrer'}
             </Button>
           </div>
         </div>
@@ -601,43 +708,45 @@ function BlogTranslationDialog({
   onSuccess: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>("en");
+  const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>('en');
   const [formData, setFormData] = useState({
-    title: "",
-    excerpt: "",
-    content: "",
-    seo_title: "",
-    seo_description: "",
+    title: '',
+    excerpt: '',
+    content: '',
+    seo_title: '',
+    seo_description: '',
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const existingTranslation = blogPost.translations.find((t) => t.locale === selectedLocale);
+  const existingTranslation = blogPost.translations.find(
+    (t) => t.locale === selectedLocale
+  );
 
   const loadTranslation = async () => {
     if (!existingTranslation) {
       setFormData({
-        title: "",
-        excerpt: "",
-        content: "",
-        seo_title: "",
-        seo_description: "",
+        title: '',
+        excerpt: '',
+        content: '',
+        seo_title: '',
+        seo_description: '',
       });
       return;
     }
 
     const { data } = await supabase
-      .from("blog_post_translations")
-      .select("*")
-      .eq("id", existingTranslation.id)
+      .from('blog_post_translations')
+      .select('*')
+      .eq('id', existingTranslation.id)
       .single();
 
     if (data) {
       setFormData({
-        title: data.title || "",
-        excerpt: data.excerpt || "",
-        content: data.content || "",
-        seo_title: data.seo_title || "",
-        seo_description: data.seo_description || "",
+        title: data.title || '',
+        excerpt: data.excerpt || '',
+        content: data.content || '',
+        seo_title: data.seo_title || '',
+        seo_description: data.seo_description || '',
       });
     }
   };
@@ -647,31 +756,31 @@ function BlogTranslationDialog({
     try {
       if (existingTranslation) {
         const { error } = await supabase
-          .from("blog_post_translations")
+          .from('blog_post_translations')
           .update({
             ...formData,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", existingTranslation.id);
+          .eq('id', existingTranslation.id);
 
         if (error) throw error;
-        toast.success("Traduction mise à jour");
+        toast.success('Traduction mise à jour');
       } else {
-        const { error } = await supabase.from("blog_post_translations").insert({
+        const { error } = await supabase.from('blog_post_translations').insert({
           blog_post_id: blogPost.id,
           locale: selectedLocale,
           ...formData,
         });
 
         if (error) throw error;
-        toast.success("Traduction ajoutée");
+        toast.success('Traduction ajoutée');
       }
 
       onSuccess();
       setOpen(false);
     } catch (error) {
-      console.error("Error saving translation:", error);
-      toast.error("Erreur lors de la sauvegarde");
+      console.error('Error saving translation:', error);
+      toast.error('Erreur lors de la sauvegarde');
     } finally {
       setIsLoading(false);
     }
@@ -708,7 +817,8 @@ function BlogTranslationDialog({
                 {SUPPORTED_LOCALES.map((locale) => (
                   <SelectItem key={locale} value={locale}>
                     {LOCALE_NAMES[locale]}
-                    {blogPost.translations.find((t) => t.locale === locale) && " ✓"}
+                    {blogPost.translations.find((t) => t.locale === locale) &&
+                      ' ✓'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -724,7 +834,9 @@ function BlogTranslationDialog({
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
                 placeholder="Titre traduit..."
               />
             </div>
@@ -734,7 +846,9 @@ function BlogTranslationDialog({
               <Textarea
                 id="excerpt"
                 value={formData.excerpt}
-                onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, excerpt: e.target.value })
+                }
                 placeholder="Extrait de l'article..."
                 rows={2}
               />
@@ -745,7 +859,9 @@ function BlogTranslationDialog({
               <Textarea
                 id="content"
                 value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, content: e.target.value })
+                }
                 placeholder="Contenu complet de l'article..."
                 rows={10}
               />
@@ -757,7 +873,9 @@ function BlogTranslationDialog({
                 <Input
                   id="seo_title"
                   value={formData.seo_title}
-                  onChange={(e) => setFormData({ ...formData, seo_title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, seo_title: e.target.value })
+                  }
                   placeholder="Titre SEO..."
                 />
               </div>
@@ -766,7 +884,12 @@ function BlogTranslationDialog({
                 <Input
                   id="seo_description"
                   value={formData.seo_description}
-                  onChange={(e) => setFormData({ ...formData, seo_description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      seo_description: e.target.value,
+                    })
+                  }
                   placeholder="Description SEO..."
                 />
               </div>
@@ -777,8 +900,11 @@ function BlogTranslationDialog({
             <Button variant="outline" onClick={() => setOpen(false)}>
               Annuler
             </Button>
-            <Button onClick={handleSave} disabled={isLoading || !formData.title}>
-              {isLoading ? "Enregistrement..." : "Enregistrer"}
+            <Button
+              onClick={handleSave}
+              disabled={isLoading || !formData.title}
+            >
+              {isLoading ? 'Enregistrement...' : 'Enregistrer'}
             </Button>
           </div>
         </div>

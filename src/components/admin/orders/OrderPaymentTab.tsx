@@ -82,9 +82,22 @@ interface OrderMetadata {
 }
 
 const REFUND_STATUS_CONFIG = {
-  none: { label: 'Aucun', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200', icon: CheckCircle },
-  partial: { label: 'Partiel', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: AlertTriangle },
-  full: { label: 'Complet', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: RefreshCw },
+  none: {
+    label: 'Aucun',
+    color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
+    icon: CheckCircle,
+  },
+  partial: {
+    label: 'Partiel',
+    color:
+      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    icon: AlertTriangle,
+  },
+  full: {
+    label: 'Complet',
+    color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    icon: RefreshCw,
+  },
 };
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
@@ -95,14 +108,45 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   paypal: 'PayPal',
 };
 
-const PAYMENT_STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
-  succeeded: { label: 'Réussi', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: CheckCircle },
-  processing: { label: 'En cours', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: Loader2 },
-  requires_payment_method: { label: 'Méthode requise', color: 'bg-yellow-100 text-yellow-800', icon: AlertTriangle },
-  requires_confirmation: { label: 'Confirmation requise', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-  requires_action: { label: 'Action requise', color: 'bg-orange-100 text-orange-800', icon: AlertTriangle },
-  canceled: { label: 'Annulé', color: 'bg-gray-100 text-gray-800', icon: XCircle },
-  failed: { label: 'Échoué', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', icon: XCircle },
+const PAYMENT_STATUS_CONFIG: Record<
+  string,
+  { label: string; color: string; icon: typeof CheckCircle }
+> = {
+  succeeded: {
+    label: 'Réussi',
+    color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    icon: CheckCircle,
+  },
+  processing: {
+    label: 'En cours',
+    color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    icon: Loader2,
+  },
+  requires_payment_method: {
+    label: 'Méthode requise',
+    color: 'bg-yellow-100 text-yellow-800',
+    icon: AlertTriangle,
+  },
+  requires_confirmation: {
+    label: 'Confirmation requise',
+    color: 'bg-yellow-100 text-yellow-800',
+    icon: Clock,
+  },
+  requires_action: {
+    label: 'Action requise',
+    color: 'bg-orange-100 text-orange-800',
+    icon: AlertTriangle,
+  },
+  canceled: {
+    label: 'Annulé',
+    color: 'bg-gray-100 text-gray-800',
+    icon: XCircle,
+  },
+  failed: {
+    label: 'Échoué',
+    color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    icon: XCircle,
+  },
 };
 
 export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
@@ -124,15 +168,18 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
       // Get order metadata for Stripe info
       const { data: order, error: orderError } = await supabase
         .from('orders')
-        .select('metadata, payment_method, payment_reference, stripe_session_id')
+        .select(
+          'metadata, payment_method, payment_reference, stripe_session_id'
+        )
         .eq('id', orderId)
         .single();
 
       if (!orderError && order) {
         const metadata = (order.metadata || {}) as OrderMetadata;
-        
+
         setStripeInfo({
-          payment_intent_id: metadata.payment_intent_id || order.payment_reference || null,
+          payment_intent_id:
+            metadata.payment_intent_id || order.payment_reference || null,
           payment_method: order.payment_method || null,
           payment_method_type: order.payment_method || null,
           last_four: null, // Would need Stripe API call to get this
@@ -172,7 +219,7 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
       // Convert to cents
       const amountCents = Math.round(parseFloat(refundAmount) * 100);
       const result = await processRefund(orderId, amountCents, refundReason);
-      
+
       if (result.success) {
         toast.success(result.message);
         setRefundAmount('');
@@ -215,12 +262,12 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
   const refundStatusConfig = REFUND_STATUS_CONFIG[payment.refund_status];
   const RefundIcon = refundStatusConfig.icon;
   const maxRefundable = (payment.amount - payment.refund_amount) / 100;
-  const refundPercentage = payment.amount > 0 
-    ? (payment.refund_amount / payment.amount) * 100 
-    : 0;
+  const refundPercentage =
+    payment.amount > 0 ? (payment.refund_amount / payment.amount) * 100 : 0;
 
-  const paymentStatusConfig = stripeInfo?.status 
-    ? PAYMENT_STATUS_CONFIG[stripeInfo.status] || PAYMENT_STATUS_CONFIG.processing
+  const paymentStatusConfig = stripeInfo?.status
+    ? PAYMENT_STATUS_CONFIG[stripeInfo.status] ||
+      PAYMENT_STATUS_CONFIG.processing
     : PAYMENT_STATUS_CONFIG.processing;
   const PaymentStatusIcon = paymentStatusConfig.icon;
 
@@ -242,7 +289,8 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
                 {stripeInfo.error_code && (
                   <p className="text-xs font-mono text-red-600">
                     Code: {stripeInfo.error_code}
-                    {stripeInfo.decline_code && ` / Déclin: ${stripeInfo.decline_code}`}
+                    {stripeInfo.decline_code &&
+                      ` / Déclin: ${stripeInfo.decline_code}`}
                   </p>
                 )}
               </div>
@@ -263,15 +311,20 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Montant total</span>
+                <span className="text-sm text-muted-foreground">
+                  Montant total
+                </span>
                 <span className="font-bold text-lg">
-                  {(payment.amount / 100).toFixed(2)} {payment.currency.toUpperCase()}
+                  {(payment.amount / 100).toFixed(2)}{' '}
+                  {payment.currency.toUpperCase()}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Méthode</span>
                 <span className="font-medium">
-                  {PAYMENT_METHOD_LABELS[payment.payment_method || ''] || payment.payment_method || 'N/A'}
+                  {PAYMENT_METHOD_LABELS[payment.payment_method || ''] ||
+                    payment.payment_method ||
+                    'N/A'}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -286,38 +339,55 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
             <div className="space-y-3">
               {stripeInfo?.payment_intent_id && (
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Payment Intent</span>
-                  <span className="font-mono text-xs truncate max-w-[180px]" title={stripeInfo.payment_intent_id}>
+                  <span className="text-sm text-muted-foreground">
+                    Payment Intent
+                  </span>
+                  <span
+                    className="font-mono text-xs truncate max-w-[180px]"
+                    title={stripeInfo.payment_intent_id}
+                  >
                     {stripeInfo.payment_intent_id.slice(0, 24)}...
                   </span>
                 </div>
               )}
               {payment.stripe_session_id && (
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Session Stripe</span>
-                  <span className="font-mono text-xs truncate max-w-[180px]" title={payment.stripe_session_id}>
+                  <span className="text-sm text-muted-foreground">
+                    Session Stripe
+                  </span>
+                  <span
+                    className="font-mono text-xs truncate max-w-[180px]"
+                    title={payment.stripe_session_id}
+                  >
                     {payment.stripe_session_id.slice(0, 20)}...
                   </span>
                 </div>
               )}
               {stripeInfo?.stripe_customer_id && (
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Client Stripe</span>
-                  <span className="font-mono text-xs truncate max-w-[180px]" title={stripeInfo.stripe_customer_id}>
+                  <span className="text-sm text-muted-foreground">
+                    Client Stripe
+                  </span>
+                  <span
+                    className="font-mono text-xs truncate max-w-[180px]"
+                    title={stripeInfo.stripe_customer_id}
+                  >
                     {stripeInfo.stripe_customer_id.slice(0, 20)}...
                   </span>
                 </div>
               )}
               {payment.paid_at && (
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Date de paiement</span>
+                  <span className="text-sm text-muted-foreground">
+                    Date de paiement
+                  </span>
                   <span className="text-sm">
                     {new Date(payment.paid_at).toLocaleDateString('fr-FR', {
                       day: '2-digit',
                       month: 'short',
                       year: 'numeric',
                       hour: '2-digit',
-                      minute: '2-digit'
+                      minute: '2-digit',
                     })}
                   </span>
                 </div>
@@ -332,10 +402,12 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Info className="h-4 w-4" />
-                  <span>Pour plus de détails, consultez le tableau de bord Stripe</span>
+                  <span>
+                    Pour plus de détails, consultez le tableau de bord Stripe
+                  </span>
                 </div>
                 <Button variant="outline" size="sm" asChild>
-                  <a 
+                  <a
                     href={`https://dashboard.stripe.com/payments/${stripeInfo.payment_intent_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -407,12 +479,15 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
                         )}
                       </div>
                       <div className="text-right text-xs text-muted-foreground">
-                        {new Date(refund.processed_at).toLocaleDateString('fr-FR', {
-                          day: '2-digit',
-                          month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {new Date(refund.processed_at).toLocaleDateString(
+                          'fr-FR',
+                          {
+                            day: '2-digit',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          }
+                        )}
                       </div>
                     </div>
                   ))}
@@ -471,7 +546,9 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
                     <AlertDialogTrigger asChild>
                       <Button
                         size="sm"
-                        disabled={!refundAmount || !refundReason || isProcessingRefund}
+                        disabled={
+                          !refundAmount || !refundReason || isProcessingRefund
+                        }
                       >
                         <RefreshCw className="h-3 w-3 mr-2" />
                         {isProcessingRefund ? 'Traitement...' : 'Rembourser'}
@@ -479,12 +556,16 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmer le remboursement</AlertDialogTitle>
+                        <AlertDialogTitle>
+                          Confirmer le remboursement
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                          Vous allez rembourser <strong>{refundAmount} €</strong> au client.
+                          Vous allez rembourser{' '}
+                          <strong>{refundAmount} €</strong> au client.
                           <br />
                           Raison: {refundReason}
-                          <br /><br />
+                          <br />
+                          <br />
                           Cette action est irréversible.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
@@ -499,8 +580,9 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
                 </div>
 
                 <p className="text-xs text-muted-foreground">
-                  Note: Le remboursement est enregistré localement. Pour exécuter le remboursement via Stripe, 
-                  utilisez le tableau de bord Stripe.
+                  Note: Le remboursement est enregistré localement. Pour
+                  exécuter le remboursement via Stripe, utilisez le tableau de
+                  bord Stripe.
                 </p>
               </div>
             </>

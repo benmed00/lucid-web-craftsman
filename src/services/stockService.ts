@@ -1,5 +1,8 @@
-import { supabase } from "@/integrations/supabase/client";
-import { Product, normalizeProducts } from "@/shared/interfaces/Iproduct.interface";
+import { supabase } from '@/integrations/supabase/client';
+import {
+  Product,
+  normalizeProducts,
+} from '@/shared/interfaces/Iproduct.interface';
 
 export interface StockInfo {
   available: number;
@@ -20,7 +23,10 @@ export interface StockUpdate {
 export class StockService {
   private static instance: StockService;
   private cache = new Map<string, { data: StockInfo; timestamp: number }>();
-  private multiCache = new Map<string, { data: Record<number, StockInfo>; timestamp: number }>();
+  private multiCache = new Map<
+    string,
+    { data: Record<number, StockInfo>; timestamp: number }
+  >();
   private pendingRequests = new Map<string, Promise<any>>();
   private readonly CACHE_DURATION = 30000; // 30 seconds
 
@@ -48,7 +54,7 @@ export class StockService {
    */
   async getStockInfo(productId: number): Promise<StockInfo | null> {
     const cacheKey = this.getCacheKey(productId);
-    
+
     // Check cache first
     const cached = this.cache.get(cacheKey);
     if (cached && this.isCacheValid(cached.timestamp)) {
@@ -66,12 +72,12 @@ export class StockService {
 
     try {
       const result = await requestPromise;
-      
+
       // Cache result
       if (result) {
         this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
       }
-      
+
       return result;
     } catch (error) {
       throw error;
@@ -81,7 +87,9 @@ export class StockService {
     }
   }
 
-  private async fetchSingleStockInfo(productId: number): Promise<StockInfo | null> {
+  private async fetchSingleStockInfo(
+    productId: number
+  ): Promise<StockInfo | null> {
     try {
       const { data, error } = await supabase
         .from('products')
@@ -97,7 +105,6 @@ export class StockService {
       const isAvailable = data.is_available !== false;
 
       return this.calculateStockInfo(available, minStock, isAvailable);
-
     } catch (error) {
       console.error('Error fetching stock info:', error);
       return null;
@@ -107,9 +114,11 @@ export class StockService {
   /**
    * Get stock information for multiple products
    */
-  async getMultipleStockInfo(productIds: number[]): Promise<Record<number, StockInfo>> {
+  async getMultipleStockInfo(
+    productIds: number[]
+  ): Promise<Record<number, StockInfo>> {
     const cacheKey = this.getMultiCacheKey(productIds);
-    
+
     // Check cache first
     const cached = this.multiCache.get(cacheKey);
     if (cached && this.isCacheValid(cached.timestamp)) {
@@ -127,10 +136,10 @@ export class StockService {
 
     try {
       const result = await requestPromise;
-      
+
       // Cache result
       this.multiCache.set(cacheKey, { data: result, timestamp: Date.now() });
-      
+
       return result;
     } catch (error) {
       throw error;
@@ -140,7 +149,9 @@ export class StockService {
     }
   }
 
-  private async fetchMultipleStockInfo(productIds: number[]): Promise<Record<number, StockInfo>> {
+  private async fetchMultipleStockInfo(
+    productIds: number[]
+  ): Promise<Record<number, StockInfo>> {
     try {
       const { data, error } = await supabase
         .from('products')
@@ -150,17 +161,20 @@ export class StockService {
       if (error) throw error;
 
       const stockInfo: Record<number, StockInfo> = {};
-      
+
       for (const product of data || []) {
         const available = product.stock_quantity || 0;
         const minStock = product.min_stock_level || 3;
         const isAvailable = product.is_available !== false;
-        
-        stockInfo[product.id] = this.calculateStockInfo(available, minStock, isAvailable);
+
+        stockInfo[product.id] = this.calculateStockInfo(
+          available,
+          minStock,
+          isAvailable
+        );
       }
 
       return stockInfo;
-
     } catch (error) {
       console.error('Error fetching multiple stock info:', error);
       return {};
@@ -170,9 +184,12 @@ export class StockService {
   /**
    * Check if quantity can be ordered
    */
-  async canOrderQuantity(productId: number, quantity: number): Promise<{ canOrder: boolean; reason?: string }> {
+  async canOrderQuantity(
+    productId: number,
+    quantity: number
+  ): Promise<{ canOrder: boolean; reason?: string }> {
     const stockInfo = await this.getStockInfo(productId);
-    
+
     if (!stockInfo) {
       return { canOrder: false, reason: 'Produit non trouvé' };
     }
@@ -182,9 +199,9 @@ export class StockService {
     }
 
     if (quantity > stockInfo.maxQuantity) {
-      return { 
-        canOrder: false, 
-        reason: `Stock insuffisant (${stockInfo.available} disponible${stockInfo.available > 1 ? 's' : ''})`
+      return {
+        canOrder: false,
+        reason: `Stock insuffisant (${stockInfo.available} disponible${stockInfo.available > 1 ? 's' : ''})`,
       };
     }
 
@@ -194,18 +211,23 @@ export class StockService {
   /**
    * Reserve stock for a cart/order
    */
-  async reserveStock(items: Array<{ productId: number; quantity: number }>): Promise<{
+  async reserveStock(
+    items: Array<{ productId: number; quantity: number }>
+  ): Promise<{
     success: boolean;
     errors?: Array<{ productId: number; error: string }>;
   }> {
     const errors: Array<{ productId: number; error: string }> = [];
 
     for (const item of items) {
-      const canOrder = await this.canOrderQuantity(item.productId, item.quantity);
+      const canOrder = await this.canOrderQuantity(
+        item.productId,
+        item.quantity
+      );
       if (!canOrder.canOrder) {
         errors.push({
           productId: item.productId,
-          error: canOrder.reason || 'Impossible de commander cette quantité'
+          error: canOrder.reason || 'Impossible de commander cette quantité',
         });
       }
     }
@@ -222,13 +244,25 @@ export class StockService {
   /**
    * Deduct stock after successful payment
    */
-  async deductStock(items: Array<{ productId: number; quantity: number }>): Promise<{
+  async deductStock(
+    items: Array<{ productId: number; quantity: number }>
+  ): Promise<{
     success: boolean;
     errors?: Array<{ productId: number; error: string }>;
-    stockUpdates?: Array<{ productId: number; previousStock: number; newStock: number; quantitySold: number }>;
+    stockUpdates?: Array<{
+      productId: number;
+      previousStock: number;
+      newStock: number;
+      quantitySold: number;
+    }>;
   }> {
     const errors: Array<{ productId: number; error: string }> = [];
-    const stockUpdates: Array<{ productId: number; previousStock: number; newStock: number; quantitySold: number }> = [];
+    const stockUpdates: Array<{
+      productId: number;
+      previousStock: number;
+      newStock: number;
+      quantitySold: number;
+    }> = [];
 
     for (const item of items) {
       try {
@@ -241,7 +275,7 @@ export class StockService {
         if (fetchError) {
           errors.push({
             productId: item.productId,
-            error: `Erreur lors de la récupération du stock: ${fetchError.message}`
+            error: `Erreur lors de la récupération du stock: ${fetchError.message}`,
           });
           continue;
         }
@@ -251,29 +285,29 @@ export class StockService {
 
         const { error: updateError } = await supabase
           .from('products')
-          .update({ 
+          .update({
             stock_quantity: newStock,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', item.productId);
 
         if (updateError) {
           errors.push({
             productId: item.productId,
-            error: `Erreur lors de la mise à jour du stock: ${updateError.message}`
+            error: `Erreur lors de la mise à jour du stock: ${updateError.message}`,
           });
         } else {
           stockUpdates.push({
             productId: item.productId,
             previousStock: currentStock,
             newStock: newStock,
-            quantitySold: item.quantity
+            quantitySold: item.quantity,
           });
         }
       } catch (error) {
         errors.push({
           productId: item.productId,
-          error: `Erreur inattendue: ${error instanceof Error ? error.message : String(error)}`
+          error: `Erreur inattendue: ${error instanceof Error ? error.message : String(error)}`,
         });
       }
     }
@@ -324,7 +358,6 @@ export class StockService {
 
       // Invalidate cache for this product
       this.invalidateProductCache(update.productId);
-
     } catch (error) {
       console.error('Error updating stock:', error);
       throw error;
@@ -337,10 +370,14 @@ export class StockService {
   private invalidateProductCache(productId: number): void {
     const cacheKey = this.getCacheKey(productId);
     this.cache.delete(cacheKey);
-    
+
     // Also invalidate any multi-cache entries that include this product
     for (const [key] of this.multiCache.entries()) {
-      if (key.includes(`_${productId}_`) || key.endsWith(`_${productId}`) || key.startsWith(`stock_multi_${productId}_`)) {
+      if (
+        key.includes(`_${productId}_`) ||
+        key.endsWith(`_${productId}`) ||
+        key.startsWith(`stock_multi_${productId}_`)
+      ) {
         this.multiCache.delete(key);
       }
     }
@@ -370,7 +407,6 @@ export class StockService {
       if (error) throw error;
 
       return normalizeProducts(data || []);
-
     } catch (error) {
       console.error('Error fetching low stock products:', error);
       return [];
@@ -380,7 +416,11 @@ export class StockService {
   /**
    * Calculate stock information from raw values
    */
-  private calculateStockInfo(available: number, minStock: number, isAvailable: boolean): StockInfo {
+  private calculateStockInfo(
+    available: number,
+    minStock: number,
+    isAvailable: boolean
+  ): StockInfo {
     const isOutOfStock = available <= 0 || !isAvailable;
     const isLow = available > 0 && available <= minStock && isAvailable;
     const canOrder = available > 0 && isAvailable;
@@ -399,7 +439,7 @@ export class StockService {
       isOutOfStock,
       message,
       canOrder,
-      maxQuantity: canOrder ? available : 0
+      maxQuantity: canOrder ? available : 0,
     };
   }
 }

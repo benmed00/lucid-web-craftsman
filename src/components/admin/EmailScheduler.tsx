@@ -1,27 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Clock, 
-  Plus, 
-  Loader2, 
-  RefreshCw, 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Clock,
+  Plus,
+  Loader2,
+  RefreshCw,
   Calendar,
   Mail,
   Trash2,
   Play,
   CheckCircle,
   XCircle,
-  AlertTriangle
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+  AlertTriangle,
+} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { format, addHours, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -50,7 +77,7 @@ const EmailScheduler: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
-  
+
   // Form state
   const [formTemplate, setFormTemplate] = useState('');
   const [formEmail, setFormEmail] = useState('');
@@ -89,18 +116,16 @@ const EmailScheduler: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('scheduled_emails')
-        .insert({
-          template_name: formTemplate,
-          recipient_email: formEmail,
-          recipient_name: formName || null,
-          scheduled_for: new Date(formScheduledFor).toISOString(),
-          email_data: {
-            orderId: `SCHED-${Date.now().toString().slice(-8)}`,
-            customerName: formName || 'Client',
-          },
-        });
+      const { error } = await supabase.from('scheduled_emails').insert({
+        template_name: formTemplate,
+        recipient_email: formEmail,
+        recipient_name: formName || null,
+        scheduled_for: new Date(formScheduledFor).toISOString(),
+        email_data: {
+          orderId: `SCHED-${Date.now().toString().slice(-8)}`,
+          customerName: formName || 'Client',
+        },
+      });
 
       if (error) throw error;
 
@@ -137,8 +162,10 @@ const EmailScheduler: React.FC = () => {
   const processScheduledEmails = async () => {
     setProcessing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('process-scheduled-emails');
-      
+      const { data, error } = await supabase.functions.invoke(
+        'process-scheduled-emails'
+      );
+
       if (error) throw error;
 
       if (data?.processed > 0) {
@@ -158,23 +185,45 @@ const EmailScheduler: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" />En attente</Badge>;
+        return (
+          <Badge variant="secondary" className="gap-1">
+            <Clock className="h-3 w-3" />
+            En attente
+          </Badge>
+        );
       case 'sent':
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 gap-1"><CheckCircle className="h-3 w-3" />Envoyé</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 gap-1">
+            <CheckCircle className="h-3 w-3" />
+            Envoyé
+          </Badge>
+        );
       case 'failed':
-        return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" />Échec</Badge>;
+        return (
+          <Badge variant="destructive" className="gap-1">
+            <XCircle className="h-3 w-3" />
+            Échec
+          </Badge>
+        );
       case 'cancelled':
-        return <Badge variant="outline" className="gap-1"><AlertTriangle className="h-3 w-3" />Annulé</Badge>;
+        return (
+          <Badge variant="outline" className="gap-1">
+            <AlertTriangle className="h-3 w-3" />
+            Annulé
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
 
   const getTemplateName = (value: string) => {
-    return templateOptions.find(t => t.value === value)?.label || value;
+    return templateOptions.find((t) => t.value === value)?.label || value;
   };
 
-  const pendingCount = scheduledEmails.filter(e => e.status === 'pending').length;
+  const pendingCount = scheduledEmails.filter(
+    (e) => e.status === 'pending'
+  ).length;
 
   // Set minimum datetime to now
   const minDateTime = format(new Date(), "yyyy-MM-dd'T'HH:mm");
@@ -190,9 +239,9 @@ const EmailScheduler: React.FC = () => {
           </Badge>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={processScheduledEmails}
             disabled={processing || pendingCount === 0}
             className="gap-2"
@@ -204,9 +253,9 @@ const EmailScheduler: React.FC = () => {
             )}
             Traiter maintenant
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={fetchScheduledEmails}
             disabled={loading}
             className="gap-2"
@@ -236,7 +285,7 @@ const EmailScheduler: React.FC = () => {
                       <SelectValue placeholder="Sélectionner un template" />
                     </SelectTrigger>
                     <SelectContent>
-                      {templateOptions.map(opt => (
+                      {templateOptions.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
                           {opt.label}
                         </SelectItem>
@@ -274,24 +323,36 @@ const EmailScheduler: React.FC = () => {
                   />
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
-                    onClick={() => setFormScheduledFor(format(addHours(new Date(), 1), "yyyy-MM-dd'T'HH:mm"))}
+                    onClick={() =>
+                      setFormScheduledFor(
+                        format(addHours(new Date(), 1), "yyyy-MM-dd'T'HH:mm")
+                      )
+                    }
                   >
                     Dans 1h
                   </Button>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
-                    onClick={() => setFormScheduledFor(format(addHours(new Date(), 24), "yyyy-MM-dd'T'HH:mm"))}
+                    onClick={() =>
+                      setFormScheduledFor(
+                        format(addHours(new Date(), 24), "yyyy-MM-dd'T'HH:mm")
+                      )
+                    }
                   >
                     Dans 24h
                   </Button>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
-                    onClick={() => setFormScheduledFor(format(addDays(new Date(), 7), "yyyy-MM-dd'T'HH:mm"))}
+                    onClick={() =>
+                      setFormScheduledFor(
+                        format(addDays(new Date(), 7), "yyyy-MM-dd'T'HH:mm")
+                      )
+                    }
                   >
                     Dans 7 jours
                   </Button>
@@ -301,7 +362,11 @@ const EmailScheduler: React.FC = () => {
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>
                   Annuler
                 </Button>
-                <Button onClick={handleSubmit} disabled={submitting} className="gap-2">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="gap-2"
+                >
                   {submitting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -332,7 +397,9 @@ const EmailScheduler: React.FC = () => {
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Calendar className="h-12 w-12 mb-4 opacity-50" />
               <p className="font-medium">Aucun email programmé</p>
-              <p className="text-sm">Cliquez sur "Programmer" pour planifier un envoi.</p>
+              <p className="text-sm">
+                Cliquez sur "Programmer" pour planifier un envoi.
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -361,21 +428,30 @@ const EmailScheduler: React.FC = () => {
                         <div>
                           <p className="text-sm">{email.recipient_email}</p>
                           {email.recipient_name && (
-                            <p className="text-xs text-muted-foreground">{email.recipient_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {email.recipient_name}
+                            </p>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm">
                           <Clock className="h-3 w-3 text-muted-foreground" />
-                          {format(new Date(email.scheduled_for), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                          {format(
+                            new Date(email.scheduled_for),
+                            'dd/MM/yyyy HH:mm',
+                            { locale: fr }
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           {getStatusBadge(email.status)}
                           {email.error_message && (
-                            <span className="text-xs text-destructive truncate max-w-[150px]" title={email.error_message}>
+                            <span
+                              className="text-xs text-destructive truncate max-w-[150px]"
+                              title={email.error_message}
+                            >
                               {email.error_message}
                             </span>
                           )}
@@ -407,10 +483,12 @@ const EmailScheduler: React.FC = () => {
       <Card className="bg-muted/50">
         <CardContent className="pt-4 text-sm text-muted-foreground space-y-2">
           <p>
-            • <strong>Traitement automatique:</strong> Les emails sont traités par un job planifié toutes les minutes.
+            • <strong>Traitement automatique:</strong> Les emails sont traités
+            par un job planifié toutes les minutes.
           </p>
           <p>
-            • <strong>Traitement manuel:</strong> Cliquez sur "Traiter maintenant" pour envoyer les emails en attente immédiatement.
+            • <strong>Traitement manuel:</strong> Cliquez sur "Traiter
+            maintenant" pour envoyer les emails en attente immédiatement.
           </p>
         </CardContent>
       </Card>

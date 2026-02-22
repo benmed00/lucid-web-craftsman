@@ -1,29 +1,40 @@
 // File_name: src/App.tsx
 
-import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useWebVitals } from "@/hooks/useWebVitals";
-import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
-import { lazy, Suspense, startTransition, useEffect } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { taskScheduler } from "@/utils/taskScheduler";
-import { mainThreadOptimizer } from "@/utils/mainThreadOptimizer";
-import { inputResponsivenessOptimizer } from "@/utils/inputResponsivenessOptimizer";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  Navigate,
+  useLocation,
+} from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useWebVitals } from '@/hooks/useWebVitals';
+import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
+import { lazy, Suspense, startTransition, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { taskScheduler } from '@/utils/taskScheduler';
+import { mainThreadOptimizer } from '@/utils/mainThreadOptimizer';
+import { inputResponsivenessOptimizer } from '@/utils/inputResponsivenessOptimizer';
 
 // Critical pages loaded immediately
-import Index from "./pages/Index";
-import Products from "./pages/Products";
-import ProductDetail from "./pages/ProductDetail";
-import Maintenance from "./pages/Maintenance";
+import Index from './pages/Index';
+import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetail';
+import Maintenance from './pages/Maintenance';
 
 // Helper for resilient lazy loading with retry and reload fallback
-const lazyWithRetry = (importFn: () => Promise<{ default: React.ComponentType<any> }>) => {
+const lazyWithRetry = (
+  importFn: () => Promise<{ default: React.ComponentType<any> }>
+) => {
   return lazy(async () => {
     try {
       return await importFn();
     } catch (error) {
       // Check if it's a chunk loading error
-      if (error instanceof Error && error.message.includes('Failed to fetch dynamically imported module')) {
+      if (
+        error instanceof Error &&
+        error.message.includes('Failed to fetch dynamically imported module')
+      ) {
         // Clear any cached modules and reload the page
         console.warn('Chunk loading failed, reloading page...');
         window.location.reload();
@@ -36,68 +47,91 @@ const lazyWithRetry = (importFn: () => Promise<{ default: React.ComponentType<an
 };
 
 // Non-critical pages lazy loaded with retry logic
-const About = lazyWithRetry(() => import("./pages/About"));
-const Blog = lazyWithRetry(() => import("./pages/Blog"));
-const BlogPost = lazyWithRetry(() => import("./pages/BlogPost"));
-const CGV = lazyWithRetry(() => import("./pages/CGV"));
-const Cart = lazyWithRetry(() => import("./pages/Cart"));
-const Checkout = lazyWithRetry(() => import("./pages/Checkout"));
-const Contact = lazyWithRetry(() => import("./pages/Contact"));
-const PaymentSuccess = lazyWithRetry(() => import("./pages/PaymentSuccess"));
-const Wishlist = lazyWithRetry(() => import("./pages/Wishlist"));
-const FAQ = lazyWithRetry(() => import("./pages/FAQ"));
-const Auth = lazyWithRetry(() => import("./pages/Auth"));
-const EnhancedProfile = lazyWithRetry(() => import("./pages/EnhancedProfile"));
-const OrderHistory = lazyWithRetry(() => import("./pages/OrderHistory"));
-const Returns = lazyWithRetry(() => import("./pages/Returns"));
-const Shipping = lazyWithRetry(() => import("./pages/Shipping"));
-const Story = lazyWithRetry(() => import("./pages/Story"));
-const Terms = lazyWithRetry(() => import("./pages/Terms"));
-const TermsOfService = lazyWithRetry(() => import("./pages/TermsOfService"));
-const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const About = lazyWithRetry(() => import('./pages/About'));
+const Blog = lazyWithRetry(() => import('./pages/Blog'));
+const BlogPost = lazyWithRetry(() => import('./pages/BlogPost'));
+const CGV = lazyWithRetry(() => import('./pages/CGV'));
+const Cart = lazyWithRetry(() => import('./pages/Cart'));
+const Checkout = lazyWithRetry(() => import('./pages/Checkout'));
+const Contact = lazyWithRetry(() => import('./pages/Contact'));
+const PaymentSuccess = lazyWithRetry(() => import('./pages/PaymentSuccess'));
+const Wishlist = lazyWithRetry(() => import('./pages/Wishlist'));
+const FAQ = lazyWithRetry(() => import('./pages/FAQ'));
+const Auth = lazyWithRetry(() => import('./pages/Auth'));
+const EnhancedProfile = lazyWithRetry(() => import('./pages/EnhancedProfile'));
+const OrderHistory = lazyWithRetry(() => import('./pages/OrderHistory'));
+const Returns = lazyWithRetry(() => import('./pages/Returns'));
+const Shipping = lazyWithRetry(() => import('./pages/Shipping'));
+const Story = lazyWithRetry(() => import('./pages/Story'));
+const Terms = lazyWithRetry(() => import('./pages/Terms'));
+const TermsOfService = lazyWithRetry(() => import('./pages/TermsOfService'));
+const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
 
 // Essential context providers (Auth only - Cart/Wishlist/Currency/Theme migrated to Zustand)
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider } from '@/context/AuthContext';
 // All other providers replaced by Zustand stores initialized in main.tsx
-import ErrorBoundary from "./components/ErrorBoundary";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import TTIOptimizer from "@/components/performance/TTIOptimizer";
-
+import ErrorBoundary from './components/ErrorBoundary';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { Toaster } from '@/components/ui/toaster';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import TTIOptimizer from '@/components/performance/TTIOptimizer';
 
 // PWA Components - lazy loaded since not critical for initial render
-const PWAInstallPrompt = lazy(() => import("@/components/ui/PWAInstallPrompt").then(m => ({ default: m.PWAInstallPrompt })));
-const OfflineManager = lazy(() => import("@/components/ui/OfflineManager").then(m => ({ default: m.OfflineManager })));
-const PushNotificationManager = lazy(() => import("@/components/ui/PushNotificationManager").then(m => ({ default: m.PushNotificationManager })));
+const PWAInstallPrompt = lazy(() =>
+  import('@/components/ui/PWAInstallPrompt').then((m) => ({
+    default: m.PWAInstallPrompt,
+  }))
+);
+const OfflineManager = lazy(() =>
+  import('@/components/ui/OfflineManager').then((m) => ({
+    default: m.OfflineManager,
+  }))
+);
+const PushNotificationManager = lazy(() =>
+  import('@/components/ui/PushNotificationManager').then((m) => ({
+    default: m.PushNotificationManager,
+  }))
+);
 
 // Navigation (persistent across routes)
-import Navigation from "@/components/Navigation";
+import Navigation from '@/components/Navigation';
 
 // Admin imports - lazy loaded since admin pages are rarely accessed
-const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
-const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
-const ProtectedAdminRoute = lazy(() => import("./components/ProtectedAdminRoute").then(m => ({ default: m.ProtectedAdminRoute })));
-const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
-const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
-const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
-const AdminOrdersEnhanced = lazy(() => import("./pages/admin/AdminOrdersEnhanced"));
-const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
-const AdminCustomers = lazy(() => import("./pages/admin/AdminCustomers"));
-const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics"));
-const AdminInventory = lazy(() => import("./pages/admin/AdminInventory"));
-const AdminMarketing = lazy(() => import("./pages/admin/AdminMarketing"));
-const AdminHeroImage = lazy(() => import("./pages/admin/AdminHeroImage"));
-const AdminErrorReports = lazy(() => import("./pages/admin/AdminErrorReports"));
-const AdminPromoCodes = lazy(() => import("./pages/admin/AdminPromoCodes"));
-const AdminEmailTesting = lazy(() => import("./pages/admin/AdminEmailTesting"));
-const AdminReviews = lazy(() => import("./pages/admin/AdminReviews").then(m => ({ default: m.AdminReviews })));
-const AdminApiStatus = lazy(() => import("./pages/admin/AdminApiStatus"));
-const AdminProductCatalog = lazy(() => import("./pages/admin/AdminProductCatalog"));
-const AdminTranslations = lazy(() => import("./pages/admin/AdminTranslations"));
-const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
-const AdminTags = lazy(() => import("./pages/admin/AdminTags"));
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
+const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
+const ProtectedAdminRoute = lazy(() =>
+  import('./components/ProtectedAdminRoute').then((m) => ({
+    default: m.ProtectedAdminRoute,
+  }))
+);
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
+const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
+const AdminOrdersEnhanced = lazy(
+  () => import('./pages/admin/AdminOrdersEnhanced')
+);
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
+const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'));
+const AdminAnalytics = lazy(() => import('./pages/admin/AdminAnalytics'));
+const AdminInventory = lazy(() => import('./pages/admin/AdminInventory'));
+const AdminMarketing = lazy(() => import('./pages/admin/AdminMarketing'));
+const AdminHeroImage = lazy(() => import('./pages/admin/AdminHeroImage'));
+const AdminErrorReports = lazy(() => import('./pages/admin/AdminErrorReports'));
+const AdminPromoCodes = lazy(() => import('./pages/admin/AdminPromoCodes'));
+const AdminEmailTesting = lazy(() => import('./pages/admin/AdminEmailTesting'));
+const AdminReviews = lazy(() =>
+  import('./pages/admin/AdminReviews').then((m) => ({
+    default: m.AdminReviews,
+  }))
+);
+const AdminApiStatus = lazy(() => import('./pages/admin/AdminApiStatus'));
+const AdminProductCatalog = lazy(
+  () => import('./pages/admin/AdminProductCatalog')
+);
+const AdminTranslations = lazy(() => import('./pages/admin/AdminTranslations'));
+const AdminBlog = lazy(() => import('./pages/admin/AdminBlog'));
+const AdminTags = lazy(() => import('./pages/admin/AdminTags'));
 
 // Loading fallback component
 const PageLoadingFallback = () => (
@@ -132,29 +166,29 @@ const queryClient = new QueryClient({
   },
 });
 
-const basePath: string = "/";
+const basePath: string = '/';
 
 // Wrapper component to handle maintenance mode check inside Router context
 const MaintenanceWrapper = ({ children }: { children: React.ReactNode }) => {
   const { isMaintenanceMode, isLoading } = useMaintenanceMode();
   const location = useLocation();
-  
+
   // Allow admin routes even in maintenance mode
   const isAdminRoute = location.pathname.startsWith('/admin');
-  
+
   // Don't block rendering while checking maintenance mode — show content immediately
   // This prevents blank screens caused by slow/failing Supabase queries
-  
+
   // If in maintenance mode and not an admin route, show maintenance page WITHOUT navigation
   if (isMaintenanceMode && !isAdminRoute) {
     return <Maintenance />;
   }
-  
+
   // Admin routes should NOT show the main navigation
   if (isAdminRoute) {
     return <>{children}</>;
   }
-  
+
   // Normal operation: show navigation + children
   return (
     <>
@@ -172,21 +206,27 @@ const App = () => {
   // Ultra-optimized initializations to prevent FID issues
   useEffect(() => {
     // Use input responsiveness optimizer for FID-safe initialization
-    inputResponsivenessOptimizer.scheduleWhenIdle(async () => {
-      // Break initialization into tiny chunks to prevent long tasks
-      await inputResponsivenessOptimizer.executeWithYielding(async () => {
-        try {
-          // Process initialization data in small chunks
-          await mainThreadOptimizer.executeInWorker('COMPRESS_DATA', {
-            config: 'app_initialization',
-            timestamp: Date.now()
-          });
-          console.log('App initialized with FID optimization');
-        } catch (error) {
-          console.log('App initialized with fallback processing');
-        }
-      }, { priority: 'background' });
-    }, { timeout: 2000 });
+    inputResponsivenessOptimizer.scheduleWhenIdle(
+      async () => {
+        // Break initialization into tiny chunks to prevent long tasks
+        await inputResponsivenessOptimizer.executeWithYielding(
+          async () => {
+            try {
+              // Process initialization data in small chunks
+              await mainThreadOptimizer.executeInWorker('COMPRESS_DATA', {
+                config: 'app_initialization',
+                timestamp: Date.now(),
+              });
+              console.log('App initialized with FID optimization');
+            } catch (error) {
+              console.log('App initialized with fallback processing');
+            }
+          },
+          { priority: 'background' }
+        );
+      },
+      { timeout: 2000 }
+    );
   }, []);
 
   return (
@@ -196,89 +236,385 @@ const App = () => {
           <OfflineManager>
             <AuthProvider>
               <TooltipProvider delayDuration={300}>
-              <BrowserRouter basename={basePath}>
-              <MaintenanceWrapper>
-                <Suspense fallback={null}>
-                  <PushNotificationManager />
-                  <PWAInstallPrompt />
-                </Suspense>
+                <BrowserRouter basename={basePath}>
+                  <MaintenanceWrapper>
+                    <Suspense fallback={null}>
+                      <PushNotificationManager />
+                      <PWAInstallPrompt />
+                    </Suspense>
 
+                    <Routes>
+                      {/* Critical routes loaded immediately */}
+                      <Route path="/" element={<Index />} />
+                      <Route path="/products" element={<Products />} />
+                      <Route
+                        path="/shop"
+                        element={<Navigate to="/products" replace />}
+                      />
+                      <Route path="/products/:id" element={<ProductDetail />} />
 
-                <Routes>
-                {/* Critical routes loaded immediately */}
-                <Route path="/" element={<Index />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/shop" element={<Navigate to="/products" replace />} />
-                <Route path="/products/:id" element={<ProductDetail />} />
-                
-                {/* Non-critical routes with lazy loading */}
-                <Route path="/auth" element={<Suspense fallback={<PageLoadingFallback />}><Auth /></Suspense>} />
-                <Route path="/profile" element={<Suspense fallback={<PageLoadingFallback />}><EnhancedProfile /></Suspense>} />
-                <Route path="/enhanced-profile" element={<Suspense fallback={<PageLoadingFallback />}><EnhancedProfile /></Suspense>} />
-                <Route path="/orders" element={<Suspense fallback={<PageLoadingFallback />}><OrderHistory /></Suspense>} />
-                <Route path="/cart" element={<Suspense fallback={<PageLoadingFallback />}><Cart /></Suspense>} />
-                <Route path="/checkout" element={<Suspense fallback={<PageLoadingFallback />}><Checkout /></Suspense>} />
-                <Route path="/payment-success" element={<Suspense fallback={<PageLoadingFallback />}><PaymentSuccess /></Suspense>} />
-                <Route path="/wishlist" element={<Suspense fallback={<PageLoadingFallback />}><Wishlist /></Suspense>} />
-                <Route path="/blog" element={<Suspense fallback={<PageLoadingFallback />}><Blog /></Suspense>} />
-                <Route path="/blog/:id" element={<Suspense fallback={<PageLoadingFallback />}><BlogPost /></Suspense>} />
-                <Route path="/contact" element={<Suspense fallback={<PageLoadingFallback />}><Contact /></Suspense>} />
-                <Route path="/shipping" element={<Suspense fallback={<PageLoadingFallback />}><Shipping /></Suspense>} />
-                <Route path="/returns" element={<Suspense fallback={<PageLoadingFallback />}><Returns /></Suspense>} />
-                <Route path="/faq" element={<Suspense fallback={<PageLoadingFallback />}><FAQ /></Suspense>} />
-                <Route path="/about" element={<Suspense fallback={<PageLoadingFallback />}><About /></Suspense>} />
-                <Route path="/terms" element={<Suspense fallback={<PageLoadingFallback />}><Terms /></Suspense>} />
-                <Route path="/cgv" element={<Suspense fallback={<PageLoadingFallback />}><CGV /></Suspense>} />
-                <Route path="/terms-of-service" element={<Suspense fallback={<PageLoadingFallback />}><TermsOfService /></Suspense>} />
-                <Route path="/story" element={<Suspense fallback={<PageLoadingFallback />}><Story /></Suspense>} />
+                      {/* Non-critical routes with lazy loading */}
+                      <Route
+                        path="/auth"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Auth />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/profile"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <EnhancedProfile />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/enhanced-profile"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <EnhancedProfile />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/orders"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <OrderHistory />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/cart"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Cart />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/checkout"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Checkout />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/payment-success"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <PaymentSuccess />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/wishlist"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Wishlist />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/blog"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Blog />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/blog/:id"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <BlogPost />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/contact"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Contact />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/shipping"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Shipping />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/returns"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Returns />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/faq"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <FAQ />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/about"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <About />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/terms"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Terms />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/cgv"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <CGV />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/terms-of-service"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <TermsOfService />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/story"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Story />
+                          </Suspense>
+                        }
+                      />
 
-                {/* Admin routes with lazy loading */}
-                <Route path="/admin/login" element={<Suspense fallback={<PageLoadingFallback />}><AdminLogin /></Suspense>} />
-                <Route path="/admin" element={
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <ProtectedAdminRoute><AdminLayout /></ProtectedAdminRoute>
-                  </Suspense>
-                }>
-                  <Route index element={<Suspense fallback={<PageLoadingFallback />}><AdminDashboard /></Suspense>} />
-                  <Route path="dashboard" element={<Suspense fallback={<PageLoadingFallback />}><AdminDashboard /></Suspense>} />
-                  <Route path="products" element={<Suspense fallback={<PageLoadingFallback />}><AdminProducts /></Suspense>} />
-                  <Route path="hero-image" element={<Suspense fallback={<PageLoadingFallback />}><AdminHeroImage /></Suspense>} />
-                  <Route path="inventory" element={<Suspense fallback={<PageLoadingFallback />}><AdminInventory /></Suspense>} />
-                  <Route path="orders" element={<Suspense fallback={<PageLoadingFallback />}><AdminOrders /></Suspense>} />
-                  <Route path="orders-enhanced" element={<Suspense fallback={<PageLoadingFallback />}><AdminOrdersEnhanced /></Suspense>} />
-                  <Route path="customers" element={<Suspense fallback={<PageLoadingFallback />}><AdminCustomers /></Suspense>} />
-                  <Route path="marketing" element={<Suspense fallback={<PageLoadingFallback />}><AdminMarketing /></Suspense>} />
-                  <Route path="promo-codes" element={<Suspense fallback={<PageLoadingFallback />}><AdminPromoCodes /></Suspense>} />
-                  <Route path="analytics" element={<Suspense fallback={<PageLoadingFallback />}><AdminAnalytics /></Suspense>} />
-                  <Route path="error-reports" element={<Suspense fallback={<PageLoadingFallback />}><AdminErrorReports /></Suspense>} />
-                  <Route path="email-testing" element={<Suspense fallback={<PageLoadingFallback />}><AdminEmailTesting /></Suspense>} />
-                  <Route path="reviews" element={<Suspense fallback={<PageLoadingFallback />}><AdminReviews /></Suspense>} />
-                  <Route path="api-status" element={<Suspense fallback={<PageLoadingFallback />}><AdminApiStatus /></Suspense>} />
-                  <Route path="catalog" element={<Suspense fallback={<PageLoadingFallback />}><AdminProductCatalog /></Suspense>} />
-                  <Route path="blog" element={<Suspense fallback={<PageLoadingFallback />}><AdminBlog /></Suspense>} />
-                  <Route path="translations" element={<Suspense fallback={<PageLoadingFallback />}><AdminTranslations /></Suspense>} />
-                  <Route path="tags" element={<Suspense fallback={<PageLoadingFallback />}><AdminTags /></Suspense>} />
-                  <Route path="settings" element={<Suspense fallback={<PageLoadingFallback />}><AdminSettings /></Suspense>} />
-                </Route>
+                      {/* Admin routes with lazy loading */}
+                      <Route
+                        path="/admin/login"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <AdminLogin />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/admin"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <ProtectedAdminRoute>
+                              <AdminLayout />
+                            </ProtectedAdminRoute>
+                          </Suspense>
+                        }
+                      >
+                        <Route
+                          index
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminDashboard />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="dashboard"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminDashboard />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="products"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminProducts />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="hero-image"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminHeroImage />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="inventory"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminInventory />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="orders"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminOrders />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="orders-enhanced"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminOrdersEnhanced />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="customers"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminCustomers />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="marketing"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminMarketing />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="promo-codes"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminPromoCodes />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="analytics"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminAnalytics />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="error-reports"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminErrorReports />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="email-testing"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminEmailTesting />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="reviews"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminReviews />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="api-status"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminApiStatus />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="catalog"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminProductCatalog />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="blog"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminBlog />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="translations"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminTranslations />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="tags"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminTags />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="settings"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminSettings />
+                            </Suspense>
+                          }
+                        />
+                      </Route>
 
-                {/* Catch-all route for 404 pages */}
-                <Route path="*" element={<Suspense fallback={<PageLoadingFallback />}><NotFound /></Suspense>} />
-                </Routes>
-              </MaintenanceWrapper>
-            </BrowserRouter>
-            
-            {/* Système de notifications */}
-            <Toaster />
-            <Sonner richColors expand visibleToasts={3} />
-            
-            {/* TTI Optimizer - runs after everything else */}
-            <TTIOptimizer />
+                      {/* Catch-all route for 404 pages */}
+                      <Route
+                        path="*"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <NotFound />
+                          </Suspense>
+                        }
+                      />
+                    </Routes>
+                  </MaintenanceWrapper>
+                </BrowserRouter>
 
-            {/* Devtools React Query (en développement seulement) */}
-            {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-            </TooltipProvider>
-          </AuthProvider>
-        </OfflineManager>
+                {/* Système de notifications */}
+                <Toaster />
+                <Sonner richColors expand visibleToasts={3} />
+
+                {/* TTI Optimizer - runs after everything else */}
+                <TTIOptimizer />
+
+                {/* Devtools React Query (en développement seulement) */}
+                {import.meta.env.DEV && (
+                  <ReactQueryDevtools initialIsOpen={false} />
+                )}
+              </TooltipProvider>
+            </AuthProvider>
+          </OfflineManager>
         </Suspense>
       </QueryClientProvider>
     </ErrorBoundary>

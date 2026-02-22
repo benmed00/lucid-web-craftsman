@@ -47,13 +47,16 @@ self.addEventListener('activate', (event) => {
   const currentCaches = [STATIC_CACHE_NAME, IMAGE_CACHE_NAME];
 
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => !currentCaches.includes(name))
-          .map((name) => caches.delete(name))
-      );
-    }).then(() => self.clients.claim())
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((name) => !currentCaches.includes(name))
+            .map((name) => caches.delete(name))
+        );
+      })
+      .then(() => self.clients.claim())
   );
 });
 
@@ -70,17 +73,26 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
 
   // ── BYPASS: Supabase API / Auth / Functions (everything except /storage/) ──
-  if (url.hostname.endsWith('supabase.co') && !url.pathname.startsWith('/storage/')) {
+  if (
+    url.hostname.endsWith('supabase.co') &&
+    !url.pathname.startsWith('/storage/')
+  ) {
     return; // network-only, no interception
   }
 
   // ── BYPASS: Stripe ──
-  if (url.hostname.endsWith('stripe.com') || url.hostname.endsWith('stripe.network')) {
+  if (
+    url.hostname.endsWith('stripe.com') ||
+    url.hostname.endsWith('stripe.network')
+  ) {
     return;
   }
 
   // ── BYPASS: browser extensions ──
-  if (request.url.startsWith('chrome-extension://') || request.url.startsWith('moz-extension://')) {
+  if (
+    request.url.startsWith('chrome-extension://') ||
+    request.url.startsWith('moz-extension://')
+  ) {
     return;
   }
 
@@ -96,7 +108,10 @@ self.addEventListener('fetch', (event) => {
   }
 
   // ── Static assets with content hashes (JS, CSS, fonts) → cache-first ──
-  if (request.url.match(/\.(js|css|woff|woff2|ttf|eot)(\?.*)?$/) && request.url.includes('/assets/')) {
+  if (
+    request.url.match(/\.(js|css|woff|woff2|ttf|eot)(\?.*)?$/) &&
+    request.url.includes('/assets/')
+  ) {
     event.respondWith(cacheFirst(request, STATIC_CACHE_NAME));
     return;
   }
@@ -104,7 +119,8 @@ self.addEventListener('fetch', (event) => {
   // ── Images (local + Supabase storage) → cache-first ──
   if (
     request.url.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)(\?.*)?$/) ||
-    (url.hostname.endsWith('supabase.co') && url.pathname.startsWith('/storage/'))
+    (url.hostname.endsWith('supabase.co') &&
+      url.pathname.startsWith('/storage/'))
   ) {
     event.respondWith(cacheFirst(request, IMAGE_CACHE_NAME));
     return;
@@ -143,15 +159,15 @@ async function cacheFirst(request, cacheName) {
 // ── Push Notifications ───────────────────────────────────────────────
 self.addEventListener('push', (event) => {
   const options = {
-    body: event.data ? event.data.text() : 'Nouvelle notification de Rif Raw Straw',
+    body: event.data
+      ? event.data.text()
+      : 'Nouvelle notification de Rif Raw Straw',
     icon: '/favicon.ico',
     badge: '/favicon.ico',
     vibrate: [200, 100, 200],
   };
 
-  event.waitUntil(
-    self.registration.showNotification('Rif Raw Straw', options)
-  );
+  event.waitUntil(self.registration.showNotification('Rif Raw Straw', options));
 });
 
 self.addEventListener('notificationclick', (event) => {

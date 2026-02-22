@@ -31,13 +31,15 @@ interface ProductsResponse {
  */
 export const fetchProducts = async (): Promise<Product[]> => {
   try {
-    const response = await apiClient.get<ProductsResponse | Product[]>('/api/products');
-    
+    const response = await apiClient.get<ProductsResponse | Product[]>(
+      '/api/products'
+    );
+
     // Handle both array and object responses
     if (Array.isArray(response)) {
       return response;
     }
-    
+
     return response.products ?? response.items ?? [];
   } catch (error) {
     const appError = handleError(error);
@@ -62,20 +64,25 @@ export const fetchProductById = async (id: number): Promise<Product | null> => {
 /**
  * Fetch products by category
  */
-export const fetchProductsByCategory = async (category: string): Promise<Product[]> => {
+export const fetchProductsByCategory = async (
+  category: string
+): Promise<Product[]> => {
   try {
     const response = await apiClient.get<ProductsResponse | Product[]>(
       `/api/products?category=${encodeURIComponent(category)}`
     );
-    
+
     if (Array.isArray(response)) {
       return response;
     }
-    
+
     return response.products ?? response.items ?? [];
   } catch (error) {
     const appError = handleError(error);
-    console.error(`Failed to fetch products for category ${category}:`, appError.message);
+    console.error(
+      `Failed to fetch products for category ${category}:`,
+      appError.message
+    );
     return [];
   }
 };
@@ -88,15 +95,18 @@ export const searchProducts = async (query: string): Promise<Product[]> => {
     const response = await apiClient.get<ProductsResponse | Product[]>(
       `/api/products?search=${encodeURIComponent(query)}`
     );
-    
+
     if (Array.isArray(response)) {
       return response;
     }
-    
+
     return response.products ?? response.items ?? [];
   } catch (error) {
     const appError = handleError(error);
-    console.error(`Failed to search products for "${query}":`, appError.message);
+    console.error(
+      `Failed to search products for "${query}":`,
+      appError.message
+    );
     return [];
   }
 };

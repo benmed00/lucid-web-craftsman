@@ -14,13 +14,13 @@ export const PerformanceManager = ({ children }: PerformanceManagerProps) => {
         // Handle resize logic here if needed
       }, 250);
     };
-    
+
     window.addEventListener('resize', handleResize, { passive: true });
-    
+
     // Intersection Observer for performance monitoring
     const performanceObserver = new IntersectionObserver(
       (entries) => {
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
             // Track visible components for analytics
             const target = entry.target as HTMLElement;
@@ -30,12 +30,12 @@ export const PerformanceManager = ({ children }: PerformanceManagerProps) => {
           }
         });
       },
-      { 
+      {
         threshold: 0.1,
-        rootMargin: '100px'
+        rootMargin: '100px',
       }
     );
-    
+
     // Clean up observers
     return () => {
       window.removeEventListener('resize', handleResize);

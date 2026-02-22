@@ -1,7 +1,7 @@
-import { Wrench, Clock, Mail, Calendar } from "lucide-react";
-import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { Wrench, Clock, Mail, Calendar } from 'lucide-react';
+import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const Maintenance = () => {
   const { maintenanceReturnTime, maintenanceMessage } = useMaintenanceMode();
@@ -18,19 +18,20 @@ const Maintenance = () => {
   };
 
   const formattedReturnTime = formatReturnTime(maintenanceReturnTime);
-  const defaultMessage = "Nous effectuons actuellement des travaux de maintenance pour améliorer votre expérience.";
+  const defaultMessage =
+    'Nous effectuons actuellement des travaux de maintenance pour améliorer votre expérience.';
 
   return (
-    <div 
+    <div
       className="min-h-screen flex items-center justify-center p-4"
-      style={{ 
+      style={{
         background: 'linear-gradient(to bottom, #fafaf9, #f5f5f4)',
       }}
     >
       <div className="max-w-md w-full text-center space-y-6">
         {/* Icon */}
         <div className="flex justify-center">
-          <div 
+          <div
             className="w-20 h-20 rounded-full flex items-center justify-center"
             style={{ backgroundColor: '#ecfccb' }}
           >
@@ -40,7 +41,7 @@ const Maintenance = () => {
 
         {/* Title */}
         <div className="space-y-2">
-          <h1 
+          <h1
             className="text-3xl font-serif font-semibold"
             style={{ color: '#292524' }}
           >
@@ -52,23 +53,25 @@ const Maintenance = () => {
         </div>
 
         {/* Estimated time */}
-        <div className="flex items-center justify-center gap-2" style={{ color: '#78716c' }}>
+        <div
+          className="flex items-center justify-center gap-2"
+          style={{ color: '#78716c' }}
+        >
           <Clock className="h-4 w-4" />
           <span className="text-sm">
-            {formattedReturnTime 
+            {formattedReturnTime
               ? `Retour prévu : ${formattedReturnTime}`
-              : "Nous serons de retour très bientôt"
-            }
+              : 'Nous serons de retour très bientôt'}
           </span>
         </div>
 
         {/* Return time card if available */}
         {formattedReturnTime && (
-          <div 
+          <div
             className="rounded-lg p-4 flex items-center justify-center gap-3"
-            style={{ 
+            style={{
               backgroundColor: '#ecfccb',
-              border: '1px solid #bef264'
+              border: '1px solid #bef264',
             }}
           >
             <Calendar className="h-5 w-5" style={{ color: '#65a30d' }} />
@@ -79,11 +82,11 @@ const Maintenance = () => {
         )}
 
         {/* Contact info */}
-        <div 
+        <div
           className="rounded-lg p-4 shadow-sm"
-          style={{ 
+          style={{
             backgroundColor: '#ffffff',
-            border: '1px solid #e7e5e4'
+            border: '1px solid #e7e5e4',
           }}
         >
           <p className="text-sm mb-3" style={{ color: '#57534e' }}>
@@ -92,10 +95,10 @@ const Maintenance = () => {
           <a
             href="mailto:contact@rifrawstraw.com"
             className="w-full inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors hover:opacity-80"
-            style={{ 
+            style={{
               backgroundColor: '#65a30d',
               color: '#ffffff',
-              textDecoration: 'none'
+              textDecoration: 'none',
             }}
           >
             <Mail className="h-4 w-4" />

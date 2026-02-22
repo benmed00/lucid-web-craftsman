@@ -43,13 +43,13 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
   const [reviewForm, setReviewForm] = useState({
     rating: 5,
     title: '',
-    comment: ''
+    comment: '',
   });
 
   const [stats, setStats] = useState({
     averageRating: 0,
     totalReviews: 0,
-    ratingDistribution: [0, 0, 0, 0, 0] // 1-5 stars
+    ratingDistribution: [0, 0, 0, 0, 0], // 1-5 stars
   });
 
   useEffect(() => {
@@ -82,7 +82,7 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
       setStats({
         averageRating: 0,
         totalReviews: 0,
-        ratingDistribution: [0, 0, 0, 0, 0]
+        ratingDistribution: [0, 0, 0, 0, 0],
       });
       return;
     }
@@ -91,14 +91,14 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
     const average = sum / total;
 
     const distribution = [0, 0, 0, 0, 0];
-    reviewsData.forEach(review => {
+    reviewsData.forEach((review) => {
       distribution[review.rating - 1]++;
     });
 
     setStats({
       averageRating: average,
       totalReviews: total,
-      ratingDistribution: distribution
+      ratingDistribution: distribution,
     });
   };
 
@@ -111,16 +111,14 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('product_reviews')
-        .insert({
-          user_id: user.id,
-          product_id: productId,
-          rating: reviewForm.rating,
-          title: reviewForm.title || null,
-          comment: reviewForm.comment || null,
-          is_approved: false // Reviews need approval
-        });
+      const { error } = await supabase.from('product_reviews').insert({
+        user_id: user.id,
+        product_id: productId,
+        rating: reviewForm.rating,
+        title: reviewForm.title || null,
+        comment: reviewForm.comment || null,
+        is_approved: false, // Reviews need approval
+      });
 
       if (error) throw error;
 
@@ -129,7 +127,7 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
       setReviewForm({ rating: 5, title: '', comment: '' });
     } catch (error) {
       // Silent error handling for production
-      toast.error('Erreur lors de l\'envoi de votre avis');
+      toast.error("Erreur lors de l'envoi de votre avis");
     } finally {
       setSubmitting(false);
     }
@@ -141,11 +139,13 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
         key={i}
         size={size}
         className={`${
-          i < rating
-            ? 'fill-rating-star text-rating-star'
-            : 'text-rating-empty'
+          i < rating ? 'fill-rating-star text-rating-star' : 'text-rating-empty'
         } ${interactive ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
-        onClick={interactive ? () => setReviewForm(prev => ({ ...prev, rating: i + 1 })) : undefined}
+        onClick={
+          interactive
+            ? () => setReviewForm((prev) => ({ ...prev, rating: i + 1 }))
+            : undefined
+        }
       />
     ));
   };
@@ -153,21 +153,24 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
   const renderRatingDistribution = () => {
     return (
       <div className="space-y-2">
-        {[5, 4, 3, 2, 1].map(rating => {
+        {[5, 4, 3, 2, 1].map((rating) => {
           const count = stats.ratingDistribution[rating - 1];
-          const percentage = stats.totalReviews > 0 ? (count / stats.totalReviews) * 100 : 0;
-          
+          const percentage =
+            stats.totalReviews > 0 ? (count / stats.totalReviews) * 100 : 0;
+
           return (
             <div key={rating} className="flex items-center gap-2 text-sm">
               <span className="w-2">{rating}</span>
               <Star size={14} className="fill-amber-400 text-amber-400" />
               <div className="flex-1 bg-muted rounded-full h-2">
-                <div 
+                <div
                   className="bg-amber-400 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${percentage}%` }}
                 />
               </div>
-              <span className="w-8 text-right text-muted-foreground">{count}</span>
+              <span className="w-8 text-right text-muted-foreground">
+                {count}
+              </span>
             </div>
           );
         })}
@@ -208,9 +211,9 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                 </span>
               </div>
             </div>
-            
+
             {user && (
-              <Button 
+              <Button
                 onClick={() => setShowReviewForm(true)}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
@@ -219,7 +222,7 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
             )}
           </div>
         </CardHeader>
-        
+
         {stats.totalReviews > 0 && (
           <CardContent>
             <div className="grid md:grid-cols-2 gap-8">
@@ -245,7 +248,9 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
       {showReviewForm && (
         <Card>
           <CardHeader>
-            <h4 className="text-lg font-semibold">Laisser un avis pour {productName}</h4>
+            <h4 className="text-lg font-semibold">
+              Laisser un avis pour {productName}
+            </h4>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmitReview} className="space-y-4">
@@ -255,24 +260,34 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                   {renderStars(reviewForm.rating, true, 24)}
                 </div>
               </div>
-              
+
               <div>
                 <Label htmlFor="title">Titre de l'avis</Label>
                 <Input
                   id="title"
                   value={reviewForm.title}
-                  onChange={(e) => setReviewForm(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) =>
+                    setReviewForm((prev) => ({
+                      ...prev,
+                      title: e.target.value,
+                    }))
+                  }
                   placeholder="Résumez votre expérience en quelques mots"
                   maxLength={100}
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="comment">Commentaire</Label>
                 <Textarea
                   id="comment"
                   value={reviewForm.comment}
-                  onChange={(e) => setReviewForm(prev => ({ ...prev, comment: e.target.value }))}
+                  onChange={(e) =>
+                    setReviewForm((prev) => ({
+                      ...prev,
+                      comment: e.target.value,
+                    }))
+                  }
                   placeholder="Partagez votre expérience avec ce produit..."
                   rows={4}
                   maxLength={500}
@@ -281,17 +296,17 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                   {reviewForm.comment.length}/500 caractères
                 </p>
               </div>
-              
+
               <div className="flex gap-3">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={submitting}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  {submitting ? 'Envoi...' : 'Publier l\'avis'}
+                  {submitting ? 'Envoi...' : "Publier l'avis"}
                 </Button>
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant="outline"
                   onClick={() => setShowReviewForm(false)}
                 >
@@ -309,12 +324,17 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
           <Card>
             <CardContent className="text-center py-8">
               <div className="text-muted-foreground mb-4">
-                <Star size={48} className="mx-auto mb-2 text-muted-foreground/50" />
+                <Star
+                  size={48}
+                  className="mx-auto mb-2 text-muted-foreground/50"
+                />
                 <p>Aucun avis pour le moment</p>
-                <p className="text-sm">Soyez le premier à donner votre avis !</p>
+                <p className="text-sm">
+                  Soyez le premier à donner votre avis !
+                </p>
               </div>
               {user && (
-                <Button 
+                <Button
                   onClick={() => setShowReviewForm(true)}
                   variant="outline"
                 >
@@ -334,9 +354,7 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                      <span className="font-medium">
-                        Client vérifié
-                      </span>
+                        <span className="font-medium">Client vérifié</span>
                         {review.is_verified_purchase && (
                           <Badge variant="secondary" className="text-xs">
                             <CheckCircle size={12} className="mr-1" />
@@ -349,26 +367,26 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                           {renderStars(review.rating, false, 14)}
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(review.created_at), { 
-                            addSuffix: true, 
-                            locale: fr 
+                          {formatDistanceToNow(new Date(review.created_at), {
+                            addSuffix: true,
+                            locale: fr,
                           })}
                         </span>
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 {review.title && (
                   <h5 className="font-medium mb-2">{review.title}</h5>
                 )}
-                
+
                 {review.comment && (
                   <p className="text-foreground mb-3 leading-relaxed">
                     {review.comment}
                   </p>
                 )}
-                
+
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <button className="flex items-center gap-1 hover:text-primary transition-colors">
                     <ThumbsUp size={14} />

@@ -47,18 +47,20 @@ export const useAuditLog = () => {
       };
 
       // Store in sessionStorage for now (in production, this would go to a database)
-      const existingLogs = JSON.parse(sessionStorage.getItem('audit_logs') || '[]');
+      const existingLogs = JSON.parse(
+        sessionStorage.getItem('audit_logs') || '[]'
+      );
       existingLogs.push({
         ...logEntry,
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
       });
-      
+
       // Keep only last 100 entries per session
       if (existingLogs.length > 100) {
         existingLogs.splice(0, existingLogs.length - 100);
       }
-      
+
       sessionStorage.setItem('audit_logs', JSON.stringify(existingLogs));
     } catch (error) {
       console.error('Failed to log audit entry:', error);

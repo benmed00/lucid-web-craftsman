@@ -10,7 +10,8 @@ const NOTIFICATION_PROMPT_KEY = 'notification-prompt-shown';
 export const PushNotificationManager = () => {
   const { t } = useTranslation('common');
   const { itemCount } = useCart();
-  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [permission, setPermission] =
+    useState<NotificationPermission>('default');
   const [showPrompt, setShowPrompt] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -19,9 +20,12 @@ export const PushNotificationManager = () => {
     // Disable automatic notification prompts - they are intrusive and overlap with the header
     // Only show the prompt when explicitly requested by the user
     // This prevents the browser's native permission bar from unexpectedly appearing
-    
+
     // Track visit count for analytics purposes only
-    const visitCount = parseInt(localStorage.getItem(VISIT_COUNT_KEY) || '0', 10);
+    const visitCount = parseInt(
+      localStorage.getItem(VISIT_COUNT_KEY) || '0',
+      10
+    );
     localStorage.setItem(VISIT_COUNT_KEY, (visitCount + 1).toString());
 
     // Check if notifications are supported
@@ -35,11 +39,11 @@ export const PushNotificationManager = () => {
     // DISABLED: Automatic prompts are intrusive and can cause layout issues
     // The notification prompt was overlapping with the site header
     // Users can enable notifications via a dedicated settings page instead
-    
+
     // Keep this disabled to prevent the banner from showing automatically
     setShowPrompt(false);
     return;
-    
+
     // Original logic (disabled):
     // if (!isSupported || permission !== 'default') {
     //   setShowPrompt(false);
@@ -55,14 +59,17 @@ export const PushNotificationManager = () => {
       const result = await Notification.requestPermission();
       setPermission(result);
       dismissPrompt();
-      
+
       if (result === 'granted') {
         await subscribeToPush();
-        
+
         new Notification('Rif Raw Straw', {
-          body: t('notifications.welcomeMessage', 'Vous recevrez maintenant nos notifications pour les nouveautés et offres spéciales!'),
+          body: t(
+            'notifications.welcomeMessage',
+            'Vous recevrez maintenant nos notifications pour les nouveautés et offres spéciales!'
+          ),
           icon: '/favicon.ico',
-          tag: 'welcome'
+          tag: 'welcome',
         });
       }
     } catch (error) {
@@ -74,12 +81,12 @@ export const PushNotificationManager = () => {
     try {
       const registration = await navigator.serviceWorker.ready;
       const publicVapidKey = 'YOUR_VAPID_PUBLIC_KEY';
-      
+
       const subscription = await (registration as any).pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: publicVapidKey
+        applicationServerKey: publicVapidKey,
       });
-      
+
       console.log('Push subscription:', subscription);
     } catch (error) {
       console.error('Push subscription error:', error);
@@ -99,10 +106,10 @@ export const PushNotificationManager = () => {
   }
 
   return (
-    <div 
+    <div
       className={`fixed bottom-6 right-6 z-40 max-w-sm transition-all duration-300 ease-out ${
-        isVisible 
-          ? 'opacity-100 translate-y-0 scale-100' 
+        isVisible
+          ? 'opacity-100 translate-y-0 scale-100'
           : 'opacity-0 translate-y-4 scale-95'
       }`}
       role="dialog"
@@ -111,7 +118,7 @@ export const PushNotificationManager = () => {
       <div className="relative overflow-hidden rounded-2xl bg-card border border-border shadow-2xl dark:shadow-black/40">
         {/* Decorative gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/10 pointer-events-none" />
-        
+
         {/* Close button */}
         <button
           onClick={dismissPrompt}
@@ -143,7 +150,10 @@ export const PushNotificationManager = () => {
             {t('notifications.title', 'Restez informé')}
           </h3>
           <p className="text-sm text-muted-foreground leading-relaxed mb-5">
-            {t('notifications.description', 'Recevez nos offres exclusives et les dernières nouveautés directement.')}
+            {t(
+              'notifications.description',
+              'Recevez nos offres exclusives et les dernières nouveautés directement.'
+            )}
           </p>
 
           {/* Actions */}

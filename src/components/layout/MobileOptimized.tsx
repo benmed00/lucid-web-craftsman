@@ -8,14 +8,14 @@ interface MobileOptimizedProps {
   safeArea?: boolean;
 }
 
-export const MobileOptimized = ({ 
-  children, 
-  className = '', 
+export const MobileOptimized = ({
+  children,
+  className = '',
   touchOptimized = true,
-  safeArea = false
+  safeArea = false,
 }: MobileOptimizedProps) => {
   return (
-    <div 
+    <div
       className={cn(
         // Base responsive classes
         'w-full',
@@ -40,18 +40,18 @@ interface TouchTargetProps {
 
 const touchSizes = {
   sm: 'min-h-[44px] min-w-[44px]',
-  md: 'min-h-[48px] min-w-[48px]', 
-  lg: 'min-h-[56px] min-w-[56px]'
+  md: 'min-h-[48px] min-w-[48px]',
+  lg: 'min-h-[56px] min-w-[56px]',
 };
 
-export const TouchTarget = ({ 
-  children, 
-  className = '', 
+export const TouchTarget = ({
+  children,
+  className = '',
   size = 'md',
-  as: Component = 'div'
+  as: Component = 'div',
 }: TouchTargetProps) => {
   return (
-    <Component 
+    <Component
       className={cn(
         'touch-manipulation flex items-center justify-center',
         touchSizes[size],

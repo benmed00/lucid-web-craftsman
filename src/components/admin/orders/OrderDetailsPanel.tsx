@@ -67,7 +67,10 @@ const getDeviceIcon = (deviceType: string) => {
   }
 };
 
-export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) {
+export function OrderDetailsPanel({
+  orderId,
+  onClose,
+}: OrderDetailsPanelProps) {
   const { data: order, isLoading, refetch } = useOrder(orderId);
   const [isEditingTracking, setIsEditingTracking] = useState(false);
   const [trackingForm, setTrackingForm] = useState({
@@ -168,20 +171,26 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
     );
   }
 
-  const shippingAddress = order.shipping_address as Record<string, string> | null;
+  const shippingAddress = order.shipping_address as Record<
+    string,
+    string
+  > | null;
   const billingAddress = order.billing_address as Record<string, string> | null;
   const metadata = order.metadata as Record<string, unknown> | null;
 
   // Extract enriched metadata
-  const deviceType = metadata?.device_type as string || 'Desktop';
-  const browser = metadata?.browser as string || 'Unknown';
-  const browserVersion = metadata?.browser_version as string || '';
-  const os = metadata?.os as string || 'Unknown';
-  const clientIp = metadata?.client_ip as string || 'Unknown';
-  const orderCountry = metadata?.order_country as string || shippingAddress?.country || 'Unknown';
-  const guestId = metadata?.guest_id as string || null;
-  const discountCode = metadata?.discount_code as string || null;
-  const discountAmount = metadata?.discount_amount as number || 0;
+  const deviceType = (metadata?.device_type as string) || 'Desktop';
+  const browser = (metadata?.browser as string) || 'Unknown';
+  const browserVersion = (metadata?.browser_version as string) || '';
+  const os = (metadata?.os as string) || 'Unknown';
+  const clientIp = (metadata?.client_ip as string) || 'Unknown';
+  const orderCountry =
+    (metadata?.order_country as string) ||
+    shippingAddress?.country ||
+    'Unknown';
+  const guestId = (metadata?.guest_id as string) || null;
+  const discountCode = (metadata?.discount_code as string) || null;
+  const discountAmount = (metadata?.discount_amount as number) || 0;
 
   return (
     <div className="space-y-6">
@@ -192,19 +201,25 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
             <h2 className="text-xl font-semibold">
               Commande #{orderId.slice(0, 8).toUpperCase()}
             </h2>
-            <Button variant="ghost" size="icon" onClick={copyOrderId} className="h-6 w-6">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={copyOrderId}
+              className="h-6 w-6"
+            >
               <Copy className="h-3 w-3" />
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
-            Créée le {format(new Date(order.created_at), 'PPP à HH:mm', { locale: fr })}
+            Créée le{' '}
+            {format(new Date(order.created_at), 'PPP à HH:mm', { locale: fr })}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setCommandPaletteOpen(true)}
             className="gap-1"
           >
@@ -263,7 +278,10 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
           <TabsTrigger value="anomalies" className="flex items-center gap-1">
             Anomalies
             {order.anomaly_count > 0 && (
-              <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 justify-center">
+              <Badge
+                variant="secondary"
+                className="ml-1 h-5 w-5 p-0 justify-center"
+              >
                 {order.anomaly_count}
               </Badge>
             )}
@@ -283,35 +301,39 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
               <CardContent>
                 <div className="text-sm space-y-2">
                   {/* Name from shipping address */}
-                  {(shippingAddress?.first_name || billingAddress?.first_name) && (
+                  {(shippingAddress?.first_name ||
+                    billingAddress?.first_name) && (
                     <p className="font-medium text-base">
-                      {shippingAddress?.first_name || billingAddress?.first_name}{' '}
+                      {shippingAddress?.first_name ||
+                        billingAddress?.first_name}{' '}
                       {shippingAddress?.last_name || billingAddress?.last_name}
                     </p>
                   )}
-                  
+
                   {/* Email */}
                   {(shippingAddress?.email || billingAddress?.email) && (
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Mail className="h-3 w-3" />
-                      <span>{shippingAddress?.email || billingAddress?.email}</span>
+                      <span>
+                        {shippingAddress?.email || billingAddress?.email}
+                      </span>
                     </div>
                   )}
-                  
+
                   {/* Phone */}
                   {(shippingAddress?.phone || billingAddress?.phone) && (
                     <p className="text-muted-foreground">
                       📞 {shippingAddress?.phone || billingAddress?.phone}
                     </p>
                   )}
-                  
+
                   <Separator className="my-2" />
-                  
+
                   {/* User ID or Guest ID */}
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground">ID:</span>
                     {order.user_id ? (
-                      <Link 
+                      <Link
                         to={`/admin/customers?id=${order.user_id}`}
                         className="text-primary hover:underline font-mono text-xs"
                       >
@@ -330,7 +352,8 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                   <div className="flex items-center gap-2 mt-2">
                     {getDeviceIcon(deviceType)}
                     <span className="text-muted-foreground">
-                      {deviceType} • {browser} {browserVersion && `v${browserVersion}`}
+                      {deviceType} • {browser}{' '}
+                      {browserVersion && `v${browserVersion}`}
                     </span>
                   </div>
 
@@ -344,7 +367,9 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                   {clientIp && clientIp !== 'Unknown' && (
                     <div className="flex items-center gap-2">
                       <Globe className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-muted-foreground font-mono text-xs">{clientIp}</span>
+                      <span className="text-muted-foreground font-mono text-xs">
+                        {clientIp}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -362,7 +387,8 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
               <CardContent>
                 <div className="text-sm space-y-2">
                   <p className="font-bold text-lg">
-                    {((order.amount || 0) / 100).toFixed(2)} {order.currency?.toUpperCase()}
+                    {((order.amount || 0) / 100).toFixed(2)}{' '}
+                    {order.currency?.toUpperCase()}
                   </p>
                   <p className="text-muted-foreground">
                     {order.payment_method || 'Non spécifié'}
@@ -372,7 +398,7 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                       Réf: {order.payment_reference.slice(0, 24)}...
                     </p>
                   )}
-                  
+
                   {/* Coupon/Promo Code Display */}
                   {discountCode && (
                     <div className="mt-3 p-2 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
@@ -392,8 +418,10 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
 
                   {order.fraud_score !== null && order.fraud_score > 0 && (
                     <div className="mt-2">
-                      <Badge 
-                        variant={order.fraud_score > 50 ? 'destructive' : 'secondary'}
+                      <Badge
+                        variant={
+                          order.fraud_score > 50 ? 'destructive' : 'secondary'
+                        }
                         className="text-xs"
                       >
                         Score fraude: {order.fraud_score}%
@@ -413,7 +441,8 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {shippingAddress && (shippingAddress.address_line1 || shippingAddress.city) ? (
+                {shippingAddress &&
+                (shippingAddress.address_line1 || shippingAddress.city) ? (
                   <div className="text-sm space-y-1">
                     {shippingAddress.first_name && (
                       <p className="font-medium">
@@ -421,7 +450,9 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                       </p>
                     )}
                     <p>{shippingAddress.address_line1}</p>
-                    {shippingAddress.address_line2 && <p>{shippingAddress.address_line2}</p>}
+                    {shippingAddress.address_line2 && (
+                      <p>{shippingAddress.address_line2}</p>
+                    )}
                     <p>
                       {shippingAddress.postal_code} {shippingAddress.city}
                       {shippingAddress.state && `, ${shippingAddress.state}`}
@@ -430,10 +461,14 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                       {getCountryName(shippingAddress.country)}
                     </p>
                     {shippingAddress.phone && (
-                      <p className="text-muted-foreground mt-2">📞 {shippingAddress.phone}</p>
+                      <p className="text-muted-foreground mt-2">
+                        📞 {shippingAddress.phone}
+                      </p>
                     )}
                     {shippingAddress.email && (
-                      <p className="text-muted-foreground">✉️ {shippingAddress.email}</p>
+                      <p className="text-muted-foreground">
+                        ✉️ {shippingAddress.email}
+                      </p>
                     )}
                   </div>
                 ) : (
@@ -451,7 +486,11 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                     Suivi
                   </div>
                   {!isEditingTracking && (
-                    <Button variant="ghost" size="sm" onClick={handleEditTracking}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleEditTracking}
+                    >
                       Modifier
                     </Button>
                   )}
@@ -461,47 +500,68 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                 {isEditingTracking ? (
                   <div className="space-y-3">
                     <div>
-                      <Label htmlFor="carrier" className="text-xs">Transporteur</Label>
+                      <Label htmlFor="carrier" className="text-xs">
+                        Transporteur
+                      </Label>
                       <Input
                         id="carrier"
                         value={trackingForm.carrier}
-                        onChange={(e) => setTrackingForm(prev => ({ ...prev, carrier: e.target.value }))}
+                        onChange={(e) =>
+                          setTrackingForm((prev) => ({
+                            ...prev,
+                            carrier: e.target.value,
+                          }))
+                        }
                         placeholder="Colissimo, DHL, etc."
                         className="mt-1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="tracking_number" className="text-xs">Numéro de suivi</Label>
+                      <Label htmlFor="tracking_number" className="text-xs">
+                        Numéro de suivi
+                      </Label>
                       <Input
                         id="tracking_number"
                         value={trackingForm.tracking_number}
-                        onChange={(e) => setTrackingForm(prev => ({ ...prev, tracking_number: e.target.value }))}
+                        onChange={(e) =>
+                          setTrackingForm((prev) => ({
+                            ...prev,
+                            tracking_number: e.target.value,
+                          }))
+                        }
                         placeholder="ABC123456789"
                         className="mt-1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="tracking_url" className="text-xs">URL de suivi</Label>
+                      <Label htmlFor="tracking_url" className="text-xs">
+                        URL de suivi
+                      </Label>
                       <Input
                         id="tracking_url"
                         value={trackingForm.tracking_url}
-                        onChange={(e) => setTrackingForm(prev => ({ ...prev, tracking_url: e.target.value }))}
+                        onChange={(e) =>
+                          setTrackingForm((prev) => ({
+                            ...prev,
+                            tracking_url: e.target.value,
+                          }))
+                        }
                         placeholder="https://..."
                         className="mt-1"
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={handleSaveTracking}
                         disabled={isSavingTracking}
                       >
                         <Save className="h-3 w-3 mr-1" />
                         Enregistrer
                       </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => setIsEditingTracking(false)}
                       >
                         Annuler
@@ -511,7 +571,9 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                 ) : order.tracking_number ? (
                   <div className="text-sm space-y-2">
                     <p>
-                      <span className="text-muted-foreground">Transporteur:</span>{' '}
+                      <span className="text-muted-foreground">
+                        Transporteur:
+                      </span>{' '}
                       {order.carrier || 'N/A'}
                     </p>
                     <p className="font-mono text-xs">{order.tracking_number}</p>
@@ -522,7 +584,11 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                         asChild
                         className="w-full"
                       >
-                        <a href={order.tracking_url} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={order.tracking_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           <ExternalLink className="h-3 w-3 mr-2" />
                           Suivre le colis
                         </a>
@@ -530,13 +596,17 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                     )}
                     {order.estimated_delivery && (
                       <p className="text-xs text-muted-foreground">
-                        Livraison estimée: {format(new Date(order.estimated_delivery), 'PP', { locale: fr })}
+                        Livraison estimée:{' '}
+                        {format(new Date(order.estimated_delivery), 'PP', {
+                          locale: fr,
+                        })}
                       </p>
                     )}
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Pas encore expédié - Cliquez sur "Modifier" pour ajouter les infos
+                    Pas encore expédié - Cliquez sur "Modifier" pour ajouter les
+                    infos
                   </p>
                 )}
               </CardContent>
@@ -554,37 +624,43 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
             <CardContent>
               <div className="divide-y">
                 {order.order_items?.map((item) => {
-                  const snapshot = item.product_snapshot as Record<string, unknown> | null;
-                  const productImage = (snapshot?.images as string[])?.[0] || (snapshot?.image_url as string);
-                  
+                  const snapshot = item.product_snapshot as Record<
+                    string,
+                    unknown
+                  > | null;
+                  const productImage =
+                    (snapshot?.images as string[])?.[0] ||
+                    (snapshot?.image_url as string);
+
                   return (
                     <div key={item.id} className="py-3 flex items-center gap-4">
                       {/* Product Image or Placeholder */}
-                      <Link 
+                      <Link
                         to={`/products/${item.product_id}`}
                         className="h-14 w-14 bg-muted rounded-lg flex items-center justify-center overflow-hidden hover:ring-2 ring-primary transition-all"
                       >
                         {productImage ? (
-                          <img 
-                            src={productImage} 
-                            alt={snapshot?.name as string || 'Produit'} 
+                          <img
+                            src={productImage}
+                            alt={(snapshot?.name as string) || 'Produit'}
                             className="h-full w-full object-cover"
                           />
                         ) : (
                           <Package className="h-6 w-6 text-muted-foreground" />
                         )}
                       </Link>
-                      
+
                       <div className="flex-1 min-w-0">
                         {/* Clickable Product Name */}
-                        <Link 
+                        <Link
                           to={`/products/${item.product_id}`}
                           className="font-medium truncate hover:text-primary hover:underline transition-colors block"
                         >
-                          {snapshot?.name as string || 'Produit'}
+                          {(snapshot?.name as string) || 'Produit'}
                         </Link>
                         <p className="text-sm text-muted-foreground">
-                          Qté: {item.quantity} × {Number(item.unit_price).toFixed(2)} €
+                          Qté: {item.quantity} ×{' '}
+                          {Number(item.unit_price).toFixed(2)} €
                         </p>
                         {snapshot?.sku && (
                           <p className="text-xs text-muted-foreground font-mono">
@@ -592,7 +668,7 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                           </p>
                         )}
                       </div>
-                      
+
                       <div className="text-right">
                         <p className="font-medium">
                           {Number(item.total_price).toFixed(2)} €
@@ -614,14 +690,20 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                   );
                 })}
               </div>
-              
+
               {/* Order Summary */}
               <Separator className="my-4" />
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Sous-total</span>
                   <span>
-                    {(order.order_items?.reduce((sum, item) => sum + Number(item.total_price), 0) || 0).toFixed(2)} €
+                    {(
+                      order.order_items?.reduce(
+                        (sum, item) => sum + Number(item.total_price),
+                        0
+                      ) || 0
+                    ).toFixed(2)}{' '}
+                    €
                   </span>
                 </div>
                 {discountAmount > 0 && (
@@ -636,8 +718,14 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Livraison</span>
                   <span>
-                    {((order.amount || 0) / 100 - (order.order_items?.reduce((sum, item) => sum + Number(item.total_price), 0) || 0) + discountAmount) > 0 
-                      ? `${(((order.amount || 0) / 100 - (order.order_items?.reduce((sum, item) => sum + Number(item.total_price), 0) || 0) + discountAmount)).toFixed(2)} €`
+                    {(order.amount || 0) / 100 -
+                      (order.order_items?.reduce(
+                        (sum, item) => sum + Number(item.total_price),
+                        0
+                      ) || 0) +
+                      discountAmount >
+                    0
+                      ? `${((order.amount || 0) / 100 - (order.order_items?.reduce((sum, item) => sum + Number(item.total_price), 0) || 0) + discountAmount).toFixed(2)} €`
                       : 'Gratuite'}
                   </span>
                 </div>
@@ -672,17 +760,17 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                     rows={4}
                   />
                   <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       onClick={handleSaveNotes}
                       disabled={isSavingNotes}
                     >
                       <Save className="h-3 w-3 mr-1" />
                       Enregistrer
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => setIsEditingNotes(false)}
                     >
                       Annuler
@@ -690,7 +778,9 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
                   </div>
                 </div>
               ) : order.internal_notes ? (
-                <p className="text-sm whitespace-pre-wrap">{order.internal_notes}</p>
+                <p className="text-sm whitespace-pre-wrap">
+                  {order.internal_notes}
+                </p>
               ) : (
                 <p className="text-sm text-muted-foreground">Aucune note</p>
               )}
@@ -756,17 +846,17 @@ export function OrderDetailsPanel({ orderId, onClose }: OrderDetailsPanelProps) 
 // Helper function to get country name from code
 function getCountryName(code: string | undefined): string {
   const countries: Record<string, string> = {
-    'FR': 'France',
-    'BE': 'Belgique',
-    'CH': 'Suisse',
-    'LU': 'Luxembourg',
-    'MC': 'Monaco',
-    'DE': 'Allemagne',
-    'ES': 'Espagne',
-    'IT': 'Italie',
-    'GB': 'Royaume-Uni',
-    'US': 'États-Unis',
-    'CA': 'Canada',
+    FR: 'France',
+    BE: 'Belgique',
+    CH: 'Suisse',
+    LU: 'Luxembourg',
+    MC: 'Monaco',
+    DE: 'Allemagne',
+    ES: 'Espagne',
+    IT: 'Italie',
+    GB: 'Royaume-Uni',
+    US: 'États-Unis',
+    CA: 'Canada',
   };
   return countries[code || ''] || code || 'Inconnu';
 }

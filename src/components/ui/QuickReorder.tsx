@@ -45,11 +45,11 @@ export const QuickReorder = ({ userId }: QuickReorderProps) => {
             description: 'Sac artisanal en fibres naturelles',
             artisan: 'Fatima Alaoui',
             details: 'Dimensions: 30x25x10cm',
-            care: 'Nettoyage à la main'
+            care: 'Nettoyage à la main',
           },
           quantity: 1,
           orderDate: '2024-01-15',
-          orderId: 'ORD-001'
+          orderId: 'ORD-001',
         },
         {
           id: '2',
@@ -62,12 +62,12 @@ export const QuickReorder = ({ userId }: QuickReorderProps) => {
             description: 'Chapeau traditionnel en paille tressée',
             artisan: 'Ahmed Benaissa',
             details: 'Taille unique ajustable',
-            care: 'Éviter l\'humidité'
+            care: "Éviter l'humidité",
           },
           quantity: 2,
           orderDate: '2024-01-10',
-          orderId: 'ORD-002'
-        }
+          orderId: 'ORD-002',
+        },
       ];
 
       // Simulate API delay
@@ -86,14 +86,14 @@ export const QuickReorder = ({ userId }: QuickReorderProps) => {
       addItem(item.product, item.quantity);
 
       toast({
-        title: "Ajouté au panier",
+        title: 'Ajouté au panier',
         description: `${item.quantity}x ${item.product.name}`,
       });
     } catch (error) {
       toast({
-        title: "Erreur",
+        title: 'Erreur',
         description: "Impossible d'ajouter le produit au panier",
-        variant: "destructive"
+        variant: 'destructive',
       });
     }
   };
@@ -105,14 +105,14 @@ export const QuickReorder = ({ userId }: QuickReorderProps) => {
       }
 
       toast({
-        title: "Commandes ajoutées",
+        title: 'Commandes ajoutées',
         description: `${recentItems.length} produits ajoutés au panier`,
       });
     } catch (error) {
       toast({
-        title: "Erreur",
+        title: 'Erreur',
         description: "Impossible d'ajouter les produits au panier",
-        variant: "destructive"
+        variant: 'destructive',
       });
     }
   };
@@ -128,7 +128,8 @@ export const QuickReorder = ({ userId }: QuickReorderProps) => {
         </CardHeader>
         <CardContent>
           <p className="text-stone-600 text-center py-4">
-            Connectez-vous pour voir vos commandes récentes et recommander facilement.
+            Connectez-vous pour voir vos commandes récentes et recommander
+            facilement.
           </p>
         </CardContent>
       </Card>
@@ -143,7 +144,7 @@ export const QuickReorder = ({ userId }: QuickReorderProps) => {
             <Clock className="h-5 w-5 text-olive-600" />
             Recommander rapidement
           </CardTitle>
-          
+
           {recentItems.length > 1 && (
             <Button
               size="sm"
@@ -155,12 +156,15 @@ export const QuickReorder = ({ userId }: QuickReorderProps) => {
           )}
         </div>
       </CardHeader>
-      
+
       <CardContent className="pt-0">
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2].map((i) => (
-              <div key={i} className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg animate-pulse">
+              <div
+                key={i}
+                className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg animate-pulse"
+              >
                 <div className="w-12 h-12 bg-stone-200 rounded"></div>
                 <div className="flex-1 space-y-2">
                   <div className="h-4 bg-stone-200 rounded w-32"></div>
@@ -187,7 +191,7 @@ export const QuickReorder = ({ userId }: QuickReorderProps) => {
                   alt={item.product.name}
                   className="w-12 h-12 object-cover rounded"
                 />
-                
+
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-stone-800 text-sm truncate">
                     {item.product.name}
@@ -201,7 +205,7 @@ export const QuickReorder = ({ userId }: QuickReorderProps) => {
                     </Badge>
                   </div>
                 </div>
-                
+
                 <Button
                   size="sm"
                   onClick={() => handleQuickReorder(item)}

@@ -1,10 +1,30 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ShoppingCart, Heart, Eye, Star, Minus, Plus, X, ZoomIn, Share2, Package, Truck, RotateCcw, Shield } from 'lucide-react';
+import {
+  ShoppingCart,
+  Heart,
+  Eye,
+  Star,
+  Minus,
+  Plus,
+  X,
+  ZoomIn,
+  Share2,
+  Package,
+  Truck,
+  RotateCcw,
+  Shield,
+} from 'lucide-react';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { toast } from 'sonner';
 import { useCurrency } from '@/stores';
@@ -19,7 +39,12 @@ interface ProductQuickViewProps {
   onAddToCart: (product: Product, quantity: number) => void;
 }
 
-export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: ProductQuickViewProps) => {
+export const ProductQuickView = ({
+  product,
+  isOpen,
+  onClose,
+  onAddToCart,
+}: ProductQuickViewProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -50,8 +75,12 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
   };
 
   const images = useMemo(() => {
-    const imageArray = (product?.images ?? []).map(normalizeImage).filter(Boolean);
-    return imageArray.length ? imageArray : ['/assets/images/handmade_products.webp'];
+    const imageArray = (product?.images ?? [])
+      .map(normalizeImage)
+      .filter(Boolean);
+    return imageArray.length
+      ? imageArray
+      : ['/assets/images/handmade_products.webp'];
   }, [product]);
 
   if (!product) return null;
@@ -62,8 +91,12 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
       <div className="flex items-center gap-3">
         <ShoppingCart className="h-5 w-5 text-green-600" />
         <div>
-          <div className="font-semibold">{quantity}x {product.name}</div>
-          <div className="text-sm text-gray-600">{t('common:messages.addedToCart')}</div>
+          <div className="font-semibold">
+            {quantity}x {product.name}
+          </div>
+          <div className="text-sm text-gray-600">
+            {t('common:messages.addedToCart')}
+          </div>
         </div>
       </div>
     );
@@ -71,7 +104,11 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
   const handleWishlist = () => {
     setIsWishlisted(!isWishlisted);
-    toast.success(!isWishlisted ? t('common:messages.addedToWishlist') + ' ❤️' : t('common:messages.removedFromWishlist'));
+    toast.success(
+      !isWishlisted
+        ? t('common:messages.addedToWishlist') + ' ❤️'
+        : t('common:messages.removedFromWishlist')
+    );
   };
 
   const handleShare = () => {
@@ -104,7 +141,9 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
     <>
       <DialogHeader className="sr-only">
         <DialogTitle>{product.name}</DialogTitle>
-        <DialogDescription>{product.short_description || product.description}</DialogDescription>
+        <DialogDescription>
+          {product.short_description || product.description}
+        </DialogDescription>
       </DialogHeader>
 
       <div className="relative flex flex-col lg:flex-row h-full min-h-0">
@@ -154,7 +193,10 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                   showImageZoom ? 'scale-105' : 'scale-100'
                 } ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
                 onLoad={() => setImageLoading(false)}
-                onError={(e) => { e.currentTarget.src = '/assets/images/handmade_products.webp'; setImageLoading(false); }}
+                onError={(e) => {
+                  e.currentTarget.src = '/assets/images/handmade_products.webp';
+                  setImageLoading(false);
+                }}
               />
 
               {/* Gradient overlays for better contrast */}
@@ -169,16 +211,14 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                   className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-background/90 hover:bg-background shadow border border-border flex items-center justify-center"
                   aria-label={t('quickView.previousImage')}
                 >
-                  <span className="sr-only">{t('quickView.previous')}</span>
-                  ‹
+                  <span className="sr-only">{t('quickView.previous')}</span>‹
                 </button>
                 <button
                   onClick={nextImage}
                   className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-background/90 hover:bg-background shadow border border-border flex items-center justify-center"
                   aria-label={t('quickView.nextImage')}
                 >
-                  <span className="sr-only">{t('quickView.next')}</span>
-                  ›
+                  <span className="sr-only">{t('quickView.next')}</span>›
                 </button>
               </>
             )}
@@ -191,8 +231,8 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                     key={index}
                     onClick={() => setSelectedImageIndex(index)}
                     className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all duration-300 ${
-                      index === selectedImageIndex 
-                        ? 'border-primary shadow-lg scale-105 ring-2 ring-primary/20' 
+                      index === selectedImageIndex
+                        ? 'border-primary shadow-lg scale-105 ring-2 ring-primary/20'
                         : 'border-border hover:border-muted-foreground hover:scale-102'
                     }`}
                   >
@@ -200,7 +240,10 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                       src={image}
                       alt={`${product.name} ${index + 1}`}
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                      onError={(e) => { e.currentTarget.src = '/assets/images/handmade_products.webp'; }}
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          '/assets/images/handmade_products.webp';
+                      }}
                     />
                   </button>
                 ))}
@@ -220,20 +263,26 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
             {/* Header */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Badge variant="outline" className="text-primary border-primary/30 bg-primary/5 px-3 py-1.5 text-sm font-medium">
+                <Badge
+                  variant="outline"
+                  className="text-primary border-primary/30 bg-primary/5 px-3 py-1.5 text-sm font-medium"
+                >
                   {product.category}
                 </Badge>
                 {product.artisan && (
-                  <Badge variant="outline" className="text-accent border-accent/30 bg-accent/5 px-3 py-1.5 text-sm font-medium">
+                  <Badge
+                    variant="outline"
+                    className="text-accent border-accent/30 bg-accent/5 px-3 py-1.5 text-sm font-medium"
+                  >
                     {t('details.handmade')}
                   </Badge>
                 )}
               </div>
-              
+
               <h2 className="text-2xl lg:text-3xl font-bold text-foreground leading-tight">
                 {product.name}
               </h2>
-              
+
               {/* Rating */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1">
@@ -241,24 +290,36 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
                     <Star
                       key={i}
                       className={`h-4 w-4 ${
-                        i < 4 ? 'text-yellow-400 fill-current' : 'text-muted-foreground'
+                        i < 4
+                          ? 'text-yellow-400 fill-current'
+                          : 'text-muted-foreground'
                       }`}
                     />
                   ))}
                 </div>
-                <span className="text-sm text-muted-foreground font-medium">{t('quickView.reviewsCount', { count: 24 })}</span>
-                <span className="text-sm text-primary font-medium">{t('quickView.highlyRated')}</span>
+                <span className="text-sm text-muted-foreground font-medium">
+                  {t('quickView.reviewsCount', { count: 24 })}
+                </span>
+                <span className="text-sm text-primary font-medium">
+                  {t('quickView.highlyRated')}
+                </span>
               </div>
 
-              <div className="text-3xl lg:text-4xl font-bold text-primary">{formatPrice(product.price)}</div>
+              <div className="text-3xl lg:text-4xl font-bold text-primary">
+                {formatPrice(product.price)}
+              </div>
             </div>
 
             <Separator />
 
             {/* Description */}
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-foreground">{t('details.description')}</h3>
-              <p className="text-muted-foreground leading-relaxed text-sm lg:text-base">{product.description}</p>
+              <h3 className="text-lg font-semibold text-foreground">
+                {t('details.description')}
+              </h3>
+              <p className="text-muted-foreground leading-relaxed text-sm lg:text-base">
+                {product.description}
+              </p>
             </div>
 
             {/* Features Grid */}
@@ -266,15 +327,23 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
               <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                 <Package className="h-5 w-5 text-primary" />
                 <div>
-                  <div className="text-sm font-medium text-foreground">{t('details.handmade')}</div>
-                  <div className="text-xs text-muted-foreground">{t('quickView.authenticCraft')}</div>
+                  <div className="text-sm font-medium text-foreground">
+                    {t('details.handmade')}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {t('quickView.authenticCraft')}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                 <Shield className="h-5 w-5 text-primary" />
                 <div>
-                  <div className="text-sm font-medium text-foreground">{t('quickView.premiumQuality')}</div>
-                  <div className="text-xs text-muted-foreground">{t('quickView.nobleMaterials')}</div>
+                  <div className="text-sm font-medium text-foreground">
+                    {t('quickView.premiumQuality')}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {t('quickView.nobleMaterials')}
+                  </div>
                 </div>
               </div>
             </div>
@@ -284,8 +353,12 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
               <div className="rounded-xl border border-primary/30 bg-primary/10 p-4 flex items-start gap-3">
                 <div className="mt-0.5 h-2 w-2 rounded-full bg-primary" />
                 <div className="text-sm">
-                  <div className="font-medium text-foreground">{t('details.artisan')}: {product.artisan}</div>
-                  <div className="text-primary">{t('quickView.artisanPassion')}</div>
+                  <div className="font-medium text-foreground">
+                    {t('details.artisan')}: {product.artisan}
+                  </div>
+                  <div className="text-primary">
+                    {t('quickView.artisanPassion')}
+                  </div>
                 </div>
               </div>
             )}
@@ -293,28 +366,53 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
             {/* Quantity and Actions */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-foreground">{t('details.quantity')}</span>
+                <span className="text-sm font-medium text-foreground">
+                  {t('details.quantity')}
+                </span>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => setQuantity((q) => Math.max(1, q - 1))} aria-label={t('quickView.decreaseQuantity')}>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    aria-label={t('quickView.decreaseQuantity')}
+                  >
                     <Minus className="h-4 w-4" />
                   </Button>
-                  <div className="w-10 text-center font-medium text-foreground">{quantity}</div>
-                  <Button variant="outline" size="icon" onClick={() => setQuantity((q) => q + 1)} aria-label={t('quickView.increaseQuantity')}>
+                  <div className="w-10 text-center font-medium text-foreground">
+                    {quantity}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity((q) => q + 1)}
+                    aria-label={t('quickView.increaseQuantity')}
+                  >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Button className="bg-olive-700 hover:bg-olive-800" onClick={handleAddToCart}>
+                <Button
+                  className="bg-olive-700 hover:bg-olive-800"
+                  onClick={handleAddToCart}
+                >
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   {t('details.addToCartFull')}
                 </Button>
                 <Button variant="outline" onClick={handleWishlist}>
-                  <Heart className={`mr-2 h-4 w-4 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}`} />
-                  {isWishlisted ? t('details.inWishlist') : t('details.addToWishlist')}
+                  <Heart
+                    className={`mr-2 h-4 w-4 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}`}
+                  />
+                  {isWishlisted
+                    ? t('details.inWishlist')
+                    : t('details.addToWishlist')}
                 </Button>
-                <Button variant="ghost" onClick={handleViewDetails} className="col-span-1 sm:col-span-2">
+                <Button
+                  variant="ghost"
+                  onClick={handleViewDetails}
+                  className="col-span-1 sm:col-span-2"
+                >
                   <Eye className="mr-2 h-4 w-4" />
                   {t('details.viewDetails')}
                 </Button>
@@ -342,9 +440,14 @@ export const ProductQuickView = ({ product, isOpen, onClose, onAddToCart }: Prod
 
   if (isMobile) {
     return (
-      <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <SheetContent 
-          side="bottom" 
+      <Sheet
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) onClose();
+        }}
+      >
+        <SheetContent
+          side="bottom"
           className="h-[92vh] p-0 bg-background overflow-hidden rounded-t-xl [&>button]:hidden"
           aria-describedby={undefined}
         >

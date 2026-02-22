@@ -4,7 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Package, Calendar, CreditCard, Truck, Eye, CheckCircle, Clock } from 'lucide-react';
+import {
+  Package,
+  Calendar,
+  CreditCard,
+  Truck,
+  Eye,
+  CheckCircle,
+  Clock,
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -45,11 +53,13 @@ export function OrderHistory({ user }: OrderHistoryProps) {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select(`
+        .select(
+          `
           id, amount, currency, status, order_status, created_at, updated_at,
           tracking_number, carrier, estimated_delivery,
           order_items (id, quantity, product_snapshot)
-        `)
+        `
+        )
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -65,21 +75,32 @@ export function OrderHistory({ user }: OrderHistoryProps) {
 
   const getStatusBadge = (order: Order) => {
     const status = order.order_status || order.status || 'pending';
-    const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: typeof Clock }> = {
-      'created': { label: 'Créée', variant: 'outline', icon: Clock },
-      'payment_pending': { label: 'En attente', variant: 'outline', icon: Clock },
-      'pending': { label: 'En attente', variant: 'outline', icon: Clock },
-      'paid': { label: 'Payée', variant: 'default', icon: CheckCircle },
-      'processing': { label: 'En cours', variant: 'secondary', icon: Package },
-      'preparing': { label: 'Préparation', variant: 'secondary', icon: Package },
-      'shipped': { label: 'Expédiée', variant: 'default', icon: Truck },
-      'in_transit': { label: 'En transit', variant: 'default', icon: Truck },
-      'delivered': { label: 'Livrée', variant: 'default', icon: CheckCircle },
-      'cancelled': { label: 'Annulée', variant: 'destructive', icon: Clock },
-      'refunded': { label: 'Remboursée', variant: 'destructive', icon: Clock },
+    const statusMap: Record<
+      string,
+      {
+        label: string;
+        variant: 'default' | 'secondary' | 'destructive' | 'outline';
+        icon: typeof Clock;
+      }
+    > = {
+      created: { label: 'Créée', variant: 'outline', icon: Clock },
+      payment_pending: { label: 'En attente', variant: 'outline', icon: Clock },
+      pending: { label: 'En attente', variant: 'outline', icon: Clock },
+      paid: { label: 'Payée', variant: 'default', icon: CheckCircle },
+      processing: { label: 'En cours', variant: 'secondary', icon: Package },
+      preparing: { label: 'Préparation', variant: 'secondary', icon: Package },
+      shipped: { label: 'Expédiée', variant: 'default', icon: Truck },
+      in_transit: { label: 'En transit', variant: 'default', icon: Truck },
+      delivered: { label: 'Livrée', variant: 'default', icon: CheckCircle },
+      cancelled: { label: 'Annulée', variant: 'destructive', icon: Clock },
+      refunded: { label: 'Remboursée', variant: 'destructive', icon: Clock },
     };
 
-    const config = statusMap[status] || { label: status, variant: 'secondary' as const, icon: Clock };
+    const config = statusMap[status] || {
+      label: status,
+      variant: 'secondary' as const,
+      icon: Clock,
+    };
     const Icon = config.icon;
 
     return (
@@ -153,7 +174,9 @@ export function OrderHistory({ user }: OrderHistoryProps) {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
-                          {format(new Date(order.created_at), 'dd MMMM yyyy', { locale: fr })}
+                          {format(new Date(order.created_at), 'dd MMMM yyyy', {
+                            locale: fr,
+                          })}
                         </div>
                         {order.amount && (
                           <div className="flex items-center gap-1">
@@ -164,11 +187,12 @@ export function OrderHistory({ user }: OrderHistoryProps) {
                       </div>
                       {order.order_items?.length > 0 && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          {order.order_items.length} article{order.order_items.length > 1 ? 's' : ''}
+                          {order.order_items.length} article
+                          {order.order_items.length > 1 ? 's' : ''}
                         </p>
                       )}
                     </div>
-                    
+
                     <Button variant="outline" size="sm" asChild>
                       <a href={`/orders`}>
                         <Eye className="h-4 w-4 mr-2" />
@@ -186,12 +210,18 @@ export function OrderHistory({ user }: OrderHistoryProps) {
                       </h5>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">
-                          {order.carrier && `${order.carrier} — `}N° {order.tracking_number}
+                          {order.carrier && `${order.carrier} — `}N°{' '}
+                          {order.tracking_number}
                         </span>
                       </div>
                       {order.estimated_delivery && (
                         <p className="text-xs text-muted-foreground">
-                          Livraison prévue : {format(new Date(order.estimated_delivery), 'dd MMMM yyyy', { locale: fr })}
+                          Livraison prévue :{' '}
+                          {format(
+                            new Date(order.estimated_delivery),
+                            'dd MMMM yyyy',
+                            { locale: fr }
+                          )}
                         </p>
                       )}
                     </div>

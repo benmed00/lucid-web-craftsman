@@ -1,9 +1,9 @@
 /**
  * Translation Service
- * 
+ *
  * Handles fetching multilingual content from Supabase translation tables.
  * Provides locale-aware data fetching with fallback support.
- * 
+ *
  * ARCHITECTURE:
  * - UI labels → react-i18next (src/i18n/)
  * - Business content (products, blog) → This service (Supabase tables)
@@ -15,7 +15,13 @@ import i18n from '@/i18n';
 // Supported locales
 export type SupportedLocale = 'fr' | 'en' | 'ar' | 'es' | 'de';
 export const DEFAULT_LOCALE: SupportedLocale = 'fr';
-export const SUPPORTED_LOCALES: SupportedLocale[] = ['fr', 'en', 'ar', 'es', 'de'];
+export const SUPPORTED_LOCALES: SupportedLocale[] = [
+  'fr',
+  'en',
+  'ar',
+  'es',
+  'de',
+];
 
 /**
  * Get current locale from i18n, with fallback to default
@@ -68,7 +74,7 @@ export interface ProductWithTranslation {
   related_products: number[] | null;
   created_at: string;
   updated_at: string;
-  
+
   // Translated fields
   name: string;
   description: string;
@@ -78,7 +84,7 @@ export interface ProductWithTranslation {
   artisan_story: string | null;
   seo_title: string | null;
   seo_description: string | null;
-  
+
   // Locale info
   _locale: SupportedLocale;
   _fallbackUsed: boolean;
@@ -102,7 +108,7 @@ export async function getProductWithTranslation(
   // If no translation found, try fallback to default locale
   let fallbackTranslation = null;
   let fallbackUsed = false;
-  
+
   if (!translation && locale !== DEFAULT_LOCALE) {
     const { data: fallback } = await supabase
       .from('product_translations')
@@ -110,7 +116,7 @@ export async function getProductWithTranslation(
       .eq('product_id', productId)
       .eq('locale', DEFAULT_LOCALE)
       .single();
-    
+
     fallbackTranslation = fallback;
     fallbackUsed = true;
   }
@@ -153,19 +159,21 @@ export async function getProductWithTranslation(
     related_products: product.related_products,
     created_at: product.created_at,
     updated_at: product.updated_at,
-    
+
     // Translated fields (from translation or fallback to base product)
     name: activeTranslation?.name || product.name,
     description: activeTranslation?.description || product.description,
-    short_description: activeTranslation?.short_description || product.short_description,
+    short_description:
+      activeTranslation?.short_description || product.short_description,
     details: activeTranslation?.details || product.details,
     care: activeTranslation?.care || product.care,
     artisan_story: activeTranslation?.artisan_story || product.artisan_story,
     seo_title: activeTranslation?.seo_title || product.seo_title,
-    seo_description: activeTranslation?.seo_description || product.seo_description,
-    
+    seo_description:
+      activeTranslation?.seo_description || product.seo_description,
+
     // Locale metadata
-    _locale: activeTranslation?.locale as SupportedLocale || DEFAULT_LOCALE,
+    _locale: (activeTranslation?.locale as SupportedLocale) || DEFAULT_LOCALE,
     _fallbackUsed: fallbackUsed || !activeTranslation,
   };
 }
@@ -189,7 +197,7 @@ export async function getProductsWithTranslations(
   }
 
   // Get all translations for requested locale
-  const productIds = products.map(p => p.id);
+  const productIds = products.map((p) => p.id);
   const { data: translations } = await supabase
     .from('product_translations')
     .select('*')
@@ -204,15 +212,19 @@ export async function getProductsWithTranslations(
     .eq('locale', DEFAULT_LOCALE);
 
   // Create lookup maps
-  const translationMap = new Map(translations?.map(t => [t.product_id, t]) || []);
-  const fallbackMap = new Map(fallbackTranslations?.map(t => [t.product_id, t]) || []);
+  const translationMap = new Map(
+    translations?.map((t) => [t.product_id, t]) || []
+  );
+  const fallbackMap = new Map(
+    fallbackTranslations?.map((t) => [t.product_id, t]) || []
+  );
 
   // Merge products with translations
-  return products.map(product => {
+  return products.map((product) => {
     const translation = translationMap.get(product.id);
     const fallback = fallbackMap.get(product.id);
     const activeTranslation = translation || fallback;
-    
+
     return {
       id: product.id,
       price: product.price,
@@ -235,16 +247,18 @@ export async function getProductsWithTranslations(
       related_products: product.related_products,
       created_at: product.created_at,
       updated_at: product.updated_at,
-      
+
       name: activeTranslation?.name || product.name,
       description: activeTranslation?.description || product.description,
-      short_description: activeTranslation?.short_description || product.short_description,
+      short_description:
+        activeTranslation?.short_description || product.short_description,
       details: activeTranslation?.details || product.details,
       care: activeTranslation?.care || product.care,
       artisan_story: activeTranslation?.artisan_story || product.artisan_story,
       seo_title: activeTranslation?.seo_title || product.seo_title,
-      seo_description: activeTranslation?.seo_description || product.seo_description,
-      
+      seo_description:
+        activeTranslation?.seo_description || product.seo_description,
+
       _locale: (activeTranslation?.locale as SupportedLocale) || DEFAULT_LOCALE,
       _fallbackUsed: !translation && !!fallback,
     };
@@ -281,14 +295,14 @@ export interface BlogPostWithTranslation {
   view_count: number | null;
   created_at: string | null;
   updated_at: string | null;
-  
+
   // Translated fields
   title: string;
   excerpt: string | null;
   content: string;
   seo_title: string | null;
   seo_description: string | null;
-  
+
   // Locale info
   _locale: SupportedLocale;
   _fallbackUsed: boolean;
@@ -312,7 +326,7 @@ export async function getBlogPostWithTranslation(
   // Fallback to default locale if needed
   let fallbackTranslation = null;
   let fallbackUsed = false;
-  
+
   if (!translation && locale !== DEFAULT_LOCALE) {
     const { data: fallback } = await supabase
       .from('blog_post_translations')
@@ -320,7 +334,7 @@ export async function getBlogPostWithTranslation(
       .eq('blog_post_id', blogPostId)
       .eq('locale', DEFAULT_LOCALE)
       .single();
-    
+
     fallbackTranslation = fallback;
     fallbackUsed = true;
   }
@@ -351,13 +365,13 @@ export async function getBlogPostWithTranslation(
     view_count: post.view_count,
     created_at: post.created_at,
     updated_at: post.updated_at,
-    
+
     title: activeTranslation?.title || post.title,
     excerpt: activeTranslation?.excerpt || post.excerpt,
     content: activeTranslation?.content || post.content,
     seo_title: activeTranslation?.seo_title || post.seo_title,
     seo_description: activeTranslation?.seo_description || post.seo_description,
-    
+
     _locale: (activeTranslation?.locale as SupportedLocale) || DEFAULT_LOCALE,
     _fallbackUsed: fallbackUsed || !activeTranslation,
   };
@@ -382,7 +396,7 @@ export async function getBlogPostsWithTranslations(
   }
 
   // Get translations for requested locale
-  const postIds = posts.map(p => p.id);
+  const postIds = posts.map((p) => p.id);
   const { data: translations } = await supabase
     .from('blog_post_translations')
     .select('*')
@@ -397,10 +411,14 @@ export async function getBlogPostsWithTranslations(
     .eq('locale', DEFAULT_LOCALE);
 
   // Create lookup maps
-  const translationMap = new Map(translations?.map(t => [t.blog_post_id, t]) || []);
-  const fallbackMap = new Map(fallbackTranslations?.map(t => [t.blog_post_id, t]) || []);
+  const translationMap = new Map(
+    translations?.map((t) => [t.blog_post_id, t]) || []
+  );
+  const fallbackMap = new Map(
+    fallbackTranslations?.map((t) => [t.blog_post_id, t]) || []
+  );
 
-  return posts.map(post => {
+  return posts.map((post) => {
     const translation = translationMap.get(post.id);
     const fallback = fallbackMap.get(post.id);
     const activeTranslation = translation || fallback;
@@ -417,13 +435,14 @@ export async function getBlogPostsWithTranslations(
       view_count: post.view_count,
       created_at: post.created_at,
       updated_at: post.updated_at,
-      
+
       title: activeTranslation?.title || post.title,
       excerpt: activeTranslation?.excerpt || post.excerpt,
       content: activeTranslation?.content || post.content,
       seo_title: activeTranslation?.seo_title || post.seo_title,
-      seo_description: activeTranslation?.seo_description || post.seo_description,
-      
+      seo_description:
+        activeTranslation?.seo_description || post.seo_description,
+
       _locale: (activeTranslation?.locale as SupportedLocale) || DEFAULT_LOCALE,
       _fallbackUsed: !translation && !!fallback,
     };

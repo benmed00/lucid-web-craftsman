@@ -10,7 +10,10 @@ interface ThemeToggleProps {
   size?: 'sm' | 'default';
 }
 
-const ThemeToggle: React.FC<ThemeToggleProps> = ({ className, size = 'sm' }) => {
+const ThemeToggle: React.FC<ThemeToggleProps> = ({
+  className,
+  size = 'sm',
+}) => {
   const { t } = useTranslation('common');
   const { resolvedTheme, toggleTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
@@ -21,24 +24,32 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ className, size = 'sm' }) => 
       size={size}
       onClick={toggleTheme}
       className={clsx(
-        "relative items-center justify-center rounded-lg transition-all duration-300 touch-manipulation",
-        size === 'sm' ? "w-9 h-9 lg:w-10 lg:h-10" : "w-10 h-10",
-        "hover:bg-accent text-muted-foreground hover:text-accent-foreground",
+        'relative items-center justify-center rounded-lg transition-all duration-300 touch-manipulation',
+        size === 'sm' ? 'w-9 h-9 lg:w-10 lg:h-10' : 'w-10 h-10',
+        'hover:bg-accent text-muted-foreground hover:text-accent-foreground',
         className
       )}
-      aria-label={isDark ? t('accessibility.enableLightMode') : t('accessibility.enableDarkMode')}
+      aria-label={
+        isDark
+          ? t('accessibility.enableLightMode')
+          : t('accessibility.enableDarkMode')
+      }
     >
-      <Sun 
+      <Sun
         className={clsx(
-          "h-4 w-4 transition-all duration-300",
-          isDark ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
-        )} 
+          'h-4 w-4 transition-all duration-300',
+          isDark
+            ? 'rotate-90 scale-0 opacity-0'
+            : 'rotate-0 scale-100 opacity-100'
+        )}
       />
-      <Moon 
+      <Moon
         className={clsx(
-          "absolute h-4 w-4 transition-all duration-300",
-          isDark ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"
-        )} 
+          'absolute h-4 w-4 transition-all duration-300',
+          isDark
+            ? 'rotate-0 scale-100 opacity-100'
+            : '-rotate-90 scale-0 opacity-0'
+        )}
       />
     </Button>
   );

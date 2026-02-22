@@ -1,20 +1,39 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
-  Mail, 
-  Send, 
-  Loader2, 
-  ShoppingBag, 
-  Truck, 
-  CheckCircle, 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Mail,
+  Send,
+  Loader2,
+  ShoppingBag,
+  Truck,
+  CheckCircle,
   XCircle,
   Eye,
   Copy,
@@ -27,13 +46,27 @@ import {
   BarChart3,
   TrendingUp,
   FlaskConical,
-  Calendar
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+  Calendar,
+} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { format, subDays, startOfDay, eachDayOfInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } from 'recharts';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 import EmailScheduler from '@/components/admin/EmailScheduler';
 import EmailABTesting from '@/components/admin/EmailABTesting';
 
@@ -66,7 +99,8 @@ const emailTemplates: EmailTemplate[] = [
   {
     id: 'order-confirmation',
     name: 'Confirmation de commande',
-    description: 'Email envoyé après un paiement réussi avec le récapitulatif de la commande.',
+    description:
+      'Email envoyé après un paiement réussi avec le récapitulatif de la commande.',
     functionName: 'send-order-confirmation',
     icon: ShoppingBag,
     color: 'text-blue-600 dark:text-blue-400',
@@ -81,22 +115,38 @@ const emailTemplates: EmailTemplate[] = [
       total: 8000,
       currency: 'EUR',
       items: [
-        { name: 'Chapeau de paille berbère', quantity: 1, price: 4500, image: '/assets/images/products/chapeau_de_paille_berbere.jpg' },
-        { name: 'Sac à main tissé traditionnel', quantity: 2, price: 1500, image: '/assets/images/products/sac_a_main_tisse_traditionnel.jpg' }
+        {
+          name: 'Chapeau de paille berbère',
+          quantity: 1,
+          price: 4500,
+          image: '/assets/images/products/chapeau_de_paille_berbere.jpg',
+        },
+        {
+          name: 'Sac à main tissé traditionnel',
+          quantity: 2,
+          price: 1500,
+          image: '/assets/images/products/sac_a_main_tisse_traditionnel.jpg',
+        },
       ],
       shippingAddress: {
         address: '123 Rue de Test',
         city: 'Paris',
         postalCode: '75001',
-        country: 'France'
-      }
+        country: 'France',
+      },
     },
-    previewFields: ['Numéro de commande', 'Montant: 80,00 €', '2 articles', 'Adresse de livraison']
+    previewFields: [
+      'Numéro de commande',
+      'Montant: 80,00 €',
+      '2 articles',
+      'Adresse de livraison',
+    ],
   },
   {
     id: 'shipping-notification',
     name: "Notification d'expédition",
-    description: 'Email envoyé lorsque la commande est expédiée avec le numéro de suivi.',
+    description:
+      'Email envoyé lorsque la commande est expédiée avec le numéro de suivi.',
     functionName: 'send-shipping-notification',
     icon: Truck,
     color: 'text-purple-600 dark:text-purple-400',
@@ -107,25 +157,40 @@ const emailTemplates: EmailTemplate[] = [
       customerName: 'Client Test',
       trackingNumber: '1Z999AA10123456784',
       carrier: 'La Poste',
-      trackingUrl: 'https://www.laposte.fr/outils/suivre-vos-envois?code=1Z999AA10123456784',
+      trackingUrl:
+        'https://www.laposte.fr/outils/suivre-vos-envois?code=1Z999AA10123456784',
       estimatedDelivery: '15-18 janvier 2025',
       shippingAddress: {
         address: '123 Rue de Test',
         city: 'Paris',
         postalCode: '75001',
-        country: 'France'
+        country: 'France',
       },
       items: [
-        { name: 'Chapeau de paille berbère', quantity: 1, image: '/assets/images/products/chapeau_de_paille_berbere.jpg' },
-        { name: 'Sac à main tissé traditionnel', quantity: 2, image: '/assets/images/products/sac_a_main_tisse_traditionnel.jpg' }
-      ]
+        {
+          name: 'Chapeau de paille berbère',
+          quantity: 1,
+          image: '/assets/images/products/chapeau_de_paille_berbere.jpg',
+        },
+        {
+          name: 'Sac à main tissé traditionnel',
+          quantity: 2,
+          image: '/assets/images/products/sac_a_main_tisse_traditionnel.jpg',
+        },
+      ],
     },
-    previewFields: ['Transporteur: La Poste', 'N° suivi: 1Z999AA10123456784', 'Livraison: 15-18 janvier', '2 articles']
+    previewFields: [
+      'Transporteur: La Poste',
+      'N° suivi: 1Z999AA10123456784',
+      'Livraison: 15-18 janvier',
+      '2 articles',
+    ],
   },
   {
     id: 'delivery-confirmation',
     name: 'Confirmation de livraison',
-    description: "Email envoyé lorsque la commande est livrée avec demande d'avis.",
+    description:
+      "Email envoyé lorsque la commande est livrée avec demande d'avis.",
     functionName: 'send-delivery-confirmation',
     icon: CheckCircle,
     color: 'text-green-600 dark:text-green-400',
@@ -134,19 +199,28 @@ const emailTemplates: EmailTemplate[] = [
       orderId: 'TEST-DELIV',
       customerEmail: '',
       customerName: 'Client Test',
-      deliveryDate: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+      deliveryDate: new Date().toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }),
       items: [
         { name: 'Chapeau de paille berbère', quantity: 1 },
-        { name: 'Sac à main tissé traditionnel', quantity: 2 }
+        { name: 'Sac à main tissé traditionnel', quantity: 2 },
       ],
-      reviewUrl: 'https://rifrawstraw.com/products'
+      reviewUrl: 'https://rifrawstraw.com/products',
     },
-    previewFields: ["Date de livraison: Aujourd'hui", '2 articles livrés', 'Lien vers avis produits']
+    previewFields: [
+      "Date de livraison: Aujourd'hui",
+      '2 articles livrés',
+      'Lien vers avis produits',
+    ],
   },
   {
     id: 'cancellation-refund',
     name: 'Annulation / Remboursement',
-    description: "Email envoyé lors de l'annulation ou du remboursement d'une commande.",
+    description:
+      "Email envoyé lors de l'annulation ou du remboursement d'une commande.",
     functionName: 'send-cancellation-email',
     icon: XCircle,
     color: 'text-red-600 dark:text-red-400',
@@ -161,18 +235,29 @@ const emailTemplates: EmailTemplate[] = [
       reason: 'Demande du client - Email de test',
       items: [
         { name: 'Chapeau de paille berbère', quantity: 1, price: 4500 },
-        { name: 'Sac à main tissé traditionnel', quantity: 2, price: 2000 }
-      ]
+        { name: 'Sac à main tissé traditionnel', quantity: 2, price: 2000 },
+      ],
     },
-    previewFields: ['Montant commande: 85,00 €', 'Remboursement: 85,00 €', 'Raison: Demande client', '2 articles']
-  }
+    previewFields: [
+      'Montant commande: 85,00 €',
+      'Remboursement: 85,00 €',
+      'Raison: Demande client',
+      '2 articles',
+    ],
+  },
 ];
 
 const AdminEmailTesting = () => {
   const [testEmail, setTestEmail] = useState('');
-  const [sendingStates, setSendingStates] = useState<Record<string, boolean>>({});
-  const [previewStates, setPreviewStates] = useState<Record<string, boolean>>({});
-  const [retryingStates, setRetryingStates] = useState<Record<string, boolean>>({});
+  const [sendingStates, setSendingStates] = useState<Record<string, boolean>>(
+    {}
+  );
+  const [previewStates, setPreviewStates] = useState<Record<string, boolean>>(
+    {}
+  );
+  const [retryingStates, setRetryingStates] = useState<Record<string, boolean>>(
+    {}
+  );
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
@@ -185,15 +270,15 @@ const AdminEmailTesting = () => {
   const analyticsData = useMemo(() => {
     const last7Days = eachDayOfInterval({
       start: subDays(new Date(), 6),
-      end: new Date()
+      end: new Date(),
     });
 
-    const dailyStats = last7Days.map(day => {
+    const dailyStats = last7Days.map((day) => {
       const dayStart = startOfDay(day);
       const dayEnd = new Date(dayStart);
       dayEnd.setDate(dayEnd.getDate() + 1);
 
-      const dayLogs = emailLogs.filter(log => {
+      const dayLogs = emailLogs.filter((log) => {
         const logDate = new Date(log.created_at);
         return logDate >= dayStart && logDate < dayEnd;
       });
@@ -201,34 +286,52 @@ const AdminEmailTesting = () => {
       return {
         date: format(day, 'dd/MM', { locale: fr }),
         fullDate: format(day, 'EEEE dd MMM', { locale: fr }),
-        sent: dayLogs.filter(l => l.status === 'sent').length,
-        failed: dayLogs.filter(l => l.status === 'failed').length,
-        total: dayLogs.length
+        sent: dayLogs.filter((l) => l.status === 'sent').length,
+        failed: dayLogs.filter((l) => l.status === 'failed').length,
+        total: dayLogs.length,
       };
     });
 
-    const templateStats = emailTemplates.map(template => {
-      const templateLogs = emailLogs.filter(log => 
-        log.template_name === template.functionName.replace('send-', '')
+    const templateStats = emailTemplates.map((template) => {
+      const templateLogs = emailLogs.filter(
+        (log) =>
+          log.template_name === template.functionName.replace('send-', '')
       );
       return {
         name: template.name.split(' ')[0],
         fullName: template.name,
-        sent: templateLogs.filter(l => l.status === 'sent').length,
-        failed: templateLogs.filter(l => l.status === 'failed').length,
-        total: templateLogs.length
+        sent: templateLogs.filter((l) => l.status === 'sent').length,
+        failed: templateLogs.filter((l) => l.status === 'failed').length,
+        total: templateLogs.length,
       };
     });
 
     const pieData = [
-      { name: 'Envoyés', value: emailLogs.filter(l => l.status === 'sent').length, color: '#22c55e' },
-      { name: 'Échecs', value: emailLogs.filter(l => l.status === 'failed').length, color: '#ef4444' },
-      { name: 'En attente', value: emailLogs.filter(l => l.status === 'pending').length, color: '#f59e0b' }
-    ].filter(d => d.value > 0);
+      {
+        name: 'Envoyés',
+        value: emailLogs.filter((l) => l.status === 'sent').length,
+        color: '#22c55e',
+      },
+      {
+        name: 'Échecs',
+        value: emailLogs.filter((l) => l.status === 'failed').length,
+        color: '#ef4444',
+      },
+      {
+        name: 'En attente',
+        value: emailLogs.filter((l) => l.status === 'pending').length,
+        color: '#f59e0b',
+      },
+    ].filter((d) => d.value > 0);
 
-    const successRate = emailLogs.length > 0 
-      ? Math.round((emailLogs.filter(l => l.status === 'sent').length / emailLogs.length) * 100)
-      : 0;
+    const successRate =
+      emailLogs.length > 0
+        ? Math.round(
+            (emailLogs.filter((l) => l.status === 'sent').length /
+              emailLogs.length) *
+              100
+          )
+        : 0;
 
     return { dailyStats, templateStats, pieData, successRate };
   }, [emailLogs]);
@@ -262,19 +365,22 @@ const AdminEmailTesting = () => {
       return;
     }
 
-    setPreviewStates(prev => ({ ...prev, [template.id]: true }));
+    setPreviewStates((prev) => ({ ...prev, [template.id]: true }));
 
     try {
       const testData = {
         ...template.testData,
         orderId: `PREVIEW-${Date.now().toString().slice(-8)}`,
         customerEmail: testEmail,
-        previewOnly: true
+        previewOnly: true,
       };
 
-      const { data, error } = await supabase.functions.invoke(template.functionName, {
-        body: testData
-      });
+      const { data, error } = await supabase.functions.invoke(
+        template.functionName,
+        {
+          body: testData,
+        }
+      );
 
       if (error) throw error;
 
@@ -289,7 +395,7 @@ const AdminEmailTesting = () => {
       console.error('Error generating preview:', error);
       toast.error(`Erreur: ${error.message}`);
     } finally {
-      setPreviewStates(prev => ({ ...prev, [template.id]: false }));
+      setPreviewStates((prev) => ({ ...prev, [template.id]: false }));
     }
   };
 
@@ -299,18 +405,21 @@ const AdminEmailTesting = () => {
       return;
     }
 
-    setSendingStates(prev => ({ ...prev, [template.id]: true }));
+    setSendingStates((prev) => ({ ...prev, [template.id]: true }));
 
     try {
       const testData = {
         ...template.testData,
         orderId: `TEST-${Date.now().toString().slice(-8)}`,
-        customerEmail: testEmail
+        customerEmail: testEmail,
       };
 
-      const { data, error } = await supabase.functions.invoke(template.functionName, {
-        body: testData
-      });
+      const { data, error } = await supabase.functions.invoke(
+        template.functionName,
+        {
+          body: testData,
+        }
+      );
 
       if (error) throw error;
 
@@ -325,19 +434,20 @@ const AdminEmailTesting = () => {
       console.error('Error sending test email:', error);
       toast.error(`Erreur: ${error.message}`);
     } finally {
-      setSendingStates(prev => ({ ...prev, [template.id]: false }));
+      setSendingStates((prev) => ({ ...prev, [template.id]: false }));
     }
   };
 
   const retryFailedEmail = async (log: EmailLog) => {
-    setRetryingStates(prev => ({ ...prev, [log.id]: true }));
+    setRetryingStates((prev) => ({ ...prev, [log.id]: true }));
 
     try {
       // Find the template for this log
       const templateName = log.template_name;
-      const template = emailTemplates.find(t => 
-        t.functionName.includes(templateName.split('-')[0]) || 
-        t.functionName === `send-${templateName}`
+      const template = emailTemplates.find(
+        (t) =>
+          t.functionName.includes(templateName.split('-')[0]) ||
+          t.functionName === `send-${templateName}`
       );
 
       if (!template) {
@@ -345,21 +455,27 @@ const AdminEmailTesting = () => {
       }
 
       // Get metadata from the log or use default test data
-      const retryData = log.metadata && typeof log.metadata === 'object' 
-        ? { 
-            ...log.metadata, 
-            customerEmail: log.recipient_email,
-            orderId: log.order_id || `RETRY-${Date.now().toString().slice(-8)}`
-          }
-        : {
-            ...template.testData,
-            customerEmail: log.recipient_email,
-            orderId: log.order_id || `RETRY-${Date.now().toString().slice(-8)}`
-          };
+      const retryData =
+        log.metadata && typeof log.metadata === 'object'
+          ? {
+              ...log.metadata,
+              customerEmail: log.recipient_email,
+              orderId:
+                log.order_id || `RETRY-${Date.now().toString().slice(-8)}`,
+            }
+          : {
+              ...template.testData,
+              customerEmail: log.recipient_email,
+              orderId:
+                log.order_id || `RETRY-${Date.now().toString().slice(-8)}`,
+            };
 
-      const { data, error } = await supabase.functions.invoke(template.functionName, {
-        body: retryData
-      });
+      const { data, error } = await supabase.functions.invoke(
+        template.functionName,
+        {
+          body: retryData,
+        }
+      );
 
       if (error) throw error;
 
@@ -373,7 +489,7 @@ const AdminEmailTesting = () => {
       console.error('Error retrying email:', error);
       toast.error(`Erreur lors du renvoi: ${error.message}`);
     } finally {
-      setRetryingStates(prev => ({ ...prev, [log.id]: false }));
+      setRetryingStates((prev) => ({ ...prev, [log.id]: false }));
     }
   };
 
@@ -387,7 +503,11 @@ const AdminEmailTesting = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'sent':
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Envoyé</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+            Envoyé
+          </Badge>
+        );
       case 'failed':
         return <Badge variant="destructive">Échec</Badge>;
       case 'pending':
@@ -398,7 +518,9 @@ const AdminEmailTesting = () => {
   };
 
   const getTemplateIcon = (templateName: string) => {
-    const template = emailTemplates.find(t => t.functionName.includes(templateName.split('-')[0]));
+    const template = emailTemplates.find((t) =>
+      t.functionName.includes(templateName.split('-')[0])
+    );
     if (template) {
       const Icon = template.icon;
       return <Icon className={`h-4 w-4 ${template.color}`} />;
@@ -412,14 +534,14 @@ const AdminEmailTesting = () => {
       'shipping-notification': 'Expédition',
       'delivery-confirmation': 'Livraison',
       'cancellation-notification': 'Annulation',
-      'refund-notification': 'Remboursement'
+      'refund-notification': 'Remboursement',
     };
     return mapping[name] || name;
   };
 
   // Stats
-  const sentCount = emailLogs.filter(l => l.status === 'sent').length;
-  const failedCount = emailLogs.filter(l => l.status === 'failed').length;
+  const sentCount = emailLogs.filter((l) => l.status === 'sent').length;
+  const failedCount = emailLogs.filter((l) => l.status === 'failed').length;
 
   return (
     <div className="p-6 space-y-6">
@@ -458,7 +580,9 @@ const AdminEmailTesting = () => {
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <Label htmlFor="global-test-email" className="sr-only">Email de test</Label>
+              <Label htmlFor="global-test-email" className="sr-only">
+                Email de test
+              </Label>
               <Input
                 id="global-test-email"
                 type="email"
@@ -509,13 +633,22 @@ const AdminEmailTesting = () => {
                   <CardHeader className={`${template.bgColor} pb-3`}>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg bg-background/80 ${template.color}`}>
+                        <div
+                          className={`p-2 rounded-lg bg-background/80 ${template.color}`}
+                        >
                           <Icon className="h-5 w-5" />
                         </div>
                         <div>
-                          <CardTitle className="text-base">{template.name}</CardTitle>
+                          <CardTitle className="text-base">
+                            {template.name}
+                          </CardTitle>
                           <button
-                            onClick={() => copyFunctionName(template.functionName, template.id)}
+                            onClick={() =>
+                              copyFunctionName(
+                                template.functionName,
+                                template.id
+                              )
+                            }
                             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1"
                           >
                             <code className="bg-background/50 px-1.5 py-0.5 rounded">
@@ -535,14 +668,18 @@ const AdminEmailTesting = () => {
                     <p className="text-sm text-muted-foreground">
                       {template.description}
                     </p>
-                    
+
                     <div className="space-y-2">
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                         Données de test incluses:
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {template.previewFields.map((field, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs font-normal">
+                          <Badge
+                            key={idx}
+                            variant="secondary"
+                            className="text-xs font-normal"
+                          >
                             {field}
                           </Badge>
                         ))}
@@ -550,7 +687,7 @@ const AdminEmailTesting = () => {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button 
+                      <Button
                         onClick={() => generatePreview(template)}
                         disabled={!testEmail || isPreviewing}
                         variant="outline"
@@ -563,7 +700,7 @@ const AdminEmailTesting = () => {
                         )}
                         Prévisualiser
                       </Button>
-                      <Button 
+                      <Button
                         onClick={() => sendTestEmail(template)}
                         disabled={!testEmail || isSending}
                         className="flex-1 gap-2"
@@ -591,8 +728,12 @@ const AdminEmailTesting = () => {
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Total envoyés</p>
-                    <p className="text-2xl font-bold text-green-600">{sentCount}</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                      Total envoyés
+                    </p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {sentCount}
+                    </p>
                   </div>
                   <CheckCircle className="h-8 w-8 text-green-600/20" />
                 </div>
@@ -602,8 +743,12 @@ const AdminEmailTesting = () => {
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Échecs</p>
-                    <p className="text-2xl font-bold text-red-600">{failedCount}</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                      Échecs
+                    </p>
+                    <p className="text-2xl font-bold text-red-600">
+                      {failedCount}
+                    </p>
                   </div>
                   <XCircle className="h-8 w-8 text-red-600/20" />
                 </div>
@@ -613,8 +758,12 @@ const AdminEmailTesting = () => {
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Taux de succès</p>
-                    <p className="text-2xl font-bold">{analyticsData.successRate}%</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                      Taux de succès
+                    </p>
+                    <p className="text-2xl font-bold">
+                      {analyticsData.successRate}%
+                    </p>
                   </div>
                   <TrendingUp className="h-8 w-8 text-primary/20" />
                 </div>
@@ -624,7 +773,9 @@ const AdminEmailTesting = () => {
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Total</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                      Total
+                    </p>
                     <p className="text-2xl font-bold">{emailLogs.length}</p>
                   </div>
                   <Mail className="h-8 w-8 text-muted-foreground/20" />
@@ -639,57 +790,90 @@ const AdminEmailTesting = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Emails sur 7 jours</CardTitle>
-                <CardDescription>Évolution des envois et échecs</CardDescription>
+                <CardDescription>
+                  Évolution des envois et échecs
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[250px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={analyticsData.dailyStats}>
                       <defs>
-                        <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                        <linearGradient
+                          id="colorSent"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#22c55e"
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#22c55e"
+                            stopOpacity={0}
+                          />
                         </linearGradient>
-                        <linearGradient id="colorFailed" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                        <linearGradient
+                          id="colorFailed"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#ef4444"
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#ef4444"
+                            stopOpacity={0}
+                          />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis 
-                        dataKey="date" 
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        className="stroke-muted"
+                      />
+                      <XAxis
+                        dataKey="date"
                         tick={{ fontSize: 12 }}
                         className="text-muted-foreground"
                       />
-                      <YAxis 
+                      <YAxis
                         tick={{ fontSize: 12 }}
                         className="text-muted-foreground"
                         allowDecimals={false}
                       />
-                      <Tooltip 
-                        contentStyle={{ 
+                      <Tooltip
+                        contentStyle={{
                           backgroundColor: 'hsl(var(--card))',
                           border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
+                          borderRadius: '8px',
                         }}
                         labelFormatter={(label, payload) => {
                           const item = payload?.[0]?.payload;
                           return item?.fullDate || label;
                         }}
                       />
-                      <Area 
-                        type="monotone" 
-                        dataKey="sent" 
-                        stroke="#22c55e" 
-                        fill="url(#colorSent)" 
+                      <Area
+                        type="monotone"
+                        dataKey="sent"
+                        stroke="#22c55e"
+                        fill="url(#colorSent)"
                         name="Envoyés"
                         strokeWidth={2}
                       />
-                      <Area 
-                        type="monotone" 
-                        dataKey="failed" 
-                        stroke="#ef4444" 
-                        fill="url(#colorFailed)" 
+                      <Area
+                        type="monotone"
+                        dataKey="failed"
+                        stroke="#ef4444"
+                        fill="url(#colorFailed)"
                         name="Échecs"
                         strokeWidth={2}
                       />
@@ -703,29 +887,37 @@ const AdminEmailTesting = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Par template</CardTitle>
-                <CardDescription>Distribution des emails par type</CardDescription>
+                <CardDescription>
+                  Distribution des emails par type
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[250px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={analyticsData.templateStats} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis 
-                        type="number" 
+                    <BarChart
+                      data={analyticsData.templateStats}
+                      layout="vertical"
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        className="stroke-muted"
+                      />
+                      <XAxis
+                        type="number"
                         tick={{ fontSize: 12 }}
                         allowDecimals={false}
                       />
-                      <YAxis 
-                        type="category" 
-                        dataKey="name" 
+                      <YAxis
+                        type="category"
+                        dataKey="name"
                         tick={{ fontSize: 11 }}
                         width={80}
                       />
-                      <Tooltip 
-                        contentStyle={{ 
+                      <Tooltip
+                        contentStyle={{
                           backgroundColor: 'hsl(var(--card))',
                           border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
+                          borderRadius: '8px',
                         }}
                         labelFormatter={(label, payload) => {
                           const item = payload?.[0]?.payload;
@@ -733,8 +925,18 @@ const AdminEmailTesting = () => {
                         }}
                       />
                       <Legend />
-                      <Bar dataKey="sent" fill="#22c55e" name="Envoyés" radius={[0, 4, 4, 0]} />
-                      <Bar dataKey="failed" fill="#ef4444" name="Échecs" radius={[0, 4, 4, 0]} />
+                      <Bar
+                        dataKey="sent"
+                        fill="#22c55e"
+                        name="Envoyés"
+                        radius={[0, 4, 4, 0]}
+                      />
+                      <Bar
+                        dataKey="failed"
+                        fill="#ef4444"
+                        name="Échecs"
+                        radius={[0, 4, 4, 0]}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -746,7 +948,9 @@ const AdminEmailTesting = () => {
           {analyticsData.pieData.length > 0 && (
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Répartition des statuts</CardTitle>
+                <CardTitle className="text-base">
+                  Répartition des statuts
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[200px] flex items-center justify-center">
@@ -780,14 +984,16 @@ const AdminEmailTesting = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Historique des emails</CardTitle>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={fetchEmailLogs}
                   disabled={loadingLogs}
                   className="gap-2"
                 >
-                  <RefreshCw className={`h-4 w-4 ${loadingLogs ? 'animate-spin' : ''}`} />
+                  <RefreshCw
+                    className={`h-4 w-4 ${loadingLogs ? 'animate-spin' : ''}`}
+                  />
                   Actualiser
                 </Button>
               </div>
@@ -804,7 +1010,9 @@ const AdminEmailTesting = () => {
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                   <Mail className="h-12 w-12 mb-4 opacity-50" />
                   <p className="font-medium">Aucun email envoyé</p>
-                  <p className="text-sm">Les emails envoyés apparaîtront ici.</p>
+                  <p className="text-sm">
+                    Les emails envoyés apparaîtront ici.
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -834,7 +1042,9 @@ const AdminEmailTesting = () => {
                             <div>
                               <p className="text-sm">{log.recipient_email}</p>
                               {log.recipient_name && (
-                                <p className="text-xs text-muted-foreground">{log.recipient_name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {log.recipient_name}
+                                </p>
                               )}
                             </div>
                           </TableCell>
@@ -844,14 +1054,19 @@ const AdminEmailTesting = () => {
                                 {log.order_id.slice(-8)}
                               </code>
                             ) : (
-                              <span className="text-muted-foreground text-xs">-</span>
+                              <span className="text-muted-foreground text-xs">
+                                -
+                              </span>
                             )}
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col gap-1">
                               {getStatusBadge(log.status)}
                               {log.error_message && (
-                                <span className="text-xs text-destructive truncate max-w-[150px]" title={log.error_message}>
+                                <span
+                                  className="text-xs text-destructive truncate max-w-[150px]"
+                                  title={log.error_message}
+                                >
                                   {log.error_message}
                                 </span>
                               )}
@@ -860,7 +1075,9 @@ const AdminEmailTesting = () => {
                           <TableCell>
                             <div className="flex items-center gap-1 text-xs text-muted-foreground">
                               <Clock className="h-3 w-3" />
-                              {format(new Date(log.created_at), 'dd/MM HH:mm', { locale: fr })}
+                              {format(new Date(log.created_at), 'dd/MM HH:mm', {
+                                locale: fr,
+                              })}
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
@@ -912,14 +1129,16 @@ const AdminEmailTesting = () => {
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p>
-            • <strong>Prévisualisation:</strong> Cliquez sur "Prévisualiser" pour voir le rendu HTML de l'email avant envoi.
+            • <strong>Prévisualisation:</strong> Cliquez sur "Prévisualiser"
+            pour voir le rendu HTML de l'email avant envoi.
           </p>
           <p>
-            • <strong>Mode Resend test:</strong> En développement, les emails ne sont envoyés qu'à l'adresse 
-            associée à votre compte Resend.
+            • <strong>Mode Resend test:</strong> En développement, les emails ne
+            sont envoyés qu'à l'adresse associée à votre compte Resend.
           </p>
           <p>
-            • <strong>Historique:</strong> Tous les emails sont automatiquement enregistrés avec leur statut.
+            • <strong>Historique:</strong> Tous les emails sont automatiquement
+            enregistrés avec leur statut.
           </p>
         </CardContent>
       </Card>
@@ -933,7 +1152,8 @@ const AdminEmailTesting = () => {
               Prévisualisation: {previewTitle}
             </DialogTitle>
             <DialogDescription>
-              Aperçu du rendu HTML de l'email tel qu'il apparaîtra dans la boîte de réception.
+              Aperçu du rendu HTML de l'email tel qu'il apparaîtra dans la boîte
+              de réception.
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-[70vh] border rounded-lg">

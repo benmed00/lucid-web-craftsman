@@ -4,13 +4,23 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { useCsrfToken } from '@/hooks/useCsrfToken';
 import { Eye, EyeOff, Shield, Smartphone, Mail } from 'lucide-react';
-import { validateAndSanitizeEmail, validateAndSanitizeName, validatePassword } from '@/utils/xssProtection';
+import {
+  validateAndSanitizeEmail,
+  validateAndSanitizeName,
+  validatePassword,
+} from '@/utils/xssProtection';
 import { createRateLimiter } from '@/utils/validation';
 import { OTPAuthFlow } from '@/components/auth/OTPAuthFlow';
 
@@ -27,9 +37,13 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [authMode, setAuthMode] = useState<'traditional' | 'otp'>('traditional');
-  const [otpFlow, setOtpFlow] = useState<'signin' | 'signup' | 'reset' | null>(null);
-  
+  const [authMode, setAuthMode] = useState<'traditional' | 'otp'>(
+    'traditional'
+  );
+  const [otpFlow, setOtpFlow] = useState<'signin' | 'signup' | 'reset' | null>(
+    null
+  );
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signIn, signUp, user, isLoading: authLoading } = useOptimizedAuth();
@@ -44,14 +58,14 @@ export default function Auth() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Rate limiting check
     const clientId = navigator.userAgent + window.location.hostname;
     if (!authRateLimiter(clientId)) {
       toast({
         title: t('auth:errors.tooManyAttempts'),
         description: t('auth:errors.tooManyAttempts'),
-        variant: "destructive"
+        variant: 'destructive',
       });
       return;
     }
@@ -59,7 +73,7 @@ export default function Auth() {
     // Validation and sanitization
     try {
       const sanitizedEmail = validateAndSanitizeEmail(email);
-      
+
       if (!password) {
         throw new Error(t('auth:errors.passwordRequired'));
       }
@@ -68,13 +82,13 @@ export default function Auth() {
       await signIn(sanitizedEmail, password);
       toast({
         title: t('auth:messages.loggedIn'),
-        description: t('auth:messages.welcome')
+        description: t('auth:messages.welcome'),
       });
     } catch (error: any) {
       toast({
         title: t('auth:errors.invalidCredentials'),
         description: error.message || t('auth:errors.invalidCredentials'),
-        variant: "destructive"
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -83,14 +97,14 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Rate limiting check
     const clientId = navigator.userAgent + window.location.hostname;
     if (!authRateLimiter(clientId)) {
       toast({
         title: t('auth:errors.tooManyAttempts'),
         description: t('auth:errors.tooManyAttempts'),
-        variant: "destructive"
+        variant: 'destructive',
       });
       return;
     }
@@ -99,7 +113,7 @@ export default function Auth() {
     try {
       const sanitizedEmail = validateAndSanitizeEmail(email);
       const sanitizedFullName = validateAndSanitizeName(fullName);
-      
+
       validatePassword(password);
 
       if (password !== confirmPassword) {
@@ -107,15 +121,27 @@ export default function Auth() {
       }
 
       setIsLoading(true);
-      const result = await signUp(sanitizedEmail, password, sanitizedFullName, phone || undefined);
-      
+      const result = await signUp(
+        sanitizedEmail,
+        password,
+        sanitizedFullName,
+        phone || undefined
+      );
+
       // Detect duplicate email: Supabase returns user with empty identities array
       // when "Confirm email" is ON and email already exists (to prevent email enumeration)
-      if (result.user && result.user.identities && result.user.identities.length === 0) {
+      if (
+        result.user &&
+        result.user.identities &&
+        result.user.identities.length === 0
+      ) {
         toast({
           title: t('auth:errors.emailAlreadyUsed', 'Email déjà utilisé'),
-          description: t('auth:errors.emailAlreadyUsedDescription', 'Un compte avec cet email existe déjà. Essayez de vous connecter.'),
-          variant: "destructive"
+          description: t(
+            'auth:errors.emailAlreadyUsedDescription',
+            'Un compte avec cet email existe déjà. Essayez de vous connecter.'
+          ),
+          variant: 'destructive',
         });
         return;
       }
@@ -124,14 +150,17 @@ export default function Auth() {
       if (result.user && !result.session) {
         toast({
           title: t('auth:messages.confirmEmail', 'Vérifiez votre email'),
-          description: t('auth:messages.confirmEmailDescription', 'Un lien de confirmation a été envoyé à votre adresse email. Veuillez cliquer dessus pour activer votre compte.'),
+          description: t(
+            'auth:messages.confirmEmailDescription',
+            'Un lien de confirmation a été envoyé à votre adresse email. Veuillez cliquer dessus pour activer votre compte.'
+          ),
           duration: 10000,
         });
       } else {
         // Email confirmation OFF: session returned immediately
         toast({
           title: t('auth:messages.accountCreated'),
-          description: t('auth:messages.welcome')
+          description: t('auth:messages.welcome'),
         });
       }
     } catch (error: any) {
@@ -139,7 +168,7 @@ export default function Auth() {
       toast({
         title: t('auth:errors.networkError'),
         description: error.message || t('auth:errors.networkError'),
-        variant: "destructive"
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -158,23 +187,43 @@ export default function Auth() {
         {/* Decorative background elements */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-10 left-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-48 h-48 bg-muted rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute bottom-20 left-20 w-40 h-40 bg-secondary/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
+          <div
+            className="absolute top-40 right-20 w-48 h-48 bg-muted rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: '2s' }}
+          ></div>
+          <div
+            className="absolute bottom-20 left-20 w-40 h-40 bg-secondary/20 rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: '4s' }}
+          ></div>
         </div>
-        
+
         <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
           <div className="w-full max-w-md animate-fade-in">
             <div className="text-center mb-8 animate-scale-in">
               <div className="inline-flex items-center justify-center w-20 h-20 mb-4 bg-primary rounded-2xl shadow-lg">
-                <svg className="w-10 h-10 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                <svg
+                  className="w-10 h-10 text-primary-foreground"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                  />
                 </svg>
               </div>
-              <h1 className="text-4xl font-serif font-bold text-foreground mb-2">{t('auth:page.brandName')}</h1>
-              <p className="text-muted-foreground text-lg">{t('auth:page.brandDescription')}</p>
+              <h1 className="text-4xl font-serif font-bold text-foreground mb-2">
+                {t('auth:page.brandName')}
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                {t('auth:page.brandDescription')}
+              </p>
               <div className="mt-2 w-16 h-1 bg-primary rounded-full mx-auto"></div>
             </div>
-            
+
             <div className="bg-card/80 backdrop-blur-sm border border-border shadow-2xl rounded-2xl p-6">
               <OTPAuthFlow
                 mode={otpFlow}
@@ -193,99 +242,134 @@ export default function Auth() {
       {/* Decorative background elements */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-10 left-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-48 h-48 bg-muted rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-20 left-20 w-40 h-40 bg-secondary/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
+        <div
+          className="absolute top-40 right-20 w-48 h-48 bg-muted rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: '2s' }}
+        ></div>
+        <div
+          className="absolute bottom-20 left-20 w-40 h-40 bg-secondary/20 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: '4s' }}
+        ></div>
       </div>
-      
+
       {/* Pattern overlay */}
-      <div className="absolute inset-0 opacity-[0.02] bg-repeat" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Ccircle cx='7' cy='7' r='1'/%3E%3Ccircle cx='53' cy='7' r='1'/%3E%3Ccircle cx='7' cy='53' r='1'/%3E%3Ccircle cx='53' cy='53' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-      }}></div>
+      <div
+        className="absolute inset-0 opacity-[0.02] bg-repeat"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Ccircle cx='7' cy='7' r='1'/%3E%3Ccircle cx='53' cy='7' r='1'/%3E%3Ccircle cx='7' cy='53' r='1'/%3E%3Ccircle cx='53' cy='53' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }}
+      ></div>
 
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md animate-fade-in">
           {/* Brand Header */}
           <div className="text-center mb-8 animate-scale-in">
             <div className="inline-flex items-center justify-center w-20 h-20 mb-4 bg-primary rounded-2xl shadow-lg">
-              <svg className="w-10 h-10 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              <svg
+                className="w-10 h-10 text-primary-foreground"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                />
               </svg>
             </div>
-            <h1 className="text-4xl font-serif font-bold text-foreground mb-2">{t('auth:page.brandName')}</h1>
-            <p className="text-muted-foreground text-lg">{t('auth:page.brandDescription')}</p>
+            <h1 className="text-4xl font-serif font-bold text-foreground mb-2">
+              {t('auth:page.brandName')}
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              {t('auth:page.brandDescription')}
+            </p>
             <div className="mt-2 w-16 h-1 bg-primary rounded-full mx-auto"></div>
           </div>
 
           {/* Auth Method Selection */}
-          <div className="mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <div 
-                className="grid grid-cols-2 gap-2 p-1.5 bg-card/60 backdrop-blur-sm border border-border rounded-xl shadow-sm"
-                role="tablist"
-                aria-label={t('auth:page.authMethods')}
+          <div
+            className="mb-6 animate-fade-in"
+            style={{ animationDelay: '0.2s' }}
+          >
+            <div
+              className="grid grid-cols-2 gap-2 p-1.5 bg-card/60 backdrop-blur-sm border border-border rounded-xl shadow-sm"
+              role="tablist"
+              aria-label={t('auth:page.authMethods')}
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={authMode === 'traditional'}
+                aria-controls="auth-panel"
+                onClick={() => setAuthMode('traditional')}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
+                  authMode === 'traditional'
+                    ? 'bg-primary text-primary-foreground shadow-lg transform scale-[1.02]'
+                    : 'text-muted-foreground hover:text-primary hover:bg-card/80'
+                }`}
               >
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={authMode === 'traditional'}
-                  aria-controls="auth-panel"
-                  onClick={() => setAuthMode('traditional')}
-                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
-                    authMode === 'traditional'
-                      ? 'bg-primary text-primary-foreground shadow-lg transform scale-[1.02]'
-                      : 'text-muted-foreground hover:text-primary hover:bg-card/80'
-                  }`}
-                >
-                  <Shield className="h-4 w-4" aria-hidden="true" />
-                  <span className="text-sm">{t('auth:page.traditional')}</span>
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={authMode === 'otp'}
-                  aria-controls="auth-panel"
-                  onClick={() => setAuthMode('otp')}
-                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
-                    authMode === 'otp'
-                      ? 'bg-primary text-primary-foreground shadow-lg transform scale-[1.02]'
-                      : 'text-muted-foreground hover:text-primary hover:bg-card/80'
-                  }`}
-                >
-                  <Smartphone className="h-4 w-4" aria-hidden="true" />
-                  <span className="text-sm">{t('auth:page.secureCode')}</span>
-                </button>
-              </div>
+                <Shield className="h-4 w-4" aria-hidden="true" />
+                <span className="text-sm">{t('auth:page.traditional')}</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={authMode === 'otp'}
+                aria-controls="auth-panel"
+                onClick={() => setAuthMode('otp')}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
+                  authMode === 'otp'
+                    ? 'bg-primary text-primary-foreground shadow-lg transform scale-[1.02]'
+                    : 'text-muted-foreground hover:text-primary hover:bg-card/80'
+                }`}
+              >
+                <Smartphone className="h-4 w-4" aria-hidden="true" />
+                <span className="text-sm">{t('auth:page.secureCode')}</span>
+              </button>
+            </div>
           </div>
 
           {authMode === 'otp' ? (
-            <Card className="bg-card/80 backdrop-blur-sm border border-border shadow-2xl animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <Card
+              className="bg-card/80 backdrop-blur-sm border border-border shadow-2xl animate-fade-in"
+              style={{ animationDelay: '0.3s' }}
+            >
               <CardHeader className="text-center pb-6 bg-muted/50 rounded-t-lg">
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Smartphone className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle className="text-2xl font-serif text-foreground">{t('auth:otp.title')}</CardTitle>
+                <CardTitle className="text-2xl font-serif text-foreground">
+                  {t('auth:otp.title')}
+                </CardTitle>
                 <CardDescription className="text-muted-foreground">
                   {t('auth:otp.subtitle')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 p-6">
-                <Button 
-                  onClick={() => setOtpFlow('signin')} 
+                <Button
+                  onClick={() => setOtpFlow('signin')}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] py-6"
                   variant="default"
                 >
                   <Mail className="h-5 w-5 mr-3" />
-                  <span className="font-medium">{t('auth:otp.signInByCode')}</span>
+                  <span className="font-medium">
+                    {t('auth:otp.signInByCode')}
+                  </span>
                 </Button>
-                <Button 
-                  onClick={() => setOtpFlow('signup')} 
+                <Button
+                  onClick={() => setOtpFlow('signup')}
                   className="w-full border-2 border-border text-foreground hover:bg-muted hover:border-primary/50 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] py-6"
                   variant="outline"
                 >
                   <Shield className="h-5 w-5 mr-3" />
-                  <span className="font-medium">{t('auth:otp.signUpByCode')}</span>
+                  <span className="font-medium">
+                    {t('auth:otp.signUpByCode')}
+                  </span>
                 </Button>
-                <Button 
-                  onClick={() => setOtpFlow('reset')} 
+                <Button
+                  onClick={() => setOtpFlow('reset')}
                   className="w-full text-muted-foreground hover:text-primary py-3"
                   variant="ghost"
                   size="sm"
@@ -295,218 +379,315 @@ export default function Auth() {
               </CardContent>
             </Card>
           ) : (
-          <Card className="bg-card/80 backdrop-blur-sm border border-border shadow-2xl animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <CardHeader className="text-center pb-6 bg-muted/50 rounded-t-lg">
-              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="text-2xl font-serif text-foreground">{t('auth:page.welcome')}</CardTitle>
-              <CardDescription className="text-muted-foreground">
-                {t('auth:page.welcomeDescription')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-6">
-              <Tabs defaultValue="signin" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted p-1.5 rounded-xl">
-                  <TabsTrigger 
-                    value="signin" 
-                    className="data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-primary font-medium py-3 rounded-lg transition-all duration-300"
-                  >
-                    {t('auth:login.submit')}
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="signup" 
-                    className="data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-primary font-medium py-3 rounded-lg transition-all duration-300"
-                  >
-                    {t('auth:register.submit')}
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="signin" className="animate-fade-in">
-                  <form onSubmit={handleSignIn} className="space-y-5">
-                    <input type="hidden" name="csrf_token" value={csrfToken} />
-                    <div className="space-y-2">
-                      <Label htmlFor="signin-email" className="text-foreground font-medium">{t('auth:login.email')}</Label>
-                      <Input
-                        id="signin-email"
-                        type="email"
-                        placeholder={t('auth:login.emailPlaceholder')}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        maxLength={255}
-                        className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6 text-lg"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signin-password" className="text-foreground font-medium">{t('auth:login.password')}</Label>
-                      <div className="relative">
-                        <Input
-                          id="signin-password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          required
-                          className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6 text-lg pr-12"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] py-6 text-lg font-medium"
-                      disabled={isLoading}
+            <Card
+              className="bg-card/80 backdrop-blur-sm border border-border shadow-2xl animate-fade-in"
+              style={{ animationDelay: '0.3s' }}
+            >
+              <CardHeader className="text-center pb-6 bg-muted/50 rounded-t-lg">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Shield className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle className="text-2xl font-serif text-foreground">
+                  {t('auth:page.welcome')}
+                </CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  {t('auth:page.welcomeDescription')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <Tabs defaultValue="signin" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted p-1.5 rounded-xl">
+                    <TabsTrigger
+                      value="signin"
+                      className="data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-primary font-medium py-3 rounded-lg transition-all duration-300"
                     >
-                      {isLoading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
-                          {t('auth:login.loading')}
-                        </>
-                      ) : (
-                        t('auth:login.submit')
-                      )}
-                    </Button>
-                  </form>
-                </TabsContent>
+                      {t('auth:login.submit')}
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="signup"
+                      className="data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-primary font-medium py-3 rounded-lg transition-all duration-300"
+                    >
+                      {t('auth:register.submit')}
+                    </TabsTrigger>
+                  </TabsList>
 
-                <TabsContent value="signup" className="animate-fade-in">
-                  <form onSubmit={handleSignUp} className="space-y-5">
-                    <input type="hidden" name="csrf_token" value={csrfToken} />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <TabsContent value="signin" className="animate-fade-in">
+                    <form onSubmit={handleSignIn} className="space-y-5">
+                      <input
+                        type="hidden"
+                        name="csrf_token"
+                        value={csrfToken}
+                      />
                       <div className="space-y-2">
-                        <Label htmlFor="signup-name" className="text-foreground font-medium">{t('auth:register.fullName')}</Label>
+                        <Label
+                          htmlFor="signin-email"
+                          className="text-foreground font-medium"
+                        >
+                          {t('auth:login.email')}
+                        </Label>
                         <Input
-                          id="signup-name"
-                          type="text"
-                          placeholder={t('auth:register.fullNamePlaceholder')}
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
+                          id="signin-email"
+                          type="email"
+                          placeholder={t('auth:login.emailPlaceholder')}
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
                           required
-                          maxLength={100}
+                          maxLength={255}
+                          className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6 text-lg"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="signin-password"
+                          className="text-foreground font-medium"
+                        >
+                          {t('auth:login.password')}
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            id="signin-password"
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6 text-lg pr-12"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] py-6 text-lg font-medium"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
+                            {t('auth:login.loading')}
+                          </>
+                        ) : (
+                          t('auth:login.submit')
+                        )}
+                      </Button>
+                    </form>
+                  </TabsContent>
+
+                  <TabsContent value="signup" className="animate-fade-in">
+                    <form onSubmit={handleSignUp} className="space-y-5">
+                      <input
+                        type="hidden"
+                        name="csrf_token"
+                        value={csrfToken}
+                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="signup-name"
+                            className="text-foreground font-medium"
+                          >
+                            {t('auth:register.fullName')}
+                          </Label>
+                          <Input
+                            id="signup-name"
+                            type="text"
+                            placeholder={t('auth:register.fullNamePlaceholder')}
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            required
+                            maxLength={100}
+                            className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="signup-phone"
+                            className="text-foreground font-medium"
+                          >
+                            {t('auth:register.phone')}
+                          </Label>
+                          <Input
+                            id="signup-phone"
+                            type="tel"
+                            placeholder={t('auth:register.phonePlaceholder')}
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            maxLength={20}
+                            className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="signup-email"
+                          className="text-foreground font-medium"
+                        >
+                          {t('auth:register.email')}
+                        </Label>
+                        <Input
+                          id="signup-email"
+                          type="email"
+                          placeholder={t('auth:register.emailPlaceholder')}
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          maxLength={255}
                           className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="signup-phone" className="text-foreground font-medium">{t('auth:register.phone')}</Label>
-                        <Input
-                          id="signup-phone"
-                          type="tel"
-                          placeholder={t('auth:register.phonePlaceholder')}
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          maxLength={20}
-                          className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email" className="text-foreground font-medium">{t('auth:register.email')}</Label>
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        placeholder={t('auth:register.emailPlaceholder')}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        maxLength={255}
-                        className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password" className="text-foreground font-medium">{t('auth:register.password')}</Label>
-                      <div className="relative">
-                        <Input
-                          id="signup-password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          required
-                          minLength={8}
-                          className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6 pr-12"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted"
-                          onClick={() => setShowPassword(!showPassword)}
+                        <Label
+                          htmlFor="signup-password"
+                          className="text-foreground font-medium"
                         >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
+                          {t('auth:register.password')}
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            id="signup-password"
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            minLength={8}
+                            className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6 pr-12"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                        {/* Password requirements */}
+                        <div className="text-xs text-muted-foreground space-y-1 mt-1 pl-1">
+                          <p
+                            className={
+                              password.length >= 8 ? 'text-green-600' : ''
+                            }
+                          >
+                            {password.length >= 8 ? '✓' : '○'}{' '}
+                            {t(
+                              'auth:register.passwordRules.minLength',
+                              'Au moins 8 caractères'
+                            )}
+                          </p>
+                          <p
+                            className={
+                              /[A-Z]/.test(password) ? 'text-green-600' : ''
+                            }
+                          >
+                            {/[A-Z]/.test(password) ? '✓' : '○'}{' '}
+                            {t(
+                              'auth:register.passwordRules.uppercase',
+                              'Une lettre majuscule'
+                            )}
+                          </p>
+                          <p
+                            className={
+                              /[a-z]/.test(password) ? 'text-green-600' : ''
+                            }
+                          >
+                            {/[a-z]/.test(password) ? '✓' : '○'}{' '}
+                            {t(
+                              'auth:register.passwordRules.lowercase',
+                              'Une lettre minuscule'
+                            )}
+                          </p>
+                          <p
+                            className={
+                              /[0-9]/.test(password) ? 'text-green-600' : ''
+                            }
+                          >
+                            {/[0-9]/.test(password) ? '✓' : '○'}{' '}
+                            {t(
+                              'auth:register.passwordRules.number',
+                              'Un chiffre'
+                            )}
+                          </p>
+                        </div>
                       </div>
-                      {/* Password requirements */}
-                      <div className="text-xs text-muted-foreground space-y-1 mt-1 pl-1">
-                        <p className={password.length >= 8 ? 'text-green-600' : ''}>
-                          {password.length >= 8 ? '✓' : '○'} {t('auth:register.passwordRules.minLength', 'Au moins 8 caractères')}
-                        </p>
-                        <p className={/[A-Z]/.test(password) ? 'text-green-600' : ''}>
-                          {/[A-Z]/.test(password) ? '✓' : '○'} {t('auth:register.passwordRules.uppercase', 'Une lettre majuscule')}
-                        </p>
-                        <p className={/[a-z]/.test(password) ? 'text-green-600' : ''}>
-                          {/[a-z]/.test(password) ? '✓' : '○'} {t('auth:register.passwordRules.lowercase', 'Une lettre minuscule')}
-                        </p>
-                        <p className={/[0-9]/.test(password) ? 'text-green-600' : ''}>
-                          {/[0-9]/.test(password) ? '✓' : '○'} {t('auth:register.passwordRules.number', 'Un chiffre')}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm-password" className="text-foreground font-medium">{t('auth:register.confirmPassword')}</Label>
-                      <div className="relative">
-                        <Input
-                          id="confirm-password"
-                          type={showConfirmPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          required
-                          className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6 pr-12"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="confirm-password"
+                          className="text-foreground font-medium"
                         >
-                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
+                          {t('auth:register.confirmPassword')}
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            id="confirm-password"
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            placeholder="••••••••"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                            className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6 pr-12"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted"
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
+                          >
+                            {showConfirmPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] py-6 text-lg font-medium"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
-                          {t('auth:register.loading')}
-                        </>
-                      ) : (
-                        t('auth:register.submit')
-                      )}
-                    </Button>
-                  </form>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+                      <Button
+                        type="submit"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] py-6 text-lg font-medium"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
+                            {t('auth:register.loading')}
+                          </>
+                        ) : (
+                          t('auth:register.submit')
+                        )}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
           )}
 
           {/* Additional OTP Options for Traditional Mode */}
           {authMode === 'traditional' && (
-            <div className="text-center mt-6 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <div
+              className="text-center mt-6 animate-fade-in"
+              style={{ animationDelay: '0.4s' }}
+            >
               <Button
                 variant="ghost"
                 size="sm"
@@ -520,22 +701,41 @@ export default function Auth() {
           )}
 
           {/* Back to Home */}
-          <div className="text-center mt-8 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+          <div
+            className="text-center mt-8 animate-fade-in"
+            style={{ animationDelay: '0.5s' }}
+          >
             <Button
               variant="ghost"
               onClick={() => navigate('/')}
               className="text-muted-foreground hover:text-primary hover:bg-card/60 px-6 py-3 rounded-lg transition-all duration-300 group"
             >
-              <svg className="h-4 w-4 mr-2 transition-transform duration-300 group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg
+                className="h-4 w-4 mr-2 transition-transform duration-300 group-hover:-translate-x-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
               {t('common:nav.home')}
             </Button>
           </div>
 
           {/* Footer */}
-          <div className="text-center mt-8 text-muted-foreground text-sm animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <p>© 2024 {t('auth:page.brandName')} - {t('auth:page.brandDescription')}</p>
+          <div
+            className="text-center mt-8 text-muted-foreground text-sm animate-fade-in"
+            style={{ animationDelay: '0.6s' }}
+          >
+            <p>
+              © 2024 {t('auth:page.brandName')} -{' '}
+              {t('auth:page.brandDescription')}
+            </p>
           </div>
         </div>
       </div>

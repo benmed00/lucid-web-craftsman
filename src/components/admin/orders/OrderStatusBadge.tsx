@@ -43,9 +43,9 @@ interface OrderStatusBadgeProps {
   locale?: 'fr' | 'en';
 }
 
-export function OrderStatusBadge({ 
-  status, 
-  size = 'md', 
+export function OrderStatusBadge({
+  status,
+  size = 'md',
   showIcon = true,
   locale = 'fr',
 }: OrderStatusBadgeProps) {
@@ -71,11 +71,15 @@ export function OrderStatusBadge({
         sizeClasses[size]
       )}
     >
-      {showIcon && Icon && <Icon className={cn(
-        size === 'sm' && 'h-3 w-3',
-        size === 'md' && 'h-3.5 w-3.5',
-        size === 'lg' && 'h-4 w-4',
-      )} />}
+      {showIcon && Icon && (
+        <Icon
+          className={cn(
+            size === 'sm' && 'h-3 w-3',
+            size === 'md' && 'h-3.5 w-3.5',
+            size === 'lg' && 'h-4 w-4'
+          )}
+        />
+      )}
       {label}
     </Badge>
   );

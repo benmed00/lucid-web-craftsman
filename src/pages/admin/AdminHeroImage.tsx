@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import ImageUpload from '@/components/ui/ImageUpload';
 import { Eye, Save, RotateCcw, ImageIcon, Monitor } from 'lucide-react';
@@ -13,7 +13,12 @@ import { useHeroImage } from '@/hooks/useHeroImage';
 import { HeroImageData } from '@/services/heroImageService';
 
 const AdminHeroImage = () => {
-  const { heroImageData, updateHeroImage, uploadImage, isLoading: heroLoading } = useHeroImage();
+  const {
+    heroImageData,
+    updateHeroImage,
+    uploadImage,
+    isLoading: heroLoading,
+  } = useHeroImage();
   const [localData, setLocalData] = useState<HeroImageData>(heroImageData);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -23,22 +28,23 @@ const AdminHeroImage = () => {
     setLocalData(heroImageData);
   }, [heroImageData]);
 
-  const hasChanges = JSON.stringify(localData) !== JSON.stringify(heroImageData);
+  const hasChanges =
+    JSON.stringify(localData) !== JSON.stringify(heroImageData);
 
   const handleImageUpload = async (file: File, previewUrl: string) => {
     setIsUploading(true);
     try {
       // Upload to Supabase Storage
       const uploadedUrl = await uploadImage(file);
-      
-      setLocalData(prev => ({
+
+      setLocalData((prev) => ({
         ...prev,
-        imageUrl: uploadedUrl
+        imageUrl: uploadedUrl,
       }));
-      
+
       toast.success('Image uploadée avec succès!');
     } catch (error) {
-      toast.error('Erreur lors de l\'upload de l\'image');
+      toast.error("Erreur lors de l'upload de l'image");
       console.error('Upload error:', error);
     } finally {
       setIsUploading(false);
@@ -59,9 +65,9 @@ const AdminHeroImage = () => {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setLocalData(prev => ({
+    setLocalData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -86,19 +92,18 @@ const AdminHeroImage = () => {
             Gérez l'image héro de votre page d'accueil
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={previewInNewTab}
-          >
+          <Button variant="outline" size="sm" onClick={previewInNewTab}>
             <Eye className="h-4 w-4 mr-2" />
             Prévisualiser
           </Button>
-          
+
           {hasChanges && (
-            <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+            <Badge
+              variant="secondary"
+              className="bg-orange-100 text-orange-800"
+            >
               Modifications non sauvegardées
             </Badge>
           )}
@@ -121,17 +126,19 @@ const AdminHeroImage = () => {
               title="Image Principale du Site"
               description="Téléchargez une nouvelle image pour la page d'accueil"
               className="w-full"
-              aspectRatio={4/5}
+              aspectRatio={4 / 5}
               maxSizeMB={10}
             />
-            
+
             <div className="text-xs text-stone-500 bg-stone-50 p-3 rounded-lg">
               <strong>Recommandations:</strong>
               <ul className="mt-1 space-y-1">
                 <li>• Résolution optimale: 800x1000px (ratio 4:5)</li>
                 <li>• Format: JPG, PNG ou WebP</li>
                 <li>• Taille maximum: 10MB</li>
-                <li>• L'image doit être claire et représentative de vos produits</li>
+                <li>
+                  • L'image doit être claire et représentative de vos produits
+                </li>
               </ul>
             </div>
           </CardContent>
@@ -182,8 +189,8 @@ const AdminHeroImage = () => {
             <div className="space-y-2">
               <Label>Aperçu en temps réel</Label>
               <div className="relative aspect-[4/5] bg-stone-100 rounded-lg overflow-hidden border">
-                <img 
-                  src={localData.imageUrl} 
+                <img
+                  src={localData.imageUrl}
                   alt={localData.altText}
                   className="w-full h-full object-cover rounded-lg"
                 />
@@ -210,20 +217,16 @@ const AdminHeroImage = () => {
           <Monitor className="h-4 w-4" />
           <span>Les modifications seront visibles sur la page d'accueil</span>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           {hasChanges && (
-            <Button 
-              variant="outline" 
-              onClick={handleReset}
-              disabled={isSaving}
-            >
+            <Button variant="outline" onClick={handleReset} disabled={isSaving}>
               <RotateCcw className="h-4 w-4 mr-2" />
               Annuler
             </Button>
           )}
-          
-          <Button 
+
+          <Button
             onClick={handleSave}
             disabled={!hasChanges || isSaving}
             className="bg-primary hover:bg-primary/90"

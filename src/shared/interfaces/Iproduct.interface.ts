@@ -1,9 +1,9 @@
 /**
  * Product Interface
- * 
+ *
  * IMPORTANT: This interface uses snake_case to match Supabase database schema.
  * All field names should match the database column names exactly.
- * 
+ *
  * For any legacy code using camelCase (artisanStory, new, related),
  * use the normalizeProduct() helper from productService.ts
  */
@@ -68,7 +68,10 @@ export interface Product {
  * Normalized Product type without deprecated fields
  * Use this for new code
  */
-export type NormalizedProduct = Omit<Product, 'new' | 'artisanStory' | 'related'>;
+export type NormalizedProduct = Omit<
+  Product,
+  'new' | 'artisanStory' | 'related'
+>;
 
 /**
  * Helper to check if product is new

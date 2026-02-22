@@ -1,22 +1,35 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { TestTube } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { TestTube } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export const ManualTestOrderStatus = () => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [orderId, setOrderId] = useState("");
-  const [newStatus, setNewStatus] = useState("");
+  const [orderId, setOrderId] = useState('');
+  const [newStatus, setNewStatus] = useState('');
 
   const handleTestStatusChange = async () => {
     if (!orderId || !newStatus) {
-      toast.error("Veuillez remplir tous les champs");
+      toast.error('Veuillez remplir tous les champs');
       return;
     }
 
@@ -31,9 +44,11 @@ export const ManualTestOrderStatus = () => {
 
       if (error) throw error;
 
-      toast.success(`Statut de la commande mis à jour vers "${newStatus}". Un email de notification a été envoyé.`);
-      setOrderId("");
-      setNewStatus("");
+      toast.success(
+        `Statut de la commande mis à jour vers "${newStatus}". Un email de notification a été envoyé.`
+      );
+      setOrderId('');
+      setNewStatus('');
       setOpen(false);
     } catch (error: any) {
       console.error('Error updating order status:', error);
@@ -55,7 +70,8 @@ export const ManualTestOrderStatus = () => {
         <DialogHeader>
           <DialogTitle>Tester les notifications email</DialogTitle>
           <DialogDescription>
-            Changez le statut d'une commande existante pour tester l'envoi d'emails automatiques.
+            Changez le statut d'une commande existante pour tester l'envoi
+            d'emails automatiques.
           </DialogDescription>
         </DialogHeader>
 
@@ -91,7 +107,7 @@ export const ManualTestOrderStatus = () => {
               Annuler
             </Button>
             <Button onClick={handleTestStatusChange} disabled={loading}>
-              {loading ? "Test en cours..." : "Tester"}
+              {loading ? 'Test en cours...' : 'Tester'}
             </Button>
           </div>
         </div>

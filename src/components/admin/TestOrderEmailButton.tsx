@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Mail, Send, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Mail, Send, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export const TestOrderEmailButton = () => {
   const [open, setOpen] = useState(false);
@@ -28,32 +36,35 @@ export const TestOrderEmailButton = () => {
           {
             name: 'Chapeau de paille berbère',
             quantity: 1,
-            price: 45.00,
-            image: '/assets/images/products/chapeau_de_paille_berbere.jpg'
+            price: 45.0,
+            image: '/assets/images/products/chapeau_de_paille_berbere.jpg',
           },
           {
             name: 'Sac à main tissé traditionnel',
             quantity: 2,
-            price: 65.00,
-            image: '/assets/images/products/sac_a_main_tisse_traditionnel.jpg'
-          }
+            price: 65.0,
+            image: '/assets/images/products/sac_a_main_tisse_traditionnel.jpg',
+          },
         ],
-        subtotal: 175.00,
-        shipping: 5.90,
-        discount: 10.00,
-        total: 170.90,
+        subtotal: 175.0,
+        shipping: 5.9,
+        discount: 10.0,
+        total: 170.9,
         currency: 'EUR',
         shippingAddress: {
           address: '123 Rue de Test',
           city: 'Paris',
           postalCode: '75001',
-          country: 'France'
-        }
+          country: 'France',
+        },
       };
 
-      const { data, error } = await supabase.functions.invoke('send-order-confirmation', {
-        body: testOrderData
-      });
+      const { data, error } = await supabase.functions.invoke(
+        'send-order-confirmation',
+        {
+          body: testOrderData,
+        }
+      );
 
       if (error) {
         throw error;
@@ -86,10 +97,11 @@ export const TestOrderEmailButton = () => {
         <DialogHeader>
           <DialogTitle>Tester l'email de confirmation</DialogTitle>
           <DialogDescription>
-            Envoyez un email de test pour vérifier le template de confirmation de commande.
+            Envoyez un email de test pour vérifier le template de confirmation
+            de commande.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="test-email">Adresse email de test</Label>
@@ -101,10 +113,11 @@ export const TestOrderEmailButton = () => {
               onChange={(e) => setEmail(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Note: Avec Resend en mode test, l'email sera envoyé uniquement à l'adresse associée à votre compte Resend.
+              Note: Avec Resend en mode test, l'email sera envoyé uniquement à
+              l'adresse associée à votre compte Resend.
             </p>
           </div>
-          
+
           <div className="bg-muted p-3 rounded-lg text-sm space-y-1">
             <p className="font-medium">Données de test incluses:</p>
             <ul className="text-muted-foreground list-disc list-inside">

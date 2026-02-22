@@ -8,8 +8,8 @@ declare global {
       payments?: {
         api?: {
           PaymentsClient: any;
-        }
-      }
+        };
+      };
     };
     SpeechRecognition?: any;
     webkitSpeechRecognition?: any;

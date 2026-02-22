@@ -1,14 +1,19 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
+    />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#4f5f31" />
-    
+
     <!-- Security Headers - Note: frame-ancestors only works via HTTP headers, not meta tags -->
-    <meta http-equiv="Content-Security-Policy" content="
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
       default-src 'self';
       manifest-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://cdn.gpteng.co https://m.stripe.network blob:;
@@ -21,51 +26,88 @@
       base-uri 'self';
       form-action 'self';
       upgrade-insecure-requests;
-    ">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(self 'https://js.stripe.com')">
-    
+    "
+    />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta
+      http-equiv="Referrer-Policy"
+      content="strict-origin-when-cross-origin"
+    />
+    <meta
+      http-equiv="Permissions-Policy"
+      content="geolocation=(), microphone=(), camera=(), payment=(self 'https://js.stripe.com')"
+    />
+
     <!-- Cache optimization meta tags for SEO performance -->
-    <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
-    <meta name="format-detection" content="telephone=no">
-    
+    <meta
+      http-equiv="Cache-Control"
+      content="public, max-age=31536000, immutable"
+    />
+    <meta name="format-detection" content="telephone=no" />
+
     <!-- Resource hints for better caching and performance -->
-    <link rel="dns-prefetch" href="//xcvlijchkmhjonhfildm.supabase.co">
-    <link rel="dns-prefetch" href="//js.stripe.com">
-    <link rel="dns-prefetch" href="//m.stripe.network">
-    <link rel="dns-prefetch" href="//fonts.googleapis.com">
-    <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link rel="preconnect" href="https://xcvlijchkmhjonhfildm.supabase.co" crossorigin>
-    <link rel="preconnect" href="https://js.stripe.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://api.frankfurter.app" crossorigin>
-    <link rel="dns-prefetch" href="//api.frankfurter.app">
-    
+    <link rel="dns-prefetch" href="//xcvlijchkmhjonhfildm.supabase.co" />
+    <link rel="dns-prefetch" href="//js.stripe.com" />
+    <link rel="dns-prefetch" href="//m.stripe.network" />
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    <link
+      rel="preconnect"
+      href="https://xcvlijchkmhjonhfildm.supabase.co"
+      crossorigin
+    />
+    <link rel="preconnect" href="https://js.stripe.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://api.frankfurter.app" crossorigin />
+    <link rel="dns-prefetch" href="//api.frankfurter.app" />
+
     <!-- Load Google Fonts asynchronously to prevent render-blocking -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"></noscript>
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript
+      ><link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+    /></noscript>
     <script>
       // Remove any dev CSS links (/src/index.css) accidentally injected by cached HTML
-      document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('link[rel="stylesheet"][href*="/src/index.css"]').forEach(function(el){
-          el.parentNode && el.parentNode.removeChild(el);
-        });
+      document.addEventListener('DOMContentLoaded', function () {
+        document
+          .querySelectorAll('link[rel="stylesheet"][href*="/src/index.css"]')
+          .forEach(function (el) {
+            el.parentNode && el.parentNode.removeChild(el);
+          });
       });
     </script>
-    
+
     <!-- Styles are handled by Vite via imports in src/main.tsx; removing custom loader to avoid MIME issues in production. -->
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/favicon.png" type="image/png" />
-    
-    <title>Rif Raw Straw - Artisanat Berbère Authentique</title>
-    <meta name="description" content="Découvrez notre collection unique d'accessoires berbères, confectionnés à la main par des artisans passionnés." />
-    <meta name="author" content="Optimum Solutions Groupe by M. BEN-YAKOUB" />
-    <meta name="generator" content="Optimum Solutions Groupe by M. BEN-YAKOUB" />
 
-    <meta property="og:title" content="Rif Raw Straw - Artisanat Berbère Authentique" />
-    <meta property="og:description" content="Découvrez notre collection unique d'accessoires berbères, confectionnés à la main par des artisans passionnés." />
+    <title>Rif Raw Straw - Artisanat Berbère Authentique</title>
+    <meta
+      name="description"
+      content="Découvrez notre collection unique d'accessoires berbères, confectionnés à la main par des artisans passionnés."
+    />
+    <meta name="author" content="Optimum Solutions Groupe by M. BEN-YAKOUB" />
+    <meta
+      name="generator"
+      content="Optimum Solutions Groupe by M. BEN-YAKOUB"
+    />
+
+    <meta
+      property="og:title"
+      content="Rif Raw Straw - Artisanat Berbère Authentique"
+    />
+    <meta
+      property="og:description"
+      content="Découvrez notre collection unique d'accessoires berbères, confectionnés à la main par des artisans passionnés."
+    />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/assets/images/home_page_image.webp" />
 
@@ -76,14 +118,14 @@
 
   <body>
     <div id="root"></div>
-    
+
     <!-- Service Worker is registered via src/utils/cacheOptimization.ts (single registration path) -->
-    
+
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <!-- Google Analytics Configuration Override -->
     <script>
       // Override Google Analytics configuration to prevent Attribution Reporting API errors
-      window.gtag = function() {
+      window.gtag = function () {
         // Override gtag to prevent attribution reporting API calls
         if (arguments[0] === 'config' && arguments[1]) {
           // Call original gtag but without attribution reporting
@@ -100,24 +142,26 @@
           return window.gtag_original.apply(this, arguments);
         }
       };
-      
+
       // Backup original gtag if it gets loaded later
       Object.defineProperty(window, 'gtag_original', {
         configurable: true,
         writable: true,
-        value: null
+        value: null,
       });
-      
+
       // Enhanced fetch interceptor - block only problematic requests without adding scheduling overhead
       if ('fetch' in window) {
         const originalFetch = window.fetch;
-        window.fetch = function(...args) {
+        window.fetch = function (...args) {
           const url = args[0];
           if (typeof url === 'string') {
             // Block analytics calls causing errors
-            if (url.includes('privacy-sandbox/register') || 
-                url.includes('register-os-conversion') ||
-                url.includes('register-conversion')) {
+            if (
+              url.includes('privacy-sandbox/register') ||
+              url.includes('register-os-conversion') ||
+              url.includes('register-conversion')
+            ) {
               return Promise.resolve(new Response('{}', { status: 204 }));
             }
             // Block excessive Sentry requests (95% of them to reduce spam)
@@ -133,13 +177,15 @@
 
       // Suppress feature detection warnings
       const originalConsoleWarn = console.warn;
-      console.warn = function(...args) {
+      console.warn = function (...args) {
         const message = args[0];
-        if (typeof message === 'string' && 
-            (message.includes('Unrecognized feature') || 
-             message.includes('vr') || 
-             message.includes('ambient-light-sensor') || 
-             message.includes('battery'))) {
+        if (
+          typeof message === 'string' &&
+          (message.includes('Unrecognized feature') ||
+            message.includes('vr') ||
+            message.includes('ambient-light-sensor') ||
+            message.includes('battery'))
+        ) {
           // Suppress these warnings
           return;
         }
@@ -148,24 +194,28 @@
     </script>
     <script>
       // Ultra-optimized script loading to minimize main-thread work
-      window.addEventListener('load', function() {
+      window.addEventListener('load', function () {
         // Significantly delayed loading to ensure main thread is free
-        setTimeout(function() {
+        setTimeout(function () {
           // Check if we really need GPT Engineer (reduce unnecessary JS)
-          const isDev = window.location.search.includes('dev') || 
-                       window.location.hostname === 'localhost' ||
-                       window.location.hostname.includes('lovable');
-                       
+          const isDev =
+            window.location.search.includes('dev') ||
+            window.location.hostname === 'localhost' ||
+            window.location.hostname.includes('lovable');
+
           if (isDev) {
             // Load script in the most efficient way possible
-            requestIdleCallback(() => {
-              const script = document.createElement('script');
-              script.src = 'https://cdn.gpteng.co/gptengineer.js';
-              script.type = 'module';
-              script.async = true;
-              script.defer = true;
-              document.head.appendChild(script);
-            }, { timeout: 5000 });
+            requestIdleCallback(
+              () => {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.gpteng.co/gptengineer.js';
+                script.type = 'module';
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
+              },
+              { timeout: 5000 }
+            );
           }
         }, 3000); // Extended delay to minimize main-thread impact
       });

@@ -49,20 +49,23 @@ export const usePagination = <T>({
   const hasNextPage = validatedCurrentPage < totalPages;
   const hasPreviousPage = validatedCurrentPage > 1;
 
-  const goToPage = useCallback((page: number) => {
-    const validPage = Math.max(1, Math.min(page, totalPages));
-    setCurrentPage(validPage);
-  }, [totalPages]);
+  const goToPage = useCallback(
+    (page: number) => {
+      const validPage = Math.max(1, Math.min(page, totalPages));
+      setCurrentPage(validPage);
+    },
+    [totalPages]
+  );
 
   const nextPage = useCallback(() => {
     if (hasNextPage) {
-      setCurrentPage(prev => prev + 1);
+      setCurrentPage((prev) => prev + 1);
     }
   }, [hasNextPage]);
 
   const previousPage = useCallback(() => {
     if (hasPreviousPage) {
-      setCurrentPage(prev => prev - 1);
+      setCurrentPage((prev) => prev - 1);
     }
   }, [hasPreviousPage]);
 

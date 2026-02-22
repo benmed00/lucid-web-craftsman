@@ -1,12 +1,11 @@
-
-import { useQuery } from "@tanstack/react-query";
-import { getBlogPosts } from "@/api/mockApiService";
-import BlogCard from "./BlogCard";
+import { useQuery } from '@tanstack/react-query';
+import { getBlogPosts } from '@/api/mockApiService';
+import BlogCard from './BlogCard';
 
 const BlogList = () => {
   const { data: posts = [], isLoading } = useQuery({
-    queryKey: ["blogPosts"],
-    queryFn: getBlogPosts
+    queryKey: ['blogPosts'],
+    queryFn: getBlogPosts,
   });
 
   if (isLoading) {

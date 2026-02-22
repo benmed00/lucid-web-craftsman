@@ -1,25 +1,64 @@
 /**
  * Admin Blog Manager
- * 
+ *
  * Create, edit, delete and manage blog posts from the admin dashboard.
  */
 
-import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
-import { FileText, Plus, Edit, Trash2, Eye, Calendar, Tag, Search, Filter } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import BlogEditor from "@/components/admin/BlogEditor";
+import { useState, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
+import {
+  FileText,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Calendar,
+  Tag,
+  Search,
+  Filter,
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import BlogEditor from '@/components/admin/BlogEditor';
 
 interface BlogPost {
   id: string;
@@ -40,40 +79,43 @@ interface BlogPost {
   updated_at: string | null;
 }
 
-type BlogPostFormData = Omit<BlogPost, 'id' | 'view_count' | 'created_at' | 'updated_at'>;
+type BlogPostFormData = Omit<
+  BlogPost,
+  'id' | 'view_count' | 'created_at' | 'updated_at'
+>;
 
 const initialFormData: BlogPostFormData = {
-  title: "",
-  slug: "",
-  excerpt: "",
-  content: "",
-  featured_image_url: "",
+  title: '',
+  slug: '',
+  excerpt: '',
+  content: '',
+  featured_image_url: '',
   author_id: null,
-  status: "draft",
+  status: 'draft',
   is_featured: false,
   tags: [],
-  seo_title: "",
-  seo_description: "",
+  seo_title: '',
+  seo_description: '',
   published_at: null,
 };
 
 export default function AdminBlog() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [formData, setFormData] = useState<BlogPostFormData>(initialFormData);
-  const [tagsInput, setTagsInput] = useState("");
+  const [tagsInput, setTagsInput] = useState('');
   const queryClient = useQueryClient();
 
   // Fetch all blog posts
   const { data: posts = [], isLoading } = useQuery({
-    queryKey: ["admin-blog-posts"],
+    queryKey: ['admin-blog-posts'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("blog_posts")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .from('blog_posts')
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data as BlogPost[];
@@ -83,10 +125,11 @@ export default function AdminBlog() {
   // Filtered posts
   const filteredPosts = useMemo(() => {
     return posts.filter((post) => {
-      const matchesSearch = 
+      const matchesSearch =
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         post.slug.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === "all" || post.status === statusFilter;
+      const matchesStatus =
+        statusFilter === 'all' || post.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [posts, searchQuery, statusFilter]);
@@ -94,74 +137,84 @@ export default function AdminBlog() {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: BlogPostFormData) => {
-      const { error } = await supabase.from("blog_posts").insert({
+      const { error } = await supabase.from('blog_posts').insert({
         ...data,
-        published_at: data.status === "published" ? new Date().toISOString() : null,
+        published_at:
+          data.status === 'published' ? new Date().toISOString() : null,
       });
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-blog-posts"] });
-      toast.success("Article créé avec succès");
+      queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
+      toast.success('Article créé avec succès');
       setIsCreateDialogOpen(false);
       resetForm();
     },
     onError: (error) => {
-      console.error("Error creating post:", error);
+      console.error('Error creating post:', error);
       toast.error("Erreur lors de la création de l'article");
     },
   });
 
   // Update mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: BlogPostFormData }) => {
-      const updateData: BlogPostFormData & { updated_at: string; published_at?: string | null } = {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: BlogPostFormData;
+    }) => {
+      const updateData: BlogPostFormData & {
+        updated_at: string;
+        published_at?: string | null;
+      } = {
         ...data,
         updated_at: new Date().toISOString(),
       };
-      
+
       // Set published_at if status changes to published
-      if (data.status === "published" && !editingPost?.published_at) {
+      if (data.status === 'published' && !editingPost?.published_at) {
         updateData.published_at = new Date().toISOString();
       }
 
       const { error } = await supabase
-        .from("blog_posts")
+        .from('blog_posts')
         .update(updateData)
-        .eq("id", id);
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-blog-posts"] });
-      toast.success("Article mis à jour avec succès");
+      queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
+      toast.success('Article mis à jour avec succès');
       setEditingPost(null);
       resetForm();
     },
     onError: (error) => {
-      console.error("Error updating post:", error);
-      toast.error("Erreur lors de la mise à jour");
+      console.error('Error updating post:', error);
+      toast.error('Erreur lors de la mise à jour');
     },
   });
 
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("blog_posts").delete().eq("id", id);
+      const { error } = await supabase.from('blog_posts').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-blog-posts"] });
-      toast.success("Article supprimé avec succès");
+      queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
+      toast.success('Article supprimé avec succès');
     },
     onError: (error) => {
-      console.error("Error deleting post:", error);
-      toast.error("Erreur lors de la suppression");
+      console.error('Error deleting post:', error);
+      toast.error('Erreur lors de la suppression');
     },
   });
 
   const resetForm = () => {
     setFormData(initialFormData);
-    setTagsInput("");
+    setTagsInput('');
   };
 
   const handleEditClick = (post: BlogPost) => {
@@ -169,23 +222,23 @@ export default function AdminBlog() {
     setFormData({
       title: post.title,
       slug: post.slug,
-      excerpt: post.excerpt || "",
+      excerpt: post.excerpt || '',
       content: post.content,
-      featured_image_url: post.featured_image_url || "",
+      featured_image_url: post.featured_image_url || '',
       author_id: post.author_id,
-      status: post.status || "draft",
+      status: post.status || 'draft',
       is_featured: post.is_featured || false,
       tags: post.tags || [],
-      seo_title: post.seo_title || "",
-      seo_description: post.seo_description || "",
+      seo_title: post.seo_title || '',
+      seo_description: post.seo_description || '',
       published_at: post.published_at,
     });
-    setTagsInput(post.tags?.join(", ") || "");
+    setTagsInput(post.tags?.join(', ') || '');
   };
 
   const handleSubmit = () => {
     const tags = tagsInput
-      .split(",")
+      .split(',')
       .map((t) => t.trim())
       .filter((t) => t.length > 0);
 
@@ -205,31 +258,40 @@ export default function AdminBlog() {
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
   };
 
   const getStatusBadge = (status: string | null) => {
     switch (status) {
-      case "published":
-        return <Badge className="bg-green-500/10 text-green-600 border-green-200">Publié</Badge>;
-      case "draft":
+      case 'published':
+        return (
+          <Badge className="bg-green-500/10 text-green-600 border-green-200">
+            Publié
+          </Badge>
+        );
+      case 'draft':
         return <Badge variant="secondary">Brouillon</Badge>;
-      case "archived":
-        return <Badge variant="outline" className="text-muted-foreground">Archivé</Badge>;
+      case 'archived':
+        return (
+          <Badge variant="outline" className="text-muted-foreground">
+            Archivé
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
 
   const formatDate = (date: string | null) => {
-    if (!date) return "-";
-    return format(new Date(date), "dd MMM yyyy", { locale: fr });
+    if (!date) return '-';
+    return format(new Date(date), 'dd MMM yyyy', { locale: fr });
   };
 
-  const isFormValid = formData.title.trim().length > 0 && formData.content.trim().length > 0;
+  const isFormValid =
+    formData.title.trim().length > 0 && formData.content.trim().length > 0;
 
   return (
     <div className="space-y-6">
@@ -246,7 +308,12 @@ export default function AdminBlog() {
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => { resetForm(); setIsCreateDialogOpen(true); }}>
+            <Button
+              onClick={() => {
+                resetForm();
+                setIsCreateDialogOpen(true);
+              }}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Nouvel article
             </Button>
@@ -306,7 +373,7 @@ export default function AdminBlog() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-green-600">
-              {posts.filter((p) => p.status === "published").length}
+              {posts.filter((p) => p.status === 'published').length}
             </div>
             <p className="text-sm text-muted-foreground">Publiés</p>
           </CardContent>
@@ -314,7 +381,7 @@ export default function AdminBlog() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-amber-600">
-              {posts.filter((p) => p.status === "draft").length}
+              {posts.filter((p) => p.status === 'draft').length}
             </div>
             <p className="text-sm text-muted-foreground">Brouillons</p>
           </CardContent>
@@ -333,9 +400,7 @@ export default function AdminBlog() {
       <Card>
         <CardHeader>
           <CardTitle>Articles ({filteredPosts.length})</CardTitle>
-          <CardDescription>
-            Liste de tous vos articles de blog
-          </CardDescription>
+          <CardDescription>Liste de tous vos articles de blog</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -374,13 +439,20 @@ export default function AdminBlog() {
                       <TableCell>
                         <div className="flex items-start gap-2">
                           {post.is_featured && (
-                            <Badge variant="outline" className="text-xs shrink-0">
+                            <Badge
+                              variant="outline"
+                              className="text-xs shrink-0"
+                            >
                               ⭐ Featured
                             </Badge>
                           )}
                           <div>
-                            <p className="font-medium line-clamp-1">{post.title}</p>
-                            <p className="text-xs text-muted-foreground">/{post.slug}</p>
+                            <p className="font-medium line-clamp-1">
+                              {post.title}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              /{post.slug}
+                            </p>
                           </div>
                         </div>
                       </TableCell>
@@ -388,7 +460,11 @@ export default function AdminBlog() {
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {post.tags?.slice(0, 2).map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs">
+                            <Badge
+                              key={tag}
+                              variant="secondary"
+                              className="text-xs"
+                            >
                               {tag}
                             </Badge>
                           ))}
@@ -416,13 +492,17 @@ export default function AdminBlog() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => window.open(`/blog/${post.id}`, '_blank')}
+                            onClick={() =>
+                              window.open(`/blog/${post.id}`, '_blank')
+                            }
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Dialog
                             open={editingPost?.id === post.id}
-                            onOpenChange={(open) => !open && setEditingPost(null)}
+                            onOpenChange={(open) =>
+                              !open && setEditingPost(null)
+                            }
                           >
                             <DialogTrigger asChild>
                               <Button
@@ -449,15 +529,22 @@ export default function AdminBlog() {
                           </Dialog>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                              >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Supprimer cet article ?</AlertDialogTitle>
+                                <AlertDialogTitle>
+                                  Supprimer cet article ?
+                                </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Cette action est irréversible. L'article "{post.title}" sera définitivement supprimé.
+                                  Cette action est irréversible. L'article "
+                                  {post.title}" sera définitivement supprimé.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>

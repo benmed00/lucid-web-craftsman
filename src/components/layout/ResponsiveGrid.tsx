@@ -17,22 +17,22 @@ const gapClasses = {
   sm: 'gap-3 sm:gap-4',
   md: 'gap-4 sm:gap-6',
   lg: 'gap-4 sm:gap-6 lg:gap-8',
-  xl: 'gap-6 sm:gap-8 lg:gap-10'
+  xl: 'gap-6 sm:gap-8 lg:gap-10',
 };
 
-export const ResponsiveGrid = ({ 
-  children, 
-  className = '', 
+export const ResponsiveGrid = ({
+  children,
+  className = '',
   cols = { mobile: 1, tablet: 2, desktop: 3 },
   gap = 'md',
-  as: Component = 'div'
+  as: Component = 'div',
 }: ResponsiveGridProps) => {
   const mobileColsClass = cols.mobile === 1 ? 'grid-cols-1' : 'grid-cols-2';
   const tabletColsClass = cols.tablet ? `md:grid-cols-${cols.tablet}` : '';
   const desktopColsClass = cols.desktop ? `lg:grid-cols-${cols.desktop}` : '';
 
   return (
-    <Component 
+    <Component
       className={cn(
         'grid',
         mobileColsClass,

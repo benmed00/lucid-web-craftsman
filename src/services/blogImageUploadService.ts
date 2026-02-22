@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 export interface UploadResult {
   url: string;
@@ -25,7 +25,7 @@ export class BlogImageUploadService {
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 15);
       const fileExtension = file.name.split('.').pop() || 'jpg';
-      const fileName = postId 
+      const fileName = postId
         ? `blog-${postId}-${timestamp}-${randomString}.${fileExtension}`
         : `blog-${timestamp}-${randomString}.${fileExtension}`;
 
@@ -34,7 +34,7 @@ export class BlogImageUploadService {
         .from(this.bucketName)
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
         });
 
       if (error) {
@@ -43,7 +43,7 @@ export class BlogImageUploadService {
       }
 
       if (!data) {
-        throw new Error('Aucune donnée retournée après l\'upload');
+        throw new Error("Aucune donnée retournée après l'upload");
       }
 
       // Get public URL
@@ -53,12 +53,13 @@ export class BlogImageUploadService {
 
       return {
         url: urlData.publicUrl,
-        path: data.path
+        path: data.path,
       };
-
     } catch (error) {
       console.error('Blog image upload service error:', error);
-      throw error instanceof Error ? error : new Error('Erreur inconnue lors de l\'upload');
+      throw error instanceof Error
+        ? error
+        : new Error("Erreur inconnue lors de l'upload");
     }
   }
 
@@ -68,7 +69,7 @@ export class BlogImageUploadService {
   async deleteBlogImage(imagePath: string): Promise<void> {
     try {
       const fileName = this.extractFileNameFromPath(imagePath);
-      
+
       const { error } = await supabase.storage
         .from(this.bucketName)
         .remove([fileName]);
@@ -77,10 +78,11 @@ export class BlogImageUploadService {
         console.error('Delete error:', error);
         throw new Error(`Erreur de suppression: ${error.message}`);
       }
-
     } catch (error) {
       console.error('Blog image delete service error:', error);
-      throw error instanceof Error ? error : new Error('Erreur inconnue lors de la suppression');
+      throw error instanceof Error
+        ? error
+        : new Error('Erreur inconnue lors de la suppression');
     }
   }
 
@@ -94,14 +96,14 @@ export class BlogImageUploadService {
     if (!allowedTypes.includes(file.type)) {
       return {
         isValid: false,
-        error: `Type de fichier non supporté. Formats acceptés: ${allowedTypes.map(t => t.split('/')[1]).join(', ')}`
+        error: `Type de fichier non supporté. Formats acceptés: ${allowedTypes.map((t) => t.split('/')[1]).join(', ')}`,
       };
     }
 
     if (file.size > maxSize) {
       return {
         isValid: false,
-        error: 'Fichier trop volumineux. Taille maximum: 5MB'
+        error: 'Fichier trop volumineux. Taille maximum: 5MB',
       };
     }
 

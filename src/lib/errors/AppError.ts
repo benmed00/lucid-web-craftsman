@@ -7,7 +7,7 @@
 export type ErrorSeverity = 'info' | 'warning' | 'error' | 'critical';
 
 // Error categories for better classification
-export type ErrorCategory = 
+export type ErrorCategory =
   | 'network'
   | 'auth'
   | 'validation'
@@ -109,7 +109,11 @@ export class ValidationError extends AppError {
 }
 
 export class BusinessError extends AppError {
-  constructor(message: string, code: string, context?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    code: string,
+    context?: Record<string, unknown>
+  ) {
     super(message, {
       code,
       category: 'business',
@@ -123,7 +127,11 @@ export class BusinessError extends AppError {
 export class DatabaseError extends AppError {
   public readonly dbErrorCode?: string;
 
-  constructor(message: string, dbErrorCode?: string, context?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    dbErrorCode?: string,
+    context?: Record<string, unknown>
+  ) {
     super(message, {
       code: 'DATABASE_ERROR',
       category: 'system',
@@ -161,10 +169,17 @@ export function handleError(error: unknown, context?: string): AppError {
   if (error instanceof Error) {
     // Check for common error patterns
     if (error.message.includes('Failed to fetch')) {
-      return new NetworkError('Network request failed', { originalError: error.message });
+      return new NetworkError('Network request failed', {
+        originalError: error.message,
+      });
     }
-    if (error.message.includes('unauthorized') || error.message.includes('401')) {
-      return new AuthError('Authentication required', { originalError: error.message });
+    if (
+      error.message.includes('unauthorized') ||
+      error.message.includes('401')
+    ) {
+      return new AuthError('Authentication required', {
+        originalError: error.message,
+      });
     }
 
     return new AppError(error.message, {

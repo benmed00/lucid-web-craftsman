@@ -17,6 +17,11 @@ describe('cn', () => {
   });
 
   it('should handle various input types', () => {
-    expect(cn('foo', null, 'bar', undefined, { baz: true, qux: false }, ['hello', 'world'])).toBe('foo bar baz hello world');
+    expect(
+      cn('foo', null, 'bar', undefined, { baz: true, qux: false }, [
+        'hello',
+        'world',
+      ])
+    ).toBe('foo bar baz hello world');
   });
 });

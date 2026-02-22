@@ -1,9 +1,15 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -12,10 +18,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Bell, Loader2, AlertTriangle, Clock, CheckCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+} from '@/components/ui/dialog';
+import { Bell, Loader2, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface AlertResult {
   success: boolean;
@@ -35,7 +41,7 @@ const PromoAlertChecker = () => {
   const [config, setConfig] = useState({
     days_before_expiry: 3,
     usage_threshold_percent: 80,
-    admin_email: "",
+    admin_email: '',
   });
 
   const checkAlerts = async () => {
@@ -43,9 +49,12 @@ const PromoAlertChecker = () => {
     setResult(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke("check-promo-alerts", {
-        body: config,
-      });
+      const { data, error } = await supabase.functions.invoke(
+        'check-promo-alerts',
+        {
+          body: config,
+        }
+      );
 
       if (error) throw error;
 
@@ -54,11 +63,11 @@ const PromoAlertChecker = () => {
       if (data.alerts.total > 0) {
         toast.warning(`${data.alerts.total} alerte(s) détectée(s)`);
       } else {
-        toast.success("Aucune alerte détectée");
+        toast.success('Aucune alerte détectée');
       }
     } catch (error: any) {
-      console.error("Error checking alerts:", error);
-      toast.error("Erreur lors de la vérification");
+      console.error('Error checking alerts:', error);
+      toast.error('Erreur lors de la vérification');
     } finally {
       setIsChecking(false);
     }
@@ -79,7 +88,8 @@ const PromoAlertChecker = () => {
             Vérification des alertes promo
           </DialogTitle>
           <DialogDescription>
-            Vérifiez les codes promo qui approchent leur expiration ou limite d'utilisation.
+            Vérifiez les codes promo qui approchent leur expiration ou limite
+            d'utilisation.
           </DialogDescription>
         </DialogHeader>
 
@@ -94,7 +104,10 @@ const PromoAlertChecker = () => {
                 max="30"
                 value={config.days_before_expiry}
                 onChange={(e) =>
-                  setConfig({ ...config, days_before_expiry: parseInt(e.target.value) || 3 })
+                  setConfig({
+                    ...config,
+                    days_before_expiry: parseInt(e.target.value) || 3,
+                  })
                 }
               />
             </div>
@@ -123,7 +136,9 @@ const PromoAlertChecker = () => {
               type="email"
               placeholder="admin@example.com"
               value={config.admin_email}
-              onChange={(e) => setConfig({ ...config, admin_email: e.target.value })}
+              onChange={(e) =>
+                setConfig({ ...config, admin_email: e.target.value })
+              }
             />
             <p className="text-xs text-muted-foreground">
               Laissez vide pour vérifier sans envoyer d'email
@@ -131,7 +146,11 @@ const PromoAlertChecker = () => {
           </div>
 
           {result && (
-            <Card className={result.alerts.total > 0 ? "border-warning" : "border-primary"}>
+            <Card
+              className={
+                result.alerts.total > 0 ? 'border-warning' : 'border-primary'
+              }
+            >
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   {result.alerts.total > 0 ? (

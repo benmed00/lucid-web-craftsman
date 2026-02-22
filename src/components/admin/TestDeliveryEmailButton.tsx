@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { CheckCircle, Send, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { CheckCircle, Send, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export const TestDeliveryEmailButton = () => {
   const [open, setOpen] = useState(false);
@@ -24,17 +32,24 @@ export const TestDeliveryEmailButton = () => {
         orderId: 'TEST-' + Date.now().toString().slice(-8),
         customerEmail: email,
         customerName: 'Client Test',
-        deliveryDate: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+        deliveryDate: new Date().toLocaleDateString('fr-FR', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }),
         items: [
           { name: 'Chapeau de paille berbère', quantity: 1 },
-          { name: 'Sac à main tissé traditionnel', quantity: 2 }
+          { name: 'Sac à main tissé traditionnel', quantity: 2 },
         ],
-        reviewUrl: 'https://rifrawstraw.com/products'
+        reviewUrl: 'https://rifrawstraw.com/products',
       };
 
-      const { data, error } = await supabase.functions.invoke('send-delivery-confirmation', {
-        body: testData
-      });
+      const { data, error } = await supabase.functions.invoke(
+        'send-delivery-confirmation',
+        {
+          body: testData,
+        }
+      );
 
       if (error) throw error;
 
@@ -65,10 +80,11 @@ export const TestDeliveryEmailButton = () => {
         <DialogHeader>
           <DialogTitle>Tester l'email de livraison</DialogTitle>
           <DialogDescription>
-            Envoyez un email de test pour vérifier le template de confirmation de livraison.
+            Envoyez un email de test pour vérifier le template de confirmation
+            de livraison.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="test-delivery-email">Adresse email de test</Label>
@@ -80,12 +96,15 @@ export const TestDeliveryEmailButton = () => {
               onChange={(e) => setEmail(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Note: Avec Resend en mode test, l'email sera envoyé uniquement à l'adresse associée à votre compte Resend.
+              Note: Avec Resend en mode test, l'email sera envoyé uniquement à
+              l'adresse associée à votre compte Resend.
             </p>
           </div>
-          
+
           <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg text-sm space-y-1">
-            <p className="font-medium text-green-900 dark:text-green-100">Données de test incluses:</p>
+            <p className="font-medium text-green-900 dark:text-green-100">
+              Données de test incluses:
+            </p>
             <ul className="text-green-700 dark:text-green-300 list-disc list-inside">
               <li>Date de livraison: Aujourd'hui</li>
               <li>2 articles: Chapeau + Sac</li>

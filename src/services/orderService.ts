@@ -71,7 +71,9 @@ export interface OrderQuickAction {
 
 // ==================== Customer Service ====================
 
-export async function getOrderCustomerInfo(userId: string): Promise<OrderCustomerInfo | null> {
+export async function getOrderCustomerInfo(
+  userId: string
+): Promise<OrderCustomerInfo | null> {
   try {
     // Get profile info
     const { data: profile, error: profileError } = await supabase
@@ -84,13 +86,19 @@ export async function getOrderCustomerInfo(userId: string): Promise<OrderCustome
 
     // Get user email from auth (if accessible via RLS)
     const { data: authUser } = await supabase.auth.getUser();
-    
+
     // Get order stats
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select('amount')
       .eq('user_id', userId)
-      .in('order_status', ['paid', 'validated', 'preparing', 'shipped', 'delivered']);
+      .in('order_status', [
+        'paid',
+        'validated',
+        'preparing',
+        'shipped',
+        'delivered',
+      ]);
 
     if (ordersError) throw ordersError;
 
@@ -102,7 +110,8 @@ export async function getOrderCustomerInfo(userId: string): Promise<OrderCustome
       .single();
 
     const totalOrders = orders?.length || 0;
-    const totalSpent = orders?.reduce((sum, o) => sum + (o.amount || 0), 0) || 0;
+    const totalSpent =
+      orders?.reduce((sum, o) => sum + (o.amount || 0), 0) || 0;
 
     return {
       id: profile.id,
@@ -126,7 +135,9 @@ export async function getOrderCustomerInfo(userId: string): Promise<OrderCustome
 
 // ==================== Coupon Service ====================
 
-export async function getOrderCouponUsage(orderId: string): Promise<OrderCouponUsage | null> {
+export async function getOrderCouponUsage(
+  orderId: string
+): Promise<OrderCouponUsage | null> {
   try {
     // Check order metadata for coupon info
     const { data: order, error } = await supabase
@@ -184,31 +195,45 @@ export async function validateCouponForOrder(
     // Check validity dates
     const now = new Date();
     if (coupon.valid_from && new Date(coupon.valid_from) > now) {
-      return { valid: false, discount: 0, message: 'Code promo pas encore valide' };
+      return {
+        valid: false,
+        discount: 0,
+        message: 'Code promo pas encore valide',
+      };
     }
     if (coupon.valid_until && new Date(coupon.valid_until) < now) {
       return { valid: false, discount: 0, message: 'Code promo expiré' };
     }
 
     // Check minimum order amount
-    if (coupon.minimum_order_amount && orderAmount < coupon.minimum_order_amount) {
-      return { 
-        valid: false, 
-        discount: 0, 
-        message: `Montant minimum requis: ${coupon.minimum_order_amount}€` 
+    if (
+      coupon.minimum_order_amount &&
+      orderAmount < coupon.minimum_order_amount
+    ) {
+      return {
+        valid: false,
+        discount: 0,
+        message: `Montant minimum requis: ${coupon.minimum_order_amount}€`,
       };
     }
 
     // Check usage limit
     if (coupon.usage_limit && coupon.usage_count >= coupon.usage_limit) {
-      return { valid: false, discount: 0, message: 'Limite d\'utilisation atteinte' };
+      return {
+        valid: false,
+        discount: 0,
+        message: "Limite d'utilisation atteinte",
+      };
     }
 
     // Calculate discount
     let discount = 0;
     if (coupon.type === 'percentage') {
       discount = orderAmount * (coupon.value / 100);
-      if (coupon.maximum_discount_amount && discount > coupon.maximum_discount_amount) {
+      if (
+        coupon.maximum_discount_amount &&
+        discount > coupon.maximum_discount_amount
+      ) {
         discount = coupon.maximum_discount_amount;
       }
     } else if (coupon.type === 'fixed') {
@@ -224,11 +249,15 @@ export async function validateCouponForOrder(
 
 // ==================== Payment Service ====================
 
-export async function getOrderPaymentDetails(orderId: string): Promise<OrderPaymentDetails | null> {
+export async function getOrderPaymentDetails(
+  orderId: string
+): Promise<OrderPaymentDetails | null> {
   try {
     const { data: order, error } = await supabase
       .from('orders')
-      .select('payment_method, payment_reference, stripe_session_id, amount, currency, created_at, metadata, order_status')
+      .select(
+        'payment_method, payment_reference, stripe_session_id, amount, currency, created_at, metadata, order_status'
+      )
       .eq('id', orderId)
       .single();
 
@@ -249,8 +278,14 @@ export async function getOrderPaymentDetails(orderId: string): Promise<OrderPaym
       stripe_session_id: order.stripe_session_id,
       amount: order.amount || 0,
       currency: order.currency || 'eur',
-      paid_at: ['paid', 'validated', 'preparing', 'shipped', 'delivered'].includes(order.order_status || '') 
-        ? order.created_at 
+      paid_at: [
+        'paid',
+        'validated',
+        'preparing',
+        'shipped',
+        'delivered',
+      ].includes(order.order_status || '')
+        ? order.created_at
         : null,
       refund_amount: totalRefunded,
       refund_status: refundStatus,
@@ -281,16 +316,23 @@ export async function processRefund(
     if (orderError) throw orderError;
 
     const currentMetadata = (order?.metadata || {}) as Record<string, unknown>;
-    const existingRefunds = (currentMetadata.refund_history as RefundRecord[]) || [];
+    const existingRefunds =
+      (currentMetadata.refund_history as RefundRecord[]) || [];
     const totalRefunded = existingRefunds.reduce((sum, r) => sum + r.amount, 0);
     const orderAmount = order?.amount || 0;
 
     // Validate refund amount
     if (amount <= 0) {
-      return { success: false, message: 'Le montant du remboursement doit être positif' };
+      return {
+        success: false,
+        message: 'Le montant du remboursement doit être positif',
+      };
     }
     if (totalRefunded + amount > orderAmount) {
-      return { success: false, message: 'Le montant du remboursement dépasse le total de la commande' };
+      return {
+        success: false,
+        message: 'Le montant du remboursement dépasse le total de la commande',
+      };
     }
 
     // Create refund record
@@ -317,7 +359,10 @@ export async function processRefund(
     };
 
     // Update order status if it's a full refund
-    if (isFullRefund && !['refunded', 'cancelled'].includes(order.order_status || '')) {
+    if (
+      isFullRefund &&
+      !['refunded', 'cancelled'].includes(order.order_status || '')
+    ) {
       updateData.order_status = 'refunded';
     } else if (newTotalRefunded > 0 && newTotalRefunded < orderAmount) {
       updateData.order_status = 'partially_refunded';
@@ -330,24 +375,29 @@ export async function processRefund(
 
     if (updateError) throw updateError;
 
-    return { 
-      success: true, 
-      message: isFullRefund 
-        ? 'Remboursement complet effectué' 
-        : 'Remboursement partiel effectué' 
+    return {
+      success: true,
+      message: isFullRefund
+        ? 'Remboursement complet effectué'
+        : 'Remboursement partiel effectué',
     };
   } catch (error) {
     console.error('Error processing refund:', error);
-    return { success: false, message: 'Erreur lors du traitement du remboursement' };
+    return {
+      success: false,
+      message: 'Erreur lors du traitement du remboursement',
+    };
   }
 }
 
 // ==================== Product Stock Service ====================
 
-export async function getOrderProductsStock(orderItems: Array<{ product_id: number }>): Promise<ProductStockInfo[]> {
+export async function getOrderProductsStock(
+  orderItems: Array<{ product_id: number }>
+): Promise<ProductStockInfo[]> {
   try {
-    const productIds = orderItems.map(item => item.product_id);
-    
+    const productIds = orderItems.map((item) => item.product_id);
+
     const { data: products, error } = await supabase
       .from('products')
       .select('id, name')
@@ -355,7 +405,7 @@ export async function getOrderProductsStock(orderItems: Array<{ product_id: numb
 
     if (error) throw error;
 
-    return (products || []).map(p => ({
+    return (products || []).map((p) => ({
       product_id: p.id,
       product_name: p.name,
       current_stock: 0, // Stock tracking would be done via a separate inventory system
@@ -394,7 +444,7 @@ export async function bulkUpdateOrderStatus(
       });
 
       if (error) throw error;
-      
+
       const result = data as unknown as { success: boolean; error?: string };
       if (result.success) {
         success++;
@@ -404,7 +454,8 @@ export async function bulkUpdateOrderStatus(
       }
     } catch (error: unknown) {
       failed++;
-      const errMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       errors.push(`${orderId.slice(0, 8)}: ${errMessage}`);
     }
   }
@@ -416,23 +467,40 @@ export async function bulkExportOrders(orderIds: string[]): Promise<string> {
   try {
     const { data: orders, error } = await supabase
       .from('orders')
-      .select(`
+      .select(
+        `
         id, created_at, order_status, amount, currency,
         carrier, tracking_number, shipping_address,
         order_items (quantity, unit_price, product_snapshot)
-      `)
+      `
+      )
       .in('id', orderIds);
 
     if (error) throw error;
 
     // Create CSV
-    const headers = ['ID', 'Date', 'Statut', 'Montant', 'Devise', 'Transporteur', 'Suivi', 'Articles'];
-    const rows = (orders || []).map(order => {
-      const items = order.order_items?.map((item) => {
-        const snapshot = item.product_snapshot as Record<string, unknown> | null;
-        return `${snapshot?.name || 'Produit'} x${item.quantity}`;
-      }).join('; ') || '';
-      
+    const headers = [
+      'ID',
+      'Date',
+      'Statut',
+      'Montant',
+      'Devise',
+      'Transporteur',
+      'Suivi',
+      'Articles',
+    ];
+    const rows = (orders || []).map((order) => {
+      const items =
+        order.order_items
+          ?.map((item) => {
+            const snapshot = item.product_snapshot as Record<
+              string,
+              unknown
+            > | null;
+            return `${snapshot?.name || 'Produit'} x${item.quantity}`;
+          })
+          .join('; ') || '';
+
       return [
         order.id,
         new Date(order.created_at).toLocaleDateString('fr-FR'),
@@ -454,7 +522,10 @@ export async function bulkExportOrders(orderIds: string[]): Promise<string> {
 
 // ==================== Statistics ====================
 
-export async function getOrdersStatsByPeriod(startDate: string, endDate: string) {
+export async function getOrdersStatsByPeriod(
+  startDate: string,
+  endDate: string
+) {
   try {
     const { data: orders, error } = await supabase
       .from('orders')
@@ -464,20 +535,22 @@ export async function getOrdersStatsByPeriod(startDate: string, endDate: string)
 
     if (error) throw error;
 
-    const paid = orders.filter(o => 
-      ['paid', 'validated', 'preparing', 'shipped', 'delivered'].includes(o.order_status || '')
+    const paid = orders.filter((o) =>
+      ['paid', 'validated', 'preparing', 'shipped', 'delivered'].includes(
+        o.order_status || ''
+      )
     );
 
     return {
       total_orders: orders.length,
       paid_orders: paid.length,
       total_revenue: paid.reduce((sum, o) => sum + (o.amount || 0), 0),
-      average_order_value: paid.length > 0 
-        ? paid.reduce((sum, o) => sum + (o.amount || 0), 0) / paid.length 
-        : 0,
-      conversion_rate: orders.length > 0 
-        ? (paid.length / orders.length) * 100 
-        : 0,
+      average_order_value:
+        paid.length > 0
+          ? paid.reduce((sum, o) => sum + (o.amount || 0), 0) / paid.length
+          : 0,
+      conversion_rate:
+        orders.length > 0 ? (paid.length / orders.length) * 100 : 0,
     };
   } catch (error) {
     console.error('Error fetching order stats:', error);

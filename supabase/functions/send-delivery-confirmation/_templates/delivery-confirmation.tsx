@@ -12,8 +12,8 @@ import {
   Column,
   Hr,
   Button,
-} from 'https://esm.sh/@react-email/components@0.0.22'
-import * as React from 'https://esm.sh/react@18.3.1'
+} from 'https://esm.sh/@react-email/components@0.0.22';
+import * as React from 'https://esm.sh/react@18.3.1';
 
 interface DeliveryConfirmationEmailProps {
   customerName: string;
@@ -52,7 +52,8 @@ export const DeliveryConfirmationEmail = ({
             <Text style={successIcon}>✅</Text>
             <Heading style={heroTitle}>Votre commande a été livrée !</Heading>
             <Text style={heroSubtitle}>
-              Bonjour {customerName}, nous espérons que vous êtes satisfait(e) de votre achat.
+              Bonjour {customerName}, nous espérons que vous êtes satisfait(e)
+              de votre achat.
             </Text>
           </Section>
 
@@ -96,7 +97,8 @@ export const DeliveryConfirmationEmail = ({
               Votre avis compte !
             </Heading>
             <Text style={reviewText}>
-              Partagez votre expérience et aidez d'autres clients à découvrir nos créations artisanales.
+              Partagez votre expérience et aidez d'autres clients à découvrir
+              nos créations artisanales.
             </Text>
             {reviewUrl && (
               <Button style={reviewButton} href={reviewUrl}>
@@ -108,7 +110,9 @@ export const DeliveryConfirmationEmail = ({
           {/* Thank You Section */}
           <Section style={thankYouSection}>
             <Text style={thankYouText}>
-              Merci d'avoir choisi Rif Raw Straw ! Votre soutien aide directement nos artisans à préserver leur savoir-faire traditionnel.
+              Merci d'avoir choisi Rif Raw Straw ! Votre soutien aide
+              directement nos artisans à préserver leur savoir-faire
+              traditionnel.
             </Text>
           </Section>
 
@@ -125,7 +129,8 @@ export const DeliveryConfirmationEmail = ({
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              © {new Date().getFullYear()} Rif Raw Straw - Artisanat berbère authentique
+              © {new Date().getFullYear()} Rif Raw Straw - Artisanat berbère
+              authentique
             </Text>
             <Text style={footerLinks}>
               <Link href="https://rifrawstraw.com" style={footerLink}>
@@ -152,7 +157,8 @@ export default DeliveryConfirmationEmail;
 // Styles
 const main = {
   backgroundColor: '#f6f9fc',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
+  fontFamily:
+    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
 };
 
 const container = {

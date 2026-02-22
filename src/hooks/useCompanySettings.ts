@@ -30,21 +30,21 @@ export interface CompanySettings {
 }
 
 const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
-  name: "Rif Raw Straw",
-  email: "contact@rifstraw.com",
-  phone: "+33 7 52 26 71 00",
+  name: 'Rif Raw Straw',
+  email: 'contact@rifstraw.com',
+  phone: '+33 7 52 26 71 00',
   address: {
-    street: "6 allée de la Sèvre",
-    postalCode: "44400",
-    city: "Rezé",
-    country: "France",
+    street: '6 allée de la Sèvre',
+    postalCode: '44400',
+    city: 'Rezé',
+    country: 'France',
     latitude: 47.1847,
     longitude: -1.5493,
   },
   openingHours: {
-    weekdays: "Lundi - Vendredi: 9h - 18h",
-    saturday: "Samedi: 10h - 16h",
-    sunday: "Dimanche: Fermé",
+    weekdays: 'Lundi - Vendredi: 9h - 18h',
+    saturday: 'Samedi: 10h - 16h',
+    sunday: 'Dimanche: Fermé',
   },
 };
 
@@ -56,13 +56,17 @@ const CACHE_DURATION = APP_CONFIG.cache.apiResponseTTL;
 const SETTINGS_KEY = 'company_settings';
 
 export function useCompanySettings() {
-  const [settings, setSettings] = useState<CompanySettings>(cachedSettings || DEFAULT_COMPANY_SETTINGS);
+  const [settings, setSettings] = useState<CompanySettings>(
+    cachedSettings || DEFAULT_COMPANY_SETTINGS
+  );
   const [isLoading, setIsLoading] = useState(!cachedSettings);
   const [error, setError] = useState<string | null>(null);
 
   const parseSettings = useCallback((rawValue: unknown): CompanySettings => {
     const fetchedSettings: Partial<CompanySettings> =
-      typeof rawValue === 'object' && rawValue !== null && !Array.isArray(rawValue)
+      typeof rawValue === 'object' &&
+      rawValue !== null &&
+      !Array.isArray(rawValue)
         ? (rawValue as Partial<CompanySettings>)
         : {};
 
@@ -101,13 +105,16 @@ export function useCompanySettings() {
         if (!isMounted) return;
 
         if (fetchError && fetchError.code !== 'PGRST116') {
-          throw new DatabaseError(`Failed to fetch company settings: ${fetchError.message}`, fetchError.code);
+          throw new DatabaseError(
+            `Failed to fetch company settings: ${fetchError.message}`,
+            fetchError.code
+          );
         }
 
-        const mergedSettings = data?.setting_value 
+        const mergedSettings = data?.setting_value
           ? parseSettings(data.setting_value)
           : DEFAULT_COMPANY_SETTINGS;
-        
+
         cachedSettings = mergedSettings;
         cacheTimestamp = Date.now();
         setSettings(mergedSettings);
@@ -153,12 +160,12 @@ export function useCompanyAddress() {
 
 export function useCompanyContact() {
   const { settings, isLoading, error } = useCompanySettings();
-  return { 
+  return {
     name: settings.name,
-    email: settings.email, 
-    phone: settings.phone, 
-    isLoading, 
-    error 
+    email: settings.email,
+    phone: settings.phone,
+    isLoading,
+    error,
   };
 }
 

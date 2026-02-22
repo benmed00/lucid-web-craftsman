@@ -3,9 +3,9 @@
  * Checks and subscribes to maintenance mode status
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { handleError, DatabaseError } from "@/lib/errors/AppError";
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { handleError, DatabaseError } from '@/lib/errors/AppError';
 
 interface DisplaySettings {
   maintenanceMode?: boolean;
@@ -34,7 +34,7 @@ export const useMaintenanceMode = (): MaintenanceModeState => {
   });
 
   const updateFromSettings = useCallback((settings: DisplaySettings | null) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isMaintenanceMode: settings?.maintenanceMode ?? false,
       maintenanceReturnTime: settings?.maintenanceReturnTime ?? null,
@@ -56,7 +56,10 @@ export const useMaintenanceMode = (): MaintenanceModeState => {
         if (!isMounted) return;
 
         if (error && error.code !== 'PGRST116') {
-          throw new DatabaseError(`Failed to check maintenance mode: ${error.message}`, error.code);
+          throw new DatabaseError(
+            `Failed to check maintenance mode: ${error.message}`,
+            error.code
+          );
         }
 
         if (data?.setting_value) {
@@ -67,7 +70,7 @@ export const useMaintenanceMode = (): MaintenanceModeState => {
         handleError(error, 'useMaintenanceMode.checkMaintenanceMode');
       } finally {
         if (isMounted) {
-          setState(prev => ({ ...prev, isLoading: false }));
+          setState((prev) => ({ ...prev, isLoading: false }));
         }
       }
     };
@@ -83,11 +86,12 @@ export const useMaintenanceMode = (): MaintenanceModeState => {
           event: '*',
           schema: 'public',
           table: 'app_settings',
-          filter: `setting_key=eq.${SETTINGS_KEY}`
+          filter: `setting_key=eq.${SETTINGS_KEY}`,
         },
         (payload) => {
           if (payload.new && 'setting_value' in payload.new) {
-            const settings = payload.new.setting_value as unknown as DisplaySettings;
+            const settings = payload.new
+              .setting_value as unknown as DisplaySettings;
             updateFromSettings(settings);
           }
         }

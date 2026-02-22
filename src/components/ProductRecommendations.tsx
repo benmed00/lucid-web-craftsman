@@ -16,12 +16,12 @@ interface ProductRecommendationsProps {
   onQuickView?: (product: Product) => void;
 }
 
-export const ProductRecommendations = ({ 
-  currentProduct, 
-  allProducts, 
+export const ProductRecommendations = ({
+  currentProduct,
+  allProducts,
   title,
   maxRecommendations = 6,
-  onQuickView 
+  onQuickView,
 }: ProductRecommendationsProps) => {
   const { recentlyViewed } = useRecentlyViewed();
   const { addItem } = useCart();
@@ -38,7 +38,9 @@ export const ProductRecommendations = ({
 
   const handleAddToCart = async (product: Product) => {
     try {
-      const response = await import("@/api/mockApiService").then(api => api.addToCart(product, 1));
+      const response = await import('@/api/mockApiService').then((api) =>
+        api.addToCart(product, 1)
+      );
 
       if (response.success) {
         addItem(product, 1);
@@ -67,12 +69,12 @@ export const ProductRecommendations = ({
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           {recommendations.map((product, index) => (
-            <div 
+            <div
               key={product.id}
               className="animate-fade-in opacity-0"
-              style={{ 
+              style={{
                 animationDelay: `${index * 100}ms`,
-                animationFillMode: 'forwards'
+                animationFillMode: 'forwards',
               }}
             >
               <ProductCard

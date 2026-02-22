@@ -11,20 +11,20 @@ export const DEFAULT_BUSINESS_RULES: BusinessRules = {
     maxProductTypes: 10,
     highValueThreshold: 1000,
     minOrderAmount: 0,
-    maxOrderAmount: 10000
+    maxOrderAmount: 10000,
   },
   wishlist: {
-    maxItems: 10
+    maxItems: 10,
   },
   checkout: {
     requireEmailVerification: false,
     allowGuestCheckout: true,
-    showVipContactForHighValue: true
+    showVipContactForHighValue: true,
   },
   contact: {
     vipEmail: 'vip@rifrawstraw.com',
-    vipPhone: '+33600000000'
-  }
+    vipPhone: '+33600000000',
+  },
 };
 
 export interface BusinessRules {
@@ -69,18 +69,27 @@ async function fetchBusinessRules(): Promise<BusinessRules> {
       .single();
 
     if (error) {
-      console.warn('Failed to fetch business rules, using defaults:', error.message);
+      console.warn(
+        'Failed to fetch business rules, using defaults:',
+        error.message
+      );
       return DEFAULT_BUSINESS_RULES;
     }
 
     // Merge with defaults to ensure all keys exist
-    const fetchedRules = data?.setting_value as Partial<BusinessRules> || {};
-    
+    const fetchedRules = (data?.setting_value as Partial<BusinessRules>) || {};
+
     return {
       cart: { ...DEFAULT_BUSINESS_RULES.cart, ...fetchedRules.cart },
-      wishlist: { ...DEFAULT_BUSINESS_RULES.wishlist, ...fetchedRules.wishlist },
-      checkout: { ...DEFAULT_BUSINESS_RULES.checkout, ...fetchedRules.checkout },
-      contact: { ...DEFAULT_BUSINESS_RULES.contact, ...fetchedRules.contact }
+      wishlist: {
+        ...DEFAULT_BUSINESS_RULES.wishlist,
+        ...fetchedRules.wishlist,
+      },
+      checkout: {
+        ...DEFAULT_BUSINESS_RULES.checkout,
+        ...fetchedRules.checkout,
+      },
+      contact: { ...DEFAULT_BUSINESS_RULES.contact, ...fetchedRules.contact },
     };
   } catch (err) {
     console.error('Error fetching business rules:', err);
@@ -89,7 +98,9 @@ async function fetchBusinessRules(): Promise<BusinessRules> {
 }
 
 export function useBusinessRules(): BusinessRulesState {
-  const [rules, setRules] = useState<BusinessRules>(cachedRules || DEFAULT_BUSINESS_RULES);
+  const [rules, setRules] = useState<BusinessRules>(
+    cachedRules || DEFAULT_BUSINESS_RULES
+  );
   const [loading, setLoading] = useState(!cachedRules);
   const [error, setError] = useState<string | null>(null);
 
@@ -118,7 +129,9 @@ export function useBusinessRules(): BusinessRulesState {
       cachedRules = result;
       setRules(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load business rules');
+      setError(
+        err instanceof Error ? err.message : 'Failed to load business rules'
+      );
       setRules(DEFAULT_BUSINESS_RULES);
     } finally {
       setLoading(false);
@@ -148,11 +161,11 @@ export function getBusinessRules(): BusinessRules {
 // Async initializer (call once at app startup)
 export async function initializeBusinessRules(): Promise<BusinessRules> {
   if (cachedRules) return cachedRules;
-  
+
   if (!fetchPromise) {
     fetchPromise = fetchBusinessRules();
   }
-  
+
   cachedRules = await fetchPromise;
   fetchPromise = null;
   return cachedRules;

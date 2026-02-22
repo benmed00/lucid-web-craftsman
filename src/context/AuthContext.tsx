@@ -1,7 +1,15 @@
 // src/context/AuthContext.tsx
 // Unified Authentication Context - consolidates useAuth and useOptimizedAuth
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  ReactNode,
+} from 'react';
 import { User, Session, AuthOtpResponse } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { initializeWishlistStore } from '@/stores';
@@ -10,7 +18,7 @@ import { QueryClient, useQueryClient } from '@tanstack/react-query';
 // ============= Auth State Cleanup Utility =============
 export const cleanupAuthState = () => {
   const storages = [localStorage, sessionStorage];
-  storages.forEach(storage => {
+  storages.forEach((storage) => {
     try {
       Object.keys(storage).forEach((key) => {
         if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
@@ -25,7 +33,10 @@ export const cleanupAuthState = () => {
 
 // ============= Profile Cache =============
 class ProfileCache {
-  private cache = new Map<string, { data: Profile | null; timestamp: number }>();
+  private cache = new Map<
+    string,
+    { data: Profile | null; timestamp: number }
+  >();
   private readonly TTL = 5 * 60 * 1000; // 5 minutes
 
   set(userId: string, data: Profile | null) {
@@ -35,12 +46,12 @@ class ProfileCache {
   get(userId: string): Profile | null {
     const item = this.cache.get(userId);
     if (!item) return null;
-    
+
     if (Date.now() - item.timestamp > this.TTL) {
       this.cache.delete(userId);
       return null;
     }
-    
+
     return item.data;
   }
 
@@ -91,12 +102,27 @@ export interface AuthState {
 interface AuthContextType extends AuthState {
   isAuthenticated: boolean;
   // Auth methods
-  signIn: (email: string, password: string) => Promise<{ user: User | null; session: Session | null }>;
-  signUp: (email: string, password: string, fullName: string, phone?: string) => Promise<{ user: User | null; session: Session | null }>;
+  signIn: (
+    email: string,
+    password: string
+  ) => Promise<{ user: User | null; session: Session | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+    phone?: string
+  ) => Promise<{ user: User | null; session: Session | null }>;
   signOut: () => Promise<void>;
   // OTP methods
-  signInWithOtp: (email: string, options?: { shouldCreateUser?: boolean }) => Promise<AuthOtpResponse>;
-  verifyOtp: (email: string, token: string, type?: 'email' | 'sms') => Promise<{ user: User | null; session: Session | null }>;
+  signInWithOtp: (
+    email: string,
+    options?: { shouldCreateUser?: boolean }
+  ) => Promise<AuthOtpResponse>;
+  verifyOtp: (
+    email: string,
+    token: string,
+    type?: 'email' | 'sms'
+  ) => Promise<{ user: User | null; session: Session | null }>;
   // Password methods
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
@@ -125,34 +151,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAuthenticated = useMemo(() => !!authState.user, [authState.user]);
 
   // Load user profile with caching
-  const loadUserProfile = useCallback(async (userId: string): Promise<Profile | null> => {
-    // Check cache first
-    const cached = profileCache.get(userId);
-    if (cached) {
-      setAuthState(prev => ({ ...prev, profile: cached }));
-      return cached;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+  const loadUserProfile = useCallback(
+    async (userId: string): Promise<Profile | null> => {
+      // Check cache first
+      const cached = profileCache.get(userId);
+      if (cached) {
+        setAuthState((prev) => ({ ...prev, profile: cached }));
+        return cached;
       }
 
-      const profile = data as Profile | null;
-      profileCache.set(userId, profile);
-      setAuthState(prev => ({ ...prev, profile }));
-      return profile;
-    } catch (error) {
-      console.error('Error loading profile:', error);
-      return null;
-    }
-  }, []);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+
+        const profile = data as Profile | null;
+        profileCache.set(userId, profile);
+        setAuthState((prev) => ({ ...prev, profile }));
+        return profile;
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        return null;
+      }
+    },
+    []
+  );
 
   // Initialize auth state
   useEffect(() => {
@@ -166,11 +195,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // One retry before giving up
       if (!retried) {
         retried = true;
-        console.warn('[AuthContext] Auth initialization slow, retrying getSession...');
+        console.warn(
+          '[AuthContext] Auth initialization slow, retrying getSession...'
+        );
         try {
-          const { data: { session } } = await supabase.auth.getSession();
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
           if (isMounted && session?.user) {
-            setAuthState(prev => ({
+            setAuthState((prev) => ({
               ...prev,
               session,
               user: session.user,
@@ -180,12 +213,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             loadUserProfile(session.user.id);
             return;
           }
-        } catch { /* ignore retry error */ }
+        } catch {
+          /* ignore retry error */
+        }
       }
 
-      setAuthState(prev => {
+      setAuthState((prev) => {
         if (prev.isLoading) {
-          console.warn('[AuthContext] Auth initialization timed out after 4s, forcing ready state');
+          console.warn(
+            '[AuthContext] Auth initialization timed out after 4s, forcing ready state'
+          );
           return { ...prev, isLoading: false, isInitialized: true };
         }
         return prev;
@@ -193,64 +230,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, 4000);
 
     // Set up auth state listener FIRST (to not miss any events)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!isMounted) return;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!isMounted) return;
 
-        // Handle token refresh errors — force re-login
-        if (event === 'TOKEN_REFRESHED' && !session) {
-          console.warn('[AuthContext] Token refresh failed, clearing session');
-          profileCache.invalidate();
-          setAuthState({
-            user: null, session: null, profile: null,
-            isLoading: false, isInitialized: true,
-          });
-          initializeWishlistStore(null);
-          return;
-        }
-
-        // Synchronous state updates only
-        setAuthState(prev => ({
-          ...prev,
-          session,
-          user: session?.user ?? null,
+      // Handle token refresh errors — force re-login
+      if (event === 'TOKEN_REFRESHED' && !session) {
+        console.warn('[AuthContext] Token refresh failed, clearing session');
+        profileCache.invalidate();
+        setAuthState({
+          user: null,
+          session: null,
+          profile: null,
           isLoading: false,
           isInitialized: true,
-        }));
+        });
+        initializeWishlistStore(null);
+        return;
+      }
 
-        // Defer profile loading to prevent deadlocks
-        if (event === 'SIGNED_IN' && session?.user) {
-          // Initialize wishlist store with user ID
-          initializeWishlistStore(session.user.id);
-          
-          setTimeout(() => {
-            if (isMounted) {
-              loadUserProfile(session.user.id);
-            }
-          }, 0);
-        } else if (event === 'SIGNED_OUT') {
-          // Clear wishlist store
-          initializeWishlistStore(null);
-          
-          profileCache.invalidate();
-          setAuthState(prev => ({ ...prev, profile: null }));
+      // Synchronous state updates only
+      setAuthState((prev) => ({
+        ...prev,
+        session,
+        user: session?.user ?? null,
+        isLoading: false,
+        isInitialized: true,
+      }));
 
-          // Purge Service Worker caches to prevent stale authenticated content
-          if ('caches' in self) {
-            caches.keys().then(names => names.forEach(name => caches.delete(name)));
+      // Defer profile loading to prevent deadlocks
+      if (event === 'SIGNED_IN' && session?.user) {
+        // Initialize wishlist store with user ID
+        initializeWishlistStore(session.user.id);
+
+        setTimeout(() => {
+          if (isMounted) {
+            loadUserProfile(session.user.id);
           }
-        } else if (event === 'SIGNED_IN') {
-          // Invalidate any cached HTML by purging SW caches (images will re-cache on demand)
-          if ('caches' in self) {
-            caches.keys().then(names => {
-              names.forEach(name => {
-                if (!name.includes('images')) caches.delete(name);
-              });
+        }, 0);
+      } else if (event === 'SIGNED_OUT') {
+        // Clear wishlist store
+        initializeWishlistStore(null);
+
+        profileCache.invalidate();
+        setAuthState((prev) => ({ ...prev, profile: null }));
+
+        // Purge Service Worker caches to prevent stale authenticated content
+        if ('caches' in self) {
+          caches
+            .keys()
+            .then((names) => names.forEach((name) => caches.delete(name)));
+        }
+      } else if (event === 'SIGNED_IN') {
+        // Invalidate any cached HTML by purging SW caches (images will re-cache on demand)
+        if ('caches' in self) {
+          caches.keys().then((names) => {
+            names.forEach((name) => {
+              if (!name.includes('images')) caches.delete(name);
             });
-          }
+          });
         }
       }
-    );
+    });
 
     // Cross-tab auth sync via BroadcastChannel
     let authChannel: BroadcastChannel | null = null;
@@ -271,7 +313,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Refresh session from Supabase to pick up new auth state
           supabase.auth.getSession().then(({ data: { session } }) => {
             if (session?.user && isMounted) {
-              setAuthState(prev => ({
+              setAuthState((prev) => ({
                 ...prev,
                 session,
                 user: session.user,
@@ -291,32 +333,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // THEN check for existing session
     const initAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
         if (session) {
           // CRITICAL: Validate the token server-side with getUser()
           // getSession() only reads from localStorage and does NOT verify the JWT signature.
           // If the token is corrupted/expired, API calls will fail with 403.
-          const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
-          
+          const {
+            data: { user: validatedUser },
+            error: userError,
+          } = await supabase.auth.getUser();
+
           if (userError || !validatedUser) {
             // Token is invalid — clean up stale session
-            console.warn('[AuthContext] Stale JWT detected, cleaning up:', userError?.message);
+            console.warn(
+              '[AuthContext] Stale JWT detected, cleaning up:',
+              userError?.message
+            );
             cleanupAuthState();
             await supabase.auth.signOut({ scope: 'local' });
-            
+
             if (isMounted) {
               setAuthState({
-                user: null, session: null, profile: null,
-                isLoading: false, isInitialized: true,
+                user: null,
+                session: null,
+                profile: null,
+                isLoading: false,
+                isInitialized: true,
               });
             }
             return;
           }
-          
+
           // Token is valid
           if (isMounted) {
-            setAuthState(prev => ({
+            setAuthState((prev) => ({
               ...prev,
               session,
               user: validatedUser,
@@ -329,7 +382,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           // No session at all
           if (isMounted) {
-            setAuthState(prev => ({
+            setAuthState((prev) => ({
               ...prev,
               session: null,
               user: null,
@@ -341,7 +394,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('Auth initialization error:', error);
         if (isMounted) {
-          setAuthState(prev => ({
+          setAuthState((prev) => ({
             ...prev,
             isLoading: false,
             isInitialized: true,
@@ -356,7 +409,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isMounted = false;
       clearTimeout(safetyTimeout);
       subscription.unsubscribe();
-      try { authChannel?.close(); } catch { /* ignore */ }
+      try {
+        authChannel?.close();
+      } catch {
+        /* ignore */
+      }
     };
   }, [loadUserProfile]);
 
@@ -378,34 +435,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const ch = new BroadcastChannel('auth-sync');
       ch.postMessage({ type: 'SIGNED_IN', userId: data.user?.id });
       ch.close();
-    } catch { /* BroadcastChannel not supported */ }
+    } catch {
+      /* BroadcastChannel not supported */
+    }
 
     return data;
   }, []);
 
-  const signUp = useCallback(async (
-    email: string, 
-    password: string, 
-    fullName: string,
-    phone?: string
-  ) => {
-    cleanupAuthState();
+  const signUp = useCallback(
+    async (
+      email: string,
+      password: string,
+      fullName: string,
+      phone?: string
+    ) => {
+      cleanupAuthState();
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        data: {
-          full_name: fullName,
-          phone: phone || null,
-        }
-      }
-    });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: fullName,
+            phone: phone || null,
+          },
+        },
+      });
 
-    if (error) throw error;
-    return data;
-  }, []);
+      if (error) throw error;
+      return data;
+    },
+    []
+  );
 
   const signOut = useCallback(async () => {
     try {
@@ -428,7 +490,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // 4. Clear React Query cache to remove stale data
       try {
         queryClient?.clear();
-      } catch { /* ignore if no QueryClient */ }
+      } catch {
+        /* ignore if no QueryClient */
+      }
 
       // 5. Sign out from Supabase (local scope only)
       await supabase.auth.signOut({ scope: 'local' });
@@ -438,7 +502,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const ch = new BroadcastChannel('auth-sync');
         ch.postMessage({ type: 'SIGNED_OUT' });
         ch.close();
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     } catch (error) {
       console.error('Error signing out:', error);
       // Even if signOut fails, ensure state is cleared
@@ -453,38 +519,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [queryClient]);
 
-  const signInWithOtp = useCallback(async (
-    email: string, 
-    options?: { shouldCreateUser?: boolean }
-  ): Promise<AuthOtpResponse> => {
-    cleanupAuthState();
-    
-    const { data, error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        shouldCreateUser: options?.shouldCreateUser ?? true,
-      },
-    });
+  const signInWithOtp = useCallback(
+    async (
+      email: string,
+      options?: { shouldCreateUser?: boolean }
+    ): Promise<AuthOtpResponse> => {
+      cleanupAuthState();
 
-    if (error) throw error;
-    return { data, error };
-  }, []);
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          shouldCreateUser: options?.shouldCreateUser ?? true,
+        },
+      });
 
-  const verifyOtp = useCallback(async (
-    email: string, 
-    token: string, 
-    type: 'email' | 'sms' = 'email'
-  ) => {
-    const { data, error } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: 'email',
-    });
+      if (error) throw error;
+      return { data, error };
+    },
+    []
+  );
 
-    if (error) throw error;
-    return data;
-  }, []);
+  const verifyOtp = useCallback(
+    async (email: string, token: string, type: 'email' | 'sms' = 'email') => {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email',
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    []
+  );
 
   const resetPassword = useCallback(async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -502,24 +570,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
-  const updateProfile = useCallback(async (profileData: Partial<Profile>): Promise<Profile> => {
-    if (!authState.user) throw new Error('No user logged in');
+  const updateProfile = useCallback(
+    async (profileData: Partial<Profile>): Promise<Profile> => {
+      if (!authState.user) throw new Error('No user logged in');
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(profileData)
-      .eq('id', authState.user.id)
-      .select()
-      .single();
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(profileData)
+        .eq('id', authState.user.id)
+        .select()
+        .single();
 
-    if (error) throw error;
+      if (error) throw error;
 
-    const profile = data as Profile;
-    profileCache.set(authState.user.id, profile);
-    setAuthState(prev => ({ ...prev, profile }));
+      const profile = data as Profile;
+      profileCache.set(authState.user.id, profile);
+      setAuthState((prev) => ({ ...prev, profile }));
 
-    return profile;
-  }, [authState.user]);
+      return profile;
+    },
+    [authState.user]
+  );
 
   const refreshProfile = useCallback(async (): Promise<Profile | null> => {
     if (!authState.user) return null;
@@ -528,37 +599,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [authState.user, loadUserProfile]);
 
   // ============= Context Value =============
-  const value = useMemo<AuthContextType>(() => ({
-    ...authState,
-    isAuthenticated,
-    signIn,
-    signUp,
-    signOut,
-    signInWithOtp,
-    verifyOtp,
-    resetPassword,
-    updatePassword,
-    updateProfile,
-    refreshProfile,
-  }), [
-    authState,
-    isAuthenticated,
-    signIn,
-    signUp,
-    signOut,
-    signInWithOtp,
-    verifyOtp,
-    resetPassword,
-    updatePassword,
-    updateProfile,
-    refreshProfile,
-  ]);
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo<AuthContextType>(
+    () => ({
+      ...authState,
+      isAuthenticated,
+      signIn,
+      signUp,
+      signOut,
+      signInWithOtp,
+      verifyOtp,
+      resetPassword,
+      updatePassword,
+      updateProfile,
+      refreshProfile,
+    }),
+    [
+      authState,
+      isAuthenticated,
+      signIn,
+      signUp,
+      signOut,
+      signInWithOtp,
+      verifyOtp,
+      resetPassword,
+      updatePassword,
+      updateProfile,
+      refreshProfile,
+    ]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // ============= Hook =============

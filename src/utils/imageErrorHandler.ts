@@ -16,11 +16,11 @@ export const validateImageUrl = async (url: string): Promise<boolean> => {
   try {
     const response = await fetch(url, { method: 'HEAD' });
     const isValid = response.ok;
-    
+
     if (!isValid) {
       imageErrorCache.add(url);
     }
-    
+
     return isValid;
   } catch {
     imageErrorCache.add(url);
@@ -33,24 +33,23 @@ export const validateImageUrl = async (url: string): Promise<boolean> => {
  */
 export const generateImageFallbacks = (originalUrl: string): string[] => {
   const fallbacks: string[] = [];
-  
+
   if (originalUrl.includes('supabase.co/storage')) {
     try {
       const url = new URL(originalUrl);
-      
+
       // Remove problematic parameters
       url.searchParams.delete('resize');
       url.searchParams.delete('format');
       url.searchParams.delete('quality');
-      
+
       // Add original without parameters
       fallbacks.push(url.toString());
-      
+
       // Add with conservative quality only
       const qualityUrl = new URL(url);
       qualityUrl.searchParams.set('quality', '80');
       fallbacks.push(qualityUrl.toString());
-      
     } catch {
       // If URL parsing fails, just use original
       fallbacks.push(originalUrl);
@@ -58,7 +57,7 @@ export const generateImageFallbacks = (originalUrl: string): string[] => {
   } else {
     fallbacks.push(originalUrl);
   }
-  
+
   return fallbacks;
 };
 
@@ -71,7 +70,7 @@ export const loadImageWithFallback = async (
   onError: () => void
 ): Promise<void> => {
   const fallbacks = generateImageFallbacks(originalUrl);
-  
+
   for (const url of fallbacks) {
     try {
       const isValid = await validateImageUrl(url);
@@ -83,7 +82,7 @@ export const loadImageWithFallback = async (
       continue;
     }
   }
-  
+
   // All fallbacks failed
   onError();
 };

@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
+import Stripe from 'https://esm.sh/stripe@18.5.0';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.2';
 
 const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -9,35 +9,41 @@ const logStep = (step: string, details?: unknown) => {
 
 serve(async (req) => {
   // Webhooks are POST only
-  if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 });
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
   }
 
-  const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-    apiVersion: "2025-08-27.basil",
+  const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+    apiVersion: '2025-08-27.basil',
   });
 
   const supabaseService = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     { auth: { persistSession: false } }
   );
 
-  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+  const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
 
   try {
     const body = await req.text();
-    const signature = req.headers.get("stripe-signature");
+    const signature = req.headers.get('stripe-signature');
 
     let event: Stripe.Event;
 
     // Verify webhook signature if secret is configured
     if (webhookSecret && signature) {
       try {
-        event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
-        logStep("Webhook signature verified", { type: event.type });
+        event = await stripe.webhooks.constructEventAsync(
+          body,
+          signature,
+          webhookSecret
+        );
+        logStep('Webhook signature verified', { type: event.type });
       } catch (err) {
-        logStep("Webhook signature verification failed", { error: (err as Error).message });
+        logStep('Webhook signature verification failed', {
+          error: (err as Error).message,
+        });
         // Log security event
         await logPaymentEvent(supabaseService, {
           event_type: 'webhook_signature_invalid',
@@ -46,12 +52,14 @@ serve(async (req) => {
           error_message: `Invalid signature: ${(err as Error).message}`,
           details: { signature: signature?.slice(0, 20) + '...' },
         });
-        return new Response("Invalid signature", { status: 400 });
+        return new Response('Invalid signature', { status: 400 });
       }
     } else {
       // Parse without verification (dev mode)
       event = JSON.parse(body) as Stripe.Event;
-      logStep("WARNING: Webhook received without signature verification", { type: event.type });
+      logStep('WARNING: Webhook received without signature verification', {
+        type: event.type,
+      });
     }
 
     // Log webhook receipt
@@ -85,18 +93,18 @@ serve(async (req) => {
       }
 
       default:
-        logStep("Unhandled event type", { type: event.type });
+        logStep('Unhandled event type', { type: event.type });
     }
 
     return new Response(JSON.stringify({ received: true }), {
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
       status: 200,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in stripe-webhook", { message: errorMessage });
+    logStep('ERROR in stripe-webhook', { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
       status: 500,
     });
   }
@@ -109,12 +117,12 @@ serve(async (req) => {
 async function handleCheckoutCompleted(
   supabase: ReturnType<typeof createClient>,
   stripe: Stripe,
-  session: Stripe.Checkout.Session,
+  session: Stripe.Checkout.Session
 ) {
   const orderId = session.metadata?.order_id;
   const correlationId = session.metadata?.correlation_id;
 
-  logStep("Processing checkout.session.completed", {
+  logStep('Processing checkout.session.completed', {
     sessionId: session.id,
     orderId,
     correlationId,
@@ -122,12 +130,14 @@ async function handleCheckoutCompleted(
   });
 
   if (session.payment_status !== 'paid') {
-    logStep("Session not paid, skipping", { paymentStatus: session.payment_status });
+    logStep('Session not paid, skipping', {
+      paymentStatus: session.payment_status,
+    });
     return;
   }
 
   if (!orderId) {
-    logStep("ERROR: No order_id in session metadata");
+    logStep('ERROR: No order_id in session metadata');
     await logPaymentEvent(supabase, {
       event_type: 'webhook_missing_order_id',
       status: 'error',
@@ -142,12 +152,14 @@ async function handleCheckoutCompleted(
   // Fetch order
   const { data: order, error: orderError } = await supabase
     .from('orders')
-    .select('*, order_items (id, product_id, quantity, unit_price, total_price)')
+    .select(
+      '*, order_items (id, product_id, quantity, unit_price, total_price)'
+    )
     .eq('id', orderId)
     .single();
 
   if (orderError || !order) {
-    logStep("Order not found", { orderId, error: orderError });
+    logStep('Order not found', { orderId, error: orderError });
     await logPaymentEvent(supabase, {
       order_id: orderId,
       event_type: 'webhook_order_not_found',
@@ -163,14 +175,19 @@ async function handleCheckoutCompleted(
   // IDEMPOTENCY: If order already processed, skip
   // ========================================================================
   if (order.status === 'paid' || order.status === 'completed') {
-    logStep("IDEMPOTENCY: Order already processed by verify-payment", { orderId });
+    logStep('IDEMPOTENCY: Order already processed by verify-payment', {
+      orderId,
+    });
     await logPaymentEvent(supabase, {
       order_id: orderId,
       event_type: 'webhook_idempotent_skip',
       status: 'info',
       actor: 'stripe_webhook',
       correlation_id: correlationId,
-      details: { current_status: order.status, message: 'Already processed by client redirect' },
+      details: {
+        current_status: order.status,
+        message: 'Already processed by client redirect',
+      },
     });
     return;
   }
@@ -178,9 +195,10 @@ async function handleCheckoutCompleted(
   // ========================================================================
   // ATOMIC STATUS UPDATE with optimistic lock
   // ========================================================================
-  const paymentIntentId = typeof session.payment_intent === 'string'
-    ? session.payment_intent
-    : session.payment_intent?.id;
+  const paymentIntentId =
+    typeof session.payment_intent === 'string'
+      ? session.payment_intent
+      : session.payment_intent?.id;
 
   const { data: updatedOrder, error: updateError } = await supabase
     .from('orders')
@@ -205,7 +223,7 @@ async function handleCheckoutCompleted(
     .maybeSingle();
 
   if (updateError) {
-    logStep("Error updating order", { error: updateError });
+    logStep('Error updating order', { error: updateError });
     await logPaymentEvent(supabase, {
       order_id: orderId,
       event_type: 'webhook_update_failed',
@@ -218,7 +236,7 @@ async function handleCheckoutCompleted(
   }
 
   if (!updatedOrder) {
-    logStep("IDEMPOTENCY: Order status already changed by another process");
+    logStep('IDEMPOTENCY: Order status already changed by another process');
     await logPaymentEvent(supabase, {
       order_id: orderId,
       event_type: 'webhook_idempotent_race',
@@ -230,30 +248,28 @@ async function handleCheckoutCompleted(
     return;
   }
 
-  logStep("Order updated to paid via webhook", { orderId });
+  logStep('Order updated to paid via webhook', { orderId });
 
   // Log status change
-  await supabase
-    .from('order_status_history')
-    .insert({
-      order_id: orderId,
-      previous_status: order.order_status || 'payment_pending',
-      new_status: 'paid',
-      changed_by: 'webhook',
-      reason_code: 'STRIPE_WEBHOOK',
-      reason_message: 'Payment confirmed via Stripe webhook',
-      metadata: {
-        stripe_session_id: session.id,
-        stripe_event_type: 'checkout.session.completed',
-        correlation_id: correlationId,
-        payment_intent: paymentIntentId,
-      },
-    });
+  await supabase.from('order_status_history').insert({
+    order_id: orderId,
+    previous_status: order.order_status || 'payment_pending',
+    new_status: 'paid',
+    changed_by: 'webhook',
+    reason_code: 'STRIPE_WEBHOOK',
+    reason_message: 'Payment confirmed via Stripe webhook',
+    metadata: {
+      stripe_session_id: session.id,
+      stripe_event_type: 'checkout.session.completed',
+      correlation_id: correlationId,
+      payment_intent: paymentIntentId,
+    },
+  });
 
   // ========================================================================
   // STOCK DECREMENT (safe - we hold optimistic lock)
   // ========================================================================
-  for (const item of (order.order_items || [])) {
+  for (const item of order.order_items || []) {
     try {
       const { data: product } = await supabase
         .from('products')
@@ -262,16 +278,29 @@ async function handleCheckoutCompleted(
         .single();
 
       if (product) {
-        const newStock = Math.max(0, (product.stock_quantity || 0) - item.quantity);
+        const newStock = Math.max(
+          0,
+          (product.stock_quantity || 0) - item.quantity
+        );
         await supabase
           .from('products')
-          .update({ stock_quantity: newStock, updated_at: new Date().toISOString() })
+          .update({
+            stock_quantity: newStock,
+            updated_at: new Date().toISOString(),
+          })
           .eq('id', item.product_id);
 
-        logStep("Stock decremented", { productId: item.product_id, sold: item.quantity, newStock });
+        logStep('Stock decremented', {
+          productId: item.product_id,
+          sold: item.quantity,
+          newStock,
+        });
       }
     } catch (err) {
-      logStep("Stock update error (non-fatal)", { productId: item.product_id, error: (err as Error).message });
+      logStep('Stock update error (non-fatal)', {
+        productId: item.product_id,
+        error: (err as Error).message,
+      });
     }
   }
 
@@ -282,9 +311,12 @@ async function handleCheckoutCompleted(
   if (discountCode) {
     try {
       // Use raw increment to avoid race conditions
-      const { error: couponError } = await supabase.rpc('increment_coupon_usage', {
-        p_code: discountCode,
-      });
+      const { error: couponError } = await supabase.rpc(
+        'increment_coupon_usage',
+        {
+          p_code: discountCode,
+        }
+      );
       if (couponError) {
         // Fallback: manual increment
         const { data: coupon } = await supabase
@@ -299,9 +331,11 @@ async function handleCheckoutCompleted(
             .eq('code', discountCode);
         }
       }
-      logStep("Coupon usage incremented", { code: discountCode });
+      logStep('Coupon usage incremented', { code: discountCode });
     } catch (err) {
-      logStep("Coupon usage increment error (non-fatal)", { error: (err as Error).message });
+      logStep('Coupon usage increment error (non-fatal)', {
+        error: (err as Error).message,
+      });
     }
   }
 
@@ -330,7 +364,10 @@ async function handleCheckoutCompleted(
   // ========================================================================
   try {
     const customerEmail = session.customer_details?.email;
-    const customerName = session.customer_details?.name || session.metadata?.customer_name || 'Client';
+    const customerName =
+      session.customer_details?.name ||
+      session.metadata?.customer_name ||
+      'Client';
 
     if (customerEmail) {
       // IDEMPOTENCY: Check if email was already sent for this order
@@ -343,9 +380,13 @@ async function handleCheckoutCompleted(
         .maybeSingle();
 
       if (existingEmail) {
-        logStep("IDEMPOTENCY: Confirmation email already sent, skipping", { orderId });
+        logStep('IDEMPOTENCY: Confirmation email already sent, skipping', {
+          orderId,
+        });
       } else {
-        const productIds = (order.order_items || []).map((item: any) => item.product_id);
+        const productIds = (order.order_items || []).map(
+          (item: any) => item.product_id
+        );
         const { data: products } = await supabase
           .from('products')
           .select('id, name, images, price')
@@ -363,49 +404,70 @@ async function handleCheckoutCompleted(
           };
         });
 
-        const emailSubtotal = emailItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+        const emailSubtotal = emailItems.reduce(
+          (sum: number, item: any) => sum + item.price * item.quantity,
+          0
+        );
         const total = order.amount / 100;
         const shipping = total - emailSubtotal > 0 ? total - emailSubtotal : 0;
 
         const shippingAddr = order.shipping_address as any;
 
-        const emailResponse = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-order-confirmation`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-          },
-          body: JSON.stringify({
-            orderId,
-            customerEmail,
-            customerName,
-            items: emailItems,
-            subtotal: emailSubtotal,
-            shipping,
-            discount: session.metadata?.discount_amount_cents ? parseInt(session.metadata.discount_amount_cents) / 100 : 0,
-            total,
-            currency: order.currency?.toUpperCase() || 'EUR',
-            shippingAddress: shippingAddr ? {
-              address: shippingAddr.address_line1 || '',
-              city: shippingAddr.city || '',
-              postalCode: shippingAddr.postal_code || '',
-              country: shippingAddr.country === 'FR' ? 'France' : shippingAddr.country || 'France',
-            } : undefined,
-          }),
-        });
+        const emailResponse = await fetch(
+          `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-order-confirmation`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            },
+            body: JSON.stringify({
+              orderId,
+              customerEmail,
+              customerName,
+              items: emailItems,
+              subtotal: emailSubtotal,
+              shipping,
+              discount: session.metadata?.discount_amount_cents
+                ? parseInt(session.metadata.discount_amount_cents) / 100
+                : 0,
+              total,
+              currency: order.currency?.toUpperCase() || 'EUR',
+              shippingAddress: shippingAddr
+                ? {
+                    address: shippingAddr.address_line1 || '',
+                    city: shippingAddr.city || '',
+                    postalCode: shippingAddr.postal_code || '',
+                    country:
+                      shippingAddr.country === 'FR'
+                        ? 'France'
+                        : shippingAddr.country || 'France',
+                  }
+                : undefined,
+            }),
+          }
+        );
 
         if (!emailResponse.ok) {
           const errBody = await emailResponse.text();
-          logStep("Email function returned error", { status: emailResponse.status, body: errBody });
+          logStep('Email function returned error', {
+            status: emailResponse.status,
+            body: errBody,
+          });
         } else {
-          logStep("Confirmation email triggered via webhook", { orderId, customerEmail });
+          logStep('Confirmation email triggered via webhook', {
+            orderId,
+            customerEmail,
+          });
         }
       }
     } else {
-      logStep("No customer email available, skipping confirmation email");
+      logStep('No customer email available, skipping confirmation email');
     }
   } catch (emailErr) {
-    logStep("Email send error (non-fatal)", { error: (emailErr as Error).message });
+    logStep('Email send error (non-fatal)', {
+      error: (emailErr as Error).message,
+    });
   }
 
   // ========================================================================
@@ -434,9 +496,11 @@ async function handleCheckoutCompleted(
       p_is_first_order: isFirstOrder,
       p_order_amount: (order.amount || 0) / 100,
     });
-    logStep("Fraud detection completed via webhook");
+    logStep('Fraud detection completed via webhook');
   } catch (fraudErr) {
-    logStep("Fraud detection error (non-fatal)", { error: (fraudErr as Error).message });
+    logStep('Fraud detection error (non-fatal)', {
+      error: (fraudErr as Error).message,
+    });
   }
 
   // Final success event
@@ -456,7 +520,7 @@ async function handleCheckoutCompleted(
     },
   });
 
-  logStep("Webhook processing completed", { orderId, correlationId });
+  logStep('Webhook processing completed', { orderId, correlationId });
 }
 
 // ============================================================
@@ -464,12 +528,15 @@ async function handleCheckoutCompleted(
 // ============================================================
 async function handleCheckoutExpired(
   supabase: ReturnType<typeof createClient>,
-  session: Stripe.Checkout.Session,
+  session: Stripe.Checkout.Session
 ) {
   const orderId = session.metadata?.order_id;
   const correlationId = session.metadata?.correlation_id;
 
-  logStep("Processing checkout.session.expired", { sessionId: session.id, orderId });
+  logStep('Processing checkout.session.expired', {
+    sessionId: session.id,
+    orderId,
+  });
 
   if (orderId) {
     // Fetch existing metadata to merge, then cancel if still pending
@@ -506,7 +573,7 @@ async function handleCheckoutExpired(
         reason_code: 'SESSION_EXPIRED',
         reason_message: 'Stripe checkout session expired',
       });
-      logStep("Order cancelled due to expired session", { orderId });
+      logStep('Order cancelled due to expired session', { orderId });
     }
   }
 
@@ -525,12 +592,12 @@ async function handleCheckoutExpired(
 // ============================================================
 async function handlePaymentFailed(
   supabase: ReturnType<typeof createClient>,
-  paymentIntent: Stripe.PaymentIntent,
+  paymentIntent: Stripe.PaymentIntent
 ) {
   const orderId = paymentIntent.metadata?.order_id;
   const correlationId = paymentIntent.metadata?.correlation_id;
 
-  logStep("Processing payment_intent.payment_failed", { orderId });
+  logStep('Processing payment_intent.payment_failed', { orderId });
 
   if (orderId) {
     // Fetch existing metadata to merge
@@ -548,7 +615,8 @@ async function handlePaymentFailed(
         metadata: {
           ...(existingOrder?.metadata || {}),
           payment_failed_at: new Date().toISOString(),
-          failure_message: paymentIntent.last_payment_error?.message || 'Unknown',
+          failure_message:
+            paymentIntent.last_payment_error?.message || 'Unknown',
           failure_code: paymentIntent.last_payment_error?.code || 'unknown',
           correlation_id: correlationId,
         },
@@ -563,7 +631,8 @@ async function handlePaymentFailed(
       new_status: 'payment_failed',
       changed_by: 'webhook',
       reason_code: 'PAYMENT_FAILED',
-      reason_message: paymentIntent.last_payment_error?.message || 'Payment failed',
+      reason_message:
+        paymentIntent.last_payment_error?.message || 'Payment failed',
     });
   }
 
@@ -573,7 +642,8 @@ async function handlePaymentFailed(
     status: 'error',
     actor: 'stripe_webhook',
     correlation_id: correlationId,
-    error_message: paymentIntent.last_payment_error?.message || 'Payment failed',
+    error_message:
+      paymentIntent.last_payment_error?.message || 'Payment failed',
     details: {
       failure_code: paymentIntent.last_payment_error?.code,
       payment_intent_id: paymentIntent.id,
@@ -597,7 +667,7 @@ async function logPaymentEvent(
     ip_address?: string;
     user_agent?: string;
     duration_ms?: number;
-  },
+  }
 ) {
   try {
     await supabase.from('payment_events').insert({

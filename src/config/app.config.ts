@@ -53,17 +53,9 @@ export const CSP_CONFIG = {
     EXTERNAL_SERVICES.stripe.network,
     'blob:',
   ],
-  'style-src': [
-    "'self'",
-    "'unsafe-inline'",
-    EXTERNAL_SERVICES.fonts.google,
-  ],
+  'style-src': ["'self'", "'unsafe-inline'", EXTERNAL_SERVICES.fonts.google],
   'img-src': ["'self'", 'data:', 'blob:', 'https:', 'http:'],
-  'font-src': [
-    "'self'",
-    EXTERNAL_SERVICES.fonts.gstatic,
-    'data:',
-  ],
+  'font-src': ["'self'", EXTERNAL_SERVICES.fonts.gstatic, 'data:'],
   'connect-src': [
     "'self'",
     'https://*.supabase.co',
