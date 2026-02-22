@@ -1,4 +1,4 @@
-import type { Method } from "cypress/types/net-stubbing";
+import type { Method, StaticResponse } from "cypress/types/net-stubbing";
 
 type MockScenario =
   | "success"
@@ -66,14 +66,14 @@ Cypress.Commands.add("mockSupabaseResponse", (method: Method, path: string, scen
       case "error500":
         return { statusCode: 500, body: { message: "Server Error (mocked)" } };
       case "latency":
-        return { statusCode: 200, body, delayMs: 1500 };
+        return { statusCode: 200, body, delay: 1500 };
       case "errorTimeout":
         return { forceNetworkError: true as const };
     }
   };
 
   cy.intercept(method, toGlob(path), (req) => {
-    req.reply(reply() as Cypress.StaticResponse);
+    req.reply(reply() as StaticResponse);
   }).as(`mock:${method}:${path}:${scenario}`);
 });
 

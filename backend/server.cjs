@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 
 let helmet, rateLimit;
-try { helmet = require('helmet'); } catch { helmet = (_req, _res, next) => next(); }
+try { helmet = require('helmet'); } catch { helmet = () => (_req, _res, next) => next(); }
 try { rateLimit = require('express-rate-limit'); } catch { rateLimit = () => (_req, _res, next) => next(); }
 
 // ============================================================================
