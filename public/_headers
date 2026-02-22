@@ -1,4 +1,3 @@
-<!-- markdownlint-disable-file -->
 # Security Headers for Production - Centralized CSP
 
 # IMPORTANT: All allowed external domains should be defined here

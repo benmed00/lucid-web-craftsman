@@ -1,3 +1,9 @@
-# Netlify _headers uses # for comments, not markdown headings
+# =============================================================================
+# Markdownlint ignore list
+# =============================================================================
+# public/_headers uses # for Netlify comments, not markdown headings.
+# Markdownlint would treat # lines as headings and report false positives.
+# =============================================================================
+
 public/_headers
 **/_headers

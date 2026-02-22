@@ -54,7 +54,8 @@
     "e2e:open": "cypress open",
     "e2e:run": "cypress run",
     "e2e:smoke": "cypress run --env grep=@smoke",
-    "e2e:regression": "cypress run --env grep=@regression"
+    "e2e:regression": "cypress run --env grep=@regression",
+    "browserslist:update": "npm update caniuse-lite browserslist"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
