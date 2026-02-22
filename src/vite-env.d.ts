@@ -16,5 +16,5 @@ declare global {
   }
 }
 
-declare var ApplePaySession: any;
-declare var google: any;
+declare let ApplePaySession: any;
+declare let google: any;

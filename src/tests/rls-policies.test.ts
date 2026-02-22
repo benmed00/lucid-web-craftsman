@@ -10,9 +10,9 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
-// Test configuration
-const SUPABASE_URL = 'https://xcvlijchkmhjonhfildm.supabase.co';
-const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdmxpamNoa21oam9uaGZpbGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2MDY3MDEsImV4cCI6MjA2MzE4MjcwMX0.3_FZWbV4qCqs1xQmh0Hws83xQxofSApzVRScSCEi9Pg';
+// Test configuration - use environment variables instead of hardcoded credentials
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
 
 // Policy test definitions
 type AccessLevel = 'deny' | 'allow' | 'own_only';
@@ -146,6 +146,44 @@ const POLICY_TESTS: PolicyTest[] = [
     notes: 'Admin deletion is blocked for all'
   },
   
+  // Shipping addresses table
+  {
+    table: 'shipping_addresses',
+    operation: 'SELECT',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'own_only',
+    expectedForAdmin: 'allow',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Users see own addresses, admins see all'
+  },
+  {
+    table: 'shipping_addresses',
+    operation: 'INSERT',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'own_only',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Users can add own addresses'
+  },
+  {
+    table: 'shipping_addresses',
+    operation: 'UPDATE',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'own_only',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Users can update own addresses'
+  },
+  {
+    table: 'shipping_addresses',
+    operation: 'DELETE',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'own_only',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Users can delete own addresses'
+  },
+  
   // Orders table
   {
     table: 'orders',
@@ -246,6 +284,46 @@ const POLICY_TESTS: PolicyTest[] = [
     expectedForAdmin: 'allow',
     expectedForSuperAdmin: 'allow',
     notes: 'Only admins can delete products'
+  },
+
+  // security_events table - super_admin only
+  {
+    table: 'security_events',
+    operation: 'SELECT',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can view security events'
+  },
+  {
+    table: 'security_events',
+    operation: 'UPDATE',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can update security events'
+  },
+
+  // security_config table - super_admin only
+  {
+    table: 'security_config',
+    operation: 'SELECT',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can view security config'
+  },
+  {
+    table: 'security_config',
+    operation: 'UPDATE',
+    expectedForAnonymous: 'deny',
+    expectedForAuthenticatedUser: 'deny',
+    expectedForAdmin: 'deny',
+    expectedForSuperAdmin: 'allow',
+    notes: 'Only super_admins can manage security config'
   },
 ];
 

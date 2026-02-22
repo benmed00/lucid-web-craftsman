@@ -1,5 +1,6 @@
 import { useState, lazy, Suspense, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import SEOHelmet from "@/components/seo/SEOHelmet";
 import {
@@ -37,19 +38,29 @@ const contactRateLimiter = createRateLimiter(3, 10 * 60 * 1000); // 3 attempts p
 
 const Contact = () => {
   const { t } = useTranslation(['pages', 'common']);
+  const [searchParams] = useSearchParams();
+  
   // Get company settings from database
   const { settings: companySettings, isLoading: isLoadingSettings } = useCompanySettings();
   
+  // Pre-fill form from URL params (from PaymentSuccess page)
+  const getInitialFormState = () => {
+    const orderId = searchParams.get('orderId');
+    const orderRef = orderId ? `[Order #${orderId.slice(-8).toUpperCase()}] ` : '';
+    
+    return {
+      firstName: searchParams.get('firstName') || '',
+      lastName: searchParams.get('lastName') || '',
+      email: searchParams.get('email') || '',
+      phone: '',
+      company: '',
+      subject: orderId ? 'support' : '',
+      message: orderId ? `${orderRef}` : ''
+    };
+  };
+  
   // Form states
-  const [contactForm, setContactForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    company: '',
-    subject: '',
-    message: ''
-  });
+  const [contactForm, setContactForm] = useState(getInitialFormState);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { csrfToken } = useCsrfToken();
@@ -57,6 +68,25 @@ const Contact = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+  
+  // Update form if URL params change
+  useEffect(() => {
+    const firstName = searchParams.get('firstName');
+    const lastName = searchParams.get('lastName');
+    const email = searchParams.get('email');
+    const orderId = searchParams.get('orderId');
+    
+    if (firstName || lastName || email || orderId) {
+      setContactForm(prev => ({
+        ...prev,
+        firstName: firstName || prev.firstName,
+        lastName: lastName || prev.lastName,
+        email: email || prev.email,
+        subject: orderId ? 'support' : prev.subject,
+        message: orderId && !prev.message ? `[Order #${orderId.slice(-8).toUpperCase()}] ` : prev.message
+      }));
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,14 +127,16 @@ const Contact = () => {
       setIsSubmitting(true);
       
       // Use centralized API client for consistent error handling
+      const session = await supabase.auth.getSession();
+      const headers: Record<string, string> = {};
+      if (session.data.session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+      }
+      
       await apiClient.post(
         `${EXTERNAL_SERVICES.supabase.url}/functions/v1/submit-contact`,
         sanitizedData,
-        {
-          headers: {
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || 'anon'}`
-          }
-        }
+        { headers }
       );
       
       toast.success(t('contact.form.success'));
@@ -541,7 +573,7 @@ const Contact = () => {
             <p className="text-sm text-muted-foreground">
               <MapPin className="inline-block h-4 w-4 mr-1" />
               {isLoadingSettings ? (
-                <Skeleton className="inline-block h-4 w-48" />
+                <span className="inline-block h-4 w-48 animate-pulse rounded-md bg-muted" />
               ) : (
                 formatFullAddress(companySettings.address)
               )}

@@ -15,9 +15,9 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Configuration
-const SUPABASE_URL = 'https://xcvlijchkmhjonhfildm.supabase.co';
-const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdmxpamNoa21oam9uaGZpbGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2MDY3MDEsImV4cCI6MjA2MzE4MjcwMX0.3_FZWbV4qCqs1xQmh0Hws83xQxofSApzVRScSCEi9Pg';
+// Configuration - use environment variables instead of hardcoded credentials
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
 
 // Test user credentials (should be set in environment for CI/CD)
 const TEST_USERS = {
@@ -35,29 +35,25 @@ const TEST_USERS = {
   },
 };
 
-// Helper to create authenticated client
-async function createAuthenticatedClient(
-  email: string, 
-  password: string
-): Promise<{ client: SupabaseClient; userId: string | null }> {
-  const client = createClient(SUPABASE_URL, ANON_KEY);
-  
-  const { data, error } = await client.auth.signInWithPassword({
-    email,
-    password,
+// Single shared client to avoid "Multiple GoTrueClient instances" warning
+function createSharedClient(): SupabaseClient {
+  return createClient(SUPABASE_URL, ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
   });
-
-  if (error) {
-    console.warn(`Auth failed for ${email}: ${error.message}`);
-    return { client, userId: null };
-  }
-
-  return { client, userId: data.user?.id || null };
 }
 
-// Helper to create anonymous client
-function createAnonymousClient(): SupabaseClient {
-  return createClient(SUPABASE_URL, ANON_KEY);
+// Helper to sign in with a client and return userId
+async function signInClient(
+  client: SupabaseClient,
+  email: string,
+  password: string
+): Promise<string | null> {
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  if (error) {
+    console.warn(`Auth failed for ${email}: ${error.message}`);
+    return null;
+  }
+  return data.user?.id ?? null;
 }
 
 // Test result interface
@@ -203,13 +199,14 @@ class RLSTestRunner {
         query = query.eq(key, value);
       }
 
-      const { error } = await query;
+      const { data, error } = await query.select();
 
       const result: RLSTestResult = {
         table,
         operation: 'DELETE',
         userType,
         allowed: !error,
+        rowCount: data?.length ?? 0,
         error: error?.message,
       };
 
@@ -292,109 +289,71 @@ class RLSTestRunner {
   }
 }
 
-// Main test suite
+// Main test suite - single shared client, sign in/out between role blocks
 describe('RLS E2E Security Tests', () => {
   const runner = new RLSTestRunner();
-  let anonymousClient: SupabaseClient;
-  let regularUserClient: SupabaseClient | null = null;
+  let client: SupabaseClient;
   let regularUserId: string | null = null;
-  let adminClient: SupabaseClient | null = null;
-  let adminUserId: string | null = null;
-  let superAdminClient: SupabaseClient | null = null;
-  let superAdminUserId: string | null = null;
 
   beforeAll(async () => {
-    anonymousClient = createAnonymousClient();
-
-    // Try to authenticate test users
-    try {
-      const regularAuth = await createAuthenticatedClient(
-        TEST_USERS.regular.email,
-        TEST_USERS.regular.password
-      );
-      regularUserClient = regularAuth.client;
-      regularUserId = regularAuth.userId;
-    } catch (e) {
-      console.warn('Regular user auth failed, some tests will be skipped');
-    }
-
-    try {
-      const adminAuth = await createAuthenticatedClient(
-        TEST_USERS.admin.email,
-        TEST_USERS.admin.password
-      );
-      adminClient = adminAuth.client;
-      adminUserId = adminAuth.userId;
-    } catch (e) {
-      console.warn('Admin user auth failed, some tests will be skipped');
-    }
-
-    try {
-      const superAdminAuth = await createAuthenticatedClient(
-        TEST_USERS.superAdmin.email,
-        TEST_USERS.superAdmin.password
-      );
-      superAdminClient = superAdminAuth.client;
-      superAdminUserId = superAdminAuth.userId;
-    } catch (e) {
-      console.warn('Super admin auth failed, some tests will be skipped');
-    }
+    client = createSharedClient();
   });
 
   afterAll(async () => {
-    // Generate and log report
+    await client.auth.signOut();
     console.log(runner.generateReport());
   });
 
-  // Anonymous user tests
+  // Anonymous user tests (client has no session)
+  // Note: RLS blocks return 0 rows (no error). We assert rowCount === 0 to verify no data leaked.
   describe('Anonymous User Access', () => {
     it('should NOT be able to SELECT from profiles', async () => {
-      const result = await runner.testSelect(anonymousClient, 'profiles', 'anonymous');
-      expect(result.allowed).toBe(false);
+      const result = await runner.testSelect(client, 'profiles', 'anonymous');
+      expect(result.rowCount).toBe(0);
     });
 
     it('should NOT be able to SELECT from contact_messages', async () => {
-      const result = await runner.testSelect(anonymousClient, 'contact_messages', 'anonymous');
-      expect(result.allowed).toBe(false);
+      const result = await runner.testSelect(client, 'contact_messages', 'anonymous');
+      expect(result.rowCount).toBe(0);
     });
 
     it('should NOT be able to SELECT from audit_logs', async () => {
-      const result = await runner.testSelect(anonymousClient, 'audit_logs', 'anonymous');
-      expect(result.allowed).toBe(false);
+      const result = await runner.testSelect(client, 'audit_logs', 'anonymous');
+      expect(result.rowCount).toBe(0);
     });
 
     it('should NOT be able to SELECT from newsletter_subscriptions', async () => {
-      const result = await runner.testSelect(anonymousClient, 'newsletter_subscriptions', 'anonymous');
-      expect(result.allowed).toBe(false);
+      const result = await runner.testSelect(client, 'newsletter_subscriptions', 'anonymous');
+      expect(result.rowCount).toBe(0);
     });
 
     it('should NOT be able to SELECT from admin_users', async () => {
-      const result = await runner.testSelect(anonymousClient, 'admin_users', 'anonymous');
-      expect(result.allowed).toBe(false);
+      const result = await runner.testSelect(client, 'admin_users', 'anonymous');
+      expect(result.rowCount).toBe(0);
     });
 
     it('should NOT be able to SELECT from orders', async () => {
-      const result = await runner.testSelect(anonymousClient, 'orders', 'anonymous');
-      expect(result.allowed).toBe(false);
+      const result = await runner.testSelect(client, 'orders', 'anonymous');
+      expect(result.rowCount).toBe(0);
     });
 
     it('should NOT be able to SELECT from payments', async () => {
-      const result = await runner.testSelect(anonymousClient, 'payments', 'anonymous');
-      expect(result.allowed).toBe(false);
+      const result = await runner.testSelect(client, 'payments', 'anonymous');
+      expect(result.rowCount).toBe(0);
     });
 
     it('should be able to SELECT from products (public)', async () => {
-      const result = await runner.testSelect(anonymousClient, 'products', 'anonymous');
+      const result = await runner.testSelect(client, 'products', 'anonymous');
       expect(result.allowed).toBe(true);
     });
 
     it('should be able to SELECT from categories (public)', async () => {
-      const result = await runner.testSelect(anonymousClient, 'categories', 'anonymous');
+      const result = await runner.testSelect(client, 'categories', 'anonymous');
       expect(result.allowed).toBe(true);
     });
 
     it('should NOT be able to INSERT into products', async () => {
-      const result = await runner.testInsert(anonymousClient, 'products', 'anonymous', {
+      const result = await runner.testInsert(client, 'products', 'anonymous', {
         name: 'Test Product',
         price: 100,
         description: 'Test',
@@ -408,53 +367,60 @@ describe('RLS E2E Security Tests', () => {
     });
 
     it('should NOT be able to DELETE from any sensitive table', async () => {
-      const result = await runner.testDelete(anonymousClient, 'products', 'anonymous', { id: -1 });
-      expect(result.allowed).toBe(false);
+      const result = await runner.testDelete(client, 'products', 'anonymous', { id: -1 });
+      expect(result.rowCount ?? 0).toBe(0);
     });
   });
 
   // Authenticated regular user tests
   describe('Authenticated Regular User Access', () => {
+    beforeAll(async () => {
+      regularUserId = await signInClient(client, TEST_USERS.regular.email, TEST_USERS.regular.password);
+    });
+    afterAll(async () => {
+      await client.auth.signOut();
+    });
+
     it('should be able to SELECT own profile only', async () => {
-      if (!regularUserClient || !regularUserId) {
+      if (!regularUserId) {
         console.warn('Skipping: regular user not authenticated');
         return;
       }
 
-      const result = await runner.testSelect(regularUserClient, 'profiles', 'regular_user');
+      const result = await runner.testSelect(client, 'profiles', 'regular_user');
       expect(result.allowed).toBe(true);
       // Should only see own profile
       expect(result.rowCount).toBeLessThanOrEqual(1);
     });
 
     it('should NOT be able to SELECT from contact_messages', async () => {
-      if (!regularUserClient) {
+      if (!regularUserId) {
         console.warn('Skipping: regular user not authenticated');
         return;
       }
 
-      const result = await runner.testSelect(regularUserClient, 'contact_messages', 'regular_user');
+      const result = await runner.testSelect(client, 'contact_messages', 'regular_user');
       // Should be denied or return empty
       expect(result.rowCount).toBe(0);
     });
 
     it('should NOT be able to SELECT from audit_logs', async () => {
-      if (!regularUserClient) {
+      if (!regularUserId) {
         console.warn('Skipping: regular user not authenticated');
         return;
       }
 
-      const result = await runner.testSelect(regularUserClient, 'audit_logs', 'regular_user');
+      const result = await runner.testSelect(client, 'audit_logs', 'regular_user');
       expect(result.rowCount).toBe(0);
     });
 
     it('should NOT be able to INSERT into products', async () => {
-      if (!regularUserClient) {
+      if (!regularUserId) {
         console.warn('Skipping: regular user not authenticated');
         return;
       }
 
-      const result = await runner.testInsert(regularUserClient, 'products', 'regular_user', {
+      const result = await runner.testInsert(client, 'products', 'regular_user', {
         name: 'Test Product',
         price: 100,
         description: 'Test',
@@ -468,12 +434,12 @@ describe('RLS E2E Security Tests', () => {
     });
 
     it('should be able to SELECT own orders only', async () => {
-      if (!regularUserClient) {
+      if (!regularUserId) {
         console.warn('Skipping: regular user not authenticated');
         return;
       }
 
-      const result = await runner.testSelect(regularUserClient, 'orders', 'regular_user');
+      const result = await runner.testSelect(client, 'orders', 'regular_user');
       expect(result.allowed).toBe(true);
       // All returned orders should belong to this user (verified by RLS)
     });
@@ -481,46 +447,55 @@ describe('RLS E2E Security Tests', () => {
 
   // Admin user tests
   describe('Admin User Access', () => {
+    let adminAuthenticated = false;
+    beforeAll(async () => {
+      await client.auth.signOut();
+      adminAuthenticated = (await signInClient(client, TEST_USERS.admin.email, TEST_USERS.admin.password)) !== null;
+    });
+    afterAll(async () => {
+      await client.auth.signOut();
+    });
+
     it('should be able to SELECT from products', async () => {
-      if (!adminClient) {
+      if (!adminAuthenticated) {
         console.warn('Skipping: admin user not authenticated');
         return;
       }
 
-      const result = await runner.testSelect(adminClient, 'products', 'admin');
+      const result = await runner.testSelect(client, 'products', 'admin');
       expect(result.allowed).toBe(true);
     });
 
     it('should NOT be able to SELECT from contact_messages (super_admin only)', async () => {
-      if (!adminClient) {
+      if (!adminAuthenticated) {
         console.warn('Skipping: admin user not authenticated');
         return;
       }
 
-      const result = await runner.testSelect(adminClient, 'contact_messages', 'admin');
+      const result = await runner.testSelect(client, 'contact_messages', 'admin');
       // Regular admin should NOT be able to see contact messages
       expect(result.rowCount).toBe(0);
     });
 
     it('should NOT be able to SELECT from audit_logs (super_admin only)', async () => {
-      if (!adminClient) {
+      if (!adminAuthenticated) {
         console.warn('Skipping: admin user not authenticated');
         return;
       }
 
-      const result = await runner.testSelect(adminClient, 'audit_logs', 'admin');
+      const result = await runner.testSelect(client, 'audit_logs', 'admin');
       expect(result.rowCount).toBe(0);
     });
 
     it('should be able to UPDATE products', async () => {
-      if (!adminClient) {
+      if (!adminAuthenticated) {
         console.warn('Skipping: admin user not authenticated');
         return;
       }
 
       // Test update with a filter that won't match anything
       const result = await runner.testUpdate(
-        adminClient, 
+        client, 
         'products', 
         'admin',
         { id: -99999 },
@@ -533,54 +508,63 @@ describe('RLS E2E Security Tests', () => {
 
   // Super Admin tests
   describe('Super Admin User Access', () => {
+    let superAdminAuthenticated = false;
+    beforeAll(async () => {
+      await client.auth.signOut();
+      superAdminAuthenticated = (await signInClient(client, TEST_USERS.superAdmin.email, TEST_USERS.superAdmin.password)) !== null;
+    });
+    afterAll(async () => {
+      await client.auth.signOut();
+    });
+
     it('should be able to SELECT from contact_messages', async () => {
-      if (!superAdminClient) {
+      if (!superAdminAuthenticated) {
         console.warn('Skipping: super admin not authenticated');
         return;
       }
 
-      const result = await runner.testSelect(superAdminClient, 'contact_messages', 'super_admin');
+      const result = await runner.testSelect(client, 'contact_messages', 'super_admin');
       expect(result.allowed).toBe(true);
     });
 
     it('should be able to SELECT from audit_logs', async () => {
-      if (!superAdminClient) {
+      if (!superAdminAuthenticated) {
         console.warn('Skipping: super admin not authenticated');
         return;
       }
 
-      const result = await runner.testSelect(superAdminClient, 'audit_logs', 'super_admin');
+      const result = await runner.testSelect(client, 'audit_logs', 'super_admin');
       expect(result.allowed).toBe(true);
     });
 
     it('should be able to SELECT from all admin_users', async () => {
-      if (!superAdminClient) {
+      if (!superAdminAuthenticated) {
         console.warn('Skipping: super admin not authenticated');
         return;
       }
 
-      const result = await runner.testSelect(superAdminClient, 'admin_users', 'super_admin');
+      const result = await runner.testSelect(client, 'admin_users', 'super_admin');
       expect(result.allowed).toBe(true);
     });
 
     it('should NOT be able to DELETE from audit_logs', async () => {
-      if (!superAdminClient) {
+      if (!superAdminAuthenticated) {
         console.warn('Skipping: super admin not authenticated');
         return;
       }
 
-      const result = await runner.testDelete(superAdminClient, 'audit_logs', 'super_admin', { id: 'non-existent' });
+      const result = await runner.testDelete(client, 'audit_logs', 'super_admin', { id: 'non-existent' });
       expect(result.allowed).toBe(false);
     });
 
     it('should NOT be able to UPDATE audit_logs', async () => {
-      if (!superAdminClient) {
+      if (!superAdminAuthenticated) {
         console.warn('Skipping: super admin not authenticated');
         return;
       }
 
       const result = await runner.testUpdate(
-        superAdminClient, 
+        client, 
         'audit_logs', 
         'super_admin',
         { id: 'non-existent' },
@@ -590,26 +574,34 @@ describe('RLS E2E Security Tests', () => {
     });
 
     it('should NOT be able to DELETE from payments', async () => {
-      if (!superAdminClient) {
+      if (!superAdminAuthenticated) {
         console.warn('Skipping: super admin not authenticated');
         return;
       }
 
-      const result = await runner.testDelete(superAdminClient, 'payments', 'super_admin', { id: 'non-existent' });
+      const result = await runner.testDelete(client, 'payments', 'super_admin', { id: 'non-existent' });
       expect(result.allowed).toBe(false);
     });
   });
 
-  // Cross-user access tests
+  // Cross-user access tests (needs regular user session)
   describe('Cross-User Access Prevention', () => {
+    beforeAll(async () => {
+      await client.auth.signOut();
+      regularUserId = await signInClient(client, TEST_USERS.regular.email, TEST_USERS.regular.password);
+    });
+    afterAll(async () => {
+      await client.auth.signOut();
+    });
+
     it('should prevent user from accessing other user profiles', async () => {
-      if (!regularUserClient || !regularUserId) {
+      if (!regularUserId) {
         console.warn('Skipping: regular user not authenticated');
         return;
       }
 
       // Try to access a profile that doesn't belong to the user
-      const { data, error } = await regularUserClient
+      const { data, error } = await client
         .from('profiles')
         .select('*')
         .neq('id', regularUserId) // Try to get OTHER users' profiles
@@ -620,13 +612,13 @@ describe('RLS E2E Security Tests', () => {
     });
 
     it('should prevent user from accessing other user orders', async () => {
-      if (!regularUserClient || !regularUserId) {
+      if (!regularUserId) {
         console.warn('Skipping: regular user not authenticated');
         return;
       }
 
       // RLS should filter to only own orders
-      const { data } = await regularUserClient
+      const { data } = await client
         .from('orders')
         .select('user_id')
         .limit(10);
@@ -667,4 +659,4 @@ describe('RLS E2E Security Tests', () => {
 });
 
 // Export for use in CI/CD
-export { RLSTestRunner, createAuthenticatedClient, createAnonymousClient };
+export { RLSTestRunner, createSharedClient, signInClient };

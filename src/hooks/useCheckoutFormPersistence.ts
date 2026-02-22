@@ -75,11 +75,24 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
   const [savedCompletedSteps, setSavedCompletedSteps] = useState<number[]>([]);
   const [savedCoupon, setSavedCoupon] = useState<SavedCoupon | null>(null);
   const hasInitialized = useRef(false);
+  const previousUserId = useRef<string | undefined>(undefined);
 
-  // Load data on mount - first from cache, then from profile if logged in
+  // Load data on mount — and re-merge if user signs in mid-checkout
   useEffect(() => {
-    if (hasInitialized.current) return;
+    const userId = user?.id;
+    const userChanged = userId !== previousUserId.current;
+    previousUserId.current = userId;
+
+    if (hasInitialized.current && !userChanged) return;
     hasInitialized.current = true;
+
+    // Safety timeout: never block checkout for more than 3 seconds
+    const safetyTimeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn('[useCheckoutFormPersistence] Loading timed out, rendering form');
+        setIsLoading(false);
+      }
+    }, 3000);
 
     const loadFormData = async () => {
       setIsLoading(true);
@@ -252,9 +265,12 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
       });
 
       setIsLoading(false);
+      clearTimeout(safetyTimeout);
     };
 
     loadFormData();
+
+    return () => clearTimeout(safetyTimeout);
   }, [user]);
 
   // Save form data to localStorage (persists across redirects like Stripe)

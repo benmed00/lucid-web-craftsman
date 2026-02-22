@@ -44,18 +44,24 @@ export const useAdminAuth = () => {
       currentUserIdRef.current = user.id;
 
       try {
+        console.log('[useAdminAuth] Checking admin status for user:', user.id);
+        
         // Use server-side verification function (cannot be spoofed via DevTools)
         const { data: verifyResult, error: verifyError } = await supabase
           .rpc('verify_admin_session');
 
+        console.log('[useAdminAuth] RPC result:', { verifyResult, verifyError });
+
         if (verifyError) {
-          console.error('Error verifying admin session:', verifyError);
+          console.error('[useAdminAuth] Error verifying admin session:', verifyError);
           // Fallback to direct query if RPC fails
           const { data: adminProfile, error } = await supabase
             .from('admin_users')
             .select('*')
             .eq('user_id', user.id)
             .single();
+
+          console.log('[useAdminAuth] Fallback query result:', { adminProfile, error });
 
           if (error || !adminProfile) {
             setAdminUser(null);
@@ -74,6 +80,7 @@ export const useAdminAuth = () => {
         } else if (verifyResult && verifyResult.length > 0 && verifyResult[0].is_admin) {
           // Server verified admin status - this is secure
           const result = verifyResult[0];
+          console.log('[useAdminAuth] Admin verified:', result);
           
           // Fetch full admin profile for additional details
           const { data: adminProfile } = await supabase
@@ -99,6 +106,7 @@ export const useAdminAuth = () => {
             .eq('user_id', user.id);
         } else {
           // Server verified: not an admin
+          console.log('[useAdminAuth] User is not an admin');
           setAdminUser(null);
           setIsAuthenticated(false);
         }

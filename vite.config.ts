@@ -11,6 +11,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      "/api": { target: "http://localhost:3001", changeOrigin: true },
+      "/health": { target: "http://localhost:3001", changeOrigin: true },
+    },
     headers: {
       // Security headers for development - no X-Frame-Options to allow Lovable preview
       'X-Content-Type-Options': 'nosniff',

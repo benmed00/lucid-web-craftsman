@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Sheet,
   SheetContent,
@@ -25,19 +26,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OrderStatusBadge } from '@/components/admin/orders/OrderStatusBadge';
 import { OrderDetailsPanel } from '@/components/admin/orders/OrderDetailsPanel';
 import { OrderStatsCards, AttentionBanner } from '@/components/admin/orders/OrderStatsCards';
 import { OrderAnomaliesList } from '@/components/admin/orders/OrderAnomaliesList';
+import { CheckoutSessionsTab } from '@/components/admin/orders/CheckoutSessionsTab';
 import { useOrders, useOrderRealtimeUpdates } from '@/hooks/useOrderManagement';
 import { ORDER_STATUS_CONFIG, type OrderStatus, type OrderFilters } from '@/types/order.types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AddOrderDialog } from '@/components/admin/AddOrderDialog';
+import { ManualTestOrderStatus } from '@/components/admin/ManualTestOrderStatus';
+import { TestOrderEmailButton } from '@/components/admin/TestOrderEmailButton';
+import { TestShippingEmailButton } from '@/components/admin/TestShippingEmailButton';
+import { TestDeliveryEmailButton } from '@/components/admin/TestDeliveryEmailButton';
+import { TestCancellationEmailButton } from '@/components/admin/TestCancellationEmailButton';
+import TablePagination from '@/components/admin/TablePagination';
+import { usePagination } from '@/hooks/usePagination';
 import {
   Search,
-  Filter,
   AlertTriangle,
   RefreshCw,
   X,
+  MoreVertical,
+  Mail,
+  Plus,
+  TestTube2,
+  ShoppingCart,
+  Package,
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -90,35 +114,88 @@ export default function AdminOrdersEnhanced() {
 
   const hasActiveFilters = Object.values(filters).some(v => v !== undefined);
 
+  // Pagination
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems: paginatedOrders,
+    startIndex,
+    endIndex,
+    totalItems,
+    itemsPerPage,
+    goToPage,
+    setItemsPerPage,
+  } = usePagination({ items: orders, itemsPerPage: 15 });
+
   return (
     <div className="space-y-6 p-6">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">Gestion des Commandes</h1>
             <p className="text-muted-foreground">
               Suivi complet du cycle de vie des commandes
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              refetch();
-              queryClient.invalidateQueries({ queryKey: ['order-stats'] });
-            }}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Actualiser
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <AddOrderDialog onOrderAdded={() => refetch()} />
+            
+            {/* Email Testing Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <TestTube2 className="h-4 w-4 mr-2" />
+                  Tests Emails
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-popover border shadow-lg">
+                <DropdownMenuLabel>Tests d'emails</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <div className="p-2 space-y-2">
+                  <TestOrderEmailButton />
+                  <TestShippingEmailButton />
+                  <TestDeliveryEmailButton />
+                  <TestCancellationEmailButton />
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <ManualTestOrderStatus />
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                refetch();
+                queryClient.invalidateQueries({ queryKey: ['order-stats'] });
+              }}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Actualiser
+            </Button>
+          </div>
         </div>
 
-        {/* Attention Banner */}
-        <AttentionBanner />
+        {/* Main Tabs: Orders vs Checkout Sessions */}
+        <Tabs defaultValue="orders" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="orders" className="gap-2">
+              <Package className="h-4 w-4" />
+              Commandes
+            </TabsTrigger>
+            <TabsTrigger value="checkouts" className="gap-2">
+              <ShoppingCart className="h-4 w-4" />
+              Sessions Checkout
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Stats Cards */}
-        <OrderStatsCards />
+          <TabsContent value="orders" className="space-y-6">
+            {/* Attention Banner */}
+            <AttentionBanner />
+
+            {/* Stats Cards */}
+            <OrderStatsCards />
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4">
@@ -188,7 +265,7 @@ export default function AdminOrdersEnhanced() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orders.map((order) => (
+                    {paginatedOrders.map((order) => (
                       <TableRow
                         key={order.id}
                         className={`cursor-pointer hover:bg-muted/50 ${
@@ -237,7 +314,7 @@ export default function AdminOrdersEnhanced() {
                       </TableRow>
                     ))}
 
-                    {orders.length === 0 && (
+                    {paginatedOrders.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                           Aucune commande trouvée
@@ -246,6 +323,22 @@ export default function AdminOrdersEnhanced() {
                     )}
                   </TableBody>
                 </Table>
+              )}
+              
+              {/* Pagination */}
+              {!isLoading && orders.length > 0 && (
+                <div className="px-4 border-t">
+                  <TablePagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    startIndex={startIndex}
+                    endIndex={endIndex}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={goToPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -270,6 +363,13 @@ export default function AdminOrdersEnhanced() {
             )}
           </SheetContent>
         </Sheet>
+          </TabsContent>
+
+          {/* Checkout Sessions Tab */}
+          <TabsContent value="checkouts">
+            <CheckoutSessionsTab />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

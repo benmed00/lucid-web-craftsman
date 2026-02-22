@@ -63,9 +63,17 @@
         "sarah": "Customer service was fantastic and delivery was very fast. Highly recommend!"
       }
     },
+    "heroImage": {
+      "alt": "Authentic Rif craftsmanship — handmade hats and bags",
+      "fallback": "Image unavailable",
+      "title": "Authentic Rif Craftsmanship",
+      "subtitle": "Hand-woven hat and natural bag — Made with love"
+    },
     "instagram": {
       "follow": "@rifrawstraw",
-      "title": "Follow us on Instagram"
+      "title": "Follow us on Instagram",
+      "postAlt": "Instagram post #{{id}}",
+      "imageUnavailable": "Image unavailable"
     }
   },
 
@@ -269,6 +277,52 @@
     "contact": "For any questions, please contact us via the"
   },
 
+  "termsOfService": {
+    "title": "Terms of Service",
+    "seo": {
+      "title": "Terms of Service - Rif Raw Straw",
+      "description": "Terms of service for the Rif Raw Straw website. Discover the rules governing the use of our services."
+    },
+    "heading": "Terms of Service",
+    "intro": "These terms of service govern your access and use of the Rif Raw Straw website. By accessing our site, you agree to be bound by these terms.",
+    "lastUpdated": "Last updated",
+    "sections": {
+      "acceptance": {
+        "title": "Acceptance of Terms",
+        "content": "By accessing this website, you agree to be bound by these terms of use, all applicable laws and regulations, and you agree that you are responsible for compliance with any applicable local laws. If you do not agree with any of these terms, you are prohibited from using or accessing this site."
+      },
+      "eligibility": {
+        "title": "Eligibility",
+        "content": "This site is intended for persons who are at least 18 years old. By using this site, you represent and warrant that you are at least 18 years old and have the legal capacity to enter into a binding contract."
+      },
+      "account": {
+        "title": "User Account",
+        "content": "To access certain features of the site, you may need to create an account. You are responsible for maintaining the confidentiality of your account and password, and for accepting responsibility for all activities that occur under your account. You must notify us immediately of any unauthorized use of your account."
+      },
+      "intellectualProperty": {
+        "title": "Intellectual Property",
+        "content": "All content on this site, including but not limited to text, graphics, logos, images, audio clips, digital downloads, and data compilations, is the property of Rif Raw Straw or its content providers and is protected by French and international copyright laws."
+      },
+      "prohibitedUse": {
+        "title": "Prohibited Uses",
+        "content": "You agree not to use the site for any unlawful purpose or any purpose prohibited by these terms. This includes, but is not limited to: reproducing, distributing, or modifying content without permission, using robots or automated tools to access the site, transmitting viruses or malicious code, and any attempt to compromise the security of the site."
+      },
+      "privacy": {
+        "title": "Privacy and Data Protection",
+        "content": "Your use of this site is also governed by our Privacy Policy. We are committed to protecting your personal data in accordance with the General Data Protection Regulation (GDPR) and applicable data protection laws."
+      },
+      "jurisdiction": {
+        "title": "Applicable Law and Jurisdiction",
+        "content": "These terms are governed by and construed in accordance with French law, without regard to principles of conflicts of law. Any dispute arising from these terms will be subject to the exclusive jurisdiction of the French courts."
+      }
+    },
+    "contact": {
+      "title": "Have Questions?",
+      "description": "If you have any questions regarding these terms of service, please feel free to contact us."
+    }
+  },
+
+
   "faq": {
     "title": "Frequently Asked Questions",
     "seo": {
@@ -319,6 +373,12 @@
     },
     "heading": "Our Story",
     "content": "Born from a passion for Berber culture, Rif Raw Straw works directly with artisans to preserve ancestral know-how."
+  },
+
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist.",
+    "backHome": "Back to home"
   },
 
   "contact": {
@@ -405,7 +465,7 @@
       "message": "Message",
       "messageRequired": "Message *",
       "messagePlaceholder": "Describe your request in detail",
-      "characters": "0/2000 characters",
+      "characters": "characters",
       "minCharacters": "The message must contain at least 20 characters.",
 
       "privacy": "I agree to the privacy policy and the processing of my personal data.",
@@ -416,6 +476,169 @@
     "map": {
       "title": "Our location",
       "description": "Find us easily using the map below."
+    }
+  },
+
+  "paymentSuccess": {
+    "verifying": {
+      "title": "Verifying your payment...",
+      "description": "Please wait while we confirm your transaction."
+    },
+    "success": {
+      "title": "Payment Successful!",
+      "thanks": "Thank you for your order!",
+      "verified": "Your payment has been verified.",
+      "transactionId": "Transaction ID",
+      "orderId": "Order ID",
+      "confirmed": "Your order has been confirmed!"
+    },
+    "error": {
+      "title": "Payment Verification Failed",
+      "description": "We couldn't verify your payment. Please contact support."
+    },
+    "errors": {
+      "missingSession": "Missing payment session. Please try again.",
+      "verificationError": "An error occurred while verifying your payment.",
+      "verificationFailed": "Payment verification failed.",
+      "unexpectedError": "An unexpected error occurred."
+    },
+    "nextSteps": {
+      "title": "What's Next?",
+      "step1": {
+        "title": "Confirmation Email",
+        "description": "You will receive an order confirmation email shortly."
+      },
+      "step2": {
+        "title": "Order Preparation",
+        "description": "Our artisans will prepare your order with care."
+      },
+      "step3": {
+        "title": "Shipping",
+        "description": "You will receive a tracking number once shipped."
+      }
+    },
+    "help": {
+      "title": "Need Help?",
+      "description": "If you have any questions about your order, don't hesitate to contact us."
+    },
+    "invoice": {
+      "download": "Download Invoice",
+      "title": "Invoice",
+      "orderNumber": "Order #",
+      "date": "Date",
+      "billTo": "Bill to",
+      "product": "Product",
+      "qty": "Qty",
+      "unitPrice": "Unit Price",
+      "total": "Total",
+      "subtotal": "Subtotal",
+      "shipping": "Shipping",
+      "discount": "Discount",
+      "grandTotal": "Grand Total",
+      "thankYou": "Thank you for your order!",
+      "company": "Rif Raw Straw",
+      "freeShipping": "Free"
+    }
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your personal information and preferences",
+    "buttons": {
+      "home": "Home",
+      "signOut": "Sign Out",
+      "deleteAccount": "Delete Account"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "overviewShort": "Profile",
+      "personal": "Personal Info",
+      "personalShort": "Info",
+      "loyalty": "Loyalty Program",
+      "loyaltyShort": "Loyalty",
+      "preferences": "Preferences",
+      "preferencesShort": "Prefs",
+      "orders": "My Orders",
+      "ordersShort": "Orders"
+    },
+    "deleteDialog": {
+      "title": "Delete your account?",
+      "description": "This action is irreversible. All your personal data, orders, and preferences will be permanently deleted.",
+      "cancel": "Cancel",
+      "confirm": "Delete permanently"
+    },
+    "messages": {
+      "loadError": "Error loading profile",
+      "createError": "Error creating profile",
+      "deleteSuccess": "Your account has been successfully deleted",
+      "deleteError": "Error deleting account",
+      "signOutError": "Error signing out"
+    },
+    "footer": {
+      "contact": "Contact",
+      "importantLinks": "Important Links",
+      "legal": "Legal",
+      "terms": "Terms of Use",
+      "cgv": "Terms of Sale",
+      "privacy": "Privacy Policy",
+      "legalNotices": "Legal Notices",
+      "cookies": "Cookie Policy",
+    "copyright": "© 2026 Rif Raw Straw. All rights reserved."
+    }
+  },
+  "wishlist": {
+    "title": "My Wishlist",
+    "loginRequired": "Please sign in to view and manage your wishlist.",
+    "empty": "Your wishlist is empty",
+    "emptyMessage": "Browse our collection and add your favorite items to your wishlist.",
+    "itemCount": "{{count}} item(s)",
+    "remove": "Remove from wishlist"
+  },
+  "orders": {
+    "title": "My Orders",
+    "subtitle": "Track and manage your orders",
+    "refresh": "Refresh",
+    "empty": {
+      "title": "No orders yet",
+      "description": "You haven't placed any orders yet. Start shopping to see your orders here.",
+      "cta": "Browse Products"
+    },
+    "loginRequired": {
+      "title": "Login Required",
+      "description": "Please sign in to view your order history."
+    },
+    "orderNumber": "Order #{{id}}",
+    "articles": "{{count}} item(s)",
+    "viewDetails": "View Details",
+    "status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded"
+    },
+    "statusDescription": {
+      "pending": "Your order is awaiting payment confirmation.",
+      "paid": "Payment received. Your order will be processed shortly.",
+      "processing": "Your order is being prepared by our artisans.",
+      "shipped": "Your order is on its way!",
+      "delivered": "Your order has been delivered.",
+      "cancelled": "This order has been cancelled.",
+      "refunded": "This order has been refunded."
+    },
+    "details": {
+      "orderedItems": "Ordered Items",
+      "product": "Product",
+      "total": "Total",
+      "orderStatus": "Order Status",
+      "sessionId": "Session ID",
+      "deliveryInfo": "Delivery Information",
+      "deliveredMessage": "Your order has been delivered successfully.",
+      "inTransitMessage": "Your order is currently in transit."
+    },
+    "messages": {
+      "loadError": "Error loading orders"
     }
   }
 }

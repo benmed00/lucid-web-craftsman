@@ -10,6 +10,7 @@
     <!-- Security Headers - Note: frame-ancestors only works via HTTP headers, not meta tags -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
+      manifest-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://cdn.gpteng.co https://m.stripe.network blob:;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       img-src 'self' data: blob: https: http:;
@@ -39,6 +40,8 @@
     <link rel="preconnect" href="https://js.stripe.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://api.frankfurter.app" crossorigin>
+    <link rel="dns-prefetch" href="//api.frankfurter.app">
     
     <!-- Load Google Fonts asynchronously to prevent render-blocking -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -55,8 +58,6 @@
     <!-- Styles are handled by Vite via imports in src/main.tsx; removing custom loader to avoid MIME issues in production. -->
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/favicon.png" type="image/png" />
-    <!-- Preload critical LCP image with highest priority -->
-    <link rel="preload" href="/assets/images/home_page_image.webp" as="image" type="image/webp" fetchpriority="high" imagesizes="(max-width: 768px) 100vw, 632px">
     
     <title>Rif Raw Straw - Artisanat Berbère Authentique</title>
     <meta name="description" content="Découvrez notre collection unique d'accessoires berbères, confectionnés à la main par des artisans passionnés." />
@@ -76,34 +77,7 @@
   <body>
     <div id="root"></div>
     
-    <!-- Optimized Service Worker registration for better TTI -->
-    <script>
-      // Defer service worker registration to not block TTI
-      window.addEventListener('load', function() {
-        // Additional delay to ensure TTI is not impacted
-        setTimeout(function() {
-          if ('serviceWorker' in navigator && 'caches' in window) {
-            // Clean up old caches first
-            caches.keys().then(function(names) {
-              for (let name of names) {
-                if (name.includes('v1') || name.includes('old')) {
-                  caches.delete(name);
-                }
-              }
-            });
-            
-            // Register service worker
-            navigator.serviceWorker.register('/sw.js')
-              .then(function(registration) {
-                console.log('ServiceWorker registered');
-              })
-              .catch(function(error) {
-                console.log('ServiceWorker registration failed');
-              });
-          }
-        }, 1000); // Delay to ensure TTI is not blocked
-      });
-    </script>
+    <!-- Service Worker is registered via src/utils/cacheOptimization.ts (single registration path) -->
     
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <!-- Google Analytics Configuration Override -->
@@ -134,7 +108,7 @@
         value: null
       });
       
-      // Enhanced fetch interceptor with task scheduling for better TBT
+      // Enhanced fetch interceptor - block only problematic requests without adding scheduling overhead
       if ('fetch' in window) {
         const originalFetch = window.fetch;
         window.fetch = function(...args) {
@@ -151,52 +125,11 @@
               return Promise.resolve(new Response('{}', { status: 204 }));
             }
           }
-          
-          // Schedule network requests to avoid blocking main thread
-          return new Promise((resolve) => {
-            const scheduleRequest = () => {
-              originalFetch.apply(this, args).then(resolve).catch(resolve);
-            };
-            
-            // Use MessageChannel for faster scheduling if available
-            if (typeof MessageChannel !== 'undefined') {
-              const channel = new MessageChannel();
-              channel.port2.onmessage = scheduleRequest;
-              channel.port1.postMessage(null);
-            } else {
-              setTimeout(scheduleRequest, 0);
-            }
-          });
+          return originalFetch.apply(this, args);
         };
       }
 
-      // Optimized postMessage handling to reduce TBT
-      const originalPostMessage = window.postMessage;
-      let postMessageCount = 0;
-      const postMessageLimit = 10;
-      const resetInterval = 1000; // 1 second
-      
-      window.postMessage = function(...args) {
-        postMessageCount++;
-        if (postMessageCount > postMessageLimit) {
-          // Silently drop excessive postMessage calls
-          return;
-        }
-        
-        // Schedule postMessage to avoid blocking
-        if (typeof MessageChannel !== 'undefined') {
-          const channel = new MessageChannel();
-          channel.port2.onmessage = () => originalPostMessage.apply(this, args);
-          channel.port1.postMessage(null);
-        } else {
-          setTimeout(() => originalPostMessage.apply(this, args), 0);
-        }
-      };
-      
-      // Reset counter periodically
-      setInterval(() => {
-        postMessageCount = 0;
-      }, resetInterval);
+      // Removed postMessage throttler - was adding overhead and causing issues with legitimate messages
 
       // Suppress feature detection warnings
       const originalConsoleWarn = console.warn;

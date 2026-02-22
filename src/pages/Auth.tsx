@@ -107,12 +107,35 @@ export default function Auth() {
       }
 
       setIsLoading(true);
-      await signUp(sanitizedEmail, password, sanitizedFullName, phone || undefined);
-      toast({
-        title: t('auth:messages.accountCreated'),
-        description: t('auth:messages.welcome')
-      });
+      const result = await signUp(sanitizedEmail, password, sanitizedFullName, phone || undefined);
+      
+      // Detect duplicate email: Supabase returns user with empty identities array
+      // when "Confirm email" is ON and email already exists (to prevent email enumeration)
+      if (result.user && result.user.identities && result.user.identities.length === 0) {
+        toast({
+          title: t('auth:errors.emailAlreadyUsed', 'Email déjà utilisé'),
+          description: t('auth:errors.emailAlreadyUsedDescription', 'Un compte avec cet email existe déjà. Essayez de vous connecter.'),
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Handle email confirmation flow: session is null when confirm email is ON
+      if (result.user && !result.session) {
+        toast({
+          title: t('auth:messages.confirmEmail', 'Vérifiez votre email'),
+          description: t('auth:messages.confirmEmailDescription', 'Un lien de confirmation a été envoyé à votre adresse email. Veuillez cliquer dessus pour activer votre compte.'),
+          duration: 10000,
+        });
+      } else {
+        // Email confirmation OFF: session returned immediately
+        toast({
+          title: t('auth:messages.accountCreated'),
+          description: t('auth:messages.welcome')
+        });
+      }
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast({
         title: t('auth:errors.networkError'),
         description: error.message || t('auth:errors.networkError'),
@@ -408,6 +431,7 @@ export default function Auth() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
+                          minLength={8}
                           className="border-border focus:border-primary focus:ring-primary/20 bg-card/80 py-6 pr-12"
                         />
                         <Button
@@ -419,6 +443,21 @@ export default function Auth() {
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
+                      </div>
+                      {/* Password requirements */}
+                      <div className="text-xs text-muted-foreground space-y-1 mt-1 pl-1">
+                        <p className={password.length >= 8 ? 'text-green-600' : ''}>
+                          {password.length >= 8 ? '✓' : '○'} {t('auth:register.passwordRules.minLength', 'Au moins 8 caractères')}
+                        </p>
+                        <p className={/[A-Z]/.test(password) ? 'text-green-600' : ''}>
+                          {/[A-Z]/.test(password) ? '✓' : '○'} {t('auth:register.passwordRules.uppercase', 'Une lettre majuscule')}
+                        </p>
+                        <p className={/[a-z]/.test(password) ? 'text-green-600' : ''}>
+                          {/[a-z]/.test(password) ? '✓' : '○'} {t('auth:register.passwordRules.lowercase', 'Une lettre minuscule')}
+                        </p>
+                        <p className={/[0-9]/.test(password) ? 'text-green-600' : ''}>
+                          {/[0-9]/.test(password) ? '✓' : '○'} {t('auth:register.passwordRules.number', 'Un chiffre')}
+                        </p>
                       </div>
                     </div>
                     <div className="space-y-2">

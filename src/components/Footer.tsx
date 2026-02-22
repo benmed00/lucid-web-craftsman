@@ -26,7 +26,7 @@ const Footer = () => {
             <h3 className="font-serif text-base sm:text-lg font-medium mb-3 sm:mb-4">
               {t('nav.shop')}
             </h3>
-            <ul className="space-y-1.5 sm:space-y-2" role="list">
+            <ul className="space-y-1.5 sm:space-y-2">
               <li>
                 <a 
                   href="/products" 
@@ -40,7 +40,6 @@ const Footer = () => {
                 <a 
                   href="/products?category=Sacs" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
-                  aria-label={t('footer.bagsAria')}
                 >
                   {t('footer.bags')}
                 </a>
@@ -49,7 +48,6 @@ const Footer = () => {
                 <a 
                   href="/products?category=Chapeaux" 
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
-                  aria-label={t('footer.hatsAria')}
                 >
                   {t('footer.hats')}
                 </a>
@@ -61,7 +59,7 @@ const Footer = () => {
             <h3 className="font-serif text-base sm:text-lg font-medium mb-3 sm:mb-4">
               {t('footer.about')}
             </h3>
-            <ul className="space-y-1.5 sm:space-y-2" role="list">
+            <ul className="space-y-1.5 sm:space-y-2">
               <li>
                 <a 
                   href="/about" 
@@ -87,7 +85,7 @@ const Footer = () => {
             <h3 className="font-serif text-base sm:text-lg font-medium mb-3 sm:mb-4">
               {t('footer.help')}
             </h3>
-            <ul className="space-y-1.5 sm:space-y-2" role="list">
+            <ul className="space-y-1.5 sm:space-y-2">
               <li>
                 <a 
                   href="/contact" 
@@ -131,6 +129,15 @@ const Footer = () => {
                   aria-label={t('footer.cgvAria')}
                 >
                   {t('footer.cgv')}
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="/terms-of-service" 
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
+                  aria-label={t('footer.termsOfServiceAria')}
+                >
+                  {t('footer.termsOfService')}
                 </a>
               </li>
             </ul>

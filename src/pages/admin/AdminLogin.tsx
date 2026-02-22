@@ -74,9 +74,21 @@ const AdminLogin = () => {
   };
 
   // Handle admin check after successful login
+  // We track if we've just submitted the form and are waiting for admin verification
+  const [pendingAdminCheck, setPendingAdminCheck] = useState(false);
+  
   useEffect(() => {
-    if (user && !adminLoading && isLoading) {
+    // When login form is submitted successfully, mark that we're waiting for admin check
+    if (user && isLoading && !pendingAdminCheck) {
+      setPendingAdminCheck(true);
       setIsLoading(false);
+    }
+  }, [user, isLoading, pendingAdminCheck]);
+
+  useEffect(() => {
+    // Only evaluate admin status after the admin check has completed
+    if (pendingAdminCheck && !adminLoading) {
+      setPendingAdminCheck(false);
       
       if (isAdminAuthenticated) {
         toast.success('Connexion administrateur réussie!');
@@ -85,7 +97,7 @@ const AdminLogin = () => {
         toast.error('Accès refusé. Ce compte n\'a pas les privilèges administrateur.');
       }
     }
-  }, [user, adminLoading, isAdminAuthenticated, navigate, isLoading]);
+  }, [pendingAdminCheck, adminLoading, isAdminAuthenticated, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-beige-50 to-olive-50 flex items-center justify-center p-4">

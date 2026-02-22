@@ -2,8 +2,45 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://xcvlijchkmhjonhfildm.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdmxpamNoa21oam9uaGZpbGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2MDY3MDEsImV4cCI6MjA2MzE4MjcwMX0.3_FZWbV4qCqs1xQmh0Hws83xQxofSApzVRScSCEi9Pg";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  throw new Error(
+    'Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in your .env file.'
+  );
+}
+
+// Guest session key constant
+const GUEST_SESSION_KEY = 'guest_session';
+
+/**
+ * Get the current guest ID from storage (if exists)
+ * This is called DYNAMICALLY on each request via the fetch wrapper,
+ * NOT frozen at init time — prevents 42501 RLS errors.
+ */
+const getGuestId = (): string => {
+  try {
+    const raw = localStorage.getItem(GUEST_SESSION_KEY);
+    if (raw) {
+      const session = JSON.parse(raw);
+      // Support all storage formats:
+      // - Direct: { guestId: "..." } or { guest_id: "..." }
+      // - safeStorage wrapper: { data: { guestId: "..." }, timestamp: ..., ttl: ... }
+      // - Legacy wrapper: { value: { guestId: "..." } }
+      const id = session?.guestId
+        || session?.guest_id
+        || session?.data?.guestId
+        || session?.data?.guest_id
+        || session?.value?.guestId
+        || session?.value?.guest_id;
+      if (id) return id;
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return '';
+};
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
@@ -13,5 +50,27 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-  }
+  },
+  global: {
+    // Use a function to dynamically resolve x-guest-id on EVERY request
+    // Prevents 42501 RLS errors when guest ID wasn't yet generated
+    fetch: (url: RequestInfo | URL, options?: RequestInit) => {
+      const guestId = getGuestId();
+      const headers = new Headers(options?.headers);
+      if (guestId) {
+        headers.set('x-guest-id', guestId);
+      }
+      return fetch(url, { ...options, headers });
+    },
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 2,
+    },
+    timeout: 30000,
+    heartbeatIntervalMs: 30000,
+  },
 });
+
+// NOTE: createGuestClient was REMOVED to prevent "Multiple GoTrueClient instances" warnings.
+// The main `supabase` client already resolves x-guest-id dynamically on every request

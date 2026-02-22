@@ -58,7 +58,7 @@ export function getStorageQuota(): { used: number; remaining: number; total: num
   
   try {
     for (const key in localStorage) {
-      if (localStorage.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
         used += localStorage[key].length * 2; // UTF-16 = 2 bytes per char
       }
     }

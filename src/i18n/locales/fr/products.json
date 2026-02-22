@@ -136,5 +136,111 @@
     "minRating": "Note minimum",
     "artisans": "Artisans",
     "inStockOnly": "En stock uniquement"
+  },
+  "productDetail": {
+    "reviews": "avis",
+    "recommendations": "Produits similaires",
+    "seo": {
+      "handmadeBy": "fabriqué par",
+      "berberCraft": "artisanat berbère",
+      "handmade": "fait main",
+      "naturalFibers": "fibres naturelles"
+    },
+    "error": {
+      "missingId": "ID du produit manquant",
+      "invalidId": "ID de produit invalide",
+      "notFound": "Produit non trouvé",
+      "loadError": "Erreur lors du chargement du produit",
+      "description": "Le produit que vous recherchez n'existe pas ou a été supprimé.",
+      "back": "Retour",
+      "viewAll": "Voir tous les produits",
+      "cartError": "Erreur lors de l'ajout au panier"
+    },
+    "cart": {
+      "added": "ajouté au panier",
+      "add": "Ajouter au panier",
+      "outOfStock": "Rupture de stock"
+    },
+    "share": {
+      "brandName": "Rif Raw Straw",
+      "shareText": "Découvrez {{name}} - artisanat berbère authentique",
+      "copied": "Lien copié !",
+      "error": "Erreur lors du partage",
+      "title": "Partager ce produit",
+      "description": "Partagez ce produit avec vos amis",
+      "copy": "Copier le lien"
+    },
+    "breadcrumb": {
+      "home": "Accueil",
+      "shop": "Boutique"
+    },
+    "images": {
+      "ariaLabel": "Galerie d'images du produit",
+      "view": "voir",
+      "of": "sur",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "viewImage": "Voir l'image",
+      "thumbnail": "miniature",
+      "enlarged": "Vue agrandie",
+      "fullSizeDescription": "Image du produit en taille réelle"
+    },
+    "productInfo": {
+      "ariaLabel": "Informations sur le produit"
+    },
+    "badges": {
+      "new": "Nouveau",
+      "favorite": "Favori"
+    },
+    "price": {
+      "vatIncluded": "TTC"
+    },
+    "description": {
+      "showMore": "Voir plus",
+      "showLess": "Voir moins"
+    },
+    "quantity": {
+      "decrease": "Diminuer la quantité",
+      "increase": "Augmenter la quantité"
+    },
+    "stock": {
+      "inStock": "En stock",
+      "available": "disponible(s)",
+      "outOfStock": "Rupture de stock"
+    },
+    "shipping": {
+      "free": "Livraison gratuite",
+      "freeFrom": "Livraison gratuite dès 80€ d'achat"
+    },
+    "tabs": {
+      "details": "Description",
+      "specs": "Caractéristiques",
+      "care": "Entretien",
+      "shipping": "Livraison"
+    },
+    "detailsTab": {
+      "title": "Description du produit"
+    },
+    "specsTab": {
+      "title": "Caractéristiques",
+      "material": "Matériau",
+      "color": "Couleur",
+      "dimensions": "Dimensions",
+      "weight": "Poids",
+      "artisan": "Artisan",
+      "category": "Catégorie"
+    },
+    "careTab": {
+      "title": "Instructions d'entretien"
+    },
+    "shippingTab": {
+      "title": "Informations de livraison",
+      "deliveryTime": "Délai de livraison",
+      "deliveryTimeValue": "3-5 jours ouvrés pour la France métropolitaine",
+      "shippingCost": "Frais de livraison",
+      "shippingCostValue": "Livraison gratuite dès 80€ d'achat",
+      "returns": "Retours",
+      "returnsValue": "Retours gratuits sous 14 jours"
+    }
   }
 }

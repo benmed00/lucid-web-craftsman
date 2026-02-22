@@ -2,6 +2,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import React, { ReactNode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth, cleanupAuthState } from './AuthContext';
 
 // Helper to wait for async state updates
@@ -58,8 +59,14 @@ vi.mock('@/integrations/supabase/client', () => ({
 // Import after mocking
 import { supabase } from '@/integrations/supabase/client';
 
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+});
+
 const wrapper = ({ children }: { children: ReactNode }) => (
-  <AuthProvider>{children}</AuthProvider>
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>{children}</AuthProvider>
+  </QueryClientProvider>
 );
 
 describe('cleanupAuthState', () => {

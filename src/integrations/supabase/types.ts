@@ -104,6 +104,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_admin_users_profile"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles_masked"
+            referencedColumns: ["id"]
+          },
         ]
       }
       app_settings: {
@@ -383,6 +390,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_blog_posts_author"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
+            referencedColumns: ["id"]
+          },
         ]
       }
       cart_items: {
@@ -423,6 +437,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_cart_items_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
             referencedColumns: ["id"]
           },
         ]
@@ -476,6 +497,110 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkout_sessions: {
+        Row: {
+          abandoned_at: string | null
+          browser: string | null
+          cart_items: Json | null
+          client_country: string | null
+          client_ip: string | null
+          completed_at: string | null
+          created_at: string
+          current_step: number
+          device_type: string | null
+          expires_at: string | null
+          guest_id: string | null
+          id: string
+          last_completed_step: number
+          order_id: string | null
+          os: string | null
+          personal_info: Json | null
+          promo_code: string | null
+          promo_code_valid: boolean | null
+          promo_discount_applied: number | null
+          promo_discount_type: string | null
+          promo_discount_value: number | null
+          promo_free_shipping: boolean | null
+          shipping_cost: number | null
+          shipping_info: Json | null
+          status: string
+          subtotal: number | null
+          total: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          abandoned_at?: string | null
+          browser?: string | null
+          cart_items?: Json | null
+          client_country?: string | null
+          client_ip?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          device_type?: string | null
+          expires_at?: string | null
+          guest_id?: string | null
+          id?: string
+          last_completed_step?: number
+          order_id?: string | null
+          os?: string | null
+          personal_info?: Json | null
+          promo_code?: string | null
+          promo_code_valid?: boolean | null
+          promo_discount_applied?: number | null
+          promo_discount_type?: string | null
+          promo_discount_value?: number | null
+          promo_free_shipping?: boolean | null
+          shipping_cost?: number | null
+          shipping_info?: Json | null
+          status?: string
+          subtotal?: number | null
+          total?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          abandoned_at?: string | null
+          browser?: string | null
+          cart_items?: Json | null
+          client_country?: string | null
+          client_ip?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          device_type?: string | null
+          expires_at?: string | null
+          guest_id?: string | null
+          id?: string
+          last_completed_step?: number
+          order_id?: string | null
+          os?: string | null
+          personal_info?: Json | null
+          promo_code?: string | null
+          promo_code_valid?: boolean | null
+          promo_discount_applied?: number | null
+          promo_discount_type?: string | null
+          promo_discount_value?: number | null
+          promo_free_shipping?: boolean | null
+          shipping_cost?: number | null
+          shipping_info?: Json | null
+          status?: string
+          subtotal?: number | null
+          total?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkout_sessions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -597,6 +722,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_discount_coupons_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
+            referencedColumns: ["id"]
+          },
         ]
       }
       email_ab_tests: {
@@ -700,6 +832,95 @@ export type Database = {
           },
         ]
       }
+      fraud_assessments: {
+        Row: {
+          assessment_data: Json | null
+          auto_action: string | null
+          created_at: string | null
+          id: string
+          manual_override: boolean | null
+          order_id: string | null
+          override_at: string | null
+          override_by: string | null
+          override_reason: string | null
+          risk_level: string
+          total_score: number
+          triggered_rules: Json
+        }
+        Insert: {
+          assessment_data?: Json | null
+          auto_action?: string | null
+          created_at?: string | null
+          id?: string
+          manual_override?: boolean | null
+          order_id?: string | null
+          override_at?: string | null
+          override_by?: string | null
+          override_reason?: string | null
+          risk_level: string
+          total_score?: number
+          triggered_rules?: Json
+        }
+        Update: {
+          assessment_data?: Json | null
+          auto_action?: string | null
+          created_at?: string | null
+          id?: string
+          manual_override?: boolean | null
+          order_id?: string | null
+          override_at?: string | null
+          override_by?: string | null
+          override_reason?: string | null
+          risk_level?: string
+          total_score?: number
+          triggered_rules?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraud_assessments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fraud_rules: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          parameters: Json | null
+          rule_name: string
+          rule_type: string
+          score_impact: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          parameters?: Json | null
+          rule_name: string
+          rule_type: string
+          score_impact?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          parameters?: Json | null
+          rule_name?: string
+          rule_type?: string
+          score_impact?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       hero_images: {
         Row: {
           alt_text: string
@@ -740,6 +961,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_hero_images_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
             referencedColumns: ["id"]
           },
         ]
@@ -787,6 +1015,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_loyalty_points_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles_masked"
             referencedColumns: ["id"]
           },
         ]
@@ -845,6 +1080,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_loyalty_redemptions_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
             referencedColumns: ["id"]
           },
           {
@@ -944,6 +1186,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_loyalty_transactions_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
             referencedColumns: ["id"]
           },
         ]
@@ -1053,7 +1302,32 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_notification_preferences_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles_masked"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      notification_settings: {
+        Row: {
+          key: string
+          updated_at: string | null
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string | null
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string | null
+          value?: string
+        }
+        Relationships: []
       }
       order_anomalies: {
         Row: {
@@ -1334,6 +1608,7 @@ export type Database = {
           attention_reason: string | null
           billing_address: Json | null
           carrier: string | null
+          checkout_session_id: string | null
           created_at: string
           currency: string | null
           customer_notes: string | null
@@ -1365,6 +1640,7 @@ export type Database = {
           attention_reason?: string | null
           billing_address?: Json | null
           carrier?: string | null
+          checkout_session_id?: string | null
           created_at?: string
           currency?: string | null
           customer_notes?: string | null
@@ -1396,6 +1672,7 @@ export type Database = {
           attention_reason?: string | null
           billing_address?: Json | null
           carrier?: string | null
+          checkout_session_id?: string | null
           created_at?: string
           currency?: string | null
           customer_notes?: string | null
@@ -1426,6 +1703,73 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_orders_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_checkout_session_id_fkey"
+            columns: ["checkout_session_id"]
+            isOneToOne: false
+            referencedRelation: "checkout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_events: {
+        Row: {
+          actor: string
+          correlation_id: string | null
+          created_at: string
+          details: Json | null
+          duration_ms: number | null
+          error_message: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          order_id: string | null
+          status: string
+          user_agent: string | null
+        }
+        Insert: {
+          actor?: string
+          correlation_id?: string | null
+          created_at?: string
+          details?: Json | null
+          duration_ms?: number | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          order_id?: string | null
+          status?: string
+          user_agent?: string | null
+        }
+        Update: {
+          actor?: string
+          correlation_id?: string | null
+          created_at?: string
+          details?: Json | null
+          duration_ms?: number | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          order_id?: string | null
+          status?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -1489,7 +1833,14 @@ export type Database = {
           {
             foreignKeyName: "fk_payments_order"
             columns: ["order_id"]
-            isOneToOne: false
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_order_fk"
+            columns: ["order_id"]
+            isOneToOne: true
             referencedRelation: "orders"
             referencedColumns: ["id"]
           },
@@ -1647,6 +1998,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_product_reviews_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
             referencedColumns: ["id"]
           },
         ]
@@ -2042,6 +2400,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_security_config_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
+            referencedColumns: ["id"]
+          },
         ]
       }
       security_events: {
@@ -2190,6 +2555,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_shipping_addresses_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
+            referencedColumns: ["id"]
+          },
         ]
       }
       shipping_zones: {
@@ -2323,6 +2695,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_support_tickets_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
+            referencedColumns: ["id"]
+          },
         ]
       }
       support_tickets_error_reports: {
@@ -2395,6 +2774,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_error_reports_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
             referencedColumns: ["id"]
           },
         ]
@@ -2492,6 +2878,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles_masked"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -2534,10 +2927,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fk_user_roles_granted_by"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fk_user_roles_profile"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_roles_profile"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
             referencedColumns: ["id"]
           },
         ]
@@ -2574,6 +2981,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_wishlist_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_masked"
             referencedColumns: ["id"]
           },
         ]
@@ -2666,6 +3080,51 @@ export type Database = {
           },
         ]
       }
+      profiles_masked: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          phone: string | null
+          postal_code: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address_line1?: never
+          address_line2?: never
+          avatar_url?: string | null
+          bio?: never
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          full_name?: never
+          id?: string | null
+          phone?: never
+          postal_code?: never
+          updated_at?: string | null
+        }
+        Update: {
+          address_line1?: never
+          address_line2?: never
+          avatar_url?: string | null
+          bio?: never
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          full_name?: never
+          id?: string | null
+          phone?: never
+          postal_code?: never
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_admin_user: {
@@ -2677,19 +3136,44 @@ export type Database = {
         }
         Returns: undefined
       }
-      add_loyalty_points: {
-        Args: {
-          description?: string
-          points: number
-          source_id?: string
-          source_type: string
-          transaction_type: string
-          user_uuid: string
-        }
-        Returns: undefined
-      }
+      add_loyalty_points:
+        | {
+            Args: {
+              p_description?: string
+              p_points: number
+              p_source_id?: string
+              p_source_type: string
+              p_user_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              description?: string
+              points: number
+              source_id?: string
+              source_type: string
+              transaction_type: string
+              user_uuid: string
+            }
+            Returns: undefined
+          }
       anonymize_sensitive_data: { Args: { input_data: Json }; Returns: Json }
       archive_old_payment_data: { Args: never; Returns: undefined }
+      calculate_fraud_score: {
+        Args: {
+          p_billing_address: Json
+          p_checkout_duration_seconds?: number
+          p_customer_email: string
+          p_ip_address?: string
+          p_is_first_order?: boolean
+          p_order_amount?: number
+          p_order_id: string
+          p_shipping_address: Json
+          p_user_agent?: string
+        }
+        Returns: Json
+      }
       can_access_support_ticket: {
         Args: { ticket_id: string }
         Returns: boolean
@@ -2702,6 +3186,15 @@ export type Database = {
           p_window_minutes?: number
         }
         Returns: boolean
+      }
+      confirm_order_payment: {
+        Args: {
+          p_amount: number
+          p_currency: string
+          p_order_id: string
+          p_payment_intent: string
+        }
+        Returns: undefined
       }
       create_order_anomaly: {
         Args: {
@@ -2819,7 +3312,15 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: number
       }
+      get_request_guest_id: { Args: never; Returns: string }
       get_security_setting: { Args: { setting_key: string }; Returns: Json }
+      get_user_emails_for_admin: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          email: string
+          user_id: string
+        }[]
+      }
       get_user_newsletter_subscription: {
         Args: never
         Returns: {
@@ -2840,9 +3341,11 @@ export type Database = {
         }
         Returns: boolean
       }
-      init_loyalty_account: { Args: { user_uuid: string }; Returns: undefined }
+      increment_coupon_usage: { Args: { p_code: string }; Returns: undefined }
+      init_loyalty_account: { Args: { p_user_id: string }; Returns: undefined }
       is_admin_user: { Args: { user_uuid: string }; Returns: boolean }
       is_authenticated_user: { Args: never; Returns: boolean }
+      is_profile_owner: { Args: { profile_user_id: string }; Returns: boolean }
       is_user_admin: { Args: { _user_id: string }; Returns: boolean }
       log_contact_message_access: {
         Args: { message_id: string }
@@ -2870,11 +3373,25 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_abandoned_checkout_sessions: { Args: never; Returns: number }
       mark_alerts_notified: {
         Args: { alert_ids: string[] }
         Returns: undefined
       }
       mask_email: { Args: { email: string }; Returns: string }
+      mask_phone:
+        | {
+            Args: { phone_number: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.mask_phone(phone_number => text), public.mask_phone(phone_number => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { phone_number: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.mask_phone(phone_number => text), public.mask_phone(phone_number => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
       mask_sensitive_data: {
         Args: { p_email: string; p_full_mask?: boolean; p_phone?: string }
         Returns: Json
@@ -2889,6 +3406,10 @@ export type Database = {
           security_metric: string
         }[]
       }
+      override_fraud_assessment: {
+        Args: { p_action: string; p_order_id: string; p_reason: string }
+        Returns: Json
+      }
       resolve_order_anomaly: {
         Args: {
           p_anomaly_id: string
@@ -2899,7 +3420,7 @@ export type Database = {
         Returns: boolean
       }
       restore_contact_data_access: { Args: never; Returns: undefined }
-      update_loyalty_tier: { Args: { user_uuid: string }; Returns: undefined }
+      update_loyalty_tier: { Args: { p_user_id: string }; Returns: undefined }
       update_order_status: {
         Args: {
           p_actor?: Database["public"]["Enums"]["status_change_actor"]

@@ -1,14 +1,29 @@
 import { defineConfig } from "cypress";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
 
 export default defineConfig({
   e2e: {
-    baseUrl: "http://localhost:8080",
-    specPattern: "cypress/integration/**/*_spec.js",
+    specPattern: "cypress/integration/**/*.{js,ts}",
+    supportFile: "cypress/support/index.ts",
+    baseUrl: process.env.CYPRESS_BASE_URL ?? "http://localhost:8080",
     viewportWidth: 1280,
     viewportHeight: 720,
-    supportFile: false,
-    defaultCommandTimeout: 10000,
+    defaultCommandTimeout: 10_000,
+    requestTimeout: 20_000,
+    responseTimeout: 30_000,
+    retries: { runMode: 1, openMode: 0 },
     video: false,
     screenshotOnRunFailure: true,
-  },
+    env: {
+      grepFilterSpecs: false,
+      grepOmitFiltered: true
+    },
+    setupNodeEvents(on, config) {
+      const { plugin: grepPlugin } = require("@cypress/grep/plugin");
+      grepPlugin(config);
+      return config;
+    }
+  }
 });

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,14 +67,9 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isRedeeming, setIsRedeeming] = useState<string | null>(null);
 
-  // Load data once on mount - use ref to prevent repeated calls
-  const hasLoadedRef = useRef(false);
-  
   useEffect(() => {
-    if (hasLoadedRef.current) return;
-    hasLoadedRef.current = true;
     loadLoyaltyData();
-  }, []); // Empty deps - only run once
+  }, [user.id]);
 
   const loadLoyaltyData = async () => {
     try {
@@ -83,52 +78,52 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
         .from('loyalty_points')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (pointsError && pointsError.code !== 'PGRST116') {
-        throw pointsError;
+      if (pointsError) {
+        console.error('Error loading loyalty points:', pointsError);
       }
 
       if (!pointsData) {
         // Initialize loyalty account for existing user
-        await supabase.rpc('init_loyalty_account', { user_uuid: user.id });
-        // Reload data
-        const { data: newPointsData, error: newPointsError } = await supabase
-          .from('loyalty_points')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (newPointsError) throw newPointsError;
-        setLoyaltyData(newPointsData);
+        try {
+          await supabase.rpc('init_loyalty_account', { p_user_id: user.id });
+          const { data: newPointsData } = await supabase
+            .from('loyalty_points')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          setLoyaltyData(newPointsData);
+        } catch (initError) {
+          console.error('Error initializing loyalty account:', initError);
+          // Still continue - show empty state
+        }
       } else {
         setLoyaltyData(pointsData);
       }
 
       // Load recent transactions
-      const { data: transactionsData, error: transactionsError } = await supabase
+      const { data: transactionsData } = await supabase
         .from('loyalty_transactions')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (transactionsError) throw transactionsError;
       setTransactions(transactionsData || []);
 
       // Load available rewards
-      const { data: rewardsData, error: rewardsError } = await supabase
+      const { data: rewardsData } = await supabase
         .from('loyalty_rewards')
         .select('*')
         .eq('is_active', true)
         .order('points_cost', { ascending: true });
 
-      if (rewardsError) throw rewardsError;
       setRewards(rewardsData || []);
 
     } catch (error: any) {
       console.error('Error loading loyalty data:', error);
-      toast.error('Erreur lors du chargement des données de fidélité');
     } finally {
       setIsLoading(false);
     }
@@ -195,12 +190,11 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
 
       // Deduct points
       await supabase.rpc('add_loyalty_points', {
-        user_uuid: user.id,
-        points: -reward.points_cost,
-        transaction_type: 'spent',
-        source_type: 'manual',
-        source_id: rewardId,
-        description: `Échange: ${reward.name}`
+        p_user_id: user.id,
+        p_points: -reward.points_cost,
+        p_source_type: 'redemption',
+        p_source_id: rewardId,
+        p_description: `Échange: ${reward.name}`
       });
 
       toast.success(`${reward.name} échangée avec succès !`);
@@ -213,7 +207,7 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
     }
   };
 
-  if (isLoading || !loyaltyData) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         {[...Array(3)].map((_, i) => (
@@ -228,6 +222,22 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
           </Card>
         ))}
       </div>
+    );
+  }
+
+  if (!loyaltyData) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center py-8">
+            <Crown className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Programme de fidélité</h3>
+            <p className="text-muted-foreground">
+              Votre compte fidélité sera activé lors de votre première commande.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
