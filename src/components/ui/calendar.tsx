@@ -53,14 +53,14 @@ function Calendar({
       }}
       components={{
         IconLeft: ({ className, ...props }) => (
-          <ChevronLeft 
+          <ChevronLeft
             className={cn("h-4 w-4", className)}
             aria-label="Previous month"
             {...props}
           />
         ),
         IconRight: ({ className, ...props }) => (
-          <ChevronRight 
+          <ChevronRight
             className={cn("h-4 w-4", className)}
             aria-label="Next month"
             {...props}
