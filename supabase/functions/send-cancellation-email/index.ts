@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
-import * as React from 'npm:react@18.3.1';
-import { renderAsync } from 'npm:@react-email/components@0.0.22';
+import * as React from 'https://esm.sh/react@18.3.1';
+import { renderAsync } from 'https://esm.sh/@react-email/components@0.0.22';
 import { CancellationEmail } from './_templates/cancellation-email.tsx';
 
 const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");

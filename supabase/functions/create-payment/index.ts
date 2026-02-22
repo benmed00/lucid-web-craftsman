@@ -56,7 +56,7 @@ const isValidEmail = (email: string): boolean => {
 };
 
 // Production domain — environment-aware
-const PRODUCTION_ORIGIN = Deno.env.get("SITE_URL") || 'https://www.rifelegance.com';
+const PRODUCTION_ORIGIN = (Deno.env.get("SITE_URL") || 'https://www.rifelegance.com').replace(/\/+$/, '');
 
 // Origin allowlist for Stripe redirect URLs
 const ALLOWED_ORIGINS = [
