@@ -85,7 +85,9 @@ Extend the Supabase mock in `AuthContext.test.tsx` to cover wishlist and realtim
 ```ts
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    auth: { /* existing auth mocks */ },
+    auth: {
+      /* existing auth mocks */
+    },
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
@@ -93,7 +95,9 @@ vi.mock('@/integrations/supabase/client', () => ({
           order: vi.fn().mockResolvedValue({ data: [], error: null }),
         }),
       }),
-      update: vi.fn().mockReturnValue({ /* ... */ }),
+      update: vi.fn().mockReturnValue({
+        /* ... */
+      }),
     }),
     channel: vi.fn().mockReturnValue({
       on: vi.fn().mockReturnThis(),
@@ -171,10 +175,13 @@ Or use `expect().rejects` / `expect().toThrow` with error boundaries if you pref
 Opt into v7 behavior now to silence these warnings and align with future versions. If you use `createBrowserRouter` / `RouterProvider`:
 
 ```tsx
-<RouterProvider router={router} future={{
-  v7_startTransition: true,
-  v7_relativeSplatPath: true,
-}} />
+<RouterProvider
+  router={router}
+  future={{
+    v7_startTransition: true,
+    v7_relativeSplatPath: true,
+  }}
+/>
 ```
 
 If you use `BrowserRouter`:
@@ -193,12 +200,14 @@ Add the same `future` prop to `MemoryRouter` in tests for consistency.
 ## 5. Summary — Priority Matrix
 
 <!-- markdownlint-disable MD060 -->
-| Issue                       | Severity | Tests fail? | Recommended action                       |
-|-----------------------------|----------|-------------|------------------------------------------|
-| `act(...)` warnings        | Low      | No          | Use `waitFor` / `act` around async init  |
-| Supabase mock incomplete   | Medium   | No          | Extend mock or mock `initializeWishlistStore` |
-| useAuth outside provider   | Low      | No          | Suppress console.error if desired        |
-| React Router future flags  | Low      | No          | Add `future` flags to Router             |
+
+| Issue                     | Severity | Tests fail? | Recommended action                            |
+| ------------------------- | -------- | ----------- | --------------------------------------------- |
+| `act(...)` warnings       | Low      | No          | Use `waitFor` / `act` around async init       |
+| Supabase mock incomplete  | Medium   | No          | Extend mock or mock `initializeWishlistStore` |
+| useAuth outside provider  | Low      | No          | Suppress console.error if desired             |
+| React Router future flags | Low      | No          | Add `future` flags to Router                  |
+
 <!-- markdownlint-enable MD060 -->
 
 ---
@@ -214,9 +223,13 @@ import { vi } from 'vitest';
 
 export const createSupabaseMock = (overrides = {}) => ({
   auth: {
-    getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+    getSession: vi
+      .fn()
+      .mockResolvedValue({ data: { session: null }, error: null }),
     getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
-    onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+    onAuthStateChange: vi
+      .fn()
+      .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
     signInWithPassword: vi.fn(),
     signUp: vi.fn(),
     signOut: vi.fn(),
@@ -232,8 +245,14 @@ export const createSupabaseMock = (overrides = {}) => ({
         order: vi.fn().mockResolvedValue({ data: [], error: null }),
       }),
     }),
-    insert: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: vi.fn() }) }),
-    update: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: vi.fn() }) }) }),
+    insert: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({ single: vi.fn() }),
+    }),
+    update: vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({ single: vi.fn() }),
+      }),
+    }),
   }),
   channel: vi.fn().mockReturnValue({
     on: vi.fn().mockReturnThis(),
@@ -253,7 +272,11 @@ In `setupTests.ts`, you can optionally filter known, expected errors:
 const originalError = console.error;
 console.error = (...args: unknown[]) => {
   const msg = args[0];
-  if (typeof msg === 'string' && msg.includes('useAuth must be used within an AuthProvider')) return;
+  if (
+    typeof msg === 'string' &&
+    msg.includes('useAuth must be used within an AuthProvider')
+  )
+    return;
   originalError.apply(console, args);
 };
 ```

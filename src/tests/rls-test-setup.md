@@ -15,6 +15,7 @@ This guide explains how to set up and run the RLS (Row Level Security) E2E tests
 Create the following test users in your Supabase Auth dashboard or via SQL:
 
 ### Regular User
+
 ```sql
 -- This should be done via Supabase Auth dashboard or signUp API
 -- Email: test-user@example.com
@@ -22,6 +23,7 @@ Create the following test users in your Supabase Auth dashboard or via SQL:
 ```
 
 ### Admin User
+
 ```sql
 -- 1. Create user in Supabase Auth
 -- Email: test-admin@example.com
@@ -46,6 +48,7 @@ VALUES (
 ```
 
 ### Super Admin User
+
 ```sql
 -- 1. Create user in Supabase Auth
 -- Email: test-superadmin@example.com
@@ -143,15 +146,18 @@ Add to your GitHub Actions workflow:
 ## Troubleshooting
 
 ### "User not authenticated" warnings
+
 - Verify test user exists in Supabase Auth
 - Check email/password are correct
 - Ensure user is not banned/blocked
 
 ### "permission denied" errors (expected for most tests)
+
 - This is the expected behavior for denied access
 - RLS is working correctly
 
 ### Tests timing out
+
 - Check network connectivity to Supabase
 - Increase test timeout in vitest config
 

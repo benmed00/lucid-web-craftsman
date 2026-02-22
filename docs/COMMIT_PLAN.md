@@ -4,24 +4,10 @@
 
 1. **chore(config): add thorough comments to all config files** — eslint, cypress, vite, tailwind, .prettierignore, .gitignore, .markdownlintignore
 2. **docs: add Prettier configuration documentation** — docs/PRETTIER.md
+3. **chore(scripts): add validate pipeline, test:unit, coverage dep** — package.json, package-lock.json
+4. **docs: add package scripts analysis and commit plan** — docs/PACKAGE-SCRIPTS-ANALYSIS.md, docs/COMMIT_PLAN.md, plus Cypress specs with @smoke/@regression tags and Prettier formatting
 
-## Remaining commands (run manually if needed)
-
-```powershell
-cd c:\Users\1\Documents\GitHub\lucid-web-craftsman
-
-# Commit 3: Package scripts
-git add package.json package-lock.json
-git commit -m "chore(scripts): add validate pipeline, test:unit, coverage dep`n`n- validate: lint (max-warnings 9999) + format:check + test --run`n- test:unit: vitest run excluding rls-* specs`n- coverage: add @vitest/coverage-v8`n- e2e:smoke / e2e:regression: grep tags for focused E2E runs"
-
-# Commit 4: Cypress tags
-git add cypress/e2e/checkout_flow_spec.js cypress/integration/header_nav_spec.js cypress/integration/mobile_menu_spec.js cypress/integration/navigation_stability_spec.js
-git commit -m "test(cypress): add @smoke and @regression tags to E2E specs`n`n- checkout_flow_spec: @smoke @regression`n- header_nav_spec: @smoke @regression, @regression`n- mobile_menu_spec, navigation_stability_spec: @regression"
-
-# Commit 5: Docs
-git add docs/PACKAGE-SCRIPTS-ANALYSIS.md docs/COMMIT_PLAN.md
-git commit -m "docs: add package scripts analysis and commit plan`n`n- PACKAGE-SCRIPTS-ANALYSIS.md: full analysis of all 23 npm scripts`n- COMMIT_PLAN.md: commit grouping rationale"
-```
+All planned commits are complete. Cypress tags (@smoke, @regression) and spec formatting were included in commit 4.
 
 ---
 

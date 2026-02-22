@@ -60,47 +60,47 @@ Valoriser l'artisanat berbère traditionnel en créant une vitrine numérique mo
 ### Page d'Accueil
 
 ![Homepage Hero](./public/assets/screenshots/homepage-hero.jpg)
-*Interface principale avec navigation intuitive et mise en avant des produits*
+_Interface principale avec navigation intuitive et mise en avant des produits_
 
 ### Cartes Produits
 
 ![Product Cards](./public/assets/screenshots/product-card-demo.jpg)
-*Design moderne des cartes produits avec fonctionnalités interactives*
+_Design moderne des cartes produits avec fonctionnalités interactives_
 
 ### Détail Produit
 
 ![Product Detail](./public/assets/screenshots/product-detail.jpg)
-*Page produit complète avec galerie d'images et informations détaillées*
+_Page produit complète avec galerie d'images et informations détaillées_
 
 ### Version Mobile
 
 ![Mobile Responsive](./public/assets/screenshots/mobile-responsive.jpg)
-*Interface responsive optimisée pour les appareils mobiles*
+_Interface responsive optimisée pour les appareils mobiles_
 
 ### Panier & Checkout
 
 ![Cart and Checkout](./public/assets/screenshots/cart-checkout.jpg)
-*Processus d'achat simplifié et sécurisé*
+_Processus d'achat simplifié et sécurisé_
 
 ### Dashboard Utilisateur
 
 ![User Dashboard](./public/assets/screenshots/user-dashboard.jpg)
-*Interface utilisateur pour la gestion du profil et des commandes*
+_Interface utilisateur pour la gestion du profil et des commandes_
 
 ### Section Blog
 
 ![Blog Section](./public/assets/screenshots/blog-section.jpg)
-*Contenu éditorial sur la culture berbère et l'artisanat*
+_Contenu éditorial sur la culture berbère et l'artisanat_
 
 ### Administration
 
 ![Admin Dashboard](./public/assets/screenshots/admin-dashboard.jpg)
-*Interface d'administration complète pour la gestion de la plateforme*
+_Interface d'administration complète pour la gestion de la plateforme_
 
 ### Contact & Footer
 
 ![Contact and Footer](./public/assets/screenshots/contact-footer.jpg)
-*Page de contact et informations institutionnelles*
+_Page de contact et informations institutionnelles_
 
 ## 🚀 Technologies Utilisées
 
@@ -242,14 +242,14 @@ L'application utilise un système d'identification uniforme pour tous les bouton
 
 ```javascript
 // Cartes produits
-quickViewBtn: "quick-view-btn-{productId}"
-addToCartBtn: "add-to-cart-btn-{productId}"
-wishlistBtn: "wishlist-btn-{productId}"
+quickViewBtn: 'quick-view-btn-{productId}';
+addToCartBtn: 'add-to-cart-btn-{productId}';
+wishlistBtn: 'wishlist-btn-{productId}';
 
 // Navigation principale
-cartButton: "cart-button"
-profileButton: "profile-button"
-logoLink: "main-logo"
+cartButton: 'cart-button';
+profileButton: 'profile-button';
+logoLink: 'main-logo';
 ```
 
 ## 🧪 Tests & Qualité
@@ -387,8 +387,8 @@ Pour connecter un domaine personnalisé :
 // Configuration locale
 export const locales = {
   fr: 'Français',
-  ar: 'العربية', 
-  en: 'English'
+  ar: 'العربية',
+  en: 'English',
 };
 ```
 

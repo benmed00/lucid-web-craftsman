@@ -23,24 +23,24 @@ Server runs at `http://localhost:3001` by default.
 
 ## Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | API info & status |
-| GET | `/health` | Health check |
-| GET | `/health/live` | Liveness probe |
-| GET | `/health/ready` | Readiness probe (DB check) |
-| GET | `/api/info` | API documentation |
-| GET | `/api/metrics` | Request count, uptime |
-| GET | `/api/cart` | Get cart |
-| POST | `/api/cart` | Update cart |
-| GET | `/api/orders` | List orders (paginated) |
-| POST | `/api/orders` | Create order |
-| POST | `/api/newsletter` | Subscribe email |
-| POST | `/api/contact` | Submit contact form |
-| GET | `/api/products` | List products (paginate, search, sort) |
-| GET | `/api/products/:id` | Get product |
-| GET | `/api/posts` | List posts (paginate, search, sort) |
-| GET | `/api/posts/:id` | Get post |
+| Method | Path                | Description                            |
+| ------ | ------------------- | -------------------------------------- |
+| GET    | `/`                 | API info & status                      |
+| GET    | `/health`           | Health check                           |
+| GET    | `/health/live`      | Liveness probe                         |
+| GET    | `/health/ready`     | Readiness probe (DB check)             |
+| GET    | `/api/info`         | API documentation                      |
+| GET    | `/api/metrics`      | Request count, uptime                  |
+| GET    | `/api/cart`         | Get cart                               |
+| POST   | `/api/cart`         | Update cart                            |
+| GET    | `/api/orders`       | List orders (paginated)                |
+| POST   | `/api/orders`       | Create order                           |
+| POST   | `/api/newsletter`   | Subscribe email                        |
+| POST   | `/api/contact`      | Submit contact form                    |
+| GET    | `/api/products`     | List products (paginate, search, sort) |
+| GET    | `/api/products/:id` | Get product                            |
+| GET    | `/api/posts`        | List posts (paginate, search, sort)    |
+| GET    | `/api/posts/:id`    | Get post                               |
 
 ### Query Parameters (products, posts)
 
@@ -52,17 +52,17 @@ Server runs at `http://localhost:3001` by default.
 
 Environment variables (see `.env.example`):
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | 3001 | Server port |
-| `NODE_ENV` | development | Environment |
-| `CORS_ORIGINS` | * | Allowed origins (comma-separated) |
-| `RATE_LIMIT_WINDOW_MS` | 60000 | Rate limit window (ms) |
-| `RATE_LIMIT_MAX` | 100 | Max requests per window |
-| `BODY_LIMIT` | 512kb | Max request body size |
-| `DB_PATH` | ./db.json | Path to JSON database |
-| `REQUEST_TIMEOUT_MS` | 30000 | Request timeout |
-| `API_VERSION` | 1.0.0 | API version string |
+| Variable               | Default     | Description                       |
+| ---------------------- | ----------- | --------------------------------- |
+| `PORT`                 | 3001        | Server port                       |
+| `NODE_ENV`             | development | Environment                       |
+| `CORS_ORIGINS`         | \*          | Allowed origins (comma-separated) |
+| `RATE_LIMIT_WINDOW_MS` | 60000       | Rate limit window (ms)            |
+| `RATE_LIMIT_MAX`       | 100         | Max requests per window           |
+| `BODY_LIMIT`           | 512kb       | Max request body size             |
+| `DB_PATH`              | ./db.json   | Path to JSON database             |
+| `REQUEST_TIMEOUT_MS`   | 30000       | Request timeout                   |
+| `API_VERSION`          | 1.0.0       | API version string                |
 
 ## Data
 

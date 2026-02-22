@@ -37,25 +37,25 @@
 
 ## Files changed
 
-| File | Change |
-| ------ | -------- |
-| `package.json` | react-leaflet ^4.2.1, remove @types/dompurify, add metadata (author, repo, engines, keywords) |
-| `package-lock.json` | Regenerated to reflect dependency changes |
-| `public/_headers` | Netlify syntax fixes (use `#` for comments; valid path blocks) |
-| `vite.config.ts` | Remove unsupported `rollupOptions.output.sourcemap` |
-| `src/components/ui/calendar.tsx` | Add `aria-label` to nav icons |
-| `src/lib/utils.ts` | BASE_PATH="/", ErrorBoundary toast, Window declare |
-| `.gitignore` | Add js-backup/, *.tsbuildinfo, coverage/, cypress artifacts |
+| File                             | Change                                                                                        |
+| -------------------------------- | --------------------------------------------------------------------------------------------- |
+| `package.json`                   | react-leaflet ^4.2.1, remove @types/dompurify, add metadata (author, repo, engines, keywords) |
+| `package-lock.json`              | Regenerated to reflect dependency changes                                                     |
+| `public/_headers`                | Netlify syntax fixes (use `#` for comments; valid path blocks)                                |
+| `vite.config.ts`                 | Remove unsupported `rollupOptions.output.sourcemap`                                           |
+| `src/components/ui/calendar.tsx` | Add `aria-label` to nav icons                                                                 |
+| `src/lib/utils.ts`               | BASE_PATH="/", ErrorBoundary toast, Window declare                                            |
+| `.gitignore`                     | Add js-backup/, \*.tsbuildinfo, coverage/, cypress artifacts                                  |
 
 ---
 
 ## Technical decisions
 
-| Decision | Rationale |
-| ---------- | ----------- |
-| **React 18 compatibility** | `react-leaflet@5` requires React 19; pinning to v4 restores a compatible peer set without forcing a React major upgrade |
-| **Keep upstream structure** | During conflict resolution, kept upstream file layout and did not resurrect deleted paths |
-| **Security posture** | Remaining moderate advisory (esbuild via Vite) requires a Vite major upgrade; not included to avoid breaking changes |
+| Decision                    | Rationale                                                                                                               |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **React 18 compatibility**  | `react-leaflet@5` requires React 19; pinning to v4 restores a compatible peer set without forcing a React major upgrade |
+| **Keep upstream structure** | During conflict resolution, kept upstream file layout and did not resurrect deleted paths                               |
+| **Security posture**        | Remaining moderate advisory (esbuild via Vite) requires a Vite major upgrade; not included to avoid breaking changes    |
 
 ---
 

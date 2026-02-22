@@ -19,24 +19,24 @@ This PR restructures the project with a dedicated `backend/` mock API, adds Cypr
 
 ### Backend Endpoints
 
-| Method | Path | Description |
-| -------- | ------ | ------------- |
-| GET | `/` | API info & status |
-| GET | `/health` | Health check |
-| GET | `/health/live` | Liveness probe |
-| GET | `/health/ready` | Readiness probe |
-| GET | `/api/info` | API documentation |
-| GET | `/api/metrics` | Request count, uptime |
-| GET | `/api/products` | List products (paginate, search, sort) |
-| GET | `/api/products/:id` | Get product |
-| GET | `/api/posts` | List posts |
-| GET | `/api/posts/:id` | Get post |
-| GET | `/api/cart` | Get cart |
-| POST | `/api/cart` | Update cart |
-| GET | `/api/orders` | List orders (paginated) |
-| POST | `/api/orders` | Create order |
-| POST | `/api/newsletter` | Subscribe email |
-| POST | `/api/contact` | Submit contact form |
+| Method | Path                | Description                            |
+| ------ | ------------------- | -------------------------------------- |
+| GET    | `/`                 | API info & status                      |
+| GET    | `/health`           | Health check                           |
+| GET    | `/health/live`      | Liveness probe                         |
+| GET    | `/health/ready`     | Readiness probe                        |
+| GET    | `/api/info`         | API documentation                      |
+| GET    | `/api/metrics`      | Request count, uptime                  |
+| GET    | `/api/products`     | List products (paginate, search, sort) |
+| GET    | `/api/products/:id` | Get product                            |
+| GET    | `/api/posts`        | List posts                             |
+| GET    | `/api/posts/:id`    | Get post                               |
+| GET    | `/api/cart`         | Get cart                               |
+| POST   | `/api/cart`         | Update cart                            |
+| GET    | `/api/orders`       | List orders (paginated)                |
+| POST   | `/api/orders`       | Create order                           |
+| POST   | `/api/newsletter`   | Subscribe email                        |
+| POST   | `/api/contact`      | Submit contact form                    |
 
 ### Vite Proxy
 
@@ -140,9 +140,9 @@ This PR restructures the project with a dedicated `backend/` mock API, adds Cypr
 
 Conflicts with `origin/main` were resolved in the merge commit:
 
-| File | Resolution |
-| ------ | ------------- |
-| package-lock.json | Kept Cypress deps + main's fdir |
+| File                                | Resolution                                                   |
+| ----------------------------------- | ------------------------------------------------------------ |
+| package-lock.json                   | Kept Cypress deps + main's fdir                              |
 | src/integrations/supabase/client.ts | Combined: env vars + main's guest-id fetch + realtime config |
 
 ---
