@@ -2,7 +2,13 @@
   "title": "Our Products",
   "subtitle": "Discover our collection of authentic Berber craftsmanship",
   "seo": {
-    "keywords": ["artisan products", "Berber bags", "straw hats", "Moroccan crafts", "handmade accessories"]
+    "keywords": [
+      "artisan products",
+      "Berber bags",
+      "straw hats",
+      "Moroccan crafts",
+      "handmade accessories"
+    ]
   },
   "filters": {
     "all": "All",

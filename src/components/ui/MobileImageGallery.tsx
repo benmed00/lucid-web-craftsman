@@ -15,7 +15,7 @@ export const MobileImageGallery = ({
   productName,
   isOpen,
   onClose,
-  initialIndex = 0
+  initialIndex = 0,
 }: MobileImageGalleryProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -53,36 +53,37 @@ export const MobileImageGallery = ({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging.current) return;
-    
+
     currentX.current = e.touches[0].clientX;
     const deltaX = currentX.current - startX.current;
-    
+
     if (containerRef.current && containerWidth.current > 0) {
       // Use cached width to avoid forced reflow
-      const translateX = -currentIndex * 100 + (deltaX / containerWidth.current) * 100;
+      const translateX =
+        -currentIndex * 100 + (deltaX / containerWidth.current) * 100;
       containerRef.current.style.transform = `translateX(${translateX}%)`;
     }
   };
 
   const handleTouchEnd = () => {
     if (!isDragging.current) return;
-    
+
     isDragging.current = false;
     setIsTransitioning(true);
-    
+
     const deltaX = currentX.current - startX.current;
     const threshold = 50; // Minimum swipe distance
-    
+
     if (Math.abs(deltaX) > threshold) {
       if (deltaX > 0 && currentIndex > 0) {
         // Swipe right - go to previous
-        setCurrentIndex(prev => prev - 1);
+        setCurrentIndex((prev) => prev - 1);
       } else if (deltaX < 0 && currentIndex < images.length - 1) {
         // Swipe left - go to next
-        setCurrentIndex(prev => prev + 1);
+        setCurrentIndex((prev) => prev + 1);
       }
     }
-    
+
     // Reset transform
     if (containerRef.current) {
       containerRef.current.style.transform = `translateX(-${currentIndex * 100}%)`;
@@ -91,13 +92,13 @@ export const MobileImageGallery = ({
 
   const goToNext = () => {
     if (currentIndex < images.length - 1) {
-      setCurrentIndex(prev => prev + 1);
+      setCurrentIndex((prev) => prev + 1);
     }
   };
 
   const goToPrevious = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
+      setCurrentIndex((prev) => prev - 1);
     }
   };
 
@@ -133,7 +134,10 @@ export const MobileImageGallery = ({
           onTouchEnd={handleTouchEnd}
         >
           {images.map((image, index) => (
-            <div key={index} className="w-full h-full flex-shrink-0 flex items-center justify-center">
+            <div
+              key={index}
+              className="w-full h-full flex-shrink-0 flex items-center justify-center"
+            >
               <img
                 src={image}
                 alt={`${productName} - Image ${index + 1}`}
@@ -177,8 +181,8 @@ export const MobileImageGallery = ({
               key={index}
               onClick={() => setCurrentIndex(index)}
               className={`w-2 h-2 rounded-full transition-all duration-200 touch-manipulation ${
-                index === currentIndex 
-                  ? 'bg-primary scale-125' 
+                index === currentIndex
+                  ? 'bg-primary scale-125'
                   : 'bg-primary/50 hover:bg-primary/75'
               }`}
               style={{ minWidth: '32px', minHeight: '32px' }}

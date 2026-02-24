@@ -1,60 +1,101 @@
-// File_name: vite.config.ts
+/**
+ * Vite configuration
+ *
+ * Build tool for React (SWC), Vitest, and dev server.
+ * - base: '/' (Lovable preview compatible)
+ * - Dev server: port 8080, proxies /api and /health to json-server (3001)
+ * - Test: jsdom, globals, setupTests.ts
+ *
+ * @see https://vitejs.dev/config/
+ */
 
-import { componentTagger } from "lovable-tagger";
-import { defineConfig } from "vite";
-import path from "path";
-import react from "@vitejs/plugin-react-swc";
+/// <reference types="vitest" />
+import { defineConfig } from 'vite';
+import type { PreRenderedAsset } from 'rollup';
+import path from 'path';
+import react from '@vitejs/plugin-react-swc';
 
-// https://vitejs.dev/config/
+// ==========================================================================
+// Optional Lovable component tagger
+// Load at config time; ESM-only, so dynamic import required
+// ==========================================================================
+let componentTaggerPlugin: ReturnType<
+  (typeof import('lovable-tagger'))['componentTagger']
+> | null = null;
+try {
+  const { componentTagger } = await import('lovable-tagger');
+  componentTaggerPlugin = componentTagger();
+} catch {
+  // lovable-tagger may be unavailable in some environments
+}
+
 export default defineConfig(({ mode }) => ({
-  base: "/", // Fixed for Lovable preview environment
+  base: '/',
+
+  // ==========================================================================
+  // Dev server
+  // ==========================================================================
   server: {
-    host: "::",
+    host: '::',
     port: 8080,
     proxy: {
-      "/api": { target: "http://localhost:3001", changeOrigin: true },
-      "/health": { target: "http://localhost:3001", changeOrigin: true },
+      '/api': { target: 'http://localhost:3001', changeOrigin: true },
+      '/health': { target: 'http://localhost:3001', changeOrigin: true },
     },
     headers: {
-      // Security headers for development - no X-Frame-Options to allow Lovable preview
       'X-Content-Type-Options': 'nosniff',
       'X-XSS-Protection': '1; mode=block',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
       'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
     },
   },
+
   preview: {
     headers: {
-      // Security headers for preview builds - no X-Frame-Options to allow Lovable preview
       'X-Content-Type-Options': 'nosniff',
       'X-XSS-Protection': '1; mode=block',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
       'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
     },
   },
-  plugins: [
-    react(),
-    mode === 'development' &&
-    componentTagger(),
-  ].filter(Boolean),
+
+  // ==========================================================================
+  // Plugins
+  // ==========================================================================
+  plugins: [react(), mode === 'development' && componentTaggerPlugin].filter(
+    Boolean
+  ),
+
+  // ==========================================================================
+  // Resolve & deps
+  // ==========================================================================
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-    // Dedupe React to prevent multiple instances
+    alias: { '@': path.resolve(__dirname, './src') },
     dedupe: ['react', 'react-dom', 'react-i18next', 'i18next'],
   },
   optimizeDeps: {
-    // Pre-bundle these dependencies to ensure single instance
     include: ['react', 'react-dom', 'react-i18next', 'i18next'],
   },
+
+  // ==========================================================================
+  // Vitest (test runner)
+  // ==========================================================================
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/tests/setupTests.ts',
+    css: true,
+  },
+
+  // ==========================================================================
+  // Production build
+  // ==========================================================================
   build: {
-    sourcemap: true, // Enable source maps for production builds
-    cssCodeSplit: true, // Enable CSS code splitting for better caching
+    sourcemap: true,
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
-        // Optimize chunk names for better caching
-        assetFileNames: (assetInfo) => {
+        assetFileNames: (assetInfo: PreRenderedAsset) => {
           const name = assetInfo.name || 'asset';
           const info = name.split('.');
           const ext = info[info.length - 1];

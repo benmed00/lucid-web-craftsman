@@ -12,8 +12,8 @@ import {
   Row,
   Column,
   Hr,
-} from 'https://esm.sh/@react-email/components@0.0.22'
-import * as React from 'https://esm.sh/react@18.3.1'
+} from 'https://esm.sh/@react-email/components@0.0.22';
+import * as React from 'https://esm.sh/react@18.3.1';
 
 interface OrderItem {
   name: string;
@@ -69,7 +69,9 @@ export const OrderConfirmationEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Confirmation de votre commande #{orderNumber} - Rif Raw Straw</Preview>
+      <Preview>
+        Confirmation de votre commande #{orderNumber} - Rif Raw Straw
+      </Preview>
       <Body style={main}>
         <Container style={container}>
           {/* Header */}
@@ -82,7 +84,8 @@ export const OrderConfirmationEmail = ({
           <Section style={hero}>
             <Heading style={heroTitle}>Merci pour votre commande !</Heading>
             <Text style={heroSubtitle}>
-              Bonjour {customerName}, nous avons bien reçu votre commande et nous la préparons avec soin.
+              Bonjour {customerName}, nous avons bien reçu votre commande et
+              nous la préparons avec soin.
             </Text>
           </Section>
 
@@ -108,8 +111,10 @@ export const OrderConfirmationEmail = ({
 
           {/* Order Items */}
           <Section style={itemsSection}>
-            <Heading as="h2" style={sectionTitle}>Récapitulatif de votre commande</Heading>
-            
+            <Heading as="h2" style={sectionTitle}>
+              Récapitulatif de votre commande
+            </Heading>
+
             {items.map((item, index) => (
               <Row key={index} style={itemRow}>
                 <Column style={itemImageColumn}>
@@ -126,7 +131,9 @@ export const OrderConfirmationEmail = ({
                   <Text style={itemQuantity}>Quantité: {item.quantity}</Text>
                 </Column>
                 <Column style={itemPriceColumn}>
-                  <Text style={itemPrice}>{formatPrice(item.price * item.quantity)}</Text>
+                  <Text style={itemPrice}>
+                    {formatPrice(item.price * item.quantity)}
+                  </Text>
                 </Column>
               </Row>
             ))}
@@ -144,7 +151,7 @@ export const OrderConfirmationEmail = ({
                 <Text style={summaryValue}>{formatPrice(subtotal)}</Text>
               </Column>
             </Row>
-            
+
             {discount > 0 && (
               <Row style={summaryRow}>
                 <Column style={summaryLabelColumn}>
@@ -155,7 +162,7 @@ export const OrderConfirmationEmail = ({
                 </Column>
               </Row>
             )}
-            
+
             <Row style={summaryRow}>
               <Column style={summaryLabelColumn}>
                 <Text style={summaryLabel}>Livraison</Text>
@@ -166,9 +173,9 @@ export const OrderConfirmationEmail = ({
                 </Text>
               </Column>
             </Row>
-            
+
             <Hr style={summaryDivider} />
-            
+
             <Row style={totalRow}>
               <Column style={summaryLabelColumn}>
                 <Text style={totalLabel}>Total</Text>
@@ -183,10 +190,14 @@ export const OrderConfirmationEmail = ({
 
           {/* Shipping Address */}
           <Section style={addressSection}>
-            <Heading as="h2" style={sectionTitle}>Adresse de livraison</Heading>
+            <Heading as="h2" style={sectionTitle}>
+              Adresse de livraison
+            </Heading>
             <Text style={addressText}>
-              {shippingAddress.address}<br />
-              {shippingAddress.postalCode} {shippingAddress.city}<br />
+              {shippingAddress.address}
+              <br />
+              {shippingAddress.postalCode} {shippingAddress.city}
+              <br />
               {shippingAddress.country}
             </Text>
           </Section>
@@ -195,7 +206,9 @@ export const OrderConfirmationEmail = ({
 
           {/* What's Next */}
           <Section style={nextStepsSection}>
-            <Heading as="h2" style={sectionTitle}>Prochaines étapes</Heading>
+            <Heading as="h2" style={sectionTitle}>
+              Prochaines étapes
+            </Heading>
             <Row style={stepRow}>
               <Column style={stepIconColumn}>
                 <Text style={stepIcon}>📦</Text>
@@ -214,7 +227,8 @@ export const OrderConfirmationEmail = ({
               <Column style={stepTextColumn}>
                 <Text style={stepTitle}>Expédition</Text>
                 <Text style={stepDescription}>
-                  Vous recevrez un email avec le numéro de suivi dès l'expédition
+                  Vous recevrez un email avec le numéro de suivi dès
+                  l'expédition
                 </Text>
               </Column>
             </Row>
@@ -257,7 +271,8 @@ export default OrderConfirmationEmail;
 // Styles
 const main = {
   backgroundColor: '#f6f9fc',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
+  fontFamily:
+    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
 };
 
 const container = {

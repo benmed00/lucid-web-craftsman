@@ -1,30 +1,39 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { MapPin, Save, Loader2, AlertCircle, Building2 } from "lucide-react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { CompanySettings, invalidateCompanySettingsCache } from "@/hooks/useCompanySettings";
+import { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { MapPin, Save, Loader2, AlertCircle, Building2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  CompanySettings,
+  invalidateCompanySettingsCache,
+} from '@/hooks/useCompanySettings';
 
 const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
-  name: "Rif Raw Straw",
-  email: "contact@rifstraw.com",
-  phone: "+33 1 23 45 67 89",
+  name: 'Rif Raw Straw',
+  email: 'contact@rifstraw.com',
+  phone: '+33 1 23 45 67 89',
   address: {
-    street: "6 allée de la Sèvre",
-    postalCode: "44400",
-    city: "Rezé",
-    country: "France",
+    street: '6 allée de la Sèvre',
+    postalCode: '44400',
+    city: 'Rezé',
+    country: 'France',
     latitude: 47.1847,
     longitude: -1.5493,
   },
   openingHours: {
-    weekdays: "Lundi - Vendredi: 9h - 18h",
-    saturday: "Samedi: 10h - 16h",
-    sunday: "Dimanche: Fermé",
+    weekdays: 'Lundi - Vendredi: 9h - 18h',
+    saturday: 'Samedi: 10h - 16h',
+    sunday: 'Dimanche: Fermé',
   },
 };
 
@@ -33,7 +42,9 @@ interface CompanySettingsFormProps {
 }
 
 export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
-  const [settings, setSettings] = useState<CompanySettings>(DEFAULT_COMPANY_SETTINGS);
+  const [settings, setSettings] = useState<CompanySettings>(
+    DEFAULT_COMPANY_SETTINGS
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -53,7 +64,8 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data?.setting_value) {
-        const fetchedSettings = data.setting_value as unknown as Partial<CompanySettings>;
+        const fetchedSettings =
+          data.setting_value as unknown as Partial<CompanySettings>;
         setSettings({
           ...DEFAULT_COMPANY_SETTINGS,
           ...fetchedSettings,
@@ -69,7 +81,7 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
       }
     } catch (error) {
       console.error('Error loading company settings:', error);
-      toast.error("Erreur lors du chargement des paramètres");
+      toast.error('Erreur lors du chargement des paramètres');
     } finally {
       setIsLoading(false);
     }
@@ -79,25 +91,36 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
     const newErrors: Record<string, string> = {};
 
     if (!settings.name.trim()) {
-      newErrors.name = "Le nom est requis";
+      newErrors.name = 'Le nom est requis';
     }
-    if (!settings.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.email)) {
-      newErrors.email = "Email invalide";
+    if (
+      !settings.email.trim() ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.email)
+    ) {
+      newErrors.email = 'Email invalide';
     }
     if (!settings.address.street.trim()) {
       newErrors.street = "L'adresse est requise";
     }
     if (!settings.address.postalCode.trim()) {
-      newErrors.postalCode = "Le code postal est requis";
+      newErrors.postalCode = 'Le code postal est requis';
     }
     if (!settings.address.city.trim()) {
-      newErrors.city = "La ville est requise";
+      newErrors.city = 'La ville est requise';
     }
-    if (isNaN(settings.address.latitude) || settings.address.latitude < -90 || settings.address.latitude > 90) {
-      newErrors.latitude = "Latitude invalide (-90 à 90)";
+    if (
+      isNaN(settings.address.latitude) ||
+      settings.address.latitude < -90 ||
+      settings.address.latitude > 90
+    ) {
+      newErrors.latitude = 'Latitude invalide (-90 à 90)';
     }
-    if (isNaN(settings.address.longitude) || settings.address.longitude < -180 || settings.address.longitude > 180) {
-      newErrors.longitude = "Longitude invalide (-180 à 180)";
+    if (
+      isNaN(settings.address.longitude) ||
+      settings.address.longitude < -180 ||
+      settings.address.longitude > 180
+    ) {
+      newErrors.longitude = 'Longitude invalide (-180 à 180)';
     }
 
     setErrors(newErrors);
@@ -106,7 +129,7 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
 
   const saveSettings = async () => {
     if (!validateSettings()) {
-      toast.error("Veuillez corriger les erreurs");
+      toast.error('Veuillez corriger les erreurs');
       return;
     }
 
@@ -126,58 +149,64 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
           .from('app_settings')
           .update({
             setting_value: jsonValue,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('setting_key', 'company_settings');
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('app_settings')
-          .insert([{
+        const { error } = await supabase.from('app_settings').insert([
+          {
             setting_key: 'company_settings',
             setting_value: jsonValue,
-            description: 'Company contact and address settings'
-          }]);
+            description: 'Company contact and address settings',
+          },
+        ]);
 
         if (error) throw error;
       }
 
       // Invalidate cache so other components get fresh data
       invalidateCompanySettingsCache();
-      
+
       toast.success("Paramètres de l'entreprise sauvegardés");
     } catch (error) {
       console.error('Error saving company settings:', error);
-      toast.error("Erreur lors de la sauvegarde");
+      toast.error('Erreur lors de la sauvegarde');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const updateAddress = (field: keyof typeof settings.address, value: string | number) => {
-    setSettings(prev => ({
+  const updateAddress = (
+    field: keyof typeof settings.address,
+    value: string | number
+  ) => {
+    setSettings((prev) => ({
       ...prev,
       address: {
         ...prev.address,
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
     // Clear error for this field
-    setErrors(prev => {
+    setErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors[field];
       return newErrors;
     });
   };
 
-  const updateOpeningHours = (field: keyof typeof settings.openingHours, value: string) => {
-    setSettings(prev => ({
+  const updateOpeningHours = (
+    field: keyof typeof settings.openingHours,
+    value: string
+  ) => {
+    setSettings((prev) => ({
       ...prev,
       openingHours: {
         ...prev.openingHours,
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
@@ -205,8 +234,10 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
       <CardContent className="space-y-6">
         {/* Company Info */}
         <div className="space-y-4">
-          <h4 className="font-medium text-sm text-muted-foreground">Informations générales</h4>
-          
+          <h4 className="font-medium text-sm text-muted-foreground">
+            Informations générales
+          </h4>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="companyName">Nom de l'entreprise</Label>
@@ -214,10 +245,10 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
                 id="companyName"
                 value={settings.name}
                 onChange={(e) => {
-                  setSettings(prev => ({ ...prev, name: e.target.value }));
-                  setErrors(prev => ({ ...prev, name: '' }));
+                  setSettings((prev) => ({ ...prev, name: e.target.value }));
+                  setErrors((prev) => ({ ...prev, name: '' }));
                 }}
-                className={errors.name ? "border-destructive" : ""}
+                className={errors.name ? 'border-destructive' : ''}
               />
               {errors.name && (
                 <p className="text-xs text-destructive flex items-center gap-1">
@@ -234,10 +265,10 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
                 type="email"
                 value={settings.email}
                 onChange={(e) => {
-                  setSettings(prev => ({ ...prev, email: e.target.value }));
-                  setErrors(prev => ({ ...prev, email: '' }));
+                  setSettings((prev) => ({ ...prev, email: e.target.value }));
+                  setErrors((prev) => ({ ...prev, email: '' }));
                 }}
-                className={errors.email ? "border-destructive" : ""}
+                className={errors.email ? 'border-destructive' : ''}
               />
               {errors.email && (
                 <p className="text-xs text-destructive flex items-center gap-1">
@@ -252,7 +283,9 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
               <Input
                 id="companyPhone"
                 value={settings.phone}
-                onChange={(e) => setSettings(prev => ({ ...prev, phone: e.target.value }))}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, phone: e.target.value }))
+                }
               />
             </div>
           </div>
@@ -266,7 +299,7 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
             <MapPin className="h-4 w-4" />
             Adresse de l'entreprise
           </h4>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="street">Adresse</Label>
@@ -275,7 +308,7 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
                 value={settings.address.street}
                 onChange={(e) => updateAddress('street', e.target.value)}
                 placeholder="6 allée de la Sèvre"
-                className={errors.street ? "border-destructive" : ""}
+                className={errors.street ? 'border-destructive' : ''}
               />
               {errors.street && (
                 <p className="text-xs text-destructive flex items-center gap-1">
@@ -293,7 +326,7 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
                   value={settings.address.postalCode}
                   onChange={(e) => updateAddress('postalCode', e.target.value)}
                   placeholder="44400"
-                  className={errors.postalCode ? "border-destructive" : ""}
+                  className={errors.postalCode ? 'border-destructive' : ''}
                 />
                 {errors.postalCode && (
                   <p className="text-xs text-destructive flex items-center gap-1">
@@ -310,7 +343,7 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
                   value={settings.address.city}
                   onChange={(e) => updateAddress('city', e.target.value)}
                   placeholder="Rezé"
-                  className={errors.city ? "border-destructive" : ""}
+                  className={errors.city ? 'border-destructive' : ''}
                 />
                 {errors.city && (
                   <p className="text-xs text-destructive flex items-center gap-1">
@@ -339,9 +372,11 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
                   type="number"
                   step="0.0001"
                   value={settings.address.latitude}
-                  onChange={(e) => updateAddress('latitude', parseFloat(e.target.value) || 0)}
+                  onChange={(e) =>
+                    updateAddress('latitude', parseFloat(e.target.value) || 0)
+                  }
                   placeholder="47.1847"
-                  className={errors.latitude ? "border-destructive" : ""}
+                  className={errors.latitude ? 'border-destructive' : ''}
                 />
                 {errors.latitude && (
                   <p className="text-xs text-destructive flex items-center gap-1">
@@ -358,9 +393,11 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
                   type="number"
                   step="0.0001"
                   value={settings.address.longitude}
-                  onChange={(e) => updateAddress('longitude', parseFloat(e.target.value) || 0)}
+                  onChange={(e) =>
+                    updateAddress('longitude', parseFloat(e.target.value) || 0)
+                  }
                   placeholder="-1.5493"
-                  className={errors.longitude ? "border-destructive" : ""}
+                  className={errors.longitude ? 'border-destructive' : ''}
                 />
                 {errors.longitude && (
                   <p className="text-xs text-destructive flex items-center gap-1">
@@ -372,16 +409,16 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
             </div>
 
             <p className="text-xs text-muted-foreground">
-              💡 Pour trouver les coordonnées GPS, utilisez{" "}
-              <a 
-                href="https://www.google.com/maps" 
-                target="_blank" 
+              💡 Pour trouver les coordonnées GPS, utilisez{' '}
+              <a
+                href="https://www.google.com/maps"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"
               >
                 Google Maps
-              </a>
-              {" "}et faites un clic droit sur votre adresse.
+              </a>{' '}
+              et faites un clic droit sur votre adresse.
             </p>
           </div>
         </div>
@@ -390,8 +427,10 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
 
         {/* Opening Hours */}
         <div className="space-y-4">
-          <h4 className="font-medium text-sm text-muted-foreground">Horaires d'ouverture</h4>
-          
+          <h4 className="font-medium text-sm text-muted-foreground">
+            Horaires d'ouverture
+          </h4>
+
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <Label htmlFor="weekdays">Jours de semaine</Label>
@@ -427,11 +466,7 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
 
         <Separator />
 
-        <Button 
-          onClick={saveSettings} 
-          disabled={isSaving}
-          className="w-full"
-        >
+        <Button onClick={saveSettings} disabled={isSaving} className="w-full">
           {isSaving ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />

@@ -1,22 +1,30 @@
 /**
  * Tag Autocomplete Component with Auto-Translation
- * 
+ *
  * Provides autocomplete suggestions for blog tags from the database.
  * When creating a new tag, automatically suggests translations using AI.
  */
 
-import { useState, useRef, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { X, Plus, Tag, Sparkles, Loader2, Check, Languages } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useTagTranslations } from "@/hooks/useTagTranslations";
-import { toast } from "sonner";
+import { useState, useRef, useEffect } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  X,
+  Plus,
+  Tag,
+  Sparkles,
+  Loader2,
+  Check,
+  Languages,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useTagTranslations } from '@/hooks/useTagTranslations';
+import { toast } from 'sonner';
 
 interface TagAutocompleteProps {
   value: string;
@@ -32,14 +40,20 @@ interface TranslationSuggestion {
   de: string;
 }
 
-export default function TagAutocomplete({ value, onChange, placeholder }: TagAutocompleteProps) {
-  const [inputValue, setInputValue] = useState("");
+export default function TagAutocomplete({
+  value,
+  onChange,
+  placeholder,
+}: TagAutocompleteProps) {
+  const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [showTranslationPanel, setShowTranslationPanel] = useState(false);
   const [pendingTag, setPendingTag] = useState<string | null>(null);
-  const [translationSuggestion, setTranslationSuggestion] = useState<TranslationSuggestion | null>(null);
-  const [editedTranslations, setEditedTranslations] = useState<TranslationSuggestion | null>(null);
+  const [translationSuggestion, setTranslationSuggestion] =
+    useState<TranslationSuggestion | null>(null);
+  const [editedTranslations, setEditedTranslations] =
+    useState<TranslationSuggestion | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -48,15 +62,15 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
 
   // Parse current tags from the comma-separated value
   const currentTags = value
-    .split(",")
+    .split(',')
     .map((t) => t.trim())
     .filter((t) => t.length > 0);
 
   // Mutation to get AI translation suggestions
   const translateMutation = useMutation({
     mutationFn: async (tag: string) => {
-      const { data, error } = await supabase.functions.invoke("translate-tag", {
-        body: { tag, targetLanguages: ["en", "ar", "es", "de"] },
+      const { data, error } = await supabase.functions.invoke('translate-tag', {
+        body: { tag, targetLanguages: ['en', 'ar', 'es', 'de'] },
       });
       if (error) throw error;
       return data.translations as TranslationSuggestion;
@@ -66,16 +80,16 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
       setEditedTranslations(translations);
     },
     onError: (error) => {
-      console.error("Translation error:", error);
-      toast.error("Impossible de générer les traductions automatiques");
+      console.error('Translation error:', error);
+      toast.error('Impossible de générer les traductions automatiques');
       // Create default translations with the tag as French
       if (pendingTag) {
         const defaultTranslations = {
           fr: pendingTag,
-          en: "",
-          ar: "",
-          es: "",
-          de: "",
+          en: '',
+          ar: '',
+          es: '',
+          de: '',
         };
         setTranslationSuggestion(defaultTranslations);
         setEditedTranslations(defaultTranslations);
@@ -86,7 +100,7 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
   // Mutation to save the new tag with translations
   const saveTagMutation = useMutation({
     mutationFn: async (translations: TranslationSuggestion) => {
-      const { error } = await supabase.from("tag_translations").insert({
+      const { error } = await supabase.from('tag_translations').insert({
         tag_key: translations.fr,
         fr: translations.fr,
         en: translations.en || null,
@@ -98,20 +112,20 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
       return translations.fr;
     },
     onSuccess: (tagKey) => {
-      queryClient.invalidateQueries({ queryKey: ["tag-translations"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-tag-translations"] });
+      queryClient.invalidateQueries({ queryKey: ['tag-translations'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-tag-translations'] });
       toast.success(`Tag "${tagKey}" créé avec traductions`);
-      
+
       // Add the tag to the current selection
       const newTags = [...currentTags, tagKey];
-      onChange(newTags.join(", "));
-      
+      onChange(newTags.join(', '));
+
       // Reset state
       setShowTranslationPanel(false);
       setPendingTag(null);
       setTranslationSuggestion(null);
       setEditedTranslations(null);
-      setInputValue("");
+      setInputValue('');
       inputRef.current?.focus();
     },
     onError: (error: Error) => {
@@ -123,7 +137,7 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
   const filteredSuggestions = allTags.filter((tag) => {
     const searchTerm = inputValue.toLowerCase();
     const isAlreadySelected = currentTags.includes(tag.tag_key);
-    const matchesSearch = 
+    const matchesSearch =
       tag.tag_key.toLowerCase().includes(searchTerm) ||
       tag.fr.toLowerCase().includes(searchTerm) ||
       (tag.en && tag.en.toLowerCase().includes(searchTerm));
@@ -138,8 +152,8 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
   // Handle adding an existing tag
   const addTag = (tagKey: string) => {
     const newTags = [...currentTags, tagKey];
-    onChange(newTags.join(", "));
-    setInputValue("");
+    onChange(newTags.join(', '));
+    setInputValue('');
     setShowSuggestions(false);
     setSelectedIndex(-1);
     inputRef.current?.focus();
@@ -153,7 +167,7 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
     setPendingTag(newTag);
     setShowTranslationPanel(true);
     setShowSuggestions(false);
-    
+
     // Request AI translations
     translateMutation.mutate(newTag);
   };
@@ -161,7 +175,7 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
   // Handle removing a tag
   const removeTag = (tagToRemove: string) => {
     const newTags = currentTags.filter((t) => t !== tagToRemove);
-    onChange(newTags.join(", "));
+    onChange(newTags.join(', '));
   };
 
   // Handle saving translations
@@ -177,7 +191,7 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
     setPendingTag(null);
     setTranslationSuggestion(null);
     setEditedTranslations(null);
-    setInputValue("");
+    setInputValue('');
     inputRef.current?.focus();
   };
 
@@ -185,25 +199,28 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (showTranslationPanel) return;
 
-    if (e.key === "ArrowDown") {
+    if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setSelectedIndex((prev) => 
+      setSelectedIndex((prev) =>
         prev < filteredSuggestions.length - 1 ? prev + 1 : prev
       );
-    } else if (e.key === "ArrowUp") {
+    } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
-    } else if (e.key === "Enter") {
+    } else if (e.key === 'Enter') {
       e.preventDefault();
       if (selectedIndex >= 0 && filteredSuggestions[selectedIndex]) {
         addTag(filteredSuggestions[selectedIndex].tag_key);
-      } else if (inputValue.trim() && !currentTags.includes(inputValue.trim())) {
+      } else if (
+        inputValue.trim() &&
+        !currentTags.includes(inputValue.trim())
+      ) {
         handleCreateNewTag();
       }
-    } else if (e.key === "Escape") {
+    } else if (e.key === 'Escape') {
       setShowSuggestions(false);
       setSelectedIndex(-1);
-    } else if (e.key === "Backspace" && !inputValue && currentTags.length > 0) {
+    } else if (e.key === 'Backspace' && !inputValue && currentTags.length > 0) {
       removeTag(currentTags[currentTags.length - 1]);
     }
   };
@@ -220,8 +237,8 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
         setShowSuggestions(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
@@ -274,70 +291,75 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
               }}
               onFocus={() => setShowSuggestions(true)}
               onKeyDown={handleKeyDown}
-              placeholder={currentTags.length > 0 ? "Ajouter un tag..." : placeholder}
+              placeholder={
+                currentTags.length > 0 ? 'Ajouter un tag...' : placeholder
+              }
               className="flex-1"
             />
           </div>
 
           {/* Suggestions Dropdown */}
-          {showSuggestions && (inputValue || filteredSuggestions.length > 0) && (
-            <div
-              ref={suggestionsRef}
-              className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-60 overflow-auto"
-            >
-              {filteredSuggestions.length > 0 ? (
-                <>
-                  <div className="px-3 py-2 text-xs text-muted-foreground border-b">
-                    Tags disponibles ({filteredSuggestions.length})
-                  </div>
-                  {filteredSuggestions.map((tag, index) => (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      className={cn(
-                        "w-full px-3 py-2 text-left hover:bg-muted transition-colors flex items-center justify-between",
-                        selectedIndex === index && "bg-muted"
-                      )}
-                      onClick={() => addTag(tag.tag_key)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{tag.tag_key}</span>
-                        <span className="text-muted-foreground text-sm">
-                          {tag.en && tag.en !== tag.tag_key && `(${tag.en})`}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        {tag.ar && <span dir="rtl">{tag.ar}</span>}
-                      </div>
-                    </button>
-                  ))}
-                </>
-              ) : null}
-              
-              {/* Create new tag option */}
-              {inputValue.trim() && !tagExists && (
-                <button
-                  type="button"
-                  className={cn(
-                    "w-full px-3 py-2 text-left hover:bg-muted transition-colors flex items-center gap-2 border-t",
-                    filteredSuggestions.length === 0 && selectedIndex === 0 && "bg-muted"
-                  )}
-                  onClick={handleCreateNewTag}
-                >
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <span>Créer "</span>
-                  <span className="font-medium">{inputValue.trim()}</span>
-                  <span>" avec traductions IA</span>
-                </button>
-              )}
+          {showSuggestions &&
+            (inputValue || filteredSuggestions.length > 0) && (
+              <div
+                ref={suggestionsRef}
+                className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-60 overflow-auto"
+              >
+                {filteredSuggestions.length > 0 ? (
+                  <>
+                    <div className="px-3 py-2 text-xs text-muted-foreground border-b">
+                      Tags disponibles ({filteredSuggestions.length})
+                    </div>
+                    {filteredSuggestions.map((tag, index) => (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        className={cn(
+                          'w-full px-3 py-2 text-left hover:bg-muted transition-colors flex items-center justify-between',
+                          selectedIndex === index && 'bg-muted'
+                        )}
+                        onClick={() => addTag(tag.tag_key)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{tag.tag_key}</span>
+                          <span className="text-muted-foreground text-sm">
+                            {tag.en && tag.en !== tag.tag_key && `(${tag.en})`}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          {tag.ar && <span dir="rtl">{tag.ar}</span>}
+                        </div>
+                      </button>
+                    ))}
+                  </>
+                ) : null}
 
-              {!inputValue.trim() && filteredSuggestions.length === 0 && (
-                <div className="px-3 py-2 text-sm text-muted-foreground">
-                  Tapez pour rechercher ou créer un tag
-                </div>
-              )}
-            </div>
-          )}
+                {/* Create new tag option */}
+                {inputValue.trim() && !tagExists && (
+                  <button
+                    type="button"
+                    className={cn(
+                      'w-full px-3 py-2 text-left hover:bg-muted transition-colors flex items-center gap-2 border-t',
+                      filteredSuggestions.length === 0 &&
+                        selectedIndex === 0 &&
+                        'bg-muted'
+                    )}
+                    onClick={handleCreateNewTag}
+                  >
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span>Créer "</span>
+                    <span className="font-medium">{inputValue.trim()}</span>
+                    <span>" avec traductions IA</span>
+                  </button>
+                )}
+
+                {!inputValue.trim() && filteredSuggestions.length === 0 && (
+                  <div className="px-3 py-2 text-sm text-muted-foreground">
+                    Tapez pour rechercher ou créer un tag
+                  </div>
+                )}
+              </div>
+            )}
         </div>
       )}
 
@@ -355,7 +377,10 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
                 </Badge>
               )}
               {translationSuggestion && !translateMutation.isPending && (
-                <Badge variant="default" className="gap-1 bg-green-500/10 text-green-600">
+                <Badge
+                  variant="default"
+                  className="gap-1 bg-green-500/10 text-green-600"
+                >
                   <Sparkles className="h-3 w-3" />
                   Traductions suggérées
                 </Badge>
@@ -368,7 +393,12 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
                   <Label className="text-xs">🇫🇷 Français</Label>
                   <Input
                     value={editedTranslations.fr}
-                    onChange={(e) => setEditedTranslations({ ...editedTranslations, fr: e.target.value })}
+                    onChange={(e) =>
+                      setEditedTranslations({
+                        ...editedTranslations,
+                        fr: e.target.value,
+                      })
+                    }
                     className="h-8"
                   />
                 </div>
@@ -376,7 +406,12 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
                   <Label className="text-xs">🇬🇧 English</Label>
                   <Input
                     value={editedTranslations.en}
-                    onChange={(e) => setEditedTranslations({ ...editedTranslations, en: e.target.value })}
+                    onChange={(e) =>
+                      setEditedTranslations({
+                        ...editedTranslations,
+                        en: e.target.value,
+                      })
+                    }
                     className="h-8"
                   />
                 </div>
@@ -384,7 +419,12 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
                   <Label className="text-xs">🇲🇦 العربية</Label>
                   <Input
                     value={editedTranslations.ar}
-                    onChange={(e) => setEditedTranslations({ ...editedTranslations, ar: e.target.value })}
+                    onChange={(e) =>
+                      setEditedTranslations({
+                        ...editedTranslations,
+                        ar: e.target.value,
+                      })
+                    }
                     className="h-8"
                     dir="rtl"
                   />
@@ -393,7 +433,12 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
                   <Label className="text-xs">🇪🇸 Español</Label>
                   <Input
                     value={editedTranslations.es}
-                    onChange={(e) => setEditedTranslations({ ...editedTranslations, es: e.target.value })}
+                    onChange={(e) =>
+                      setEditedTranslations({
+                        ...editedTranslations,
+                        es: e.target.value,
+                      })
+                    }
                     className="h-8"
                   />
                 </div>
@@ -401,7 +446,12 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
                   <Label className="text-xs">🇩🇪 Deutsch</Label>
                   <Input
                     value={editedTranslations.de}
-                    onChange={(e) => setEditedTranslations({ ...editedTranslations, de: e.target.value })}
+                    onChange={(e) =>
+                      setEditedTranslations({
+                        ...editedTranslations,
+                        de: e.target.value,
+                      })
+                    }
                     className="h-8"
                   />
                 </div>
@@ -439,7 +489,8 @@ export default function TagAutocomplete({ value, onChange, placeholder }: TagAut
       {!showTranslationPanel && (
         <p className="text-xs text-muted-foreground">
           <Sparkles className="h-3 w-3 inline mr-1" />
-          Sélectionnez des tags existants ou créez-en de nouveaux avec traductions IA automatiques.
+          Sélectionnez des tags existants ou créez-en de nouveaux avec
+          traductions IA automatiques.
         </p>
       )}
     </div>

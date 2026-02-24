@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { XCircle, Send, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useCurrency } from "@/stores/currencyStore";
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { XCircle, Send, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useCurrency } from '@/stores/currencyStore';
 
 interface SendCancellationEmailButtonProps {
   orderId: string;
@@ -24,7 +32,12 @@ interface SendCancellationEmailButtonProps {
   onEmailSent?: () => void;
 }
 
-export const SendCancellationEmailButton = ({ orderId, orderAmount, orderItems, onEmailSent }: SendCancellationEmailButtonProps) => {
+export const SendCancellationEmailButton = ({
+  orderId,
+  orderAmount,
+  orderItems,
+  onEmailSent,
+}: SendCancellationEmailButtonProps) => {
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const { formatPrice } = useCurrency();
@@ -34,46 +47,51 @@ export const SendCancellationEmailButton = ({ orderId, orderAmount, orderItems, 
     isRefund: true,
     reason: '',
     refundMethod: 'Carte bancaire',
-    refundDelay: '5-10 jours ouvrés'
+    refundDelay: '5-10 jours ouvrés',
   });
 
   const handleChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const sendEmail = async () => {
     if (!formData.customerEmail || !formData.customerName) {
-      toast.error('Veuillez remplir l\'email et le nom du client');
+      toast.error("Veuillez remplir l'email et le nom du client");
       return;
     }
 
     setSending(true);
     try {
-      const items = orderItems.map(item => ({
+      const items = orderItems.map((item) => ({
         name: item.product_snapshot?.name || 'Produit',
         quantity: item.quantity,
-        price: item.total_price
+        price: item.total_price,
       }));
 
-      const { data, error } = await supabase.functions.invoke('send-cancellation-email', {
-        body: {
-          orderId,
-          customerEmail: formData.customerEmail,
-          customerName: formData.customerName,
-          isRefund: formData.isRefund,
-          reason: formData.reason || undefined,
-          refundAmount: formData.isRefund ? orderAmount / 100 : undefined,
-          currency: 'EUR',
-          items,
-          refundMethod: formData.isRefund ? formData.refundMethod : undefined,
-          refundDelay: formData.isRefund ? formData.refundDelay : undefined
+      const { data, error } = await supabase.functions.invoke(
+        'send-cancellation-email',
+        {
+          body: {
+            orderId,
+            customerEmail: formData.customerEmail,
+            customerName: formData.customerName,
+            isRefund: formData.isRefund,
+            reason: formData.reason || undefined,
+            refundAmount: formData.isRefund ? orderAmount / 100 : undefined,
+            currency: 'EUR',
+            items,
+            refundMethod: formData.isRefund ? formData.refundMethod : undefined,
+            refundDelay: formData.isRefund ? formData.refundDelay : undefined,
+          },
         }
-      });
+      );
 
       if (error) throw error;
 
       if (data?.success) {
-        toast.success(`Email ${formData.isRefund ? 'de remboursement' : 'd\'annulation'} envoyé`);
+        toast.success(
+          `Email ${formData.isRefund ? 'de remboursement' : "d'annulation"} envoyé`
+        );
         setOpen(false);
         onEmailSent?.();
       } else {
@@ -90,7 +108,11 @@ export const SendCancellationEmailButton = ({ orderId, orderAmount, orderItems, 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1 text-destructive hover:text-destructive">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1 text-destructive hover:text-destructive"
+        >
           <XCircle className="h-3 w-3" />
           Annulation
         </Button>
@@ -99,10 +121,11 @@ export const SendCancellationEmailButton = ({ orderId, orderAmount, orderItems, 
         <DialogHeader>
           <DialogTitle>Envoyer une notification d'annulation</DialogTitle>
           <DialogDescription>
-            Envoyez un email au client pour l'informer de l'annulation ou du remboursement.
+            Envoyez un email au client pour l'informer de l'annulation ou du
+            remboursement.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4 max-h-96 overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -128,8 +151,12 @@ export const SendCancellationEmailButton = ({ orderId, orderAmount, orderItems, 
 
           <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
             <div>
-              <Label htmlFor="isRefund" className="font-medium">Remboursement</Label>
-              <p className="text-xs text-muted-foreground">Inclure les détails du remboursement</p>
+              <Label htmlFor="isRefund" className="font-medium">
+                Remboursement
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Inclure les détails du remboursement
+              </p>
             </div>
             <Switch
               id="isRefund"
@@ -145,21 +172,29 @@ export const SendCancellationEmailButton = ({ orderId, orderAmount, orderItems, 
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <Label htmlFor="refundMethod" className="text-xs">Mode de remboursement</Label>
+                  <Label htmlFor="refundMethod" className="text-xs">
+                    Mode de remboursement
+                  </Label>
                   <Input
                     id="refundMethod"
                     value={formData.refundMethod}
-                    onChange={(e) => handleChange('refundMethod', e.target.value)}
+                    onChange={(e) =>
+                      handleChange('refundMethod', e.target.value)
+                    }
                     placeholder="Carte bancaire"
                     className="h-8 text-sm"
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="refundDelay" className="text-xs">Délai estimé</Label>
+                  <Label htmlFor="refundDelay" className="text-xs">
+                    Délai estimé
+                  </Label>
                   <Input
                     id="refundDelay"
                     value={formData.refundDelay}
-                    onChange={(e) => handleChange('refundDelay', e.target.value)}
+                    onChange={(e) =>
+                      handleChange('refundDelay', e.target.value)
+                    }
                     placeholder="5-10 jours"
                     className="h-8 text-sm"
                   />

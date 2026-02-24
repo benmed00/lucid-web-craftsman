@@ -26,7 +26,7 @@ export const RemainingSlots: React.FC<RemainingSlotsProps> = ({
   const remaining = max - current;
   const isFull = remaining <= 0;
   const isNearFull = remaining <= 2 && remaining > 0;
-  
+
   const displayLabel = label || t('cart.slots.products');
 
   if (!showWhenFull && isFull) return null;
@@ -38,8 +38,11 @@ export const RemainingSlots: React.FC<RemainingSlotsProps> = ({
       className={cn(
         'gap-1.5 font-normal text-xs',
         isFull && 'border-destructive/50 bg-destructive/10 text-destructive',
-        isNearFull && 'border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400',
-        !isFull && !isNearFull && 'border-muted-foreground/30 text-muted-foreground',
+        isNearFull &&
+          'border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400',
+        !isFull &&
+          !isNearFull &&
+          'border-muted-foreground/30 text-muted-foreground',
         className
       )}
     >

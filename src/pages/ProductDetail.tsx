@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { 
-  ArrowLeft, 
-  Heart, 
-  Share2, 
-  ShoppingBag, 
-  Star, 
-  Plus, 
+import { useState, useEffect, useRef } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import {
+  ArrowLeft,
+  Heart,
+  Share2,
+  ShoppingBag,
+  Star,
+  Plus,
   Minus,
   Truck,
   Shield,
@@ -23,71 +23,87 @@ import {
   Copy,
   Facebook,
   Twitter,
-  MessageCircle
-} from "lucide-react";
+  MessageCircle,
+} from 'lucide-react';
 
 // UI Components
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { toast } from "sonner";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 // Custom Components
 
-import PageFooter from "@/components/PageFooter";
-import SEOHelmet from "@/components/seo/SEOHelmet";
-import { ProductImage } from "@/components/ui/GlobalImage";
-import ProductReviews from "@/components/ProductReviews";
-import { ProductRecommendations } from "@/components/ProductRecommendations";
-import { WishlistButton } from "@/components/ui/WishlistButton";
-import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
-import { TranslationFallbackIndicator, FallbackDot } from "@/components/ui/TranslationFallbackIndicator";
+import PageFooter from '@/components/PageFooter';
+import SEOHelmet from '@/components/seo/SEOHelmet';
+import { ProductImage } from '@/components/ui/GlobalImage';
+import ProductReviews from '@/components/ProductReviews';
+import { ProductRecommendations } from '@/components/ProductRecommendations';
+import { WishlistButton } from '@/components/ui/WishlistButton';
+import { RecentlyViewedProducts } from '@/components/RecentlyViewedProducts';
+import {
+  TranslationFallbackIndicator,
+  FallbackDot,
+} from '@/components/ui/TranslationFallbackIndicator';
 // Services & Hooks
-import { ProductService } from "@/services/productService";
-import { useCart, useCurrency } from "@/stores";
-import { useAuth } from "@/hooks/useAuth";
-import { useWishlist } from "@/hooks/useWishlist";
-import { useStock } from "@/hooks/useStock";
-import { useShipping } from "@/hooks/useShipping";
-import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
-import { useProductWithTranslation, useCurrentLocale, ProductWithTranslation } from "@/hooks/useTranslatedContent";
+import { ProductService } from '@/services/productService';
+import { useCart, useCurrency } from '@/stores';
+import { useAuth } from '@/hooks/useAuth';
+import { useWishlist } from '@/hooks/useWishlist';
+import { useStock } from '@/hooks/useStock';
+import { useShipping } from '@/hooks/useShipping';
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
+import {
+  useProductWithTranslation,
+  useCurrentLocale,
+  ProductWithTranslation,
+} from '@/hooks/useTranslatedContent';
 
 // Types & Interfaces
-import { Product } from "@/shared/interfaces/Iproduct.interface";
-import { StockInfo } from "@/services/stockService";
+import { Product } from '@/shared/interfaces/Iproduct.interface';
+import { StockInfo } from '@/services/stockService';
 
 // Utils
-import { sanitizeHtmlContent } from "@/utils/xssProtection";
+import { sanitizeHtmlContent } from '@/utils/xssProtection';
 
 interface ProductDetailProps {}
 
 const ProductDetail: React.FC<ProductDetailProps> = () => {
-  const { t } = useTranslation("pages");
-  
+  const { t } = useTranslation('pages');
+
   // Router & Navigation
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   // Auth & Cart
   const { user } = useAuth();
   const { addItem } = useCart();
   const { formatPrice } = useCurrency();
-  
+
   // Product State
-  const [product, setProduct] = useState<Product | ProductWithTranslation | null>(null);
+  const [product, setProduct] = useState<
+    Product | ProductWithTranslation | null
+  >(null);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Get current locale for translations
   const currentLocale = useCurrentLocale();
-  
+
   // UI State
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -95,33 +111,33 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
-  
+
   // Refs
   const imageGalleryRef = useRef<HTMLDivElement>(null);
   const thumbnailsRef = useRef<HTMLDivElement>(null);
-  
+
   // Hooks
   const { addToRecentlyViewed } = useRecentlyViewed();
   const { isInWishlist, toggleWishlist } = useWishlist();
-  
+
   // Stock and shipping hooks
-  const { stockInfo, canOrderQuantity } = useStock({ 
-    productId: product?.id || 0, 
-    enabled: !!product 
+  const { stockInfo, canOrderQuantity } = useStock({
+    productId: product?.id || 0,
+    enabled: !!product,
   });
   const singleStockInfo = stockInfo as StockInfo | null;
-  
+
   const { getShippingMessage, isNantesMetropole } = useShipping({
     orderAmount: product ? product.price * quantity : 0,
     postalCode: '44000', // Default to Nantes for demo
-    enabled: !!product
+    enabled: !!product,
   });
 
   // Effects - refetch when locale changes
   useEffect(() => {
     const fetchProductData = async () => {
       if (!id) {
-        setError(t("productDetail.error.missingId"));
+        setError(t('productDetail.error.missingId'));
         setLoading(false);
         return;
       }
@@ -137,35 +153,45 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
         // Find the product with the matching id
         const productId = parseInt(id);
         if (isNaN(productId)) {
-          throw new Error(t("productDetail.error.invalidId"));
+          throw new Error(t('productDetail.error.invalidId'));
         }
 
         // Fetch product with translations
-        const { getProductWithTranslation } = await import('@/services/translationService');
-        const translatedProduct = await getProductWithTranslation(productId, currentLocale);
+        const { getProductWithTranslation } = await import(
+          '@/services/translationService'
+        );
+        const translatedProduct = await getProductWithTranslation(
+          productId,
+          currentLocale
+        );
 
         if (!translatedProduct) {
-          throw new Error(t("productDetail.error.notFound"));
+          throw new Error(t('productDetail.error.notFound'));
         }
 
         setProduct(translatedProduct);
-        
+
         // Add to recently viewed
         addToRecentlyViewed(translatedProduct as Product);
 
         // Get related products based on category and artisan
-        const categoryProducts = products.filter(p => 
-          p.id !== translatedProduct.id && 
-          (p.category === translatedProduct.category || p.artisan === translatedProduct.artisan)
+        const categoryProducts = products.filter(
+          (p) =>
+            p.id !== translatedProduct.id &&
+            (p.category === translatedProduct.category ||
+              p.artisan === translatedProduct.artisan)
         );
         setRelatedProducts(categoryProducts.slice(0, 6));
 
         // Scroll to top
         window.scrollTo(0, 0);
-
       } catch (error) {
-        console.error("Error fetching product:", error);
-        setError(error instanceof Error ? error.message : t("productDetail.error.loadError"));
+        console.error('Error fetching product:', error);
+        setError(
+          error instanceof Error
+            ? error.message
+            : t('productDetail.error.loadError')
+        );
       } finally {
         setLoading(false);
       }
@@ -181,7 +207,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
     // Validate stock before adding to cart
     const canOrder = await canOrderQuantity(product.id, quantity);
     if (!canOrder.canOrder) {
-      toast.error(canOrder.reason || t("productDetail.error.cartError"));
+      toast.error(canOrder.reason || t('productDetail.error.cartError'));
       return;
     }
 
@@ -190,10 +216,12 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
       addItem(product, quantity);
 
       // Show success message
-      toast.success(`${quantity} × ${product.name} ${t("productDetail.cart.added")}`);
+      toast.success(
+        `${quantity} × ${product.name} ${t('productDetail.cart.added')}`
+      );
     } catch (error) {
-      console.error("Error adding product to cart:", error);
-      toast.error(t("productDetail.error.cartError"));
+      console.error('Error adding product to cart:', error);
+      toast.error(t('productDetail.error.cartError'));
     }
   };
 
@@ -204,8 +232,8 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
 
   const handleShare = async (platform: string) => {
     const url = window.location.href;
-    const title = `${product?.name} - ${t("productDetail.share.brandName")}`;
-    const text = t("productDetail.share.shareText", { name: product?.name });
+    const title = `${product?.name} - ${t('productDetail.share.brandName')}`;
+    const text = t('productDetail.share.shareText', { name: product?.name });
 
     try {
       switch (platform) {
@@ -214,26 +242,35 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
             await navigator.share({ title, text, url });
           } else {
             await navigator.clipboard.writeText(url);
-            toast.success(t("productDetail.share.copied"));
+            toast.success(t('productDetail.share.copied'));
           }
           break;
         case 'facebook':
-          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+          window.open(
+            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+            '_blank'
+          );
           break;
         case 'twitter':
-          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+          window.open(
+            `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+            '_blank'
+          );
           break;
         case 'whatsapp':
-          window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`, '_blank');
+          window.open(
+            `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
+            '_blank'
+          );
           break;
         case 'copy':
           await navigator.clipboard.writeText(url);
-          toast.success(t("productDetail.share.copied"));
+          toast.success(t('productDetail.share.copied'));
           break;
       }
     } catch (error) {
       console.error('Error sharing:', error);
-      toast.error(t("productDetail.share.error"));
+      toast.error(t('productDetail.share.error'));
     }
     setShareMenuOpen(false);
   };
@@ -241,7 +278,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   const handleQuantityChange = (change: number) => {
     const newQuantity = quantity + change;
     const maxQuantity = singleStockInfo?.maxQuantity || 99;
-    
+
     if (newQuantity >= 1 && newQuantity <= maxQuantity) {
       setQuantity(newQuantity);
     }
@@ -249,7 +286,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
 
   const handleImageChange = (direction: 'next' | 'prev') => {
     if (!product) return;
-    
+
     const totalImages = product.images.length;
     if (direction === 'next') {
       setSelectedImage((prev) => (prev + 1) % totalImages);
@@ -267,7 +304,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
           <div className="mb-8">
             <Skeleton className="h-4 w-64" />
           </div>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Image Gallery Skeleton */}
             <div className="space-y-4">
@@ -278,7 +315,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                 ))}
               </div>
             </div>
-            
+
             {/* Product Info Skeleton */}
             <div className="space-y-6">
               <div>
@@ -305,27 +342,25 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
           <div className="max-w-md mx-auto">
             <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
             <h2 className="text-2xl font-serif text-foreground mb-4">
-              {error || t("productDetail.error.notFound")}
+              {error || t('productDetail.error.notFound')}
             </h2>
             <p className="text-muted-foreground mb-8">
-              {t("productDetail.error.description")}
+              {t('productDetail.error.description')}
             </p>
             <div className="space-x-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => navigate(-1)}
                 className="border-border"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                {t("productDetail.error.back")}
+                {t('productDetail.error.back')}
               </Button>
-              <Button 
+              <Button
                 asChild
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                <Link to="/products">
-                  {t("productDetail.error.viewAll")}
-                </Link>
+                <Link to="/products">{t('productDetail.error.viewAll')}</Link>
               </Button>
             </div>
           </div>
@@ -340,49 +375,56 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
 
   return (
     <>
-      <SEOHelmet 
-        title={`${product.name} - ${product.category} ${t("productDetail.seo.handmadeBy")} ${product.artisan}`}
-        description={product.short_description || product.description?.substring(0, 155)}
+      <SEOHelmet
+        title={`${product.name} - ${product.category} ${t('productDetail.seo.handmadeBy')} ${product.artisan}`}
+        description={
+          product.short_description || product.description?.substring(0, 155)
+        }
         image={product.images[0]}
         url={`/products/${product.id}`}
         type="product"
         product={{
           ...product,
-          stock_quantity: singleStockInfo?.available ?? product.stock_quantity ?? 0,
+          stock_quantity:
+            singleStockInfo?.available ?? product.stock_quantity ?? 0,
           rating_average: productRating,
-          rating_count: reviewCount
+          rating_count: reviewCount,
         }}
         keywords={[
           product.name,
           product.category,
           product.artisan,
-          t("productDetail.seo.berberCraft"),
-          t("productDetail.seo.handmade"),
-          product.material || t("productDetail.seo.naturalFibers")
+          t('productDetail.seo.berberCraft'),
+          t('productDetail.seo.handmade'),
+          product.material || t('productDetail.seo.naturalFibers'),
         ]}
       />
 
       <div className="min-h-screen bg-background">
-        
-
         <main className="container mx-auto px-4 py-8">
           {/* Breadcrumbs */}
           <nav className="mb-8" aria-label="Breadcrumb">
             <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
               <li>
                 <Link to="/" className="hover:text-primary transition-colors">
-                  {t("productDetail.breadcrumb.home")}
+                  {t('productDetail.breadcrumb.home')}
                 </Link>
               </li>
               <li>/</li>
               <li>
-                <Link to="/products" className="hover:text-primary transition-colors">
-                  {t("productDetail.breadcrumb.shop")}
+                <Link
+                  to="/products"
+                  className="hover:text-primary transition-colors"
+                >
+                  {t('productDetail.breadcrumb.shop')}
                 </Link>
               </li>
               <li>/</li>
               <li>
-                <Link to={`/products?category=${product.category}`} className="hover:text-primary transition-colors">
+                <Link
+                  to={`/products?category=${product.category}`}
+                  className="hover:text-primary transition-colors"
+                >
                   {product.category}
                 </Link>
               </li>
@@ -396,17 +438,20 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
           {/* Main Product Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             {/* Image Gallery */}
-            <section className="space-y-4" aria-label={t("productDetail.images.ariaLabel")}>
+            <section
+              className="space-y-4"
+              aria-label={t('productDetail.images.ariaLabel')}
+            >
               {/* Main Image */}
               <div className="relative group">
                 <div className="aspect-square overflow-hidden rounded-xl bg-muted">
                   <ProductImage
                     src={product.images[selectedImage]}
-                    alt={`${product.name} - ${t("productDetail.images.view")} ${selectedImage + 1} ${t("productDetail.images.of")} ${product.images.length}`}
+                    alt={`${product.name} - ${t('productDetail.images.view')} ${selectedImage + 1} ${t('productDetail.images.of')} ${product.images.length}`}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     preload={true}
                   />
-                  
+
                   {/* Image Navigation */}
                   {product.images.length > 1 && (
                     <>
@@ -415,7 +460,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                         size="sm"
                         className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => handleImageChange('prev')}
-                        aria-label={`${t("productDetail.images.previous")} (${selectedImage} ${t("productDetail.images.of")} ${product.images.length})`}
+                        aria-label={`${t('productDetail.images.previous')} (${selectedImage} ${t('productDetail.images.of')} ${product.images.length})`}
                       >
                         <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                       </Button>
@@ -424,7 +469,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                         size="sm"
                         className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => handleImageChange('next')}
-                        aria-label={`${t("productDetail.images.next")} (${selectedImage + 2} ${t("productDetail.images.of")} ${product.images.length})`}
+                        aria-label={`${t('productDetail.images.next')} (${selectedImage + 2} ${t('productDetail.images.of')} ${product.images.length})`}
                       >
                         <ChevronRight className="h-4 w-4" aria-hidden="true" />
                       </Button>
@@ -444,12 +489,16 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl">
                       <DialogHeader className="sr-only">
-                        <DialogTitle>{product.name} - {t("productDetail.images.enlarged")}</DialogTitle>
-                        <DialogDescription>{t("productDetail.images.fullSizeDescription")}</DialogDescription>
+                        <DialogTitle>
+                          {product.name} - {t('productDetail.images.enlarged')}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {t('productDetail.images.fullSizeDescription')}
+                        </DialogDescription>
                       </DialogHeader>
                       <ProductImage
                         src={product.images[selectedImage]}
-                        alt={`${product.name} - ${t("productDetail.images.enlarged")}`}
+                        alt={`${product.name} - ${t('productDetail.images.enlarged')}`}
                         className="w-full h-auto"
                       />
                     </DialogContent>
@@ -463,10 +512,12 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       <button
                         key={index}
                         className={`w-2 h-2 rounded-full transition-colors ${
-                          index === selectedImage ? 'bg-primary-foreground' : 'bg-primary-foreground/50'
+                          index === selectedImage
+                            ? 'bg-primary-foreground'
+                            : 'bg-primary-foreground/50'
                         }`}
                         onClick={() => setSelectedImage(index)}
-                        aria-label={`${t("productDetail.images.viewImage")} ${index + 1}`}
+                        aria-label={`${t('productDetail.images.viewImage')} ${index + 1}`}
                       />
                     ))}
                   </div>
@@ -488,7 +539,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     >
                       <ProductImage
                         src={image}
-                        alt={`${product.name} - ${t("productDetail.images.thumbnail")} ${index + 1}`}
+                        alt={`${product.name} - ${t('productDetail.images.thumbnail')} ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
                     </button>
@@ -498,41 +549,50 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
             </section>
 
             {/* Product Information */}
-            <section className="space-y-6" aria-label={t("productDetail.productInfo.ariaLabel")}>
+            <section
+              className="space-y-6"
+              aria-label={t('productDetail.productInfo.ariaLabel')}
+            >
               {/* Header */}
               <header>
                 <div className="flex items-center gap-3 mb-3">
-                  <Badge variant="outline" className="text-primary border-primary/20">
+                  <Badge
+                    variant="outline"
+                    className="text-primary border-primary/20"
+                  >
                     {product.category}
                   </Badge>
                   {product.is_new && (
                     <Badge className="bg-primary text-primary-foreground">
-                      {t("productDetail.badges.new")}
+                      {t('productDetail.badges.new')}
                     </Badge>
                   )}
                   {product.is_featured && (
                     <Badge className="bg-accent text-accent-foreground">
-                      {t("productDetail.badges.favorite")}
+                      {t('productDetail.badges.favorite')}
                     </Badge>
                   )}
                 </div>
 
                 <div className="flex items-center gap-3 flex-wrap mb-4">
-                  <h1 
+                  <h1
                     className="text-3xl lg:text-4xl font-serif text-foreground"
                     id="product-title"
                   >
                     {product.name}
                   </h1>
                   {/* Fallback indicator when translation is not available */}
-                  {'_fallbackUsed' in product && (product as ProductWithTranslation)._fallbackUsed && (
-                    <TranslationFallbackIndicator
-                      isFallback={true}
-                      displayedLocale={(product as ProductWithTranslation)._locale}
-                      preferredLocale={currentLocale}
-                      variant="badge"
-                    />
-                  )}
+                  {'_fallbackUsed' in product &&
+                    (product as ProductWithTranslation)._fallbackUsed && (
+                      <TranslationFallbackIndicator
+                        isFallback={true}
+                        displayedLocale={
+                          (product as ProductWithTranslation)._locale
+                        }
+                        preferredLocale={currentLocale}
+                        variant="badge"
+                      />
+                    )}
                 </div>
 
                 {/* Rating */}
@@ -551,7 +611,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       ))}
                     </div>
                     <span className="text-sm text-muted-foreground">
-                      ({reviewCount} {t("productDetail.reviews")})
+                      ({reviewCount} {t('productDetail.reviews')})
                     </span>
                   </div>
                 )}
@@ -562,7 +622,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     {formatPrice(product.price)}
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {t("productDetail.price.vatIncluded")}
+                    {t('productDetail.price.vatIncluded')}
                   </p>
                 </div>
               </header>
@@ -577,7 +637,9 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     onClick={() => setShowFullDescription(!showFullDescription)}
                     className="text-primary text-sm hover:underline mt-2"
                   >
-                    {showFullDescription ? t("productDetail.description.showLess") : t("productDetail.description.showMore")}
+                    {showFullDescription
+                      ? t('productDetail.description.showLess')
+                      : t('productDetail.description.showMore')}
                   </button>
                 )}
               </div>
@@ -591,7 +653,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       size="sm"
                       onClick={() => handleQuantityChange(-1)}
                       disabled={quantity <= 1}
-                      aria-label={t("productDetail.quantity.decrease")}
+                      aria-label={t('productDetail.quantity.decrease')}
                     >
                       <Minus className="h-4 w-4" />
                     </Button>
@@ -602,16 +664,16 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleQuantityChange(1)}
-                      disabled={quantity >= (singleStockInfo?.maxQuantity || 99)}
-                      aria-label={t("productDetail.quantity.increase")}
+                      disabled={
+                        quantity >= (singleStockInfo?.maxQuantity || 99)
+                      }
+                      aria-label={t('productDetail.quantity.increase')}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
-                  
-                  <WishlistButton
-                    productId={product.id}
-                  />
+
+                  <WishlistButton productId={product.id} />
                 </div>
 
                 <div className="flex gap-3">
@@ -621,9 +683,11 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     disabled={singleStockInfo?.isOutOfStock}
                   >
                     <ShoppingBag className="h-4 w-4 mr-2" />
-                    {!singleStockInfo?.isOutOfStock ? t("productDetail.cart.add") : t("productDetail.cart.outOfStock")}
+                    {!singleStockInfo?.isOutOfStock
+                      ? t('productDetail.cart.add')
+                      : t('productDetail.cart.outOfStock')}
                   </Button>
-                  
+
                   <Dialog open={shareMenuOpen} onOpenChange={setShareMenuOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="icon">
@@ -632,8 +696,12 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
                       <DialogHeader>
-                        <DialogTitle>{t("productDetail.share.title")}</DialogTitle>
-                        <DialogDescription>{t("productDetail.share.description")}</DialogDescription>
+                        <DialogTitle>
+                          {t('productDetail.share.title')}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {t('productDetail.share.description')}
+                        </DialogDescription>
                       </DialogHeader>
                       <div className="grid grid-cols-2 gap-2">
                         <Button
@@ -666,7 +734,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                           className="w-full"
                         >
                           <Copy className="h-4 w-4 mr-2" />
-                          {t("productDetail.share.copy")}
+                          {t('productDetail.share.copy')}
                         </Button>
                       </div>
                     </DialogContent>
@@ -681,24 +749,25 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     <AlertDescription className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-600" />
                       <span className="text-sm">
-                        {!singleStockInfo.isOutOfStock 
-                          ? `${t("productDetail.stock.inStock")} • ${singleStockInfo.available} ${t("productDetail.stock.available")}`
-                          : t("productDetail.stock.outOfStock")
-                        }
+                        {!singleStockInfo.isOutOfStock
+                          ? `${t('productDetail.stock.inStock')} • ${singleStockInfo.available} ${t('productDetail.stock.available')}`
+                          : t('productDetail.stock.outOfStock')}
                       </span>
                     </AlertDescription>
                   </Alert>
                 )}
-                
+
                 <Alert>
                   <AlertDescription className="flex items-center gap-2">
                     <Truck className="h-4 w-4 text-primary" />
                     <div className="text-sm">
-                      <p className="font-medium text-foreground">{t("productDetail.shipping.free")}</p>
-                      <p className="text-muted-foreground">
-                        {t("productDetail.shipping.freeFrom")}
+                      <p className="font-medium text-foreground">
+                        {t('productDetail.shipping.free')}
                       </p>
-                        {getShippingMessage && (
+                      <p className="text-muted-foreground">
+                        {t('productDetail.shipping.freeFrom')}
+                      </p>
+                      {getShippingMessage && (
                         <p className="text-muted-foreground mt-1">
                           {getShippingMessage()}
                         </p>
@@ -714,16 +783,26 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
           <div className="mb-16">
             <Tabs defaultValue="details" className="w-full">
               <TabsList className="grid w-full grid-cols-4 mb-8">
-                <TabsTrigger value="details">{t("productDetail.tabs.details")}</TabsTrigger>
-                <TabsTrigger value="specs">{t("productDetail.tabs.specs")}</TabsTrigger>
-                <TabsTrigger value="care">{t("productDetail.tabs.care")}</TabsTrigger>
-                <TabsTrigger value="shipping">{t("productDetail.tabs.shipping")}</TabsTrigger>
+                <TabsTrigger value="details">
+                  {t('productDetail.tabs.details')}
+                </TabsTrigger>
+                <TabsTrigger value="specs">
+                  {t('productDetail.tabs.specs')}
+                </TabsTrigger>
+                <TabsTrigger value="care">
+                  {t('productDetail.tabs.care')}
+                </TabsTrigger>
+                <TabsTrigger value="shipping">
+                  {t('productDetail.tabs.shipping')}
+                </TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="details" className="space-y-4">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-medium text-foreground mb-4">{t("productDetail.detailsTab.title")}</h3>
+                    <h3 className="font-medium text-foreground mb-4">
+                      {t('productDetail.detailsTab.title')}
+                    </h3>
                     <div
                       className="prose prose-stone dark:prose-invert max-w-none text-muted-foreground"
                       dangerouslySetInnerHTML={{
@@ -733,49 +812,77 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="specs" className="space-y-4">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-medium text-foreground mb-4">{t("productDetail.specsTab.title")}</h3>
+                    <h3 className="font-medium text-foreground mb-4">
+                      {t('productDetail.specsTab.title')}
+                    </h3>
                     <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {product.material && (
                         <>
-                          <dt className="font-medium text-foreground">{t("productDetail.specsTab.material")}</dt>
-                          <dd className="text-muted-foreground">{product.material}</dd>
+                          <dt className="font-medium text-foreground">
+                            {t('productDetail.specsTab.material')}
+                          </dt>
+                          <dd className="text-muted-foreground">
+                            {product.material}
+                          </dd>
                         </>
                       )}
                       {product.color && (
                         <>
-                          <dt className="font-medium text-foreground">{t("productDetail.specsTab.color")}</dt>
-                          <dd className="text-muted-foreground">{product.color}</dd>
+                          <dt className="font-medium text-foreground">
+                            {t('productDetail.specsTab.color')}
+                          </dt>
+                          <dd className="text-muted-foreground">
+                            {product.color}
+                          </dd>
                         </>
                       )}
                       {product.dimensions_cm && (
                         <>
-                          <dt className="font-medium text-foreground">{t("productDetail.specsTab.dimensions")}</dt>
-                          <dd className="text-muted-foreground">{product.dimensions_cm}</dd>
+                          <dt className="font-medium text-foreground">
+                            {t('productDetail.specsTab.dimensions')}
+                          </dt>
+                          <dd className="text-muted-foreground">
+                            {product.dimensions_cm}
+                          </dd>
                         </>
                       )}
                       {product.weight_grams && (
                         <>
-                          <dt className="font-medium text-foreground">{t("productDetail.specsTab.weight")}</dt>
-                          <dd className="text-muted-foreground">{product.weight_grams}g</dd>
+                          <dt className="font-medium text-foreground">
+                            {t('productDetail.specsTab.weight')}
+                          </dt>
+                          <dd className="text-muted-foreground">
+                            {product.weight_grams}g
+                          </dd>
                         </>
                       )}
-                      <dt className="font-medium text-foreground">{t("productDetail.specsTab.artisan")}</dt>
-                      <dd className="text-muted-foreground">{product.artisan}</dd>
-                      <dt className="font-medium text-foreground">{t("productDetail.specsTab.category")}</dt>
-                      <dd className="text-muted-foreground">{product.category}</dd>
+                      <dt className="font-medium text-foreground">
+                        {t('productDetail.specsTab.artisan')}
+                      </dt>
+                      <dd className="text-muted-foreground">
+                        {product.artisan}
+                      </dd>
+                      <dt className="font-medium text-foreground">
+                        {t('productDetail.specsTab.category')}
+                      </dt>
+                      <dd className="text-muted-foreground">
+                        {product.category}
+                      </dd>
                     </dl>
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="care" className="space-y-4">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-medium text-foreground mb-4">{t("productDetail.careTab.title")}</h3>
+                    <h3 className="font-medium text-foreground mb-4">
+                      {t('productDetail.careTab.title')}
+                    </h3>
                     <div
                       className="prose prose-stone dark:prose-invert max-w-none text-muted-foreground"
                       dangerouslySetInnerHTML={{
@@ -785,26 +892,36 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="shipping" className="space-y-4">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-medium text-foreground mb-4">{t("productDetail.shippingTab.title")}</h3>
+                    <h3 className="font-medium text-foreground mb-4">
+                      {t('productDetail.shippingTab.title')}
+                    </h3>
                     <div className="space-y-4">
                       <div>
-                        <h4 className="font-medium text-foreground mb-2">{t("productDetail.shippingTab.deliveryTime")}</h4>
-                        <p className="text-muted-foreground">{t("productDetail.shippingTab.deliveryTimeValue")}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-foreground mb-2">{t("productDetail.shippingTab.shippingCost")}</h4>
+                        <h4 className="font-medium text-foreground mb-2">
+                          {t('productDetail.shippingTab.deliveryTime')}
+                        </h4>
                         <p className="text-muted-foreground">
-                          {t("productDetail.shippingTab.shippingCostValue")}
+                          {t('productDetail.shippingTab.deliveryTimeValue')}
                         </p>
                       </div>
                       <div>
-                        <h4 className="font-medium text-foreground mb-2">{t("productDetail.shippingTab.returns")}</h4>
+                        <h4 className="font-medium text-foreground mb-2">
+                          {t('productDetail.shippingTab.shippingCost')}
+                        </h4>
                         <p className="text-muted-foreground">
-                          {t("productDetail.shippingTab.returnsValue")}
+                          {t('productDetail.shippingTab.shippingCostValue')}
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-foreground mb-2">
+                          {t('productDetail.shippingTab.returns')}
+                        </h4>
+                        <p className="text-muted-foreground">
+                          {t('productDetail.shippingTab.returnsValue')}
                         </p>
                       </div>
                     </div>
@@ -816,10 +933,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
 
           {/* Reviews Section */}
           <div className="mb-16">
-            <ProductReviews 
-              productId={product.id} 
-              productName={product.name}
-            />
+            <ProductReviews productId={product.id} productName={product.name} />
           </div>
 
           {/* Related Products */}
@@ -827,7 +941,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
             <div className="mb-16">
               <ProductRecommendations
                 allProducts={relatedProducts}
-                title={t("productDetail.recommendations")}
+                title={t('productDetail.recommendations')}
                 maxRecommendations={6}
                 onQuickView={() => {}}
               />

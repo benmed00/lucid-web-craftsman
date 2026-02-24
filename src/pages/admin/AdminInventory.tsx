@@ -1,13 +1,41 @@
 import React, { useState, useMemo } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit2, Package, AlertTriangle, TrendingUp, TrendingDown, Search, Filter } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Edit2,
+  Package,
+  AlertTriangle,
+  TrendingUp,
+  TrendingDown,
+  Search,
+  Filter,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,28 +74,32 @@ const AdminInventory = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, category, stock_quantity, min_stock_level, is_available, price, images')
+        .select(
+          'id, name, category, stock_quantity, min_stock_level, is_available, price, images'
+        )
         .order('name');
-      
+
       if (error) throw error;
       return data as Product[];
-    }
+    },
   });
 
   // Get unique categories
   const categories = useMemo(() => {
-    const cats = [...new Set(products.map(p => p.category))];
+    const cats = [...new Set(products.map((p) => p.category))];
     return cats.sort();
   }, [products]);
 
   // Filter products
   const filteredProducts = useMemo(() => {
-    return products.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           product.category.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-      
+    return products.filter((product) => {
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesCategory =
+        categoryFilter === 'all' || product.category === categoryFilter;
+
       let matchesStock = true;
       if (stockFilter === 'low') {
         matchesStock = product.stock_quantity <= product.min_stock_level;
@@ -76,7 +108,7 @@ const AdminInventory = () => {
       } else if (stockFilter === 'available') {
         matchesStock = product.stock_quantity > 0;
       }
-      
+
       return matchesSearch && matchesCategory && matchesStock;
     });
   }, [products, searchTerm, categoryFilter, stockFilter]);
@@ -84,10 +116,15 @@ const AdminInventory = () => {
   // Calculate inventory stats
   const inventoryStats = useMemo(() => {
     const totalProducts = products.length;
-    const lowStock = products.filter(p => p.stock_quantity <= p.min_stock_level && p.stock_quantity > 0).length;
-    const outOfStock = products.filter(p => p.stock_quantity === 0).length;
-    const totalValue = products.reduce((sum, p) => sum + (p.price * p.stock_quantity), 0);
-    
+    const lowStock = products.filter(
+      (p) => p.stock_quantity <= p.min_stock_level && p.stock_quantity > 0
+    ).length;
+    const outOfStock = products.filter((p) => p.stock_quantity === 0).length;
+    const totalValue = products.reduce(
+      (sum, p) => sum + p.price * p.stock_quantity,
+      0
+    );
+
     return { totalProducts, lowStock, outOfStock, totalValue };
   }, [products]);
 
@@ -98,7 +135,7 @@ const AdminInventory = () => {
         .update({
           stock_quantity: updates.newQuantity,
           min_stock_level: updates.minLevel,
-          is_available: updates.isAvailable
+          is_available: updates.isAvailable,
         })
         .eq('id', updates.productId);
 
@@ -119,9 +156,17 @@ const AdminInventory = () => {
       return <Badge variant="destructive">Rupture de stock</Badge>;
     }
     if (product.stock_quantity <= product.min_stock_level) {
-      return <Badge variant="outline" className="text-amber-600 border-amber-300">Stock faible</Badge>;
+      return (
+        <Badge variant="outline" className="text-amber-600 border-amber-300">
+          Stock faible
+        </Badge>
+      );
     }
-    return <Badge variant="outline" className="text-green-600 border-green-300">En stock</Badge>;
+    return (
+      <Badge variant="outline" className="text-green-600 border-green-300">
+        En stock
+      </Badge>
+    );
   };
 
   if (isLoading) {
@@ -136,8 +181,12 @@ const AdminInventory = () => {
     <div className="container mx-auto px-4 py-8 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-serif text-stone-800 mb-2">Gestion de l'Inventaire</h1>
-        <p className="text-stone-600">Suivez et gérez le stock de vos produits</p>
+        <h1 className="text-3xl font-serif text-stone-800 mb-2">
+          Gestion de l'Inventaire
+        </h1>
+        <p className="text-stone-600">
+          Suivez et gérez le stock de vos produits
+        </p>
       </div>
 
       {/* Inventory Stats */}
@@ -146,8 +195,12 @@ const AdminInventory = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-stone-600">Total Produits</p>
-                <p className="text-2xl font-bold text-stone-900">{inventoryStats.totalProducts}</p>
+                <p className="text-sm font-medium text-stone-600">
+                  Total Produits
+                </p>
+                <p className="text-2xl font-bold text-stone-900">
+                  {inventoryStats.totalProducts}
+                </p>
               </div>
               <Package className="h-8 w-8 text-blue-500" />
             </div>
@@ -158,8 +211,12 @@ const AdminInventory = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-stone-600">Stock Faible</p>
-                <p className="text-2xl font-bold text-amber-600">{inventoryStats.lowStock}</p>
+                <p className="text-sm font-medium text-stone-600">
+                  Stock Faible
+                </p>
+                <p className="text-2xl font-bold text-amber-600">
+                  {inventoryStats.lowStock}
+                </p>
               </div>
               <AlertTriangle className="h-8 w-8 text-amber-500" />
             </div>
@@ -170,8 +227,12 @@ const AdminInventory = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-stone-600">Rupture de Stock</p>
-                <p className="text-2xl font-bold text-red-600">{inventoryStats.outOfStock}</p>
+                <p className="text-sm font-medium text-stone-600">
+                  Rupture de Stock
+                </p>
+                <p className="text-2xl font-bold text-red-600">
+                  {inventoryStats.outOfStock}
+                </p>
               </div>
               <TrendingDown className="h-8 w-8 text-red-500" />
             </div>
@@ -182,8 +243,12 @@ const AdminInventory = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-stone-600">Valeur Stock</p>
-                <p className="text-2xl font-bold text-green-600">{formatPrice(inventoryStats.totalValue)}</p>
+                <p className="text-sm font-medium text-stone-600">
+                  Valeur Stock
+                </p>
+                <p className="text-2xl font-bold text-green-600">
+                  {formatPrice(inventoryStats.totalValue)}
+                </p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-500" />
             </div>
@@ -223,8 +288,10 @@ const AdminInventory = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Toutes les catégories</SelectItem>
-                  {categories.map(category => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -281,19 +348,29 @@ const AdminInventory = () => {
                           />
                         </div>
                         <div>
-                          <p className="font-medium text-stone-900">{product.name}</p>
+                          <p className="font-medium text-stone-900">
+                            {product.name}
+                          </p>
                           {!product.is_available && (
-                            <Badge variant="secondary" className="text-xs">Non disponible</Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              Non disponible
+                            </Badge>
                           )}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>{product.category}</TableCell>
-                    <TableCell className="font-mono">{product.stock_quantity}</TableCell>
-                    <TableCell className="font-mono">{product.min_stock_level}</TableCell>
+                    <TableCell className="font-mono">
+                      {product.stock_quantity}
+                    </TableCell>
+                    <TableCell className="font-mono">
+                      {product.min_stock_level}
+                    </TableCell>
                     <TableCell>{getStockStatusBadge(product)}</TableCell>
                     <TableCell>{formatPrice(product.price)}</TableCell>
-                    <TableCell>{formatPrice(product.price * product.stock_quantity)}</TableCell>
+                    <TableCell>
+                      {formatPrice(product.price * product.stock_quantity)}
+                    </TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
@@ -319,7 +396,9 @@ const AdminInventory = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Modifier le Stock</DialogTitle>
-            <DialogDescription>Ajustez la quantité en stock pour ce produit</DialogDescription>
+            <DialogDescription>
+              Ajustez la quantité en stock pour ce produit
+            </DialogDescription>
           </DialogHeader>
           {selectedProduct && (
             <EditStockForm
@@ -341,18 +420,29 @@ interface EditStockFormProps {
   onCancel: () => void;
 }
 
-const EditStockForm: React.FC<EditStockFormProps> = ({ product, onUpdate, onCancel }) => {
-  const [stockQuantity, setStockQuantity] = useState(product.stock_quantity.toString());
+const EditStockForm: React.FC<EditStockFormProps> = ({
+  product,
+  onUpdate,
+  onCancel,
+}) => {
+  const [stockQuantity, setStockQuantity] = useState(
+    product.stock_quantity.toString()
+  );
   const [minLevel, setMinLevel] = useState(product.min_stock_level.toString());
   const [isAvailable, setIsAvailable] = useState(product.is_available);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const newQuantity = parseInt(stockQuantity);
     const newMinLevel = parseInt(minLevel);
-    
-    if (isNaN(newQuantity) || isNaN(newMinLevel) || newQuantity < 0 || newMinLevel < 0) {
+
+    if (
+      isNaN(newQuantity) ||
+      isNaN(newMinLevel) ||
+      newQuantity < 0 ||
+      newMinLevel < 0
+    ) {
       toast.error('Veuillez entrer des valeurs valides');
       return;
     }
@@ -361,7 +451,7 @@ const EditStockForm: React.FC<EditStockFormProps> = ({ product, onUpdate, onCanc
       productId: product.id,
       newQuantity,
       minLevel: newMinLevel,
-      isAvailable
+      isAvailable,
     });
   };
 

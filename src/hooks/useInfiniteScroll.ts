@@ -14,10 +14,10 @@ interface UseInfiniteScrollReturn<T> {
   loadMore: () => void;
 }
 
-export function useInfiniteScroll<T>({ 
-  items, 
-  itemsPerPage = 12, 
-  threshold = 0.8 
+export function useInfiniteScroll<T>({
+  items,
+  itemsPerPage = 12,
+  threshold = 0.8,
 }: UseInfiniteScrollProps<T>): UseInfiniteScrollReturn<T> {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,10 +32,11 @@ export function useInfiniteScroll<T>({
 
   // Reset pagination only when items array actually changes (by reference or length)
   useEffect(() => {
-    const itemsChanged = items !== prevItemsRef.current && 
-      (items.length !== prevItemsRef.current.length || 
-       items[0] !== prevItemsRef.current[0]);
-    
+    const itemsChanged =
+      items !== prevItemsRef.current &&
+      (items.length !== prevItemsRef.current.length ||
+        items[0] !== prevItemsRef.current[0]);
+
     if (itemsChanged) {
       setCurrentPage(1);
       prevItemsRef.current = items;
@@ -46,10 +47,10 @@ export function useInfiniteScroll<T>({
     if (isLoading || !hasMore) return;
 
     setIsLoading(true);
-    
+
     // Simulate loading delay for better UX
     setTimeout(() => {
-      setCurrentPage(prev => prev + 1);
+      setCurrentPage((prev) => prev + 1);
       setIsLoading(false);
     }, 300);
   }, [isLoading, hasMore]);
@@ -87,4 +88,4 @@ export function useInfiniteScroll<T>({
     sentinelRef,
     loadMore,
   };
-};
+}

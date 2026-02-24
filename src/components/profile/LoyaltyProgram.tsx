@@ -6,15 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Crown, 
-  Gift, 
-  Star, 
-  Trophy, 
-  Coins, 
-  History, 
+import {
+  Crown,
+  Gift,
+  Star,
+  Trophy,
+  Coins,
+  History,
   ShoppingCart,
-  Sparkles 
+  Sparkles,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -93,7 +93,7 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
             .select('*')
             .eq('user_id', user.id)
             .maybeSingle();
-          
+
           setLoyaltyData(newPointsData);
         } catch (initError) {
           console.error('Error initializing loyalty account:', initError);
@@ -121,7 +121,6 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
         .order('points_cost', { ascending: true });
 
       setRewards(rewardsData || []);
-
     } catch (error: any) {
       console.error('Error loading loyalty data:', error);
     } finally {
@@ -131,10 +130,30 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
 
   const getTierInfo = (tier: string) => {
     const tiers = {
-      bronze: { name: 'Bronze', color: 'bg-orange-500', icon: Coins, textColor: 'text-orange-600 dark:text-orange-400' },
-      silver: { name: 'Argent', color: 'bg-gray-400', icon: Star, textColor: 'text-gray-600 dark:text-gray-400' },
-      gold: { name: 'Or', color: 'bg-yellow-500', icon: Trophy, textColor: 'text-yellow-600 dark:text-yellow-400' },
-      platinum: { name: 'Platine', color: 'bg-purple-500', icon: Crown, textColor: 'text-purple-600 dark:text-purple-400' }
+      bronze: {
+        name: 'Bronze',
+        color: 'bg-orange-500',
+        icon: Coins,
+        textColor: 'text-orange-600 dark:text-orange-400',
+      },
+      silver: {
+        name: 'Argent',
+        color: 'bg-gray-400',
+        icon: Star,
+        textColor: 'text-gray-600 dark:text-gray-400',
+      },
+      gold: {
+        name: 'Or',
+        color: 'bg-yellow-500',
+        icon: Trophy,
+        textColor: 'text-yellow-600 dark:text-yellow-400',
+      },
+      platinum: {
+        name: 'Platine',
+        color: 'bg-purple-500',
+        icon: Crown,
+        textColor: 'text-purple-600 dark:text-purple-400',
+      },
     };
     return tiers[tier as keyof typeof tiers] || tiers.bronze;
   };
@@ -143,34 +162,35 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
     const icons = {
       discount: ShoppingCart,
       free_shipping: Gift,
-      product: Sparkles
+      product: Sparkles,
     };
     return icons[rewardType as keyof typeof icons] || Gift;
   };
 
   const canRedeemReward = (reward: LoyaltyReward) => {
     if (!loyaltyData) return false;
-    
+
     // Check if user has enough points
     if (loyaltyData.points_balance < reward.points_cost) return false;
-    
+
     // Check if user's tier is high enough
     const tierOrder = ['bronze', 'silver', 'gold', 'platinum'];
     const userTierIndex = tierOrder.indexOf(loyaltyData.tier);
     const rewardTierIndex = tierOrder.indexOf(reward.min_tier);
-    
+
     if (userTierIndex < rewardTierIndex) return false;
-    
+
     // Check usage limit
-    if (reward.usage_limit && reward.usage_count >= reward.usage_limit) return false;
-    
+    if (reward.usage_limit && reward.usage_count >= reward.usage_limit)
+      return false;
+
     return true;
   };
 
   const redeemReward = async (rewardId: string) => {
     if (!loyaltyData) return;
-    
-    const reward = rewards.find(r => r.id === rewardId);
+
+    const reward = rewards.find((r) => r.id === rewardId);
     if (!reward) return;
 
     setIsRedeeming(rewardId);
@@ -183,7 +203,7 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
           user_id: user.id,
           reward_id: rewardId,
           points_spent: reward.points_cost,
-          expires_at: expiryDate.toISOString()
+          expires_at: expiryDate.toISOString(),
         });
 
       if (redemptionError) throw redemptionError;
@@ -194,14 +214,14 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
         p_points: -reward.points_cost,
         p_source_type: 'redemption',
         p_source_id: rewardId,
-        p_description: `Échange: ${reward.name}`
+        p_description: `Échange: ${reward.name}`,
       });
 
       toast.success(`${reward.name} échangée avec succès !`);
       loadLoyaltyData(); // Reload data
     } catch (error: any) {
       console.error('Error redeeming reward:', error);
-      toast.error('Erreur lors de l\'échange de la récompense');
+      toast.error("Erreur lors de l'échange de la récompense");
     } finally {
       setIsRedeeming(null);
     }
@@ -231,7 +251,9 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
         <CardContent className="pt-6">
           <div className="text-center py-8">
             <Crown className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Programme de fidélité</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              Programme de fidélité
+            </h3>
             <p className="text-muted-foreground">
               Votre compte fidélité sera activé lors de votre première commande.
             </p>
@@ -243,9 +265,13 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
 
   const tierInfo = getTierInfo(loyaltyData.tier);
   const TierIcon = tierInfo.icon;
-  const progressPercentage = loyaltyData.next_tier_threshold > 0 
-    ? (loyaltyData.tier_progress / (loyaltyData.next_tier_threshold - (loyaltyData.total_points_earned - loyaltyData.tier_progress))) * 100 
-    : 100;
+  const progressPercentage =
+    loyaltyData.next_tier_threshold > 0
+      ? (loyaltyData.tier_progress /
+          (loyaltyData.next_tier_threshold -
+            (loyaltyData.total_points_earned - loyaltyData.tier_progress))) *
+        100
+      : 100;
 
   return (
     <div className="space-y-6">
@@ -273,9 +299,12 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                 <TierIcon className="h-6 w-6 text-white" />
               </div>
               <div>
-                <div className="font-semibold text-foreground">Niveau {tierInfo.name}</div>
+                <div className="font-semibold text-foreground">
+                  Niveau {tierInfo.name}
+                </div>
                 <div className="text-sm text-muted-foreground">
-                  {loyaltyData.total_points_earned.toLocaleString()} points gagnés au total
+                  {loyaltyData.total_points_earned.toLocaleString()} points
+                  gagnés au total
                 </div>
               </div>
             </div>
@@ -285,11 +314,19 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Progression vers le niveau suivant</span>
-                  <span>{loyaltyData.tier_progress} / {loyaltyData.next_tier_threshold - (loyaltyData.total_points_earned - loyaltyData.tier_progress)}</span>
+                  <span>
+                    {loyaltyData.tier_progress} /{' '}
+                    {loyaltyData.next_tier_threshold -
+                      (loyaltyData.total_points_earned -
+                        loyaltyData.tier_progress)}
+                  </span>
                 </div>
                 <Progress value={progressPercentage} className="h-2" />
                 <p className="text-xs text-muted-foreground text-center">
-                  Plus que {loyaltyData.next_tier_threshold - loyaltyData.total_points_earned} points pour le niveau suivant
+                  Plus que{' '}
+                  {loyaltyData.next_tier_threshold -
+                    loyaltyData.total_points_earned}{' '}
+                  points pour le niveau suivant
                 </p>
               </div>
             )}
@@ -300,13 +337,17 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                 <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                   +{loyaltyData.total_points_earned.toLocaleString()}
                 </div>
-                <div className="text-xs text-muted-foreground">Points gagnés</div>
+                <div className="text-xs text-muted-foreground">
+                  Points gagnés
+                </div>
               </div>
               <div className="text-center p-3 bg-card/50 rounded-lg">
                 <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                   -{loyaltyData.total_points_spent.toLocaleString()}
                 </div>
-                <div className="text-xs text-muted-foreground">Points dépensés</div>
+                <div className="text-xs text-muted-foreground">
+                  Points dépensés
+                </div>
               </div>
             </div>
           </div>
@@ -342,14 +383,21 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                   const tierInfo = getTierInfo(reward.min_tier);
 
                   return (
-                    <div key={reward.id} className={`border rounded-lg p-4 ${canRedeem ? 'border-primary/20 bg-primary/5' : 'border-border bg-muted/20'}`}>
+                    <div
+                      key={reward.id}
+                      className={`border rounded-lg p-4 ${canRedeem ? 'border-primary/20 bg-primary/5' : 'border-border bg-muted/20'}`}
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
-                          <div className={`p-2 rounded-lg ${canRedeem ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                          <div
+                            className={`p-2 rounded-lg ${canRedeem ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+                          >
                             <RewardIcon className="h-5 w-5" />
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-semibold text-foreground">{reward.name}</h4>
+                            <h4 className="font-semibold text-foreground">
+                              {reward.name}
+                            </h4>
                             <p className="text-sm text-muted-foreground mb-2">
                               {reward.description}
                             </p>
@@ -357,13 +405,18 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                               <Badge variant="secondary" className="text-xs">
                                 {reward.points_cost} points
                               </Badge>
-                              <Badge variant="outline" className={`text-xs ${tierInfo.textColor}`}>
-                                Niveau {getTierInfo(reward.min_tier).name} requis
+                              <Badge
+                                variant="outline"
+                                className={`text-xs ${tierInfo.textColor}`}
+                              >
+                                Niveau {getTierInfo(reward.min_tier).name}{' '}
+                                requis
                               </Badge>
                             </div>
                             {reward.usage_limit && (
                               <p className="text-xs text-muted-foreground">
-                                {reward.usage_count} / {reward.usage_limit} échangées
+                                {reward.usage_count} / {reward.usage_limit}{' '}
+                                échangées
                               </p>
                             )}
                           </div>
@@ -373,7 +426,9 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                           disabled={!canRedeem || isRedeeming === reward.id}
                           onClick={() => redeemReward(reward.id)}
                         >
-                          {isRedeeming === reward.id ? 'Échange...' : 'Échanger'}
+                          {isRedeeming === reward.id
+                            ? 'Échange...'
+                            : 'Échanger'}
                         </Button>
                       </div>
                     </div>
@@ -396,7 +451,9 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
               {transactions.length === 0 ? (
                 <div className="text-center py-8">
                   <History className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Aucune transaction</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Aucune transaction
+                  </h3>
                   <p className="text-muted-foreground">
                     Vos transactions de points apparaîtront ici.
                   </p>
@@ -407,11 +464,13 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                     <div key={transaction.id}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${
-                            transaction.points_change > 0 
-                              ? 'bg-status-success/10 text-status-success' 
-                              : 'bg-status-error/10 text-status-error'
-                          }`}>
+                          <div
+                            className={`p-2 rounded-lg ${
+                              transaction.points_change > 0
+                                ? 'bg-status-success/10 text-status-success'
+                                : 'bg-status-error/10 text-status-error'
+                            }`}
+                          >
                             {transaction.points_change > 0 ? (
                               <Sparkles className="h-4 w-4" />
                             ) : (
@@ -419,21 +478,32 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                             )}
                           </div>
                           <div>
-                            <p className="font-medium text-foreground">{transaction.description}</p>
+                            <p className="font-medium text-foreground">
+                              {transaction.description}
+                            </p>
                             <p className="text-xs text-muted-foreground">
-                              {format(new Date(transaction.created_at), 'dd MMMM yyyy à HH:mm', { locale: fr })}
+                              {format(
+                                new Date(transaction.created_at),
+                                'dd MMMM yyyy à HH:mm',
+                                { locale: fr }
+                              )}
                             </p>
                           </div>
                         </div>
-                        <div className={`text-lg font-semibold ${
-                          transaction.points_change > 0 
-                            ? 'text-status-success' 
-                            : 'text-status-error'
-                        }`}>
-                          {transaction.points_change > 0 ? '+' : ''}{transaction.points_change}
+                        <div
+                          className={`text-lg font-semibold ${
+                            transaction.points_change > 0
+                              ? 'text-status-success'
+                              : 'text-status-error'
+                          }`}
+                        >
+                          {transaction.points_change > 0 ? '+' : ''}
+                          {transaction.points_change}
                         </div>
                       </div>
-                      {index < transactions.length - 1 && <Separator className="my-4" />}
+                      {index < transactions.length - 1 && (
+                        <Separator className="my-4" />
+                      )}
                     </div>
                   ))}
                 </div>

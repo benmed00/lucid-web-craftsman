@@ -4,7 +4,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 // No global Window extension needed - use type assertion below
 
 const getStripePublicKey = (): string => {
-  return (typeof window !== 'undefined' && (window as any).STRIPE_PUBLIC_KEY) || 'pk_test_placeholder';
+  return (
+    (typeof window !== 'undefined' && (window as any).STRIPE_PUBLIC_KEY) ||
+    'pk_test_placeholder'
+  );
 };
 
 // Lazy load Stripe components only when needed

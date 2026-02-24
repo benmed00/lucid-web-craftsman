@@ -1,24 +1,30 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const FROM_NAME = "Rif Raw Straw";
+const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
+const FROM_NAME = 'Rif Raw Straw';
 const parseFromEmail = (raw: string | undefined): string => {
-  if (!raw) return "noreply@rifelegance.com";
+  if (!raw) return 'noreply@rifelegance.com';
   const match = raw.match(/<([^>]+)>/);
   return match ? match[1].trim() : raw.trim();
 };
-const FROM_EMAIL = parseFromEmail(Deno.env.get("RESEND_FROM_EMAIL"));
+const FROM_EMAIL = parseFromEmail(Deno.env.get('RESEND_FROM_EMAIL'));
 
 interface DiscountCoupon {
-  id: string; code: string; type: string; value: number;
-  valid_until: string | null; usage_limit: number | null;
-  usage_count: number; is_active: boolean;
+  id: string;
+  code: string;
+  type: string;
+  value: number;
+  valid_until: string | null;
+  usage_limit: number | null;
+  usage_count: number;
+  is_active: boolean;
 }
 
 interface AlertConfig {
@@ -27,16 +33,26 @@ interface AlertConfig {
   admin_email: string;
 }
 
-const sendBrevoEmail = async (to: string, subject: string, htmlContent: string): Promise<{ messageId?: string }> => {
+const sendBrevoEmail = async (
+  to: string,
+  subject: string,
+  htmlContent: string
+): Promise<{ messageId?: string }> => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': BREVO_API_KEY!,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
-        sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
+        sender: {
+          name: FROM_NAME,
+          email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL,
+        },
         to: [{ email: to }],
         subject,
         htmlContent,
@@ -44,7 +60,8 @@ const sendBrevoEmail = async (to: string, subject: string, htmlContent: string):
       signal: controller.signal,
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(`Brevo error (${res.status}): ${JSON.stringify(data)}`);
+    if (!res.ok)
+      throw new Error(`Brevo error (${res.status}): ${JSON.stringify(data)}`);
     return { messageId: data.messageId };
   } finally {
     clearTimeout(timeout);
@@ -52,65 +69,91 @@ const sendBrevoEmail = async (to: string, subject: string, htmlContent: string):
 };
 
 const handler = async (req: Request): Promise<Response> => {
-  console.log("check-promo-alerts function called");
+  console.log('check-promo-alerts function called');
 
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
     if (!BREVO_API_KEY) {
       return new Response(
-        JSON.stringify({ error: "Email service not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: 'Email service not configured' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
       );
     }
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
     }
 
-    const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      global: { headers: { Authorization: authHeader } }
-    });
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+    const authClient = createClient(
+      supabaseUrl,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      {
+        global: { headers: { Authorization: authHeader } },
+      }
+    );
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } =
+      await authClient.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const userId = claimsData.claims.sub;
-    const { data: isAdmin } = await supabase.rpc("is_admin_user", { user_uuid: userId });
+    const { data: isAdmin } = await supabase.rpc('is_admin_user', {
+      user_uuid: userId,
+    });
     if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      return new Response(
+        JSON.stringify({ error: 'Forbidden - Admin access required' }),
+        {
+          status: 403,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
     }
 
     let config: AlertConfig = {
       days_before_expiry: 3,
       usage_threshold_percent: 80,
-      admin_email: "admin@douar-artisan.com",
+      admin_email: 'admin@douar-artisan.com',
     };
 
-    if (req.method === "POST") {
+    if (req.method === 'POST') {
       const body = await req.json();
       config = { ...config, ...body };
     }
 
-    console.log("Using config:", config);
+    console.log('Using config:', config);
 
     const { data: coupons, error: fetchError } = await supabase
-      .from("discount_coupons").select("*").eq("is_active", true);
+      .from('discount_coupons')
+      .select('*')
+      .eq('is_active', true);
 
     if (fetchError) throw fetchError;
 
     const now = new Date();
     const alertThreshold = new Date();
-    alertThreshold.setDate(alertThreshold.getDate() + config.days_before_expiry);
+    alertThreshold.setDate(
+      alertThreshold.getDate() + config.days_before_expiry
+    );
 
     const expiringCoupons: DiscountCoupon[] = [];
     const nearLimitCoupons: DiscountCoupon[] = [];
@@ -124,7 +167,10 @@ const handler = async (req: Request): Promise<Response> => {
       }
       if (coupon.usage_limit && coupon.usage_limit > 0) {
         const usagePercent = (coupon.usage_count / coupon.usage_limit) * 100;
-        if (usagePercent >= config.usage_threshold_percent && usagePercent < 100) {
+        if (
+          usagePercent >= config.usage_threshold_percent &&
+          usagePercent < 100
+        ) {
           nearLimitCoupons.push(coupon);
         }
       }
@@ -137,40 +183,51 @@ const handler = async (req: Request): Promise<Response> => {
     };
 
     if (alerts.total > 0) {
-      const expiringList = expiringCoupons.map((c) => {
-        const days = Math.ceil((new Date(c.valid_until!).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        return `<li><strong>${c.code}</strong> - Expire dans ${days} jour(s)</li>`;
-      }).join("");
+      const expiringList = expiringCoupons
+        .map((c) => {
+          const days = Math.ceil(
+            (new Date(c.valid_until!).getTime() - now.getTime()) /
+              (1000 * 60 * 60 * 24)
+          );
+          return `<li><strong>${c.code}</strong> - Expire dans ${days} jour(s)</li>`;
+        })
+        .join('');
 
-      const nearLimitList = nearLimitCoupons.map((c) => {
-        const percent = ((c.usage_count / c.usage_limit!) * 100).toFixed(1);
-        return `<li><strong>${c.code}</strong> - ${c.usage_count}/${c.usage_limit} (${percent}%)</li>`;
-      }).join("");
+      const nearLimitList = nearLimitCoupons
+        .map((c) => {
+          const percent = ((c.usage_count / c.usage_limit!) * 100).toFixed(1);
+          return `<li><strong>${c.code}</strong> - ${c.usage_count}/${c.usage_limit} (${percent}%)</li>`;
+        })
+        .join('');
 
       const emailHtml = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1>🎟️ Alertes Codes Promo</h1>
-        ${expiringCoupons.length > 0 ? `<h2 style="color: #e74c3c;">⏰ Expirant bientôt (${expiringCoupons.length})</h2><ul>${expiringList}</ul>` : ""}
-        ${nearLimitCoupons.length > 0 ? `<h2 style="color: #f39c12;">📊 Limite d'utilisation (${nearLimitCoupons.length})</h2><ul>${nearLimitList}</ul>` : ""}
+        ${expiringCoupons.length > 0 ? `<h2 style="color: #e74c3c;">⏰ Expirant bientôt (${expiringCoupons.length})</h2><ul>${expiringList}</ul>` : ''}
+        ${nearLimitCoupons.length > 0 ? `<h2 style="color: #f39c12;">📊 Limite d'utilisation (${nearLimitCoupons.length})</h2><ul>${nearLimitList}</ul>` : ''}
       </div>`;
 
       try {
-        const emailResult = await sendBrevoEmail(config.admin_email, `[Alertes Promo] ${alerts.total} code(s) nécessitent attention`, emailHtml);
-        
+        const emailResult = await sendBrevoEmail(
+          config.admin_email,
+          `[Alertes Promo] ${alerts.total} code(s) nécessitent attention`,
+          emailHtml
+        );
+
         // Log to email_logs for traceability
         await supabase.from('email_logs').insert({
           template_name: 'promo-alert-notification',
           recipient_email: config.admin_email,
           recipient_name: 'Promo Admin',
           status: 'sent',
-          metadata: { 
-            messageId: emailResult.messageId, 
-            expiringCount: expiringCoupons.length, 
-            nearLimitCount: nearLimitCoupons.length 
+          metadata: {
+            messageId: emailResult.messageId,
+            expiringCount: expiringCoupons.length,
+            nearLimitCount: nearLimitCoupons.length,
           },
-          sent_at: new Date().toISOString()
+          sent_at: new Date().toISOString(),
         });
       } catch (emailError: any) {
-        console.error("Error sending email:", emailError);
+        console.error('Error sending email:', emailError);
         // Log failure
         await supabase.from('email_logs').insert({
           template_name: 'promo-alert-notification',
@@ -178,30 +235,49 @@ const handler = async (req: Request): Promise<Response> => {
           recipient_name: 'Promo Admin',
           status: 'failed',
           error_message: emailError.message,
-          metadata: { expiringCount: expiringCoupons.length, nearLimitCount: nearLimitCoupons.length }
+          metadata: {
+            expiringCount: expiringCoupons.length,
+            nearLimitCount: nearLimitCoupons.length,
+          },
         });
       }
     }
 
-    await supabase.from("audit_logs").insert({
-      action: "PROMO_ALERT_CHECK", resource_type: "discount_coupons", resource_id: "system",
-      new_values: { expiring_count: expiringCoupons.length, near_limit_count: nearLimitCoupons.length, config },
+    await supabase.from('audit_logs').insert({
+      action: 'PROMO_ALERT_CHECK',
+      resource_type: 'discount_coupons',
+      resource_id: 'system',
+      new_values: {
+        expiring_count: expiringCoupons.length,
+        near_limit_count: nearLimitCoupons.length,
+        config,
+      },
     });
 
     return new Response(
       JSON.stringify({
-        success: true, alerts,
-        expiringCoupons: expiringCoupons.map((c) => ({ code: c.code, expiresAt: c.valid_until })),
-        nearLimitCoupons: nearLimitCoupons.map((c) => ({ code: c.code, usage: `${c.usage_count}/${c.usage_limit}` })),
+        success: true,
+        alerts,
+        expiringCoupons: expiringCoupons.map((c) => ({
+          code: c.code,
+          expiresAt: c.valid_until,
+        })),
+        nearLimitCoupons: nearLimitCoupons.map((c) => ({
+          code: c.code,
+          usage: `${c.usage_count}/${c.usage_limit}`,
+        })),
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
     );
   } catch (error: any) {
-    console.error("Error in check-promo-alerts:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    console.error('Error in check-promo-alerts:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 };
 

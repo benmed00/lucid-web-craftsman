@@ -20,7 +20,10 @@ interface WorkerResponse {
 class MainThreadOptimizer {
   private worker: Worker | null = null;
   private workerInitialized = false;
-  private pendingTasks = new Map<string, { resolve: Function; reject: Function }>();
+  private pendingTasks = new Map<
+    string,
+    { resolve: Function; reject: Function }
+  >();
   private taskCounter = 0;
 
   constructor() {
@@ -144,7 +147,10 @@ class MainThreadOptimizer {
       const blob = new Blob([workerCode], { type: 'application/javascript' });
       this.worker = new Worker(URL.createObjectURL(blob));
 
-      this.worker.addEventListener('message', this.handleWorkerMessage.bind(this));
+      this.worker.addEventListener(
+        'message',
+        this.handleWorkerMessage.bind(this)
+      );
       this.worker.addEventListener('error', this.handleWorkerError.bind(this));
     } catch (error) {
       console.warn('Web Worker not supported or failed to initialize:', error);
@@ -157,7 +163,7 @@ class MainThreadOptimizer {
 
     if (task) {
       this.pendingTasks.delete(id);
-      
+
       if (type === 'TASK_COMPLETE') {
         task.resolve(result);
       } else if (type === 'TASK_ERROR') {
@@ -186,14 +192,14 @@ class MainThreadOptimizer {
     }
 
     const id = `task_${++this.taskCounter}`;
-    
+
     return new Promise((resolve, reject) => {
       this.pendingTasks.set(id, { resolve, reject });
-      
+
       this.worker!.postMessage({
         type,
         payload,
-        id
+        id,
       });
 
       // Timeout to prevent hanging
@@ -213,12 +219,16 @@ class MainThreadOptimizer {
         return {
           optimizedSize: Math.floor(payload.width * payload.height * 0.8),
           recommendedFormat: 'webp',
-          compressionRatio: 0.2
+          compressionRatio: 0.2,
         };
       case 'PROCESS_PRODUCT_DATA':
         return payload.map((product: any) => ({
           ...product,
-          searchableText: (product.name + ' ' + product.description).toLowerCase()
+          searchableText: (
+            product.name +
+            ' ' +
+            product.description
+          ).toLowerCase(),
         }));
       default:
         return payload;
@@ -228,11 +238,13 @@ class MainThreadOptimizer {
   /**
    * Batch multiple tasks to reduce worker overhead
    */
-  async executeBatch(tasks: Array<{ type: string; payload: any }>): Promise<any[]> {
-    const promises = tasks.map(task => 
+  async executeBatch(
+    tasks: Array<{ type: string; payload: any }>
+  ): Promise<any[]> {
+    const promises = tasks.map((task) =>
       this.executeInWorker(task.type, task.payload)
     );
-    
+
     return Promise.all(promises);
   }
 
@@ -255,8 +267,10 @@ export const mainThreadOptimizer = new MainThreadOptimizer();
  * Hook for using main thread optimizer in React components
  */
 export const useMainThreadOptimizer = () => {
-  const executeInWorker = mainThreadOptimizer.executeInWorker.bind(mainThreadOptimizer);
-  const executeBatch = mainThreadOptimizer.executeBatch.bind(mainThreadOptimizer);
+  const executeInWorker =
+    mainThreadOptimizer.executeInWorker.bind(mainThreadOptimizer);
+  const executeBatch =
+    mainThreadOptimizer.executeBatch.bind(mainThreadOptimizer);
 
   return { executeInWorker, executeBatch };
 };

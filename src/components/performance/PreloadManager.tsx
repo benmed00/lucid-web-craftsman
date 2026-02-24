@@ -9,11 +9,13 @@ export const PreloadManager = ({ children }: PreloadManagerProps) => {
     // DNS prefetch for external resources
     const prefetchDomains = [
       'https://fonts.googleapis.com',
-      'https://fonts.gstatic.com'
+      'https://fonts.gstatic.com',
     ];
 
-    prefetchDomains.forEach(domain => {
-      if (!document.querySelector(`link[rel="dns-prefetch"][href*="${domain}"]`)) {
+    prefetchDomains.forEach((domain) => {
+      if (
+        !document.querySelector(`link[rel="dns-prefetch"][href*="${domain}"]`)
+      ) {
         const link = document.createElement('link');
         link.rel = 'dns-prefetch';
         link.href = domain;
@@ -23,10 +25,10 @@ export const PreloadManager = ({ children }: PreloadManagerProps) => {
 
     // Preload critical fonts with proper 'as' attribute
     const criticalFonts = [
-      'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2'
+      'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2',
     ];
 
-    criticalFonts.forEach(fontUrl => {
+    criticalFonts.forEach((fontUrl) => {
       if (!document.querySelector(`link[rel="preload"][href="${fontUrl}"]`)) {
         const link = document.createElement('link');
         link.rel = 'preload';
@@ -41,11 +43,15 @@ export const PreloadManager = ({ children }: PreloadManagerProps) => {
     // Cleanup function to remove unused preloads after window load
     const cleanup = () => {
       const preloadLinks = document.querySelectorAll('link[rel="preload"]');
-      preloadLinks.forEach(link => {
+      preloadLinks.forEach((link) => {
         const href = (link as HTMLLinkElement).href;
-        if (!document.querySelector(`link[href="${href}"]:not([rel="preload"])`)) {
+        if (
+          !document.querySelector(`link[href="${href}"]:not([rel="preload"])`)
+        ) {
           // Check if the resource is actually being used
-          const isUsed = document.querySelector(`[src="${href}"], [href="${href}"]`);
+          const isUsed = document.querySelector(
+            `[src="${href}"], [href="${href}"]`
+          );
           if (!isUsed) {
             setTimeout(() => {
               link.remove();

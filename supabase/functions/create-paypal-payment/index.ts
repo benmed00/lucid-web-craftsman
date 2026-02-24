@@ -1,9 +1,10 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.2';
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-csrf-token, x-csrf-nonce, x-csrf-hash, x-guest-id, x-checkout-session-id, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-csrf-token, x-csrf-nonce, x-csrf-hash, x-guest-id, x-checkout-session-id, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 const logStep = (step: string, details?: any) => {
@@ -12,18 +13,18 @@ const logStep = (step: string, details?: any) => {
 };
 
 const getPayPalBaseUrl = () => {
-  const mode = Deno.env.get("PAYPAL_MODE") || "sandbox";
-  return mode === "live" 
-    ? "https://api-m.paypal.com" 
-    : "https://api-m.sandbox.paypal.com";
+  const mode = Deno.env.get('PAYPAL_MODE') || 'sandbox';
+  return mode === 'live'
+    ? 'https://api-m.paypal.com'
+    : 'https://api-m.sandbox.paypal.com';
 };
 
 const getAccessToken = async (): Promise<string> => {
-  const clientId = Deno.env.get("PAYPAL_CLIENT_ID");
-  const clientSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
-  
+  const clientId = Deno.env.get('PAYPAL_CLIENT_ID');
+  const clientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET');
+
   if (!clientId || !clientSecret) {
-    throw new Error("PayPal credentials not configured");
+    throw new Error('PayPal credentials not configured');
   }
 
   const auth = btoa(`${clientId}:${clientSecret}`);
@@ -32,18 +33,18 @@ const getAccessToken = async (): Promise<string> => {
 
   try {
     const response = await fetch(`${getPayPalBaseUrl()}/v1/oauth2/token`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Authorization": `Basic ${auth}`,
-        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: "grant_type=client_credentials",
+      body: 'grant_type=client_credentials',
       signal: controller.signal,
     });
 
     if (!response.ok) {
       const error = await response.text();
-      logStep("Token error", { status: response.status, error });
+      logStep('Token error', { status: response.status, error });
       throw new Error(`Failed to get PayPal access token: ${error}`);
     }
 
@@ -55,44 +56,47 @@ const getAccessToken = async (): Promise<string> => {
 };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_ANON_KEY') ?? ''
   );
 
   const supabaseService = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     { auth: { persistSession: false } }
   );
 
   try {
-    logStep("Function started");
-    
+    logStep('Function started');
+
     const { items, customerInfo, discount } = await req.json();
-    
+
     if (!items || !Array.isArray(items) || items.length === 0) {
-      throw new Error("No items provided for payment");
+      throw new Error('No items provided for payment');
     }
 
     if (items.length > 50) {
-      throw new Error("Too many items (max 50)");
+      throw new Error('Too many items (max 50)');
     }
 
-    logStep("Received order data", { itemCount: items.length, hasDiscount: !!discount });
+    logStep('Received order data', {
+      itemCount: items.length,
+      hasDiscount: !!discount,
+    });
 
     // Get authenticated user (optional for guest checkout)
     let user = null;
-    const authHeader = req.headers.get("Authorization");
+    const authHeader = req.headers.get('Authorization');
     if (authHeader) {
-      const token = authHeader.replace("Bearer ", "");
+      const token = authHeader.replace('Bearer ', '');
       const { data: userData } = await supabaseClient.auth.getUser(token);
       user = userData.user;
-      logStep("User authenticated", { userId: user?.id });
+      logStep('User authenticated', { userId: user?.id });
     }
 
     // --- SERVER-SIDE PRICE VERIFICATION ---
@@ -103,11 +107,13 @@ serve(async (req) => {
       .in('id', productIds);
 
     if (productError || !dbProducts) {
-      throw new Error(`Failed to fetch product prices: ${productError?.message}`);
+      throw new Error(
+        `Failed to fetch product prices: ${productError?.message}`
+      );
     }
 
     const productMap = new Map(dbProducts.map((p: any) => [p.id, p]));
-    
+
     // Validate each item against DB prices
     const verifiedItems = items.map((item: any) => {
       const dbProduct = productMap.get(item.product.id);
@@ -130,12 +136,14 @@ serve(async (req) => {
     });
 
     // Calculate totals with SERVER-VERIFIED prices
-    const subtotal = verifiedItems.reduce((sum: number, item: any) => 
-      sum + (item._dbPrice * item.quantity), 0);
-    
+    const subtotal = verifiedItems.reduce(
+      (sum: number, item: any) => sum + item._dbPrice * item.quantity,
+      0
+    );
+
     let discountAmount = 0;
     let hasFreeShipping = false;
-    
+
     // Validate discount against DB
     if (discount && discount.code) {
       const { data: dbCoupon } = await supabaseService
@@ -147,16 +155,32 @@ serve(async (req) => {
 
       if (dbCoupon) {
         const now = new Date();
-        const validFrom = dbCoupon.valid_from ? new Date(dbCoupon.valid_from) : null;
-        const validUntil = dbCoupon.valid_until ? new Date(dbCoupon.valid_until) : null;
-        
-        if ((!validFrom || now >= validFrom) && (!validUntil || now <= validUntil)) {
-          if (!dbCoupon.usage_limit || dbCoupon.usage_count < dbCoupon.usage_limit) {
-            if (!dbCoupon.minimum_order_amount || subtotal >= dbCoupon.minimum_order_amount) {
+        const validFrom = dbCoupon.valid_from
+          ? new Date(dbCoupon.valid_from)
+          : null;
+        const validUntil = dbCoupon.valid_until
+          ? new Date(dbCoupon.valid_until)
+          : null;
+
+        if (
+          (!validFrom || now >= validFrom) &&
+          (!validUntil || now <= validUntil)
+        ) {
+          if (
+            !dbCoupon.usage_limit ||
+            dbCoupon.usage_count < dbCoupon.usage_limit
+          ) {
+            if (
+              !dbCoupon.minimum_order_amount ||
+              subtotal >= dbCoupon.minimum_order_amount
+            ) {
               if (dbCoupon.type === 'percentage') {
                 discountAmount = subtotal * (dbCoupon.value / 100);
                 if (dbCoupon.maximum_discount_amount) {
-                  discountAmount = Math.min(discountAmount, dbCoupon.maximum_discount_amount);
+                  discountAmount = Math.min(
+                    discountAmount,
+                    dbCoupon.maximum_discount_amount
+                  );
                 }
               } else {
                 discountAmount = dbCoupon.value;
@@ -168,15 +192,22 @@ serve(async (req) => {
         }
       }
     }
-    
-    const shippingCost = hasFreeShipping ? 0 : (subtotal > 0 ? 6.95 : 0);
-    
+
+    const shippingCost = hasFreeShipping ? 0 : subtotal > 0 ? 6.95 : 0;
+
     const roundedSubtotal = Math.round(subtotal * 100) / 100;
     const roundedDiscount = Math.round(discountAmount * 100) / 100;
     const roundedShipping = Math.round(shippingCost * 100) / 100;
-    const totalAmount = Math.round((roundedSubtotal - roundedDiscount + roundedShipping) * 100) / 100;
+    const totalAmount =
+      Math.round((roundedSubtotal - roundedDiscount + roundedShipping) * 100) /
+      100;
 
-    logStep("Server-verified totals", { subtotal: roundedSubtotal, discountAmount: roundedDiscount, shippingCost: roundedShipping, totalAmount });
+    logStep('Server-verified totals', {
+      subtotal: roundedSubtotal,
+      discountAmount: roundedDiscount,
+      shippingCost: roundedShipping,
+      totalAmount,
+    });
 
     // Create order in database
     const { data: orderData, error: orderError } = await supabaseService
@@ -186,17 +217,17 @@ serve(async (req) => {
         amount: Math.round(totalAmount * 100),
         currency: 'eur',
         status: 'pending',
-        payment_method: 'paypal'
+        payment_method: 'paypal',
       })
       .select('*')
       .single();
 
     if (orderError) {
-      logStep("Error creating order", orderError);
+      logStep('Error creating order', orderError);
       throw new Error(`Failed to create order: ${orderError.message}`);
     }
 
-    logStep("Order created", { orderId: orderData.id });
+    logStep('Order created', { orderId: orderData.id });
 
     // Create order items with DB-verified prices
     const orderItems = verifiedItems.map((item: any) => ({
@@ -209,89 +240,111 @@ serve(async (req) => {
         name: item.product.name,
         description: item.product.description,
         images: item.product.images,
-        price: item._dbPrice
-      }
+        price: item._dbPrice,
+      },
     }));
 
     await supabaseService.from('order_items').insert(orderItems);
 
     // Get PayPal access token
     const accessToken = await getAccessToken();
-    logStep("Got PayPal access token");
+    logStep('Got PayPal access token');
 
     // Build PayPal order items with server prices
     const paypalItems = verifiedItems.map((item: any) => ({
       name: item.product.name.substring(0, 127),
       unit_amount: {
-        currency_code: "EUR",
-        value: item._dbPrice.toFixed(2)
+        currency_code: 'EUR',
+        value: item._dbPrice.toFixed(2),
       },
-      quantity: item.quantity.toString()
+      quantity: item.quantity.toString(),
     }));
 
-    const itemTotal = Math.round(verifiedItems.reduce((sum: number, item: any) => 
-      sum + (item._dbPrice * item.quantity), 0) * 100) / 100;
+    const itemTotal =
+      Math.round(
+        verifiedItems.reduce(
+          (sum: number, item: any) => sum + item._dbPrice * item.quantity,
+          0
+        ) * 100
+      ) / 100;
 
-    const origin = (req.headers.get("origin") || Deno.env.get("SITE_URL") || "https://www.rifelegance.com").replace(/\/+$/, '');
-    
+    const origin = (
+      req.headers.get('origin') ||
+      Deno.env.get('SITE_URL') ||
+      'https://www.rifelegance.com'
+    ).replace(/\/+$/, '');
+
     const breakdown: any = {
-      item_total: { currency_code: "EUR", value: itemTotal.toFixed(2) },
-      shipping: { currency_code: "EUR", value: roundedShipping.toFixed(2) }
-    };
-    
-    if (roundedDiscount > 0) {
-      breakdown.discount = { currency_code: "EUR", value: roundedDiscount.toFixed(2) };
-    }
-    
-    const paypalOrderPayload = {
-      intent: "CAPTURE",
-      purchase_units: [{
-        reference_id: orderData.id,
-        description: `Commande Rif Raw Straw #${orderData.id.substring(0, 8).toUpperCase()}`,
-        amount: {
-          currency_code: "EUR",
-          value: totalAmount.toFixed(2),
-          breakdown
-        },
-        items: paypalItems
-      }],
-      application_context: {
-        brand_name: "Rif Raw Straw",
-        landing_page: "BILLING",
-        user_action: "PAY_NOW",
-        return_url: `${origin}/payment-success?paypal=true&order_id=${orderData.id}`,
-        cancel_url: `${origin}/checkout?cancelled=true`
-      },
-      payer: customerInfo?.email ? {
-        email_address: customerInfo.email,
-        name: {
-          given_name: customerInfo.firstName || "",
-          surname: customerInfo.lastName || ""
-        }
-      } : undefined
+      item_total: { currency_code: 'EUR', value: itemTotal.toFixed(2) },
+      shipping: { currency_code: 'EUR', value: roundedShipping.toFixed(2) },
     };
 
-    logStep("Creating PayPal order", { totalAmount });
+    if (roundedDiscount > 0) {
+      breakdown.discount = {
+        currency_code: 'EUR',
+        value: roundedDiscount.toFixed(2),
+      };
+    }
+
+    const paypalOrderPayload = {
+      intent: 'CAPTURE',
+      purchase_units: [
+        {
+          reference_id: orderData.id,
+          description: `Commande Rif Raw Straw #${orderData.id.substring(0, 8).toUpperCase()}`,
+          amount: {
+            currency_code: 'EUR',
+            value: totalAmount.toFixed(2),
+            breakdown,
+          },
+          items: paypalItems,
+        },
+      ],
+      application_context: {
+        brand_name: 'Rif Raw Straw',
+        landing_page: 'BILLING',
+        user_action: 'PAY_NOW',
+        return_url: `${origin}/payment-success?paypal=true&order_id=${orderData.id}`,
+        cancel_url: `${origin}/checkout?cancelled=true`,
+      },
+      payer: customerInfo?.email
+        ? {
+            email_address: customerInfo.email,
+            name: {
+              given_name: customerInfo.firstName || '',
+              surname: customerInfo.lastName || '',
+            },
+          }
+        : undefined,
+    };
+
+    logStep('Creating PayPal order', { totalAmount });
 
     const paypalController = new AbortController();
     const paypalTimeout = setTimeout(() => paypalController.abort(), 20000);
 
     let paypalOrder: any;
     try {
-      const paypalResponse = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=representation"
-        },
-        body: JSON.stringify(paypalOrderPayload),
-        signal: paypalController.signal,
-      });
+      const paypalResponse = await fetch(
+        `${getPayPalBaseUrl()}/v2/checkout/orders`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation',
+          },
+          body: JSON.stringify(paypalOrderPayload),
+          signal: paypalController.signal,
+        }
+      );
 
       if (!paypalResponse.ok) {
         const errorText = await paypalResponse.text();
-        logStep("PayPal order creation failed", { status: paypalResponse.status, error: errorText });
+        logStep('PayPal order creation failed', {
+          status: paypalResponse.status,
+          error: errorText,
+        });
         throw new Error(`PayPal order creation failed: ${errorText}`);
       }
 
@@ -299,45 +352,50 @@ serve(async (req) => {
     } finally {
       clearTimeout(paypalTimeout);
     }
-    
-    logStep("PayPal order created", { paypalOrderId: paypalOrder.id });
+
+    logStep('PayPal order created', { paypalOrderId: paypalOrder.id });
 
     // Update order with PayPal order ID
     await supabaseService
       .from('orders')
-      .update({ 
+      .update({
         payment_reference: paypalOrder.id,
         metadata: {
           paypal_order_id: paypalOrder.id,
           customer_email: customerInfo?.email,
-          customer_name: `${customerInfo?.firstName || ''} ${customerInfo?.lastName || ''}`.trim(),
+          customer_name:
+            `${customerInfo?.firstName || ''} ${customerInfo?.lastName || ''}`.trim(),
           discount_code: discount?.code || null,
-          discount_amount: roundedDiscount
-        }
+          discount_amount: roundedDiscount,
+        },
       })
       .eq('id', orderData.id);
 
-    const approvalLink = paypalOrder.links?.find((link: any) => link.rel === "approve");
-    
+    const approvalLink = paypalOrder.links?.find(
+      (link: any) => link.rel === 'approve'
+    );
+
     if (!approvalLink) {
-      throw new Error("No PayPal approval URL found");
+      throw new Error('No PayPal approval URL found');
     }
 
-    logStep("Returning approval URL", { url: approvalLink.href });
+    logStep('Returning approval URL', { url: approvalLink.href });
 
-    return new Response(JSON.stringify({ 
-      url: approvalLink.href,
-      orderId: orderData.id,
-      paypalOrderId: paypalOrder.id
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-
+    return new Response(
+      JSON.stringify({
+        url: approvalLink.href,
+        orderId: orderData.id,
+        paypalOrderId: paypalOrder.id,
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
   } catch (error) {
-    console.error("PayPal payment error:", error);
+    console.error('PayPal payment error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     });
   }

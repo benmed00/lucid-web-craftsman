@@ -5,16 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  AlertTriangle, 
-  ShieldCheck, 
-  ShieldAlert, 
-  ShieldX, 
+import {
+  AlertTriangle,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
   Eye,
   CheckCircle,
   XCircle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -44,29 +44,29 @@ interface FraudAssessment {
 }
 
 const riskLevelConfig = {
-  low: { 
-    color: 'text-green-600', 
-    bgColor: 'bg-green-100', 
+  low: {
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
     icon: ShieldCheck,
-    label: 'Risque faible' 
+    label: 'Risque faible',
   },
-  medium: { 
-    color: 'text-yellow-600', 
-    bgColor: 'bg-yellow-100', 
+  medium: {
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-100',
     icon: Eye,
-    label: 'Risque moyen' 
+    label: 'Risque moyen',
   },
-  high: { 
-    color: 'text-orange-600', 
-    bgColor: 'bg-orange-100', 
+  high: {
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-100',
     icon: ShieldAlert,
-    label: 'Risque élevé' 
+    label: 'Risque élevé',
   },
-  critical: { 
-    color: 'text-red-600', 
-    bgColor: 'bg-red-100', 
+  critical: {
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
     icon: ShieldX,
-    label: 'Risque critique' 
+    label: 'Risque critique',
   },
 };
 
@@ -85,16 +85,16 @@ export function FraudAssessmentPanel({ orderId }: FraudAssessmentPanelProps) {
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-      
+
       if (error) throw error;
       if (!data) return null;
-      
+
       // Parse triggered_rules from JSON - cast to unknown first to avoid type conflicts
       const rawRules = data.triggered_rules as unknown;
-      const triggeredRules = Array.isArray(rawRules) 
+      const triggeredRules = Array.isArray(rawRules)
         ? (rawRules as FraudAssessment['triggered_rules'])
         : [];
-      
+
       return {
         id: data.id,
         order_id: data.order_id,
@@ -123,11 +123,14 @@ export function FraudAssessmentPanel({ orderId }: FraudAssessmentPanelProps) {
       return data;
     },
     onSuccess: (_, { action }) => {
-      toast.success(action === 'approve' 
-        ? 'Commande approuvée manuellement' 
-        : 'Commande rejetée'
+      toast.success(
+        action === 'approve'
+          ? 'Commande approuvée manuellement'
+          : 'Commande rejetée'
       );
-      queryClient.invalidateQueries({ queryKey: ['fraud-assessment', orderId] });
+      queryClient.invalidateQueries({
+        queryKey: ['fraud-assessment', orderId],
+      });
       queryClient.invalidateQueries({ queryKey: ['order', orderId] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       setOverrideReason('');
@@ -183,10 +186,10 @@ export function FraudAssessmentPanel({ orderId }: FraudAssessmentPanelProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-sm">
-            <Icon className={cn("h-4 w-4", config.color)} />
+            <Icon className={cn('h-4 w-4', config.color)} />
             Évaluation fraude
           </CardTitle>
-          <Badge className={cn(config.bgColor, config.color, "border-0")}>
+          <Badge className={cn(config.bgColor, config.color, 'border-0')}>
             {config.label}
           </Badge>
         </div>
@@ -195,19 +198,23 @@ export function FraudAssessmentPanel({ orderId }: FraudAssessmentPanelProps) {
         {/* Score Display */}
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Score de risque</span>
-          <span className={cn("text-2xl font-bold", config.color)}>
+          <span className={cn('text-2xl font-bold', config.color)}>
             {assessment.total_score}/100
           </span>
         </div>
 
         {/* Progress Bar */}
         <div className="w-full bg-muted rounded-full h-2">
-          <div 
+          <div
             className={cn(
-              "h-2 rounded-full transition-all",
-              assessment.total_score >= 70 ? 'bg-red-500' :
-              assessment.total_score >= 50 ? 'bg-orange-500' :
-              assessment.total_score >= 25 ? 'bg-yellow-500' : 'bg-green-500'
+              'h-2 rounded-full transition-all',
+              assessment.total_score >= 70
+                ? 'bg-red-500'
+                : assessment.total_score >= 50
+                  ? 'bg-orange-500'
+                  : assessment.total_score >= 25
+                    ? 'bg-yellow-500'
+                    : 'bg-green-500'
             )}
             style={{ width: `${Math.min(assessment.total_score, 100)}%` }}
           />
@@ -216,11 +223,17 @@ export function FraudAssessmentPanel({ orderId }: FraudAssessmentPanelProps) {
         {/* Auto Action */}
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Action automatique</span>
-          <Badge variant={
-            assessment.auto_action === 'approve' ? 'default' :
-            assessment.auto_action === 'hold' ? 'secondary' :
-            assessment.auto_action === 'reject' ? 'destructive' : 'outline'
-          }>
+          <Badge
+            variant={
+              assessment.auto_action === 'approve'
+                ? 'default'
+                : assessment.auto_action === 'hold'
+                  ? 'secondary'
+                  : assessment.auto_action === 'reject'
+                    ? 'destructive'
+                    : 'outline'
+            }
+          >
             {assessment.auto_action === 'approve' && 'Approuvé'}
             {assessment.auto_action === 'hold' && 'En attente'}
             {assessment.auto_action === 'reject' && 'Rejeté'}
@@ -242,7 +255,8 @@ export function FraudAssessmentPanel({ orderId }: FraudAssessmentPanelProps) {
             )}
             {assessment.override_at && (
               <p className="text-xs text-muted-foreground">
-                Le {new Date(assessment.override_at).toLocaleDateString('fr-FR')}
+                Le{' '}
+                {new Date(assessment.override_at).toLocaleDateString('fr-FR')}
               </p>
             )}
           </div>
@@ -259,16 +273,17 @@ export function FraudAssessmentPanel({ orderId }: FraudAssessmentPanelProps) {
                 <AlertTriangle className="h-4 w-4 text-yellow-600" />
                 {triggeredRules.length} règle(s) déclenchée(s)
               </span>
-              {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              {showDetails ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
             </button>
-            
+
             {showDetails && (
               <div className="mt-2 space-y-2">
                 {triggeredRules.map((rule, index) => (
-                  <div 
-                    key={index}
-                    className="p-2 bg-muted/50 rounded text-xs"
-                  >
+                  <div key={index} className="p-2 bg-muted/50 rounded text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{rule.description}</span>
                       <Badge variant="outline" className="text-xs">
@@ -295,40 +310,45 @@ export function FraudAssessmentPanel({ orderId }: FraudAssessmentPanelProps) {
         )}
 
         {/* Override Actions */}
-        {!assessment.manual_override && ['hold', 'manual_review'].includes(assessment.auto_action) && (
-          <div className="border-t pt-4 space-y-3">
-            <p className="text-sm font-medium">Décision manuelle</p>
-            <Textarea
-              placeholder="Raison de la décision (obligatoire)..."
-              value={overrideReason}
-              onChange={(e) => setOverrideReason(e.target.value)}
-              className="text-sm"
-              rows={2}
-            />
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="default"
-                className="flex-1"
-                onClick={() => overrideMutation.mutate({ action: 'approve' })}
-                disabled={!overrideReason.trim() || overrideMutation.isPending}
-              >
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Approuver
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                className="flex-1"
-                onClick={() => overrideMutation.mutate({ action: 'reject' })}
-                disabled={!overrideReason.trim() || overrideMutation.isPending}
-              >
-                <XCircle className="h-4 w-4 mr-1" />
-                Rejeter
-              </Button>
+        {!assessment.manual_override &&
+          ['hold', 'manual_review'].includes(assessment.auto_action) && (
+            <div className="border-t pt-4 space-y-3">
+              <p className="text-sm font-medium">Décision manuelle</p>
+              <Textarea
+                placeholder="Raison de la décision (obligatoire)..."
+                value={overrideReason}
+                onChange={(e) => setOverrideReason(e.target.value)}
+                className="text-sm"
+                rows={2}
+              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="flex-1"
+                  onClick={() => overrideMutation.mutate({ action: 'approve' })}
+                  disabled={
+                    !overrideReason.trim() || overrideMutation.isPending
+                  }
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Approuver
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => overrideMutation.mutate({ action: 'reject' })}
+                  disabled={
+                    !overrideReason.trim() || overrideMutation.isPending
+                  }
+                >
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Rejeter
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </CardContent>
     </Card>
   );

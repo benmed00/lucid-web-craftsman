@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
-import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Settings, 
-  LogOut, 
+import { useState, useEffect } from 'react';
+import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Settings,
+  LogOut,
   Menu,
   Leaf,
   Users,
@@ -24,13 +24,13 @@ import {
   Activity,
   FileText,
   Languages,
-  BookOpen
-} from "lucide-react";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+  BookOpen,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
-import { useAuth } from "@/hooks/useAuth";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useAuth } from '@/hooks/useAuth';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 const AdminLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -38,22 +38,21 @@ const AdminLayout = () => {
   const location = useLocation();
   const { user: adminUser, isAuthenticated, isLoading } = useAdminAuth();
   const { signOut } = useAuth();
-  
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      navigate("/admin/login", { replace: true });
+      navigate('/admin/login', { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
 
   const handleLogout = async () => {
     try {
       await signOut();
-      toast.success("Déconnexion réussie");
+      toast.success('Déconnexion réussie');
     } catch (error) {
       // Silent error handling for production
       // Force redirect even if logout fails
-      navigate("/admin/login", { replace: true });
+      navigate('/admin/login', { replace: true });
     }
   };
 
@@ -75,98 +74,98 @@ const AdminLayout = () => {
   const menuItems = [
     {
       icon: LayoutDashboard,
-      label: "Tableau de bord",
-      path: "/admin",
+      label: 'Tableau de bord',
+      path: '/admin',
     },
     {
       icon: Package,
-      label: "Produits",
-      path: "/admin/products",
+      label: 'Produits',
+      path: '/admin/products',
     },
     {
       icon: FileText,
-      label: "Catalogue Complet",
-      path: "/admin/catalog",
+      label: 'Catalogue Complet',
+      path: '/admin/catalog',
     },
     {
       icon: BookOpen,
-      label: "Blog",
-      path: "/admin/blog",
+      label: 'Blog',
+      path: '/admin/blog',
     },
     {
       icon: Image,
-      label: "Image Principale",
-      path: "/admin/hero-image",
+      label: 'Image Principale',
+      path: '/admin/hero-image',
     },
     {
       icon: Warehouse,
-      label: "Stocks",
-      path: "/admin/inventory",
+      label: 'Stocks',
+      path: '/admin/inventory',
     },
     {
       icon: ShoppingCart,
-      label: "Commandes",
-      path: "/admin/orders-enhanced",
+      label: 'Commandes',
+      path: '/admin/orders-enhanced',
     },
     {
       icon: Users,
-      label: "Clients",
-      path: "/admin/customers",
+      label: 'Clients',
+      path: '/admin/customers',
     },
     {
       icon: Megaphone,
-      label: "Marketing",
-      path: "/admin/marketing",
+      label: 'Marketing',
+      path: '/admin/marketing',
     },
     {
       icon: Tag,
-      label: "Codes Promo",
-      path: "/admin/promo-codes",
+      label: 'Codes Promo',
+      path: '/admin/promo-codes',
     },
     {
       icon: BarChart3,
-      label: "Analyses",
-      path: "/admin/analytics",
+      label: 'Analyses',
+      path: '/admin/analytics',
     },
     {
       icon: Star,
-      label: "Avis clients",
-      path: "/admin/reviews",
+      label: 'Avis clients',
+      path: '/admin/reviews',
     },
     {
       icon: Languages,
-      label: "Traductions",
-      path: "/admin/translations",
+      label: 'Traductions',
+      path: '/admin/translations',
     },
     {
       icon: Tag,
-      label: "Tags Blog",
-      path: "/admin/tags",
+      label: 'Tags Blog',
+      path: '/admin/tags',
     },
     {
       icon: AlertTriangle,
       label: "Rapports d'erreurs",
-      path: "/admin/error-reports",
+      path: '/admin/error-reports',
     },
     {
       icon: Mail,
-      label: "Tests Emails",
-      path: "/admin/email-testing",
+      label: 'Tests Emails',
+      path: '/admin/email-testing',
     },
     {
       icon: Activity,
-      label: "Statut APIs",
-      path: "/admin/api-status",
+      label: 'Statut APIs',
+      path: '/admin/api-status',
     },
     {
       icon: Settings,
-      label: "Paramètres",
-      path: "/admin/settings",
+      label: 'Paramètres',
+      path: '/admin/settings',
     },
   ];
 
   const Sidebar = ({ className }: { className?: string }) => (
-    <div className={cn("bg-card border-r border-border h-full", className)}>
+    <div className={cn('bg-card border-r border-border h-full', className)}>
       <div className="p-6 border-b border-border">
         <div className="flex items-center space-x-3">
           <div className="p-2 rounded-lg bg-primary/10">
@@ -179,7 +178,7 @@ const AdminLayout = () => {
             <p className="text-xs text-muted-foreground">Rif Raw Straw</p>
           </div>
         </div>
-        
+
         {adminUser && (
           <div className="mt-4 p-3 bg-muted rounded-lg">
             <div className="flex items-center space-x-2">
@@ -204,17 +203,17 @@ const AdminLayout = () => {
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
-          
+
           return (
             <Link
               key={item.path}
               to={item.path}
               onClick={() => setIsMobileMenuOpen(false)}
               className={cn(
-                "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
-                isActive 
-                  ? "bg-primary/10 text-primary border border-primary/20" 
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                'flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors',
+                isActive
+                  ? 'bg-primary/10 text-primary border border-primary/20'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
               <Icon className="h-4 w-4" />
@@ -259,8 +258,8 @@ const AdminLayout = () => {
             <div className="flex items-center space-x-4">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     className="lg:hidden"
                     onClick={() => setIsMobileMenuOpen(true)}
@@ -269,7 +268,7 @@ const AdminLayout = () => {
                   </Button>
                 </SheetTrigger>
               </Sheet>
-              
+
               <div>
                 <h1 className="text-xl font-semibold text-foreground">
                   Administration

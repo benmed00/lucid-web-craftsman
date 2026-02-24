@@ -109,11 +109,34 @@ const STEP_LABELS: Record<number, string> = {
 };
 
 // Status badge config
-const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ReactNode }> = {
-  in_progress: { label: 'En cours', variant: 'default', icon: <Clock className="h-3 w-3" /> },
-  completed: { label: 'Complété', variant: 'secondary', icon: <CheckCircle className="h-3 w-3" /> },
-  abandoned: { label: 'Abandonné', variant: 'destructive', icon: <AlertTriangle className="h-3 w-3" /> },
-  payment_failed: { label: 'Paiement échoué', variant: 'destructive', icon: <XCircle className="h-3 w-3" /> },
+const STATUS_CONFIG: Record<
+  string,
+  {
+    label: string;
+    variant: 'default' | 'secondary' | 'destructive' | 'outline';
+    icon: React.ReactNode;
+  }
+> = {
+  in_progress: {
+    label: 'En cours',
+    variant: 'default',
+    icon: <Clock className="h-3 w-3" />,
+  },
+  completed: {
+    label: 'Complété',
+    variant: 'secondary',
+    icon: <CheckCircle className="h-3 w-3" />,
+  },
+  abandoned: {
+    label: 'Abandonné',
+    variant: 'destructive',
+    icon: <AlertTriangle className="h-3 w-3" />,
+  },
+  payment_failed: {
+    label: 'Paiement échoué',
+    variant: 'destructive',
+    icon: <XCircle className="h-3 w-3" />,
+  },
 };
 
 // Device icon helper
@@ -138,12 +161,17 @@ const COUNTRY_LABELS: Record<string, string> = {
 };
 
 export function CheckoutSessionsTab() {
-  const [selectedSession, setSelectedSession] = useState<CheckoutSession | null>(null);
+  const [selectedSession, setSelectedSession] =
+    useState<CheckoutSession | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const queryClient = useQueryClient();
 
   // Fetch checkout sessions
-  const { data: sessions = [], isLoading, refetch } = useQuery({
+  const {
+    data: sessions = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['checkout-sessions', statusFilter],
     queryFn: async () => {
       let query = supabase
@@ -158,9 +186,9 @@ export function CheckoutSessionsTab() {
 
       const { data, error } = await query;
       if (error) throw error;
-      
+
       // Map database types to component types
-      return (data || []).map(row => ({
+      return (data || []).map((row) => ({
         id: row.id,
         guest_id: row.guest_id,
         user_id: row.user_id,
@@ -196,16 +224,16 @@ export function CheckoutSessionsTab() {
   // Stats
   const stats = {
     total: sessions.length,
-    inProgress: sessions.filter(s => s.status === 'in_progress').length,
-    abandoned: sessions.filter(s => s.status === 'abandoned').length,
-    paymentFailed: sessions.filter(s => s.status === 'payment_failed').length,
-    completed: sessions.filter(s => s.status === 'completed').length,
-    withPromo: sessions.filter(s => s.promo_code).length,
+    inProgress: sessions.filter((s) => s.status === 'in_progress').length,
+    abandoned: sessions.filter((s) => s.status === 'abandoned').length,
+    paymentFailed: sessions.filter((s) => s.status === 'payment_failed').length,
+    completed: sessions.filter((s) => s.status === 'completed').length,
+    withPromo: sessions.filter((s) => s.promo_code).length,
   };
 
   // Calculate potential lost revenue
   const potentialLostRevenue = sessions
-    .filter(s => s.status === 'abandoned' || s.status === 'payment_failed')
+    .filter((s) => s.status === 'abandoned' || s.status === 'payment_failed')
     .reduce((sum, s) => sum + (s.total || 0), 0);
 
   if (isLoading) {
@@ -229,13 +257,17 @@ export function CheckoutSessionsTab() {
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-orange-600">{stats.abandoned}</div>
+            <div className="text-2xl font-bold text-orange-600">
+              {stats.abandoned}
+            </div>
             <p className="text-xs text-muted-foreground">Abandonnés</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-red-600">{stats.paymentFailed}</div>
+            <div className="text-2xl font-bold text-red-600">
+              {stats.paymentFailed}
+            </div>
             <p className="text-xs text-muted-foreground">Paiements échoués</p>
           </CardContent>
         </Card>
@@ -244,7 +276,9 @@ export function CheckoutSessionsTab() {
             <div className="text-2xl font-bold text-red-600">
               {(potentialLostRevenue / 100).toFixed(2)} €
             </div>
-            <p className="text-xs text-muted-foreground">Revenus potentiels perdus</p>
+            <p className="text-xs text-muted-foreground">
+              Revenus potentiels perdus
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -263,14 +297,14 @@ export function CheckoutSessionsTab() {
             <SelectItem value="completed">Complétés</SelectItem>
           </SelectContent>
         </Select>
-        
+
         <Button variant="outline" size="sm" onClick={() => refetch()}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Actualiser
         </Button>
 
         <div className="flex-1" />
-        
+
         <Badge variant="outline">
           <Tag className="h-3 w-3 mr-1" />
           {stats.withPromo} avec code promo
@@ -293,8 +327,9 @@ export function CheckoutSessionsTab() {
           </TableHeader>
           <TableBody>
             {sessions.map((session) => {
-              const statusCfg = STATUS_CONFIG[session.status] || STATUS_CONFIG.in_progress;
-              
+              const statusCfg =
+                STATUS_CONFIG[session.status] || STATUS_CONFIG.in_progress;
+
               return (
                 <TableRow
                   key={session.id}
@@ -310,7 +345,8 @@ export function CheckoutSessionsTab() {
                     {session.personal_info ? (
                       <div>
                         <p className="font-medium text-sm">
-                          {session.personal_info.first_name} {session.personal_info.last_name}
+                          {session.personal_info.first_name}{' '}
+                          {session.personal_info.last_name}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {session.personal_info.email}
@@ -343,7 +379,9 @@ export function CheckoutSessionsTab() {
                           {session.promo_code}
                         </Badge>
                         {session.promo_code_valid === false && (
-                          <span className="text-xs text-red-500 block">Invalide</span>
+                          <span className="text-xs text-red-500 block">
+                            Invalide
+                          </span>
                         )}
                       </div>
                     ) : (
@@ -357,9 +395,9 @@ export function CheckoutSessionsTab() {
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-muted-foreground">
-                      {formatDistanceToNow(new Date(session.created_at), { 
-                        addSuffix: true, 
-                        locale: fr 
+                      {formatDistanceToNow(new Date(session.created_at), {
+                        addSuffix: true,
+                        locale: fr,
                       })}
                     </span>
                   </TableCell>
@@ -369,7 +407,10 @@ export function CheckoutSessionsTab() {
 
             {sessions.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="text-center py-12 text-muted-foreground"
+                >
                   Aucune session de checkout trouvée
                 </TableCell>
               </TableRow>
@@ -379,13 +420,20 @@ export function CheckoutSessionsTab() {
       </Card>
 
       {/* Session Details Sheet */}
-      <Sheet open={!!selectedSession} onOpenChange={() => setSelectedSession(null)}>
+      <Sheet
+        open={!!selectedSession}
+        onOpenChange={() => setSelectedSession(null)}
+      >
         <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               Session de Checkout
               {selectedSession && (
-                <Badge variant={STATUS_CONFIG[selectedSession.status]?.variant || 'default'}>
+                <Badge
+                  variant={
+                    STATUS_CONFIG[selectedSession.status]?.variant || 'default'
+                  }
+                >
                   {STATUS_CONFIG[selectedSession.status]?.label}
                 </Badge>
               )}
@@ -405,25 +453,50 @@ export function CheckoutSessionsTab() {
                 <CardContent className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">ID Session:</span>
-                    <span className="font-mono">{selectedSession.id.slice(0, 8).toUpperCase()}</span>
+                    <span className="font-mono">
+                      {selectedSession.id.slice(0, 8).toUpperCase()}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Créée:</span>
-                    <span>{format(new Date(selectedSession.created_at), 'PPP à HH:mm', { locale: fr })}</span>
+                    <span>
+                      {format(
+                        new Date(selectedSession.created_at),
+                        'PPP à HH:mm',
+                        { locale: fr }
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Dernière mise à jour:</span>
-                    <span>{format(new Date(selectedSession.updated_at), 'PPP à HH:mm', { locale: fr })}</span>
+                    <span className="text-muted-foreground">
+                      Dernière mise à jour:
+                    </span>
+                    <span>
+                      {format(
+                        new Date(selectedSession.updated_at),
+                        'PPP à HH:mm',
+                        { locale: fr }
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Étape actuelle:</span>
-                    <span>Étape {selectedSession.current_step} - {STEP_LABELS[selectedSession.current_step]}</span>
+                    <span className="text-muted-foreground">
+                      Étape actuelle:
+                    </span>
+                    <span>
+                      Étape {selectedSession.current_step} -{' '}
+                      {STEP_LABELS[selectedSession.current_step]}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Dernière étape complétée:</span>
-                    <span>{STEP_LABELS[selectedSession.last_completed_step]}</span>
+                    <span className="text-muted-foreground">
+                      Dernière étape complétée:
+                    </span>
+                    <span>
+                      {STEP_LABELS[selectedSession.last_completed_step]}
+                    </span>
                   </div>
-                  
+
                   {/* Device info */}
                   <Separator className="my-2" />
                   <div className="flex items-center gap-2">
@@ -445,9 +518,18 @@ export function CheckoutSessionsTab() {
                     <>
                       <Separator className="my-2" />
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Commande liée:</span>
-                        <Button variant="link" size="sm" className="h-auto p-0" asChild>
-                          <a href={`/admin/orders-enhanced?order=${selectedSession.order_id}`}>
+                        <span className="text-muted-foreground">
+                          Commande liée:
+                        </span>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0"
+                          asChild
+                        >
+                          <a
+                            href={`/admin/orders-enhanced?order=${selectedSession.order_id}`}
+                          >
                             {selectedSession.order_id.slice(0, 8).toUpperCase()}
                             <ExternalLink className="h-3 w-3 ml-1" />
                           </a>
@@ -477,7 +559,8 @@ export function CheckoutSessionsTab() {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Nom:</span>
                         <span className="font-medium">
-                          {selectedSession.personal_info.first_name} {selectedSession.personal_info.last_name}
+                          {selectedSession.personal_info.first_name}{' '}
+                          {selectedSession.personal_info.last_name}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -486,13 +569,17 @@ export function CheckoutSessionsTab() {
                       </div>
                       {selectedSession.personal_info.phone && (
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Téléphone:</span>
+                          <span className="text-muted-foreground">
+                            Téléphone:
+                          </span>
                           <span>{selectedSession.personal_info.phone}</span>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground italic">Non renseigné</p>
+                    <p className="text-muted-foreground italic">
+                      Non renseigné
+                    </p>
                   )}
                 </CardContent>
               </Card>
@@ -515,17 +602,24 @@ export function CheckoutSessionsTab() {
                     <div className="space-y-1">
                       <p>{selectedSession.shipping_info.address_line1}</p>
                       {selectedSession.shipping_info.address_line2 && (
-                        <p className="text-muted-foreground">{selectedSession.shipping_info.address_line2}</p>
+                        <p className="text-muted-foreground">
+                          {selectedSession.shipping_info.address_line2}
+                        </p>
                       )}
                       <p>
-                        {selectedSession.shipping_info.postal_code} {selectedSession.shipping_info.city}
+                        {selectedSession.shipping_info.postal_code}{' '}
+                        {selectedSession.shipping_info.city}
                       </p>
                       <p className="font-medium">
-                        {COUNTRY_LABELS[selectedSession.shipping_info.country] || selectedSession.shipping_info.country}
+                        {COUNTRY_LABELS[
+                          selectedSession.shipping_info.country
+                        ] || selectedSession.shipping_info.country}
                       </p>
                     </div>
                   ) : (
-                    <p className="text-muted-foreground italic">Non renseignée</p>
+                    <p className="text-muted-foreground italic">
+                      Non renseignée
+                    </p>
                   )}
                 </CardContent>
               </Card>
@@ -543,24 +637,37 @@ export function CheckoutSessionsTab() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Code:</span>
-                        <Badge 
-                          variant={selectedSession.promo_code_valid ? 'secondary' : 'destructive'}
+                        <Badge
+                          variant={
+                            selectedSession.promo_code_valid
+                              ? 'secondary'
+                              : 'destructive'
+                          }
                         >
                           {selectedSession.promo_code}
                         </Badge>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Statut:</span>
-                        <span className={selectedSession.promo_code_valid ? 'text-green-600' : 'text-red-600'}>
-                          {selectedSession.promo_code_valid ? 'Valide' : 'Invalide'}
+                        <span
+                          className={
+                            selectedSession.promo_code_valid
+                              ? 'text-green-600'
+                              : 'text-red-600'
+                          }
+                        >
+                          {selectedSession.promo_code_valid
+                            ? 'Valide'
+                            : 'Invalide'}
                         </span>
                       </div>
                       {selectedSession.promo_discount_type && (
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Type:</span>
                           <span>
-                            {selectedSession.promo_discount_type === 'percentage' 
-                              ? `${selectedSession.promo_discount_value}%` 
+                            {selectedSession.promo_discount_type ===
+                            'percentage'
+                              ? `${selectedSession.promo_discount_value}%`
                               : `${selectedSession.promo_discount_value} €`}
                           </span>
                         </div>
@@ -568,7 +675,13 @@ export function CheckoutSessionsTab() {
                       {selectedSession.promo_discount_applied && (
                         <div className="flex justify-between font-medium text-green-600">
                           <span>Remise appliquée:</span>
-                          <span>-{(selectedSession.promo_discount_applied / 100).toFixed(2)} €</span>
+                          <span>
+                            -
+                            {(
+                              selectedSession.promo_discount_applied / 100
+                            ).toFixed(2)}{' '}
+                            €
+                          </span>
                         </div>
                       )}
                       {selectedSession.promo_free_shipping && (
@@ -578,7 +691,9 @@ export function CheckoutSessionsTab() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground italic">Aucun code promo utilisé</p>
+                    <p className="text-muted-foreground italic">
+                      Aucun code promo utilisé
+                    </p>
                   )}
                 </CardContent>
               </Card>
@@ -592,14 +707,19 @@ export function CheckoutSessionsTab() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm">
-                  {selectedSession.cart_items && selectedSession.cart_items.length > 0 ? (
+                  {selectedSession.cart_items &&
+                  selectedSession.cart_items.length > 0 ? (
                     <div className="space-y-3">
                       {selectedSession.cart_items.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center">
+                        <div
+                          key={idx}
+                          className="flex justify-between items-center"
+                        >
                           <div>
                             <p className="font-medium">{item.product_name}</p>
                             <p className="text-xs text-muted-foreground">
-                              {item.quantity} × {(item.unit_price / 100).toFixed(2)} €
+                              {item.quantity} ×{' '}
+                              {(item.unit_price / 100).toFixed(2)} €
                             </p>
                           </div>
                           <span className="font-medium">
@@ -607,36 +727,53 @@ export function CheckoutSessionsTab() {
                           </span>
                         </div>
                       ))}
-                      
+
                       <Separator className="my-3" />
-                      
+
                       <div className="space-y-1">
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Sous-total:</span>
-                          <span>{(selectedSession.subtotal / 100).toFixed(2)} €</span>
+                          <span className="text-muted-foreground">
+                            Sous-total:
+                          </span>
+                          <span>
+                            {(selectedSession.subtotal / 100).toFixed(2)} €
+                          </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Livraison:</span>
+                          <span className="text-muted-foreground">
+                            Livraison:
+                          </span>
                           <span>
-                            {selectedSession.shipping_cost === 0 
-                              ? 'Gratuite' 
+                            {selectedSession.shipping_cost === 0
+                              ? 'Gratuite'
                               : `${(selectedSession.shipping_cost / 100).toFixed(2)} €`}
                           </span>
                         </div>
-                        {selectedSession.promo_discount_applied && selectedSession.promo_discount_applied > 0 && (
-                          <div className="flex justify-between text-green-600">
-                            <span>Remise:</span>
-                            <span>-{(selectedSession.promo_discount_applied / 100).toFixed(2)} €</span>
-                          </div>
-                        )}
+                        {selectedSession.promo_discount_applied &&
+                          selectedSession.promo_discount_applied > 0 && (
+                            <div className="flex justify-between text-green-600">
+                              <span>Remise:</span>
+                              <span>
+                                -
+                                {(
+                                  selectedSession.promo_discount_applied / 100
+                                ).toFixed(2)}{' '}
+                                €
+                              </span>
+                            </div>
+                          )}
                         <div className="flex justify-between font-bold text-base pt-2 border-t">
                           <span>Total:</span>
-                          <span>{(selectedSession.total / 100).toFixed(2)} €</span>
+                          <span>
+                            {(selectedSession.total / 100).toFixed(2)} €
+                          </span>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-muted-foreground italic">Panier non capturé</p>
+                    <p className="text-muted-foreground italic">
+                      Panier non capturé
+                    </p>
                   )}
                 </CardContent>
               </Card>

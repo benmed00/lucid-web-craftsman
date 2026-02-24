@@ -12,8 +12,8 @@ interface VoiceSearchProps {
 
 export const VoiceSearch = ({
   onSearch,
-  placeholder = "Rechercher des produits...",
-  className = ""
+  placeholder = 'Rechercher des produits...',
+  className = '',
 }: VoiceSearchProps) => {
   const [query, setQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -23,9 +23,11 @@ export const VoiceSearch = ({
   // Initialize speech recognition
   useState(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognition =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
-      
+
       const recognition = recognitionRef.current;
       recognition.continuous = false;
       recognition.interimResults = false;
@@ -39,35 +41,35 @@ export const VoiceSearch = ({
         const transcript = event.results[0][0].transcript;
         setQuery(transcript);
         onSearch(transcript);
-        
+
         toast({
-          title: "Recherche vocale",
+          title: 'Recherche vocale',
           description: `Recherche pour: "${transcript}"`,
         });
       };
 
       recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
-        
-        let errorMessage = "Erreur de reconnaissance vocale";
+
+        let errorMessage = 'Erreur de reconnaissance vocale';
         switch (event.error) {
           case 'no-speech':
-            errorMessage = "Aucun son détecté. Essayez de parler plus fort.";
+            errorMessage = 'Aucun son détecté. Essayez de parler plus fort.';
             break;
           case 'audio-capture':
-            errorMessage = "Microphone non disponible.";
+            errorMessage = 'Microphone non disponible.';
             break;
           case 'not-allowed':
-            errorMessage = "Permission microphone refusée.";
+            errorMessage = 'Permission microphone refusée.';
             break;
         }
-        
+
         toast({
-          title: "Erreur vocale",
+          title: 'Erreur vocale',
           description: errorMessage,
-          variant: "destructive"
+          variant: 'destructive',
         });
-        
+
         setIsListening(false);
       };
 
@@ -87,19 +89,19 @@ export const VoiceSearch = ({
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         await navigator.mediaDevices.getUserMedia({ audio: true });
       }
-      
+
       recognitionRef.current.start();
-      
+
       toast({
-        title: "Écoute en cours...",
-        description: "Dites ce que vous recherchez",
+        title: 'Écoute en cours...',
+        description: 'Dites ce que vous recherchez',
       });
     } catch (error) {
       console.error('Microphone access error:', error);
       toast({
-        title: "Erreur microphone",
+        title: 'Erreur microphone',
         description: "Impossible d'accéder au microphone",
-        variant: "destructive"
+        variant: 'destructive',
       });
     }
   };
@@ -125,7 +127,7 @@ export const VoiceSearch = ({
     <form onSubmit={handleSubmit} className={`relative ${className}`}>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
-        
+
         <Input
           type="text"
           placeholder={placeholder}
@@ -133,7 +135,7 @@ export const VoiceSearch = ({
           onChange={(e) => setQuery(e.target.value)}
           className="pl-10 pr-20 h-12 bg-background border-border focus:border-primary focus:ring-primary rounded-xl"
         />
-        
+
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
           {query && (
             <Button
@@ -146,7 +148,7 @@ export const VoiceSearch = ({
               <X className="h-4 w-4 text-stone-400" />
             </Button>
           )}
-          
+
           {isSupported && (
             <Button
               type="button"
@@ -154,8 +156,8 @@ export const VoiceSearch = ({
               size="sm"
               onClick={isListening ? stopListening : startListening}
               className={`h-8 w-8 p-0 rounded-full transition-all duration-200 ${
-                isListening 
-                  ? 'bg-red-100 hover:bg-red-200 text-red-600' 
+                isListening
+                  ? 'bg-red-100 hover:bg-red-200 text-red-600'
                   : 'hover:bg-stone-100 text-stone-400 hover:text-stone-600'
               }`}
             >
@@ -168,7 +170,7 @@ export const VoiceSearch = ({
           )}
         </div>
       </div>
-      
+
       {/* Voice indicator */}
       {isListening && (
         <div className="absolute -bottom-2 left-0 right-0 flex justify-center">

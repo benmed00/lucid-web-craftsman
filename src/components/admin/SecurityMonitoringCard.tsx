@@ -1,9 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle, Shield, Activity, Eye, Clock, User } from 'lucide-react';
+import {
+  AlertTriangle,
+  Shield,
+  Activity,
+  Eye,
+  Clock,
+  User,
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -38,7 +51,7 @@ export const SecurityMonitoringCard = () => {
     totalEvents: 0,
     criticalEvents: 0,
     unresolvedEvents: 0,
-    todayEvents: 0
+    todayEvents: 0,
   });
   const { toast } = useToast();
 
@@ -53,23 +66,25 @@ export const SecurityMonitoringCard = () => {
       if (error) throw error;
 
       setSecurityEvents((data || []) as SecurityEvent[]);
-      
+
       // Calculate stats
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
+
       setStats({
         totalEvents: data?.length || 0,
-        criticalEvents: data?.filter(e => e.severity === 'critical').length || 0,
-        unresolvedEvents: data?.filter(e => !e.resolved_at).length || 0,
-        todayEvents: data?.filter(e => new Date(e.detected_at) >= today).length || 0
+        criticalEvents:
+          data?.filter((e) => e.severity === 'critical').length || 0,
+        unresolvedEvents: data?.filter((e) => !e.resolved_at).length || 0,
+        todayEvents:
+          data?.filter((e) => new Date(e.detected_at) >= today).length || 0,
       });
     } catch (error) {
       console.error('Error fetching security events:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de charger les événements de sécurité",
-        variant: "destructive"
+        title: 'Erreur',
+        description: 'Impossible de charger les événements de sécurité',
+        variant: 'destructive',
       });
     }
   };
@@ -87,9 +102,9 @@ export const SecurityMonitoringCard = () => {
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       toast({
-        title: "Erreur",
+        title: 'Erreur',
         description: "Impossible de charger les logs d'audit",
-        variant: "destructive"
+        variant: 'destructive',
       });
     }
   };
@@ -100,24 +115,24 @@ export const SecurityMonitoringCard = () => {
         .from('security_events')
         .update({
           resolved_at: new Date().toISOString(),
-          resolution_notes: 'Résolu par l\'administrateur'
+          resolution_notes: "Résolu par l'administrateur",
         })
         .eq('id', eventId);
 
       if (error) throw error;
 
       toast({
-        title: "Événement résolu",
-        description: "L'événement de sécurité a été marqué comme résolu"
+        title: 'Événement résolu',
+        description: "L'événement de sécurité a été marqué comme résolu",
       });
 
       fetchSecurityEvents(); // Refresh the data
     } catch (error) {
       console.error('Error resolving security event:', error);
       toast({
-        title: "Erreur",
+        title: 'Erreur',
         description: "Impossible de résoudre l'événement",
-        variant: "destructive"
+        variant: 'destructive',
       });
     }
   };
@@ -134,7 +149,8 @@ export const SecurityMonitoringCard = () => {
     // Set up real-time subscriptions
     const securityEventsSubscription = supabase
       .channel('security_events_changes')
-      .on('postgres_changes', 
+      .on(
+        'postgres_changes',
         { event: '*', schema: 'public', table: 'security_events' },
         () => fetchSecurityEvents()
       )
@@ -142,7 +158,8 @@ export const SecurityMonitoringCard = () => {
 
     const auditLogsSubscription = supabase
       .channel('audit_logs_changes')
-      .on('postgres_changes',
+      .on(
+        'postgres_changes',
         { event: '*', schema: 'public', table: 'audit_logs' },
         () => fetchAuditLogs()
       )
@@ -204,26 +221,39 @@ export const SecurityMonitoringCard = () => {
         {/* Security Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="text-center p-3 bg-muted rounded-lg">
-            <div className="text-2xl font-bold text-foreground">{stats.totalEvents}</div>
-            <div className="text-sm text-muted-foreground">Total événements</div>
+            <div className="text-2xl font-bold text-foreground">
+              {stats.totalEvents}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Total événements
+            </div>
           </div>
           <div className="text-center p-3 bg-status-error/10 rounded-lg">
-            <div className="text-2xl font-bold text-status-error">{stats.criticalEvents}</div>
+            <div className="text-2xl font-bold text-status-error">
+              {stats.criticalEvents}
+            </div>
             <div className="text-sm text-status-error">Critiques</div>
           </div>
           <div className="text-center p-3 bg-status-warning/10 rounded-lg">
-            <div className="text-2xl font-bold text-status-warning">{stats.unresolvedEvents}</div>
+            <div className="text-2xl font-bold text-status-warning">
+              {stats.unresolvedEvents}
+            </div>
             <div className="text-sm text-status-warning">Non résolus</div>
           </div>
           <div className="text-center p-3 bg-status-info/10 rounded-lg">
-            <div className="text-2xl font-bold text-status-info">{stats.todayEvents}</div>
+            <div className="text-2xl font-bold text-status-info">
+              {stats.todayEvents}
+            </div>
             <div className="text-sm text-status-info">Aujourd'hui</div>
           </div>
         </div>
 
         <Tabs defaultValue="security-events" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="security-events" className="flex items-center gap-2">
+            <TabsTrigger
+              value="security-events"
+              className="flex items-center gap-2"
+            >
               <AlertTriangle className="h-4 w-4" />
               Événements de Sécurité
             </TabsTrigger>
@@ -241,7 +271,10 @@ export const SecurityMonitoringCard = () => {
             ) : (
               <div className="space-y-3">
                 {securityEvents.map((event) => (
-                  <div key={event.id} className="border border-border rounded-lg p-4">
+                  <div
+                    key={event.id}
+                    className="border border-border rounded-lg p-4"
+                  >
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">
                         <Badge className={getSeverityColor(event.severity)}>
@@ -249,7 +282,10 @@ export const SecurityMonitoringCard = () => {
                         </Badge>
                         <span className="font-medium">{event.event_type}</span>
                         {event.resolved_at && (
-                          <Badge variant="outline" className="text-status-success border-status-success/30">
+                          <Badge
+                            variant="outline"
+                            className="text-status-success border-status-success/30"
+                          >
                             Résolu
                           </Badge>
                         )}
@@ -303,7 +339,10 @@ export const SecurityMonitoringCard = () => {
             ) : (
               <div className="space-y-3">
                 {auditLogs.map((log) => (
-                  <div key={log.id} className="border border-border rounded-lg p-4">
+                  <div
+                    key={log.id}
+                    className="border border-border rounded-lg p-4"
+                  >
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{log.action}</Badge>

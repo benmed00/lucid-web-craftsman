@@ -1,0 +1,38 @@
+# CI workflow: lint, format check, unit tests, build
+name: CI
+
+on:
+  push:
+    branches: [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
+  pull_request:
+    branches: [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint -- --max-warnings 9999
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://test.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: test-anon-key-for-ci

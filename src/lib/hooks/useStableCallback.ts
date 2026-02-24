@@ -30,10 +30,13 @@ export function useStableCallback<T extends (...args: any[]) => any>(
  * Returns a stable value that only updates when the value actually changes
  * Useful for objects/arrays that are recreated on each render
  */
-export function useStableValue<T>(value: T, isEqual?: (a: T, b: T) => boolean): T {
+export function useStableValue<T>(
+  value: T,
+  isEqual?: (a: T, b: T) => boolean
+): T {
   const ref = useRef<T>(value);
-  
-  const areEqual = isEqual 
+
+  const areEqual = isEqual
     ? isEqual(ref.current, value)
     : JSON.stringify(ref.current) === JSON.stringify(value);
 

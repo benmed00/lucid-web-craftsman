@@ -28,14 +28,15 @@ export const ReauthenticateDialog: React.FC<ReauthenticateDialogProps> = ({
   open,
   onOpenChange,
   onSuccess,
-  title = "Confirmation de sécurité requise",
-  description = "Pour effectuer cette action sensible, veuillez confirmer votre identité en entrant votre mot de passe.",
-  actionLabel = "Confirmer",
+  title = 'Confirmation de sécurité requise',
+  description = 'Pour effectuer cette action sensible, veuillez confirmer votre identité en entrant votre mot de passe.',
+  actionLabel = 'Confirmer',
   variant = 'destructive',
 }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const { reauthenticate, isReauthenticating, userEmail } = useReauthentication();
+  const { reauthenticate, isReauthenticating, userEmail } =
+    useReauthentication();
 
   const handleConfirm = async () => {
     if (!password.trim()) {
@@ -103,22 +104,24 @@ export const ReauthenticateDialog: React.FC<ReauthenticateDialogProps> = ({
               disabled={isReauthenticating}
               className={error ? 'border-destructive' : ''}
             />
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
         </div>
 
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={handleCancel} disabled={isReauthenticating}>
+          <AlertDialogCancel
+            onClick={handleCancel}
+            disabled={isReauthenticating}
+          >
             Annuler
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={isReauthenticating || !password.trim()}
-            className={variant === 'destructive' 
-              ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' 
-              : ''
+            className={
+              variant === 'destructive'
+                ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
+                : ''
             }
           >
             {isReauthenticating ? (

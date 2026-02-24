@@ -1,27 +1,27 @@
-import { CalendarIcon, User } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { format } from "date-fns";
-import { fr, enUS } from "date-fns/locale";
+import { CalendarIcon, User } from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { format } from 'date-fns';
+import { fr, enUS } from 'date-fns/locale';
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import PageFooter from "@/components/PageFooter";
-import BlogContent from "@/components/BlogContent";
-import { useBlogPostWithTranslation } from "@/hooks/useTranslatedContent";
-import { TranslationFallbackIndicator } from "@/components/ui/TranslationFallbackIndicator";
-import { useTranslateTag } from "@/hooks/useTagTranslations";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import PageFooter from '@/components/PageFooter';
+import BlogContent from '@/components/BlogContent';
+import { useBlogPostWithTranslation } from '@/hooks/useTranslatedContent';
+import { TranslationFallbackIndicator } from '@/components/ui/TranslationFallbackIndicator';
+import { useTranslateTag } from '@/hooks/useTagTranslations';
 
 const BlogPost = () => {
-  const { t, i18n } = useTranslation("pages");
+  const { t, i18n } = useTranslation('pages');
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   // Use dynamic tag translations from database
   const { translateTag } = useTranslateTag();
   const currentLang = i18n.language?.split('-')[0] || 'fr';
-  
+
   // Get date-fns locale based on current language
   const dateLocale = i18n.language?.startsWith('fr') ? fr : enUS;
 
@@ -34,28 +34,40 @@ const BlogPost = () => {
       return dateStr;
     }
   };
-  
+
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-  
+
   // Fetch post by ID using translated content hook (supports UUID)
-  const { data: post, isLoading, error } = useBlogPostWithTranslation(id || null);
+  const {
+    data: post,
+    isLoading,
+    error,
+  } = useBlogPostWithTranslation(id || null);
 
   // Redirect if post not found
   useEffect(() => {
     if (!isLoading && !error && !post) {
-      navigate("/blog");
+      navigate('/blog');
     }
   }, [post, isLoading, error, navigate]);
 
   if (isLoading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center text-foreground">{t("blogPost.loading")}</div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center text-foreground">
+        {t('blogPost.loading')}
+      </div>
+    );
   }
-  
+
   if (error || !post) {
-    return <div className="min-h-screen bg-background flex items-center justify-center text-foreground">{t("blogPost.notFound")}</div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center text-foreground">
+        {t('blogPost.notFound')}
+      </div>
+    );
   }
 
   return (
@@ -63,13 +75,13 @@ const BlogPost = () => {
       {/* Article Header */}
       <div className="bg-muted py-16">
         <div className="container mx-auto px-4">
-          <Link 
-            to="/blog" 
+          <Link
+            to="/blog"
             className="inline-flex items-center text-primary hover:text-primary/80 mb-6"
           >
-            ← {t("blogPost.backToArticles")}
+            ← {t('blogPost.backToArticles')}
           </Link>
-          
+
           <div className="max-w-3xl mx-auto">
             {post.tags && post.tags[0] && (
               <Badge className="mb-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 border-none">
@@ -89,14 +101,15 @@ const BlogPost = () => {
                 />
               )}
             </div>
-            
+
             <div className="flex items-center gap-4 text-sm text-muted-foreground mt-6">
               <div className="flex items-center">
-                <CalendarIcon className="h-4 w-4 mr-1" /> {formatDate(post.published_at)}
+                <CalendarIcon className="h-4 w-4 mr-1" />{' '}
+                {formatDate(post.published_at)}
               </div>
               {post.author_id && (
                 <div className="flex items-center">
-                  <User className="h-4 w-4 mr-1" /> {t("blog.author")}
+                  <User className="h-4 w-4 mr-1" /> {t('blog.author')}
                 </div>
               )}
             </div>
@@ -117,39 +130,47 @@ const BlogPost = () => {
           {/* Dynamic content from database or fallback to excerpt */}
           {post.content ? (
             <>
-              <p className="text-lg text-muted-foreground mb-6">{post.excerpt}</p>
+              <p className="text-lg text-muted-foreground mb-6">
+                {post.excerpt}
+              </p>
               <BlogContent content={post.content} />
             </>
           ) : (
             <div className="prose prose-stone dark:prose-invert lg:prose-lg max-w-none">
-              <p className="text-lg text-muted-foreground mb-6">{post.excerpt}</p>
-              
-              <p className="text-foreground mb-6">
-                {t("blogPost.content.intro1")}
+              <p className="text-lg text-muted-foreground mb-6">
+                {post.excerpt}
               </p>
 
               <p className="text-foreground mb-6">
-                {t("blogPost.content.intro2")}
-              </p>
-
-              <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">{t("blogPost.content.heading1")}</h2>
-
-              <p className="text-foreground mb-6">
-                {t("blogPost.content.paragraph1")}
+                {t('blogPost.content.intro1')}
               </p>
 
               <p className="text-foreground mb-6">
-                {t("blogPost.content.paragraph2")}
+                {t('blogPost.content.intro2')}
               </p>
 
-              <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">{t("blogPost.content.heading2")}</h2>
+              <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">
+                {t('blogPost.content.heading1')}
+              </h2>
 
               <p className="text-foreground mb-6">
-                {t("blogPost.content.paragraph3")}
+                {t('blogPost.content.paragraph1')}
+              </p>
+
+              <p className="text-foreground mb-6">
+                {t('blogPost.content.paragraph2')}
+              </p>
+
+              <h2 className="text-2xl font-serif mt-8 mb-4 text-foreground">
+                {t('blogPost.content.heading2')}
+              </h2>
+
+              <p className="text-foreground mb-6">
+                {t('blogPost.content.paragraph3')}
               </p>
 
               <p className="text-foreground">
-                {t("blogPost.content.paragraph4")}
+                {t('blogPost.content.paragraph4')}
               </p>
             </div>
           )}
@@ -167,15 +188,29 @@ const BlogPost = () => {
 
           {/* Share Buttons */}
           <div className="border-t border-border mt-12 pt-6">
-            <p className="text-muted-foreground mb-3">{t("blogPost.shareArticle")}</p>
+            <p className="text-muted-foreground mb-3">
+              {t('blogPost.shareArticle')}
+            </p>
             <div className="flex space-x-3">
-              <Button variant="outline" size="sm" className="border-border hover:bg-muted">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-border hover:bg-muted"
+              >
                 Facebook
               </Button>
-              <Button variant="outline" size="sm" className="border-border hover:bg-muted">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-border hover:bg-muted"
+              >
                 Twitter
               </Button>
-              <Button variant="outline" size="sm" className="border-border hover:bg-muted">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-border hover:bg-muted"
+              >
                 LinkedIn
               </Button>
             </div>

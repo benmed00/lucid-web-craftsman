@@ -1,31 +1,25 @@
 // src/context/AuthContext.test.tsx
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import React, { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth, cleanupAuthState } from './AuthContext';
 
-// Helper to wait for async state updates
-const waitForCondition = async (
-  condition: () => boolean, 
-  timeout = 1000,
-  interval = 50
-): Promise<void> => {
-  const start = Date.now();
-  while (!condition()) {
-    if (Date.now() - start > timeout) {
-      throw new Error('Condition not met within timeout');
-    }
-    await new Promise(resolve => setTimeout(resolve, interval));
-  }
-};
+// Mock wishlist store to avoid Supabase calls during AuthProvider init
+vi.mock('@/stores', () => ({
+  initializeWishlistStore: vi.fn(),
+}));
 
-// Mock Supabase client
+// Mock Supabase client - includes order() and channel() for wishlist/realtime
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {
       getSession: vi.fn().mockResolvedValue({
         data: { session: null },
+        error: null,
+      }),
+      getUser: vi.fn().mockResolvedValue({
+        data: { user: null },
         error: null,
       }),
       onAuthStateChange: vi.fn().mockReturnValue({
@@ -43,6 +37,7 @@ vi.mock('@/integrations/supabase/client', () => ({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
           single: vi.fn().mockResolvedValue({ data: null, error: null }),
+          order: vi.fn().mockResolvedValue({ data: [], error: null }),
         }),
       }),
       update: vi.fn().mockReturnValue({
@@ -52,6 +47,10 @@ vi.mock('@/integrations/supabase/client', () => ({
           }),
         }),
       }),
+    }),
+    channel: vi.fn().mockReturnValue({
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
     }),
   },
 }));
@@ -79,9 +78,9 @@ describe('cleanupAuthState', () => {
     localStorage.setItem('supabase.auth.token', 'test');
     localStorage.setItem('sb-project-auth-token', 'test');
     localStorage.setItem('other-key', 'keep');
-    
+
     cleanupAuthState();
-    
+
     expect(localStorage.getItem('supabase.auth.token')).toBeNull();
     expect(localStorage.getItem('sb-project-auth-token')).toBeNull();
     expect(localStorage.getItem('other-key')).toBe('keep');
@@ -91,9 +90,9 @@ describe('cleanupAuthState', () => {
     sessionStorage.setItem('supabase.auth.token', 'test');
     sessionStorage.setItem('sb-test-auth', 'test');
     sessionStorage.setItem('other-key', 'keep');
-    
+
     cleanupAuthState();
-    
+
     expect(sessionStorage.getItem('supabase.auth.token')).toBeNull();
     expect(sessionStorage.getItem('sb-test-auth')).toBeNull();
     expect(sessionStorage.getItem('other-key')).toBe('keep');
@@ -107,9 +106,9 @@ describe('AuthProvider', () => {
 
   it('should provide initial auth state', async () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
-    
-    await waitForCondition(() => result.current.isInitialized);
-    
+
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
     expect(result.current.user).toBeNull();
     expect(result.current.session).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
@@ -118,24 +117,30 @@ describe('AuthProvider', () => {
   it('should initialize with existing session', async () => {
     const mockUser = { id: 'user-123', email: 'test@example.com' };
     const mockSession = { user: mockUser, access_token: 'token' };
-    
+
     vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
       data: { session: mockSession as any },
       error: null,
     });
-    
+    vi.mocked(supabase.auth.getUser).mockResolvedValueOnce({
+      data: { user: mockUser as any },
+      error: null,
+    });
+
     const { result } = renderHook(() => useAuth(), { wrapper });
-    
-    await waitForCondition(() => result.current.isInitialized);
-    
+
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
     expect(result.current.user).toEqual(mockUser);
     expect(result.current.isAuthenticated).toBe(true);
   });
 
   it('should throw error when useAuth is used outside provider', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => {
       renderHook(() => useAuth());
     }).toThrow('useAuth must be used within an AuthProvider');
+    consoleSpy.mockRestore();
   });
 });
 
@@ -146,21 +151,24 @@ describe('useAuth methods', () => {
 
   describe('signIn', () => {
     it('should call supabase signInWithPassword', async () => {
-      const mockData = { user: { id: '123' }, session: { access_token: 'token' } };
+      const mockData = {
+        user: { id: '123' },
+        session: { access_token: 'token' },
+      };
       vi.mocked(supabase.auth.signInWithPassword).mockResolvedValueOnce({
         data: mockData as any,
         error: null,
       });
       vi.mocked(supabase.auth.signOut).mockResolvedValueOnce({ error: null });
-      
+
       const { result } = renderHook(() => useAuth(), { wrapper });
-      
-      await waitForCondition(() => result.current.isInitialized);
-      
+
+      await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
       await act(async () => {
         await result.current.signIn('test@example.com', 'password');
       });
-      
+
       expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password',
@@ -174,11 +182,11 @@ describe('useAuth methods', () => {
         error: error as any,
       });
       vi.mocked(supabase.auth.signOut).mockResolvedValueOnce({ error: null });
-      
+
       const { result } = renderHook(() => useAuth(), { wrapper });
-      
-      await waitForCondition(() => result.current.isInitialized);
-      
+
+      await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
       await expect(
         act(async () => {
           await result.current.signIn('test@example.com', 'wrong');
@@ -195,15 +203,20 @@ describe('useAuth methods', () => {
         error: null,
       });
       vi.mocked(supabase.auth.signOut).mockResolvedValueOnce({ error: null });
-      
+
       const { result } = renderHook(() => useAuth(), { wrapper });
-      
-      await waitForCondition(() => result.current.isInitialized);
-      
+
+      await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
       await act(async () => {
-        await result.current.signUp('test@example.com', 'password', 'John Doe', '+33123456789');
+        await result.current.signUp(
+          'test@example.com',
+          'password',
+          'John Doe',
+          '+33123456789'
+        );
       });
-      
+
       expect(supabase.auth.signUp).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password',
@@ -220,16 +233,16 @@ describe('useAuth methods', () => {
   describe('signOut', () => {
     it('should call supabase signOut with global scope', async () => {
       vi.mocked(supabase.auth.signOut).mockResolvedValueOnce({ error: null });
-      
+
       const { result } = renderHook(() => useAuth(), { wrapper });
-      
-      await waitForCondition(() => result.current.isInitialized);
-      
+
+      await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
       await act(async () => {
         await result.current.signOut();
       });
-      
-      expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: 'global' });
+
+      expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: 'local' });
     });
   });
 
@@ -239,15 +252,15 @@ describe('useAuth methods', () => {
         data: { user: null, session: null },
         error: null,
       });
-      
+
       const { result } = renderHook(() => useAuth(), { wrapper });
-      
-      await waitForCondition(() => result.current.isInitialized);
-      
+
+      await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
       await act(async () => {
         await result.current.signInWithOtp('test@example.com');
       });
-      
+
       expect(supabase.auth.signInWithOtp).toHaveBeenCalledWith({
         email: 'test@example.com',
         options: expect.objectContaining({
@@ -259,20 +272,23 @@ describe('useAuth methods', () => {
 
   describe('verifyOtp', () => {
     it('should call supabase verifyOtp', async () => {
-      const mockData = { user: { id: '123' }, session: { access_token: 'token' } };
+      const mockData = {
+        user: { id: '123' },
+        session: { access_token: 'token' },
+      };
       vi.mocked(supabase.auth.verifyOtp).mockResolvedValueOnce({
         data: mockData as any,
         error: null,
       });
-      
+
       const { result } = renderHook(() => useAuth(), { wrapper });
-      
-      await waitForCondition(() => result.current.isInitialized);
-      
+
+      await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
       await act(async () => {
         await result.current.verifyOtp('test@example.com', '123456');
       });
-      
+
       expect(supabase.auth.verifyOtp).toHaveBeenCalledWith({
         email: 'test@example.com',
         token: '123456',
@@ -287,15 +303,15 @@ describe('useAuth methods', () => {
         data: {},
         error: null,
       });
-      
+
       const { result } = renderHook(() => useAuth(), { wrapper });
-      
-      await waitForCondition(() => result.current.isInitialized);
-      
+
+      await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
       await act(async () => {
         await result.current.resetPassword('test@example.com');
       });
-      
+
       expect(supabase.auth.resetPasswordForEmail).toHaveBeenCalledWith(
         'test@example.com',
         expect.objectContaining({
@@ -311,15 +327,15 @@ describe('useAuth methods', () => {
         data: { user: { id: '123' } as any },
         error: null,
       });
-      
+
       const { result } = renderHook(() => useAuth(), { wrapper });
-      
-      await waitForCondition(() => result.current.isInitialized);
-      
+
+      await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
       await act(async () => {
         await result.current.updatePassword('newPassword123');
       });
-      
+
       expect(supabase.auth.updateUser).toHaveBeenCalledWith({
         password: 'newPassword123',
       });

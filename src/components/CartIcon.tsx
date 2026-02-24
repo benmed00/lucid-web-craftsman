@@ -1,13 +1,25 @@
-import { ShoppingBag, Loader2, WifiOff, CloudOff } from "lucide-react";
-import clsx from "clsx";
-import { useCartUI } from "@/hooks/useCartUI";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ShoppingBag, Loader2, WifiOff, CloudOff } from 'lucide-react';
+import clsx from 'clsx';
+import { useCartUI } from '@/hooks/useCartUI';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 /**
  * Icône de panier avec badge dynamique et indicateur de synchronisation.
  */
 const CartIcon = () => {
-  const { itemCount, cartColor, badgeTextColor, isSyncing, isOnline, pendingOperations } = useCartUI();
+  const {
+    itemCount,
+    cartColor,
+    badgeTextColor,
+    isSyncing,
+    isOnline,
+    pendingOperations,
+  } = useCartUI();
 
   return (
     <TooltipProvider>
@@ -15,20 +27,20 @@ const CartIcon = () => {
         <TooltipTrigger asChild>
           <div
             className={clsx(
-              "relative p-2 rounded-full transition-colors duration-200",
+              'relative p-2 rounded-full transition-colors duration-200',
               cartColor
             )}
             aria-label={`Panier (${itemCount})`}
           >
             <ShoppingBag className="text-primary-foreground" />
-            
+
             {/* Item count badge - cap display at 10+ for max limit */}
             <span
               className={clsx(
-                "absolute top-0 right-0 bg-background text-xs rounded-full flex items-center justify-center font-semibold border transform translate-x-1/4 -translate-y-1/4",
+                'absolute top-0 right-0 bg-background text-xs rounded-full flex items-center justify-center font-semibold border transform translate-x-1/4 -translate-y-1/4',
                 badgeTextColor,
-                itemCount > 1 ? "border-primary" : "border-muted-foreground",
-                itemCount > 99 ? "h-5 px-1" : "h-5 w-5"
+                itemCount > 1 ? 'border-primary' : 'border-muted-foreground',
+                itemCount > 99 ? 'h-5 px-1' : 'h-5 w-5'
               )}
               style={{ minWidth: 20 }}
               aria-live="polite"
@@ -73,7 +85,9 @@ const CartIcon = () => {
           ) : pendingOperations > 0 ? (
             <span>{pendingOperations} modification(s) en attente</span>
           ) : (
-            <span>Panier ({itemCount} article{itemCount !== 1 ? 's' : ''})</span>
+            <span>
+              Panier ({itemCount} article{itemCount !== 1 ? 's' : ''})
+            </span>
           )}
         </TooltipContent>
       </Tooltip>

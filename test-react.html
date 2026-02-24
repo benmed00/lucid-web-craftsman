@@ -1,52 +1,82 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>React Test - Zero Dependencies</title>
     <style>
-      body { font-family: Arial, sans-serif; padding: 20px; }
-      .success { color: green; font-weight: bold; }
-      .error { color: red; font-weight: bold; }
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .success {
+        color: green;
+        font-weight: bold;
+      }
+      .error {
+        color: red;
+        font-weight: bold;
+      }
     </style>
   </head>
   <body>
     <div id="test-root"></div>
-    
+
     <!-- Load React directly from CDN to bypass all local caching -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+
     <script>
       console.log('Testing React with zero local dependencies');
       console.log('React:', typeof React);
       console.log('ReactDOM:', typeof ReactDOM);
-      
+
       if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
-        document.getElementById('test-root').innerHTML = '<p class="error">❌ React failed to load from CDN</p>';
+        document.getElementById('test-root').innerHTML =
+          '<p class="error">❌ React failed to load from CDN</p>';
       } else {
         // Create a test component using React from CDN
         const TestComponent = () => {
           const [count, setCount] = React.useState(0);
-          const [status, setStatus] = React.useState('✅ React useState working!');
-          
+          const [status, setStatus] = React.useState(
+            '✅ React useState working!'
+          );
+
           return React.createElement('div', {}, [
             React.createElement('h1', { key: 'title' }, 'React Isolated Test'),
-            React.createElement('p', { key: 'status', className: 'success' }, status),
+            React.createElement(
+              'p',
+              { key: 'status', className: 'success' },
+              status
+            ),
             React.createElement('p', { key: 'count' }, `Count: ${count}`),
-            React.createElement('button', {
-              key: 'btn',
-              onClick: () => setCount(count + 1)
-            }, 'Increment'),
-            React.createElement('p', { key: 'timestamp' }, `Timestamp: ${Date.now()}`)
+            React.createElement(
+              'button',
+              {
+                key: 'btn',
+                onClick: () => setCount(count + 1),
+              },
+              'Increment'
+            ),
+            React.createElement(
+              'p',
+              { key: 'timestamp' },
+              `Timestamp: ${Date.now()}`
+            ),
           ]);
         };
-        
+
         // Render using React from CDN
         const container = document.getElementById('test-root');
         const root = ReactDOM.createRoot(container);
         root.render(React.createElement(TestComponent));
-        
+
         console.log('✅ React working with CDN version');
       }
     </script>

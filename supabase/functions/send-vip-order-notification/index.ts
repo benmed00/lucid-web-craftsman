@@ -1,20 +1,21 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
+import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 
-const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const FROM_NAME = "Rif Raw Straw";
+const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
+const FROM_NAME = 'Rif Raw Straw';
 const parseFromEmail = (raw: string | undefined): string => {
-  if (!raw) return "noreply@rifelegance.com";
+  if (!raw) return 'noreply@rifelegance.com';
   const match = raw.match(/<([^>]+)>/);
   return match ? match[1].trim() : raw.trim();
 };
-const FROM_EMAIL = parseFromEmail(Deno.env.get("RESEND_FROM_EMAIL"));
+const FROM_EMAIL = parseFromEmail(Deno.env.get('RESEND_FROM_EMAIL'));
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface VipOrderPayload {
@@ -25,16 +26,26 @@ interface VipOrderPayload {
   threshold: number;
 }
 
-const sendBrevoEmail = async (to: string, subject: string, htmlContent: string): Promise<{ messageId?: string }> => {
+const sendBrevoEmail = async (
+  to: string,
+  subject: string,
+  htmlContent: string
+): Promise<{ messageId?: string }> => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: { "api-key": BREVO_API_KEY!, "Content-Type": "application/json" },
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': BREVO_API_KEY!,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
-        sender: { name: FROM_NAME, email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL },
+        sender: {
+          name: FROM_NAME,
+          email: FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL,
+        },
         to: [{ email: to }],
         subject,
         htmlContent,
@@ -42,7 +53,8 @@ const sendBrevoEmail = async (to: string, subject: string, htmlContent: string):
       signal: controller.signal,
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(`Brevo error (${res.status}): ${JSON.stringify(data)}`);
+    if (!res.ok)
+      throw new Error(`Brevo error (${res.status}): ${JSON.stringify(data)}`);
     return { messageId: data.messageId };
   } finally {
     clearTimeout(timeout);
@@ -50,32 +62,51 @@ const sendBrevoEmail = async (to: string, subject: string, htmlContent: string):
 };
 
 const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    const token = authHeader.replace('Bearer ', '');
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const isInternalCall = token === supabaseServiceKey;
 
     if (!isInternalCall) {
-      const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
-        global: { headers: { Authorization: authHeader } }
-      });
-      const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+      const authClient = createClient(
+        supabaseUrl,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        {
+          global: { headers: { Authorization: authHeader } },
+        }
+      );
+      const { data: claimsData, error: claimsError } =
+        await authClient.auth.getClaims(token);
       if (claimsError || !claimsData?.claims) {
-        return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+        return new Response(JSON.stringify({ error: 'Invalid token' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
       }
       const userId = claimsData.claims.sub;
-      const { data: isAdmin } = await supabase.rpc("is_admin_user", { user_uuid: userId });
+      const { data: isAdmin } = await supabase.rpc('is_admin_user', {
+        user_uuid: userId,
+      });
       if (!isAdmin) {
-        return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } });
+        return new Response(
+          JSON.stringify({ error: 'Forbidden - Admin access required' }),
+          {
+            status: 403,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
       }
     }
 
@@ -84,20 +115,31 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Idempotency check
     const { data: existingLog } = await supabase
-      .from('email_logs').select('id')
+      .from('email_logs')
+      .select('id')
       .eq('order_id', payload.order_id)
       .eq('template_name', 'vip-order-notification')
-      .eq('status', 'sent').maybeSingle();
+      .eq('status', 'sent')
+      .maybeSingle();
 
     if (existingLog) {
       console.log('VIP notification already sent (idempotent)');
-      return new Response(JSON.stringify({ success: true, message: "Already sent" }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      return new Response(
+        JSON.stringify({ success: true, message: 'Already sent' }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
     }
 
     const { data: settingsData } = await supabase
-      .from('app_settings').select('setting_value').eq('setting_key', 'business_rules').single();
+      .from('app_settings')
+      .select('setting_value')
+      .eq('setting_key', 'business_rules')
+      .single();
 
-    const businessRules = settingsData?.setting_value as any || {};
+    const businessRules = (settingsData?.setting_value as any) || {};
     const vipEmail = businessRules?.contact?.vipEmail || 'vip@rifrawstraw.com';
 
     const orderNumber = payload.order_id.slice(-8);
@@ -123,8 +165,12 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
       </div>`;
 
-    const emailResult = await sendBrevoEmail(vipEmail, `🌟 Commande VIP #${orderNumber} - ${formattedTotal}`, emailHtml);
-    console.log("VIP notification sent:", emailResult);
+    const emailResult = await sendBrevoEmail(
+      vipEmail,
+      `🌟 Commande VIP #${orderNumber} - ${formattedTotal}`,
+      emailHtml
+    );
+    console.log('VIP notification sent:', emailResult);
 
     // Log to email_logs for traceability
     await supabase.from('email_logs').insert({
@@ -133,27 +179,46 @@ const handler = async (req: Request): Promise<Response> => {
       recipient_name: 'VIP Admin',
       order_id: payload.order_id,
       status: 'sent',
-      metadata: { messageId: emailResult.messageId, order_total: payload.order_total, threshold: payload.threshold },
-      sent_at: new Date().toISOString()
+      metadata: {
+        messageId: emailResult.messageId,
+        order_total: payload.order_total,
+        threshold: payload.threshold,
+      },
+      sent_at: new Date().toISOString(),
     });
 
     await supabase.from('audit_logs').insert({
-      action: 'VIP_ORDER_NOTIFICATION_SENT', resource_type: 'order', resource_id: payload.order_id,
+      action: 'VIP_ORDER_NOTIFICATION_SENT',
+      resource_type: 'order',
+      resource_id: payload.order_id,
       new_values: {
-        order_total: payload.order_total, threshold: payload.threshold,
-        customer_email: payload.customer_email, notification_sent_to: vipEmail
-      }
+        order_total: payload.order_total,
+        threshold: payload.threshold,
+        customer_email: payload.customer_email,
+        notification_sent_to: vipEmail,
+      },
     });
 
-    return new Response(JSON.stringify({
-      success: true, emailId: emailResult.messageId,
-      order_id: payload.order_id, notified_email: vipEmail
-    }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        emailId: emailResult.messageId,
+        order_id: payload.order_id,
+        notified_email: vipEmail,
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    );
   } catch (error: any) {
-    console.error("Error in send-vip-order-notification:", error);
+    console.error('Error in send-vip-order-notification:', error);
     return new Response(
       JSON.stringify({ error: error.message, success: false }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
     );
   }
 };

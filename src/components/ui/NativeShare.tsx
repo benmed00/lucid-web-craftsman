@@ -1,6 +1,12 @@
 import { Share, Copy, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
 
@@ -12,9 +18,15 @@ interface NativeShareProps {
   onClose: () => void;
 }
 
-export const NativeShare = ({ title, text, url, isOpen, onClose }: NativeShareProps) => {
+export const NativeShare = ({
+  title,
+  text,
+  url,
+  isOpen,
+  onClose,
+}: NativeShareProps) => {
   const [isSharing, setIsSharing] = useState(false);
-  
+
   const handleNativeShare = async () => {
     if (!navigator.share) {
       handleCopyLink();
@@ -22,19 +34,19 @@ export const NativeShare = ({ title, text, url, isOpen, onClose }: NativeSharePr
     }
 
     setIsSharing(true);
-    
+
     try {
       await navigator.share({
         title,
         text,
         url,
       });
-      
+
       toast({
-        title: "Partagé avec succès",
-        description: "Le produit a été partagé",
+        title: 'Partagé avec succès',
+        description: 'Le produit a été partagé',
       });
-      
+
       onClose();
     } catch (error) {
       console.log('Share cancelled or failed:', error);
@@ -48,16 +60,16 @@ export const NativeShare = ({ title, text, url, isOpen, onClose }: NativeSharePr
     try {
       await navigator.clipboard.writeText(url);
       toast({
-        title: "Lien copié",
-        description: "Le lien a été copié dans le presse-papier",
+        title: 'Lien copié',
+        description: 'Le lien a été copié dans le presse-papier',
       });
       onClose();
     } catch (error) {
       console.error('Copy failed:', error);
       toast({
-        title: "Erreur de copie",
-        description: "Impossible de copier le lien",
-        variant: "destructive"
+        title: 'Erreur de copie',
+        description: 'Impossible de copier le lien',
+        variant: 'destructive',
       });
     }
   };
@@ -79,9 +91,11 @@ export const NativeShare = ({ title, text, url, isOpen, onClose }: NativeSharePr
       <DialogContent className="max-w-sm mx-auto">
         <DialogHeader>
           <DialogTitle className="text-center">Partager ce produit</DialogTitle>
-          <DialogDescription className="text-center">Choisissez comment partager ce produit</DialogDescription>
+          <DialogDescription className="text-center">
+            Choisissez comment partager ce produit
+          </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-3 py-4">
           {/* Native Share Button */}
           {navigator.share && (

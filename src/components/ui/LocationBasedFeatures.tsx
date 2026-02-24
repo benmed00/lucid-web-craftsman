@@ -6,7 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 
 interface LocationBasedFeaturesProps {
-  onLocationChange?: (location: { lat: number; lng: number; address: string }) => void;
+  onLocationChange?: (location: {
+    lat: number;
+    lng: number;
+    address: string;
+  }) => void;
 }
 
 interface StoreLocation {
@@ -19,8 +23,11 @@ interface StoreLocation {
   isOpen: boolean;
 }
 
-export const LocationBasedFeatures = ({ onLocationChange }: LocationBasedFeaturesProps) => {
-  const [currentLocation, setCurrentLocation] = useState<GeolocationPosition | null>(null);
+export const LocationBasedFeatures = ({
+  onLocationChange,
+}: LocationBasedFeaturesProps) => {
+  const [currentLocation, setCurrentLocation] =
+    useState<GeolocationPosition | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [nearbyStores, setNearbyStores] = useState<StoreLocation[]>([]);
   const [deliveryEstimate, setDeliveryEstimate] = useState<string | null>(null);
@@ -33,7 +40,7 @@ export const LocationBasedFeatures = ({ onLocationChange }: LocationBasedFeature
       distance: 2.3,
       phone: '+212 537 123456',
       hours: '9h00 - 19h00',
-      isOpen: true
+      isOpen: true,
     },
     {
       id: '2',
@@ -42,7 +49,7 @@ export const LocationBasedFeatures = ({ onLocationChange }: LocationBasedFeature
       distance: 4.1,
       phone: '+212 537 654321',
       hours: '10h00 - 20h00',
-      isOpen: true
+      isOpen: true,
     },
     {
       id: '3',
@@ -51,8 +58,8 @@ export const LocationBasedFeatures = ({ onLocationChange }: LocationBasedFeature
       distance: 6.8,
       phone: '+212 537 987654',
       hours: '9h30 - 18h30',
-      isOpen: false
-    }
+      isOpen: false,
+    },
   ];
 
   useEffect(() => {
@@ -68,9 +75,9 @@ export const LocationBasedFeatures = ({ onLocationChange }: LocationBasedFeature
   const requestLocation = async () => {
     if (!navigator.geolocation) {
       toast({
-        title: "Géolocalisation non supportée",
-        description: "Votre navigateur ne supporte pas la géolocalisation",
-        variant: "destructive"
+        title: 'Géolocalisation non supportée',
+        description: 'Votre navigateur ne supporte pas la géolocalisation',
+        variant: 'destructive',
       });
       return;
     }
@@ -80,52 +87,56 @@ export const LocationBasedFeatures = ({ onLocationChange }: LocationBasedFeature
     const options = {
       enableHighAccuracy: true,
       timeout: 10000,
-      maximumAge: 300000 // 5 minutes
+      maximumAge: 300000, // 5 minutes
     };
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         setCurrentLocation(position);
         localStorage.setItem('user-location', JSON.stringify(position));
-        
+
         // Get address from coordinates
-        const address = await reverseGeocode(position.coords.latitude, position.coords.longitude);
-        
+        const address = await reverseGeocode(
+          position.coords.latitude,
+          position.coords.longitude
+        );
+
         onLocationChange?.({
           lat: position.coords.latitude,
           lng: position.coords.longitude,
-          address
+          address,
         });
 
         updateLocationBasedFeatures(position);
         setIsGettingLocation(false);
 
         toast({
-          title: "Localisation activée",
-          description: "Nous pouvons maintenant vous proposer les meilleures options de livraison",
+          title: 'Localisation activée',
+          description:
+            'Nous pouvons maintenant vous proposer les meilleures options de livraison',
         });
       },
       (error) => {
         console.error('Geolocation error:', error);
         setIsGettingLocation(false);
-        
-        let errorMessage = "Erreur de géolocalisation";
+
+        let errorMessage = 'Erreur de géolocalisation';
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = "Permission de géolocalisation refusée";
+            errorMessage = 'Permission de géolocalisation refusée';
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage = "Position indisponible";
+            errorMessage = 'Position indisponible';
             break;
           case error.TIMEOUT:
-            errorMessage = "Délai de géolocalisation dépassé";
+            errorMessage = 'Délai de géolocalisation dépassé';
             break;
         }
 
         toast({
-          title: "Erreur de localisation",
+          title: 'Erreur de localisation',
           description: errorMessage,
-          variant: "destructive"
+          variant: 'destructive',
         });
       },
       options
@@ -134,15 +145,17 @@ export const LocationBasedFeatures = ({ onLocationChange }: LocationBasedFeature
 
   const updateLocationBasedFeatures = (position: GeolocationPosition) => {
     // Calculate distances to stores and sort by proximity
-    const storesWithDistance = mockStores.map(store => ({
-      ...store,
-      distance: calculateDistance(
-        position.coords.latitude,
-        position.coords.longitude,
-        33.9716, // Mock store coordinates
-        -6.8498
-      )
-    })).sort((a, b) => (a.distance || 0) - (b.distance || 0));
+    const storesWithDistance = mockStores
+      .map((store) => ({
+        ...store,
+        distance: calculateDistance(
+          position.coords.latitude,
+          position.coords.longitude,
+          33.9716, // Mock store coordinates
+          -6.8498
+        ),
+      }))
+      .sort((a, b) => (a.distance || 0) - (b.distance || 0));
 
     setNearbyStores(storesWithDistance);
 
@@ -150,11 +163,11 @@ export const LocationBasedFeatures = ({ onLocationChange }: LocationBasedFeature
     const nearestStore = storesWithDistance[0];
     if (nearestStore && nearestStore.distance) {
       if (nearestStore.distance < 5) {
-        setDeliveryEstimate("Livraison sous 2-3h");
+        setDeliveryEstimate('Livraison sous 2-3h');
       } else if (nearestStore.distance < 15) {
-        setDeliveryEstimate("Livraison sous 24h");
+        setDeliveryEstimate('Livraison sous 24h');
       } else {
-        setDeliveryEstimate("Livraison sous 2-3 jours");
+        setDeliveryEstimate('Livraison sous 2-3 jours');
       }
     }
   };
@@ -170,15 +183,22 @@ export const LocationBasedFeatures = ({ onLocationChange }: LocationBasedFeature
     }
   };
 
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const calculateDistance = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number => {
     const R = 6371; // Earth's radius in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
 
@@ -196,7 +216,8 @@ export const LocationBasedFeatures = ({ onLocationChange }: LocationBasedFeature
           {!currentLocation ? (
             <div className="text-center py-4">
               <p className="text-stone-600 mb-4 text-sm">
-                Activez la géolocalisation pour obtenir les meilleures options de livraison et trouver nos boutiques près de chez vous.
+                Activez la géolocalisation pour obtenir les meilleures options
+                de livraison et trouver nos boutiques près de chez vous.
               </p>
               <Button
                 onClick={requestLocation}
@@ -221,17 +242,24 @@ export const LocationBasedFeatures = ({ onLocationChange }: LocationBasedFeature
               <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <MapPin className="h-5 w-5 text-green-600" />
-                  <span className="text-green-800 font-medium">Localisation activée</span>
+                  <span className="text-green-800 font-medium">
+                    Localisation activée
+                  </span>
                 </div>
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-800"
+                >
                   Précis
                 </Badge>
               </div>
-              
+
               {deliveryEstimate && (
                 <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
                   <Truck className="h-5 w-5 text-blue-600" />
-                  <span className="text-blue-800 font-medium">{deliveryEstimate}</span>
+                  <span className="text-blue-800 font-medium">
+                    {deliveryEstimate}
+                  </span>
                 </div>
               )}
             </div>
@@ -256,26 +284,28 @@ export const LocationBasedFeatures = ({ onLocationChange }: LocationBasedFeature
                   className="flex items-start gap-3 p-3 border border-stone-200 rounded-lg"
                 >
                   <Store className="h-5 w-5 text-stone-400 mt-0.5" />
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-medium text-stone-800 text-sm truncate">
                         {store.name}
                       </h4>
                       <Badge
-                        variant={store.isOpen ? "default" : "secondary"}
+                        variant={store.isOpen ? 'default' : 'secondary'}
                         className={`text-xs ${
-                          store.isOpen 
-                            ? "bg-green-100 text-green-800" 
-                            : "bg-red-100 text-red-800"
+                          store.isOpen
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
                         }`}
                       >
                         {store.isOpen ? 'Ouvert' : 'Fermé'}
                       </Badge>
                     </div>
-                    
-                    <p className="text-stone-600 text-xs mb-1">{store.address}</p>
-                    
+
+                    <p className="text-stone-600 text-xs mb-1">
+                      {store.address}
+                    </p>
+
                     <div className="flex items-center gap-3 text-xs text-stone-500">
                       <span>{store.hours}</span>
                       {store.distance && (
@@ -283,7 +313,7 @@ export const LocationBasedFeatures = ({ onLocationChange }: LocationBasedFeature
                       )}
                     </div>
                   </div>
-                  
+
                   <Button
                     size="sm"
                     variant="outline"

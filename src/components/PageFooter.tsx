@@ -1,20 +1,22 @@
-import { Facebook, Instagram, Twitter } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { Facebook, Instagram, Twitter } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Link } from 'react-router-dom';
 
 const PageFooter = () => {
   const { t } = useTranslation(['common', 'pages']);
-  
+
   return (
     <footer className="bg-secondary py-16">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* About Section */}
           <div>
-            <h3 className="font-serif text-xl mb-4 text-foreground">{t('common:footer.about')}</h3>
+            <h3 className="font-serif text-xl mb-4 text-foreground">
+              {t('common:footer.about')}
+            </h3>
             <p className="text-muted-foreground mb-4">
               {t('common:footer.aboutText')}
             </p>
@@ -45,7 +47,9 @@ const PageFooter = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-serif text-xl mb-4 text-foreground">{t('common:footer.quickLinks')}</h3>
+            <h3 className="font-serif text-xl mb-4 text-foreground">
+              {t('common:footer.quickLinks')}
+            </h3>
             <ul className="space-y-2">
               <li>
                 <Link
@@ -85,7 +89,9 @@ const PageFooter = () => {
           {/* Information */}
           {/* Information */}
           <div>
-            <h3 className="font-serif text-xl mb-4 text-foreground">{t('common:footer.information')}</h3>
+            <h3 className="font-serif text-xl mb-4 text-foreground">
+              {t('common:footer.information')}
+            </h3>
             <ul className="space-y-2">
               <li>
                 <Link
@@ -146,12 +152,16 @@ const PageFooter = () => {
 
           {/* Newsletter */}
           <div>
-            <h3 className="font-serif text-xl mb-4 text-foreground">{t('common:footer.newsletter')}</h3>
+            <h3 className="font-serif text-xl mb-4 text-foreground">
+              {t('common:footer.newsletter')}
+            </h3>
             <p className="text-muted-foreground mb-4">
               {t('common:footer.newsletterText')}
             </p>
             <form className="space-y-2">
-              <label htmlFor="newsletter-email-footer" className="sr-only">{t('common:footer.emailPlaceholder')}</label>
+              <label htmlFor="newsletter-email-footer" className="sr-only">
+                {t('common:footer.emailPlaceholder')}
+              </label>
               <Input
                 type="email"
                 id="newsletter-email-footer"
@@ -159,7 +169,10 @@ const PageFooter = () => {
                 className="bg-background border-border focus:border-primary text-foreground placeholder:text-muted-foreground"
                 aria-label={t('common:footer.emailPlaceholder')}
               />
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
                 {t('common:footer.subscribe')}
               </Button>
             </form>

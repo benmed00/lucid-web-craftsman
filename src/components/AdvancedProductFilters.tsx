@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Search, 
-  Filter, 
-  X, 
-  SlidersHorizontal, 
+import {
+  Search,
+  Filter,
+  X,
+  SlidersHorizontal,
   Star,
   Palette,
   User,
@@ -14,20 +14,40 @@ import {
   Sparkles,
   Target,
   Trash2,
-  Database
+  Database,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
 import { AdvancedFilterOptions } from '@/hooks/useAdvancedProductFilters';
 import { useTranslation } from 'react-i18next';
 
@@ -71,7 +91,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
   onClearFilter,
   getSearchSuggestions,
   onClearCache,
-  cacheStats
+  cacheStats,
 }) => {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -82,7 +102,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
   // Handle search input changes with suggestions
   const handleSearchChange = (value: string) => {
     onFiltersChange({ searchQuery: value });
-    
+
     if (value.trim()) {
       const suggestions = getSearchSuggestions(value);
       setSearchSuggestions(suggestions);
@@ -104,25 +124,27 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
       {[1, 2, 3, 4, 5].map((rating) => (
         <button
           key={rating}
-          onClick={() => onFiltersChange({ rating: rating === filters.rating ? 0 : rating })}
+          onClick={() =>
+            onFiltersChange({ rating: rating === filters.rating ? 0 : rating })
+          }
           className="focus:outline-none focus:ring-2 focus:ring-primary rounded"
         >
-          <Star 
+          <Star
             className={`h-5 w-5 ${
-              rating <= filters.rating 
-                ? 'fill-yellow-400 text-yellow-400' 
+              rating <= filters.rating
+                ? 'fill-yellow-400 text-yellow-400'
                 : 'text-gray-300'
             }`}
           />
         </button>
       ))}
-        {filters.rating > 0 && (
-          <span className="text-sm text-muted-foreground ml-2">
-            {filters.rating}+ {t('advancedFilters.stars')}
-          </span>
-        )}
-      </div>
-    );
+      {filters.rating > 0 && (
+        <span className="text-sm text-muted-foreground ml-2">
+          {filters.rating}+ {t('advancedFilters.stars')}
+        </span>
+      )}
+    </div>
+  );
 
   return (
     <div className="w-full space-y-6">
@@ -131,7 +153,10 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Search Input with Autocomplete */}
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+              size={20}
+            />
             <Input
               ref={searchInputRef}
               type="text"
@@ -152,7 +177,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
                 <X size={14} />
               </Button>
             )}
-            
+
             {/* Search Suggestions Dropdown */}
             {showSuggestions && searchSuggestions.length > 0 && (
               <div className="absolute top-full left-0 right-0 z-50 bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
@@ -196,19 +221,32 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
           <div className="flex gap-2">
             <Select
               value={filters.sortBy}
-              onValueChange={(value: AdvancedFilterOptions['sortBy']) => 
-                onFiltersChange({ sortBy: value })}
+              onValueChange={(value: AdvancedFilterOptions['sortBy']) =>
+                onFiltersChange({ sortBy: value })
+              }
             >
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="name">{t('filters.sortOptions.nameAsc')}</SelectItem>
-                <SelectItem value="price-asc">{t('filters.sortOptions.priceAsc')}</SelectItem>
-                <SelectItem value="price-desc">{t('filters.sortOptions.priceDesc')}</SelectItem>
-                <SelectItem value="newest">{t('filters.sortOptions.newest')}</SelectItem>
-                <SelectItem value="popularity">{t('filters.sortOptions.popular')}</SelectItem>
-                <SelectItem value="rating">{t('advancedFilters.bestRated')}</SelectItem>
+                <SelectItem value="name">
+                  {t('filters.sortOptions.nameAsc')}
+                </SelectItem>
+                <SelectItem value="price-asc">
+                  {t('filters.sortOptions.priceAsc')}
+                </SelectItem>
+                <SelectItem value="price-desc">
+                  {t('filters.sortOptions.priceDesc')}
+                </SelectItem>
+                <SelectItem value="newest">
+                  {t('filters.sortOptions.newest')}
+                </SelectItem>
+                <SelectItem value="popularity">
+                  {t('filters.sortOptions.popular')}
+                </SelectItem>
+                <SelectItem value="rating">
+                  {t('advancedFilters.bestRated')}
+                </SelectItem>
               </SelectContent>
             </Select>
 
@@ -233,14 +271,21 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground flex items-center gap-1">
-            {isLoading && <span className="h-4 w-4 animate-spin border-2 border-muted-foreground border-t-transparent rounded-full inline-block" />}
+            {isLoading && (
+              <span className="h-4 w-4 animate-spin border-2 border-muted-foreground border-t-transparent rounded-full inline-block" />
+            )}
             {filteredCount === totalProducts ? (
               <span>{t('filters.resultsCount', { count: totalProducts })}</span>
             ) : (
-              <span>{t('filters.resultsFiltered', { filtered: filteredCount, total: totalProducts })}</span>
+              <span>
+                {t('filters.resultsFiltered', {
+                  filtered: filteredCount,
+                  total: totalProducts,
+                })}
+              </span>
             )}
           </span>
-          
+
           {filteredCount > 0 && filteredCount < totalProducts && (
             <Badge variant="outline" className="flex items-center gap-1">
               <Target className="h-3 w-3" />
@@ -248,7 +293,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
             </Badge>
           )}
         </div>
-        
+
         {activeFiltersCount > 0 && (
           <Button
             variant="ghost"
@@ -259,7 +304,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
             {t('filters.clearAllFilters')}
           </Button>
         )}
-        
+
         {/* Cache Clear Button */}
         {onClearCache && cacheStats && cacheStats.cachedQueries > 0 && (
           <Button
@@ -267,10 +312,14 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
             size="sm"
             onClick={onClearCache}
             className="text-muted-foreground hover:text-foreground flex items-center gap-2"
-            title={t('advancedFilters.cachedQueries', { count: cacheStats.cachedQueries })}
+            title={t('advancedFilters.cachedQueries', {
+              count: cacheStats.cachedQueries,
+            })}
           >
             <Database className="h-3 w-3" />
-            <span className="hidden sm:inline">{t('advancedFilters.clearCache')}</span>
+            <span className="hidden sm:inline">
+              {t('advancedFilters.clearCache')}
+            </span>
             <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full ml-1">
               {cacheStats.cachedQueries}
             </span>
@@ -283,73 +332,78 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
         <div className="flex flex-wrap gap-2">
           {filters.searchQuery && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              <Search className="h-3 w-3" />
-              "{filters.searchQuery}"
-              <X 
-                size={12} 
+              <Search className="h-3 w-3" />"{filters.searchQuery}"
+              <X
+                size={12}
                 className="cursor-pointer hover:text-red-500"
                 onClick={() => onClearFilter('searchQuery')}
               />
             </Badge>
           )}
-          
-          {filters.category.map(category => (
-            <Badge key={category} variant="secondary" className="flex items-center gap-1">
+
+          {filters.category.map((category) => (
+            <Badge
+              key={category}
+              variant="secondary"
+              className="flex items-center gap-1"
+            >
               <Package className="h-3 w-3" />
               {category}
-              <X 
-                size={12} 
+              <X
+                size={12}
                 className="cursor-pointer hover:text-red-500"
-                onClick={() => onFiltersChange({ 
-                  category: filters.category.filter(c => c !== category) 
-                })}
+                onClick={() =>
+                  onFiltersChange({
+                    category: filters.category.filter((c) => c !== category),
+                  })
+                }
               />
             </Badge>
           ))}
-          
-          {(filters.priceRange[0] > availableOptions.priceRange.min || 
+
+          {(filters.priceRange[0] > availableOptions.priceRange.min ||
             filters.priceRange[1] < availableOptions.priceRange.max) && (
             <Badge variant="secondary" className="flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
               {filters.priceRange[0]}€ - {filters.priceRange[1]}€
-              <X 
-                size={12} 
+              <X
+                size={12}
                 className="cursor-pointer hover:text-red-500"
                 onClick={() => onClearFilter('priceRange')}
               />
             </Badge>
           )}
-          
+
           {filters.rating > 0 && (
             <Badge variant="secondary" className="flex items-center gap-1">
               <Star className="h-3 w-3" />
               {filters.rating}+ {t('advancedFilters.stars')}
-              <X 
-                size={12} 
+              <X
+                size={12}
                 className="cursor-pointer hover:text-red-500"
                 onClick={() => onClearFilter('rating')}
               />
             </Badge>
           )}
-          
+
           {filters.isNew && (
             <Badge variant="secondary" className="flex items-center gap-1">
               <Sparkles className="h-3 w-3" />
               {t('filters.newOnly')}
-              <X 
-                size={12} 
+              <X
+                size={12}
                 className="cursor-pointer hover:text-red-500"
                 onClick={() => onClearFilter('isNew')}
               />
             </Badge>
           )}
-          
+
           {!filters.inStock && (
             <Badge variant="secondary" className="flex items-center gap-1">
               <Package className="h-3 w-3" />
               {t('advancedFilters.includeOutOfStock')}
-              <X 
-                size={12} 
+              <X
+                size={12}
                 className="cursor-pointer hover:text-red-500"
                 onClick={() => onClearFilter('inStock')}
               />
@@ -377,25 +431,30 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
                     {t('filters.category')}
                   </Label>
                   <div className="space-y-2 max-h-40 overflow-auto">
-                    {availableOptions.categories.map(category => (
-                      <div key={category} className="flex items-center space-x-2">
+                    {availableOptions.categories.map((category) => (
+                      <div
+                        key={category}
+                        className="flex items-center space-x-2"
+                      >
                         <Checkbox
                           id={category}
                           checked={filters.category.includes(category)}
                           onCheckedChange={(checked) => {
                             if (checked) {
-                              onFiltersChange({ 
-                                category: [...filters.category, category] 
+                              onFiltersChange({
+                                category: [...filters.category, category],
                               });
                             } else {
-                              onFiltersChange({ 
-                                category: filters.category.filter(c => c !== category) 
+                              onFiltersChange({
+                                category: filters.category.filter(
+                                  (c) => c !== category
+                                ),
                               });
                             }
                           }}
                         />
-                        <Label 
-                          htmlFor={category} 
+                        <Label
+                          htmlFor={category}
                           className="text-sm cursor-pointer text-muted-foreground flex-1"
                         >
                           {category}
@@ -411,12 +470,17 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
                   <div className="space-y-3">
                     <Label className="text-sm font-medium text-foreground flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" />
-                      {t('filters.priceRange')}: {filters.priceRange[0]}€ - {filters.priceRange[1]}€
+                      {t('filters.priceRange')}: {filters.priceRange[0]}€ -{' '}
+                      {filters.priceRange[1]}€
                     </Label>
                     <div className="px-2">
                       <Slider
                         value={filters.priceRange}
-                        onValueChange={(value) => onFiltersChange({ priceRange: value as [number, number] })}
+                        onValueChange={(value) =>
+                          onFiltersChange({
+                            priceRange: value as [number, number],
+                          })
+                        }
                         max={availableOptions.priceRange.max}
                         min={availableOptions.priceRange.min}
                         step={5}
@@ -448,25 +512,30 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
                         {t('advancedFilters.artisans')}
                       </Label>
                       <div className="space-y-2 max-h-32 overflow-auto">
-                        {availableOptions.artisans.map(artisan => (
-                          <div key={artisan} className="flex items-center space-x-2">
+                        {availableOptions.artisans.map((artisan) => (
+                          <div
+                            key={artisan}
+                            className="flex items-center space-x-2"
+                          >
                             <Checkbox
                               id={`artisan-${artisan}`}
                               checked={filters.artisan.includes(artisan)}
                               onCheckedChange={(checked) => {
                                 if (checked) {
-                                  onFiltersChange({ 
-                                    artisan: [...filters.artisan, artisan] 
+                                  onFiltersChange({
+                                    artisan: [...filters.artisan, artisan],
                                   });
                                 } else {
-                                  onFiltersChange({ 
-                                    artisan: filters.artisan.filter(a => a !== artisan) 
+                                  onFiltersChange({
+                                    artisan: filters.artisan.filter(
+                                      (a) => a !== artisan
+                                    ),
                                   });
                                 }
                               }}
                             />
-                            <Label 
-                              htmlFor={`artisan-${artisan}`} 
+                            <Label
+                              htmlFor={`artisan-${artisan}`}
                               className="text-sm cursor-pointer text-muted-foreground flex-1"
                             >
                               {artisan}
@@ -487,21 +556,31 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
                         <Checkbox
                           id="isNew"
                           checked={filters.isNew}
-                          onCheckedChange={(checked) => onFiltersChange({ isNew: !!checked })}
+                          onCheckedChange={(checked) =>
+                            onFiltersChange({ isNew: !!checked })
+                          }
                         />
-                        <Label htmlFor="isNew" className="text-sm cursor-pointer text-muted-foreground flex items-center gap-1">
+                        <Label
+                          htmlFor="isNew"
+                          className="text-sm cursor-pointer text-muted-foreground flex items-center gap-1"
+                        >
                           <Sparkles className="h-3 w-3" />
                           {t('filters.newOnly')}
                         </Label>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2">
                         <Checkbox
                           id="inStock"
                           checked={filters.inStock}
-                          onCheckedChange={(checked) => onFiltersChange({ inStock: !!checked })}
+                          onCheckedChange={(checked) =>
+                            onFiltersChange({ inStock: !!checked })
+                          }
                         />
-                        <Label htmlFor="inStock" className="text-sm cursor-pointer text-muted-foreground flex items-center gap-1">
+                        <Label
+                          htmlFor="inStock"
+                          className="text-sm cursor-pointer text-muted-foreground flex items-center gap-1"
+                        >
                           <Package className="h-3 w-3" />
                           {t('advancedFilters.inStockOnly')}
                         </Label>

@@ -11,7 +11,7 @@ export const usePullToRefresh = ({
   onRefresh,
   threshold = 80,
   maxPullDistance = 150,
-  disabled = false
+  disabled = false,
 }: UsePullToRefreshProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
@@ -21,31 +21,37 @@ export const usePullToRefresh = ({
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    if (disabled || isRefreshing) return;
-    
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const canPullToRefresh = scrollTop === 0;
-    
-    if (canPullToRefresh) {
-      setStartY(e.touches[0].clientY);
-      setCanPull(true);
-    }
-  }, [disabled, isRefreshing]);
+  const handleTouchStart = useCallback(
+    (e: TouchEvent) => {
+      if (disabled || isRefreshing) return;
 
-  const handleTouchMove = useCallback((e: TouchEvent) => {
-    if (!canPull || disabled || isRefreshing) return;
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const canPullToRefresh = scrollTop === 0;
 
-    const currentY = e.touches[0].clientY;
-    const deltaY = currentY - startY;
+      if (canPullToRefresh) {
+        setStartY(e.touches[0].clientY);
+        setCanPull(true);
+      }
+    },
+    [disabled, isRefreshing]
+  );
 
-    if (deltaY > 0) {
-      e.preventDefault();
-      setIsPulling(true);
-      const distance = Math.min(deltaY * 0.5, maxPullDistance);
-      setPullDistance(distance);
-    }
-  }, [canPull, disabled, isRefreshing, startY, maxPullDistance]);
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      if (!canPull || disabled || isRefreshing) return;
+
+      const currentY = e.touches[0].clientY;
+      const deltaY = currentY - startY;
+
+      if (deltaY > 0) {
+        e.preventDefault();
+        setIsPulling(true);
+        const distance = Math.min(deltaY * 0.5, maxPullDistance);
+        setPullDistance(distance);
+      }
+    },
+    [canPull, disabled, isRefreshing, startY, maxPullDistance]
+  );
 
   const handleTouchEnd = useCallback(async () => {
     if (!canPull || disabled) return;

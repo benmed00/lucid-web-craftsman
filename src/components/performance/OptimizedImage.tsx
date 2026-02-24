@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
-interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+interface OptimizedImageProps
+  extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
   width?: number;
@@ -50,7 +51,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   // Generate WebP source if enabled
   const generateWebPSrc = (originalSrc: string): string => {
     if (!webp || originalSrc.includes('.webp')) return originalSrc;
-    
+
     // For Supabase storage URLs: only transform when using the render endpoint
     if (originalSrc.includes('supabase.co')) {
       const isRenderEndpoint = originalSrc.includes('/render/image/');
@@ -65,7 +66,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       if (height) url.searchParams.set('height', height.toString());
       return url.toString();
     }
-    
+
     // For local assets, don't auto-convert to webp since files may not exist
     // Return original to prevent 404 errors from missing webp files
     return originalSrc;
@@ -77,7 +78,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     if (originalSrc.startsWith('/assets/')) {
       return originalSrc;
     }
-    
+
     if (originalSrc.includes('supabase.co')) {
       const isRenderEndpoint = originalSrc.includes('/render/image/');
       if (!isRenderEndpoint) {
@@ -85,7 +86,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         return originalSrc;
       }
       const url = new URL(originalSrc);
-      if (quality && quality !== 85) url.searchParams.set('quality', quality.toString());
+      if (quality && quality !== 85)
+        url.searchParams.set('quality', quality.toString());
       if (width) url.searchParams.set('width', width.toString());
       if (height) url.searchParams.set('height', height.toString());
       return url.toString();
@@ -195,12 +197,15 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   };
 
   // Generate responsive sizes if not provided
-  const responsiveSizes = sizes || 
-    (width ? `(max-width: 768px) ${Math.min(width, 400)}px, ${width}px` : 
-     '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw');
+  const responsiveSizes =
+    sizes ||
+    (width
+      ? `(max-width: 768px) ${Math.min(width, 400)}px, ${width}px`
+      : '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw');
 
   const containerStyle: React.CSSProperties = {
-    aspectRatio: aspectRatio || (width && height ? `${width}/${height}` : undefined),
+    aspectRatio:
+      aspectRatio || (width && height ? `${width}/${height}` : undefined),
     position: 'relative',
   };
 
@@ -243,7 +248,11 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
           )}

@@ -1,23 +1,30 @@
-import { useCart } from "@/stores";
-import { toast } from "sonner";
-import { Product } from "@/shared/interfaces/Iproduct.interface";
-import { useMemo, useState, useCallback, useEffect } from "react";
-import ProductCard, { StockContext } from "./ProductCard";
-import { ProductQuickView } from "./ProductQuickView";
-import { Card, CardContent } from "@/components/ui/card";
-import { useStock } from "@/hooks/useStock";
-import { useSearchParams } from "react-router-dom";
+import { useCart } from '@/stores';
+import { toast } from 'sonner';
+import { Product } from '@/shared/interfaces/Iproduct.interface';
+import { useMemo, useState, useCallback, useEffect } from 'react';
+import ProductCard, { StockContext } from './ProductCard';
+import { ProductQuickView } from './ProductQuickView';
+import { Card, CardContent } from '@/components/ui/card';
+import { useStock } from '@/hooks/useStock';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useProductsWithTranslations, ProductWithTranslation, SupportedLocale } from "@/hooks/useTranslatedContent";
+import {
+  useProductsWithTranslations,
+  ProductWithTranslation,
+  SupportedLocale,
+} from '@/hooks/useTranslatedContent';
 
 const ProductShowcase = () => {
   const { t } = useTranslation('products');
   const { addItem } = useCart();
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(
+    null
+  );
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Fetch products with translations
-  const { data: translatedProducts = [], isLoading: loading } = useProductsWithTranslations();
+  const { data: translatedProducts = [], isLoading: loading } =
+    useProductsWithTranslations();
 
   // Create a map of product ID to fallback info
   const fallbackInfo = useMemo(() => {
@@ -30,31 +37,33 @@ const ProductShowcase = () => {
 
   // Transform to Product interface and get featured products
   const featuredProducts = useMemo(() => {
-    return translatedProducts.slice(0, 4).map((p: ProductWithTranslation): Product => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      images: p.images,
-      category: p.category,
-      description: p.description,
-      details: p.details,
-      care: p.care,
-      artisan: p.artisan,
-      is_new: p.is_new ?? false,
-      is_available: p.is_available ?? true,
-      stock_quantity: p.stock_quantity ?? 0,
-      artisan_story: p.artisan_story ?? undefined,
-      short_description: p.short_description ?? undefined,
-      rating_average: p.rating_average ?? undefined,
-      rating_count: p.rating_count ?? undefined,
-    }));
+    return translatedProducts.slice(0, 4).map(
+      (p: ProductWithTranslation): Product => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        images: p.images,
+        category: p.category,
+        description: p.description,
+        details: p.details,
+        care: p.care,
+        artisan: p.artisan,
+        is_new: p.is_new ?? false,
+        is_available: p.is_available ?? true,
+        stock_quantity: p.stock_quantity ?? 0,
+        artisan_story: p.artisan_story ?? undefined,
+        short_description: p.short_description ?? undefined,
+        rating_average: p.rating_average ?? undefined,
+        rating_count: p.rating_count ?? undefined,
+      })
+    );
   }, [translatedProducts]);
 
   // Batch stock loading for all featured products
-  const productIds = featuredProducts.map(p => p.id);
-  const { stockInfo } = useStock({ 
-    productIds, 
-    enabled: productIds.length > 0 
+  const productIds = featuredProducts.map((p) => p.id);
+  const { stockInfo } = useStock({
+    productIds,
+    enabled: productIds.length > 0,
   });
 
   // Handle URL-based quick view state
@@ -62,26 +71,28 @@ const ProductShowcase = () => {
     const productId = searchParams.get('product');
     if (productId && featuredProducts.length > 0) {
       const productIdNum = parseInt(productId, 10);
-      const product = featuredProducts.find(p => p.id === productIdNum);
+      const product = featuredProducts.find((p) => p.id === productIdNum);
       if (product) {
         setQuickViewProduct(product);
       } else {
         // Try to find in all translated products
-        const allProducts = translatedProducts.map((p: ProductWithTranslation): Product => ({
-          id: p.id,
-          name: p.name,
-          price: p.price,
-          images: p.images,
-          category: p.category,
-          description: p.description,
-          details: p.details,
-          care: p.care,
-          artisan: p.artisan,
-          is_new: p.is_new ?? false,
-          is_available: p.is_available ?? true,
-          stock_quantity: p.stock_quantity ?? 0,
-        }));
-        const foundProduct = allProducts.find(p => p.id === productIdNum);
+        const allProducts = translatedProducts.map(
+          (p: ProductWithTranslation): Product => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            images: p.images,
+            category: p.category,
+            description: p.description,
+            details: p.details,
+            care: p.care,
+            artisan: p.artisan,
+            is_new: p.is_new ?? false,
+            is_available: p.is_available ?? true,
+            stock_quantity: p.stock_quantity ?? 0,
+          })
+        );
+        const foundProduct = allProducts.find((p) => p.id === productIdNum);
         if (foundProduct) {
           setQuickViewProduct(foundProduct);
         }
@@ -91,10 +102,13 @@ const ProductShowcase = () => {
     }
   }, [searchParams, featuredProducts, translatedProducts]);
 
-  const handleAddToCart = async (product: Product) => { // Made async
+  const handleAddToCart = async (product: Product) => {
+    // Made async
     try {
       // Call mock API service first
-      const response = await import("@/api/mockApiService").then(api => api.addToCart(product, 1));
+      const response = await import('@/api/mockApiService').then((api) =>
+        api.addToCart(product, 1)
+      );
 
       if (response.success) {
         // Use direct action instead of dispatch
@@ -107,14 +121,16 @@ const ProductShowcase = () => {
       // Silent error handling for production
       toast.error(t('recommendations.addError'));
     }
-
   };
 
-  const handleQuickView = useCallback((product: Product) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set('product', product.id.toString());
-    setSearchParams(newSearchParams, { replace: false });
-  }, [searchParams, setSearchParams]);
+  const handleQuickView = useCallback(
+    (product: Product) => {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('product', product.id.toString());
+      setSearchParams(newSearchParams, { replace: false });
+    },
+    [searchParams, setSearchParams]
+  );
 
   const handleCloseQuickView = useCallback(() => {
     const newSearchParams = new URLSearchParams(searchParams);
@@ -122,10 +138,15 @@ const ProductShowcase = () => {
     setSearchParams(newSearchParams, { replace: false });
   }, [searchParams, setSearchParams]);
 
-  const handleQuickViewAddToCart = async (product: Product, quantity: number) => {
+  const handleQuickViewAddToCart = async (
+    product: Product,
+    quantity: number
+  ) => {
     try {
       // Call mock API service first
-      const response = await import("@/api/mockApiService").then(api => api.addToCart(product, quantity));
+      const response = await import('@/api/mockApiService').then((api) =>
+        api.addToCart(product, quantity)
+      );
 
       if (response.success) {
         // Use direct action instead of dispatch
@@ -146,9 +167,9 @@ const ProductShowcase = () => {
           <div
             key={i}
             className="animate-fade-in opacity-0"
-            style={{ 
+            style={{
               animationDelay: `${i * 100}ms`,
-              animationFillMode: 'forwards'
+              animationFillMode: 'forwards',
             }}
           >
             <Card className="bg-card border-none overflow-hidden animate-pulse rounded-xl shadow-md">
@@ -170,17 +191,17 @@ const ProductShowcase = () => {
 
   return (
     <StockContext.Provider value={stockInfo || {}}>
-      <section 
+      <section
         className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6"
         aria-label={t('showcase.ariaLabel')}
       >
         {featuredProducts.map((product, index) => (
-          <article 
+          <article
             key={product.id}
             className="animate-fade-in opacity-0"
-            style={{ 
+            style={{
               animationDelay: `${index * 100}ms`,
-              animationFillMode: 'forwards'
+              animationFillMode: 'forwards',
             }}
             aria-labelledby={`product-${product.id}-name`}
           >
@@ -189,12 +210,14 @@ const ProductShowcase = () => {
               onAddToCart={handleAddToCart}
               onQuickView={handleQuickView}
               isFallback={fallbackInfo[product.id]?.isFallback}
-              fallbackLocale={fallbackInfo[product.id]?.locale as SupportedLocale}
+              fallbackLocale={
+                fallbackInfo[product.id]?.locale as SupportedLocale
+              }
             />
           </article>
         ))}
       </section>
-      
+
       <ProductQuickView
         product={quickViewProduct}
         isOpen={!!quickViewProduct}

@@ -1,8 +1,8 @@
-import { useState, lazy, Suspense, useEffect } from "react";
+import { useState, lazy, Suspense, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import SEOHelmet from "@/components/seo/SEOHelmet";
+import { useSearchParams } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import SEOHelmet from '@/components/seo/SEOHelmet';
 import {
   Mail,
   MapPin,
@@ -14,40 +14,50 @@ import {
   User,
   Building,
   Globe,
-} from "lucide-react";
+} from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
-import PageFooter from "@/components/PageFooter";
-import { toast } from "sonner";
-import { useCsrfToken } from "@/hooks/useCsrfToken";
-import { validateAndSanitizeEmail, validateAndSanitizeName, sanitizeUserInput } from "@/utils/xssProtection";
-import { createRateLimiter } from "@/utils/validation";
-import { supabase } from "@/integrations/supabase/client";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useCompanySettings, formatFullAddress } from "@/hooks/useCompanySettings";
-import { apiClient } from "@/lib/api/apiClient";
-import { handleError, ValidationError } from "@/lib/errors/AppError";
-import { EXTERNAL_SERVICES } from "@/config/app.config";
+import PageFooter from '@/components/PageFooter';
+import { toast } from 'sonner';
+import { useCsrfToken } from '@/hooks/useCsrfToken';
+import {
+  validateAndSanitizeEmail,
+  validateAndSanitizeName,
+  sanitizeUserInput,
+} from '@/utils/xssProtection';
+import { createRateLimiter } from '@/utils/validation';
+import { supabase } from '@/integrations/supabase/client';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  useCompanySettings,
+  formatFullAddress,
+} from '@/hooks/useCompanySettings';
+import { apiClient } from '@/lib/api/apiClient';
+import { handleError, ValidationError } from '@/lib/errors/AppError';
+import { EXTERNAL_SERVICES } from '@/config/app.config';
 
 // Lazy load the map component for better performance
-const LocationMap = lazy(() => import("@/components/ui/LocationMap"));
+const LocationMap = lazy(() => import('@/components/ui/LocationMap'));
 const contactRateLimiter = createRateLimiter(3, 10 * 60 * 1000); // 3 attempts per 10 minutes
 
 const Contact = () => {
   const { t } = useTranslation(['pages', 'common']);
   const [searchParams] = useSearchParams();
-  
+
   // Get company settings from database
-  const { settings: companySettings, isLoading: isLoadingSettings } = useCompanySettings();
-  
+  const { settings: companySettings, isLoading: isLoadingSettings } =
+    useCompanySettings();
+
   // Pre-fill form from URL params (from PaymentSuccess page)
   const getInitialFormState = () => {
     const orderId = searchParams.get('orderId');
-    const orderRef = orderId ? `[Order #${orderId.slice(-8).toUpperCase()}] ` : '';
-    
+    const orderRef = orderId
+      ? `[Order #${orderId.slice(-8).toUpperCase()}] `
+      : '';
+
     return {
       firstName: searchParams.get('firstName') || '',
       lastName: searchParams.get('lastName') || '',
@@ -55,10 +65,10 @@ const Contact = () => {
       phone: '',
       company: '',
       subject: orderId ? 'support' : '',
-      message: orderId ? `${orderRef}` : ''
+      message: orderId ? `${orderRef}` : '',
     };
   };
-  
+
   // Form states
   const [contactForm, setContactForm] = useState(getInitialFormState);
 
@@ -68,22 +78,25 @@ const Contact = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-  
+
   // Update form if URL params change
   useEffect(() => {
     const firstName = searchParams.get('firstName');
     const lastName = searchParams.get('lastName');
     const email = searchParams.get('email');
     const orderId = searchParams.get('orderId');
-    
+
     if (firstName || lastName || email || orderId) {
-      setContactForm(prev => ({
+      setContactForm((prev) => ({
         ...prev,
         firstName: firstName || prev.firstName,
         lastName: lastName || prev.lastName,
         email: email || prev.email,
         subject: orderId ? 'support' : prev.subject,
-        message: orderId && !prev.message ? `[Order #${orderId.slice(-8).toUpperCase()}] ` : prev.message
+        message:
+          orderId && !prev.message
+            ? `[Order #${orderId.slice(-8).toUpperCase()}] `
+            : prev.message,
       }));
     }
   }, [searchParams]);
@@ -107,7 +120,7 @@ const Contact = () => {
         phone: sanitizeUserInput(contactForm.phone),
         company: sanitizeUserInput(contactForm.company),
         subject: sanitizeUserInput(contactForm.subject.trim()),
-        message: sanitizeUserInput(contactForm.message.trim())
+        message: sanitizeUserInput(contactForm.message.trim()),
       };
 
       if (sanitizedData.subject.length < 5) {
@@ -125,22 +138,23 @@ const Contact = () => {
       }
 
       setIsSubmitting(true);
-      
+
       // Use centralized API client for consistent error handling
       const session = await supabase.auth.getSession();
       const headers: Record<string, string> = {};
       if (session.data.session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+        headers['Authorization'] =
+          `Bearer ${session.data.session.access_token}`;
       }
-      
+
       await apiClient.post(
         `${EXTERNAL_SERVICES.supabase.url}/functions/v1/submit-contact`,
         sanitizedData,
         { headers }
       );
-      
+
       toast.success(t('contact.form.success'));
-      
+
       // Reset form
       setContactForm({
         firstName: '',
@@ -149,9 +163,8 @@ const Contact = () => {
         phone: '',
         company: '',
         subject: '',
-        message: ''
+        message: '',
       });
-
     } catch (error) {
       const appError = handleError(error);
       toast.error(appError.message);
@@ -165,11 +178,15 @@ const Contact = () => {
       <SEOHelmet
         title={t('contact.seo.title')}
         description={t('contact.seo.description')}
-        keywords={["contact", "support", "artisanat marocain", "service client"]}
+        keywords={[
+          'contact',
+          'support',
+          'artisanat marocain',
+          'service client',
+        ]}
         url="/contact"
         type="website"
       />
-      
 
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-20">
@@ -183,15 +200,15 @@ const Contact = () => {
               {t('contact.hero.description')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <Button 
-                        size="lg" 
-                        className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 px-8 py-3 text-lg font-semibold"
-                        id="contact-hero-button"
-                        name="start-contact-discussion"
-                      >
-                        <MessageSquare className="mr-2 h-5 w-5" />
-                        {t('contact.hero.cta')}
-                      </Button>
+              <Button
+                size="lg"
+                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 px-8 py-3 text-lg font-semibold"
+                id="contact-hero-button"
+                name="start-contact-discussion"
+              >
+                <MessageSquare className="mr-2 h-5 w-5" />
+                {t('contact.hero.cta')}
+              </Button>
             </div>
           </div>
         </div>
@@ -200,8 +217,12 @@ const Contact = () => {
         <div className="absolute top-10 left-10 transform rotate-12 opacity-80 hidden lg:block">
           <Card className="w-64 shadow-xl bg-card">
             <CardContent className="p-4">
-              <h3 className="font-semibold text-foreground mb-2">{t('contact.cards.general.title')}</h3>
-              <p className="text-sm text-muted-foreground">{t('contact.cards.general.description')}</p>
+              <h3 className="font-semibold text-foreground mb-2">
+                {t('contact.cards.general.title')}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {t('contact.cards.general.description')}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -209,8 +230,12 @@ const Contact = () => {
         <div className="absolute top-32 right-16 transform -rotate-6 opacity-80 hidden lg:block">
           <Card className="w-56 shadow-xl bg-card">
             <CardContent className="p-4">
-              <h3 className="font-semibold text-foreground mb-2">{t('contact.cards.support.title')}</h3>
-              <p className="text-sm text-muted-foreground">{t('contact.cards.support.description')}</p>
+              <h3 className="font-semibold text-foreground mb-2">
+                {t('contact.cards.support.title')}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {t('contact.cards.support.description')}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -218,8 +243,12 @@ const Contact = () => {
         <div className="absolute bottom-10 left-1/4 transform rotate-3 opacity-80 hidden lg:block">
           <Card className="w-48 shadow-xl bg-card">
             <CardContent className="p-4">
-              <h3 className="font-semibold text-foreground mb-2">{t('contact.cards.partnership.title')}</h3>
-              <p className="text-sm text-muted-foreground">{t('contact.cards.partnership.description')}</p>
+              <h3 className="font-semibold text-foreground mb-2">
+                {t('contact.cards.partnership.title')}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {t('contact.cards.partnership.description')}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -230,11 +259,12 @@ const Contact = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
-              
               {/* Left Sidebar - Contact Info */}
               <div className="lg:col-span-2 space-y-8">
                 <div>
-                  <h2 className="font-serif text-3xl text-foreground mb-6">{t('contact.info.title')}</h2>
+                  <h2 className="font-serif text-3xl text-foreground mb-6">
+                    {t('contact.info.title')}
+                  </h2>
                   <p className="text-muted-foreground text-lg leading-relaxed">
                     {t('contact.info.description')}
                   </p>
@@ -249,13 +279,19 @@ const Contact = () => {
                           <Mail className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-foreground mb-2">{t('contact.info.email')}</h3>
+                          <h3 className="font-semibold text-foreground mb-2">
+                            {t('contact.info.email')}
+                          </h3>
                           {isLoadingSettings ? (
                             <Skeleton className="h-4 w-32" />
                           ) : (
-                            <p className="text-muted-foreground">{companySettings.email}</p>
+                            <p className="text-muted-foreground">
+                              {companySettings.email}
+                            </p>
                           )}
-                          <p className="text-sm text-muted-foreground">{t('contact.info.emailResponse')}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {t('contact.info.emailResponse')}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -268,13 +304,19 @@ const Contact = () => {
                           <Phone className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-foreground mb-2">{t('contact.info.phone')}</h3>
+                          <h3 className="font-semibold text-foreground mb-2">
+                            {t('contact.info.phone')}
+                          </h3>
                           {isLoadingSettings ? (
                             <Skeleton className="h-4 w-32" />
                           ) : (
-                            <p className="text-muted-foreground">{companySettings.phone}</p>
+                            <p className="text-muted-foreground">
+                              {companySettings.phone}
+                            </p>
                           )}
-                          <p className="text-sm text-muted-foreground">{t('contact.info.phoneHours')}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {t('contact.info.phoneHours')}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -287,7 +329,9 @@ const Contact = () => {
                           <MapPin className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-foreground mb-2">{t('contact.info.address')}</h3>
+                          <h3 className="font-semibold text-foreground mb-2">
+                            {t('contact.info.address')}
+                          </h3>
                           {isLoadingSettings ? (
                             <>
                               <Skeleton className="h-4 w-40 mb-1" />
@@ -295,8 +339,14 @@ const Contact = () => {
                             </>
                           ) : (
                             <>
-                              <p className="text-muted-foreground">{companySettings.address.street}</p>
-                              <p className="text-muted-foreground">{companySettings.address.postalCode} {companySettings.address.city}, {companySettings.address.country}</p>
+                              <p className="text-muted-foreground">
+                                {companySettings.address.street}
+                              </p>
+                              <p className="text-muted-foreground">
+                                {companySettings.address.postalCode}{' '}
+                                {companySettings.address.city},{' '}
+                                {companySettings.address.country}
+                              </p>
                             </>
                           )}
                         </div>
@@ -311,7 +361,9 @@ const Contact = () => {
                           <Clock className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-foreground mb-2">{t('contact.info.hours')}</h3>
+                          <h3 className="font-semibold text-foreground mb-2">
+                            {t('contact.info.hours')}
+                          </h3>
                           {isLoadingSettings ? (
                             <>
                               <Skeleton className="h-4 w-40 mb-1" />
@@ -320,9 +372,15 @@ const Contact = () => {
                             </>
                           ) : (
                             <>
-                              <p className="text-muted-foreground">{companySettings.openingHours.weekdays}</p>
-                              <p className="text-muted-foreground">{companySettings.openingHours.saturday}</p>
-                              <p className="text-muted-foreground">{companySettings.openingHours.sunday}</p>
+                              <p className="text-muted-foreground">
+                                {companySettings.openingHours.weekdays}
+                              </p>
+                              <p className="text-muted-foreground">
+                                {companySettings.openingHours.saturday}
+                              </p>
+                              <p className="text-muted-foreground">
+                                {companySettings.openingHours.sunday}
+                              </p>
                             </>
                           )}
                         </div>
@@ -333,23 +391,33 @@ const Contact = () => {
 
                 {/* Services Section */}
                 <div className="bg-secondary rounded-xl p-6">
-                  <h3 className="font-serif text-xl text-foreground mb-4">{t('contact.services.title')}</h3>
+                  <h3 className="font-serif text-xl text-foreground mb-4">
+                    {t('contact.services.title')}
+                  </h3>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <Package className="h-5 w-5 text-primary" />
-                      <span className="text-muted-foreground">{t('contact.services.customOrders')}</span>
+                      <span className="text-muted-foreground">
+                        {t('contact.services.customOrders')}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <User className="h-5 w-5 text-primary" />
-                      <span className="text-muted-foreground">{t('contact.services.expertAdvice')}</span>
+                      <span className="text-muted-foreground">
+                        {t('contact.services.expertAdvice')}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Building className="h-5 w-5 text-primary" />
-                      <span className="text-muted-foreground">{t('contact.services.b2b')}</span>
+                      <span className="text-muted-foreground">
+                        {t('contact.services.b2b')}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Globe className="h-5 w-5 text-primary" />
-                      <span className="text-muted-foreground">{t('contact.services.international')}</span>
+                      <span className="text-muted-foreground">
+                        {t('contact.services.international')}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -359,19 +427,36 @@ const Contact = () => {
               <div className="lg:col-span-3">
                 <Card className="shadow-xl border-0 overflow-hidden bg-card">
                   <div className="bg-gradient-to-r from-primary to-primary/80 p-6">
-                    <h2 className="font-serif text-2xl text-primary-foreground mb-2">{t('contact.form.title')}</h2>
-                    <p className="text-primary-foreground/80">{t('contact.form.subtitle')}</p>
+                    <h2 className="font-serif text-2xl text-primary-foreground mb-2">
+                      {t('contact.form.title')}
+                    </h2>
+                    <p className="text-primary-foreground/80">
+                      {t('contact.form.subtitle')}
+                    </p>
                   </div>
-                  
+
                   <CardContent className="p-8">
-                    <form onSubmit={handleSubmit} className="space-y-6" role="form">
-                      <input type="hidden" name="csrf_token" value={csrfToken} />
-                      
+                    <form
+                      onSubmit={handleSubmit}
+                      className="space-y-6"
+                      role="form"
+                    >
+                      <input
+                        type="hidden"
+                        name="csrf_token"
+                        value={csrfToken}
+                      />
+
                       <fieldset className="space-y-6">
-                        <legend className="sr-only">{t('contact.form.firstName')}</legend>
+                        <legend className="sr-only">
+                          {t('contact.form.firstName')}
+                        </legend>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <Label htmlFor="firstName" className="text-foreground font-medium">
+                            <Label
+                              htmlFor="firstName"
+                              className="text-foreground font-medium"
+                            >
                               {t('contact.form.firstName')} *
                             </Label>
                             <Input
@@ -379,7 +464,12 @@ const Contact = () => {
                               name="contact-first-name"
                               placeholder={t('contact.form.firstName')}
                               value={contactForm.firstName}
-                              onChange={(e) => setContactForm(prev => ({...prev, firstName: e.target.value}))}
+                              onChange={(e) =>
+                                setContactForm((prev) => ({
+                                  ...prev,
+                                  firstName: e.target.value,
+                                }))
+                              }
                               required
                               aria-required="true"
                               maxLength={50}
@@ -388,15 +478,23 @@ const Contact = () => {
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="lastName" className="text-foreground font-medium">
+                            <Label
+                              htmlFor="lastName"
+                              className="text-foreground font-medium"
+                            >
                               {t('contact.form.lastName')} *
                             </Label>
-                            <Input 
+                            <Input
                               id="lastName"
                               name="contact-last-name"
                               placeholder={t('contact.form.lastName')}
                               value={contactForm.lastName}
-                              onChange={(e) => setContactForm(prev => ({...prev, lastName: e.target.value}))}
+                              onChange={(e) =>
+                                setContactForm((prev) => ({
+                                  ...prev,
+                                  lastName: e.target.value,
+                                }))
+                              }
                               required
                               aria-required="true"
                               maxLength={50}
@@ -407,10 +505,15 @@ const Contact = () => {
                       </fieldset>
 
                       <fieldset className="space-y-6">
-                        <legend className="sr-only">{t('contact.form.email')}</legend>
+                        <legend className="sr-only">
+                          {t('contact.form.email')}
+                        </legend>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <Label htmlFor="email" className="text-foreground font-medium">
+                            <Label
+                              htmlFor="email"
+                              className="text-foreground font-medium"
+                            >
                               {t('contact.form.email')} *
                             </Label>
                             <Input
@@ -419,18 +522,28 @@ const Contact = () => {
                               type="email"
                               placeholder={t('contact.form.emailPlaceholder')}
                               value={contactForm.email}
-                              onChange={(e) => setContactForm(prev => ({...prev, email: e.target.value}))}
+                              onChange={(e) =>
+                                setContactForm((prev) => ({
+                                  ...prev,
+                                  email: e.target.value,
+                                }))
+                              }
                               required
                               aria-required="true"
                               aria-describedby="email-description"
                               maxLength={255}
                               className="border-border focus:border-primary focus:ring-primary/20 bg-background"
                             />
-                            <p id="email-description" className="sr-only">{t('contact.form.emailFormat')}</p>
+                            <p id="email-description" className="sr-only">
+                              {t('contact.form.emailFormat')}
+                            </p>
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="phone" className="text-foreground font-medium">
+                            <Label
+                              htmlFor="phone"
+                              className="text-foreground font-medium"
+                            >
                               {t('contact.form.phone')}
                             </Label>
                             <Input
@@ -439,7 +552,12 @@ const Contact = () => {
                               type="tel"
                               placeholder={t('contact.form.phonePlaceholder')}
                               value={contactForm.phone}
-                              onChange={(e) => setContactForm(prev => ({...prev, phone: e.target.value}))}
+                              onChange={(e) =>
+                                setContactForm((prev) => ({
+                                  ...prev,
+                                  phone: e.target.value,
+                                }))
+                              }
                               maxLength={20}
                               className="border-border focus:border-primary focus:ring-primary/20 bg-background"
                             />
@@ -448,7 +566,10 @@ const Contact = () => {
                       </fieldset>
 
                       <div className="space-y-2">
-                        <Label htmlFor="company" className="text-foreground font-medium">
+                        <Label
+                          htmlFor="company"
+                          className="text-foreground font-medium"
+                        >
                           {t('contact.form.company')}
                         </Label>
                         <Input
@@ -456,14 +577,22 @@ const Contact = () => {
                           name="contact-company"
                           placeholder={t('contact.form.companyPlaceholder')}
                           value={contactForm.company}
-                          onChange={(e) => setContactForm(prev => ({...prev, company: e.target.value}))}
+                          onChange={(e) =>
+                            setContactForm((prev) => ({
+                              ...prev,
+                              company: e.target.value,
+                            }))
+                          }
                           maxLength={100}
                           className="border-border focus:border-primary focus:ring-primary/20 bg-background"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="subject" className="text-foreground font-medium">
+                        <Label
+                          htmlFor="subject"
+                          className="text-foreground font-medium"
+                        >
                           {t('contact.form.subject')} *
                         </Label>
                         <select
@@ -471,22 +600,46 @@ const Contact = () => {
                           name="contact-subject"
                           className="w-full h-11 px-3 py-2 border border-border rounded-md focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-background text-foreground"
                           value={contactForm.subject}
-                          onChange={(e) => setContactForm(prev => ({...prev, subject: e.target.value}))}
+                          onChange={(e) =>
+                            setContactForm((prev) => ({
+                              ...prev,
+                              subject: e.target.value,
+                            }))
+                          }
                           required
                         >
-                          <option value="">{t('contact.form.subjectPlaceholder')}</option>
-                          <option value="product">{t('contact.form.subjectOptions.product')}</option>
-                          <option value="custom-order">{t('contact.form.subjectOptions.customOrder')}</option>
-                          <option value="partnership">{t('contact.form.subjectOptions.partnership')}</option>
-                          <option value="wholesale">{t('contact.form.subjectOptions.wholesale')}</option>
-                          <option value="shipping">{t('contact.form.subjectOptions.shipping')}</option>
-                          <option value="support">{t('contact.form.subjectOptions.support')}</option>
-                          <option value="other">{t('contact.form.subjectOptions.other')}</option>
+                          <option value="">
+                            {t('contact.form.subjectPlaceholder')}
+                          </option>
+                          <option value="product">
+                            {t('contact.form.subjectOptions.product')}
+                          </option>
+                          <option value="custom-order">
+                            {t('contact.form.subjectOptions.customOrder')}
+                          </option>
+                          <option value="partnership">
+                            {t('contact.form.subjectOptions.partnership')}
+                          </option>
+                          <option value="wholesale">
+                            {t('contact.form.subjectOptions.wholesale')}
+                          </option>
+                          <option value="shipping">
+                            {t('contact.form.subjectOptions.shipping')}
+                          </option>
+                          <option value="support">
+                            {t('contact.form.subjectOptions.support')}
+                          </option>
+                          <option value="other">
+                            {t('contact.form.subjectOptions.other')}
+                          </option>
                         </select>
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="message" className="text-foreground font-medium">
+                        <Label
+                          htmlFor="message"
+                          className="text-foreground font-medium"
+                        >
                           {t('contact.form.message')} *
                         </Label>
                         <textarea
@@ -495,14 +648,20 @@ const Contact = () => {
                           rows={6}
                           placeholder={t('contact.form.messagePlaceholder')}
                           value={contactForm.message}
-                          onChange={(e) => setContactForm(prev => ({...prev, message: e.target.value}))}
+                          onChange={(e) =>
+                            setContactForm((prev) => ({
+                              ...prev,
+                              message: e.target.value,
+                            }))
+                          }
                           className="w-full px-3 py-3 text-base border border-border rounded-md focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none bg-background text-foreground"
                           required
                           maxLength={2000}
                         ></textarea>
                         <div className="flex justify-between items-center">
                           <p className="text-sm text-muted-foreground">
-                            {contactForm.message.length}/2000 {t('contact.form.characters')}
+                            {contactForm.message.length}/2000{' '}
+                            {t('contact.form.characters')}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {t('contact.form.minCharacters')}
@@ -510,17 +669,19 @@ const Contact = () => {
                         </div>
                       </div>
 
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         className="w-full bg-olive-700 hover:bg-olive-800 text-white py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
                         disabled={isSubmitting}
                         id="contact-form-submit"
                         name="submit-contact-message"
                       >
                         <Send className="h-5 w-5" />
-                        {isSubmitting ? t('contact.form.submitting') : t('contact.form.submit')}
+                        {isSubmitting
+                          ? t('contact.form.submitting')
+                          : t('contact.form.submit')}
                       </Button>
-                      
+
                       <div className="text-center pt-4">
                         <p className="text-sm text-muted-foreground leading-relaxed">
                           {t('contact.form.privacy')}
@@ -539,18 +700,22 @@ const Contact = () => {
       <section className="py-16 bg-muted/30 dark:bg-muted/10">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-8">
-            <h2 className="font-serif text-3xl text-foreground mb-4">{t('contact.map.title')}</h2>
+            <h2 className="font-serif text-3xl text-foreground mb-4">
+              {t('contact.map.title')}
+            </h2>
             <p className="text-muted-foreground text-lg">
               {t('contact.map.description')}
             </p>
           </div>
-          
+
           <Card className="max-w-4xl mx-auto shadow-xl overflow-hidden bg-card">
-            <Suspense fallback={
-              <div className="aspect-video">
-                <Skeleton className="w-full h-full" />
-              </div>
-            }>
+            <Suspense
+              fallback={
+                <div className="aspect-video">
+                  <Skeleton className="w-full h-full" />
+                </div>
+              }
+            >
               {!isLoadingSettings && (
                 <LocationMap
                   latitude={companySettings.address.latitude}
@@ -568,7 +733,7 @@ const Contact = () => {
               )}
             </Suspense>
           </Card>
-          
+
           <div className="max-w-4xl mx-auto mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               <MapPin className="inline-block h-4 w-4 mr-1" />

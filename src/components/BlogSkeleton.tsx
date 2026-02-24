@@ -1,5 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
 
 /**
  * Blog Loading Skeleton Component
@@ -23,7 +23,6 @@ export const BlogSkeleton = () => {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <Skeleton className="h-8 w-48 mb-8" /> {/* Section title */}
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[1, 2].map((i) => (
               <Card key={i} className="overflow-hidden border-none shadow-md">
@@ -35,7 +34,8 @@ export const BlogSkeleton = () => {
                   </div>
                   <Skeleton className="h-5 w-16 mb-2" /> {/* Category badge */}
                   <Skeleton className="h-7 w-full mb-3" /> {/* Title */}
-                  <Skeleton className="h-4 w-full mb-2" /> {/* Excerpt line 1 */}
+                  <Skeleton className="h-4 w-full mb-2" />{' '}
+                  {/* Excerpt line 1 */}
                   <Skeleton className="h-4 w-3/4 mb-6" /> {/* Excerpt line 2 */}
                   <Skeleton className="h-10 w-32" /> {/* Button */}
                 </CardContent>
@@ -49,7 +49,6 @@ export const BlogSkeleton = () => {
       <section className="py-16 bg-stone-50">
         <div className="container mx-auto px-4">
           <Skeleton className="h-8 w-40 mb-8" /> {/* Section title */}
-          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <Card key={i} className="overflow-hidden border-none shadow-sm">
@@ -58,14 +57,14 @@ export const BlogSkeleton = () => {
                   <Skeleton className="h-3 w-16 mb-3" /> {/* Date */}
                   <Skeleton className="h-4 w-12 mb-2" /> {/* Category badge */}
                   <Skeleton className="h-6 w-full mb-3" /> {/* Title */}
-                  <Skeleton className="h-3 w-full mb-2" /> {/* Excerpt line 1 */}
+                  <Skeleton className="h-3 w-full mb-2" />{' '}
+                  {/* Excerpt line 1 */}
                   <Skeleton className="h-3 w-2/3 mb-6" /> {/* Excerpt line 2 */}
                   <Skeleton className="h-4 w-20" /> {/* Link */}
                 </CardContent>
               </Card>
             ))}
           </div>
-
           {/* Newsletter Section Skeleton */}
           <div className="mt-16 bg-olive-700 rounded-lg p-8 md:p-12">
             <div className="max-w-3xl mx-auto text-center">

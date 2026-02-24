@@ -12,8 +12,8 @@ import {
   Column,
   Hr,
   Button,
-} from 'https://esm.sh/@react-email/components@0.0.22'
-import * as React from 'https://esm.sh/react@18.3.1'
+} from 'https://esm.sh/@react-email/components@0.0.22';
+import * as React from 'https://esm.sh/react@18.3.1';
 
 interface CancellationEmailProps {
   customerName: string;
@@ -44,8 +44,8 @@ export const CancellationEmail = ({
   refundMethod,
   refundDelay,
 }: CancellationEmailProps) => {
-  const previewText = isRefund 
-    ? `Remboursement de votre commande #${orderNumber}` 
+  const previewText = isRefund
+    ? `Remboursement de votre commande #${orderNumber}`
     : `Annulation de votre commande #${orderNumber}`;
 
   const formatPrice = (price: number) => {
@@ -71,10 +71,13 @@ export const CancellationEmail = ({
           <Section style={isRefund ? refundHeroSection : cancelHeroSection}>
             <Text style={statusIcon}>{isRefund ? '💰' : '❌'}</Text>
             <Heading style={isRefund ? refundHeroTitle : cancelHeroTitle}>
-              {isRefund ? 'Votre remboursement est en cours' : 'Commande annulée'}
+              {isRefund
+                ? 'Votre remboursement est en cours'
+                : 'Commande annulée'}
             </Heading>
             <Text style={heroSubtitle}>
-              Bonjour {customerName}, {isRefund 
+              Bonjour {customerName},{' '}
+              {isRefund
                 ? 'nous avons initié le remboursement de votre commande.'
                 : 'votre commande a été annulée comme demandé.'}
             </Text>
@@ -88,7 +91,9 @@ export const CancellationEmail = ({
                 <Text style={orderInfoValue}>#{orderNumber}</Text>
               </Column>
               <Column style={orderInfoColumn}>
-                <Text style={orderInfoLabel}>{isRefund ? 'Date de remboursement' : 'Date d\'annulation'}</Text>
+                <Text style={orderInfoLabel}>
+                  {isRefund ? 'Date de remboursement' : "Date d'annulation"}
+                </Text>
                 <Text style={orderInfoValue}>{cancellationDate}</Text>
               </Column>
             </Row>
@@ -132,7 +137,9 @@ export const CancellationEmail = ({
                   <Text style={refundLabel}>Montant remboursé</Text>
                 </Column>
                 <Column style={refundAmountColumn}>
-                  <Text style={refundAmountStyle}>{formatPrice(refundAmount)}</Text>
+                  <Text style={refundAmountStyle}>
+                    {formatPrice(refundAmount)}
+                  </Text>
                 </Column>
               </Row>
               {refundMethod && (
@@ -141,9 +148,7 @@ export const CancellationEmail = ({
                 </Text>
               )}
               {refundDelay && (
-                <Text style={refundInfoText}>
-                  Délai estimé : {refundDelay}
-                </Text>
+                <Text style={refundInfoText}>Délai estimé : {refundDelay}</Text>
               )}
             </Section>
           )}
@@ -151,8 +156,8 @@ export const CancellationEmail = ({
           {/* Info Section */}
           <Section style={infoSection}>
             <Text style={infoText}>
-              {isRefund 
-                ? 'Le remboursement sera crédité sur votre moyen de paiement d\'origine. Le délai peut varier selon votre banque (généralement 5-10 jours ouvrés).'
+              {isRefund
+                ? "Le remboursement sera crédité sur votre moyen de paiement d'origine. Le délai peut varier selon votre banque (généralement 5-10 jours ouvrés)."
                 : 'Si vous avez effectué un paiement, le remboursement sera traité automatiquement sous 5-10 jours ouvrés.'}
             </Text>
           </Section>
@@ -169,9 +174,7 @@ export const CancellationEmail = ({
 
           {/* CTA to shop again */}
           <Section style={ctaSection}>
-            <Text style={ctaText}>
-              Nous espérons vous revoir bientôt !
-            </Text>
+            <Text style={ctaText}>Nous espérons vous revoir bientôt !</Text>
             <Button style={shopButton} href="https://rifrawstraw.com/products">
               Découvrir nos créations
             </Button>
@@ -180,7 +183,8 @@ export const CancellationEmail = ({
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              © {new Date().getFullYear()} Rif Raw Straw - Artisanat berbère authentique
+              © {new Date().getFullYear()} Rif Raw Straw - Artisanat berbère
+              authentique
             </Text>
             <Text style={footerLinks}>
               <Link href="https://rifrawstraw.com" style={footerLink}>
@@ -207,7 +211,8 @@ export default CancellationEmail;
 // Styles
 const main = {
   backgroundColor: '#f6f9fc',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
+  fontFamily:
+    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
 };
 
 const container = {

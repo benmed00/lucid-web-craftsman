@@ -4,7 +4,10 @@ import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { AdvancedFilterOptions } from './useAdvancedProductFilters';
 
 // Generate a stable cache key from filters
-const generateCacheKey = (filters: AdvancedFilterOptions, productsHash: string): string[] => {
+const generateCacheKey = (
+  filters: AdvancedFilterOptions,
+  productsHash: string
+): string[] => {
   return [
     'product-search',
     productsHash,
@@ -15,7 +18,7 @@ const generateCacheKey = (filters: AdvancedFilterOptions, productsHash: string):
     String(filters.isNew),
     String(filters.inStock),
     filters.artisan.sort().join(','),
-    String(filters.rating)
+    String(filters.rating),
   ];
 };
 
@@ -29,15 +32,18 @@ const searchAndScoreProducts = (
   const searchTerms = searchQuery.toLowerCase().split(' ').filter(Boolean);
 
   return products
-    .map(product => {
+    .map((product) => {
       let score = 0;
       const searchableText = [
         product.name,
         product.description,
         product.details,
         product.category,
-        product.artisan
-      ].filter(Boolean).join(' ').toLowerCase();
+        product.artisan,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
 
       // Exact phrase match (highest score)
       if (searchableText.includes(searchQuery.toLowerCase())) {
@@ -45,13 +51,13 @@ const searchAndScoreProducts = (
       }
 
       // Individual term matches
-      searchTerms.forEach(term => {
+      searchTerms.forEach((term) => {
         if (searchableText.includes(term)) {
           score += 10;
         }
         // Partial matches for typo tolerance
         const words = searchableText.split(' ');
-        words.forEach(word => {
+        words.forEach((word) => {
           if (word.includes(term) || term.includes(word)) {
             score += 5;
           }
@@ -79,22 +85,24 @@ const applyFiltersAndSort = (
 
   // Category filter
   if (filters.category.length > 0) {
-    filtered = filtered.filter(p => filters.category.includes(p.category));
+    filtered = filtered.filter((p) => filters.category.includes(p.category));
   }
 
   // Price range filter
   filtered = filtered.filter(
-    p => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]
+    (p) => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]
   );
 
   // New products filter
   if (filters.isNew) {
-    filtered = filtered.filter(p => p.new || p.is_new);
+    filtered = filtered.filter((p) => p.new || p.is_new);
   }
 
   // Artisan filter
   if (filters.artisan.length > 0) {
-    filtered = filtered.filter(p => p.artisan && filters.artisan.includes(p.artisan));
+    filtered = filtered.filter(
+      (p) => p.artisan && filters.artisan.includes(p.artisan)
+    );
   }
 
   // Apply sorting
@@ -105,7 +113,10 @@ const applyFiltersAndSort = (
       case 'price-desc':
         return b.price - a.price;
       case 'newest':
-        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        return (
+          new Date(b.created_at || 0).getTime() -
+          new Date(a.created_at || 0).getTime()
+        );
       case 'popularity':
         return b.name.length - a.name.length;
       case 'rating':
@@ -130,7 +141,7 @@ export const useCachedProductSearch = ({
   filters,
   enabled = true,
   staleTime = 5 * 60 * 1000, // 5 minutes
-  cacheTime = 10 * 60 * 1000 // 10 minutes
+  cacheTime = 10 * 60 * 1000, // 10 minutes
 }: UseCachedProductSearchOptions) => {
   const queryClient = useQueryClient();
 
@@ -145,12 +156,15 @@ export const useCachedProductSearch = ({
     data: filteredProducts = [],
     isLoading,
     isFetching,
-    isStale
+    isStale,
   } = useQuery({
     queryKey: cacheKey,
     queryFn: () => {
       // Search products
-      const searchedProducts = searchAndScoreProducts(products, filters.searchQuery);
+      const searchedProducts = searchAndScoreProducts(
+        products,
+        filters.searchQuery
+      );
       // Apply filters and sort
       return applyFiltersAndSort(searchedProducts, filters);
     },
@@ -165,14 +179,14 @@ export const useCachedProductSearch = ({
   const prefetchRelatedSearch = (query: string) => {
     const prefetchFilters = { ...filters, searchQuery: query };
     const prefetchKey = generateCacheKey(prefetchFilters, productsHash);
-    
+
     queryClient.prefetchQuery({
       queryKey: prefetchKey,
       queryFn: () => {
         const searchedProducts = searchAndScoreProducts(products, query);
         return applyFiltersAndSort(searchedProducts, prefetchFilters);
       },
-      staleTime
+      staleTime,
     });
   };
 
@@ -185,14 +199,16 @@ export const useCachedProductSearch = ({
   // Get cache stats
   const getCacheStats = () => {
     const cache = queryClient.getQueryCache();
-    const productSearchQueries = cache.findAll({ queryKey: ['product-search'] });
-    
+    const productSearchQueries = cache.findAll({
+      queryKey: ['product-search'],
+    });
+
     return {
       cachedQueries: productSearchQueries.length,
       totalCacheSize: productSearchQueries.reduce((acc, q) => {
         const data = q.state.data as Product[] | undefined;
         return acc + (data?.length || 0);
-      }, 0)
+      }, 0),
     };
   };
 
@@ -203,6 +219,6 @@ export const useCachedProductSearch = ({
     isStale,
     prefetchRelatedSearch,
     invalidateCache,
-    getCacheStats
+    getCacheStats,
   };
 };

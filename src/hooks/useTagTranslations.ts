@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface TagTranslation {
   id: string;
@@ -17,13 +17,13 @@ type LocaleCode = 'fr' | 'en' | 'ar' | 'es' | 'de';
 
 export const useTagTranslations = () => {
   return useQuery({
-    queryKey: ["tag-translations"],
+    queryKey: ['tag-translations'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("tag_translations")
-        .select("*")
-        .order("tag_key");
-      
+        .from('tag_translations')
+        .select('*')
+        .order('tag_key');
+
       if (error) throw error;
       return data as TagTranslation[];
     },
@@ -34,22 +34,22 @@ export const useTagTranslations = () => {
 // Hook to get a translation function
 export const useTranslateTag = () => {
   const { data: translations } = useTagTranslations();
-  
+
   const translateTag = (tag: string, locale: string): string => {
     if (!translations) return tag;
-    
+
     const langCode = (locale?.split('-')[0] || 'fr') as LocaleCode;
-    const translation = translations.find(t => t.tag_key === tag);
-    
+    const translation = translations.find((t) => t.tag_key === tag);
+
     if (translation) {
       const translated = translation[langCode];
       if (translated) return translated;
       // Fallback to French if translation not available
       return translation.fr;
     }
-    
+
     return tag; // Return original if no translation found
   };
-  
+
   return { translateTag, translations, isLoading: !translations };
 };

@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
-import { imageService } from "@/services/imageService";
-import { ImageLoadState, ImageCategory } from "@/types/image.types";
+import { useState, useEffect, useCallback } from 'react';
+import { imageService } from '@/services/imageService';
+import { ImageLoadState, ImageCategory } from '@/types/image.types';
 
 /**
  * ADVANCED IMAGE LOADING HOOK
  * Provides intelligent image loading with cascading fallbacks
  */
 export const useImageLoader = (
-  originalSrc: string, 
+  originalSrc: string,
   category: ImageCategory = 'default',
   preload: boolean = false
 ) => {
@@ -15,59 +15,65 @@ export const useImageLoader = (
     isLoading: true,
     hasError: false,
     attemptedSources: [],
-    currentSrc: originalSrc
+    currentSrc: originalSrc,
   });
 
   const loadImage = useCallback(async () => {
-    setState(prev => ({ 
-      ...prev, 
-      isLoading: true, 
-      hasError: false 
+    setState((prev) => ({
+      ...prev,
+      isLoading: true,
+      hasError: false,
     }));
 
     try {
-      const optimizedSrc = await imageService.getOptimizedSource(originalSrc, category);
-      
+      const optimizedSrc = await imageService.getOptimizedSource(
+        originalSrc,
+        category
+      );
+
       setState({
         isLoading: false,
         hasError: false,
         attemptedSources: [originalSrc],
-        currentSrc: optimizedSrc
+        currentSrc: optimizedSrc,
       });
     } catch (error) {
       console.error('Image loading failed:', error);
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isLoading: false,
         hasError: true,
-        currentSrc: '/placeholder.svg'
+        currentSrc: '/placeholder.svg',
       }));
     }
   }, [originalSrc, category]);
 
   const handleError = useCallback(() => {
-    const nextFallback = imageService.getNextFallback(state.currentSrc, category);
-    
+    const nextFallback = imageService.getNextFallback(
+      state.currentSrc,
+      category
+    );
+
     if (nextFallback) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         currentSrc: nextFallback,
-        attemptedSources: [...prev.attemptedSources, prev.currentSrc]
+        attemptedSources: [...prev.attemptedSources, prev.currentSrc],
       }));
     } else {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         hasError: true,
-        isLoading: false
+        isLoading: false,
       }));
     }
   }, [state.currentSrc, category]);
 
   const handleLoad = useCallback(() => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isLoading: false,
-      hasError: false
+      hasError: false,
     }));
   }, []);
 
@@ -91,6 +97,6 @@ export const useImageLoader = (
     ...state,
     handleError,
     handleLoad,
-    retry
+    retry,
   };
 };

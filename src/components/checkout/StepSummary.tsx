@@ -1,6 +1,6 @@
-import { Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useTranslation } from "react-i18next";
+import { Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 interface CustomerData {
   firstName: string;
@@ -25,16 +25,21 @@ interface StepSummaryProps {
 }
 
 const COUNTRY_NAMES: Record<string, string> = {
-  FR: "France",
-  BE: "Belgique",
-  CH: "Suisse",
-  MC: "Monaco",
-  LU: "Luxembourg",
+  FR: 'France',
+  BE: 'Belgique',
+  CH: 'Suisse',
+  MC: 'Monaco',
+  LU: 'Luxembourg',
 };
 
-const StepSummary = ({ step, customerData, shippingData, onEditStep }: StepSummaryProps) => {
+const StepSummary = ({
+  step,
+  customerData,
+  shippingData,
+  onEditStep,
+}: StepSummaryProps) => {
   const { t } = useTranslation('checkout');
-  
+
   // Show customer info summary in step 2 and 3
   const showCustomerSummary = step >= 2 && customerData;
   // Show shipping summary in step 3
@@ -56,9 +61,13 @@ const StepSummary = ({ step, customerData, shippingData, onEditStep }: StepSumma
               <p className="font-medium text-sm">
                 {customerData.firstName} {customerData.lastName}
               </p>
-              <p className="text-sm text-muted-foreground">{customerData.email}</p>
+              <p className="text-sm text-muted-foreground">
+                {customerData.email}
+              </p>
               {customerData.phone && (
-                <p className="text-sm text-muted-foreground">{customerData.phone}</p>
+                <p className="text-sm text-muted-foreground">
+                  {customerData.phone}
+                </p>
               )}
             </div>
             <Button
@@ -88,7 +97,8 @@ const StepSummary = ({ step, customerData, shippingData, onEditStep }: StepSumma
                 </p>
               )}
               <p className="text-sm text-muted-foreground">
-                {shippingData.postalCode} {shippingData.city}, {COUNTRY_NAMES[shippingData.country] || shippingData.country}
+                {shippingData.postalCode} {shippingData.city},{' '}
+                {COUNTRY_NAMES[shippingData.country] || shippingData.country}
               </p>
             </div>
             <Button

@@ -6,8 +6,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { User as UserIcon, Settings, Package, UserCog, Home, Trash2, Shield, Crown } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  User as UserIcon,
+  Settings,
+  Package,
+  UserCog,
+  Home,
+  Trash2,
+  Shield,
+  Crown,
+} from 'lucide-react';
 import { ProfileOverview } from '@/components/profile/ProfileOverview';
 import { PersonalInfo } from '@/components/profile/PersonalInfo';
 import { PreferencesSettings } from '@/components/profile/PreferencesSettings';
@@ -20,14 +39,26 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import Footer from '@/components/Footer';
 
-const VALID_TABS = ['overview', 'personal', 'loyalty', 'preferences', 'orders'] as const;
-type ProfileTab = typeof VALID_TABS[number];
+const VALID_TABS = [
+  'overview',
+  'personal',
+  'loyalty',
+  'preferences',
+  'orders',
+] as const;
+type ProfileTab = (typeof VALID_TABS)[number];
 
 export default function EnhancedProfile() {
   const { t } = useTranslation('pages');
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signOut, isLoading: authLoading, profile, refreshProfile } = useOptimizedAuth();
+  const {
+    user,
+    signOut,
+    isLoading: authLoading,
+    profile,
+    refreshProfile,
+  } = useOptimizedAuth();
   const isProfileLoading = authLoading && !profile;
 
   // Derive active tab from URL hash
@@ -53,7 +84,9 @@ export default function EnhancedProfile() {
   useEffect(() => {
     if (authLoading || isProfileLoading) {
       const timeout = setTimeout(() => {
-        console.warn('[EnhancedProfile] Loading timed out after 5s, force rendering');
+        console.warn(
+          '[EnhancedProfile] Loading timed out after 5s, force rendering'
+        );
         setForceRender(true);
       }, 5000);
       return () => clearTimeout(timeout);
@@ -133,7 +166,10 @@ export default function EnhancedProfile() {
               {t('profile.loginRequired', 'Connexion requise')}
             </h2>
             <p className="text-muted-foreground mb-6">
-              {t('profile.loginRequiredDescription', 'Veuillez vous connecter pour accéder à votre profil et gérer vos informations.')}
+              {t(
+                'profile.loginRequiredDescription',
+                'Veuillez vous connecter pour accéder à votre profil et gérer vos informations.'
+              )}
             </p>
             <Button onClick={() => navigate('/auth')} className="w-full">
               {t('profile.buttons.login', 'Se connecter')}
@@ -153,37 +189,42 @@ export default function EnhancedProfile() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold mb-2">{t('profile.title')}</h1>
-              <p className="text-muted-foreground">
-                {t('profile.subtitle')}
-              </p>
+              <p className="text-muted-foreground">{t('profile.subtitle')}</p>
             </div>
-            
+
             <div className="flex gap-2 flex-wrap">
               <Button variant="outline" onClick={() => navigate('/')}>
                 <Home className="h-4 w-4 mr-2" />
                 {t('profile.buttons.home')}
               </Button>
-              
+
               <Button variant="outline" onClick={handleSignOut}>
                 <UserCog className="h-4 w-4 mr-2" />
                 {t('profile.buttons.signOut')}
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" className="text-destructive hover:text-destructive">
+                  <Button
+                    variant="outline"
+                    className="text-destructive hover:text-destructive"
+                  >
                     <Trash2 className="h-4 w-4 mr-2" />
                     {t('profile.buttons.deleteAccount')}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>{t('profile.deleteDialog.title')}</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      {t('profile.deleteDialog.title')}
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
                       {t('profile.deleteDialog.description')}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>{t('profile.deleteDialog.cancel')}</AlertDialogCancel>
+                    <AlertDialogCancel>
+                      {t('profile.deleteDialog.cancel')}
+                    </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDeleteAccount}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -195,36 +236,61 @@ export default function EnhancedProfile() {
               </AlertDialog>
             </div>
           </div>
-          
+
           <Separator className="mt-6" />
         </div>
 
         {/* Profile Content */}
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="space-y-6"
+        >
           <TabsList className="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <UserIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('profile.tabs.overview')}</span>
-              <span className="sm:hidden">{t('profile.tabs.overviewShort')}</span>
+              <span className="hidden sm:inline">
+                {t('profile.tabs.overview')}
+              </span>
+              <span className="sm:hidden">
+                {t('profile.tabs.overviewShort')}
+              </span>
             </TabsTrigger>
             <TabsTrigger value="personal" className="flex items-center gap-2">
               <UserCog className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('profile.tabs.personal')}</span>
-              <span className="sm:hidden">{t('profile.tabs.personalShort')}</span>
+              <span className="hidden sm:inline">
+                {t('profile.tabs.personal')}
+              </span>
+              <span className="sm:hidden">
+                {t('profile.tabs.personalShort')}
+              </span>
             </TabsTrigger>
             <TabsTrigger value="loyalty" className="flex items-center gap-2">
               <Crown className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('profile.tabs.loyalty')}</span>
-              <span className="sm:hidden">{t('profile.tabs.loyaltyShort')}</span>
+              <span className="hidden sm:inline">
+                {t('profile.tabs.loyalty')}
+              </span>
+              <span className="sm:hidden">
+                {t('profile.tabs.loyaltyShort')}
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="preferences" className="flex items-center gap-2">
+            <TabsTrigger
+              value="preferences"
+              className="flex items-center gap-2"
+            >
               <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('profile.tabs.preferences')}</span>
-              <span className="sm:hidden">{t('profile.tabs.preferencesShort')}</span>
+              <span className="hidden sm:inline">
+                {t('profile.tabs.preferences')}
+              </span>
+              <span className="sm:hidden">
+                {t('profile.tabs.preferencesShort')}
+              </span>
             </TabsTrigger>
             <TabsTrigger value="orders" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('profile.tabs.orders')}</span>
+              <span className="hidden sm:inline">
+                {t('profile.tabs.orders')}
+              </span>
               <span className="sm:hidden">{t('profile.tabs.ordersShort')}</span>
             </TabsTrigger>
           </TabsList>
@@ -234,9 +300,9 @@ export default function EnhancedProfile() {
           </TabsContent>
 
           <TabsContent value="personal" className="mt-4">
-            <PersonalInfo 
-              user={user} 
-              profile={profile} 
+            <PersonalInfo
+              user={user}
+              profile={profile}
               onProfileUpdate={handleProfileUpdate}
             />
           </TabsContent>
@@ -252,7 +318,11 @@ export default function EnhancedProfile() {
           <TabsContent value="orders" className="mt-4 space-y-4">
             <OrderHistory user={user} />
             <div className="flex justify-center">
-              <Button variant="outline" onClick={() => navigate('/orders')} className="gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/orders')}
+                className="gap-2"
+              >
                 <Package className="h-4 w-4" />
                 Voir l'historique complet des commandes
               </Button>

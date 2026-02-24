@@ -18,7 +18,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { OrderStatusBadge } from './OrderStatusBadge';
-import { useValidTransitions, useUpdateOrderStatus } from '@/hooks/useOrderManagement';
+import {
+  useValidTransitions,
+  useUpdateOrderStatus,
+} from '@/hooks/useOrderManagement';
 import type { OrderStatus, OrderStateTransition } from '@/types/order.types';
 import { ORDER_STATUS_CONFIG } from '@/types/order.types';
 import { Loader2, AlertTriangle } from 'lucide-react';
@@ -29,16 +32,22 @@ interface OrderStatusSelectProps {
   onStatusChange?: () => void;
 }
 
-export function OrderStatusSelect({ orderId, currentStatus, onStatusChange }: OrderStatusSelectProps) {
-  const [selectedTransition, setSelectedTransition] = useState<OrderStateTransition | null>(null);
+export function OrderStatusSelect({
+  orderId,
+  currentStatus,
+  onStatusChange,
+}: OrderStatusSelectProps) {
+  const [selectedTransition, setSelectedTransition] =
+    useState<OrderStateTransition | null>(null);
   const [reasonMessage, setReasonMessage] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { data: transitions = [], isLoading: loadingTransitions } = useValidTransitions(currentStatus);
+  const { data: transitions = [], isLoading: loadingTransitions } =
+    useValidTransitions(currentStatus);
   const updateStatus = useUpdateOrderStatus();
 
   const handleSelectChange = (value: string) => {
-    const transition = transitions.find(t => t.to_status === value);
+    const transition = transitions.find((t) => t.to_status === value);
     if (!transition) return;
 
     if (transition.requires_reason) {
@@ -73,14 +82,19 @@ export function OrderStatusSelect({ orderId, currentStatus, onStatusChange }: Or
     );
   };
 
-  const isHighRiskTransition = selectedTransition?.requires_permission === 'full_access';
+  const isHighRiskTransition =
+    selectedTransition?.requires_permission === 'full_access';
 
   return (
     <>
       <Select
         value={currentStatus}
         onValueChange={handleSelectChange}
-        disabled={loadingTransitions || updateStatus.isPending || transitions.length === 0}
+        disabled={
+          loadingTransitions ||
+          updateStatus.isPending ||
+          transitions.length === 0
+        }
       >
         <SelectTrigger className="w-[200px]">
           {updateStatus.isPending ? (
@@ -107,11 +121,16 @@ export function OrderStatusSelect({ orderId, currentStatus, onStatusChange }: Or
           {transitions.map((transition) => {
             const config = ORDER_STATUS_CONFIG[transition.to_status];
             return (
-              <SelectItem key={transition.to_status} value={transition.to_status}>
+              <SelectItem
+                key={transition.to_status}
+                value={transition.to_status}
+              >
                 <div className="flex items-center gap-2">
                   <OrderStatusBadge status={transition.to_status} size="sm" />
                   {transition.requires_reason && (
-                    <span className="text-xs text-muted-foreground">(justification requise)</span>
+                    <span className="text-xs text-muted-foreground">
+                      (justification requise)
+                    </span>
                   )}
                   {transition.requires_permission === 'full_access' && (
                     <AlertTriangle className="h-3 w-3 text-orange-500" />
@@ -134,7 +153,9 @@ export function OrderStatusSelect({ orderId, currentStatus, onStatusChange }: Or
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              {isHighRiskTransition && <AlertTriangle className="h-5 w-5 text-orange-500" />}
+              {isHighRiskTransition && (
+                <AlertTriangle className="h-5 w-5 text-orange-500" />
+              )}
               Confirmer le changement de statut
             </DialogTitle>
             <DialogDescription>
@@ -142,7 +163,10 @@ export function OrderStatusSelect({ orderId, currentStatus, onStatusChange }: Or
                 <div className="mt-2 flex items-center gap-2">
                   <OrderStatusBadge status={currentStatus} size="sm" />
                   <span>→</span>
-                  <OrderStatusBadge status={selectedTransition.to_status} size="sm" />
+                  <OrderStatusBadge
+                    status={selectedTransition.to_status}
+                    size="sm"
+                  />
                 </div>
               )}
               {selectedTransition?.description && (
@@ -154,7 +178,10 @@ export function OrderStatusSelect({ orderId, currentStatus, onStatusChange }: Or
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="reason">
-                Justification {selectedTransition?.requires_reason && <span className="text-red-500">*</span>}
+                Justification{' '}
+                {selectedTransition?.requires_reason && (
+                  <span className="text-red-500">*</span>
+                )}
               </Label>
               <Textarea
                 id="reason"
@@ -167,7 +194,8 @@ export function OrderStatusSelect({ orderId, currentStatus, onStatusChange }: Or
 
             {isHighRiskTransition && (
               <div className="rounded-lg bg-orange-50 p-3 text-sm text-orange-800">
-                <strong>Attention :</strong> Cette action nécessite des privilèges super admin et sera auditée.
+                <strong>Attention :</strong> Cette action nécessite des
+                privilèges super admin et sera auditée.
               </div>
             )}
           </div>

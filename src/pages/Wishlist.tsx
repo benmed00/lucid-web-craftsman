@@ -31,10 +31,14 @@ const Wishlist = () => {
   const { addItem } = useCart();
   const { formatPrice } = useCurrency();
   const { rules } = useBusinessRules();
-  const [wishlistProducts, setWishlistProducts] = useState<WishlistProduct[]>([]);
+  const [wishlistProducts, setWishlistProducts] = useState<WishlistProduct[]>(
+    []
+  );
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [highlightedProductId, setHighlightedProductId] = useState<number | null>(null);
+  const [highlightedProductId, setHighlightedProductId] = useState<
+    number | null
+  >(null);
   const productRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   // Handle highlight param from URL
@@ -52,14 +56,21 @@ const Wishlist = () => {
 
   // Scroll to highlighted product when products are loaded
   useEffect(() => {
-    if (highlightedProductId && wishlistProducts.length > 0 && !loadingProducts) {
+    if (
+      highlightedProductId &&
+      wishlistProducts.length > 0 &&
+      !loadingProducts
+    ) {
       const productElement = productRefs.current.get(highlightedProductId);
       if (productElement) {
         // Small delay to ensure DOM is ready
         setTimeout(() => {
-          productElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          productElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          });
         }, 100);
-        
+
         // Remove highlight after animation (3 seconds)
         setTimeout(() => {
           setHighlightedProductId(null);
@@ -79,19 +90,19 @@ const Wishlist = () => {
       setLoadingProducts(true);
       try {
         // Fetch all products for the wishlist items
-        const productPromises = wishlistItems.map(item => 
+        const productPromises = wishlistItems.map((item) =>
           ProductService.getProductById(item.product_id)
         );
-        
+
         const products = await Promise.all(productPromises);
-        
+
         // Filter out null products and add wishlist ID
         const validProducts = products
-          .map((product, index) => 
+          .map((product, index) =>
             product ? { ...product, wishlistId: wishlistItems[index].id } : null
           )
           .filter((product): product is WishlistProduct => product !== null);
-        
+
         setWishlistProducts(validProducts);
       } catch (error) {
         console.error('Error fetching wishlist products:', error);
@@ -105,238 +116,254 @@ const Wishlist = () => {
   }, [wishlistItems]);
 
   // Memoized handlers for better performance
-  const handleRemoveFromWishlist = useCallback(async (productId: number) => {
-    try {
-      await removeFromWishlist(productId);
-    } catch (error) {
-      console.error('Failed to remove from wishlist:', error);
-      toast.error(t('common:messages.error'));
-    }
-  }, [removeFromWishlist, t]);
+  const handleRemoveFromWishlist = useCallback(
+    async (productId: number) => {
+      try {
+        await removeFromWishlist(productId);
+      } catch (error) {
+        console.error('Failed to remove from wishlist:', error);
+        toast.error(t('common:messages.error'));
+      }
+    },
+    [removeFromWishlist, t]
+  );
 
-  const handleAddToCart = useCallback((product: WishlistProduct) => {
-    try {
-      addItem(product, 1);
-      toast.success(t('common:messages.addedToCart'));
-    } catch (error) {
-      console.error('Failed to add to cart:', error);
-      toast.error(t('common:messages.error'));
-    }
-  }, [addItem, t]);
+  const handleAddToCart = useCallback(
+    (product: WishlistProduct) => {
+      try {
+        addItem(product, 1);
+        toast.success(t('common:messages.addedToCart'));
+      } catch (error) {
+        console.error('Failed to add to cart:', error);
+        toast.error(t('common:messages.error'));
+      }
+    },
+    [addItem, t]
+  );
 
   if (!user) {
     return (
       <>
-        <SEOHelmet 
+        <SEOHelmet
           title={t('pages:wishlist.title')}
           description={t('pages:wishlist.emptyMessage')}
         />
         <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-16">
-          <div className="max-w-2xl mx-auto text-center">
-            <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
-            <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-              {t('pages:wishlist.title')}
-            </h1>
-            <p className="text-muted-foreground mb-8">
-              {t('pages:wishlist.loginRequired')}
-            </p>
-            <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link to="/auth">{t('common:nav.login')}</Link>
-            </Button>
+          <div className="container mx-auto px-4 py-16">
+            <div className="max-w-2xl mx-auto text-center">
+              <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
+              <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
+                {t('pages:wishlist.title')}
+              </h1>
+              <p className="text-muted-foreground mb-8">
+                {t('pages:wishlist.loginRequired')}
+              </p>
+              <Button
+                asChild
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <Link to="/auth">{t('common:nav.login')}</Link>
+              </Button>
+            </div>
           </div>
+          <PageFooter />
         </div>
-        <PageFooter />
-      </div>
-    </>
-  );
+      </>
+    );
   }
 
   return (
     <>
-      <SEOHelmet 
+      <SEOHelmet
         title={`${t('pages:wishlist.title')} (${wishlistProducts.length})`}
-        description={t('pages:wishlist.itemCount', { count: wishlistProducts.length })}
+        description={t('pages:wishlist.itemCount', {
+          count: wishlistProducts.length,
+        })}
       />
       <div className="min-h-screen bg-background">
-        
-
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center">
-              <Heart className="w-8 h-8 text-destructive mr-3" />
-              <div>
-                <h1 className="font-serif text-3xl md:text-4xl text-foreground">
-                  {t('pages:wishlist.title')}
-                </h1>
-                <div className="flex flex-wrap items-center gap-2 mt-1">
-                  <p className="text-muted-foreground">
-                    {t('pages:wishlist.itemCount', { count: wishlistItems.length })}
-                  </p>
-                  <RemainingSlots 
-                    current={wishlistItems.length} 
-                    max={rules.wishlist.maxItems} 
-                    label={t('common:nav.wishlist').toLowerCase()}
-                  />
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center">
+                <Heart className="w-8 h-8 text-destructive mr-3" />
+                <div>
+                  <h1 className="font-serif text-3xl md:text-4xl text-foreground">
+                    {t('pages:wishlist.title')}
+                  </h1>
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    <p className="text-muted-foreground">
+                      {t('pages:wishlist.itemCount', {
+                        count: wishlistItems.length,
+                      })}
+                    </p>
+                    <RemainingSlots
+                      current={wishlistItems.length}
+                      max={rules.wishlist.maxItems}
+                      label={t('common:nav.wishlist').toLowerCase()}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {(loading || loadingProducts) ? (
-            <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="flex gap-4">
-                      <div className="w-20 h-20 bg-muted rounded-lg"></div>
-                      <div className="flex-1 space-y-2">
-                        <div className="h-6 bg-muted rounded w-3/4"></div>
-                        <div className="h-4 bg-muted rounded w-1/2"></div>
-                        <div className="h-4 bg-muted rounded w-1/4"></div>
+            {loading || loadingProducts ? (
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="flex gap-4">
+                        <div className="w-20 h-20 bg-muted rounded-lg"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-6 bg-muted rounded w-3/4"></div>
+                          <div className="h-4 bg-muted rounded w-1/2"></div>
+                          <div className="h-4 bg-muted rounded w-1/4"></div>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : wishlistProducts.length === 0 ? (
-            <div className="text-center py-16 animate-fade-in">
-              <div className="animate-gentle-bounce">
-                <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-              <h2 className="font-serif text-2xl text-foreground mb-4">
-                {t('pages:wishlist.empty')}
-              </h2>
-              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                {t('pages:wishlist.emptyMessage')}
-              </p>
-              <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200">
-                <Link to="/products">✨ {t('common:buttons.seeAll')}</Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4 animate-fade-in">
-              {wishlistProducts.map((product, index) => (
-                <div
-                  key={product.id}
-                  ref={(el) => {
-                    if (el) productRefs.current.set(product.id, el);
-                  }}
-                >
-                  <Card 
-                    className={`hover:shadow-md transition-all duration-200 animate-fade-in-up ${
-                      highlightedProductId === product.id 
-                        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg animate-pulse' 
-                        : ''
-                    }`}
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                  <CardContent className="p-4 md:p-6">
-                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                      {/* Product Image */}
-                      <Link 
-                        to={`/products/${product.id}`}
-                        className="flex-shrink-0 self-center sm:self-start"
-                      >
-                        <div className="w-20 h-20 sm:w-24 sm:h-24 overflow-hidden rounded-lg">
-                          <ProductImage
-                            src={product.images[0]}
-                            alt={product.name}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                            aspectRatio="1/1"
-                          />
-                        </div>
-                      </Link>
-
-                      {/* Product Details */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <Link 
-                              to={`/products/${product.id}`}
-                              className="hover:text-primary transition-colors"
-                            >
-                              <h3 className="font-medium text-lg text-foreground mb-2 line-clamp-2">
-                                {product.name}
-                              </h3>
-                            </Link>
-                            
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-muted-foreground mb-3">
-                              <span className="bg-muted px-2 py-1 rounded text-xs">
-                                {product.category}
-                              </span>
-                              <span className="text-xs sm:text-sm">
-                                {t('products:details.madeBy', { name: product.artisan })}
-                              </span>
-                            </div>
-
-                            <p className="text-muted-foreground text-sm mb-4 line-clamp-2 overflow-hidden hidden sm:block">
-                              {product.description}
-                            </p>
-
-                            <div className="text-xl sm:text-2xl font-semibold text-primary mb-4">
-                              {formatPrice(product.price)}
-                            </div>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex flex-row sm:flex-col items-center gap-2 flex-shrink-0">
-                            <Button
-                              size="sm"
-                              onClick={() => handleAddToCart(product)}
-                              className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90 text-primary-foreground flex-1 sm:flex-none whitespace-nowrap"
-                            >
-                              {t('common:buttons.addToCart')}
-                            </Button>
-                            
-                            <ConfirmDialog
-                              trigger={
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 flex-shrink-0"
-                                  aria-label={t('pages:wishlist.remove')}
-                                >
-                                  <Trash2 size={16} />
-                                </Button>
-                              }
-                              title={t('pages:wishlist.remove')}
-                              description={`${t('common:messages.confirmDelete')} "${product.name}"?`}
-                              confirmLabel={t('common:buttons.remove')}
-                              onConfirm={() => handleRemoveFromWishlist(product.id)}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+            ) : wishlistProducts.length === 0 ? (
+              <div className="text-center py-16 animate-fade-in">
+                <div className="animate-gentle-bounce">
+                  <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
                 </div>
-              ))}
-
-              <Separator className="my-8" />
-              
-              <div className="text-center">
-                <p className="text-muted-foreground mb-4">
-                  {t('common:buttons.continueShopping')}
+                <h2 className="font-serif text-2xl text-foreground mb-4">
+                  {t('pages:wishlist.empty')}
+                </h2>
+                <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+                  {t('pages:wishlist.emptyMessage')}
                 </p>
-                <Button asChild variant="outline">
-                  <Link to="/products">
-                    {t('common:buttons.seeAll')}
-                  </Link>
+                <Button
+                  asChild
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  <Link to="/products">✨ {t('common:buttons.seeAll')}</Link>
                 </Button>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
+            ) : (
+              <div className="space-y-4 animate-fade-in">
+                {wishlistProducts.map((product, index) => (
+                  <div
+                    key={product.id}
+                    ref={(el) => {
+                      if (el) productRefs.current.set(product.id, el);
+                    }}
+                  >
+                    <Card
+                      className={`hover:shadow-md transition-all duration-200 animate-fade-in-up ${
+                        highlightedProductId === product.id
+                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg animate-pulse'
+                          : ''
+                      }`}
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <CardContent className="p-4 md:p-6">
+                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                          {/* Product Image */}
+                          <Link
+                            to={`/products/${product.id}`}
+                            className="flex-shrink-0 self-center sm:self-start"
+                          >
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 overflow-hidden rounded-lg">
+                              <ProductImage
+                                src={product.images[0]}
+                                alt={product.name}
+                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+                                aspectRatio="1/1"
+                              />
+                            </div>
+                          </Link>
 
-      <PageFooter />
-    </div>
-  </>
+                          {/* Product Details */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <Link
+                                  to={`/products/${product.id}`}
+                                  className="hover:text-primary transition-colors"
+                                >
+                                  <h3 className="font-medium text-lg text-foreground mb-2 line-clamp-2">
+                                    {product.name}
+                                  </h3>
+                                </Link>
+
+                                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-muted-foreground mb-3">
+                                  <span className="bg-muted px-2 py-1 rounded text-xs">
+                                    {product.category}
+                                  </span>
+                                  <span className="text-xs sm:text-sm">
+                                    {t('products:details.madeBy', {
+                                      name: product.artisan,
+                                    })}
+                                  </span>
+                                </div>
+
+                                <p className="text-muted-foreground text-sm mb-4 line-clamp-2 overflow-hidden hidden sm:block">
+                                  {product.description}
+                                </p>
+
+                                <div className="text-xl sm:text-2xl font-semibold text-primary mb-4">
+                                  {formatPrice(product.price)}
+                                </div>
+                              </div>
+
+                              {/* Actions */}
+                              <div className="flex flex-row sm:flex-col items-center gap-2 flex-shrink-0">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleAddToCart(product)}
+                                  className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90 text-primary-foreground flex-1 sm:flex-none whitespace-nowrap"
+                                >
+                                  {t('common:buttons.addToCart')}
+                                </Button>
+
+                                <ConfirmDialog
+                                  trigger={
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 flex-shrink-0"
+                                      aria-label={t('pages:wishlist.remove')}
+                                    >
+                                      <Trash2 size={16} />
+                                    </Button>
+                                  }
+                                  title={t('pages:wishlist.remove')}
+                                  description={`${t('common:messages.confirmDelete')} "${product.name}"?`}
+                                  confirmLabel={t('common:buttons.remove')}
+                                  onConfirm={() =>
+                                    handleRemoveFromWishlist(product.id)
+                                  }
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ))}
+
+                <Separator className="my-8" />
+
+                <div className="text-center">
+                  <p className="text-muted-foreground mb-4">
+                    {t('common:buttons.continueShopping')}
+                  </p>
+                  <Button asChild variant="outline">
+                    <Link to="/products">{t('common:buttons.seeAll')}</Link>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <PageFooter />
+      </div>
+    </>
   );
 }; // End of Wishlist component
 

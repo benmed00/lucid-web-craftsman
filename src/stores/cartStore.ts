@@ -5,7 +5,13 @@ import { create } from 'zustand';
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
-import { safeGetItem, safeSetItem, safeRemoveItem, StorageKeys, StorageTTL } from '@/lib/storage/safeStorage';
+import {
+  safeGetItem,
+  safeSetItem,
+  safeRemoveItem,
+  StorageKeys,
+  StorageTTL,
+} from '@/lib/storage/safeStorage';
 import { toast } from 'sonner';
 import { getBusinessRules } from '@/hooks/useBusinessRules';
 import {
@@ -82,12 +88,20 @@ export const useCartStore = create<CartState>()(
           // Cart actions
           addItem: (product, quantity = 1) => {
             const { maxQuantityPerItem, maxProductTypes } = getCartLimits();
-            const safeQuantity = Math.min(Math.max(1, Math.floor(quantity)), maxQuantityPerItem);
+            const safeQuantity = Math.min(
+              Math.max(1, Math.floor(quantity)),
+              maxQuantityPerItem
+            );
 
             set((state) => {
-              const existingIndex = state.items.findIndex((item) => item.id === product.id);
+              const existingIndex = state.items.findIndex(
+                (item) => item.id === product.id
+              );
 
-              if (existingIndex === -1 && state.items.length >= maxProductTypes) {
+              if (
+                existingIndex === -1 &&
+                state.items.length >= maxProductTypes
+              ) {
                 toast.warning('Limite de produits atteinte', {
                   description: `Maximum ${maxProductTypes} produits différents dans le panier.`,
                 });
@@ -97,7 +111,10 @@ export const useCartStore = create<CartState>()(
               if (existingIndex > -1) {
                 const newItems = [...state.items];
                 const currentQty = newItems[existingIndex].quantity;
-                const newQuantity = Math.min(currentQty + safeQuantity, maxQuantityPerItem);
+                const newQuantity = Math.min(
+                  currentQty + safeQuantity,
+                  maxQuantityPerItem
+                );
 
                 if (currentQty + safeQuantity > maxQuantityPerItem) {
                   toast.info('Quantité maximum atteinte', {
@@ -105,18 +122,28 @@ export const useCartStore = create<CartState>()(
                   });
                 }
 
-                newItems[existingIndex] = { ...newItems[existingIndex], quantity: newQuantity };
+                newItems[existingIndex] = {
+                  ...newItems[existingIndex],
+                  quantity: newQuantity,
+                };
                 return { items: newItems };
               }
 
               return {
-                items: [...state.items, { id: product.id, quantity: safeQuantity, product }],
+                items: [
+                  ...state.items,
+                  { id: product.id, quantity: safeQuantity, product },
+                ],
               };
             });
 
             const { isOnline, isAuthenticated } = get();
             if (!isOnline && isAuthenticated) {
-              get()._addToQueue({ type: 'ADD', productId: product.id, quantity: safeQuantity });
+              get()._addToQueue({
+                type: 'ADD',
+                productId: product.id,
+                quantity: safeQuantity,
+              });
             }
 
             get().triggerSave();
@@ -137,7 +164,10 @@ export const useCartStore = create<CartState>()(
 
           updateQuantity: (productId, quantity) => {
             const { maxQuantityPerItem } = getCartLimits();
-            const safeQuantity = Math.min(Math.max(0, Math.floor(quantity)), maxQuantityPerItem);
+            const safeQuantity = Math.min(
+              Math.max(0, Math.floor(quantity)),
+              maxQuantityPerItem
+            );
 
             if (quantity > maxQuantityPerItem) {
               toast.info('Quantité maximum atteinte', {
@@ -147,18 +177,26 @@ export const useCartStore = create<CartState>()(
 
             set((state) => {
               if (safeQuantity <= 0) {
-                return { items: state.items.filter((item) => item.id !== productId) };
+                return {
+                  items: state.items.filter((item) => item.id !== productId),
+                };
               }
               return {
                 items: state.items.map((item) =>
-                  item.id === productId ? { ...item, quantity: safeQuantity } : item
+                  item.id === productId
+                    ? { ...item, quantity: safeQuantity }
+                    : item
                 ),
               };
             });
 
             const { isOnline, isAuthenticated } = get();
             if (!isOnline && isAuthenticated) {
-              get()._addToQueue({ type: 'UPDATE', productId, quantity: safeQuantity });
+              get()._addToQueue({
+                type: 'UPDATE',
+                productId,
+                quantity: safeQuantity,
+              });
             }
 
             get().triggerSave();
@@ -186,14 +224,19 @@ export const useCartStore = create<CartState>()(
               return;
             }
 
-            const { data: { user } } = await supabase.auth.getUser();
+            const {
+              data: { user },
+            } = await supabase.auth.getUser();
             if (!user) return;
 
             set({ isSyncing: true });
             try {
               // Process offline queue first
               if (offlineQueue.length > 0) {
-                const { success, failed } = await processOfflineQueue(user.id, offlineQueue);
+                const { success, failed } = await processOfflineQueue(
+                  user.id,
+                  offlineQueue
+                );
                 if (failed.length > 0) {
                   set({ offlineQueue: failed });
                   toast.warning('Synchronisation partielle', {
@@ -224,7 +267,10 @@ export const useCartStore = create<CartState>()(
 
           _addToQueue: (operation) => {
             set((state) => ({
-              offlineQueue: [...state.offlineQueue, createQueueOperation(operation)],
+              offlineQueue: [
+                ...state.offlineQueue,
+                createQueueOperation(operation),
+              ],
             }));
           },
 
@@ -236,7 +282,10 @@ export const useCartStore = create<CartState>()(
         {
           name: 'cart-storage',
           partialize: (state) => ({
-            items: state.items.map((item) => ({ id: item.id, quantity: item.quantity })),
+            items: state.items.map((item) => ({
+              id: item.id,
+              quantity: item.quantity,
+            })),
             offlineQueue: state.offlineQueue,
           }),
           storage: {
@@ -247,7 +296,9 @@ export const useCartStore = create<CartState>()(
               return data || null;
             },
             setItem: (name, value) => {
-              safeSetItem(name as keyof typeof StorageKeys, value, { ttl: StorageTTL.WEEK });
+              safeSetItem(name as keyof typeof StorageKeys, value, {
+                ttl: StorageTTL.WEEK,
+              });
             },
             removeItem: (name) => {
               safeRemoveItem(name as keyof typeof StorageKeys);
@@ -261,17 +312,29 @@ export const useCartStore = create<CartState>()(
               }
 
               if (state?.items?.length > 0) {
-                const itemsNeedingProducts = state.items.filter((item) => !item.product);
+                const itemsNeedingProducts = state.items.filter(
+                  (item) => !item.product
+                );
 
                 if (itemsNeedingProducts.length > 0) {
                   try {
                     const reloadedItems = await loadProductsForCartItems(
-                      itemsNeedingProducts.map((item) => ({ id: item.id, quantity: item.quantity }))
+                      itemsNeedingProducts.map((item) => ({
+                        id: item.id,
+                        quantity: item.quantity,
+                      }))
                     );
-                    const existingValidItems = state.items.filter((item) => item.product);
-                    useCartStore.setState({ items: [...existingValidItems, ...reloadedItems] });
+                    const existingValidItems = state.items.filter(
+                      (item) => item.product
+                    );
+                    useCartStore.setState({
+                      items: [...existingValidItems, ...reloadedItems],
+                    });
                   } catch (err) {
-                    console.error('Failed to reload products during rehydration:', err);
+                    console.error(
+                      'Failed to reload products during rehydration:',
+                      err
+                    );
                   }
                 }
               }
@@ -288,14 +351,19 @@ export const useCartStore = create<CartState>()(
 export const selectCartItems = (state: CartState) =>
   state.items.filter((item) => item?.product?.id != null);
 export const selectItemCount = (state: CartState) =>
-  state.items.filter((item) => item?.product?.id != null).reduce((sum, item) => sum + item.quantity, 0);
+  state.items
+    .filter((item) => item?.product?.id != null)
+    .reduce((sum, item) => sum + item.quantity, 0);
 export const selectTotalPrice = (state: CartState) =>
   state.items
     .filter((item) => item?.product?.id != null)
     .reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 export const selectIsInCart = (productId: number) => (state: CartState) =>
-  state.items.some((item) => item.id === productId && item?.product?.id != null);
-export const selectPendingOperations = (state: CartState) => state.offlineQueue.length;
+  state.items.some(
+    (item) => item.id === productId && item?.product?.id != null
+  );
+export const selectPendingOperations = (state: CartState) =>
+  state.offlineQueue.length;
 
 // Initialize store
 let initialized = false;
@@ -312,7 +380,10 @@ export function initializeCartStore() {
   try {
     cartChannel = new BroadcastChannel('cart-sync');
     cartChannel.onmessage = (event) => {
-      if (event.data?.type === 'CART_UPDATE' && Array.isArray(event.data.items)) {
+      if (
+        event.data?.type === 'CART_UPDATE' &&
+        Array.isArray(event.data.items)
+      ) {
         ignoreNextBroadcast = true;
         useCartStore.setState({ items: event.data.items });
       }
@@ -347,7 +418,9 @@ export function initializeCartStore() {
       const { isOnline, items, isInitialized } = useCartStore.getState();
       if (!isInitialized) return;
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (user && isOnline) {
         await saveToSupabase(user.id, items, isOnline);
@@ -392,7 +465,10 @@ export function initializeCartStore() {
 
       try {
         const localItems = useCartStore.getState().items;
-        const mergedItems = await loadAndMergeSupabaseCart(session.user.id, localItems);
+        const mergedItems = await loadAndMergeSupabaseCart(
+          session.user.id,
+          localItems
+        );
         useCartStore.setState({ items: mergedItems });
 
         if (mergedItems.length > 0) {
@@ -415,7 +491,9 @@ export function initializeCartStore() {
 
   // Initial load
   (async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (user) {
       useCartStore.setState({ isAuthenticated: true, isSyncing: true });

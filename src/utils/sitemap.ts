@@ -4,7 +4,14 @@ import { BlogPost } from '@/shared/interfaces/IBlogPost.interface';
 interface SitemapUrl {
   url: string;
   lastModified?: string;
-  changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+  changeFrequency?:
+    | 'always'
+    | 'hourly'
+    | 'daily'
+    | 'weekly'
+    | 'monthly'
+    | 'yearly'
+    | 'never';
   priority?: number;
 }
 
@@ -83,9 +90,10 @@ export class SitemapGenerator {
 
   // Generate product routes
   private getProductRoutes(products: Product[]): SitemapUrl[] {
-    return products.map(product => ({
+    return products.map((product) => ({
       url: `${this.baseUrl}/product/${product.id}`,
-      lastModified: product.updated_at || product.created_at || new Date().toISOString(),
+      lastModified:
+        product.updated_at || product.created_at || new Date().toISOString(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     }));
@@ -93,7 +101,7 @@ export class SitemapGenerator {
 
   // Generate blog routes
   private getBlogRoutes(posts: BlogPost[]): SitemapUrl[] {
-    return posts.map(post => ({
+    return posts.map((post) => ({
       url: `${this.baseUrl}/blog/${post.id}`,
       lastModified: post.date,
       changeFrequency: 'monthly' as const,
@@ -103,8 +111,8 @@ export class SitemapGenerator {
 
   // Generate category routes
   private getCategoryRoutes(products: Product[]): SitemapUrl[] {
-    const categories = [...new Set(products.map(p => p.category))];
-    return categories.map(category => ({
+    const categories = [...new Set(products.map((p) => p.category))];
+    return categories.map((category) => ({
       url: `${this.baseUrl}/products?category=${encodeURIComponent(category)}`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'weekly' as const,
@@ -123,12 +131,28 @@ export class SitemapGenerator {
 
     const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(({ url, lastModified, changeFrequency, priority }) => `  <url>
-    <loc>${url}</loc>${lastModified ? `
-    <lastmod>${lastModified}</lastmod>` : ''}${changeFrequency ? `
-    <changefreq>${changeFrequency}</changefreq>` : ''}${priority ? `
-    <priority>${priority}</priority>` : ''}
-  </url>`).join('\n')}
+${urls
+  .map(
+    ({ url, lastModified, changeFrequency, priority }) => `  <url>
+    <loc>${url}</loc>${
+      lastModified
+        ? `
+    <lastmod>${lastModified}</lastmod>`
+        : ''
+    }${
+      changeFrequency
+        ? `
+    <changefreq>${changeFrequency}</changefreq>`
+        : ''
+    }${
+      priority
+        ? `
+    <priority>${priority}</priority>`
+        : ''
+    }
+  </url>`
+  )
+  .join('\n')}
 </urlset>`;
 
     return xmlContent;
@@ -176,14 +200,19 @@ Allow: /contact`;
     <atom:link href="${this.baseUrl}/rss.xml" rel="self" type="application/rss+xml" />
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <generator>Rif Raw Straw</generator>
-${posts.slice(0, 20).map(post => `    <item>
+${posts
+  .slice(0, 20)
+  .map(
+    (post) => `    <item>
       <title>${post.title}</title>
       <link>${this.baseUrl}/blog/${post.id}</link>
       <description>${post.excerpt}...</description>
       <pubDate>${new Date(post.date).toUTCString()}</pubDate>
       <guid isPermaLink="true">${this.baseUrl}/blog/${post.id}</guid>
       ${post.image ? `<enclosure url="${post.image}" type="image/jpeg" />` : ''}
-    </item>`).join('\n')}
+    </item>`
+  )
+  .join('\n')}
   </channel>
 </rss>`;
 
@@ -192,10 +221,13 @@ ${posts.slice(0, 20).map(post => `    <item>
 }
 
 // Utility functions for generating and downloading sitemaps
-export const generateAndDownloadSitemap = async (products: Product[], posts: BlogPost[] = []) => {
+export const generateAndDownloadSitemap = async (
+  products: Product[],
+  posts: BlogPost[] = []
+) => {
   const generator = new SitemapGenerator();
   const sitemap = generator.generateSitemap(products, posts);
-  
+
   const blob = new Blob([sitemap], { type: 'application/xml' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -210,7 +242,7 @@ export const generateAndDownloadSitemap = async (products: Product[], posts: Blo
 export const generateAndDownloadRobots = () => {
   const generator = new SitemapGenerator();
   const robots = generator.generateRobotsTxt();
-  
+
   const blob = new Blob([robots], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

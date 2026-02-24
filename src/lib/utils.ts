@@ -1,16 +1,21 @@
-import { clsx, type ClassValue } from "clsx"
-import React from "react";
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from 'clsx';
+import React from 'react';
+import { toast } from 'sonner';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
-export const BASE_PATH = "/lucid-web-craftsman";
+// Keep in sync with `vite.config.ts` (`base`).
+export const BASE_PATH = '/';
 
-// No global Window extensions needed here
+declare global {
+  interface Window {
+    __cartFallback?: never;
+  }
+}
 
-// Composant ErrorBoundary pour la gestion des erreurs
 interface ErrorBoundaryProps {
   fallback: React.ReactNode;
   children?: React.ReactNode;
@@ -25,13 +30,13 @@ export class ErrorBoundary extends React.Component<
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(__: Error) { // Prefixed _
+  static getDerivedStateFromError(_error: Error) {
     return { hasError: true };
   }
 
-  componentDidCatch(_error: Error, _errorInfo: React.ErrorInfo) { // Prefixed error and errorInfo
-    // Vous pouvez loguer l'erreur ici si besoin
-    // console.error(error, errorInfo);
+  componentDidCatch(_error: Error, _errorInfo: React.ErrorInfo) {
+    console.error(_error, _errorInfo);
+    toast.error('Une erreur est survenue. Veuillez réessayer.');
   }
 
   render() {

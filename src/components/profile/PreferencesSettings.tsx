@@ -4,7 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Bell, Globe, Shield, Palette, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -55,7 +61,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
         setLoadError(true);
         return;
       }
-      
+
       if (!data) {
         await createDefaultPreferences();
       } else {
@@ -71,17 +77,19 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
     try {
       const { data, error } = await supabase
         .from('user_preferences')
-        .insert([{
-          user_id: user.id,
-          email_notifications: true,
-          marketing_emails: false,
-          order_updates: true,
-          language: 'fr',
-          currency: 'EUR',
-          privacy_profile_public: false,
-          privacy_show_email: false,
-          privacy_show_phone: false
-        }])
+        .insert([
+          {
+            user_id: user.id,
+            email_notifications: true,
+            marketing_emails: false,
+            order_updates: true,
+            language: 'fr',
+            currency: 'EUR',
+            privacy_profile_public: false,
+            privacy_show_email: false,
+            privacy_show_phone: false,
+          },
+        ])
         .select()
         .single();
 
@@ -120,7 +128,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
   const toggleTheme = () => {
     const newDarkMode = !isDarkMode;
     setIsDarkMode(newDarkMode);
-    
+
     if (newDarkMode) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
@@ -137,9 +145,21 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
           <CardContent className="pt-6">
             <div className="text-center py-8">
               <Settings className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Préférences indisponibles</h3>
-              <p className="text-muted-foreground mb-4">Impossible de charger vos préférences pour le moment.</p>
-              <Button variant="outline" onClick={() => { setLoadError(false); loadPreferences(); }}>Réessayer</Button>
+              <h3 className="text-lg font-semibold mb-2">
+                Préférences indisponibles
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Impossible de charger vos préférences pour le moment.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setLoadError(false);
+                  loadPreferences();
+                }}
+              >
+                Réessayer
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -182,7 +202,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
             <Switch
               id="email_notifications"
               checked={preferences.email_notifications}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 updatePreferences({ email_notifications: checked })
               }
               disabled={isLoading}
@@ -203,7 +223,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
             <Switch
               id="order_updates"
               checked={preferences.order_updates}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 updatePreferences({ order_updates: checked })
               }
               disabled={isLoading}
@@ -224,7 +244,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
             <Switch
               id="marketing_emails"
               checked={preferences.marketing_emails}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 updatePreferences({ marketing_emails: checked })
               }
               disabled={isLoading}
@@ -247,7 +267,9 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
               <Label htmlFor="language">Langue</Label>
               <Select
                 value={preferences.language}
-                onValueChange={(value) => updatePreferences({ language: value })}
+                onValueChange={(value) =>
+                  updatePreferences({ language: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner une langue" />
@@ -265,7 +287,9 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
               <Label htmlFor="currency">Devise</Label>
               <Select
                 value={preferences.currency}
-                onValueChange={(value) => updatePreferences({ currency: value })}
+                onValueChange={(value) =>
+                  updatePreferences({ currency: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner une devise" />
@@ -303,7 +327,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
             <Switch
               id="privacy_profile_public"
               checked={preferences.privacy_profile_public}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 updatePreferences({ privacy_profile_public: checked })
               }
               disabled={isLoading}
@@ -324,7 +348,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
             <Switch
               id="privacy_show_email"
               checked={preferences.privacy_show_email}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 updatePreferences({ privacy_show_email: checked })
               }
               disabled={isLoading || !preferences.privacy_profile_public}
@@ -345,7 +369,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
             <Switch
               id="privacy_show_phone"
               checked={preferences.privacy_show_phone}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 updatePreferences({ privacy_show_phone: checked })
               }
               disabled={isLoading || !preferences.privacy_profile_public}

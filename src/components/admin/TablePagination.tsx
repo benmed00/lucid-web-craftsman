@@ -6,8 +6,14 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+} from '@/components/ui/pagination';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface TablePaginationProps {
   currentPage: number;
@@ -33,7 +39,7 @@ const TablePagination = ({
   // Generate page numbers to display
   const getPageNumbers = () => {
     const pages: (number | 'ellipsis')[] = [];
-    
+
     if (totalPages <= 7) {
       // Show all pages if 7 or less
       for (let i = 1; i <= totalPages; i++) {
@@ -42,31 +48,31 @@ const TablePagination = ({
     } else {
       // Always show first page
       pages.push(1);
-      
+
       if (currentPage > 3) {
         pages.push('ellipsis');
       }
-      
+
       // Show pages around current page
       const start = Math.max(2, currentPage - 1);
       const end = Math.min(totalPages - 1, currentPage + 1);
-      
+
       for (let i = start; i <= end; i++) {
         if (!pages.includes(i)) {
           pages.push(i);
         }
       }
-      
+
       if (currentPage < totalPages - 2) {
         pages.push('ellipsis');
       }
-      
+
       // Always show last page
       if (!pages.includes(totalPages)) {
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -105,13 +111,17 @@ const TablePagination = ({
             <PaginationItem>
               <PaginationPrevious
                 onClick={() => onPageChange(currentPage - 1)}
-                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                className={
+                  currentPage === 1
+                    ? 'pointer-events-none opacity-50'
+                    : 'cursor-pointer'
+                }
                 aria-disabled={currentPage === 1}
               >
                 Précédent
               </PaginationPrevious>
             </PaginationItem>
-            
+
             {getPageNumbers().map((page, index) => (
               <PaginationItem key={index}>
                 {page === 'ellipsis' ? (
@@ -127,11 +137,15 @@ const TablePagination = ({
                 )}
               </PaginationItem>
             ))}
-            
+
             <PaginationItem>
               <PaginationNext
                 onClick={() => onPageChange(currentPage + 1)}
-                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                className={
+                  currentPage === totalPages
+                    ? 'pointer-events-none opacity-50'
+                    : 'cursor-pointer'
+                }
                 aria-disabled={currentPage === totalPages}
               >
                 Suivant

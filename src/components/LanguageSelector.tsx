@@ -9,17 +9,24 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useLanguageStore } from '@/stores/languageStore';
-import { supportedLanguages, languageConfig, type SupportedLanguage } from '@/i18n';
+import {
+  supportedLanguages,
+  languageConfig,
+  type SupportedLanguage,
+} from '@/i18n';
 
 interface LanguageSelectorProps {
   variant?: 'default' | 'minimal' | 'full';
   className?: string;
 }
 
-export function LanguageSelector({ variant = 'default', className }: LanguageSelectorProps) {
+export function LanguageSelector({
+  variant = 'default',
+  className,
+}: LanguageSelectorProps) {
   const { t } = useTranslation('common');
   const { locale, setLocale } = useLanguageStore();
-  
+
   // Normalize locale (e.g., 'fr-FR' -> 'fr') and fallback to 'fr'
   const normalizedLocale = (locale?.split('-')[0] || 'fr') as SupportedLanguage;
   const currentConfig = languageConfig[normalizedLocale] || languageConfig.fr;
@@ -88,7 +95,9 @@ export function LanguageSelector({ variant = 'default', className }: LanguageSel
               >
                 <span className="mr-2">{config.flag}</span>
                 <span className="flex-1">{config.nativeName}</span>
-                {locale === lang && <span className="ml-2 text-primary">✓</span>}
+                {locale === lang && (
+                  <span className="ml-2 text-primary">✓</span>
+                )}
               </DropdownMenuItem>
             );
           })}

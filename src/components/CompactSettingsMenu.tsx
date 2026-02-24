@@ -11,7 +11,11 @@ import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { useLanguageStore } from '@/stores/languageStore';
 import { useCurrencyStore, type Currency } from '@/stores/currencyStore';
 import { useThemeStore } from '@/stores/themeStore';
-import { supportedLanguages, languageConfig, type SupportedLanguage } from '@/i18n';
+import {
+  supportedLanguages,
+  languageConfig,
+  type SupportedLanguage,
+} from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import { Sun, Moon } from 'lucide-react';
 
@@ -31,9 +35,10 @@ export function CompactSettingsMenu({ className }: CompactSettingsMenuProps) {
   const { locale, setLocale } = useLanguageStore();
   const { currency, setCurrency } = useCurrencyStore();
   const { theme, setTheme } = useThemeStore();
-  
+
   const normalizedLocale = (locale?.split('-')[0] || 'fr') as SupportedLanguage;
-  const currentLangConfig = languageConfig[normalizedLocale] || languageConfig.fr;
+  const currentLangConfig =
+    languageConfig[normalizedLocale] || languageConfig.fr;
 
   return (
     <DropdownMenu>
@@ -48,9 +53,9 @@ export function CompactSettingsMenu({ className }: CompactSettingsMenuProps) {
           <Settings2 className="h-3.5 w-3.5 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
-      
-      <DropdownMenuContent 
-        align="end" 
+
+      <DropdownMenuContent
+        align="end"
         className="w-56 p-0 bg-popover border border-border shadow-xl rounded-xl overflow-hidden"
         sideOffset={8}
       >
@@ -71,28 +76,31 @@ export function CompactSettingsMenu({ className }: CompactSettingsMenuProps) {
                 onClick={() => setLocale(lang)}
                 className={`
                   flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all
-                  ${isSelected 
-                    ? 'bg-primary/10 text-primary font-medium' 
-                    : 'hover:bg-muted/50'
+                  ${
+                    isSelected
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'hover:bg-muted/50'
                   }
                 `}
               >
                 <span className="text-lg">{config.flag}</span>
                 <span className="flex-1 text-sm">{config.nativeName}</span>
-                {isSelected && (
-                  <Check className="h-4 w-4 text-primary" />
-                )}
+                {isSelected && <Check className="h-4 w-4 text-primary" />}
               </DropdownMenuItem>
             );
           })}
         </div>
-        
+
         <DropdownMenuSeparator className="m-0" />
-        
+
         {/* Theme Section */}
         <div className="px-3 py-2.5 bg-muted/30 border-b border-border">
           <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            {theme === 'dark' ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+            {theme === 'dark' ? (
+              <Moon className="h-3.5 w-3.5" />
+            ) : (
+              <Sun className="h-3.5 w-3.5" />
+            )}
             {t('theme.label')}
           </div>
         </div>
@@ -101,9 +109,10 @@ export function CompactSettingsMenu({ className }: CompactSettingsMenuProps) {
             onClick={() => setTheme('light')}
             className={`
               flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all
-              ${theme === 'light' 
-                ? 'bg-primary/10 text-primary font-medium' 
-                : 'hover:bg-muted/50'
+              ${
+                theme === 'light'
+                  ? 'bg-primary/10 text-primary font-medium'
+                  : 'hover:bg-muted/50'
               }
             `}
           >
@@ -111,17 +120,16 @@ export function CompactSettingsMenu({ className }: CompactSettingsMenuProps) {
               <Sun className="h-4 w-4 text-amber-600" />
             </div>
             <span className="flex-1 text-sm">{t('theme.light')}</span>
-            {theme === 'light' && (
-              <Check className="h-4 w-4 text-primary" />
-            )}
+            {theme === 'light' && <Check className="h-4 w-4 text-primary" />}
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setTheme('dark')}
             className={`
               flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all
-              ${theme === 'dark' 
-                ? 'bg-primary/10 text-primary font-medium' 
-                : 'hover:bg-muted/50'
+              ${
+                theme === 'dark'
+                  ? 'bg-primary/10 text-primary font-medium'
+                  : 'hover:bg-muted/50'
               }
             `}
           >
@@ -129,14 +137,12 @@ export function CompactSettingsMenu({ className }: CompactSettingsMenuProps) {
               <Moon className="h-4 w-4 text-slate-300" />
             </div>
             <span className="flex-1 text-sm">{t('theme.dark')}</span>
-            {theme === 'dark' && (
-              <Check className="h-4 w-4 text-primary" />
-            )}
+            {theme === 'dark' && <Check className="h-4 w-4 text-primary" />}
           </DropdownMenuItem>
         </div>
-        
+
         <DropdownMenuSeparator className="m-0" />
-        
+
         {/* Currency Section */}
         <div className="px-3 py-2.5 bg-muted/30 border-b border-border">
           <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -153,9 +159,10 @@ export function CompactSettingsMenu({ className }: CompactSettingsMenuProps) {
                 onClick={() => setCurrency(curr.code)}
                 className={`
                   flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all
-                  ${isSelected 
-                    ? 'bg-primary/10 text-primary font-medium' 
-                    : 'hover:bg-muted/50'
+                  ${
+                    isSelected
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'hover:bg-muted/50'
                   }
                 `}
               >
@@ -163,9 +170,7 @@ export function CompactSettingsMenu({ className }: CompactSettingsMenuProps) {
                   <span className="text-sm font-semibold">{curr.symbol}</span>
                 </div>
                 <span className="flex-1 text-sm">{curr.label}</span>
-                {isSelected && (
-                  <Check className="h-4 w-4 text-primary" />
-                )}
+                {isSelected && <Check className="h-4 w-4 text-primary" />}
               </DropdownMenuItem>
             );
           })}

@@ -3,7 +3,12 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { safeGetItem, safeSetItem, safeRemoveItem, StorageTTL } from '@/lib/storage/safeStorage';
+import {
+  safeGetItem,
+  safeSetItem,
+  safeRemoveItem,
+  StorageTTL,
+} from '@/lib/storage/safeStorage';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 
 // Storage keys for checkout data - use localStorage for persistence across tabs/redirects
@@ -89,7 +94,9 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
     // Safety timeout: never block checkout for more than 3 seconds
     const safetyTimeout = setTimeout(() => {
       if (isLoading) {
-        console.warn('[useCheckoutFormPersistence] Loading timed out, rendering form');
+        console.warn(
+          '[useCheckoutFormPersistence] Loading timed out, rendering form'
+        );
         setIsLoading(false);
       }
     }, 3000);
@@ -103,14 +110,15 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
         storage: 'localStorage',
       });
       // 24-hour TTL — matches DB checkout_sessions.expires_at
-      const isExpired = !timestamp || (Date.now() - timestamp) > 24 * 60 * 60 * 1000;
+      const isExpired =
+        !timestamp || Date.now() - timestamp > 24 * 60 * 60 * 1000;
 
       // Step 1: Try to load from localStorage first (persists across redirects like Stripe)
       // Then fall back to sessionStorage for backward compatibility
       let cachedData = safeGetItem<CheckoutFormData>(CHECKOUT_FORM_KEY, {
         storage: 'localStorage',
       });
-      
+
       if (!cachedData || isExpired) {
         cachedData = safeGetItem<CheckoutFormData>(CHECKOUT_FORM_KEY, {
           storage: 'sessionStorage',
@@ -126,9 +134,14 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
           let guestId: string | null = null;
           if (guestRaw) {
             const parsed = JSON.parse(guestRaw);
-            guestId = parsed?.data?.guestId || parsed?.data?.guest_id 
-              || parsed?.guestId || parsed?.guest_id 
-              || parsed?.value?.guestId || parsed?.value?.guest_id || null;
+            guestId =
+              parsed?.data?.guestId ||
+              parsed?.data?.guest_id ||
+              parsed?.guestId ||
+              parsed?.guest_id ||
+              parsed?.value?.guestId ||
+              parsed?.value?.guest_id ||
+              null;
           }
 
           let dbSession: any = null;
@@ -136,7 +149,9 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
           if (userId) {
             const { data } = await supabase
               .from('checkout_sessions')
-              .select('personal_info, shipping_info, current_step, last_completed_step, promo_code, promo_code_valid, promo_discount_type, promo_discount_value, promo_discount_applied, promo_free_shipping')
+              .select(
+                'personal_info, shipping_info, current_step, last_completed_step, promo_code, promo_code_valid, promo_discount_type, promo_discount_value, promo_discount_applied, promo_free_shipping'
+              )
               .eq('user_id', userId)
               .eq('status', 'in_progress')
               .order('created_at', { ascending: false })
@@ -146,7 +161,9 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
           } else if (guestId) {
             const { data } = await supabase
               .from('checkout_sessions')
-              .select('personal_info, shipping_info, current_step, last_completed_step, promo_code, promo_code_valid, promo_discount_type, promo_discount_value, promo_discount_applied, promo_free_shipping')
+              .select(
+                'personal_info, shipping_info, current_step, last_completed_step, promo_code, promo_code_valid, promo_discount_type, promo_discount_value, promo_discount_applied, promo_free_shipping'
+              )
               .eq('guest_id', guestId)
               .eq('status', 'in_progress')
               .order('created_at', { ascending: false })
@@ -158,7 +175,7 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
           if (dbSession) {
             const pi = dbSession.personal_info as any;
             const si = dbSession.shipping_info as any;
-            
+
             if (pi) {
               loadedData.firstName = pi.first_name || '';
               loadedData.lastName = pi.last_name || '';
@@ -171,7 +188,9 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
               loadedData.postalCode = si.postal_code || '';
               loadedData.city = si.city || '';
               const validCountries = ['FR', 'BE', 'CH', 'MC', 'LU'];
-              loadedData.country = validCountries.includes(si.country) ? si.country : 'FR';
+              loadedData.country = validCountries.includes(si.country)
+                ? si.country
+                : 'FR';
             }
 
             // Restore step/completed from DB session
@@ -180,17 +199,26 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
                 { length: dbSession.last_completed_step },
                 (_, i) => i + 1
               );
-              setSavedStep(dbSession.current_step || dbSession.last_completed_step + 1);
+              setSavedStep(
+                dbSession.current_step || dbSession.last_completed_step + 1
+              );
               setSavedCompletedSteps(completedFromDb);
             }
 
-            console.log('[useCheckoutFormPersistence] Rehydrated from DB checkout_session');
-            
+            console.log(
+              '[useCheckoutFormPersistence] Rehydrated from DB checkout_session'
+            );
+
             // Re-persist to localStorage so future loads are fast
-            safeSetItem(CHECKOUT_TIMESTAMP_KEY, Date.now(), { storage: 'localStorage' });
+            safeSetItem(CHECKOUT_TIMESTAMP_KEY, Date.now(), {
+              storage: 'localStorage',
+            });
           }
         } catch (dbErr) {
-          console.warn('[useCheckoutFormPersistence] DB fallback failed (non-blocking):', dbErr);
+          console.warn(
+            '[useCheckoutFormPersistence] DB fallback failed (non-blocking):',
+            dbErr
+          );
         }
       }
 
@@ -198,9 +226,12 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
       let cachedStep = safeGetItem<number>(CHECKOUT_STEP_KEY, {
         storage: 'localStorage',
       });
-      let cachedCompletedSteps = safeGetItem<number[]>(CHECKOUT_COMPLETED_STEPS_KEY, {
-        storage: 'localStorage',
-      });
+      let cachedCompletedSteps = safeGetItem<number[]>(
+        CHECKOUT_COMPLETED_STEPS_KEY,
+        {
+          storage: 'localStorage',
+        }
+      );
 
       // Fall back to sessionStorage
       if (!cachedStep && !isExpired) {
@@ -209,9 +240,12 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
         });
       }
       if (!cachedCompletedSteps && !isExpired) {
-        cachedCompletedSteps = safeGetItem<number[]>(CHECKOUT_COMPLETED_STEPS_KEY, {
-          storage: 'sessionStorage',
-        });
+        cachedCompletedSteps = safeGetItem<number[]>(
+          CHECKOUT_COMPLETED_STEPS_KEY,
+          {
+            storage: 'sessionStorage',
+          }
+        );
       }
 
       if (cachedStep && cachedStep >= 1 && cachedStep <= 3) {
@@ -235,7 +269,9 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
           // Fetch profile data
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('full_name, phone, address_line1, address_line2, city, postal_code, country')
+            .select(
+              'full_name, phone, address_line1, address_line2, city, postal_code, country'
+            )
             .eq('id', user.id)
             .maybeSingle();
 
@@ -246,18 +282,19 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
             const lastName = nameParts.slice(1).join(' ') || '';
 
             // Map country to supported values
-            const countryMap: Record<string, 'FR' | 'BE' | 'CH' | 'MC' | 'LU'> = {
-              'France': 'FR',
-              'FR': 'FR',
-              'Belgique': 'BE',
-              'BE': 'BE',
-              'Suisse': 'CH',
-              'CH': 'CH',
-              'Monaco': 'MC',
-              'MC': 'MC',
-              'Luxembourg': 'LU',
-              'LU': 'LU',
-            };
+            const countryMap: Record<string, 'FR' | 'BE' | 'CH' | 'MC' | 'LU'> =
+              {
+                France: 'FR',
+                FR: 'FR',
+                Belgique: 'BE',
+                BE: 'BE',
+                Suisse: 'CH',
+                CH: 'CH',
+                Monaco: 'MC',
+                MC: 'MC',
+                Luxembourg: 'LU',
+                LU: 'LU',
+              };
 
             // Only fill fields that are empty in the cache
             if (!loadedData.firstName && firstName) {
@@ -311,7 +348,10 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
             if (!loadedData.address && shippingAddress.address_line1) {
               loadedData.address = shippingAddress.address_line1;
             }
-            if (!loadedData.addressComplement && shippingAddress.address_line2) {
+            if (
+              !loadedData.addressComplement &&
+              shippingAddress.address_line2
+            ) {
               loadedData.addressComplement = shippingAddress.address_line2;
             }
             if (!loadedData.city && shippingAddress.city) {
@@ -321,7 +361,12 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
               loadedData.postalCode = shippingAddress.postal_code;
             }
             if (!loadedData.country) {
-              const countryCode = shippingAddress.country_code as 'FR' | 'BE' | 'CH' | 'MC' | 'LU';
+              const countryCode = shippingAddress.country_code as
+                | 'FR'
+                | 'BE'
+                | 'CH'
+                | 'MC'
+                | 'LU';
               if (['FR', 'BE', 'CH', 'MC', 'LU'].includes(countryCode)) {
                 loadedData.country = countryCode;
               }
@@ -350,9 +395,13 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
   // Save form data to localStorage (persists across redirects like Stripe)
   const saveFormData = useCallback(() => {
     // Only save if there's meaningful data
-    const hasData = formData.firstName || formData.lastName || formData.email || 
-                    formData.address || formData.city;
-    
+    const hasData =
+      formData.firstName ||
+      formData.lastName ||
+      formData.email ||
+      formData.address ||
+      formData.city;
+
     if (hasData) {
       // Save to both localStorage (for persistence across redirects) and sessionStorage (for backward compat)
       safeSetItem(CHECKOUT_FORM_KEY, formData, {
@@ -370,35 +419,38 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
   }, [formData]);
 
   // Save step state - use localStorage for persistence across Stripe redirects
-  const saveStepState = useCallback((step: number, completedSteps: number[]) => {
-    // Save to localStorage for persistence across redirects
-    safeSetItem(CHECKOUT_STEP_KEY, step, {
-      storage: 'localStorage',
-    });
-    safeSetItem(CHECKOUT_COMPLETED_STEPS_KEY, completedSteps, {
-      storage: 'localStorage',
-    });
-    // Also save to sessionStorage for backward compat
-    safeSetItem(CHECKOUT_STEP_KEY, step, {
-      storage: 'sessionStorage',
-      ttl: StorageTTL.SESSION,
-    });
-    safeSetItem(CHECKOUT_COMPLETED_STEPS_KEY, completedSteps, {
-      storage: 'sessionStorage',
-      ttl: StorageTTL.SESSION,
-    });
-    // Update timestamp
-    safeSetItem(CHECKOUT_TIMESTAMP_KEY, Date.now(), {
-      storage: 'localStorage',
-    });
-    setSavedStep(step);
-    setSavedCompletedSteps(completedSteps);
-  }, []);
+  const saveStepState = useCallback(
+    (step: number, completedSteps: number[]) => {
+      // Save to localStorage for persistence across redirects
+      safeSetItem(CHECKOUT_STEP_KEY, step, {
+        storage: 'localStorage',
+      });
+      safeSetItem(CHECKOUT_COMPLETED_STEPS_KEY, completedSteps, {
+        storage: 'localStorage',
+      });
+      // Also save to sessionStorage for backward compat
+      safeSetItem(CHECKOUT_STEP_KEY, step, {
+        storage: 'sessionStorage',
+        ttl: StorageTTL.SESSION,
+      });
+      safeSetItem(CHECKOUT_COMPLETED_STEPS_KEY, completedSteps, {
+        storage: 'sessionStorage',
+        ttl: StorageTTL.SESSION,
+      });
+      // Update timestamp
+      safeSetItem(CHECKOUT_TIMESTAMP_KEY, Date.now(), {
+        storage: 'localStorage',
+      });
+      setSavedStep(step);
+      setSavedCompletedSteps(completedSteps);
+    },
+    []
+  );
 
   // Auto-save on form data change (debounced via useEffect)
   useEffect(() => {
     if (isLoading) return;
-    
+
     const timeoutId = setTimeout(() => {
       saveFormData();
     }, 500); // Debounce 500ms

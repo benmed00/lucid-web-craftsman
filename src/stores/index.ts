@@ -7,8 +7,8 @@ import { initializeCurrencyStore as initCurrency } from './currencyStore';
 import { initializeThemeStore as initTheme } from './themeStore';
 
 // Re-export everything from individual stores
-export { 
-  useCartStore, 
+export {
+  useCartStore,
   useCart,
   initializeCartStore,
   selectCartItems,
@@ -18,7 +18,7 @@ export {
   selectPendingOperations,
   MAX_CART_QUANTITY,
   HIGH_VALUE_ORDER_THRESHOLD,
-  type CartItem 
+  type CartItem,
 } from './cartStore';
 
 export {
@@ -29,7 +29,7 @@ export {
   selectWishlistCount,
   selectWishlistLoading,
   selectIsInWishlist,
-  type WishlistItem
+  type WishlistItem,
 } from './wishlistStore';
 
 export {
@@ -39,7 +39,7 @@ export {
   selectCurrency,
   selectIsLoading,
   selectLastUpdated,
-  type Currency
+  type Currency,
 } from './currencyStore';
 
 export {
@@ -48,7 +48,7 @@ export {
   initializeThemeStore,
   selectTheme,
   selectResolvedTheme,
-  type Theme
+  type Theme,
 } from './themeStore';
 
 export {
@@ -56,7 +56,7 @@ export {
   useLocale,
   useSetLocale,
   useIsRTL,
-  initializeLanguageStore
+  initializeLanguageStore,
 } from './languageStore';
 
 // ============= Unified Store Management =============
@@ -84,7 +84,7 @@ export function initializeAllStores(): void {
   initCart();
   initCurrency();
   initTheme();
-  
+
   // Wishlist requires userId - initialize with null, will be set when user logs in
   initWishlist(null);
 
@@ -92,7 +92,7 @@ export function initializeAllStores(): void {
   const handleOnline = () => {
     // Stores handle their own online/offline logic
   };
-  
+
   const handleOffline = () => {
     // Stores handle their own online/offline logic
   };
@@ -111,14 +111,14 @@ export function initializeAllStores(): void {
  * Useful for testing or when the app unmounts
  */
 export function cleanupAllStores(): void {
-  cleanupFunctions.forEach(cleanup => {
+  cleanupFunctions.forEach((cleanup) => {
     try {
       cleanup();
     } catch (error) {
       console.error('Error during store cleanup:', error);
     }
   });
-  
+
   cleanupFunctions.length = 0;
   storesInitialized = false;
 }

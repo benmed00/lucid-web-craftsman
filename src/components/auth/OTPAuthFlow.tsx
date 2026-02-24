@@ -2,22 +2,31 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Mail, 
-  Smartphone, 
-  Clock, 
-  CheckCircle, 
+import {
+  Mail,
+  Smartphone,
+  Clock,
+  CheckCircle,
   AlertCircle,
   ArrowLeft,
   Send,
-  Shield
+  Shield,
 } from 'lucide-react';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { toast } from 'sonner';
-import { validateAndSanitizeEmail, validatePhoneNumber } from '@/utils/xssProtection';
+import {
+  validateAndSanitizeEmail,
+  validatePhoneNumber,
+} from '@/utils/xssProtection';
 
 interface OTPAuthFlowProps {
   mode: 'signin' | 'signup' | 'reset';
@@ -51,7 +60,9 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
 
   const handleSendOTP = useCallback(async () => {
     if (attempts >= maxAttempts) {
-      toast.error('Nombre maximum de tentatives atteint. Veuillez réessayer plus tard.');
+      toast.error(
+        'Nombre maximum de tentatives atteint. Veuillez réessayer plus tard.'
+      );
       return;
     }
 
@@ -60,7 +71,7 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
 
       if (method === 'email') {
         const sanitizedEmail = validateAndSanitizeEmail(contact);
-        
+
         if (mode === 'reset') {
           await resetPassword(sanitizedEmail);
           toast.success('Email de réinitialisation envoyé');
@@ -79,15 +90,22 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
 
       setStep('verify');
       setTimeLeft(60); // 1 minute cooldown
-      setAttempts(prev => prev + 1);
-
+      setAttempts((prev) => prev + 1);
     } catch (error: any) {
       console.error('OTP send error:', error);
-      toast.error(error.message || 'Erreur lors de l\'envoi du code');
+      toast.error(error.message || "Erreur lors de l'envoi du code");
     } finally {
       setIsLoading(false);
     }
-  }, [contact, method, mode, attempts, maxAttempts, signInWithOtp, resetPassword]);
+  }, [
+    contact,
+    method,
+    mode,
+    attempts,
+    maxAttempts,
+    signInWithOtp,
+    resetPassword,
+  ]);
 
   const handleVerifyOTP = useCallback(async () => {
     try {
@@ -96,11 +114,10 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
       if (method === 'email') {
         const sanitizedEmail = validateAndSanitizeEmail(contact);
         await verifyOtp(sanitizedEmail, otp, 'email');
-        
+
         toast.success('Authentification réussie !');
         onSuccess?.();
       }
-
     } catch (error: any) {
       console.error('OTP verify error:', error);
       toast.error(error.message || 'Code OTP invalide');
@@ -111,10 +128,14 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
 
   const getTitle = () => {
     switch (mode) {
-      case 'signin': return 'Connexion par code';
-      case 'signup': return 'Inscription par code';
-      case 'reset': return 'Réinitialiser le mot de passe';
-      default: return 'Authentification';
+      case 'signin':
+        return 'Connexion par code';
+      case 'signup':
+        return 'Inscription par code';
+      case 'reset':
+        return 'Réinitialiser le mot de passe';
+      default:
+        return 'Authentification';
     }
   };
 
@@ -122,12 +143,16 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
     if (step === 'verify') {
       return `Entrez le code reçu par ${method === 'email' ? 'email' : 'SMS'}`;
     }
-    
+
     switch (mode) {
-      case 'signin': return 'Connectez-vous avec un code de sécurité';
-      case 'signup': return 'Créez votre compte avec un code de sécurité';
-      case 'reset': return 'Recevez un lien de réinitialisation';
-      default: return 'Méthode d\'authentification sécurisée';
+      case 'signin':
+        return 'Connectez-vous avec un code de sécurité';
+      case 'signup':
+        return 'Créez votre compte avec un code de sécurité';
+      case 'reset':
+        return 'Recevez un lien de réinitialisation';
+      default:
+        return "Méthode d'authentification sécurisée";
     }
   };
 
@@ -191,9 +216,7 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
               id="contact"
               type={method === 'email' ? 'email' : 'tel'}
               placeholder={
-                method === 'email' 
-                  ? 'votre@email.com'
-                  : '+33 6 12 34 56 78'
+                method === 'email' ? 'votre@email.com' : '+33 6 12 34 56 78'
               }
               value={contact}
               onChange={(e) => setContact(e.target.value)}
@@ -212,8 +235,8 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
           )}
 
           {/* Send Button */}
-          <Button 
-            onClick={handleSendOTP} 
+          <Button
+            onClick={handleSendOTP}
             disabled={isLoading || !contact || attempts >= maxAttempts}
             className="w-full"
           >
@@ -271,7 +294,9 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
             type="text"
             placeholder="123456"
             value={otp}
-            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            onChange={(e) =>
+              setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))
+            }
             maxLength={6}
             className="text-center text-lg tracking-widest"
             autoComplete="one-time-code"
@@ -279,8 +304,8 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
         </div>
 
         {/* Verify Button */}
-        <Button 
-          onClick={handleVerifyOTP} 
+        <Button
+          onClick={handleVerifyOTP}
           disabled={isLoading || otp.length < 6}
           className="w-full"
         >

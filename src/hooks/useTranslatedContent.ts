@@ -1,6 +1,6 @@
 /**
  * Custom hooks for fetching translated content
- * 
+ *
  * These hooks integrate with react-query and react-i18next
  * to provide locale-aware data fetching with caching.
  */
@@ -34,10 +34,11 @@ export function useCurrentLocale(): SupportedLocale {
  */
 export function useProductWithTranslation(productId: number | null) {
   const locale = useCurrentLocale();
-  
+
   return useQuery<ProductWithTranslation | null>({
     queryKey: ['product', productId, locale],
-    queryFn: () => productId ? getProductWithTranslation(productId, locale) : null,
+    queryFn: () =>
+      productId ? getProductWithTranslation(productId, locale) : null,
     enabled: productId !== null,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -48,7 +49,7 @@ export function useProductWithTranslation(productId: number | null) {
  */
 export function useProductsWithTranslations() {
   const locale = useCurrentLocale();
-  
+
   return useQuery<ProductWithTranslation[]>({
     queryKey: ['products', locale],
     queryFn: () => getProductsWithTranslations(locale),
@@ -61,10 +62,11 @@ export function useProductsWithTranslations() {
  */
 export function useBlogPostWithTranslation(blogPostId: string | null) {
   const locale = useCurrentLocale();
-  
+
   return useQuery<BlogPostWithTranslation | null>({
     queryKey: ['blogPost', blogPostId, locale],
-    queryFn: () => blogPostId ? getBlogPostWithTranslation(blogPostId, locale) : null,
+    queryFn: () =>
+      blogPostId ? getBlogPostWithTranslation(blogPostId, locale) : null,
     enabled: blogPostId !== null,
     staleTime: 5 * 60 * 1000,
   });
@@ -75,10 +77,11 @@ export function useBlogPostWithTranslation(blogPostId: string | null) {
  */
 export function useBlogPostBySlug(slug: string | null) {
   const locale = useCurrentLocale();
-  
+
   return useQuery<BlogPostWithTranslation | null>({
     queryKey: ['blogPost', 'slug', slug, locale],
-    queryFn: () => slug ? getBlogPostBySlugWithTranslation(slug, locale) : null,
+    queryFn: () =>
+      slug ? getBlogPostBySlugWithTranslation(slug, locale) : null,
     enabled: slug !== null,
     staleTime: 5 * 60 * 1000,
   });
@@ -89,7 +92,7 @@ export function useBlogPostBySlug(slug: string | null) {
  */
 export function useBlogPostsWithTranslations() {
   const locale = useCurrentLocale();
-  
+
   return useQuery<BlogPostWithTranslation[]>({
     queryKey: ['blogPosts', locale],
     queryFn: () => getBlogPostsWithTranslations(locale),
@@ -98,5 +101,9 @@ export function useBlogPostsWithTranslations() {
 }
 
 // Re-export types for convenience
-export type { ProductWithTranslation, BlogPostWithTranslation, SupportedLocale };
+export type {
+  ProductWithTranslation,
+  BlogPostWithTranslation,
+  SupportedLocale,
+};
 export { SUPPORTED_LOCALES, DEFAULT_LOCALE };

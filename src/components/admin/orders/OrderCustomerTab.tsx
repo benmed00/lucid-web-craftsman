@@ -20,7 +20,10 @@ import {
   Smartphone,
   Globe,
 } from 'lucide-react';
-import { getOrderCustomerInfo, type OrderCustomerInfo } from '@/services/orderService';
+import {
+  getOrderCustomerInfo,
+  type OrderCustomerInfo,
+} from '@/services/orderService';
 import { supabase } from '@/integrations/supabase/client';
 
 interface OrderCustomerTabProps {
@@ -51,11 +54,33 @@ interface OrderData {
   metadata: Record<string, unknown> | null;
 }
 
-const LOYALTY_TIER_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-  bronze: { label: 'Bronze', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', icon: '🥉' },
-  silver: { label: 'Argent', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200', icon: '🥈' },
-  gold: { label: 'Or', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: '🥇' },
-  platinum: { label: 'Platine', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200', icon: '💎' },
+const LOYALTY_TIER_CONFIG: Record<
+  string,
+  { label: string; color: string; icon: string }
+> = {
+  bronze: {
+    label: 'Bronze',
+    color:
+      'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+    icon: '🥉',
+  },
+  silver: {
+    label: 'Argent',
+    color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
+    icon: '🥈',
+  },
+  gold: {
+    label: 'Or',
+    color:
+      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    icon: '🥇',
+  },
+  platinum: {
+    label: 'Platine',
+    color:
+      'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+    icon: '💎',
+  },
 };
 
 export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
@@ -63,12 +88,14 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
   const [guestInfo, setGuestInfo] = useState<GuestInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
-  const [recentOrders, setRecentOrders] = useState<Array<{
-    id: string;
-    created_at: string;
-    amount: number;
-    order_status: string;
-  }>>([]);
+  const [recentOrders, setRecentOrders] = useState<
+    Array<{
+      id: string;
+      created_at: string;
+      amount: number;
+      order_status: string;
+    }>
+  >([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -91,14 +118,15 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
         // If no user_id, this is a guest order
         if (!orderData?.user_id) {
           setIsGuest(true);
-          
+
           // Extract guest info from shipping_address and metadata
           const shippingAddr = orderData?.shipping_address || {};
           const billingAddr = orderData?.billing_address || {};
           const metadata = orderData?.metadata || {};
-          
+
           setGuestInfo({
-            first_name: shippingAddr.first_name || billingAddr.first_name || null,
+            first_name:
+              shippingAddr.first_name || billingAddr.first_name || null,
             last_name: shippingAddr.last_name || billingAddr.last_name || null,
             email: shippingAddr.email || billingAddr.email || null,
             phone: shippingAddr.phone || billingAddr.phone || null,
@@ -153,7 +181,9 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
   if (isGuest && guestInfo) {
     const hasContactInfo = guestInfo.email || guestInfo.phone;
     const hasAddress = guestInfo.address_line1 || guestInfo.city;
-    const fullName = [guestInfo.first_name, guestInfo.last_name].filter(Boolean).join(' ');
+    const fullName = [guestInfo.first_name, guestInfo.last_name]
+      .filter(Boolean)
+      .join(' ');
 
     return (
       <div className="space-y-4">
@@ -197,14 +227,20 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
                   <div className="flex items-start gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                     <div className="text-sm">
-                      {guestInfo.address_line1 && <p>{guestInfo.address_line1}</p>}
-                      {guestInfo.address_line2 && <p>{guestInfo.address_line2}</p>}
+                      {guestInfo.address_line1 && (
+                        <p>{guestInfo.address_line1}</p>
+                      )}
+                      {guestInfo.address_line2 && (
+                        <p>{guestInfo.address_line2}</p>
+                      )}
                       <p>
                         {guestInfo.postal_code} {guestInfo.city}
                       </p>
                       {guestInfo.country && (
                         <p className="font-medium">
-                          {guestInfo.country === 'FR' ? 'France' : guestInfo.country}
+                          {guestInfo.country === 'FR'
+                            ? 'France'
+                            : guestInfo.country}
                         </p>
                       )}
                     </div>
@@ -225,7 +261,9 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
                       <User className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">Guest ID</span>
                     </div>
-                    <span className="font-mono text-xs">{guestInfo.guest_id}</span>
+                    <span className="font-mono text-xs">
+                      {guestInfo.guest_id}
+                    </span>
                   </div>
                 )}
                 {guestInfo.device_type && (
@@ -256,7 +294,9 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
                       <Globe className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">IP</span>
                     </div>
-                    <span className="font-mono text-xs">{guestInfo.client_ip}</span>
+                    <span className="font-mono text-xs">
+                      {guestInfo.client_ip}
+                    </span>
                   </div>
                 )}
               </div>
@@ -265,7 +305,8 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
             <Separator />
 
             <p className="text-xs text-muted-foreground">
-              Cette commande a été passée en tant qu'invité. Aucun compte utilisateur n'est associé.
+              Cette commande a été passée en tant qu'invité. Aucun compte
+              utilisateur n'est associé.
             </p>
           </CardContent>
         </Card>
@@ -311,7 +352,9 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{customer.full_name || 'Non renseigné'}</span>
+                <span className="font-medium">
+                  {customer.full_name || 'Non renseigné'}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
@@ -328,7 +371,9 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
                   <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <div className="text-sm">
                     <p>{customer.address_line1}</p>
-                    <p>{customer.postal_code} {customer.city}</p>
+                    <p>
+                      {customer.postal_code} {customer.city}
+                    </p>
                     <p>{customer.country}</p>
                   </div>
                 </div>
@@ -349,7 +394,9 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">Total dépensé</span>
                 </div>
-                <span className="font-bold">{(customer.total_spent / 100).toFixed(2)} €</span>
+                <span className="font-bold">
+                  {(customer.total_spent / 100).toFixed(2)} €
+                </span>
               </div>
               <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div className="flex items-center gap-2">
@@ -365,7 +412,11 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
 
           <div className="flex gap-2">
             <Button variant="outline" size="sm" asChild>
-              <a href={`/admin/customers?id=${customer.id}`} target="_blank" rel="noopener">
+              <a
+                href={`/admin/customers?id=${customer.id}`}
+                target="_blank"
+                rel="noopener"
+              >
                 <ExternalLink className="h-3 w-3 mr-2" />
                 Voir profil complet
               </a>
@@ -394,8 +445,8 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
           ) : (
             <div className="divide-y">
               {recentOrders.map((order) => (
-                <div 
-                  key={order.id} 
+                <div
+                  key={order.id}
                   className={`py-3 flex items-center justify-between ${
                     order.id === orderId ? 'bg-muted/50 -mx-4 px-4 rounded' : ''
                   }`}
@@ -414,7 +465,9 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">{(order.amount / 100).toFixed(2)} €</p>
+                    <p className="font-medium">
+                      {(order.amount / 100).toFixed(2)} €
+                    </p>
                     <Badge variant="outline" className="text-xs">
                       {order.order_status}
                     </Badge>

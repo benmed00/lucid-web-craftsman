@@ -12,19 +12,44 @@ interface UseStockReturn<T> {
   stockInfo: T;
   loading: boolean;
   error: string | null;
-  canOrderQuantity: (productId: number, quantity: number) => Promise<{ canOrder: boolean; reason?: string }>;
-  reserveStock: (items: Array<{ productId: number; quantity: number }>) => Promise<{ success: boolean; errors?: Array<{ productId: number; error: string }> }>;
-  updateStock: (update: { productId: number; quantity: number; type: 'add' | 'remove' | 'set'; reason?: string }) => Promise<void>;
+  canOrderQuantity: (
+    productId: number,
+    quantity: number
+  ) => Promise<{ canOrder: boolean; reason?: string }>;
+  reserveStock: (
+    items: Array<{ productId: number; quantity: number }>
+  ) => Promise<{
+    success: boolean;
+    errors?: Array<{ productId: number; error: string }>;
+  }>;
+  updateStock: (update: {
+    productId: number;
+    quantity: number;
+    type: 'add' | 'remove' | 'set';
+    reason?: string;
+  }) => Promise<void>;
 }
 
 // Overloads for different usage patterns
-export function useStock(options: { productId: number; enabled?: boolean }): UseStockReturn<StockInfo | null>;
-export function useStock(options: { productIds: number[]; enabled?: boolean }): UseStockReturn<Record<number, StockInfo>>;
-export function useStock(options?: UseStockOptions): UseStockReturn<StockInfo | Record<number, StockInfo> | null>;
+export function useStock(options: {
+  productId: number;
+  enabled?: boolean;
+}): UseStockReturn<StockInfo | null>;
+export function useStock(options: {
+  productIds: number[];
+  enabled?: boolean;
+}): UseStockReturn<Record<number, StockInfo>>;
+export function useStock(
+  options?: UseStockOptions
+): UseStockReturn<StockInfo | Record<number, StockInfo> | null>;
 
 // Implementation
-export function useStock(options: UseStockOptions = {}): UseStockReturn<StockInfo | Record<number, StockInfo> | null> {
-  const [stockInfo, setStockInfo] = useState<StockInfo | Record<number, StockInfo> | null>(null);
+export function useStock(
+  options: UseStockOptions = {}
+): UseStockReturn<StockInfo | Record<number, StockInfo> | null> {
+  const [stockInfo, setStockInfo] = useState<
+    StockInfo | Record<number, StockInfo> | null
+  >(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,7 +77,11 @@ export function useStock(options: UseStockOptions = {}): UseStockReturn<StockInf
         }
       } catch (err) {
         console.error('Error fetching stock info:', err);
-        setError(err instanceof Error ? err.message : 'Erreur lors du chargement du stock');
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Erreur lors du chargement du stock'
+        );
         setStockInfo(null);
       } finally {
         setLoading(false);
@@ -71,16 +100,26 @@ export function useStock(options: UseStockOptions = {}): UseStockReturn<StockInf
     }
   };
 
-  const reserveStock = async (items: Array<{ productId: number; quantity: number }>) => {
+  const reserveStock = async (
+    items: Array<{ productId: number; quantity: number }>
+  ) => {
     try {
       return await stockService.reserveStock(items);
     } catch (err) {
       console.error('Error reserving stock:', err);
-      return { success: false, errors: [{ productId: 0, error: 'Erreur de réservation' }] };
+      return {
+        success: false,
+        errors: [{ productId: 0, error: 'Erreur de réservation' }],
+      };
     }
   };
 
-  const updateStock = async (update: { productId: number; quantity: number; type: 'add' | 'remove' | 'set'; reason?: string }) => {
+  const updateStock = async (update: {
+    productId: number;
+    quantity: number;
+    type: 'add' | 'remove' | 'set';
+    reason?: string;
+  }) => {
     try {
       await stockService.updateStock(update);
       // Refresh stock info after update
@@ -100,6 +139,6 @@ export function useStock(options: UseStockOptions = {}): UseStockReturn<StockInf
     error,
     canOrderQuantity,
     reserveStock,
-    updateStock
+    updateStock,
   };
-};
+}

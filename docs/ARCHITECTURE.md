@@ -51,6 +51,7 @@ All global state is managed via Zustand stores in `src/stores/`:
 - **wishlistStore**: User wishlist
 
 **Pattern**: Each store exports:
+
 - The raw Zustand hook (`useCartStore`)
 - Stable selectors (`selectCartItems`)
 - A compatibility hook (`useCart`)
@@ -119,6 +120,7 @@ UI primitives are in `src/components/ui/` (shadcn-based). Always use these inste
 ### Content Security Policy
 
 CSP is defined in:
+
 1. `src/config/app.config.ts` - Source of truth
 2. `public/_headers` - Production headers
 3. `index.html` - Meta tag fallback

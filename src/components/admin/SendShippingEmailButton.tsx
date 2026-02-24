@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Truck, Send, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Truck, Send, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface SendShippingEmailButtonProps {
   orderId: string;
@@ -19,7 +27,11 @@ interface SendShippingEmailButtonProps {
   onEmailSent?: () => void;
 }
 
-export const SendShippingEmailButton = ({ orderId, orderItems, onEmailSent }: SendShippingEmailButtonProps) => {
+export const SendShippingEmailButton = ({
+  orderId,
+  orderItems,
+  onEmailSent,
+}: SendShippingEmailButtonProps) => {
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,50 +44,53 @@ export const SendShippingEmailButton = ({ orderId, orderItems, onEmailSent }: Se
     address: '',
     city: '',
     postalCode: '',
-    country: 'France'
+    country: 'France',
   });
 
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const sendShippingEmail = async () => {
     if (!formData.customerEmail || !formData.customerName) {
-      toast.error('Veuillez remplir l\'email et le nom du client');
+      toast.error("Veuillez remplir l'email et le nom du client");
       return;
     }
 
     setSending(true);
     try {
-      const items = orderItems.map(item => ({
+      const items = orderItems.map((item) => ({
         name: item.product_snapshot?.name || 'Produit',
         quantity: item.quantity,
-        image: item.product_snapshot?.images?.[0]
+        image: item.product_snapshot?.images?.[0],
       }));
 
-      const { data, error } = await supabase.functions.invoke('send-shipping-notification', {
-        body: {
-          orderId,
-          customerEmail: formData.customerEmail,
-          customerName: formData.customerName,
-          trackingNumber: formData.trackingNumber || undefined,
-          carrier: formData.carrier || undefined,
-          trackingUrl: formData.trackingUrl || undefined,
-          estimatedDelivery: formData.estimatedDelivery || undefined,
-          shippingAddress: {
-            address: formData.address,
-            city: formData.city,
-            postalCode: formData.postalCode,
-            country: formData.country
+      const { data, error } = await supabase.functions.invoke(
+        'send-shipping-notification',
+        {
+          body: {
+            orderId,
+            customerEmail: formData.customerEmail,
+            customerName: formData.customerName,
+            trackingNumber: formData.trackingNumber || undefined,
+            carrier: formData.carrier || undefined,
+            trackingUrl: formData.trackingUrl || undefined,
+            estimatedDelivery: formData.estimatedDelivery || undefined,
+            shippingAddress: {
+              address: formData.address,
+              city: formData.city,
+              postalCode: formData.postalCode,
+              country: formData.country,
+            },
+            items,
           },
-          items
         }
-      });
+      );
 
       if (error) throw error;
 
       if (data?.success) {
-        toast.success('Email d\'expédition envoyé');
+        toast.success("Email d'expédition envoyé");
         setOpen(false);
         onEmailSent?.();
       } else {
@@ -101,10 +116,11 @@ export const SendShippingEmailButton = ({ orderId, orderItems, onEmailSent }: Se
         <DialogHeader>
           <DialogTitle>Envoyer une notification d'expédition</DialogTitle>
           <DialogDescription>
-            Envoyez un email au client pour l'informer que sa commande a été expédiée.
+            Envoyez un email au client pour l'informer que sa commande a été
+            expédiée.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4 max-h-96 overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -164,7 +180,9 @@ export const SendShippingEmailButton = ({ orderId, orderItems, onEmailSent }: Se
             <Input
               id="estimatedDelivery"
               value={formData.estimatedDelivery}
-              onChange={(e) => handleChange('estimatedDelivery', e.target.value)}
+              onChange={(e) =>
+                handleChange('estimatedDelivery', e.target.value)
+              }
               placeholder="15-18 janvier 2025"
             />
           </div>
@@ -205,7 +223,11 @@ export const SendShippingEmailButton = ({ orderId, orderItems, onEmailSent }: Se
           <Button variant="outline" onClick={() => setOpen(false)}>
             Annuler
           </Button>
-          <Button onClick={sendShippingEmail} disabled={sending} className="gap-2">
+          <Button
+            onClick={sendShippingEmail}
+            disabled={sending}
+            className="gap-2"
+          >
             {sending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />

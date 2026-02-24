@@ -27,7 +27,10 @@ interface Promotion {
   totalUses?: number;
 }
 
-export const MobilePromotions = ({ cartTotal = 0, onPromotionApply }: MobilePromotionsProps) => {
+export const MobilePromotions = ({
+  cartTotal = 0,
+  onPromotionApply,
+}: MobilePromotionsProps) => {
   const [activePromotions, setActivePromotions] = useState<Promotion[]>([]);
   const [timeLeft, setTimeLeft] = useState<{ [key: string]: string }>({});
   const isMobile = useIsMobile();
@@ -46,7 +49,7 @@ export const MobilePromotions = ({ cartTotal = 0, onPromotionApply }: MobileProm
       isActive: true,
       isLimited: true,
       remainingUses: 15,
-      totalUses: 50
+      totalUses: 50,
     },
     {
       id: '2',
@@ -72,12 +75,12 @@ export const MobilePromotions = ({ cartTotal = 0, onPromotionApply }: MobileProm
       code: 'BIENVENUE15',
       discount: 15,
       isActive: true,
-    }
+    },
   ];
 
   useEffect(() => {
     // Filter promotions based on conditions
-    const filtered = mockPromotions.filter(promo => {
+    const filtered = mockPromotions.filter((promo) => {
       if (!promo.isActive) return false;
       if (promo.minAmount && cartTotal < promo.minAmount) {
         // Show promotions that are close to being unlocked
@@ -93,29 +96,32 @@ export const MobilePromotions = ({ cartTotal = 0, onPromotionApply }: MobileProm
     // Update countdown timers
     const updateTimers = () => {
       const newTimeLeft: { [key: string]: string } = {};
-      
-      activePromotions.forEach(promo => {
+
+      activePromotions.forEach((promo) => {
         if (promo.expiresAt) {
           const now = new Date().getTime();
           const expiry = new Date(promo.expiresAt).getTime();
           const difference = expiry - now;
-          
+
           if (difference > 0) {
             const hours = Math.floor(difference / (1000 * 60 * 60));
-            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const minutes = Math.floor(
+              (difference % (1000 * 60 * 60)) / (1000 * 60)
+            );
             const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-            
-            newTimeLeft[promo.id] = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            newTimeLeft[promo.id] =
+              `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
           }
         }
       });
-      
+
       setTimeLeft(newTimeLeft);
     };
 
     updateTimers();
     const interval = setInterval(updateTimers, 1000);
-    
+
     return () => clearInterval(interval);
   }, [activePromotions]);
 
@@ -175,74 +181,99 @@ export const MobilePromotions = ({ cartTotal = 0, onPromotionApply }: MobileProm
               <div className="flex-shrink-0 mt-0.5">
                 {getPromotionIcon(promotion.type)}
               </div>
-              
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-semibold text-sm">{promotion.title}</h4>
-                  
-                  {promotion.type === 'flash_sale' && timeLeft[promotion.id] && (
-                    <Badge variant="secondary" className="bg-red-200 text-red-800 text-xs">
-                      {timeLeft[promotion.id]}
-                    </Badge>
-                  )}
+
+                  {promotion.type === 'flash_sale' &&
+                    timeLeft[promotion.id] && (
+                      <Badge
+                        variant="secondary"
+                        className="bg-red-200 text-red-800 text-xs"
+                      >
+                        {timeLeft[promotion.id]}
+                      </Badge>
+                    )}
                 </div>
-                
+
                 <p className="text-xs mb-3 leading-relaxed">
                   {promotion.description}
                 </p>
-                
+
                 {/* Progress bar for free shipping */}
-                {promotion.type === 'free_shipping' && promotion.minAmount && cartTotal < promotion.minAmount && (
-                  <div className="mb-3">
-                    <Progress
-                      value={calculateProgress(cartTotal, promotion.minAmount)}
-                      className="h-2 mb-2"
-                    />
-                    <p className="text-xs font-medium">
-                      Plus que {formatPrice(promotion.minAmount - cartTotal)} pour débloquer
-                    </p>
-                  </div>
-                )}
-                
-                {/* Gift progress */}
-                {promotion.type === 'gift' && promotion.minAmount && cartTotal < promotion.minAmount && (
-                  <div className="mb-3">
-                    <Progress
-                      value={calculateProgress(cartTotal, promotion.minAmount)}
-                      className="h-2 mb-2"
-                    />
-                    <p className="text-xs font-medium">
-                      Plus que {formatPrice(promotion.minAmount - cartTotal)} pour le cadeau
-                    </p>
-                  </div>
-                )}
-                
-                {/* Limited uses indicator */}
-                {promotion.isLimited && promotion.remainingUses && promotion.totalUses && (
-                  <div className="mb-3">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span>Utilisations restantes</span>
-                      <span>{promotion.remainingUses}/{promotion.totalUses}</span>
+                {promotion.type === 'free_shipping' &&
+                  promotion.minAmount &&
+                  cartTotal < promotion.minAmount && (
+                    <div className="mb-3">
+                      <Progress
+                        value={calculateProgress(
+                          cartTotal,
+                          promotion.minAmount
+                        )}
+                        className="h-2 mb-2"
+                      />
+                      <p className="text-xs font-medium">
+                        Plus que {formatPrice(promotion.minAmount - cartTotal)}{' '}
+                        pour débloquer
+                      </p>
                     </div>
-                    <Progress
-                      value={(promotion.remainingUses / promotion.totalUses) * 100}
-                      className="h-1"
-                    />
-                  </div>
-                )}
-                
+                  )}
+
+                {/* Gift progress */}
+                {promotion.type === 'gift' &&
+                  promotion.minAmount &&
+                  cartTotal < promotion.minAmount && (
+                    <div className="mb-3">
+                      <Progress
+                        value={calculateProgress(
+                          cartTotal,
+                          promotion.minAmount
+                        )}
+                        className="h-2 mb-2"
+                      />
+                      <p className="text-xs font-medium">
+                        Plus que {formatPrice(promotion.minAmount - cartTotal)}{' '}
+                        pour le cadeau
+                      </p>
+                    </div>
+                  )}
+
+                {/* Limited uses indicator */}
+                {promotion.isLimited &&
+                  promotion.remainingUses &&
+                  promotion.totalUses && (
+                    <div className="mb-3">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span>Utilisations restantes</span>
+                        <span>
+                          {promotion.remainingUses}/{promotion.totalUses}
+                        </span>
+                      </div>
+                      <Progress
+                        value={
+                          (promotion.remainingUses / promotion.totalUses) * 100
+                        }
+                        className="h-1"
+                      />
+                    </div>
+                  )}
+
                 {/* Action button */}
                 {promotion.code && (
                   <Button
                     size="sm"
                     onClick={() => handleApplyPromotion(promotion)}
-                    disabled={promotion.minAmount ? cartTotal < promotion.minAmount : false}
+                    disabled={
+                      promotion.minAmount
+                        ? cartTotal < promotion.minAmount
+                        : false
+                    }
                     className="bg-white/50 hover:bg-white/80 text-current border border-current/20 text-xs px-3 py-2 h-8"
                   >
                     {promotion.minAmount && cartTotal < promotion.minAmount
                       ? `Ajoutez ${formatPrice(promotion.minAmount - cartTotal)}`
-                      : `Appliquer ${promotion.code}`
-                    }
+                      : `Appliquer ${promotion.code}`}
                   </Button>
                 )}
               </div>

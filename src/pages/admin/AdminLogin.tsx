@@ -1,16 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Lock, Mail, Leaf, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useCsrfToken } from '@/hooks/useCsrfToken';
-import { emailSchema, passwordSchema, sanitizeInput, loginRateLimiter } from '@/utils/validation';
+import {
+  emailSchema,
+  passwordSchema,
+  sanitizeInput,
+  loginRateLimiter,
+} from '@/utils/validation';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
@@ -19,7 +30,8 @@ const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { signIn, user } = useAuth();
-  const { isAuthenticated: isAdminAuthenticated, isLoading: adminLoading } = useAdminAuth();
+  const { isAuthenticated: isAdminAuthenticated, isLoading: adminLoading } =
+    useAdminAuth();
   const { csrfToken } = useCsrfToken();
 
   // Redirect if already authenticated as admin
@@ -31,18 +43,20 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Rate limiting check
     const clientId = navigator.userAgent + window.location.hostname;
     if (!loginRateLimiter(clientId)) {
-      toast.error('Trop de tentatives. Veuillez attendre 15 minutes avant de réessayer.');
+      toast.error(
+        'Trop de tentatives. Veuillez attendre 15 minutes avant de réessayer.'
+      );
       return;
     }
 
     // Input validation and sanitization
     const sanitizedEmail = sanitizeInput(email);
     const sanitizedPassword = sanitizeInput(password);
-    
+
     try {
       emailSchema.parse(sanitizedEmail);
       passwordSchema.parse(sanitizedPassword);
@@ -50,15 +64,15 @@ const AdminLogin = () => {
       toast.error('Veuillez vérifier vos informations de connexion');
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
       await signIn(sanitizedEmail, sanitizedPassword);
       // Success - let useEffect handle the admin check and redirect
     } catch (error) {
       setIsLoading(false);
-      
+
       if (error instanceof Error) {
         if (error.message.includes('Invalid login credentials')) {
           toast.error('Email ou mot de passe incorrect');
@@ -76,7 +90,7 @@ const AdminLogin = () => {
   // Handle admin check after successful login
   // We track if we've just submitted the form and are waiting for admin verification
   const [pendingAdminCheck, setPendingAdminCheck] = useState(false);
-  
+
   useEffect(() => {
     // When login form is submitted successfully, mark that we're waiting for admin check
     if (user && isLoading && !pendingAdminCheck) {
@@ -89,12 +103,14 @@ const AdminLogin = () => {
     // Only evaluate admin status after the admin check has completed
     if (pendingAdminCheck && !adminLoading) {
       setPendingAdminCheck(false);
-      
+
       if (isAdminAuthenticated) {
         toast.success('Connexion administrateur réussie!');
         navigate('/admin', { replace: true });
       } else {
-        toast.error('Accès refusé. Ce compte n\'a pas les privilèges administrateur.');
+        toast.error(
+          "Accès refusé. Ce compte n'a pas les privilèges administrateur."
+        );
       }
     }
   }, [pendingAdminCheck, adminLoading, isAdminAuthenticated, navigate]);
@@ -108,14 +124,15 @@ const AdminLogin = () => {
               <Leaf className="h-8 w-8 text-olive-600" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-serif text-stone-800">Administration</CardTitle>
+          <CardTitle className="text-2xl font-serif text-stone-800">
+            Administration
+          </CardTitle>
           <CardDescription className="text-center">
             Connectez-vous pour accéder au panel d'administration
           </CardDescription>
         </CardHeader>
-        
-        <CardContent className="space-y-4">
 
+        <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <input type="hidden" name="csrf_token" value={csrfToken} />
             <div className="space-y-2">
@@ -140,7 +157,7 @@ const AdminLogin = () => {
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-stone-400" />
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -161,18 +178,20 @@ const AdminLogin = () => {
               </div>
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-olive-700 hover:bg-olive-800"
               disabled={isLoading || adminLoading}
             >
-              {isLoading || adminLoading ? "Connexion en cours..." : "Se connecter"}
+              {isLoading || adminLoading
+                ? 'Connexion en cours...'
+                : 'Se connecter'}
             </Button>
           </form>
 
           <div className="text-center pt-4">
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="text-sm text-stone-600 hover:text-olive-700 transition-colors"
             >
               ← Retour au site principal

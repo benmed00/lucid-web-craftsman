@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
-import { safeGetItem, safeSetItem, safeRemoveItem, StorageKeys, StorageTTL } from '@/lib/storage/safeStorage';
+import {
+  safeGetItem,
+  safeSetItem,
+  safeRemoveItem,
+  StorageKeys,
+  StorageTTL,
+} from '@/lib/storage/safeStorage';
 
 const MAX_RECENTLY_VIEWED = 10;
 
@@ -24,17 +30,17 @@ export const useRecentlyViewed = (): UseRecentlyViewedReturn => {
   // Save to storage when state changes (using safeStorage)
   useEffect(() => {
     if (recentlyViewed.length > 0) {
-      safeSetItem(StorageKeys.RECENTLY_VIEWED, recentlyViewed, { 
+      safeSetItem(StorageKeys.RECENTLY_VIEWED, recentlyViewed, {
         ttl: StorageTTL.MONTH,
-        maxSize: 50 * 1024 // 50KB max for recently viewed
+        maxSize: 50 * 1024, // 50KB max for recently viewed
       });
     }
   }, [recentlyViewed]);
 
   const addToRecentlyViewed = useCallback((product: Product) => {
-    setRecentlyViewed(prev => {
+    setRecentlyViewed((prev) => {
       // Remove if already exists
-      const filtered = prev.filter(p => p.id !== product.id);
+      const filtered = prev.filter((p) => p.id !== product.id);
       // Add to beginning
       const updated = [product, ...filtered];
       // Keep only MAX_RECENTLY_VIEWED items

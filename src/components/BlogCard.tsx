@@ -1,9 +1,8 @@
-
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Link } from "react-router-dom";
-import { BlogImage } from "@/components/ui/GlobalImage";
+import { ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
+import { BlogImage } from '@/components/ui/GlobalImage';
 
 interface BlogCardProps {
   post: {
@@ -19,7 +18,7 @@ interface BlogCardProps {
 
 const BlogCard = ({ post }: BlogCardProps) => {
   return (
-    <Card 
+    <Card
       className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300"
       role="article"
       aria-labelledby={`blog-title-${post.id}`}
@@ -35,18 +34,23 @@ const BlogCard = ({ post }: BlogCardProps) => {
       <CardContent className="p-6">
         <div className="flex items-center text-sm text-muted-foreground mb-3">
           <time dateTime={post.date}>{post.date}</time>
-          <span className="mx-2" aria-hidden="true">•</span>
+          <span className="mx-2" aria-hidden="true">
+            •
+          </span>
           <span className="text-muted-foreground">{post.category}</span>
         </div>
-        <Link to={`/blog/${post.id}`} aria-label={`Lire l'article complet: ${post.title}`}>
-          <h3 
+        <Link
+          to={`/blog/${post.id}`}
+          aria-label={`Lire l'article complet: ${post.title}`}
+        >
+          <h3
             id={`blog-title-${post.id}`}
             className="font-serif text-xl font-medium text-foreground mb-3 hover:text-primary transition-colors"
           >
             {post.title}
           </h3>
         </Link>
-        <p 
+        <p
           id={`blog-excerpt-${post.id}`}
           className="text-muted-foreground line-clamp-3"
         >
@@ -54,14 +58,20 @@ const BlogCard = ({ post }: BlogCardProps) => {
         </p>
       </CardContent>
       <CardFooter className="px-6 pb-6 pt-0 flex justify-between items-center">
-        <span className="text-sm font-medium text-muted-foreground">Par {post.author}</span>
-        <Link to={`/blog/${post.id}`} aria-label={`Lire la suite de l'article: ${post.title}`}>
-          <Button 
-            variant="ghost" 
+        <span className="text-sm font-medium text-muted-foreground">
+          Par {post.author}
+        </span>
+        <Link
+          to={`/blog/${post.id}`}
+          aria-label={`Lire la suite de l'article: ${post.title}`}
+        >
+          <Button
+            variant="ghost"
             className="text-primary hover:text-primary/80 p-0"
             aria-label={`Continuer la lecture: ${post.title}`}
           >
-            Lire la suite <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
+            Lire la suite{' '}
+            <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
           </Button>
         </Link>
       </CardFooter>

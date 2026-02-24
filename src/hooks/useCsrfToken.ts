@@ -10,7 +10,9 @@ interface CsrfToken {
 const generateSecureToken = (): string => {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
-  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join(
+    ''
+  );
 };
 
 // Generate a nonce for additional entropy
@@ -23,7 +25,7 @@ const hashToken = async (token: string, nonce: string): Promise<string> => {
   const data = new TextEncoder().encode(`${token}:${nonce}`);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 };
 
 export const useCsrfToken = () => {
@@ -35,16 +37,16 @@ export const useCsrfToken = () => {
       try {
         const stored = sessionStorage.getItem('csrf_token_v2');
         if (!stored) return null;
-        
+
         const parsed: CsrfToken = JSON.parse(stored);
         const now = Date.now();
-        
+
         // Token expires after 30 minutes for security
         if (now - parsed.timestamp > 30 * 60 * 1000) {
           sessionStorage.removeItem('csrf_token_v2');
           return null;
         }
-        
+
         return parsed;
       } catch {
         return null;
@@ -61,7 +63,7 @@ export const useCsrfToken = () => {
       const tokenData: CsrfToken = {
         token: newToken,
         nonce: newNonce,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
       sessionStorage.setItem('csrf_token_v2', JSON.stringify(tokenData));
       setCsrfToken(newToken);
@@ -82,7 +84,7 @@ export const useCsrfToken = () => {
     const tokenData: CsrfToken = {
       token: newToken,
       nonce: newNonce,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
     sessionStorage.setItem('csrf_token_v2', JSON.stringify(tokenData));
     setCsrfToken(newToken);
@@ -90,7 +92,9 @@ export const useCsrfToken = () => {
   }, []);
 
   // Get headers for API requests
-  const getCsrfHeaders = useCallback(async (): Promise<Record<string, string>> => {
+  const getCsrfHeaders = useCallback(async (): Promise<
+    Record<string, string>
+  > => {
     const hash = await getVerificationHash();
     return {
       'X-CSRF-Token': csrfToken,
@@ -99,11 +103,11 @@ export const useCsrfToken = () => {
     };
   }, [csrfToken, csrfNonce, getVerificationHash]);
 
-  return { 
-    csrfToken, 
-    csrfNonce, 
-    getVerificationHash, 
+  return {
+    csrfToken,
+    csrfNonce,
+    getVerificationHash,
     regenerateToken,
-    getCsrfHeaders 
+    getCsrfHeaders,
   };
 };

@@ -2,7 +2,7 @@
  * Checkout Session Hook
  * Persists checkout progress to database for tracking abandoned checkouts
  * and enabling admin visibility into incomplete orders.
- * 
+ *
  * NON-BLOCKING: Session tracking failures never prevent the user from checking out.
  */
 
@@ -13,7 +13,11 @@ import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { retryWithBackoffSilent } from '@/lib/retryWithBackoff';
 
 // Session status types
-export type CheckoutSessionStatus = 'in_progress' | 'completed' | 'abandoned' | 'payment_failed';
+export type CheckoutSessionStatus =
+  | 'in_progress'
+  | 'completed'
+  | 'abandoned'
+  | 'payment_failed';
 
 // Personal info as stored in DB
 export interface PersonalInfo {
@@ -81,7 +85,12 @@ interface UseCheckoutSessionReturn {
   savePersonalInfo: (data: PersonalInfo) => Promise<void>;
   saveShippingInfo: (data: ShippingInfo) => Promise<void>;
   savePromoCode: (data: PromoCodeData | null) => Promise<void>;
-  saveCartSnapshot: (items: CartItemSnapshot[], subtotal: number, shipping: number, total: number) => Promise<void>;
+  saveCartSnapshot: (
+    items: CartItemSnapshot[],
+    subtotal: number,
+    shipping: number,
+    total: number
+  ) => Promise<void>;
   updateStep: (currentStep: number, lastCompletedStep: number) => Promise<void>;
   markCompleted: (orderId: string) => Promise<void>;
   markPaymentFailed: () => Promise<void>;
@@ -90,14 +99,17 @@ interface UseCheckoutSessionReturn {
 
 export function useCheckoutSession(): UseCheckoutSessionReturn {
   const { user } = useOptimizedAuth();
-  const { getSessionData: getGuestData, isInitialized: isGuestReady } = useGuestSession();
-  
+  const { getSessionData: getGuestData, isInitialized: isGuestReady } =
+    useGuestSession();
+
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [sessionData, setSessionData] = useState<CheckoutSessionData | null>(null);
+  const [sessionData, setSessionData] = useState<CheckoutSessionData | null>(
+    null
+  );
   // NON-BLOCKING: start as false so checkout form renders immediately
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const initRef = useRef(false);
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
 
@@ -112,7 +124,9 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
         const guestData = getGuestData();
         // If guest session isn't ready yet, guestData may be null — wait for next render
         if (!guestData && !user) {
-          console.warn('[useCheckoutSession] No guest data or user — skipping session init');
+          console.warn(
+            '[useCheckoutSession] No guest data or user — skipping session init'
+          );
           return;
         }
         const guestId = guestData?.guest_id || null;
@@ -120,7 +134,7 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
 
         // Try to find existing active session
         let existingSession = null;
-        
+
         if (userId) {
           const { data } = await supabase
             .from('checkout_sessions')
@@ -189,11 +203,21 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
               if (insertError) {
                 // If 401/403 due to stale JWT, clear it so next retry uses anon key
                 const msg = insertError.message || '';
-                if (msg.includes('401') || msg.includes('JWT') || msg.includes('row-level security')) {
-                  console.warn('[useCheckoutSession] Stale JWT detected, cleaning auth state');
-                  const { cleanupAuthState } = await import('@/context/AuthContext');
+                if (
+                  msg.includes('401') ||
+                  msg.includes('JWT') ||
+                  msg.includes('row-level security')
+                ) {
+                  console.warn(
+                    '[useCheckoutSession] Stale JWT detected, cleaning auth state'
+                  );
+                  const { cleanupAuthState } = await import(
+                    '@/context/AuthContext'
+                  );
                   cleanupAuthState();
-                  await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+                  await supabase.auth
+                    .signOut({ scope: 'local' })
+                    .catch(() => {});
                 }
                 throw insertError;
               }
@@ -204,7 +228,10 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
               maxAttempts: 3,
               baseDelayMs: 1000,
               onRetry: (attempt, err) => {
-                console.warn(`[useCheckoutSession] Session creation retry #${attempt}:`, err);
+                console.warn(
+                  `[useCheckoutSession] Session creation retry #${attempt}:`,
+                  err
+                );
               },
             }
           );
@@ -252,151 +279,199 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
   }, []);
 
   // Update session in database
-  const updateSession = useCallback(async (updates: Record<string, unknown>) => {
-    if (!sessionId) return;
+  const updateSession = useCallback(
+    async (updates: Record<string, unknown>) => {
+      if (!sessionId) return;
 
-    try {
-      const { error: updateError } = await supabase
-        .from('checkout_sessions')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', sessionId);
+      try {
+        const { error: updateError } = await supabase
+          .from('checkout_sessions')
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', sessionId);
 
-      if (updateError) {
-        console.warn('[useCheckoutSession] Update failed (non-blocking):', updateError.message);
+        if (updateError) {
+          console.warn(
+            '[useCheckoutSession] Update failed (non-blocking):',
+            updateError.message
+          );
+        }
+      } catch (err) {
+        // Non-blocking
       }
-    } catch (err) {
-      // Non-blocking
-    }
-  }, [sessionId]);
+    },
+    [sessionId]
+  );
 
   // Save personal info (step 1 complete)
-  const savePersonalInfo = useCallback(async (data: PersonalInfo) => {
-    await queueUpdate(async () => {
-      // Read latest step from ref-like state to avoid stale closure
-      const currentStep = sessionData?.last_completed_step || 0;
-      const newStep = Math.max(currentStep, 1);
-      await updateSession({
-        personal_info: data,
-        last_completed_step: newStep,
+  const savePersonalInfo = useCallback(
+    async (data: PersonalInfo) => {
+      await queueUpdate(async () => {
+        // Read latest step from ref-like state to avoid stale closure
+        const currentStep = sessionData?.last_completed_step || 0;
+        const newStep = Math.max(currentStep, 1);
+        await updateSession({
+          personal_info: data,
+          last_completed_step: newStep,
+        });
+        setSessionData((prev) =>
+          prev
+            ? {
+                ...prev,
+                personal_info: data,
+                last_completed_step: Math.max(prev.last_completed_step, 1),
+              }
+            : null
+        );
       });
-      setSessionData(prev => prev ? {
-        ...prev,
-        personal_info: data,
-        last_completed_step: Math.max(prev.last_completed_step, 1),
-      } : null);
-    });
-  }, [queueUpdate, updateSession]);
+    },
+    [queueUpdate, updateSession]
+  );
 
   // Save shipping info (step 2 complete)
-  const saveShippingInfo = useCallback(async (data: ShippingInfo) => {
-    await queueUpdate(async () => {
-      const currentStep = sessionData?.last_completed_step || 0;
-      const newStep = Math.max(currentStep, 2);
-      await updateSession({
-        shipping_info: data,
-        last_completed_step: newStep,
+  const saveShippingInfo = useCallback(
+    async (data: ShippingInfo) => {
+      await queueUpdate(async () => {
+        const currentStep = sessionData?.last_completed_step || 0;
+        const newStep = Math.max(currentStep, 2);
+        await updateSession({
+          shipping_info: data,
+          last_completed_step: newStep,
+        });
+        setSessionData((prev) =>
+          prev
+            ? {
+                ...prev,
+                shipping_info: data,
+                last_completed_step: Math.max(prev.last_completed_step, 2),
+              }
+            : null
+        );
       });
-      setSessionData(prev => prev ? {
-        ...prev,
-        shipping_info: data,
-        last_completed_step: Math.max(prev.last_completed_step, 2),
-      } : null);
-    });
-  }, [queueUpdate, updateSession]);
+    },
+    [queueUpdate, updateSession]
+  );
 
   // Save promo code data
-  const savePromoCode = useCallback(async (data: PromoCodeData | null) => {
-    await queueUpdate(async () => {
-      if (data) {
-        await updateSession({
-          promo_code: data.code,
-          promo_code_valid: data.valid,
-          promo_discount_type: data.discount_type,
-          promo_discount_value: data.discount_value,
-          promo_discount_applied: data.discount_applied,
-          promo_free_shipping: data.free_shipping,
-        });
-      } else {
-        await updateSession({
-          promo_code: null,
-          promo_code_valid: null,
-          promo_discount_type: null,
-          promo_discount_value: null,
-          promo_discount_applied: null,
-          promo_free_shipping: false,
-        });
-      }
-      setSessionData(prev => prev ? {
-        ...prev,
-        promo_code: data?.code || null,
-        promo_code_valid: data?.valid || null,
-        promo_discount_type: data?.discount_type || null,
-        promo_discount_value: data?.discount_value || null,
-        promo_discount_applied: data?.discount_applied || null,
-        promo_free_shipping: data?.free_shipping || false,
-      } : null);
-    });
-  }, [queueUpdate, updateSession]);
+  const savePromoCode = useCallback(
+    async (data: PromoCodeData | null) => {
+      await queueUpdate(async () => {
+        if (data) {
+          await updateSession({
+            promo_code: data.code,
+            promo_code_valid: data.valid,
+            promo_discount_type: data.discount_type,
+            promo_discount_value: data.discount_value,
+            promo_discount_applied: data.discount_applied,
+            promo_free_shipping: data.free_shipping,
+          });
+        } else {
+          await updateSession({
+            promo_code: null,
+            promo_code_valid: null,
+            promo_discount_type: null,
+            promo_discount_value: null,
+            promo_discount_applied: null,
+            promo_free_shipping: false,
+          });
+        }
+        setSessionData((prev) =>
+          prev
+            ? {
+                ...prev,
+                promo_code: data?.code || null,
+                promo_code_valid: data?.valid || null,
+                promo_discount_type: data?.discount_type || null,
+                promo_discount_value: data?.discount_value || null,
+                promo_discount_applied: data?.discount_applied || null,
+                promo_free_shipping: data?.free_shipping || false,
+              }
+            : null
+        );
+      });
+    },
+    [queueUpdate, updateSession]
+  );
 
   // Save cart snapshot
-  const saveCartSnapshot = useCallback(async (
-    items: CartItemSnapshot[],
-    subtotal: number,
-    shipping: number,
-    total: number
-  ) => {
-    await queueUpdate(async () => {
-      await updateSession({
-        cart_items: items,
-        subtotal,
-        shipping_cost: shipping,
-        total,
+  const saveCartSnapshot = useCallback(
+    async (
+      items: CartItemSnapshot[],
+      subtotal: number,
+      shipping: number,
+      total: number
+    ) => {
+      await queueUpdate(async () => {
+        await updateSession({
+          cart_items: items,
+          subtotal,
+          shipping_cost: shipping,
+          total,
+        });
+        setSessionData((prev) =>
+          prev
+            ? {
+                ...prev,
+                cart_items: items,
+                subtotal,
+                shipping_cost: shipping,
+                total,
+              }
+            : null
+        );
       });
-      setSessionData(prev => prev ? {
-        ...prev,
-        cart_items: items,
-        subtotal,
-        shipping_cost: shipping,
-        total,
-      } : null);
-    });
-  }, [queueUpdate, updateSession]);
+    },
+    [queueUpdate, updateSession]
+  );
 
   // Update current step
-  const updateStep = useCallback(async (currentStep: number, lastCompletedStep: number) => {
-    await queueUpdate(async () => {
-      await updateSession({
-        current_step: currentStep,
-        last_completed_step: lastCompletedStep,
+  const updateStep = useCallback(
+    async (currentStep: number, lastCompletedStep: number) => {
+      await queueUpdate(async () => {
+        await updateSession({
+          current_step: currentStep,
+          last_completed_step: lastCompletedStep,
+        });
+        setSessionData((prev) =>
+          prev
+            ? {
+                ...prev,
+                current_step: currentStep,
+                last_completed_step: lastCompletedStep,
+              }
+            : null
+        );
       });
-      setSessionData(prev => prev ? {
-        ...prev,
-        current_step: currentStep,
-        last_completed_step: lastCompletedStep,
-      } : null);
-    });
-  }, [queueUpdate, updateSession]);
+    },
+    [queueUpdate, updateSession]
+  );
 
   // Mark session as completed with order link
-  const markCompleted = useCallback(async (orderId: string) => {
-    await queueUpdate(async () => {
-      await updateSession({
-        status: 'completed',
-        order_id: orderId,
-        completed_at: new Date().toISOString(),
-        last_completed_step: 3,
+  const markCompleted = useCallback(
+    async (orderId: string) => {
+      await queueUpdate(async () => {
+        await updateSession({
+          status: 'completed',
+          order_id: orderId,
+          completed_at: new Date().toISOString(),
+          last_completed_step: 3,
+        });
+        setSessionData((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: 'completed',
+                order_id: orderId,
+                last_completed_step: 3,
+              }
+            : null
+        );
       });
-      setSessionData(prev => prev ? {
-        ...prev,
-        status: 'completed',
-        order_id: orderId,
-        last_completed_step: 3,
-      } : null);
-    });
-  }, [queueUpdate, updateSession]);
+    },
+    [queueUpdate, updateSession]
+  );
 
   // Mark session as payment failed
   const markPaymentFailed = useCallback(async () => {
@@ -406,12 +481,16 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
         current_step: 3,
         last_completed_step: 2,
       });
-      setSessionData(prev => prev ? {
-        ...prev,
-        status: 'payment_failed',
-        current_step: 3,
-        last_completed_step: 2,
-      } : null);
+      setSessionData((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: 'payment_failed',
+              current_step: 3,
+              last_completed_step: 2,
+            }
+          : null
+      );
     });
   }, [queueUpdate, updateSession]);
 

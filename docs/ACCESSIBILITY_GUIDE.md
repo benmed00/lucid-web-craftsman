@@ -1,11 +1,13 @@
 # 🔍 Accessibility Guide - Rif Raw Straw Website
 
 ## Overview
+
 This document outlines the accessibility features implemented across the website to ensure compliance with WCAG 2.1 AA standards and provide an excellent user experience for all users, including those with disabilities.
 
 ## ✅ Implemented Accessibility Features
 
 ### 1. **Navigation & Structure**
+
 - **Skip Navigation**: Added "Skip to main content" link for keyboard users
 - **Semantic HTML**: Proper use of `<header>`, `<nav>`, `<main>`, `<section>`, `<article>`
 - **Heading Hierarchy**: Logical h1 → h2 → h3 structure throughout the site
@@ -13,7 +15,8 @@ This document outlines the accessibility features implemented across the website
 - **Current Page Indication**: `aria-current="page"` for active navigation links
 
 ### 2. **Mobile Menu Accessibility**
-- **ARIA Attributes**: 
+
+- **ARIA Attributes**:
   - `aria-expanded` indicates menu state
   - `aria-haspopup="true"` for menu button
   - `aria-controls` connects button to menu content
@@ -22,6 +25,7 @@ This document outlines the accessibility features implemented across the website
 - **Keyboard Navigation**: Full keyboard support for menu interaction
 
 ### 3. **Forms & Input Fields**
+
 - **Semantic Fieldsets**: Forms grouped with `<fieldset>` and `<legend>`
 - **Required Field Indicators**: `aria-required="true"` on mandatory fields
 - **Label Association**: All inputs properly associated with labels
@@ -30,6 +34,7 @@ This document outlines the accessibility features implemented across the website
 - **Input Types**: Proper input types (`email`, `tel`) for better mobile experience
 
 ### 4. **Interactive Elements**
+
 - **Touch Targets**: Minimum 44px touch targets for mobile accessibility
 - **Focus Indicators**: Visible focus rings using `focus-visible`
 - **Button States**: Clear hover, focus, and active states
@@ -37,12 +42,14 @@ This document outlines the accessibility features implemented across the website
 - **Disabled States**: Proper disabled button handling with `disabled:opacity-50`
 
 ### 5. **Images & Media**
+
 - **Alt Text**: Descriptive alt attributes for all images
 - **Decorative Images**: `alt=""` for purely decorative images
 - **Loading States**: Accessible image loading with fallback content
 - **Error Handling**: User-friendly error messages when images fail to load
 
 ### 6. **Product Cards**
+
 - **Semantic Structure**: Each card has `role="article"`
 - **Proper Labeling**: `aria-labelledby` and `aria-describedby` for complete product info
 - **Price Accessibility**: `aria-label` for price formatting
@@ -50,12 +57,14 @@ This document outlines the accessibility features implemented across the website
 - **Action Buttons**: Clear, descriptive button labels with context
 
 ### 7. **Color & Contrast**
+
 - **Design System**: Semantic color tokens ensure consistent contrast ratios
 - **Focus Indicators**: High contrast focus rings
 - **Error States**: Color combined with text/icons (not color alone)
 - **Status Messages**: Clear visual and textual indicators
 
 ### 8. **Keyboard Navigation**
+
 - **Tab Order**: Logical tab sequence throughout the site
 - **Skip Links**: Jump to main content functionality
 - **Menu Navigation**: Full keyboard control of mobile menu
@@ -64,13 +73,14 @@ This document outlines the accessibility features implemented across the website
 ## 🔧 Technical Implementation
 
 ### ARIA Patterns Used
+
 ```jsx
 // Navigation with proper ARIA
 <nav role="navigation" aria-label="Navigation principale">
   <ul>
     <li>
-      <Link 
-        to="/" 
+      <Link
+        to="/"
         aria-current={currentPath === "/" ? "page" : undefined}
       >
         Accueil
@@ -88,7 +98,7 @@ This document outlines the accessibility features implemented across the website
 >
 
 // Product cards with proper descriptions
-<Card 
+<Card
   role="article"
   aria-labelledby={`product-title-${product.id}`}
   aria-describedby={`product-price-${product.id}`}
@@ -96,6 +106,7 @@ This document outlines the accessibility features implemented across the website
 ```
 
 ### Form Accessibility Pattern
+
 ```jsx
 <fieldset className="space-y-6">
   <legend className="sr-only">Informations personnelles</legend>
@@ -116,22 +127,25 @@ This document outlines the accessibility features implemented across the website
 ```
 
 ### Focus Management
+
 ```css
 /* Custom focus indicators */
-.focus-visible:outline-none 
-.focus-visible:ring-2 
-.focus-visible:ring-ring 
+.focus-visible:outline-none
+.focus-visible:ring-2
+.focus-visible:ring-ring
 .focus-visible:ring-offset-2
 ```
 
 ## 📱 Mobile Accessibility
 
 ### Touch Targets
+
 - All interactive elements meet minimum 44px size requirement
 - Implemented via `min-h-[44px]` and `min-w-[44px]` classes
 - Added `touch-manipulation` CSS for better mobile interaction
 
 ### Mobile Menu
+
 - Full screen overlay with proper focus management
 - Large touch targets for mobile navigation
 - Swipe gesture support where appropriate
@@ -139,6 +153,7 @@ This document outlines the accessibility features implemented across the website
 ## 🎯 Testing Guidelines
 
 ### Manual Testing Checklist
+
 - [ ] Tab through entire page using keyboard only
 - [ ] Test with screen reader (NVDA, JAWS, VoiceOver)
 - [ ] Verify color contrast meets WCAG AA standards
@@ -148,11 +163,13 @@ This document outlines the accessibility features implemented across the website
 - [ ] Test skip navigation functionality
 
 ### Automated Testing
+
 - Use axe-core for automated accessibility auditing
 - Lighthouse accessibility score monitoring
 - Cypress tests for keyboard navigation
 
 ### Screen Reader Testing
+
 - Test with multiple screen readers
 - Verify proper announcement of dynamic content
 - Check form field descriptions and error messages
@@ -161,16 +178,19 @@ This document outlines the accessibility features implemented across the website
 ## 🚀 Continuous Improvement
 
 ### Regular Audits
+
 1. **Monthly**: Run automated accessibility tests
 2. **Quarterly**: Manual testing with real users
 3. **Annually**: Comprehensive accessibility audit
 
 ### User Feedback
+
 - Dedicated accessibility feedback channel
 - Regular user testing with disabled users
 - Community feedback integration
 
 ### Team Training
+
 - Regular accessibility training for developers
 - Design system includes accessibility guidelines
 - Code review process includes accessibility checks
@@ -178,15 +198,18 @@ This document outlines the accessibility features implemented across the website
 ## 📚 Resources
 
 ### WCAG Guidelines
+
 - [WCAG 2.1 AA Compliance](https://www.w3.org/WAI/WCAG21/quickref/?currentsidebar=%23col_overview&levels=aaa)
 - [WAI-ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/)
 
 ### Testing Tools
+
 - [axe-core](https://github.com/dequelabs/axe-core) - Automated testing
 - [WAVE](https://wave.webaim.org/) - Web accessibility evaluation
 - [Lighthouse](https://developers.google.com/web/tools/lighthouse) - Performance and accessibility
 
 ### Screen Readers
+
 - **Windows**: NVDA (free), JAWS
 - **macOS**: VoiceOver (built-in)
 - **Mobile**: TalkBack (Android), VoiceOver (iOS)
@@ -196,6 +219,7 @@ This document outlines the accessibility features implemented across the website
 **Current Rating: 9.2/10**
 
 ### Achievements
+
 ✅ Full keyboard navigation  
 ✅ Screen reader compatibility  
 ✅ WCAG 2.1 AA color contrast  
@@ -203,9 +227,10 @@ This document outlines the accessibility features implemented across the website
 ✅ Semantic HTML structure  
 ✅ Form accessibility  
 ✅ ARIA implementation  
-✅ Focus management  
+✅ Focus management
 
 ### Next Steps
+
 - [ ] Add more comprehensive error messaging
 - [ ] Implement advanced ARIA live regions
 - [ ] Enhanced mobile gesture support
@@ -213,4 +238,4 @@ This document outlines the accessibility features implemented across the website
 
 ---
 
-*This accessibility guide is a living document and should be updated as new features are added or accessibility standards evolve.*
+_This accessibility guide is a living document and should be updated as new features are added or accessibility standards evolve._

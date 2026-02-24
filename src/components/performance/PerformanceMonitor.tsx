@@ -5,8 +5,8 @@ import { taskScheduler } from '@/utils/taskScheduler';
  * Component Performance Monitor
  * Helps identify and optimize components that cause main thread blocking
  */
-export const PerformanceMonitor: React.FC<{ children: React.ReactNode }> = ({ 
-  children 
+export const PerformanceMonitor: React.FC<{ children: React.ReactNode }> = ({
+  children,
 }) => {
   const renderStartTime = useRef<number>();
   const componentName = useRef<string>('Anonymous');
@@ -16,9 +16,11 @@ export const PerformanceMonitor: React.FC<{ children: React.ReactNode }> = ({
     const mountEndTime = performance.now();
     if (renderStartTime.current) {
       const mountDuration = mountEndTime - renderStartTime.current;
-      
+
       if (mountDuration > 50) {
-        console.warn(`Component ${componentName.current} took ${mountDuration}ms to mount`);
+        console.warn(
+          `Component ${componentName.current} took ${mountDuration}ms to mount`
+        );
       }
     }
   }, []);
@@ -47,7 +49,7 @@ export const NonBlockingImageLoader: React.FC<{
         },
         3 // Process 3 images at a time
       );
-      
+
       onComplete?.();
     };
 
@@ -73,7 +75,7 @@ export const useOptimizedComputation = <T,>(
     if (isComputing) return;
 
     setIsComputing(true);
-    
+
     // Schedule computation to avoid blocking main thread
     taskScheduler.schedule(() => {
       try {

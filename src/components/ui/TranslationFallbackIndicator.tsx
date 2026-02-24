@@ -1,16 +1,20 @@
 /**
  * Translation Fallback Indicator
- * 
+ *
  * Visual indicator shown when content is displayed in a fallback language
  * because a translation is not available in the user's preferred language.
  */
 
-import { AlertTriangle, Globe, Info } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useTranslation } from "react-i18next";
-import { SupportedLocale } from "@/services/translationService";
-import { cn } from "@/lib/utils";
+import { AlertTriangle, Globe, Info } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { useTranslation } from 'react-i18next';
+import { SupportedLocale } from '@/services/translationService';
+import { cn } from '@/lib/utils';
 
 interface TranslationFallbackIndicatorProps {
   /** Whether a fallback translation is being used */
@@ -20,24 +24,24 @@ interface TranslationFallbackIndicatorProps {
   /** The user's preferred locale */
   preferredLocale?: SupportedLocale;
   /** Visual variant */
-  variant?: "badge" | "inline" | "tooltip";
+  variant?: 'badge' | 'inline' | 'tooltip';
   /** Additional className */
   className?: string;
 }
 
 const LOCALE_NAMES: Record<SupportedLocale, string> = {
-  fr: "Français",
-  en: "English",
-  ar: "العربية",
-  es: "Español",
-  de: "Deutsch",
+  fr: 'Français',
+  en: 'English',
+  ar: 'العربية',
+  es: 'Español',
+  de: 'Deutsch',
 };
 
 export function TranslationFallbackIndicator({
   isFallback,
   displayedLocale,
   preferredLocale,
-  variant = "badge",
+  variant = 'badge',
   className,
 }: TranslationFallbackIndicatorProps) {
   const { t } = useTranslation('common');
@@ -49,11 +53,13 @@ export function TranslationFallbackIndicator({
     language: LOCALE_NAMES[displayedLocale],
   });
 
-  if (variant === "tooltip") {
+  if (variant === 'tooltip') {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className={cn("inline-flex items-center cursor-help", className)}>
+          <span
+            className={cn('inline-flex items-center cursor-help', className)}
+          >
             <Globe className="h-3 w-3 text-amber-500" />
           </span>
         </TooltipTrigger>
@@ -64,11 +70,11 @@ export function TranslationFallbackIndicator({
     );
   }
 
-  if (variant === "inline") {
+  if (variant === 'inline') {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400",
+          'inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400',
           className
         )}
       >
@@ -83,7 +89,7 @@ export function TranslationFallbackIndicator({
     <Badge
       variant="outline"
       className={cn(
-        "text-xs border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
+        'text-xs border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
         className
       )}
     >
@@ -112,7 +118,7 @@ export function FallbackDot({
       <TooltipTrigger asChild>
         <span
           className={cn(
-            "inline-block w-2 h-2 rounded-full bg-amber-400 dark:bg-amber-500 animate-pulse cursor-help",
+            'inline-block w-2 h-2 rounded-full bg-amber-400 dark:bg-amber-500 animate-pulse cursor-help',
             className
           )}
           aria-label={`Shown in ${LOCALE_NAMES[locale]}`}

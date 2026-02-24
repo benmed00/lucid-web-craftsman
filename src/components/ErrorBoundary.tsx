@@ -1,6 +1,12 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface Props {
@@ -14,7 +20,7 @@ interface State {
 
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
-    hasError: false
+    hasError: false,
   };
 
   public static getDerivedStateFromError(error: Error): State {
@@ -60,7 +66,7 @@ class ErrorBoundary extends Component<Props, State> {
                 </div>
               )}
               <div className="flex gap-2">
-                <Button 
+                <Button
                   onClick={this.handleRetry}
                   variant="outline"
                   className="flex-1"
@@ -68,10 +74,7 @@ class ErrorBoundary extends Component<Props, State> {
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Réessayer
                 </Button>
-                <Button 
-                  onClick={this.handleReload}
-                  className="flex-1"
-                >
+                <Button onClick={this.handleReload} className="flex-1">
                   Recharger la page
                 </Button>
               </div>

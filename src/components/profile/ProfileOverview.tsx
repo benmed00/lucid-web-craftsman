@@ -7,13 +7,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Phone, Mail, User as UserIcon, Shield } from 'lucide-react';
+import {
+  Calendar,
+  MapPin,
+  Phone,
+  Mail,
+  User as UserIcon,
+  Shield,
+} from 'lucide-react';
 import ImageUpload from '@/components/ui/ImageUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { validateAndSanitizeName, sanitizeUserInput } from '@/utils/xssProtection';
+import {
+  validateAndSanitizeName,
+  sanitizeUserInput,
+} from '@/utils/xssProtection';
 
 interface Profile {
   id: string;
@@ -41,7 +51,11 @@ interface ProfileOverviewProps {
   onProfileUpdate: (updatedProfile?: any) => void;
 }
 
-export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverviewProps) {
+export function ProfileOverview({
+  user,
+  profile,
+  onProfileUpdate,
+}: ProfileOverviewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -57,7 +71,7 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
     website_url: profile?.website_url || '',
     instagram_handle: profile?.instagram_handle || '',
     facebook_url: profile?.facebook_url || '',
-    twitter_handle: profile?.twitter_handle || ''
+    twitter_handle: profile?.twitter_handle || '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,19 +81,39 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
     try {
       // Validate and sanitize input
       const sanitizedData = {
-        full_name: formData.full_name ? validateAndSanitizeName(formData.full_name) : null,
-        bio: formData.bio ? sanitizeUserInput(formData.bio).substring(0, 500) : null,
+        full_name: formData.full_name
+          ? validateAndSanitizeName(formData.full_name)
+          : null,
+        bio: formData.bio
+          ? sanitizeUserInput(formData.bio).substring(0, 500)
+          : null,
         phone: formData.phone ? sanitizeUserInput(formData.phone) : null,
-        location: formData.location ? sanitizeUserInput(formData.location) : null,
-        address_line1: formData.address_line1 ? sanitizeUserInput(formData.address_line1) : null,
-        address_line2: formData.address_line2 ? sanitizeUserInput(formData.address_line2) : null,
+        location: formData.location
+          ? sanitizeUserInput(formData.location)
+          : null,
+        address_line1: formData.address_line1
+          ? sanitizeUserInput(formData.address_line1)
+          : null,
+        address_line2: formData.address_line2
+          ? sanitizeUserInput(formData.address_line2)
+          : null,
         city: formData.city ? sanitizeUserInput(formData.city) : null,
-        postal_code: formData.postal_code ? sanitizeUserInput(formData.postal_code) : null,
+        postal_code: formData.postal_code
+          ? sanitizeUserInput(formData.postal_code)
+          : null,
         country: formData.country ? sanitizeUserInput(formData.country) : null,
-        website_url: formData.website_url ? sanitizeUserInput(formData.website_url) : null,
-        instagram_handle: formData.instagram_handle ? sanitizeUserInput(formData.instagram_handle) : null,
-        facebook_url: formData.facebook_url ? sanitizeUserInput(formData.facebook_url) : null,
-        twitter_handle: formData.twitter_handle ? sanitizeUserInput(formData.twitter_handle) : null
+        website_url: formData.website_url
+          ? sanitizeUserInput(formData.website_url)
+          : null,
+        instagram_handle: formData.instagram_handle
+          ? sanitizeUserInput(formData.instagram_handle)
+          : null,
+        facebook_url: formData.facebook_url
+          ? sanitizeUserInput(formData.facebook_url)
+          : null,
+        twitter_handle: formData.twitter_handle
+          ? sanitizeUserInput(formData.twitter_handle)
+          : null,
       };
 
       const { data, error } = await supabase
@@ -112,17 +146,20 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
       const uploadPromise = supabase.storage
         .from('avatars')
         .upload(filePath, file, { upsert: true });
-      
-      const timeoutPromise = new Promise<never>((_, reject) => 
+
+      const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Upload timeout after 30s')), 30000)
       );
 
-      const { error: uploadError } = await Promise.race([uploadPromise, timeoutPromise]);
+      const { error: uploadError } = await Promise.race([
+        uploadPromise,
+        timeoutPromise,
+      ]);
 
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-      
+
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: data.publicUrl })
@@ -135,7 +172,7 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
       toast.success('Avatar mis à jour avec succès');
     } catch (error: any) {
       console.error('Error uploading avatar:', error);
-      toast.error(error.message || 'Erreur lors du téléchargement de l\'avatar');
+      toast.error(error.message || "Erreur lors du téléchargement de l'avatar");
     }
   };
 
@@ -153,7 +190,7 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
       toast.success('Avatar supprimé avec succès');
     } catch (error: any) {
       console.error('Error removing avatar:', error);
-      toast.error('Erreur lors de la suppression de l\'avatar');
+      toast.error("Erreur lors de la suppression de l'avatar");
     }
   };
 
@@ -173,15 +210,21 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
               <Avatar className="h-32 w-32">
                 <AvatarImage src={profile?.avatar_url || ''} alt="Avatar" />
                 <AvatarFallback className="text-2xl">
-                  {profile?.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
+                  {profile?.full_name?.charAt(0)?.toUpperCase() ||
+                    user.email?.charAt(0)?.toUpperCase() ||
+                    'U'}
                 </AvatarFallback>
               </Avatar>
-              
+
               {isEditing && (
                 <div className="space-y-2">
                   <ImageUpload onImageUpload={handleAvatarUpload} />
                   {profile?.avatar_url && (
-                    <Button variant="outline" size="sm" onClick={handleRemoveAvatar}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRemoveAvatar}
+                    >
                       Supprimer l'avatar
                     </Button>
                   )}
@@ -199,7 +242,12 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
                       <Input
                         id="full_name"
                         value={formData.full_name}
-                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            full_name: e.target.value,
+                          })
+                        }
                         placeholder="Votre nom complet"
                       />
                     </div>
@@ -208,7 +256,9 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
                       <Input
                         id="phone"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, phone: e.target.value })
+                        }
                         placeholder="+33 1 23 45 67 89"
                       />
                     </div>
@@ -219,7 +269,9 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
                     <Textarea
                       id="bio"
                       value={formData.bio}
-                      onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, bio: e.target.value })
+                      }
                       placeholder="Parlez-nous de vous..."
                       rows={3}
                       maxLength={500}
@@ -232,7 +284,9 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
                       <Input
                         id="location"
                         value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, location: e.target.value })
+                        }
                         placeholder="Ville, Pays"
                       />
                     </div>
@@ -241,7 +295,12 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
                       <Input
                         id="website_url"
                         value={formData.website_url}
-                        onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            website_url: e.target.value,
+                          })
+                        }
                         placeholder="https://votre-site.com"
                       />
                     </div>
@@ -251,9 +310,9 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
                     <Button type="submit" disabled={isLoading}>
                       {isLoading ? 'Sauvegarde...' : 'Sauvegarder'}
                     </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
+                    <Button
+                      type="button"
+                      variant="outline"
                       onClick={() => setIsEditing(false)}
                     >
                       Annuler
@@ -268,11 +327,12 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
                     </h3>
                     <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
                       <Mail className="h-4 w-4" />
-                      <span className="break-all">
-                        {user.email}
-                      </span>
+                      <span className="break-all">{user.email}</span>
                       {user.email_confirmed_at && (
-                        <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                        <Badge
+                          variant="secondary"
+                          className="text-xs whitespace-nowrap"
+                        >
                           <Shield className="h-3 w-3 mr-1" />
                           Vérifié
                         </Badge>
@@ -291,23 +351,26 @@ export function ProfileOverview({ user, profile, onProfileUpdate }: ProfileOverv
                         <span>{profile.phone}</span>
                       </div>
                     )}
-                    
+
                     {profile?.location && (
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         <span>{profile.location}</span>
                       </div>
                     )}
-                    
+
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span>
-                        Membre depuis {format(new Date(user.created_at || ''), 'MMMM yyyy', { locale: fr })}
+                        Membre depuis{' '}
+                        {format(new Date(user.created_at || ''), 'MMMM yyyy', {
+                          locale: fr,
+                        })}
                       </span>
                     </div>
                   </div>
 
-                  <Button 
+                  <Button
                     onClick={() => setIsEditing(true)}
                     id="edit-profile-button"
                     name="edit-profile-action"

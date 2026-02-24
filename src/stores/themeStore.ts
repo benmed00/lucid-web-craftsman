@@ -11,11 +11,11 @@ interface ThemeState {
   // State
   theme: Theme;
   resolvedTheme: 'light' | 'dark';
-  
+
   // Actions
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
-  
+
   // Internal
   _updateResolvedTheme: () => void;
 }
@@ -23,7 +23,9 @@ interface ThemeState {
 // ============= Helpers =============
 const getSystemTheme = (): 'light' | 'dark' => {
   if (typeof window === 'undefined') return 'light';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light';
 };
 
 const applyThemeToDocument = (resolvedTheme: 'light' | 'dark') => {
@@ -62,7 +64,7 @@ export const useThemeStore = create<ThemeState>()(
           const resolved = theme === 'system' ? getSystemTheme() : theme;
           set({ resolvedTheme: resolved });
           applyThemeToDocument(resolved);
-        }
+        },
       }),
       {
         name: 'rif-raw-straw-theme',
@@ -72,7 +74,7 @@ export const useThemeStore = create<ThemeState>()(
           if (state) {
             state._updateResolvedTheme();
           }
-        }
+        },
       }
     ),
     { name: 'theme-store' }
@@ -109,7 +111,7 @@ export const useTheme = () => {
     theme,
     resolvedTheme,
     setTheme,
-    toggleTheme
+    toggleTheme,
   };
 };
 

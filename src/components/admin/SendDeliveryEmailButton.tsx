@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { CheckCircle, Send, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { CheckCircle, Send, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface SendDeliveryEmailButtonProps {
   orderId: string;
@@ -18,42 +26,53 @@ interface SendDeliveryEmailButtonProps {
   onEmailSent?: () => void;
 }
 
-export const SendDeliveryEmailButton = ({ orderId, orderItems, onEmailSent }: SendDeliveryEmailButtonProps) => {
+export const SendDeliveryEmailButton = ({
+  orderId,
+  orderItems,
+  onEmailSent,
+}: SendDeliveryEmailButtonProps) => {
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [formData, setFormData] = useState({
     customerEmail: '',
     customerName: '',
-    deliveryDate: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+    deliveryDate: new Date().toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }),
   });
 
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const sendEmail = async () => {
     if (!formData.customerEmail || !formData.customerName) {
-      toast.error('Veuillez remplir l\'email et le nom du client');
+      toast.error("Veuillez remplir l'email et le nom du client");
       return;
     }
 
     setSending(true);
     try {
-      const items = orderItems.map(item => ({
+      const items = orderItems.map((item) => ({
         name: item.product_snapshot?.name || 'Produit',
-        quantity: item.quantity
+        quantity: item.quantity,
       }));
 
-      const { data, error } = await supabase.functions.invoke('send-delivery-confirmation', {
-        body: {
-          orderId,
-          customerEmail: formData.customerEmail,
-          customerName: formData.customerName,
-          deliveryDate: formData.deliveryDate,
-          items,
-          reviewUrl: `https://rifrawstraw.com/products`
+      const { data, error } = await supabase.functions.invoke(
+        'send-delivery-confirmation',
+        {
+          body: {
+            orderId,
+            customerEmail: formData.customerEmail,
+            customerName: formData.customerName,
+            deliveryDate: formData.deliveryDate,
+            items,
+            reviewUrl: `https://rifrawstraw.com/products`,
+          },
         }
-      });
+      );
 
       if (error) throw error;
 
@@ -75,7 +94,11 @@ export const SendDeliveryEmailButton = ({ orderId, orderItems, onEmailSent }: Se
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1 text-green-600 hover:text-green-600">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1 text-green-600 hover:text-green-600"
+        >
           <CheckCircle className="h-3 w-3" />
           Livré
         </Button>
@@ -84,10 +107,11 @@ export const SendDeliveryEmailButton = ({ orderId, orderItems, onEmailSent }: Se
         <DialogHeader>
           <DialogTitle>Confirmer la livraison</DialogTitle>
           <DialogDescription>
-            Envoyez un email au client pour confirmer la livraison et demander un avis.
+            Envoyez un email au client pour confirmer la livraison et demander
+            un avis.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -127,7 +151,9 @@ export const SendDeliveryEmailButton = ({ orderId, orderItems, onEmailSent }: Se
             </p>
             <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
               {orderItems.map((item, index) => (
-                <li key={index}>✓ {item.product_snapshot?.name || 'Produit'} × {item.quantity}</li>
+                <li key={index}>
+                  ✓ {item.product_snapshot?.name || 'Produit'} × {item.quantity}
+                </li>
               ))}
             </ul>
           </div>

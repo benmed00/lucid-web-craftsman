@@ -1,7 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { AnomalyType, AnomalySeverity } from '@/types/order.types';
-import { ANOMALY_SEVERITY_CONFIG, ANOMALY_TYPE_CONFIG } from '@/types/order.types';
+import {
+  ANOMALY_SEVERITY_CONFIG,
+  ANOMALY_TYPE_CONFIG,
+} from '@/types/order.types';
 import {
   CreditCard,
   Package,
@@ -27,9 +30,12 @@ interface AnomalySeverityBadgeProps {
   size?: 'sm' | 'md';
 }
 
-export function AnomalySeverityBadge({ severity, size = 'sm' }: AnomalySeverityBadgeProps) {
+export function AnomalySeverityBadge({
+  severity,
+  size = 'sm',
+}: AnomalySeverityBadgeProps) {
   const config = ANOMALY_SEVERITY_CONFIG[severity];
-  
+
   return (
     <Badge
       variant="outline"
@@ -51,10 +57,14 @@ interface AnomalyTypeBadgeProps {
   showIcon?: boolean;
 }
 
-export function AnomalyTypeBadge({ type, size = 'sm', showIcon = true }: AnomalyTypeBadgeProps) {
+export function AnomalyTypeBadge({
+  type,
+  size = 'sm',
+  showIcon = true,
+}: AnomalyTypeBadgeProps) {
   const config = ANOMALY_TYPE_CONFIG[type];
   const Icon = iconMap[config.icon as keyof typeof iconMap];
-  
+
   return (
     <Badge
       variant="secondary"

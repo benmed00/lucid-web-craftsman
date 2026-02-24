@@ -17,7 +17,7 @@ interface ErrorConfig {
 const ERROR_MAP: Record<SupabaseErrorCode, ErrorConfig> = {
   '42501': {
     message: 'Accès refusé',
-    description: 'Vous n\'avez pas les permissions nécessaires.',
+    description: "Vous n'avez pas les permissions nécessaires.",
     severity: 'error',
   },
   '23505': {
@@ -35,7 +35,7 @@ const ERROR_MAP: Record<SupabaseErrorCode, ErrorConfig> = {
     description: 'Une table est introuvable. Contactez le support.',
     severity: 'error',
   },
-  'PGRST301': {
+  PGRST301: {
     message: 'Session expirée',
     description: 'Veuillez vous reconnecter.',
     severity: 'warning',
@@ -80,13 +80,15 @@ function isDuplicate(key: string): boolean {
  * Show a user-facing toast for a Supabase error.
  * Returns true if the error was handled (toast shown), false otherwise.
  */
-export function handleSupabaseError(
-  error: unknown,
-  context?: string
-): boolean {
+export function handleSupabaseError(error: unknown, context?: string): boolean {
   if (!error) return false;
 
-  const err = error as { code?: string; message?: string; details?: string; hint?: string };
+  const err = error as {
+    code?: string;
+    message?: string;
+    details?: string;
+    hint?: string;
+  };
   const code = err.code || '';
   const message = err.message || String(error);
 

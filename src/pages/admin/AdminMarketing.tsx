@@ -1,14 +1,27 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  Megaphone, 
+import { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Megaphone,
   Mail,
   Gift,
   Percent,
@@ -20,10 +33,10 @@ import {
   Trash2,
   Send,
   Target,
-  TrendingUp
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+  TrendingUp,
+} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface NewsletterSubscription {
   id: string;
@@ -67,24 +80,24 @@ const AdminMarketing = () => {
     newsletters: [],
     coupons: [],
     segments: [],
-    campaigns: []
+    campaigns: [],
   });
   const [loading, setLoading] = useState(true);
-  
+
   const [newCoupon, setNewCoupon] = useState({
-    code: "",
-    type: "percentage",
+    code: '',
+    type: 'percentage',
     value: 0,
     minimumAmount: 0,
-    validFrom: "",
-    validUntil: "",
-    usageLimit: "",
+    validFrom: '',
+    validUntil: '',
+    usageLimit: '',
   });
-  
+
   const [newsletterContent, setNewsletterContent] = useState({
-    subject: "",
-    content: "",
-    targetSegment: "all"
+    subject: '',
+    content: '',
+    targetSegment: 'all',
   });
 
   useEffect(() => {
@@ -94,7 +107,7 @@ const AdminMarketing = () => {
   const fetchMarketingData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch newsletter subscriptions
       const { data: newsletters, error: newsletterError } = await supabase
         .from('newsletter_subscriptions')
@@ -113,50 +126,76 @@ const AdminMarketing = () => {
       if (couponsError) throw couponsError;
 
       // Get customer segments using the database function
-      const { data: segmentsData, error: segmentsError } = await supabase
-        .rpc('get_customer_segments');
-      
+      const { data: segmentsData, error: segmentsError } = await supabase.rpc(
+        'get_customer_segments'
+      );
+
       let customerSegments: CustomerSegment[] = [];
-      
+
       if (!segmentsError && segmentsData) {
         // Type assertion for the RPC response
-        const segments = segmentsData as { total: number; new: number; returning: number; at_risk: number };
-        
+        const segments = segmentsData as {
+          total: number;
+          new: number;
+          returning: number;
+          at_risk: number;
+        };
+
         // Convert the database result to CustomerSegment format
         customerSegments = [
-          { 
-            id: "total", 
-            name: "Tous les clients", 
-            count: segments.total || 0, 
-            criteria: "Tous les clients enregistrés" 
+          {
+            id: 'total',
+            name: 'Tous les clients',
+            count: segments.total || 0,
+            criteria: 'Tous les clients enregistrés',
           },
-          { 
-            id: "new", 
-            name: "Nouveaux clients", 
-            count: segments.new || 0, 
-            criteria: "Inscrits dans les 30 derniers jours" 
+          {
+            id: 'new',
+            name: 'Nouveaux clients',
+            count: segments.new || 0,
+            criteria: 'Inscrits dans les 30 derniers jours',
           },
-          { 
-            id: "returning", 
-            name: "Clients fidèles", 
-            count: segments.returning || 0, 
-            criteria: "Plus d'une commande" 
+          {
+            id: 'returning',
+            name: 'Clients fidèles',
+            count: segments.returning || 0,
+            criteria: "Plus d'une commande",
           },
-          { 
-            id: "at_risk", 
-            name: "Clients à risque", 
-            count: segments.at_risk || 0, 
-            criteria: "Aucun achat depuis 90 jours" 
-          }
+          {
+            id: 'at_risk',
+            name: 'Clients à risque',
+            count: segments.at_risk || 0,
+            criteria: 'Aucun achat depuis 90 jours',
+          },
         ];
       } else if (segmentsError) {
         console.error('Error fetching customer segments:', segmentsError);
         // Fallback segments
         customerSegments = [
-          { id: "total", name: "Tous les clients", count: 0, criteria: "Tous les clients enregistrés" },
-          { id: "new", name: "Nouveaux clients", count: 0, criteria: "Inscrits dans les 30 derniers jours" },
-          { id: "returning", name: "Clients fidèles", count: 0, criteria: "Plus d'une commande" },
-          { id: "at_risk", name: "Clients à risque", count: 0, criteria: "Aucun achat depuis 90 jours" }
+          {
+            id: 'total',
+            name: 'Tous les clients',
+            count: 0,
+            criteria: 'Tous les clients enregistrés',
+          },
+          {
+            id: 'new',
+            name: 'Nouveaux clients',
+            count: 0,
+            criteria: 'Inscrits dans les 30 derniers jours',
+          },
+          {
+            id: 'returning',
+            name: 'Clients fidèles',
+            count: 0,
+            criteria: "Plus d'une commande",
+          },
+          {
+            id: 'at_risk',
+            name: 'Clients à risque',
+            count: 0,
+            criteria: 'Aucun achat depuis 90 jours',
+          },
         ];
       }
 
@@ -164,9 +203,8 @@ const AdminMarketing = () => {
         newsletters: newsletters || [],
         coupons: coupons || [],
         segments: customerSegments,
-        campaigns: [] // This could be expanded in the future
+        campaigns: [], // This could be expanded in the future
       });
-      
     } catch (error) {
       console.error('Error fetching marketing data:', error);
       toast.error('Erreur lors du chargement des données marketing');
@@ -177,7 +215,7 @@ const AdminMarketing = () => {
 
   const handleCreateCoupon = async () => {
     if (!newCoupon.code || !newCoupon.value) {
-      toast.error("Veuillez remplir tous les champs obligatoires");
+      toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
@@ -191,29 +229,31 @@ const AdminMarketing = () => {
           minimum_order_amount: newCoupon.minimumAmount || null,
           valid_from: newCoupon.validFrom || new Date().toISOString(),
           valid_until: newCoupon.validUntil || null,
-          usage_limit: newCoupon.usageLimit ? Number(newCoupon.usageLimit) : null,
-          is_active: true
+          usage_limit: newCoupon.usageLimit
+            ? Number(newCoupon.usageLimit)
+            : null,
+          is_active: true,
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      setMarketingData(prev => ({
+      setMarketingData((prev) => ({
         ...prev,
-        coupons: [data, ...prev.coupons]
+        coupons: [data, ...prev.coupons],
       }));
-      
+
       setNewCoupon({
-        code: "",
-        type: "percentage",
+        code: '',
+        type: 'percentage',
         value: 0,
         minimumAmount: 0,
-        validFrom: "",
-        validUntil: "",
-        usageLimit: "",
+        validFrom: '',
+        validUntil: '',
+        usageLimit: '',
       });
-      toast.success("Code de réduction créé avec succès");
+      toast.success('Code de réduction créé avec succès');
     } catch (error) {
       console.error('Error creating coupon:', error);
       toast.error('Erreur lors de la création du code de réduction');
@@ -222,24 +262,30 @@ const AdminMarketing = () => {
 
   const handleSendNewsletter = () => {
     if (!newsletterContent.subject || !newsletterContent.content) {
-      toast.error("Veuillez remplir le sujet et le contenu");
+      toast.error('Veuillez remplir le sujet et le contenu');
       return;
     }
 
-    const targetSegment = marketingData.segments.find(s => s.id === newsletterContent.targetSegment);
-    const targetCount = targetSegment ? targetSegment.count : marketingData.newsletters.length;
+    const targetSegment = marketingData.segments.find(
+      (s) => s.id === newsletterContent.targetSegment
+    );
+    const targetCount = targetSegment
+      ? targetSegment.count
+      : marketingData.newsletters.length;
 
     toast.success(`Newsletter programmée pour ${targetCount} destinataires`);
-    setNewsletterContent({ subject: "", content: "", targetSegment: "all" });
+    setNewsletterContent({ subject: '', content: '', targetSegment: 'all' });
   };
 
   const generateCode = () => {
-    const randomCode = 'PROMO' + Math.random().toString(36).substr(2, 6).toUpperCase();
-    setNewCoupon({...newCoupon, code: randomCode});
+    const randomCode =
+      'PROMO' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    setNewCoupon({ ...newCoupon, code: randomCode });
   };
 
   const deleteCoupon = async (couponId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce code de réduction ?')) return;
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce code de réduction ?'))
+      return;
 
     try {
       const { error } = await supabase
@@ -249,9 +295,9 @@ const AdminMarketing = () => {
 
       if (error) throw error;
 
-      setMarketingData(prev => ({
+      setMarketingData((prev) => ({
         ...prev,
-        coupons: prev.coupons.filter(c => c.id !== couponId)
+        coupons: prev.coupons.filter((c) => c.id !== couponId),
       }));
       toast.success('Code de réduction supprimé');
     } catch (error) {
@@ -292,7 +338,12 @@ const AdminMarketing = () => {
               <Input
                 id="couponCode"
                 value={newCoupon.code}
-                onChange={(e) => setNewCoupon({...newCoupon, code: e.target.value.toUpperCase()})}
+                onChange={(e) =>
+                  setNewCoupon({
+                    ...newCoupon,
+                    code: e.target.value.toUpperCase(),
+                  })
+                }
                 placeholder="PROMO15"
                 className="flex-1"
               />
@@ -309,7 +360,9 @@ const AdminMarketing = () => {
               type="number"
               min="1"
               value={newCoupon.value}
-              onChange={(e) => setNewCoupon({...newCoupon, value: Number(e.target.value)})}
+              onChange={(e) =>
+                setNewCoupon({ ...newCoupon, value: Number(e.target.value) })
+              }
               placeholder="15"
             />
           </div>
@@ -318,9 +371,11 @@ const AdminMarketing = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="couponType">Type</Label>
-            <select 
+            <select
               value={newCoupon.type}
-              onChange={(e) => setNewCoupon({...newCoupon, type: e.target.value})}
+              onChange={(e) =>
+                setNewCoupon({ ...newCoupon, type: e.target.value })
+              }
               className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-500"
             >
               <option value="percentage">Pourcentage (%)</option>
@@ -335,7 +390,12 @@ const AdminMarketing = () => {
               type="number"
               min="0"
               value={newCoupon.minimumAmount}
-              onChange={(e) => setNewCoupon({...newCoupon, minimumAmount: Number(e.target.value)})}
+              onChange={(e) =>
+                setNewCoupon({
+                  ...newCoupon,
+                  minimumAmount: Number(e.target.value),
+                })
+              }
               placeholder="50"
             />
           </div>
@@ -348,7 +408,9 @@ const AdminMarketing = () => {
               id="validFrom"
               type="date"
               value={newCoupon.validFrom}
-              onChange={(e) => setNewCoupon({...newCoupon, validFrom: e.target.value})}
+              onChange={(e) =>
+                setNewCoupon({ ...newCoupon, validFrom: e.target.value })
+              }
             />
           </div>
 
@@ -358,7 +420,9 @@ const AdminMarketing = () => {
               id="validUntil"
               type="date"
               value={newCoupon.validUntil}
-              onChange={(e) => setNewCoupon({...newCoupon, validUntil: e.target.value})}
+              onChange={(e) =>
+                setNewCoupon({ ...newCoupon, validUntil: e.target.value })
+              }
             />
           </div>
         </div>
@@ -369,12 +433,17 @@ const AdminMarketing = () => {
             id="usageLimit"
             type="number"
             value={newCoupon.usageLimit}
-            onChange={(e) => setNewCoupon({...newCoupon, usageLimit: e.target.value})}
+            onChange={(e) =>
+              setNewCoupon({ ...newCoupon, usageLimit: e.target.value })
+            }
             placeholder="100 (optionnel)"
           />
         </div>
 
-        <Button onClick={handleCreateCoupon} className="w-full bg-olive-700 hover:bg-olive-800">
+        <Button
+          onClick={handleCreateCoupon}
+          className="w-full bg-olive-700 hover:bg-olive-800"
+        >
           <Percent className="h-4 w-4 mr-2" />
           Créer le code de réduction
         </Button>
@@ -397,7 +466,12 @@ const AdminMarketing = () => {
           <Input
             id="subject"
             value={newsletterContent.subject}
-            onChange={(e) => setNewsletterContent({...newsletterContent, subject: e.target.value})}
+            onChange={(e) =>
+              setNewsletterContent({
+                ...newsletterContent,
+                subject: e.target.value,
+              })
+            }
             placeholder="Découvrez nos nouveautés printemps"
           />
         </div>
@@ -407,7 +481,12 @@ const AdminMarketing = () => {
           <Textarea
             id="content"
             value={newsletterContent.content}
-            onChange={(e) => setNewsletterContent({...newsletterContent, content: e.target.value})}
+            onChange={(e) =>
+              setNewsletterContent({
+                ...newsletterContent,
+                content: e.target.value,
+              })
+            }
             placeholder="Chers clients, nous sommes heureux de vous présenter..."
             rows={8}
           />
@@ -415,13 +494,20 @@ const AdminMarketing = () => {
 
         <div className="space-y-2">
           <Label htmlFor="newsletterTarget">Public cible</Label>
-          <select 
+          <select
             value={newsletterContent.targetSegment}
-            onChange={(e) => setNewsletterContent({...newsletterContent, targetSegment: e.target.value})}
+            onChange={(e) =>
+              setNewsletterContent({
+                ...newsletterContent,
+                targetSegment: e.target.value,
+              })
+            }
             className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-olive-500"
           >
-            <option value="all">Tous les clients ({marketingData.newsletters.length})</option>
-            {marketingData.segments.map(segment => (
+            <option value="all">
+              Tous les clients ({marketingData.newsletters.length})
+            </option>
+            {marketingData.segments.map((segment) => (
               <option key={segment.id} value={segment.id}>
                 {segment.name} ({segment.count})
               </option>
@@ -429,7 +515,10 @@ const AdminMarketing = () => {
           </select>
         </div>
 
-        <Button onClick={handleSendNewsletter} className="w-full bg-blue-700 hover:bg-blue-800">
+        <Button
+          onClick={handleSendNewsletter}
+          className="w-full bg-blue-700 hover:bg-blue-800"
+        >
           <Send className="h-4 w-4 mr-2" />
           Envoyer la newsletter
         </Button>
@@ -462,8 +551,12 @@ const AdminMarketing = () => {
                     <Percent className="h-6 w-6 text-olive-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-stone-800">Créer un code de réduction</h3>
-                    <p className="text-sm text-stone-600">Lancez une promotion pour stimuler les ventes</p>
+                    <h3 className="font-semibold text-stone-800">
+                      Créer un code de réduction
+                    </h3>
+                    <p className="text-sm text-stone-600">
+                      Lancez une promotion pour stimuler les ventes
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -481,8 +574,12 @@ const AdminMarketing = () => {
                     <Mail className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-stone-800">Envoyer une newsletter</h3>
-                    <p className="text-sm text-stone-600">Communiquez vos actualités à vos clients</p>
+                    <h3 className="font-semibold text-stone-800">
+                      Envoyer une newsletter
+                    </h3>
+                    <p className="text-sm text-stone-600">
+                      Communiquez vos actualités à vos clients
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -506,7 +603,10 @@ const AdminMarketing = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {marketingData.segments.map((segment) => (
-              <div key={segment.id} className="p-4 border border-stone-200 rounded-lg">
+              <div
+                key={segment.id}
+                className="p-4 border border-stone-200 rounded-lg"
+              >
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium text-stone-800">{segment.name}</h4>
                   <Badge variant="outline">{segment.count} clients</Badge>
@@ -515,10 +615,13 @@ const AdminMarketing = () => {
               </div>
             ))}
           </div>
-          
+
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h4 className="font-medium text-blue-800 mb-2">Newsletter</h4>
-            <p className="text-sm text-blue-700">{marketingData.newsletters.length} abonnés actifs à votre newsletter</p>
+            <p className="text-sm text-blue-700">
+              {marketingData.newsletters.length} abonnés actifs à votre
+              newsletter
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -531,7 +634,9 @@ const AdminMarketing = () => {
               <Percent className="h-5 w-5 mr-2 text-olive-600" />
               Codes de réduction
             </div>
-            <Badge variant="outline">{marketingData.coupons.filter(c => c.is_active).length} actifs</Badge>
+            <Badge variant="outline">
+              {marketingData.coupons.filter((c) => c.is_active).length} actifs
+            </Badge>
           </CardTitle>
           <CardDescription>
             Vos codes promotionnels et leur utilisation
@@ -541,26 +646,42 @@ const AdminMarketing = () => {
           <div className="space-y-4">
             {marketingData.coupons.length === 0 ? (
               <div className="text-center py-8 text-stone-600">
-                Aucun code de réduction créé. Créez votre premier code pour stimuler les ventes.
+                Aucun code de réduction créé. Créez votre premier code pour
+                stimuler les ventes.
               </div>
             ) : (
               marketingData.coupons.map((coupon) => (
-                <div key={coupon.id} className="p-4 border border-border rounded-lg">
+                <div
+                  key={coupon.id}
+                  className="p-4 border border-border rounded-lg"
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
                         <h4 className="font-medium text-foreground">
-                          Code: <span className="font-mono bg-muted px-2 py-1 rounded">{coupon.code}</span>
+                          Code:{' '}
+                          <span className="font-mono bg-muted px-2 py-1 rounded">
+                            {coupon.code}
+                          </span>
                         </h4>
-                        <Badge className={coupon.is_active ? "bg-status-success/10 text-status-success border-status-success/20" : "bg-muted text-muted-foreground border-border"}>
-                          {coupon.is_active ? "Actif" : "Inactif"}
+                        <Badge
+                          className={
+                            coupon.is_active
+                              ? 'bg-status-success/10 text-status-success border-status-success/20'
+                              : 'bg-muted text-muted-foreground border-border'
+                          }
+                        >
+                          {coupon.is_active ? 'Actif' : 'Inactif'}
                         </Badge>
                       </div>
-                      
+
                       <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">
-                          {coupon.type === 'percentage' ? `${coupon.value}% de réduction` : `${coupon.value}€ de réduction`}
-                          {coupon.minimum_order_amount && ` • Minimum ${coupon.minimum_order_amount}€`}
+                          {coupon.type === 'percentage'
+                            ? `${coupon.value}% de réduction`
+                            : `${coupon.value}€ de réduction`}
+                          {coupon.minimum_order_amount &&
+                            ` • Minimum ${coupon.minimum_order_amount}€`}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Utilisé {coupon.usage_count} fois
@@ -568,7 +689,10 @@ const AdminMarketing = () => {
                         </p>
                         {coupon.valid_until && (
                           <p className="text-sm text-muted-foreground">
-                            Expire le: {new Date(coupon.valid_until).toLocaleDateString('fr-FR')}
+                            Expire le:{' '}
+                            {new Date(coupon.valid_until).toLocaleDateString(
+                              'fr-FR'
+                            )}
                           </p>
                         )}
                       </div>
@@ -605,33 +729,47 @@ const AdminMarketing = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-status-success/10 border border-status-success/20 rounded-lg">
-              <h4 className="font-semibold text-status-success mb-2">💰 Opportunité de vente</h4>
+              <h4 className="font-semibold text-status-success mb-2">
+                💰 Opportunité de vente
+              </h4>
               <p className="text-sm text-status-success/80">
-                {marketingData.segments.find(s => s.id === 'at_risk')?.count || 0} clients n'ont pas commandé récemment. 
-                Une promotion ciblée pourrait les reconquérir.
+                {marketingData.segments.find((s) => s.id === 'at_risk')
+                  ?.count || 0}{' '}
+                clients n'ont pas commandé récemment. Une promotion ciblée
+                pourrait les reconquérir.
               </p>
             </div>
 
             <div className="p-4 bg-status-info/10 border border-status-info/20 rounded-lg">
-              <h4 className="font-semibold text-status-info mb-2">📧 Performance email</h4>
+              <h4 className="font-semibold text-status-info mb-2">
+                📧 Performance email
+              </h4>
               <p className="text-sm text-status-info/80">
-                Votre base de {marketingData.newsletters.length} abonnés est prête pour vos campagnes !
+                Votre base de {marketingData.newsletters.length} abonnés est
+                prête pour vos campagnes !
               </p>
             </div>
 
             <div className="p-4 bg-accent/10 border border-accent/20 rounded-lg">
-              <h4 className="font-semibold text-accent mb-2">🎯 Segmentation</h4>
+              <h4 className="font-semibold text-accent mb-2">
+                🎯 Segmentation
+              </h4>
               <p className="text-sm text-accent/80">
-                {marketingData.segments.find(s => s.id === 'returning')?.count || 0} clients fidèles. 
-                Créez des offres exclusives pour les récompenser.
+                {marketingData.segments.find((s) => s.id === 'returning')
+                  ?.count || 0}{' '}
+                clients fidèles. Créez des offres exclusives pour les
+                récompenser.
               </p>
             </div>
 
             <div className="p-4 bg-status-warning/10 border border-status-warning/20 rounded-lg">
-              <h4 className="font-semibold text-status-warning mb-2">🆕 Nouveaux clients</h4>
+              <h4 className="font-semibold text-status-warning mb-2">
+                🆕 Nouveaux clients
+              </h4>
               <p className="text-sm text-status-warning/80">
-                {marketingData.segments.find(s => s.id === 'new')?.count || 0} nouveaux clients ce mois ! 
-                Pensez à un email de bienvenue avec une offre spéciale.
+                {marketingData.segments.find((s) => s.id === 'new')?.count || 0}{' '}
+                nouveaux clients ce mois ! Pensez à un email de bienvenue avec
+                une offre spéciale.
               </p>
             </div>
           </div>

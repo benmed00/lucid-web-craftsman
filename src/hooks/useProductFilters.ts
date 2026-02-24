@@ -1,6 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Product, getArtisanStory, isProductNew } from '@/shared/interfaces/Iproduct.interface';
+import {
+  Product,
+  getArtisanStory,
+  isProductNew,
+} from '@/shared/interfaces/Iproduct.interface';
 
 export interface FilterOptions {
   category: string[];
@@ -17,44 +21,50 @@ interface UseProductFiltersProps {
 
 export const useProductFilters = ({ products }: UseProductFiltersProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   const [filters, setFilters] = useState<FilterOptions>({
     category: searchParams.getAll('category') || [],
     priceRange: [
       parseInt(searchParams.get('minPrice') || '0'),
-      parseInt(searchParams.get('maxPrice') || '200')
+      parseInt(searchParams.get('maxPrice') || '200'),
     ],
     sortBy: (searchParams.get('sortBy') as FilterOptions['sortBy']) || 'name',
     searchQuery: searchParams.get('q') || '',
     inStock: searchParams.get('inStock') === 'true',
-    isNew: searchParams.get('isNew') === 'true'
+    isNew: searchParams.get('isNew') === 'true',
   });
 
   // Available categories from products
   const availableCategories = useMemo(() => {
-    const categories = [...new Set(products.map(p => p.category))];
+    const categories = [...new Set(products.map((p) => p.category))];
     return categories.sort();
   }, [products]);
 
   // Price range bounds
   const priceRange = useMemo(() => {
-    const prices = products.map(p => p.price);
+    const prices = products.map((p) => p.price);
     return {
       min: Math.floor(Math.min(...prices)),
-      max: Math.ceil(Math.max(...prices))
+      max: Math.ceil(Math.max(...prices)),
     };
   }, [products]);
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
-    const filtered = products.filter(product => {
+    const filtered = products.filter((product) => {
       // Category filter
-      if (filters.category.length > 0 && !filters.category.includes(product.category)) {
+      if (
+        filters.category.length > 0 &&
+        !filters.category.includes(product.category)
+      ) {
         return false;
       }
 
       // Price range filter
-      if (product.price < filters.priceRange[0] || product.price > filters.priceRange[1]) {
+      if (
+        product.price < filters.priceRange[0] ||
+        product.price > filters.priceRange[1]
+      ) {
         return false;
       }
 
@@ -66,13 +76,13 @@ export const useProductFilters = ({ products }: UseProductFiltersProps) => {
           product.description,
           product.category,
           product.artisan,
-          getArtisanStory(product)
+          getArtisanStory(product),
         ].filter(Boolean);
-        
-        const matches = searchFields.some(field => 
+
+        const matches = searchFields.some((field) =>
           field?.toLowerCase().includes(query)
         );
-        
+
         if (!matches) return false;
       }
 
@@ -107,10 +117,10 @@ export const useProductFilters = ({ products }: UseProductFiltersProps) => {
   // Update URL params when filters change
   useEffect(() => {
     const params = new URLSearchParams();
-    
+
     // Add non-empty filters to URL
     if (filters.category.length > 0) {
-      filters.category.forEach(cat => params.append('category', cat));
+      filters.category.forEach((cat) => params.append('category', cat));
     }
     if (filters.priceRange[0] !== priceRange.min) {
       params.set('minPrice', filters.priceRange[0].toString());
@@ -132,7 +142,7 @@ export const useProductFilters = ({ products }: UseProductFiltersProps) => {
   }, [filters, priceRange.min, priceRange.max, setSearchParams]);
 
   const updateFilters = (newFilters: Partial<FilterOptions>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
   const resetFilters = () => {
@@ -142,7 +152,7 @@ export const useProductFilters = ({ products }: UseProductFiltersProps) => {
       sortBy: 'name',
       searchQuery: '',
       inStock: false,
-      isNew: false
+      isNew: false,
     });
   };
 
@@ -166,7 +176,11 @@ export const useProductFilters = ({ products }: UseProductFiltersProps) => {
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (filters.category.length > 0) count++;
-    if (filters.priceRange[0] !== priceRange.min || filters.priceRange[1] !== priceRange.max) count++;
+    if (
+      filters.priceRange[0] !== priceRange.min ||
+      filters.priceRange[1] !== priceRange.max
+    )
+      count++;
     if (filters.searchQuery) count++;
     if (filters.isNew) count++;
     return count;
@@ -182,6 +196,6 @@ export const useProductFilters = ({ products }: UseProductFiltersProps) => {
     clearFilter,
     activeFiltersCount,
     totalProducts: products.length,
-    filteredCount: filteredProducts.length
+    filteredCount: filteredProducts.length,
   };
 };

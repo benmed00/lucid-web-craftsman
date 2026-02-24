@@ -57,8 +57,8 @@ export const AdminReviews = () => {
 
       if (error) throw error;
 
-      setReviews(prevReviews =>
-        prevReviews.map(review =>
+      setReviews((prevReviews) =>
+        prevReviews.map((review) =>
           review.id === reviewId
             ? { ...review, is_approved: isApproved }
             : review
@@ -85,8 +85,8 @@ export const AdminReviews = () => {
 
       if (error) throw error;
 
-      setReviews(prevReviews =>
-        prevReviews.filter(review => review.id !== reviewId)
+      setReviews((prevReviews) =>
+        prevReviews.filter((review) => review.id !== reviewId)
       );
 
       toast.success('Avis supprimé avec succès');
@@ -118,7 +118,7 @@ export const AdminReviews = () => {
   const ReviewCard = ({ review }: { review: ReviewWithProduct }) => {
     const timeAgo = formatDistanceToNow(new Date(review.created_at), {
       addSuffix: true,
-      locale: fr
+      locale: fr,
     });
 
     return (
@@ -133,7 +133,9 @@ export const AdminReviews = () => {
                 </Avatar>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">Produit #{review.product_id}</span>
+                    <span className="font-medium">
+                      Produit #{review.product_id}
+                    </span>
                     {review.is_verified_purchase && (
                       <Badge variant="secondary" className="text-xs">
                         Achat vérifié
@@ -142,18 +144,21 @@ export const AdminReviews = () => {
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     <StarRating rating={review.rating} />
-                    <span className="text-sm text-muted-foreground">{timeAgo}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {timeAgo}
+                    </span>
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Badge
-                  variant={review.is_approved ? 'default' : 'secondary'}
-                >
+                <Badge variant={review.is_approved ? 'default' : 'secondary'}>
                   {review.is_approved ? 'Approuvé' : 'En attente'}
                 </Badge>
                 {review.reported_count > 0 && (
-                  <Badge variant="destructive" className="flex items-center gap-1">
+                  <Badge
+                    variant="destructive"
+                    className="flex items-center gap-1"
+                  >
                     <AlertTriangle className="w-3 h-3" />
                     {review.reported_count}
                   </Badge>
@@ -211,9 +216,9 @@ export const AdminReviews = () => {
     );
   };
 
-  const pendingReviews = reviews.filter(r => !r.is_approved);
-  const approvedReviews = reviews.filter(r => r.is_approved);
-  const reportedReviews = reviews.filter(r => r.reported_count > 0);
+  const pendingReviews = reviews.filter((r) => !r.is_approved);
+  const approvedReviews = reviews.filter((r) => r.is_approved);
+  const reportedReviews = reviews.filter((r) => r.reported_count > 0);
 
   if (loading) {
     return (
@@ -248,7 +253,9 @@ export const AdminReviews = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total des avis</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total des avis
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{reviews.length}</div>
@@ -298,9 +305,7 @@ export const AdminReviews = () => {
             <TabsTrigger value="reported">
               Signalés ({reportedReviews.length})
             </TabsTrigger>
-            <TabsTrigger value="all">
-              Tous ({reviews.length})
-            </TabsTrigger>
+            <TabsTrigger value="all">Tous ({reviews.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending" className="mt-6">
@@ -310,7 +315,7 @@ export const AdminReviews = () => {
                   Aucun avis en attente de modération
                 </div>
               ) : (
-                pendingReviews.map(review => (
+                pendingReviews.map((review) => (
                   <ReviewCard key={review.id} review={review} />
                 ))
               )}
@@ -324,7 +329,7 @@ export const AdminReviews = () => {
                   Aucun avis approuvé
                 </div>
               ) : (
-                approvedReviews.map(review => (
+                approvedReviews.map((review) => (
                   <ReviewCard key={review.id} review={review} />
                 ))
               )}
@@ -338,7 +343,7 @@ export const AdminReviews = () => {
                   Aucun avis signalé
                 </div>
               ) : (
-                reportedReviews.map(review => (
+                reportedReviews.map((review) => (
                   <ReviewCard key={review.id} review={review} />
                 ))
               )}
@@ -347,7 +352,7 @@ export const AdminReviews = () => {
 
           <TabsContent value="all" className="mt-6">
             <div className="space-y-4">
-              {reviews.map(review => (
+              {reviews.map((review) => (
                 <ReviewCard key={review.id} review={review} />
               ))}
             </div>

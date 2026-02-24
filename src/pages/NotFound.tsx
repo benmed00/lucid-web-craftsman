@@ -1,16 +1,16 @@
-import { Link, useLocation } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
-import PageFooter from "../components/PageFooter";
-import { useEffect } from "react";
+import PageFooter from '../components/PageFooter';
+import { useEffect } from 'react';
 
 const NotFound = () => {
   const location = useLocation();
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation('pages');
 
   useEffect(() => {
     console.error(
-      "404 Error: User attempted to access non-existent route:",
+      '404 Error: User attempted to access non-existent route:',
       location.pathname
     );
   }, [location.pathname]);
@@ -19,14 +19,14 @@ const NotFound = () => {
     <div
       className="min-h-screen flex flex-col bg-[#f7f3ee] relative overflow-hidden"
       style={{
-        backgroundColor: "#f7f3ee",
+        backgroundColor: '#f7f3ee',
       }}
     >
       {/* Straw weave effect */}
       <div
         className="absolute inset-0 z-0 pointer-events-none"
         style={{
-          background: "none",
+          background: 'none',
         }}
       >
         <svg
@@ -34,9 +34,9 @@ const NotFound = () => {
           height="100%"
           className="w-full h-full"
           style={{
-            transform: "translateY(-2vw)",
-            willChange: "transform",
-            transition: "transform 1.2s cubic-bezier(.4,0,.2,1)",
+            transform: 'translateY(-2vw)',
+            willChange: 'transform',
+            transition: 'transform 1.2s cubic-bezier(.4,0,.2,1)',
           }}
         >
           <defs>
@@ -71,9 +71,7 @@ const NotFound = () => {
       <div className="absolute inset-0 bg-gradient-to-tr from-[#f7f3ee]/90 via-[#e6dcc3]/60 to-[#bfae99]/40 z-0 pointer-events-none" />
 
       {/* Header */}
-      <div className="relative z-10">
-        
-      </div>
+      <div className="relative z-10"></div>
 
       {/* Main content */}
       <main className="relative z-10 flex-1 w-full max-w-2xl mx-auto px-6 py-16 flex flex-col items-center justify-center">
@@ -133,7 +131,7 @@ const NotFound = () => {
               fill="#bfae99"
               opacity="0.25"
               letterSpacing="6"
-              style={{ userSelect: "none" }}
+              style={{ userSelect: 'none' }}
             >
               404
             </text>
@@ -142,13 +140,13 @@ const NotFound = () => {
 
         {/* Message */}
         <h1 className="text-3xl md:text-4xl font-serif font-extrabold text-[#7d6e4a] mb-4 tracking-tight text-center">
-          {t("notFound.title")}
+          {t('notFound.title')}
         </h1>
         <h2 className="text-xl md:text-2xl font-serif text-[#7d8c6a] mb-2 text-center">
-          {t("notFound.subtitle")}
+          {t('notFound.subtitle')}
         </h2>
         <p className="text-base md:text-lg font-sans text-[#6b5c3a] mb-8 text-center">
-          {t("notFound.description")}
+          {t('notFound.description')}
         </p>
 
         {/* Main button */}
@@ -156,10 +154,10 @@ const NotFound = () => {
           to="/"
           className="inline-block px-8 py-3 rounded-full font-bold text-lg shadow transition-all duration-200 border-2 border-border bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           style={{
-            letterSpacing: "0.04em",
+            letterSpacing: '0.04em',
           }}
         >
-          {t("notFound.backHome")}
+          {t('notFound.backHome')}
         </Link>
       </main>
 

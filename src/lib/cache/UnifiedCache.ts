@@ -53,10 +53,10 @@ class UnifiedCacheManager {
    * Set a value in cache with optional TTL and tags
    */
   set<T>(
-    key: string, 
-    data: T, 
-    options?: { 
-      ttl?: number; 
+    key: string,
+    data: T,
+    options?: {
+      ttl?: number;
       staleTime?: number;
       tags?: string[];
     }
@@ -79,16 +79,20 @@ class UnifiedCacheManager {
    * Get a value from cache
    * Returns the data and whether it's stale (but still valid)
    */
-  get<T>(key: string): { data: T | null; isStale: boolean; isExpired: boolean } {
+  get<T>(key: string): {
+    data: T | null;
+    isStale: boolean;
+    isExpired: boolean;
+  } {
     const entry = this.cache.get(key) as CacheEntry<T> | undefined;
-    
+
     if (!entry) {
       this.stats.misses++;
       return { data: null, isStale: false, isExpired: true };
     }
 
     const age = Date.now() - entry.timestamp;
-    
+
     // Fully expired - remove and return null
     if (age > entry.ttl) {
       this.cache.delete(key);
@@ -98,7 +102,7 @@ class UnifiedCacheManager {
     }
 
     this.stats.hits++;
-    
+
     // Stale but still usable
     if (age > entry.staleTime) {
       return { data: entry.data, isStale: true, isExpired: false };
@@ -127,9 +131,14 @@ class UnifiedCacheManager {
     }
 
     let deleted = 0;
-    const regex = typeof pattern === 'string' 
-      ? new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '.*'))
-      : pattern;
+    const regex =
+      typeof pattern === 'string'
+        ? new RegExp(
+            pattern
+              .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+              .replace(/\\\*/g, '.*')
+          )
+        : pattern;
 
     for (const key of this.cache.keys()) {
       if (regex.test(key)) {
@@ -148,7 +157,7 @@ class UnifiedCacheManager {
    */
   invalidateByTag(tag: string): number {
     let deleted = 0;
-    
+
     for (const [key, entry] of this.cache.entries()) {
       if (entry.tags.includes(tag)) {
         this.cache.delete(key);
@@ -165,7 +174,7 @@ class UnifiedCacheManager {
    */
   update<T>(key: string, updater: (current: T | null) => T): boolean {
     const existing = this.cache.get(key) as CacheEntry<T> | undefined;
-    
+
     if (!existing) {
       return false;
     }
@@ -181,8 +190,8 @@ class UnifiedCacheManager {
   async getOrSet<T>(
     key: string,
     fetcher: () => Promise<T>,
-    options?: { 
-      ttl?: number; 
+    options?: {
+      ttl?: number;
       staleTime?: number;
       tags?: string[];
       forceRefresh?: boolean;
@@ -191,7 +200,7 @@ class UnifiedCacheManager {
     // Check cache first (unless forcing refresh)
     if (!options?.forceRefresh) {
       const cached = this.get<T>(key);
-      
+
       if (cached.data !== null && !cached.isExpired) {
         // If stale, trigger background refresh but return cached data
         if (cached.isStale) {
@@ -250,7 +259,7 @@ class UnifiedCacheManager {
    */
   private cleanup(): void {
     const now = Date.now();
-    
+
     for (const [key, entry] of this.cache.entries()) {
       if (now - entry.timestamp > entry.ttl) {
         this.cache.delete(key);
@@ -262,9 +271,12 @@ class UnifiedCacheManager {
   private startCleanup(): void {
     // Cleanup every 5 minutes - only in browser environment
     if (typeof window !== 'undefined' && typeof setInterval !== 'undefined') {
-      this.cleanupInterval = setInterval(() => {
-        this.cleanup();
-      }, 5 * 60 * 1000);
+      this.cleanupInterval = setInterval(
+        () => {
+          this.cleanup();
+        },
+        5 * 60 * 1000
+      );
     }
   }
 
@@ -303,10 +315,10 @@ export const cache = new UnifiedCacheManager();
 
 // ============= Preset Cache Configurations =============
 export const CacheTTL = {
-  SHORT: 2 * 60 * 1000,      // 2 minutes
-  MEDIUM: 10 * 60 * 1000,    // 10 minutes  
-  LONG: 30 * 60 * 1000,      // 30 minutes
-  HOUR: 60 * 60 * 1000,      // 1 hour
+  SHORT: 2 * 60 * 1000, // 2 minutes
+  MEDIUM: 10 * 60 * 1000, // 10 minutes
+  LONG: 30 * 60 * 1000, // 30 minutes
+  HOUR: 60 * 60 * 1000, // 1 hour
 } as const;
 
 export const CacheTags = {
@@ -322,7 +334,9 @@ export const CacheTags = {
 /**
  * Create a cache key from components
  */
-export function createCacheKey(...parts: (string | number | undefined | null)[]): string {
+export function createCacheKey(
+  ...parts: (string | number | undefined | null)[]
+): string {
   return parts.filter(Boolean).join('_');
 }
 
@@ -340,7 +354,10 @@ export function invalidateUserCache(userId?: string): number {
   if (userId) {
     return cache.invalidate(new RegExp(`.*${userId}.*`));
   }
-  return cache.invalidateByTag(CacheTags.PROFILE) + cache.invalidateByTag(CacheTags.ORDERS);
+  return (
+    cache.invalidateByTag(CacheTags.PROFILE) +
+    cache.invalidateByTag(CacheTags.ORDERS)
+  );
 }
 
 export { UnifiedCacheManager };

@@ -4,9 +4,9 @@ import './index.css';
 // Cache buster component - completely new file
 const AppNew = () => {
   // Production build - logging disabled
-  
+
   const [status] = React.useState('✅ Working!');
-  
+
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-md mx-auto text-center">

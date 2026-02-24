@@ -60,12 +60,14 @@ export function useOrders(filters?: OrderFilters) {
     queryFn: async () => {
       let query = supabase
         .from('orders')
-        .select(`
+        .select(
+          `
           *,
           order_items (
             id, product_id, quantity, unit_price, total_price, product_snapshot
           )
-        `)
+        `
+        )
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -88,7 +90,9 @@ export function useOrders(filters?: OrderFilters) {
         query = query.eq('carrier', filters.carrier);
       }
       if (filters?.search) {
-        query = query.or(`id.ilike.%${filters.search}%,tracking_number.ilike.%${filters.search}%`);
+        query = query.or(
+          `id.ilike.%${filters.search}%,tracking_number.ilike.%${filters.search}%`
+        );
       }
 
       const { data, error } = await query.limit(100);
@@ -105,15 +109,17 @@ export function useOrder(orderId: string | null) {
     queryKey: ['order', orderId],
     queryFn: async () => {
       if (!orderId) return null;
-      
+
       const { data, error } = await supabase
         .from('orders')
-        .select(`
+        .select(
+          `
           *,
           order_items (
             id, product_id, quantity, unit_price, total_price, product_snapshot
           )
-        `)
+        `
+        )
         .eq('id', orderId)
         .single();
 
@@ -130,7 +136,7 @@ export function useOrderHistory(orderId: string | null) {
     queryKey: ['order-history', orderId],
     queryFn: async () => {
       if (!orderId) return [];
-      
+
       const { data, error } = await supabase
         .from('order_status_history')
         .select('*')
@@ -145,7 +151,10 @@ export function useOrderHistory(orderId: string | null) {
 }
 
 // Fetch order anomalies
-export function useOrderAnomalies(orderId?: string | null, unresolvedOnly = false) {
+export function useOrderAnomalies(
+  orderId?: string | null,
+  unresolvedOnly = false
+) {
   return useQuery({
     queryKey: ['order-anomalies', orderId, unresolvedOnly],
     queryFn: async () => {
@@ -175,7 +184,7 @@ export function useValidTransitions(currentStatus: OrderStatus | null) {
     queryKey: ['order-transitions', currentStatus],
     queryFn: async () => {
       if (!currentStatus) return [];
-      
+
       const { data, error } = await supabase
         .from('order_state_transitions')
         .select('*')
@@ -201,12 +210,20 @@ export function useOrderStats() {
 
       const stats: OrderStats = {
         total: data.length,
-        pending_payment: data.filter(o => ['created', 'payment_pending'].includes(o.order_status)).length,
-        processing: data.filter(o => ['paid', 'validation_in_progress', 'validated', 'preparing'].includes(o.order_status)).length,
-        shipped: data.filter(o => ['shipped', 'in_transit'].includes(o.order_status)).length,
-        delivered: data.filter(o => o.order_status === 'delivered').length,
-        anomalies: data.filter(o => o.has_anomaly).length,
-        requires_attention: data.filter(o => o.requires_attention).length,
+        pending_payment: data.filter((o) =>
+          ['created', 'payment_pending'].includes(o.order_status)
+        ).length,
+        processing: data.filter((o) =>
+          ['paid', 'validation_in_progress', 'validated', 'preparing'].includes(
+            o.order_status
+          )
+        ).length,
+        shipped: data.filter((o) =>
+          ['shipped', 'in_transit'].includes(o.order_status)
+        ).length,
+        delivered: data.filter((o) => o.order_status === 'delivered').length,
+        anomalies: data.filter((o) => o.has_anomaly).length,
+        requires_attention: data.filter((o) => o.requires_attention).length,
       };
 
       return stats;
@@ -243,28 +260,34 @@ export function useUpdateOrderStatus() {
       });
 
       if (error) throw error;
-      
-      const result = data as unknown as { 
-        success: boolean; 
-        order_id?: string; 
-        old_status?: string; 
-        new_status?: string; 
+
+      const result = data as unknown as {
+        success: boolean;
+        order_id?: string;
+        old_status?: string;
+        new_status?: string;
         history_id?: string;
         auto_notify?: boolean;
         error?: string;
         message?: string;
       };
       if (!result.success) {
-        throw new Error(result.message || result.error || 'Failed to update status');
+        throw new Error(
+          result.message || result.error || 'Failed to update status'
+        );
       }
 
       return result;
     },
     onSuccess: (result) => {
-      toast.success(`Statut mis à jour: ${result.old_status} → ${result.new_status}`);
+      toast.success(
+        `Statut mis à jour: ${result.old_status} → ${result.new_status}`
+      );
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['order', result.order_id] });
-      queryClient.invalidateQueries({ queryKey: ['order-history', result.order_id] });
+      queryClient.invalidateQueries({
+        queryKey: ['order-history', result.order_id],
+      });
       queryClient.invalidateQueries({ queryKey: ['order-stats'] });
     },
     onError: (error: Error) => {
@@ -288,7 +311,7 @@ export function useResolveAnomaly() {
       resolutionAction?: string;
     }) => {
       const userId = (await supabase.auth.getUser()).data.user?.id;
-      
+
       const { data, error } = await supabase.rpc('resolve_order_anomaly', {
         p_anomaly_id: anomalyId,
         p_resolved_by: userId,
@@ -328,7 +351,7 @@ export function useCustomerOrder(orderId: string | null, locale = 'fr') {
       });
 
       if (error) throw error;
-      
+
       const result = data as unknown as CustomerOrderView & { error?: string };
       if (result?.error) throw new Error(result.error);
 
@@ -348,7 +371,8 @@ export function useCustomerOrders() {
 
       const { data, error } = await supabase
         .from('orders')
-        .select(`
+        .select(
+          `
           id,
           order_status,
           amount,
@@ -360,7 +384,8 @@ export function useCustomerOrders() {
           order_items (
             id, quantity, product_snapshot
           )
-        `)
+        `
+        )
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
@@ -388,9 +413,11 @@ export function useOrderRealtimeUpdates(orderId?: string) {
         (payload) => {
           // Invalidate relevant queries
           queryClient.invalidateQueries({ queryKey: ['orders'] });
-          queryClient.invalidateQueries({ queryKey: ['order', payload.new.id] });
+          queryClient.invalidateQueries({
+            queryKey: ['order', payload.new.id],
+          });
           queryClient.invalidateQueries({ queryKey: ['order-stats'] });
-          
+
           // Show toast for important status changes
           if (payload.old.order_status !== payload.new.order_status) {
             toast.info(`Commande ${payload.new.id.slice(0, 8)} mise à jour`);

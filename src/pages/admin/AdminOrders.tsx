@@ -1,30 +1,71 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { Package2, Search, Eye, RefreshCw, DollarSign, ShoppingCart, Clock, Truck, CheckCircle, Package, Filter, Mail, Phone, MapPin } from "lucide-react";
-import { toast } from "sonner";
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import {
+  Package2,
+  Search,
+  Eye,
+  RefreshCw,
+  DollarSign,
+  ShoppingCart,
+  Clock,
+  Truck,
+  CheckCircle,
+  Package,
+  Filter,
+  Mail,
+  Phone,
+  MapPin,
+} from 'lucide-react';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useCurrency } from '@/stores/currencyStore';
-import { AddOrderDialog } from "@/components/admin/AddOrderDialog";
-import { ManualTestOrderStatus } from "@/components/admin/ManualTestOrderStatus";
-import { TestOrderEmailButton } from "@/components/admin/TestOrderEmailButton";
-import { TestShippingEmailButton } from "@/components/admin/TestShippingEmailButton";
-import { TestDeliveryEmailButton } from "@/components/admin/TestDeliveryEmailButton";
-import { TestCancellationEmailButton } from "@/components/admin/TestCancellationEmailButton";
-import { SendShippingEmailButton } from "@/components/admin/SendShippingEmailButton";
-import { SendDeliveryEmailButton } from "@/components/admin/SendDeliveryEmailButton";
-import { SendCancellationEmailButton } from "@/components/admin/SendCancellationEmailButton";
-import { usePagination } from "@/hooks/usePagination";
-import TablePagination from "@/components/admin/TablePagination";
+import { AddOrderDialog } from '@/components/admin/AddOrderDialog';
+import { ManualTestOrderStatus } from '@/components/admin/ManualTestOrderStatus';
+import { TestOrderEmailButton } from '@/components/admin/TestOrderEmailButton';
+import { TestShippingEmailButton } from '@/components/admin/TestShippingEmailButton';
+import { TestDeliveryEmailButton } from '@/components/admin/TestDeliveryEmailButton';
+import { TestCancellationEmailButton } from '@/components/admin/TestCancellationEmailButton';
+import { SendShippingEmailButton } from '@/components/admin/SendShippingEmailButton';
+import { SendDeliveryEmailButton } from '@/components/admin/SendDeliveryEmailButton';
+import { SendCancellationEmailButton } from '@/components/admin/SendCancellationEmailButton';
+import { usePagination } from '@/hooks/usePagination';
+import TablePagination from '@/components/admin/TablePagination';
 
 interface OrderItem {
   id: string;
@@ -58,18 +99,23 @@ const AdminOrders = () => {
   const [shippingDialogOpen, setShippingDialogOpen] = useState(false);
   const [deliveryDialogOpen, setDeliveryDialogOpen] = useState(false);
   const [cancellationDialogOpen, setCancellationDialogOpen] = useState(false);
-  const [pendingShippedOrder, setPendingShippedOrder] = useState<Order | null>(null);
-  const [pendingDeliveredOrder, setPendingDeliveredOrder] = useState<Order | null>(null);
-  const [pendingCancelledOrder, setPendingCancelledOrder] = useState<Order | null>(null);
+  const [pendingShippedOrder, setPendingShippedOrder] = useState<Order | null>(
+    null
+  );
+  const [pendingDeliveredOrder, setPendingDeliveredOrder] =
+    useState<Order | null>(null);
+  const [pendingCancelledOrder, setPendingCancelledOrder] =
+    useState<Order | null>(null);
   const { formatPrice } = useCurrency();
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      
+
       const { data, error } = await supabase
         .from('orders')
-        .select(`
+        .select(
+          `
           *,
           order_items (
             id,
@@ -85,7 +131,8 @@ const AdminOrders = () => {
             amount,
             processed_at
           )
-        `)
+        `
+        )
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -114,23 +161,27 @@ const AdminOrders = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'orders'
+          table: 'orders',
         },
         (payload) => {
           console.log('Order change detected:', payload);
-          
+
           if (payload.eventType === 'INSERT') {
             // Fetch the new order with related data
             fetchOrderById(payload.new.id);
             toast.info('Nouvelle commande reçue!');
           } else if (payload.eventType === 'UPDATE') {
-            setOrders(prev => prev.map(order => 
-              order.id === payload.new.id 
-                ? { ...order, ...payload.new }
-                : order
-            ));
+            setOrders((prev) =>
+              prev.map((order) =>
+                order.id === payload.new.id
+                  ? { ...order, ...payload.new }
+                  : order
+              )
+            );
           } else if (payload.eventType === 'DELETE') {
-            setOrders(prev => prev.filter(order => order.id !== payload.old.id));
+            setOrders((prev) =>
+              prev.filter((order) => order.id !== payload.old.id)
+            );
           }
         }
       )
@@ -144,7 +195,8 @@ const AdminOrders = () => {
   const fetchOrderById = async (orderId: string) => {
     const { data, error } = await supabase
       .from('orders')
-      .select(`
+      .select(
+        `
         *,
         order_items (
           id,
@@ -160,18 +212,23 @@ const AdminOrders = () => {
           amount,
           processed_at
         )
-      `)
+      `
+      )
       .eq('id', orderId)
       .single();
 
     if (!error && data) {
-      setOrders(prev => [data as unknown as Order, ...prev]);
+      setOrders((prev) => [data as unknown as Order, ...prev]);
     }
   };
 
-  const updateOrderStatus = async (orderId: string, newStatus: string, skipPrompt = false) => {
-    const order = orders.find(o => o.id === orderId);
-    
+  const updateOrderStatus = async (
+    orderId: string,
+    newStatus: string,
+    skipPrompt = false
+  ) => {
+    const order = orders.find((o) => o.id === orderId);
+
     // If changing to shipped, prompt for shipping notification
     if (newStatus === 'shipped' && !skipPrompt && order) {
       setPendingShippedOrder(order);
@@ -187,7 +244,11 @@ const AdminOrders = () => {
     }
 
     // If changing to cancelled or refunded, prompt for cancellation notification
-    if ((newStatus === 'cancelled' || newStatus === 'refunded') && !skipPrompt && order) {
+    if (
+      (newStatus === 'cancelled' || newStatus === 'refunded') &&
+      !skipPrompt &&
+      order
+    ) {
       setPendingCancelledOrder(order);
       setCancellationDialogOpen(true);
       return;
@@ -196,9 +257,9 @@ const AdminOrders = () => {
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ 
+        .update({
           status: newStatus,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', orderId);
 
@@ -259,7 +320,11 @@ const AdminOrders = () => {
 
   const handleCancellationEmailSent = () => {
     if (pendingCancelledOrder) {
-      updateOrderStatus(pendingCancelledOrder.id, pendingCancelledOrder.status === 'refunded' ? 'refunded' : 'cancelled', true);
+      updateOrderStatus(
+        pendingCancelledOrder.id,
+        pendingCancelledOrder.status === 'refunded' ? 'refunded' : 'cancelled',
+        true
+      );
     }
     handleCancellationDialogClose();
   };
@@ -272,30 +337,45 @@ const AdminOrders = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+    const statusConfig: Record<
+      string,
+      {
+        label: string;
+        variant: 'default' | 'secondary' | 'destructive' | 'outline';
+      }
+    > = {
       pending: { label: 'En attente', variant: 'outline' },
       paid: { label: 'Payée', variant: 'default' },
       processing: { label: 'En cours', variant: 'secondary' },
       shipped: { label: 'Expédiée', variant: 'default' },
       delivered: { label: 'Livrée', variant: 'default' },
       cancelled: { label: 'Annulée', variant: 'destructive' },
-      refunded: { label: 'Remboursée', variant: 'destructive' }
+      refunded: { label: 'Remboursée', variant: 'destructive' },
     };
 
-    const config = statusConfig[status] || { label: status, variant: 'outline' };
+    const config = statusConfig[status] || {
+      label: status,
+      variant: 'outline',
+    };
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = searchTerm === '' || 
+  const filteredOrders = orders.filter((order) => {
+    const matchesSearch =
+      searchTerm === '' ||
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.stripe_session_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.order_items.some(item => 
-        item.product_snapshot?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      order.stripe_session_id
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      order.order_items.some((item) =>
+        item.product_snapshot?.name
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase())
       );
-    
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    
+
+    const matchesStatus =
+      statusFilter === 'all' || order.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
@@ -313,11 +393,19 @@ const AdminOrders = () => {
   } = usePagination({ items: filteredOrders, itemsPerPage: 10 });
 
   const totalRevenue = orders
-    .filter(order => order.status === 'paid' || order.status === 'processing' || order.status === 'shipped' || order.status === 'delivered')
+    .filter(
+      (order) =>
+        order.status === 'paid' ||
+        order.status === 'processing' ||
+        order.status === 'shipped' ||
+        order.status === 'delivered'
+    )
     .reduce((sum, order) => sum + (order.amount || 0), 0);
 
   const totalOrders = orders.length;
-  const pendingOrders = orders.filter(order => order.status === 'pending').length;
+  const pendingOrders = orders.filter(
+    (order) => order.status === 'pending'
+  ).length;
 
   if (loading) {
     return (
@@ -338,7 +426,9 @@ const AdminOrders = () => {
         <DialogHeader>
           <DialogTitle>Commande {selectedOrder.id.slice(-8)}</DialogTitle>
           <DialogDescription>
-            {format(new Date(selectedOrder.created_at), 'dd/MM/yyyy HH:mm', { locale: fr })}
+            {format(new Date(selectedOrder.created_at), 'dd/MM/yyyy HH:mm', {
+              locale: fr,
+            })}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -346,7 +436,9 @@ const AdminOrders = () => {
             <h4 className="font-medium mb-2">Articles:</h4>
             {selectedOrder.order_items.map((item) => (
               <div key={item.id} className="flex justify-between">
-                <span>{item.product_snapshot?.name || 'Produit'} × {item.quantity}</span>
+                <span>
+                  {item.product_snapshot?.name || 'Produit'} × {item.quantity}
+                </span>
                 <span>{formatPrice(item.total_price)}</span>
               </div>
             ))}
@@ -354,12 +446,19 @@ const AdminOrders = () => {
           <Separator />
           <div className="flex justify-between items-center">
             <span className="font-medium">Total:</span>
-            <span className="font-bold">{formatPrice(selectedOrder.amount / 100)}</span>
+            <span className="font-bold">
+              {formatPrice(selectedOrder.amount / 100)}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex-1">
               <h4 className="font-medium mb-2">Changer le statut:</h4>
-              <Select value={selectedOrder.status} onValueChange={(status) => updateOrderStatus(selectedOrder.id, status)}>
+              <Select
+                value={selectedOrder.status}
+                onValueChange={(status) =>
+                  updateOrderStatus(selectedOrder.id, status)
+                }
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -375,28 +474,30 @@ const AdminOrders = () => {
               </Select>
             </div>
           </div>
-          
+
           {/* Action buttons based on status */}
           <div className="flex flex-wrap gap-2 pt-2">
-            {(selectedOrder.status === 'shipped' || selectedOrder.status === 'processing') && (
-              <SendShippingEmailButton 
+            {(selectedOrder.status === 'shipped' ||
+              selectedOrder.status === 'processing') && (
+              <SendShippingEmailButton
                 orderId={selectedOrder.id}
                 orderItems={selectedOrder.order_items}
               />
             )}
             {selectedOrder.status === 'shipped' && (
-              <SendDeliveryEmailButton 
+              <SendDeliveryEmailButton
                 orderId={selectedOrder.id}
                 orderItems={selectedOrder.order_items}
               />
             )}
-            {(selectedOrder.status !== 'cancelled' && selectedOrder.status !== 'refunded') && (
-              <SendCancellationEmailButton 
-                orderId={selectedOrder.id}
-                orderAmount={selectedOrder.amount}
-                orderItems={selectedOrder.order_items}
-              />
-            )}
+            {selectedOrder.status !== 'cancelled' &&
+              selectedOrder.status !== 'refunded' && (
+                <SendCancellationEmailButton
+                  orderId={selectedOrder.id}
+                  orderAmount={selectedOrder.amount}
+                  orderItems={selectedOrder.order_items}
+                />
+              )}
           </div>
         </div>
       </DialogContent>
@@ -407,8 +508,12 @@ const AdminOrders = () => {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Gestion des Commandes</h1>
-          <p className="text-muted-foreground">Gérez toutes les commandes de votre boutique</p>
+          <h1 className="text-2xl font-bold text-foreground">
+            Gestion des Commandes
+          </h1>
+          <p className="text-muted-foreground">
+            Gérez toutes les commandes de votre boutique
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <AddOrderDialog onOrderAdded={fetchOrders} />
@@ -432,7 +537,7 @@ const AdminOrders = () => {
               <div>
                 <p className="text-sm text-muted-foreground">En attente</p>
                 <p className="text-2xl font-bold text-warning">
-                  {orders.filter(o => o.status === "pending").length}
+                  {orders.filter((o) => o.status === 'pending').length}
                 </p>
               </div>
               <Clock className="h-8 w-8 text-warning" />
@@ -446,7 +551,7 @@ const AdminOrders = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Expédiées</p>
                 <p className="text-2xl font-bold text-primary">
-                  {orders.filter(o => o.status === "shipped").length}
+                  {orders.filter((o) => o.status === 'shipped').length}
                 </p>
               </div>
               <Truck className="h-8 w-8 text-primary" />
@@ -460,7 +565,7 @@ const AdminOrders = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Terminées</p>
                 <p className="text-2xl font-bold text-success">
-                  {orders.filter(o => o.status === "delivered").length}
+                  {orders.filter((o) => o.status === 'delivered').length}
                 </p>
               </div>
               <CheckCircle className="h-8 w-8 text-success" />
@@ -472,7 +577,9 @@ const AdminOrders = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Chiffre d'affaires</p>
+                <p className="text-sm text-muted-foreground">
+                  Chiffre d'affaires
+                </p>
                 <p className="text-2xl font-bold text-primary">
                   {formatPrice(totalRevenue / 100)}
                 </p>
@@ -498,7 +605,7 @@ const AdminOrders = () => {
                 />
               </div>
             </div>
-            
+
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-48">
                 <Filter className="h-4 w-4 mr-2" />
@@ -525,23 +632,43 @@ const AdminOrders = () => {
             <table className="w-full">
               <thead className="bg-muted border-b border-border">
                 <tr>
-                  <th className="text-left p-4 font-medium text-foreground">Commande</th>
-                  <th className="text-left p-4 font-medium text-foreground">Client</th>
-                  <th className="text-left p-4 font-medium text-foreground">Date</th>
-                  <th className="text-left p-4 font-medium text-foreground">Total</th>
-                  <th className="text-left p-4 font-medium text-foreground">Statut</th>
-                  <th className="text-left p-4 font-medium text-foreground">Paiement</th>
-                  <th className="text-left p-4 font-medium text-foreground">Actions</th>
+                  <th className="text-left p-4 font-medium text-foreground">
+                    Commande
+                  </th>
+                  <th className="text-left p-4 font-medium text-foreground">
+                    Client
+                  </th>
+                  <th className="text-left p-4 font-medium text-foreground">
+                    Date
+                  </th>
+                  <th className="text-left p-4 font-medium text-foreground">
+                    Total
+                  </th>
+                  <th className="text-left p-4 font-medium text-foreground">
+                    Statut
+                  </th>
+                  <th className="text-left p-4 font-medium text-foreground">
+                    Paiement
+                  </th>
+                  <th className="text-left p-4 font-medium text-foreground">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedOrders.map((order) => (
-                  <tr key={order.id} className="border-b border-border hover:bg-muted/50">
+                  <tr
+                    key={order.id}
+                    className="border-b border-border hover:bg-muted/50"
+                  >
                     <td className="p-4">
                       <div>
-                        <p className="font-medium text-foreground">{order.id.slice(-8)}</p>
+                        <p className="font-medium text-foreground">
+                          {order.id.slice(-8)}
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          {order.order_items.length} article{order.order_items.length > 1 ? 's' : ''}
+                          {order.order_items.length} article
+                          {order.order_items.length > 1 ? 's' : ''}
                         </p>
                       </div>
                     </td>
@@ -552,10 +679,14 @@ const AdminOrders = () => {
                     </td>
                     <td className="p-4">
                       <p className="text-sm text-foreground">
-                        {format(new Date(order.created_at), 'dd/MM/yyyy', { locale: fr })}
+                        {format(new Date(order.created_at), 'dd/MM/yyyy', {
+                          locale: fr,
+                        })}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(order.created_at), 'HH:mm', { locale: fr })}
+                        {format(new Date(order.created_at), 'HH:mm', {
+                          locale: fr,
+                        })}
                       </p>
                     </td>
                     <td className="p-4">
@@ -563,19 +694,25 @@ const AdminOrders = () => {
                         {formatPrice(order.amount / 100)}
                       </p>
                     </td>
+                    <td className="p-4">{getStatusBadge(order.status)}</td>
                     <td className="p-4">
-                      {getStatusBadge(order.status)}
-                    </td>
-                    <td className="p-4">
-                      <Badge variant={order.payments?.some(p => p.status === 'completed') ? 'default' : 'outline'}>
-                        {order.payments?.some(p => p.status === 'completed') ? 'Payé' : 'En attente'}
+                      <Badge
+                        variant={
+                          order.payments?.some((p) => p.status === 'completed')
+                            ? 'default'
+                            : 'outline'
+                        }
+                      >
+                        {order.payments?.some((p) => p.status === 'completed')
+                          ? 'Payé'
+                          : 'En attente'}
                       </Badge>
                     </td>
                     <td className="p-4">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => setSelectedOrder(order)}
                           >
@@ -614,16 +751,15 @@ const AdminOrders = () => {
           <DialogHeader>
             <DialogTitle>Envoyer une notification d'expédition?</DialogTitle>
             <DialogDescription>
-              Voulez-vous envoyer un email de notification d'expédition au client?
+              Voulez-vous envoyer un email de notification d'expédition au
+              client?
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={handleSkipShippingEmail}>
               Non, mettre à jour seulement
             </Button>
-            <Button onClick={handleShippingEmailSent}>
-              Oui, envoyer
-            </Button>
+            <Button onClick={handleShippingEmailSent}>Oui, envoyer</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -634,36 +770,40 @@ const AdminOrders = () => {
           <DialogHeader>
             <DialogTitle>Envoyer une confirmation de livraison?</DialogTitle>
             <DialogDescription>
-              Voulez-vous envoyer un email de confirmation de livraison au client?
+              Voulez-vous envoyer un email de confirmation de livraison au
+              client?
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={handleSkipDeliveryEmail}>
               Non, mettre à jour seulement
             </Button>
-            <Button onClick={handleDeliveryEmailSent}>
-              Oui, envoyer
-            </Button>
+            <Button onClick={handleDeliveryEmailSent}>Oui, envoyer</Button>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Cancellation notification dialog */}
-      <Dialog open={cancellationDialogOpen} onOpenChange={setCancellationDialogOpen}>
+      <Dialog
+        open={cancellationDialogOpen}
+        onOpenChange={setCancellationDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Envoyer une notification d'annulation?</DialogTitle>
             <DialogDescription>
-              Voulez-vous envoyer un email de notification d'annulation au client?
+              Voulez-vous envoyer un email de notification d'annulation au
+              client?
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => handleSkipCancellationEmail('cancelled')}>
+            <Button
+              variant="outline"
+              onClick={() => handleSkipCancellationEmail('cancelled')}
+            >
               Non, annuler seulement
             </Button>
-            <Button onClick={handleCancellationEmailSent}>
-              Oui, envoyer
-            </Button>
+            <Button onClick={handleCancellationEmailSent}>Oui, envoyer</Button>
           </div>
         </DialogContent>
       </Dialog>

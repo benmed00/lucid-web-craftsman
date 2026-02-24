@@ -15,7 +15,9 @@ const throttle = (fn: Function, ms: number) => {
   let timer: NodeJS.Timeout | null = null;
   const throttledFn = (...args: any[]) => {
     if (!timer) {
-      timer = setTimeout(() => { timer = null; }, ms);
+      timer = setTimeout(() => {
+        timer = null;
+      }, ms);
       fn(...args);
     }
   };
@@ -42,13 +44,13 @@ export const usePerformanceMonitor = () => {
 
   useEffect(() => {
     const startTime = performance.now();
-    
+
     return () => {
       const endTime = performance.now();
       const renderTime = endTime - startTime;
-      
+
       metricsRef.current.renderCount++;
-      metricsRef.current.averageRenderTime = 
+      metricsRef.current.averageRenderTime =
         (metricsRef.current.averageRenderTime + renderTime) / 2;
       metricsRef.current.lastRenderTime = renderTime;
     };
@@ -76,9 +78,9 @@ export const useOptimizedScroll = (
 
   useEffect(() => {
     const handleScroll = () => throttledCallback(window.scrollY);
-    
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       throttledCallback.cancel();
@@ -92,9 +94,10 @@ export const useOptimizedResize = (
   deps: any[] = []
 ) => {
   const debouncedCallback = useMemo(
-    () => debounce((width: number, height: number) => {
-      callback(width, height);
-    }, 150),
+    () =>
+      debounce((width: number, height: number) => {
+        callback(width, height);
+      }, 150),
     deps
   );
 
@@ -102,12 +105,12 @@ export const useOptimizedResize = (
     const handleResize = () => {
       debouncedCallback(window.innerWidth, window.innerHeight);
     };
-    
+
     window.addEventListener('resize', handleResize, { passive: true });
-    
+
     // Call immediately with current dimensions
     handleResize();
-    
+
     return () => {
       window.removeEventListener('resize', handleResize);
       debouncedCallback.cancel();
@@ -123,14 +126,14 @@ export const useVirtualScrolling = <T>(
   overscan: number = 5
 ) => {
   const [scrollTop, setScrollTop] = useState(0);
-  
+
   const visibleRange = useMemo(() => {
     const start = Math.floor(scrollTop / itemHeight);
     const end = Math.min(
       start + Math.ceil(containerHeight / itemHeight),
       items.length - 1
     );
-    
+
     return {
       start: Math.max(0, start - overscan),
       end: Math.min(items.length - 1, end + overscan),
@@ -162,50 +165,59 @@ export const useOptimizedImageLoading = () => {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const loadingRef = useRef<Set<string>>(new Set());
 
-  const preloadImage = useCallback((src: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (loadedImages.has(src)) {
-        resolve();
-        return;
-      }
+  const preloadImage = useCallback(
+    (src: string): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        if (loadedImages.has(src)) {
+          resolve();
+          return;
+        }
 
-      if (loadingRef.current.has(src)) {
-        // Already loading, wait for it
-        const checkLoaded = () => {
-          if (loadedImages.has(src)) {
-            resolve();
-          } else {
-            setTimeout(checkLoaded, 50);
-          }
+        if (loadingRef.current.has(src)) {
+          // Already loading, wait for it
+          const checkLoaded = () => {
+            if (loadedImages.has(src)) {
+              resolve();
+            } else {
+              setTimeout(checkLoaded, 50);
+            }
+          };
+          checkLoaded();
+          return;
+        }
+
+        loadingRef.current.add(src);
+
+        const img = new Image();
+        img.onload = () => {
+          setLoadedImages((prev) => new Set(prev).add(src));
+          loadingRef.current.delete(src);
+          resolve();
         };
-        checkLoaded();
-        return;
-      }
+        img.onerror = () => {
+          loadingRef.current.delete(src);
+          reject(new Error(`Failed to load image: ${src}`));
+        };
+        img.src = src;
+      });
+    },
+    [loadedImages]
+  );
 
-      loadingRef.current.add(src);
-      
-      const img = new Image();
-      img.onload = () => {
-        setLoadedImages(prev => new Set(prev).add(src));
-        loadingRef.current.delete(src);
-        resolve();
-      };
-      img.onerror = () => {
-        loadingRef.current.delete(src);
-        reject(new Error(`Failed to load image: ${src}`));
-      };
-      img.src = src;
-    });
-  }, [loadedImages]);
+  const preloadImages = useCallback(
+    async (sources: string[]) => {
+      const promises = sources.map((src) => preloadImage(src));
+      await Promise.allSettled(promises);
+    },
+    [preloadImage]
+  );
 
-  const preloadImages = useCallback(async (sources: string[]) => {
-    const promises = sources.map(src => preloadImage(src));
-    await Promise.allSettled(promises);
-  }, [preloadImage]);
-
-  const isLoaded = useCallback((src: string) => {
-    return loadedImages.has(src);
-  }, [loadedImages]);
+  const isLoaded = useCallback(
+    (src: string) => {
+      return loadedImages.has(src);
+    },
+    [loadedImages]
+  );
 
   return {
     preloadImage,
@@ -225,7 +237,7 @@ export const useMemoryOptimization = () => {
 
   useEffect(() => {
     return () => {
-      cleanupTasks.current.forEach(task => {
+      cleanupTasks.current.forEach((task) => {
         try {
           task();
         } catch (error) {
@@ -256,7 +268,7 @@ export const dynamicImport = <T>(
 ) => {
   return new Promise<T>((resolve) => {
     importFn()
-      .then(module => resolve(module.default))
+      .then((module) => resolve(module.default))
       .catch(() => {
         if (fallback) {
           resolve(fallback);
@@ -278,7 +290,7 @@ export const useCriticalResourceLoading = () => {
       // Font loading
       document.fonts.ready,
       // Critical images
-      new Promise(resolve => {
+      new Promise((resolve) => {
         const img = new Image();
         img.onload = resolve;
         img.onerror = resolve; // Continue even if failed

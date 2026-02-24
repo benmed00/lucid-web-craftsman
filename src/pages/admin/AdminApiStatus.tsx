@@ -1,25 +1,25 @@
-import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { 
-  CheckCircle2, 
-  XCircle, 
-  AlertTriangle, 
-  RefreshCw, 
-  Globe, 
-  Database, 
-  CreditCard, 
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import {
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  RefreshCw,
+  Globe,
+  Database,
+  CreditCard,
   Mail,
   Clock,
   Activity,
   Server,
   Wifi,
-  WifiOff
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+  WifiOff,
+} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ServiceStatus {
   name: string;
@@ -41,12 +41,48 @@ interface IncidentHistory {
 
 const AdminApiStatus = () => {
   const [services, setServices] = useState<ServiceStatus[]>([
-    { name: 'Supabase Database', description: 'Base de données principale', status: 'checking', icon: Database, category: 'core' },
-    { name: 'Supabase Auth', description: 'Authentification utilisateurs', status: 'checking', icon: Server, category: 'core' },
-    { name: 'Supabase Storage', description: 'Stockage des fichiers', status: 'checking', icon: Globe, category: 'core' },
-    { name: 'Stripe API', description: 'Paiements en ligne', status: 'checking', icon: CreditCard, category: 'external' },
-    { name: 'Resend Email', description: 'Envoi d\'emails transactionnels', status: 'checking', icon: Mail, category: 'external' },
-    { name: 'Edge Functions', description: 'Fonctions serverless', status: 'checking', icon: Activity, category: 'edge' },
+    {
+      name: 'Supabase Database',
+      description: 'Base de données principale',
+      status: 'checking',
+      icon: Database,
+      category: 'core',
+    },
+    {
+      name: 'Supabase Auth',
+      description: 'Authentification utilisateurs',
+      status: 'checking',
+      icon: Server,
+      category: 'core',
+    },
+    {
+      name: 'Supabase Storage',
+      description: 'Stockage des fichiers',
+      status: 'checking',
+      icon: Globe,
+      category: 'core',
+    },
+    {
+      name: 'Stripe API',
+      description: 'Paiements en ligne',
+      status: 'checking',
+      icon: CreditCard,
+      category: 'external',
+    },
+    {
+      name: 'Resend Email',
+      description: "Envoi d'emails transactionnels",
+      status: 'checking',
+      icon: Mail,
+      category: 'external',
+    },
+    {
+      name: 'Edge Functions',
+      description: 'Fonctions serverless',
+      status: 'checking',
+      icon: Activity,
+      category: 'edge',
+    },
   ]);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -59,9 +95,9 @@ const AdminApiStatus = () => {
     try {
       const { error } = await supabase.from('products').select('id').limit(1);
       const responseTime = Math.round(performance.now() - start);
-      
+
       if (error) throw error;
-      
+
       return {
         name: 'Supabase Database',
         description: 'Base de données principale',
@@ -69,7 +105,7 @@ const AdminApiStatus = () => {
         responseTime,
         lastChecked: new Date(),
         icon: Database,
-        category: 'core'
+        category: 'core',
       };
     } catch (error) {
       return {
@@ -78,7 +114,7 @@ const AdminApiStatus = () => {
         status: 'down',
         lastChecked: new Date(),
         icon: Database,
-        category: 'core'
+        category: 'core',
       };
     }
   };
@@ -88,9 +124,9 @@ const AdminApiStatus = () => {
     try {
       const { error } = await supabase.auth.getSession();
       const responseTime = Math.round(performance.now() - start);
-      
+
       if (error) throw error;
-      
+
       return {
         name: 'Supabase Auth',
         description: 'Authentification utilisateurs',
@@ -98,7 +134,7 @@ const AdminApiStatus = () => {
         responseTime,
         lastChecked: new Date(),
         icon: Server,
-        category: 'core'
+        category: 'core',
       };
     } catch (error) {
       return {
@@ -107,7 +143,7 @@ const AdminApiStatus = () => {
         status: 'down',
         lastChecked: new Date(),
         icon: Server,
-        category: 'core'
+        category: 'core',
       };
     }
   };
@@ -117,15 +153,19 @@ const AdminApiStatus = () => {
     try {
       const { error } = await supabase.storage.listBuckets();
       const responseTime = Math.round(performance.now() - start);
-      
+
       return {
         name: 'Supabase Storage',
         description: 'Stockage des fichiers',
-        status: error ? 'degraded' : (responseTime > 2000 ? 'degraded' : 'operational'),
+        status: error
+          ? 'degraded'
+          : responseTime > 2000
+            ? 'degraded'
+            : 'operational',
         responseTime,
         lastChecked: new Date(),
         icon: Globe,
-        category: 'core'
+        category: 'core',
       };
     } catch (error) {
       return {
@@ -134,7 +174,7 @@ const AdminApiStatus = () => {
         status: 'down',
         lastChecked: new Date(),
         icon: Globe,
-        category: 'core'
+        category: 'core',
       };
     }
   };
@@ -146,7 +186,7 @@ const AdminApiStatus = () => {
       // Check if Stripe publishable key exists
       const hasStripeKey = !!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
       const responseTime = Math.round(performance.now() - start);
-      
+
       return {
         name: 'Stripe API',
         description: 'Paiements en ligne',
@@ -154,7 +194,7 @@ const AdminApiStatus = () => {
         responseTime,
         lastChecked: new Date(),
         icon: CreditCard,
-        category: 'external'
+        category: 'external',
       };
     } catch (error) {
       return {
@@ -163,7 +203,7 @@ const AdminApiStatus = () => {
         status: 'down',
         lastChecked: new Date(),
         icon: CreditCard,
-        category: 'external'
+        category: 'external',
       };
     }
   };
@@ -177,31 +217,35 @@ const AdminApiStatus = () => {
         .select('status, sent_at')
         .order('sent_at', { ascending: false })
         .limit(5);
-      
+
       const responseTime = Math.round(performance.now() - start);
-      
+
       if (error) throw error;
-      
-      const hasRecentSuccess = data?.some(log => log.status === 'sent');
-      const hasRecentFailure = data?.some(log => log.status === 'failed');
-      
+
+      const hasRecentSuccess = data?.some((log) => log.status === 'sent');
+      const hasRecentFailure = data?.some((log) => log.status === 'failed');
+
       return {
         name: 'Resend Email',
-        description: 'Envoi d\'emails transactionnels',
-        status: hasRecentFailure ? 'degraded' : (hasRecentSuccess ? 'operational' : 'operational'),
+        description: "Envoi d'emails transactionnels",
+        status: hasRecentFailure
+          ? 'degraded'
+          : hasRecentSuccess
+            ? 'operational'
+            : 'operational',
         responseTime,
         lastChecked: new Date(),
         icon: Mail,
-        category: 'external'
+        category: 'external',
       };
     } catch (error) {
       return {
         name: 'Resend Email',
-        description: 'Envoi d\'emails transactionnels',
+        description: "Envoi d'emails transactionnels",
         status: 'degraded',
         lastChecked: new Date(),
         icon: Mail,
-        category: 'external'
+        category: 'external',
       };
     }
   };
@@ -210,20 +254,27 @@ const AdminApiStatus = () => {
     const start = performance.now();
     try {
       // Test a simple edge function call
-      const { data, error } = await supabase.functions.invoke('check-promo-alerts', {
-        body: { test: true }
-      });
-      
+      const { data, error } = await supabase.functions.invoke(
+        'check-promo-alerts',
+        {
+          body: { test: true },
+        }
+      );
+
       const responseTime = Math.round(performance.now() - start);
-      
+
       return {
         name: 'Edge Functions',
         description: 'Fonctions serverless',
-        status: error ? 'degraded' : (responseTime > 3000 ? 'degraded' : 'operational'),
+        status: error
+          ? 'degraded'
+          : responseTime > 3000
+            ? 'degraded'
+            : 'operational',
         responseTime,
         lastChecked: new Date(),
         icon: Activity,
-        category: 'edge'
+        category: 'edge',
       };
     } catch (error) {
       return {
@@ -232,14 +283,14 @@ const AdminApiStatus = () => {
         status: 'degraded',
         lastChecked: new Date(),
         icon: Activity,
-        category: 'edge'
+        category: 'edge',
       };
     }
   };
 
   const runAllChecks = useCallback(async () => {
     setIsRefreshing(true);
-    
+
     try {
       const results = await Promise.all([
         checkSupabaseDatabase(),
@@ -247,33 +298,43 @@ const AdminApiStatus = () => {
         checkSupabaseStorage(),
         checkStripeAPI(),
         checkResendEmail(),
-        checkEdgeFunctions()
+        checkEdgeFunctions(),
       ]);
 
       setServices(results);
       setLastFullCheck(new Date());
 
       // Calculate overall health
-      const operationalCount = results.filter(s => s.status === 'operational').length;
-      const degradedCount = results.filter(s => s.status === 'degraded').length;
-      const health = Math.round(((operationalCount * 100) + (degradedCount * 50)) / results.length);
+      const operationalCount = results.filter(
+        (s) => s.status === 'operational'
+      ).length;
+      const degradedCount = results.filter(
+        (s) => s.status === 'degraded'
+      ).length;
+      const health = Math.round(
+        (operationalCount * 100 + degradedCount * 50) / results.length
+      );
       setOverallHealth(health);
 
       // Add incidents for non-operational services
       const newIncidents: IncidentHistory[] = results
-        .filter(s => s.status !== 'operational')
-        .map(s => ({
+        .filter((s) => s.status !== 'operational')
+        .map((s) => ({
           id: `${s.name}-${Date.now()}`,
           service: s.name,
-          status: s.status === 'down' ? 'investigating' as const : 'identified' as const,
-          message: s.status === 'down' 
-            ? `${s.name} est actuellement indisponible` 
-            : `${s.name} rencontre des performances dégradées`,
-          timestamp: new Date()
+          status:
+            s.status === 'down'
+              ? ('investigating' as const)
+              : ('identified' as const),
+          message:
+            s.status === 'down'
+              ? `${s.name} est actuellement indisponible`
+              : `${s.name} rencontre des performances dégradées`,
+          timestamp: new Date(),
         }));
 
       if (newIncidents.length > 0) {
-        setIncidents(prev => [...newIncidents, ...prev].slice(0, 10));
+        setIncidents((prev) => [...newIncidents, ...prev].slice(0, 10));
       }
 
       toast.success('Vérification des services terminée');
@@ -286,7 +347,7 @@ const AdminApiStatus = () => {
 
   useEffect(() => {
     runAllChecks();
-    
+
     // Auto-refresh every 5 minutes
     const interval = setInterval(runAllChecks, 5 * 60 * 1000);
     return () => clearInterval(interval);
@@ -295,13 +356,29 @@ const AdminApiStatus = () => {
   const getStatusBadge = (status: ServiceStatus['status']) => {
     switch (status) {
       case 'operational':
-        return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Opérationnel</Badge>;
+        return (
+          <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+            Opérationnel
+          </Badge>
+        );
       case 'degraded':
-        return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Dégradé</Badge>;
+        return (
+          <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+            Dégradé
+          </Badge>
+        );
       case 'down':
-        return <Badge className="bg-red-500/10 text-red-600 border-red-500/20">Indisponible</Badge>;
+        return (
+          <Badge className="bg-red-500/10 text-red-600 border-red-500/20">
+            Indisponible
+          </Badge>
+        );
       case 'checking':
-        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">Vérification...</Badge>;
+        return (
+          <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+            Vérification...
+          </Badge>
+        );
     }
   };
 
@@ -324,9 +401,9 @@ const AdminApiStatus = () => {
     return 'bg-red-500';
   };
 
-  const coreServices = services.filter(s => s.category === 'core');
-  const externalServices = services.filter(s => s.category === 'external');
-  const edgeServices = services.filter(s => s.category === 'edge');
+  const coreServices = services.filter((s) => s.category === 'core');
+  const externalServices = services.filter((s) => s.category === 'external');
+  const edgeServices = services.filter((s) => s.category === 'edge');
 
   return (
     <div className="space-y-6">
@@ -341,7 +418,9 @@ const AdminApiStatus = () => {
           </p>
         </div>
         <Button onClick={runAllChecks} disabled={isRefreshing}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`}
+          />
           Actualiser
         </Button>
       </div>
@@ -362,11 +441,15 @@ const AdminApiStatus = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Progress value={overallHealth} className={`h-3 ${getHealthColor()}`} />
+          <Progress
+            value={overallHealth}
+            className={`h-3 ${getHealthColor()}`}
+          />
           {lastFullCheck && (
             <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              Dernière vérification : {lastFullCheck.toLocaleTimeString('fr-FR')}
+              Dernière vérification :{' '}
+              {lastFullCheck.toLocaleTimeString('fr-FR')}
             </p>
           )}
         </CardContent>
@@ -386,15 +469,22 @@ const AdminApiStatus = () => {
             {coreServices.map((service) => {
               const Icon = service.icon;
               return (
-                <div key={service.name} className="flex items-center justify-between p-4 rounded-lg border border-border">
+                <div
+                  key={service.name}
+                  className="flex items-center justify-between p-4 rounded-lg border border-border"
+                >
                   <div className="flex items-center gap-4">
                     {getStatusIcon(service.status)}
                     <div>
                       <div className="flex items-center gap-2">
                         <Icon className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium text-foreground">{service.name}</span>
+                        <span className="font-medium text-foreground">
+                          {service.name}
+                        </span>
                       </div>
-                      <p className="text-sm text-muted-foreground">{service.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {service.description}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -423,15 +513,22 @@ const AdminApiStatus = () => {
             {externalServices.map((service) => {
               const Icon = service.icon;
               return (
-                <div key={service.name} className="flex items-center justify-between p-4 rounded-lg border border-border">
+                <div
+                  key={service.name}
+                  className="flex items-center justify-between p-4 rounded-lg border border-border"
+                >
                   <div className="flex items-center gap-4">
                     {getStatusIcon(service.status)}
                     <div>
                       <div className="flex items-center gap-2">
                         <Icon className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium text-foreground">{service.name}</span>
+                        <span className="font-medium text-foreground">
+                          {service.name}
+                        </span>
                       </div>
-                      <p className="text-sm text-muted-foreground">{service.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {service.description}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -460,15 +557,22 @@ const AdminApiStatus = () => {
             {edgeServices.map((service) => {
               const Icon = service.icon;
               return (
-                <div key={service.name} className="flex items-center justify-between p-4 rounded-lg border border-border">
+                <div
+                  key={service.name}
+                  className="flex items-center justify-between p-4 rounded-lg border border-border"
+                >
                   <div className="flex items-center gap-4">
                     {getStatusIcon(service.status)}
                     <div>
                       <div className="flex items-center gap-2">
                         <Icon className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium text-foreground">{service.name}</span>
+                        <span className="font-medium text-foreground">
+                          {service.name}
+                        </span>
                       </div>
-                      <p className="text-sm text-muted-foreground">{service.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {service.description}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -498,19 +602,31 @@ const AdminApiStatus = () => {
           <CardContent>
             <div className="space-y-4">
               {incidents.map((incident) => (
-                <div key={incident.id} className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
-                  <div className={`w-2 h-2 mt-2 rounded-full ${
-                    incident.status === 'resolved' ? 'bg-green-500' : 
-                    incident.status === 'identified' ? 'bg-yellow-500' : 'bg-red-500'
-                  }`} />
+                <div
+                  key={incident.id}
+                  className="flex items-start gap-4 p-4 rounded-lg bg-muted/50"
+                >
+                  <div
+                    className={`w-2 h-2 mt-2 rounded-full ${
+                      incident.status === 'resolved'
+                        ? 'bg-green-500'
+                        : incident.status === 'identified'
+                          ? 'bg-yellow-500'
+                          : 'bg-red-500'
+                    }`}
+                  />
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-foreground">{incident.service}</span>
+                      <span className="font-medium text-foreground">
+                        {incident.service}
+                      </span>
                       <span className="text-sm text-muted-foreground">
                         {incident.timestamp.toLocaleTimeString('fr-FR')}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{incident.message}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {incident.message}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -522,31 +638,33 @@ const AdminApiStatus = () => {
       {/* Quick Links */}
       <Card className="border-border">
         <CardHeader>
-          <CardTitle className="text-lg">Liens de Surveillance Externes</CardTitle>
+          <CardTitle className="text-lg">
+            Liens de Surveillance Externes
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a 
-              href="https://status.supabase.com" 
-              target="_blank" 
+            <a
+              href="https://status.supabase.com"
+              target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 p-4 rounded-lg border border-border hover:bg-muted transition-colors"
             >
               <Database className="h-5 w-5 text-primary" />
               <span className="font-medium">Supabase Status</span>
             </a>
-            <a 
-              href="https://status.stripe.com" 
-              target="_blank" 
+            <a
+              href="https://status.stripe.com"
+              target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 p-4 rounded-lg border border-border hover:bg-muted transition-colors"
             >
               <CreditCard className="h-5 w-5 text-primary" />
               <span className="font-medium">Stripe Status</span>
             </a>
-            <a 
-              href="https://resend.com/status" 
-              target="_blank" 
+            <a
+              href="https://resend.com/status"
+              target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 p-4 rounded-lg border border-border hover:bg-muted transition-colors"
             >

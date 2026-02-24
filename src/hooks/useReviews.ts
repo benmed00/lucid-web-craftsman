@@ -35,7 +35,7 @@ export const useReviews = (productId?: number) => {
   const [stats, setStats] = useState<ReviewStats>({
     averageRating: 0,
     totalReviews: 0,
-    ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+    ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
   });
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -68,19 +68,25 @@ export const useReviews = (productId?: number) => {
       setStats({
         averageRating: 0,
         totalReviews: 0,
-        ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+        ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
       });
       return;
     }
 
     const totalReviews = reviewsData.length;
-    const sumRatings = reviewsData.reduce((sum, review) => sum + review.rating, 0);
+    const sumRatings = reviewsData.reduce(
+      (sum, review) => sum + review.rating,
+      0
+    );
     const averageRating = sumRatings / totalReviews;
 
-    const ratingDistribution = reviewsData.reduce((acc, review) => {
-      acc[review.rating] = (acc[review.rating] || 0) + 1;
-      return acc;
-    }, {} as { [key: number]: number });
+    const ratingDistribution = reviewsData.reduce(
+      (acc, review) => {
+        acc[review.rating] = (acc[review.rating] || 0) + 1;
+        return acc;
+      },
+      {} as { [key: number]: number }
+    );
 
     // Ensure all ratings 1-5 are represented
     for (let i = 1; i <= 5; i++) {
@@ -92,7 +98,7 @@ export const useReviews = (productId?: number) => {
     setStats({
       averageRating,
       totalReviews,
-      ratingDistribution
+      ratingDistribution,
     });
   };
 
@@ -104,13 +110,11 @@ export const useReviews = (productId?: number) => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('product_reviews')
-        .insert({
-          ...reviewData,
-          user_id: user.id,
-          is_approved: false // Reviews need approval
-        });
+      const { error } = await supabase.from('product_reviews').insert({
+        ...reviewData,
+        user_id: user.id,
+        is_approved: false, // Reviews need approval
+      });
 
       if (error) throw error;
 
@@ -118,7 +122,7 @@ export const useReviews = (productId?: number) => {
       return true;
     } catch (error) {
       console.error('Error submitting review:', error);
-      toast.error('Erreur lors de la soumission de l\'avis');
+      toast.error("Erreur lors de la soumission de l'avis");
       return false;
     } finally {
       setSubmitting(false);
@@ -150,8 +154,8 @@ export const useReviews = (productId?: number) => {
       if (error) throw error;
 
       // Update local state
-      setReviews(prevReviews =>
-        prevReviews.map(review =>
+      setReviews((prevReviews) =>
+        prevReviews.map((review) =>
           review.id === reviewId
             ? { ...review, helpful_count: review.helpful_count + 1 }
             : review
@@ -177,7 +181,7 @@ export const useReviews = (productId?: number) => {
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
-      
+
       return data;
     } catch (error) {
       console.error('Error fetching user review:', error);
@@ -199,6 +203,6 @@ export const useReviews = (productId?: number) => {
     submitReview,
     markHelpful,
     getUserReview,
-    refetch: () => productId && fetchReviews(productId)
+    refetch: () => productId && fetchReviews(productId),
   };
 };

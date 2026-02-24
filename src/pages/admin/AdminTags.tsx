@@ -1,10 +1,16 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -12,7 +18,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -20,7 +26,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,11 +36,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Tag, Languages, Search } from "lucide-react";
-import type { TagTranslation } from "@/hooks/useTagTranslations";
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { Plus, Pencil, Trash2, Tag, Languages, Search } from 'lucide-react';
+import type { TagTranslation } from '@/hooks/useTagTranslations';
 
 interface TagFormData {
   tag_key: string;
@@ -46,17 +52,17 @@ interface TagFormData {
 }
 
 const initialFormData: TagFormData = {
-  tag_key: "",
-  fr: "",
-  en: "",
-  ar: "",
-  es: "",
-  de: "",
+  tag_key: '',
+  fr: '',
+  en: '',
+  ar: '',
+  es: '',
+  de: '',
 };
 
 const AdminTags = () => {
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingTag, setEditingTag] = useState<TagTranslation | null>(null);
@@ -65,12 +71,12 @@ const AdminTags = () => {
 
   // Fetch tags
   const { data: tags, isLoading } = useQuery({
-    queryKey: ["admin-tag-translations"],
+    queryKey: ['admin-tag-translations'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("tag_translations")
-        .select("*")
-        .order("tag_key");
+        .from('tag_translations')
+        .select('*')
+        .order('tag_key');
       if (error) throw error;
       return data as TagTranslation[];
     },
@@ -79,7 +85,7 @@ const AdminTags = () => {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: TagFormData) => {
-      const { error } = await supabase.from("tag_translations").insert({
+      const { error } = await supabase.from('tag_translations').insert({
         tag_key: data.tag_key,
         fr: data.fr,
         en: data.en || null,
@@ -90,9 +96,9 @@ const AdminTags = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-tag-translations"] });
-      queryClient.invalidateQueries({ queryKey: ["tag-translations"] });
-      toast.success("Tag créé avec succès");
+      queryClient.invalidateQueries({ queryKey: ['admin-tag-translations'] });
+      queryClient.invalidateQueries({ queryKey: ['tag-translations'] });
+      toast.success('Tag créé avec succès');
       resetForm();
     },
     onError: (error: Error) => {
@@ -104,7 +110,7 @@ const AdminTags = () => {
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: TagFormData }) => {
       const { error } = await supabase
-        .from("tag_translations")
+        .from('tag_translations')
         .update({
           tag_key: data.tag_key,
           fr: data.fr,
@@ -113,13 +119,13 @@ const AdminTags = () => {
           es: data.es || null,
           de: data.de || null,
         })
-        .eq("id", id);
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-tag-translations"] });
-      queryClient.invalidateQueries({ queryKey: ["tag-translations"] });
-      toast.success("Tag mis à jour avec succès");
+      queryClient.invalidateQueries({ queryKey: ['admin-tag-translations'] });
+      queryClient.invalidateQueries({ queryKey: ['tag-translations'] });
+      toast.success('Tag mis à jour avec succès');
       resetForm();
     },
     onError: (error: Error) => {
@@ -131,15 +137,15 @@ const AdminTags = () => {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("tag_translations")
+        .from('tag_translations')
         .delete()
-        .eq("id", id);
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-tag-translations"] });
-      queryClient.invalidateQueries({ queryKey: ["tag-translations"] });
-      toast.success("Tag supprimé avec succès");
+      queryClient.invalidateQueries({ queryKey: ['admin-tag-translations'] });
+      queryClient.invalidateQueries({ queryKey: ['tag-translations'] });
+      toast.success('Tag supprimé avec succès');
       setIsDeleteDialogOpen(false);
       setTagToDelete(null);
     },
@@ -159,10 +165,10 @@ const AdminTags = () => {
     setFormData({
       tag_key: tag.tag_key,
       fr: tag.fr,
-      en: tag.en || "",
-      ar: tag.ar || "",
-      es: tag.es || "",
-      de: tag.de || "",
+      en: tag.en || '',
+      ar: tag.ar || '',
+      es: tag.es || '',
+      de: tag.de || '',
     });
     setIsDialogOpen(true);
   };
@@ -170,7 +176,7 @@ const AdminTags = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.tag_key || !formData.fr) {
-      toast.error("Le tag et la traduction française sont obligatoires");
+      toast.error('Le tag et la traduction française sont obligatoires');
       return;
     }
 
@@ -186,10 +192,11 @@ const AdminTags = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const filteredTags = tags?.filter((tag) =>
-    tag.tag_key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tag.fr.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tag.en?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTags = tags?.filter(
+    (tag) =>
+      tag.tag_key.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tag.fr.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tag.en?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getTranslationCount = (tag: TagTranslation) => {
@@ -304,23 +311,52 @@ const AdminTags = () => {
                 <TableBody>
                   {filteredTags?.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      <TableCell
+                        colSpan={8}
+                        className="text-center py-8 text-muted-foreground"
+                      >
                         Aucun tag trouvé
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredTags?.map((tag) => (
                       <TableRow key={tag.id}>
-                        <TableCell className="font-medium">{tag.tag_key}</TableCell>
+                        <TableCell className="font-medium">
+                          {tag.tag_key}
+                        </TableCell>
                         <TableCell>{tag.fr}</TableCell>
-                        <TableCell>{tag.en || <span className="text-muted-foreground">-</span>}</TableCell>
-                        <TableCell dir="rtl">{tag.ar || <span className="text-muted-foreground">-</span>}</TableCell>
-                        <TableCell>{tag.es || <span className="text-muted-foreground">-</span>}</TableCell>
-                        <TableCell>{tag.de || <span className="text-muted-foreground">-</span>}</TableCell>
+                        <TableCell>
+                          {tag.en || (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell dir="rtl">
+                          {tag.ar || (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {tag.es || (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {tag.de || (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           <Badge
-                            variant={getTranslationCount(tag) === 5 ? "default" : "secondary"}
-                            className={getTranslationCount(tag) === 5 ? "bg-green-100 text-green-800" : ""}
+                            variant={
+                              getTranslationCount(tag) === 5
+                                ? 'default'
+                                : 'secondary'
+                            }
+                            className={
+                              getTranslationCount(tag) === 5
+                                ? 'bg-green-100 text-green-800'
+                                : ''
+                            }
                           >
                             {getTranslationCount(tag)}/5
                           </Badge>
@@ -359,12 +395,12 @@ const AdminTags = () => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingTag ? "Modifier le tag" : "Nouveau tag"}
+              {editingTag ? 'Modifier le tag' : 'Nouveau tag'}
             </DialogTitle>
             <DialogDescription>
               {editingTag
-                ? "Modifiez les traductions du tag"
-                : "Ajoutez un nouveau tag avec ses traductions"}
+                ? 'Modifiez les traductions du tag'
+                : 'Ajoutez un nouveau tag avec ses traductions'}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -373,7 +409,9 @@ const AdminTags = () => {
               <Input
                 id="tag_key"
                 value={formData.tag_key}
-                onChange={(e) => setFormData({ ...formData, tag_key: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, tag_key: e.target.value })
+                }
                 placeholder="Ex: Artisanat"
                 disabled={!!editingTag}
               />
@@ -383,7 +421,9 @@ const AdminTags = () => {
               <Input
                 id="fr"
                 value={formData.fr}
-                onChange={(e) => setFormData({ ...formData, fr: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, fr: e.target.value })
+                }
                 placeholder="Artisanat"
               />
             </div>
@@ -392,7 +432,9 @@ const AdminTags = () => {
               <Input
                 id="en"
                 value={formData.en}
-                onChange={(e) => setFormData({ ...formData, en: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, en: e.target.value })
+                }
                 placeholder="Craftsmanship"
               />
             </div>
@@ -402,7 +444,9 @@ const AdminTags = () => {
                 id="ar"
                 dir="rtl"
                 value={formData.ar}
-                onChange={(e) => setFormData({ ...formData, ar: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, ar: e.target.value })
+                }
                 placeholder="حرفة"
               />
             </div>
@@ -411,7 +455,9 @@ const AdminTags = () => {
               <Input
                 id="es"
                 value={formData.es}
-                onChange={(e) => setFormData({ ...formData, es: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, es: e.target.value })
+                }
                 placeholder="Artesanía"
               />
             </div>
@@ -420,7 +466,9 @@ const AdminTags = () => {
               <Input
                 id="de"
                 value={formData.de}
-                onChange={(e) => setFormData({ ...formData, de: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, de: e.target.value })
+                }
                 placeholder="Handwerk"
               />
             </div>
@@ -432,7 +480,7 @@ const AdminTags = () => {
                 type="submit"
                 disabled={createMutation.isPending || updateMutation.isPending}
               >
-                {editingTag ? "Mettre à jour" : "Créer"}
+                {editingTag ? 'Mettre à jour' : 'Créer'}
               </Button>
             </DialogFooter>
           </form>
@@ -440,19 +488,24 @@ const AdminTags = () => {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer le tag ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer le tag "{tagToDelete?.tag_key}" ?
-              Cette action est irréversible.
+              Êtes-vous sûr de vouloir supprimer le tag "{tagToDelete?.tag_key}"
+              ? Cette action est irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => tagToDelete && deleteMutation.mutate(tagToDelete.id)}
+              onClick={() =>
+                tagToDelete && deleteMutation.mutate(tagToDelete.id)
+              }
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Supprimer

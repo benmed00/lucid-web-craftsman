@@ -12,14 +12,18 @@ interface RecentlyViewedProductsProps {
   onQuickView?: (product: Product) => void;
 }
 
-export const RecentlyViewedProducts = ({ onQuickView }: RecentlyViewedProductsProps) => {
+export const RecentlyViewedProducts = ({
+  onQuickView,
+}: RecentlyViewedProductsProps) => {
   const { recentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
   const { addItem } = useCart();
   const { t } = useTranslation(['products', 'common']);
 
   const handleAddToCart = async (product: Product) => {
     try {
-      const response = await import("@/api/mockApiService").then(api => api.addToCart(product, 1));
+      const response = await import('@/api/mockApiService').then((api) =>
+        api.addToCart(product, 1)
+      );
 
       if (response.success) {
         addItem(product, 1);

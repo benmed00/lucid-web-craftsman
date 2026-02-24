@@ -1,9 +1,9 @@
-
 # State Coherence and Caching Architecture Fix
 
 ## Problem Summary
 
 Your application suffers from **state desynchronization** caused by multiple uncoordinated caching and storage layers. This manifests as:
+
 - Content not refreshing after actions
 - Auth appearing lost after Stripe redirects
 - Different behavior between preview and live environments
@@ -29,6 +29,7 @@ Your application suffers from **state desynchronization** caused by multiple unc
 - Bump cache version to `v5` to force old cache purge on next deploy
 
 Changes:
+
 - `networkFirst` for navigation will become **network-only** (no cache fallback for HTML)
 - Add `/api/`, `/auth/` path exclusions in the fetch handler
 - Keep cache-first only for fingerprinted static assets and images
@@ -41,6 +42,7 @@ Changes:
 - This prevents the success URL from pointing to the preview iframe origin, which would cause auth loss on return
 
 Logic:
+
 ```text
 allowed_origins = [production_url, preview_url]
 origin = request origin header
@@ -79,19 +81,20 @@ else -> use production_url as default
 ### Phase 6: Documentation (Low)
 
 Add a comment block at the top of `sw.js` documenting:
+
 - What is cached and what is bypassed
 - Cache versioning strategy
 - Why HTML is never cached
 
 ## Files to Modify
 
-| File | Change | Priority |
-|------|--------|----------|
-| `public/sw.js` | Harden: no HTML cache, explicit API bypass, version bump | Critical |
-| `supabase/functions/create-payment/index.ts` | Origin allowlist for success/cancel URLs | Critical |
-| `src/context/AuthContext.tsx` | Cache cleanup on auth events, reduce timeout | Medium |
-| `index.html` | Remove duplicate SW registration script | Low |
-| `src/utils/cacheOptimization.ts` | Keep as single SW registration point | Low |
+| File                                         | Change                                                   | Priority |
+| -------------------------------------------- | -------------------------------------------------------- | -------- |
+| `public/sw.js`                               | Harden: no HTML cache, explicit API bypass, version bump | Critical |
+| `supabase/functions/create-payment/index.ts` | Origin allowlist for success/cancel URLs                 | Critical |
+| `src/context/AuthContext.tsx`                | Cache cleanup on auth events, reduce timeout             | Medium   |
+| `index.html`                                 | Remove duplicate SW registration script                  | Low      |
+| `src/utils/cacheOptimization.ts`             | Keep as single SW registration point                     | Low      |
 
 ## What This Does NOT Change
 

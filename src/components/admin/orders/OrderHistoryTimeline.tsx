@@ -6,13 +6,7 @@ import { OrderStatusBadge } from './OrderStatusBadge';
 import { useOrderHistory } from '@/hooks/useOrderManagement';
 import type { OrderStatus, StatusChangeActor } from '@/types/order.types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  User, 
-  Bot, 
-  Webhook, 
-  Clock,
-  ArrowRight,
-} from 'lucide-react';
+import { User, Bot, Webhook, Clock, ArrowRight } from 'lucide-react';
 
 const actorIcons: Record<StatusChangeActor, typeof User> = {
   system: Bot,
@@ -74,7 +68,7 @@ export function OrderHistoryTimeline({ orderId }: OrderHistoryTimelineProps) {
             <div className="space-y-6">
               {history.map((entry, index) => {
                 const ActorIcon = actorIcons[entry.changed_by];
-                
+
                 return (
                   <div key={entry.id} className="relative flex gap-4 pl-2">
                     {/* Timeline dot */}
@@ -87,26 +81,31 @@ export function OrderHistoryTimeline({ orderId }: OrderHistoryTimelineProps) {
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         {entry.previous_status && (
                           <>
-                            <OrderStatusBadge 
-                              status={entry.previous_status as OrderStatus} 
-                              size="sm" 
+                            <OrderStatusBadge
+                              status={entry.previous_status as OrderStatus}
+                              size="sm"
                               showIcon={false}
                             />
                             <ArrowRight className="h-3 w-3 text-muted-foreground" />
                           </>
                         )}
-                        <OrderStatusBadge 
-                          status={entry.new_status as OrderStatus} 
+                        <OrderStatusBadge
+                          status={entry.new_status as OrderStatus}
                           size="sm"
                         />
                       </div>
 
                       <div className="text-xs text-muted-foreground space-y-1">
                         <p>
-                          {format(new Date(entry.created_at), 'PPpp', { locale: fr })}
+                          {format(new Date(entry.created_at), 'PPpp', {
+                            locale: fr,
+                          })}
                         </p>
                         <p>
-                          Par: <span className="font-medium">{actorLabels[entry.changed_by]}</span>
+                          Par:{' '}
+                          <span className="font-medium">
+                            {actorLabels[entry.changed_by]}
+                          </span>
                         </p>
                         {entry.reason_message && (
                           <p className="text-foreground bg-muted p-2 rounded mt-2">
@@ -115,7 +114,10 @@ export function OrderHistoryTimeline({ orderId }: OrderHistoryTimelineProps) {
                         )}
                         {entry.reason_code && (
                           <p className="text-xs">
-                            Code: <code className="bg-muted px-1 rounded">{entry.reason_code}</code>
+                            Code:{' '}
+                            <code className="bg-muted px-1 rounded">
+                              {entry.reason_code}
+                            </code>
                           </p>
                         )}
                       </div>

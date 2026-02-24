@@ -48,7 +48,7 @@ interface CustomerOrderTrackerProps {
 export function CustomerOrderTracker({ orderId }: CustomerOrderTrackerProps) {
   const { i18n } = useTranslation();
   const locale = i18n.language?.split('-')[0] || 'fr';
-  
+
   const { data: order, isLoading, error } = useCustomerOrder(orderId, locale);
 
   if (isLoading) {
@@ -73,7 +73,7 @@ export function CustomerOrderTracker({ orderId }: CustomerOrderTrackerProps) {
         <CardContent className="p-6 text-center">
           <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground">
-            {locale === 'fr' 
+            {locale === 'fr'
               ? 'Impossible de charger les informations de la commande'
               : 'Unable to load order information'}
           </p>
@@ -93,10 +93,16 @@ export function CustomerOrderTracker({ orderId }: CustomerOrderTrackerProps) {
             <p className="text-sm text-muted-foreground">
               {locale === 'fr' ? 'Commande' : 'Order'} #{order.order_number}
             </p>
-            <h2 className="text-2xl font-semibold mt-1">{order.status.label}</h2>
-            <p className="text-muted-foreground mt-1">{order.status.description}</p>
+            <h2 className="text-2xl font-semibold mt-1">
+              {order.status.label}
+            </h2>
+            <p className="text-muted-foreground mt-1">
+              {order.status.description}
+            </p>
           </div>
-          <div className={`p-4 rounded-full ${order.status.color.replace('text-', 'bg-').replace('-500', '-100').replace('-600', '-100').replace('-700', '-100')}`}>
+          <div
+            className={`p-4 rounded-full ${order.status.color.replace('text-', 'bg-').replace('-500', '-100').replace('-600', '-100').replace('-700', '-100')}`}
+          >
             <StatusIcon className={`h-8 w-8 ${order.status.color}`} />
           </div>
         </div>
@@ -108,23 +114,25 @@ export function CustomerOrderTracker({ orderId }: CustomerOrderTrackerProps) {
           <div className="relative">
             <div className="flex justify-between">
               {order.timeline.map((event, index) => {
-                const isCompleted = !event.is_current && 
-                  order.timeline.findIndex(e => e.is_current) > index;
+                const isCompleted =
+                  !event.is_current &&
+                  order.timeline.findIndex((e) => e.is_current) > index;
                 const isCurrent = event.is_current;
 
                 return (
-                  <div 
+                  <div
                     key={index}
                     className="flex flex-col items-center text-center flex-1"
                   >
-                    <div 
+                    <div
                       className={`
                         w-10 h-10 rounded-full flex items-center justify-center
-                        ${isCurrent 
-                          ? 'bg-primary text-primary-foreground' 
-                          : isCompleted
-                            ? 'bg-green-500 text-white'
-                            : 'bg-muted text-muted-foreground'
+                        ${
+                          isCurrent
+                            ? 'bg-primary text-primary-foreground'
+                            : isCompleted
+                              ? 'bg-green-500 text-white'
+                              : 'bg-muted text-muted-foreground'
                         }
                       `}
                     >
@@ -134,7 +142,9 @@ export function CustomerOrderTracker({ orderId }: CustomerOrderTrackerProps) {
                         <span className="text-sm font-medium">{index + 1}</span>
                       )}
                     </div>
-                    <p className={`text-xs mt-2 max-w-[80px] ${isCurrent ? 'font-medium' : 'text-muted-foreground'}`}>
+                    <p
+                      className={`text-xs mt-2 max-w-[80px] ${isCurrent ? 'font-medium' : 'text-muted-foreground'}`}
+                    >
                       {event.label}
                     </p>
                   </div>
@@ -143,10 +153,10 @@ export function CustomerOrderTracker({ orderId }: CustomerOrderTrackerProps) {
             </div>
             {/* Progress line */}
             <div className="absolute top-5 left-8 right-8 h-0.5 bg-muted -z-10">
-              <div 
+              <div
                 className="h-full bg-green-500 transition-all"
-                style={{ 
-                  width: `${Math.max(0, (order.timeline.findIndex(e => e.is_current) / (order.timeline.length - 1)) * 100)}%` 
+                style={{
+                  width: `${Math.max(0, (order.timeline.findIndex((e) => e.is_current) / (order.timeline.length - 1)) * 100)}%`,
                 }}
               />
             </div>
@@ -161,13 +171,20 @@ export function CustomerOrderTracker({ orderId }: CustomerOrderTrackerProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  {locale === 'fr' ? 'Transporteur' : 'Carrier'}: {order.tracking.carrier}
+                  {locale === 'fr' ? 'Transporteur' : 'Carrier'}:{' '}
+                  {order.tracking.carrier}
                 </p>
-                <p className="font-mono text-sm mt-1">{order.tracking.tracking_number}</p>
+                <p className="font-mono text-sm mt-1">
+                  {order.tracking.tracking_number}
+                </p>
               </div>
               {order.tracking.tracking_url && (
                 <Button variant="outline" size="sm" asChild>
-                  <a href={order.tracking.tracking_url} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={order.tracking.tracking_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <ExternalLink className="h-4 w-4 mr-2" />
                     {locale === 'fr' ? 'Suivre' : 'Track'}
                   </a>
@@ -177,7 +194,8 @@ export function CustomerOrderTracker({ orderId }: CustomerOrderTrackerProps) {
             {order.estimated_delivery && (
               <p className="text-sm mt-2">
                 <span className="text-muted-foreground">
-                  {locale === 'fr' ? 'Livraison estimée' : 'Estimated delivery'}:
+                  {locale === 'fr' ? 'Livraison estimée' : 'Estimated delivery'}
+                  :
                 </span>{' '}
                 {new Date(order.estimated_delivery).toLocaleDateString(locale, {
                   weekday: 'long',
@@ -199,8 +217,8 @@ export function CustomerOrderTracker({ orderId }: CustomerOrderTrackerProps) {
               <div key={item.id} className="flex items-center gap-4">
                 <div className="h-16 w-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
                   {item.image_url ? (
-                    <img 
-                      src={item.image_url} 
+                    <img
+                      src={item.image_url}
                       alt={item.product_name}
                       className="h-full w-full object-cover rounded-lg"
                     />
@@ -228,7 +246,8 @@ export function CustomerOrderTracker({ orderId }: CustomerOrderTrackerProps) {
         <div className="flex items-center justify-between text-lg font-semibold">
           <span>Total</span>
           <span>
-            {(order.total_amount / 100).toFixed(2)} {order.currency.toUpperCase()}
+            {(order.total_amount / 100).toFixed(2)}{' '}
+            {order.currency.toUpperCase()}
           </span>
         </div>
       </CardContent>

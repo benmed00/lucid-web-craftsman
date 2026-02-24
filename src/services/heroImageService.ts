@@ -11,9 +11,10 @@ export interface HeroImageData {
 
 const defaultHeroImage: HeroImageData = {
   imageUrl: '/assets/images/home_page_image.webp',
-  altText: 'Chapeau artisanal et sac traditionnel fait main - Artisanat authentique du Rif',
+  altText:
+    'Chapeau artisanal et sac traditionnel fait main - Artisanat authentique du Rif',
   title: 'Artisanat Authentique du Rif',
-  subtitle: 'Chapeau tressé et sac naturel - Fait main avec amour'
+  subtitle: 'Chapeau tressé et sac naturel - Fait main avec amour',
 };
 
 export const heroImageService = {
@@ -29,7 +30,10 @@ export const heroImageService = {
         .maybeSingle();
 
       if (error || !data) {
-        console.warn('No active hero image found, using default:', error?.message);
+        console.warn(
+          'No active hero image found, using default:',
+          error?.message
+        );
         return defaultHeroImage;
       }
 
@@ -39,7 +43,7 @@ export const heroImageService = {
         altText: data.alt_text,
         title: data.title,
         subtitle: data.subtitle,
-        isActive: data.is_active
+        isActive: data.is_active,
       };
     } catch (error) {
       console.error('Error getting hero image data:', error);
@@ -58,7 +62,7 @@ export const heroImageService = {
         .from('hero-images')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
         });
 
       if (uploadError) {
@@ -73,7 +77,7 @@ export const heroImageService = {
       return data.publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
-      throw new Error('Erreur lors de l\'upload de l\'image');
+      throw new Error("Erreur lors de l'upload de l'image");
     }
   },
 
@@ -95,7 +99,7 @@ export const heroImageService = {
           title: data.title,
           subtitle: data.subtitle,
           is_active: true,
-          created_by: (await supabase.auth.getUser()).data.user?.id
+          created_by: (await supabase.auth.getUser()).data.user?.id,
         })
         .select()
         .single();
@@ -110,7 +114,7 @@ export const heroImageService = {
         altText: newData.alt_text,
         title: newData.title,
         subtitle: newData.subtitle,
-        isActive: newData.is_active
+        isActive: newData.is_active,
       };
     } catch (error) {
       console.error('Error saving hero image data:', error);
@@ -119,7 +123,10 @@ export const heroImageService = {
   },
 
   // Update existing hero image
-  update: async (id: string, data: Partial<HeroImageData>): Promise<HeroImageData> => {
+  update: async (
+    id: string,
+    data: Partial<HeroImageData>
+  ): Promise<HeroImageData> => {
     try {
       const updateData: any = {};
       if (data.imageUrl) updateData.image_url = data.imageUrl;
@@ -144,7 +151,7 @@ export const heroImageService = {
         altText: updatedData.alt_text,
         title: updatedData.title,
         subtitle: updatedData.subtitle,
-        isActive: updatedData.is_active
+        isActive: updatedData.is_active,
       };
     } catch (error) {
       console.error('Error updating hero image data:', error);
@@ -163,5 +170,5 @@ export const heroImageService = {
       console.error('Error resetting hero image data:', error);
       throw error;
     }
-  }
+  },
 };

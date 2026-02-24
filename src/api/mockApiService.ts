@@ -1,7 +1,11 @@
 // import axios from "axios"; // Marked as unused
 
-import { supabase } from "@/integrations/supabase/client";
-import { Product, normalizeProduct, normalizeProducts } from "../shared/interfaces/Iproduct.interface";
+import { supabase } from '@/integrations/supabase/client';
+import {
+  Product,
+  normalizeProduct,
+  normalizeProducts,
+} from '../shared/interfaces/Iproduct.interface';
 // Helper to simulate API latency
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -16,7 +20,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Blog posts API - using Supabase
 // Fallback to static data if DB is empty
-import { blogPosts as staticBlogPosts } from "../data/blogPosts";
+import { blogPosts as staticBlogPosts } from '../data/blogPosts';
 
 export interface BlogPostDB {
   id: string;
@@ -55,12 +59,18 @@ export interface BlogPostLegacy {
 
 // Convert DB format to legacy format for backward compatibility
 const convertDBToLegacy = (dbPost: BlogPostDB): BlogPostLegacy => {
-  const publishedDate = dbPost.published_at 
-    ? new Date(dbPost.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  const publishedDate = dbPost.published_at
+    ? new Date(dbPost.published_at).toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
     : 'Date inconnue';
-  
+
   return {
-    id: parseInt(dbPost.slug.split('-').pop() || '0') || Math.abs(dbPost.id.charCodeAt(0)), // Generate a numeric ID from slug or uuid
+    id:
+      parseInt(dbPost.slug.split('-').pop() || '0') ||
+      Math.abs(dbPost.id.charCodeAt(0)), // Generate a numeric ID from slug or uuid
     title: dbPost.title,
     excerpt: dbPost.excerpt || '',
     image: dbPost.featured_image_url || '/placeholder.svg',
@@ -83,7 +93,7 @@ export const getBlogPosts = async (): Promise<BlogPostLegacy[]> => {
       .order('published_at', { ascending: false });
 
     if (error) {
-      console.error("Error fetching blog posts from DB:", error);
+      console.error('Error fetching blog posts from DB:', error);
       // Fallback to static data
       return staticBlogPosts;
     }
@@ -95,12 +105,14 @@ export const getBlogPosts = async (): Promise<BlogPostLegacy[]> => {
 
     return data.map(convertDBToLegacy);
   } catch (error) {
-    console.error("Error fetching blog posts:", error);
+    console.error('Error fetching blog posts:', error);
     return staticBlogPosts;
   }
 };
 
-export const getBlogPostById = async (id: number): Promise<BlogPostLegacy | null> => {
+export const getBlogPostById = async (
+  id: number
+): Promise<BlogPostLegacy | null> => {
   try {
     // First try to fetch from DB
     const { data: allPosts, error } = await supabase
@@ -111,7 +123,7 @@ export const getBlogPostById = async (id: number): Promise<BlogPostLegacy | null
 
     if (error || !allPosts || allPosts.length === 0) {
       // Fallback to static data
-      const post = staticBlogPosts.find(post => post.id === id);
+      const post = staticBlogPosts.find((post) => post.id === id);
       return post || null;
     }
 
@@ -119,7 +131,7 @@ export const getBlogPostById = async (id: number): Promise<BlogPostLegacy | null
     const post = allPosts[id - 1];
     if (!post) {
       // Fallback to static data
-      const staticPost = staticBlogPosts.find(p => p.id === id);
+      const staticPost = staticBlogPosts.find((p) => p.id === id);
       return staticPost || null;
     }
 
@@ -127,12 +139,14 @@ export const getBlogPostById = async (id: number): Promise<BlogPostLegacy | null
   } catch (error) {
     console.error(`Post with ID ${id} not found`, error);
     // Fallback to static data
-    const post = staticBlogPosts.find(post => post.id === id);
+    const post = staticBlogPosts.find((post) => post.id === id);
     return post || null;
   }
 };
 
-export const getBlogPostBySlug = async (slug: string): Promise<BlogPostLegacy | null> => {
+export const getBlogPostBySlug = async (
+  slug: string
+): Promise<BlogPostLegacy | null> => {
   try {
     const { data, error } = await supabase
       .from('blog_posts')
@@ -162,14 +176,14 @@ export const getProducts = async (): Promise<Product[]> => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error("Error fetching products:", error);
+      console.error('Error fetching products:', error);
       throw error;
     }
 
     // Use centralized normalizer for consistency
     return normalizeProducts(data || []);
   } catch (error) {
-    console.error("Error fetching products:", error);
+    console.error('Error fetching products:', error);
     throw error;
   }
 };
@@ -198,20 +212,24 @@ export const getProductById = async (id: number): Promise<Product | null> => {
 // Cart API - Simulating backend calls, no localStorage interaction here.
 // Actual cart state is managed by CartContext.
 
-export interface CartItem { // This interface might still be useful for type definitions
+export interface CartItem {
+  // This interface might still be useful for type definitions
   id: number;
   quantity: number;
   product: Product;
 }
 
-export interface CartState { // This interface might still be useful for type definitions
+export interface CartState {
+  // This interface might still be useful for type definitions
   items: CartItem[];
   // totalPrice might be part of a real API response, but not strictly needed for mock here
 }
 
-
 // Simulates fetching the cart structure, not actual items from localStorage
-export const getCart = async (): Promise<{ success: boolean, cart?: CartState }> => {
+export const getCart = async (): Promise<{
+  success: boolean;
+  cart?: CartState;
+}> => {
   await delay(100);
   // console.log("mockApiService: getCart called (simulated)");
   // In a real scenario, this might fetch user's cart from backend.
@@ -221,26 +239,32 @@ export const getCart = async (): Promise<{ success: boolean, cart?: CartState }>
 };
 
 // Simulates adding an item to the cart via an API call
-export const addToCart = async (product: Product, quantity: number = 1): Promise<{ success: boolean, item?: CartItem }> => {
+export const addToCart = async (
+  product: Product,
+  quantity: number = 1
+): Promise<{ success: boolean; item?: CartItem }> => {
   await delay(100);
   // console.log(`mockApiService: addToCart called for product ${product.id}, quantity ${quantity} (simulated)`);
   // Simulate a successful API response
   // The actual state update will be handled by dispatching to CartContext in the component
   return { success: true, item: { id: product.id, product, quantity } };
-
 };
 
 // Simulates removing an item from the cart via an API call
-export const removeFromCart = async (productId: number): Promise<{ success: boolean, productId?: number }> => {
+export const removeFromCart = async (
+  productId: number
+): Promise<{ success: boolean; productId?: number }> => {
   await delay(100);
   // console.log(`mockApiService: removeFromCart called for product ${productId} (simulated)`);
   // Simulate a successful API response
   return { success: true, productId };
-
 };
 
 // Simulates updating an item's quantity in the cart via an API call
-export const updateCartItemQuantity = async (productId: number, quantity: number): Promise<{ success: boolean, item?: { id: number, quantity: number } }> => {
+export const updateCartItemQuantity = async (
+  productId: number,
+  quantity: number
+): Promise<{ success: boolean; item?: { id: number; quantity: number } }> => {
   await delay(100);
   // console.log(`mockApiService: updateCartItemQuantity called for product ${productId}, quantity ${quantity} (simulated)`);
   if (quantity <= 0) {
@@ -248,7 +272,6 @@ export const updateCartItemQuantity = async (productId: number, quantity: number
     // For this mock, let's assume it can also be handled as a removal or just a success for update.
     // The reducer will handle the removal if quantity is 0.
     // console.log(`mockApiService: quantity for product ${productId} is <= 0, will be handled by reducer as removal if needed.`);
-
   }
   // Simulate a successful API response
   return { success: true, item: { id: productId, quantity } };
@@ -260,5 +283,4 @@ export const clearCart = async (): Promise<{ success: boolean }> => {
   // console.log("mockApiService: clearCart called (simulated)");
   // Simulate a successful API response
   return { success: true };
-
 };

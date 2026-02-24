@@ -31,10 +31,7 @@ const DEFAULT_CONFIG: Partial<RequestConfig> = {
 };
 
 // Timeout wrapper
-function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number
-): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       reject(new NetworkError('Request timeout', { timeoutMs }));
@@ -53,7 +50,7 @@ function withTimeout<T>(
 }
 
 // Sleep utility for retries
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Main fetch function with retries
 async function fetchWithRetry<T>(
@@ -71,16 +68,16 @@ async function fetchWithRetry<T>(
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const response = await withTimeout(
-        fetch(url, fetchConfig),
-        timeout
-      );
+      const response = await withTimeout(fetch(url, fetchConfig), timeout);
 
       if (!response.ok) {
-        throw new NetworkError(`HTTP ${response.status}: ${response.statusText}`, {
-          status: response.status,
-          url,
-        });
+        throw new NetworkError(
+          `HTTP ${response.status}: ${response.statusText}`,
+          {
+            status: response.status,
+            url,
+          }
+        );
       }
 
       const data = await response.json();
@@ -115,7 +112,10 @@ class ApiClient {
   private baseUrl: string;
   private defaultHeaders: Record<string, string>;
 
-  constructor(baseUrl: string = '', defaultHeaders: Record<string, string> = {}) {
+  constructor(
+    baseUrl: string = '',
+    defaultHeaders: Record<string, string> = {}
+  ) {
     this.baseUrl = baseUrl;
     this.defaultHeaders = defaultHeaders;
   }
@@ -134,7 +134,11 @@ class ApiClient {
     return response.data;
   }
 
-  async post<T>(path: string, body?: unknown, config?: RequestConfig): Promise<T> {
+  async post<T>(
+    path: string,
+    body?: unknown,
+    config?: RequestConfig
+  ): Promise<T> {
     const response = await fetchWithRetry<T>(this.buildUrl(path), {
       ...config,
       method: 'POST',
@@ -144,7 +148,11 @@ class ApiClient {
     return response.data;
   }
 
-  async put<T>(path: string, body?: unknown, config?: RequestConfig): Promise<T> {
+  async put<T>(
+    path: string,
+    body?: unknown,
+    config?: RequestConfig
+  ): Promise<T> {
     const response = await fetchWithRetry<T>(this.buildUrl(path), {
       ...config,
       method: 'PUT',
@@ -165,7 +173,9 @@ class ApiClient {
 }
 
 // Pre-configured API clients for external services
-export const currencyApi = new ApiClient(EXTERNAL_SERVICES.currency.frankfurter);
+export const currencyApi = new ApiClient(
+  EXTERNAL_SERVICES.currency.frankfurter
+);
 
 // Default API client
 export const apiClient = new ApiClient();

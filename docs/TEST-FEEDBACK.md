@@ -39,13 +39,13 @@ npm install @testing-library/dom --save-dev --legacy-peer-deps
 **Current logic:**
 
 ```ts
-allowed: !error  // RLS block = 0 rows, no error → allowed = true
+allowed: !error; // RLS block = 0 rows, no error → allowed = true
 ```
 
 **Expected:** For "should NOT be able to SELECT" tests, use **data isolation** (rowCount) not error presence:
 
-| Assertion | Current | Recommended |
-|-----------|---------|-------------|
+| Assertion                      | Current                              | Recommended                       |
+| ------------------------------ | ------------------------------------ | --------------------------------- |
 | Anonymous cannot read profiles | `expect(result.allowed).toBe(false)` | `expect(result.rowCount).toBe(0)` |
 
 **Fix:** Change the test assertions from `result.allowed` to `result.rowCount === 0` for SELECT-block tests, or introduce `effectiveAccess: rowCount > 0` in the runner.
@@ -146,17 +146,17 @@ RLS tests depend on:
 
 ## 4. Recommended Priority
 
-| Priority | Item | Effort | Status |
-|----------|------|--------|--------|
-| P0 | Fix `@testing-library/dom` | Low | Pending |
-| P0 | Fix UnifiedCache timer test | Low | ✅ Done |
-| P0 | Add `shipping_addresses` to POLICY_TESTS | Low | ✅ Done |
-| P0 | Single shared Supabase client in edge-functions tests | Low | ✅ Done |
-| P1 | Align RLS E2E assertions with RLS semantics | Medium | ✅ Done |
-| P1 | Fix RLS quick validation UPDATE/DELETE checks | Medium | ✅ Done |
-| P2 | Document/test user setup for RLS E2E | Medium | Pending |
-| P2 | Consolidate Supabase client in tests | Low | ✅ Done (edge-functions) |
-| P3 | Reorganize test folders and scripts | Medium | Pending |
+| Priority | Item                                                  | Effort | Status                   |
+| -------- | ----------------------------------------------------- | ------ | ------------------------ |
+| P0       | Fix `@testing-library/dom`                            | Low    | Pending                  |
+| P0       | Fix UnifiedCache timer test                           | Low    | ✅ Done                  |
+| P0       | Add `shipping_addresses` to POLICY_TESTS              | Low    | ✅ Done                  |
+| P0       | Single shared Supabase client in edge-functions tests | Low    | ✅ Done                  |
+| P1       | Align RLS E2E assertions with RLS semantics           | Medium | ✅ Done                  |
+| P1       | Fix RLS quick validation UPDATE/DELETE checks         | Medium | ✅ Done                  |
+| P2       | Document/test user setup for RLS E2E                  | Medium | Pending                  |
+| P2       | Consolidate Supabase client in tests                  | Low    | ✅ Done (edge-functions) |
+| P3       | Reorganize test folders and scripts                   | Medium | Pending                  |
 
 ---
 

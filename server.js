@@ -1,5 +1,5 @@
 // ❌ old
-const express = require("express");
+const express = require('express');
 
 // ✅ new
 // import express from "express";
@@ -18,7 +18,7 @@ server.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', '*');
   res.header('Access-Control-Allow-Methods', '*');
-  
+
   // Continue to JSON Server router
   next();
 });

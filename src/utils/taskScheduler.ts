@@ -63,14 +63,14 @@ class TaskScheduler {
 
   private runTasks(): void {
     this.isRunning = true;
-    
+
     const runTasksInFrame = () => {
       const startTime = performance.now();
       let tasksExecuted = 0;
       const maxTasksPerFrame = 3; // Limit tasks per frame for better FID
-      
+
       while (
-        this.taskQueue.length > 0 && 
+        this.taskQueue.length > 0 &&
         performance.now() - startTime < this.frameDeadline &&
         tasksExecuted < maxTasksPerFrame
       ) {
@@ -118,7 +118,7 @@ class TaskScheduler {
    * Yield control back to the browser if we've been running too long
    */
   static async yieldToMain(): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (typeof MessageChannel !== 'undefined') {
         const channel = new MessageChannel();
         channel.port2.onmessage = () => resolve();

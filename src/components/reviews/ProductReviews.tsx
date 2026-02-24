@@ -16,7 +16,8 @@ interface ProductReviewsProps {
 export const ProductReviews = ({ product, className }: ProductReviewsProps) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [userReview, setUserReview] = useState(null);
-  const { reviews, stats, loading, markHelpful, getUserReview, refetch } = useReviews(product.id);
+  const { reviews, stats, loading, markHelpful, getUserReview, refetch } =
+    useReviews(product.id);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -39,9 +40,7 @@ export const ProductReviews = ({ product, className }: ProductReviewsProps) => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-          <TabsTrigger value="reviews">
-            Avis ({stats.totalReviews})
-          </TabsTrigger>
+          <TabsTrigger value="reviews">Avis ({stats.totalReviews})</TabsTrigger>
           <TabsTrigger value="write">
             {userReview ? 'Modifier mon avis' : 'Écrire un avis'}
           </TabsTrigger>
@@ -55,19 +54,17 @@ export const ProductReviews = ({ product, className }: ProductReviewsProps) => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">
-                {stats.totalReviews} avis client{stats.totalReviews > 1 ? 's' : ''}
+                {stats.totalReviews} avis client
+                {stats.totalReviews > 1 ? 's' : ''}
               </h3>
               {user && !userReview && (
-                <Button
-                  variant="outline"
-                  onClick={() => setActiveTab('write')}
-                >
+                <Button variant="outline" onClick={() => setActiveTab('write')}>
                   Écrire un avis
                 </Button>
               )}
             </div>
-            <ReviewsList 
-              reviews={reviews} 
+            <ReviewsList
+              reviews={reviews}
               loading={loading}
               onMarkHelpful={markHelpful}
             />
@@ -77,7 +74,9 @@ export const ProductReviews = ({ product, className }: ProductReviewsProps) => {
         <TabsContent value="write" className="mt-6">
           {userReview ? (
             <div className="text-center p-6 bg-muted/50 rounded-lg">
-              <h3 className="font-medium mb-2">Vous avez déjà laissé un avis</h3>
+              <h3 className="font-medium mb-2">
+                Vous avez déjà laissé un avis
+              </h3>
               <p className="text-muted-foreground">
                 Votre avis est en cours de modération ou déjà publié.
               </p>

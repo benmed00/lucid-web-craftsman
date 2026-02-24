@@ -20,11 +20,12 @@ export function useCheckoutResume(): CheckoutResumeInfo {
   });
 
   useEffect(() => {
-    // Check timestamp (30 min TTL)
+    // Check timestamp (24h TTL — matches checkout_sessions.expires_at)
     const timestamp = safeGetItem<number>(CHECKOUT_TIMESTAMP_KEY, {
       storage: 'localStorage',
     });
-    const isExpired = !timestamp || (Date.now() - timestamp) > 24 * 60 * 60 * 1000;
+    const isExpired =
+      !timestamp || Date.now() - timestamp > 24 * 60 * 60 * 1000;
 
     // Check for saved step
     const savedStep = safeGetItem<number>(CHECKOUT_STEP_KEY, {
@@ -32,19 +33,23 @@ export function useCheckoutResume(): CheckoutResumeInfo {
     });
 
     // Check for saved form data
-    const savedFormData = safeGetItem<Record<string, string>>(CHECKOUT_FORM_KEY, {
-      storage: 'localStorage',
-    });
-
-    // Has pending checkout if there's form data with meaningful content and step > 1
-    const hasFormData = savedFormData && (
-      savedFormData.firstName || 
-      savedFormData.lastName || 
-      savedFormData.email ||
-      savedFormData.address
+    const savedFormData = safeGetItem<Record<string, string>>(
+      CHECKOUT_FORM_KEY,
+      {
+        storage: 'localStorage',
+      }
     );
 
-    const hasPendingCheckout = !isExpired && !!hasFormData && (savedStep || 1) >= 1;
+    // Has pending checkout if there's form data with meaningful content and step > 1
+    const hasFormData =
+      savedFormData &&
+      (savedFormData.firstName ||
+        savedFormData.lastName ||
+        savedFormData.email ||
+        savedFormData.address);
+
+    const hasPendingCheckout =
+      !isExpired && !!hasFormData && (savedStep || 1) >= 1;
 
     setInfo({
       hasPendingCheckout,
