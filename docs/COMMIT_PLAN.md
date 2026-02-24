@@ -23,7 +23,7 @@ All planned commits are complete. Cypress tags (@smoke, @regression) and spec fo
 - `tailwind.config.ts` — Header, semantic tokens note
 - `.prettierignore` — Header, group comments
 - `.gitignore` — Header, group comments
-- `.markdownlintignore` — Header, _headers rationale
+- `.markdownlintignore` — Header, \_headers rationale
 
 **Message:**
 
@@ -63,5 +63,7 @@ chore(config): add thorough comments to all config files
 
 - `docs/PACKAGE-SCRIPTS-ANALYSIS.md`
 - `docs/COMMIT_PLAN.md` (this file — optional to commit or delete)
+
+```
 
 ```
