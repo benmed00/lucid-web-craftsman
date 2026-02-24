@@ -110,7 +110,8 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
         storage: 'localStorage',
       });
       // 24-hour TTL — matches DB checkout_sessions.expires_at
-      const isExpired = !timestamp || (Date.now() - timestamp) > 24 * 60 * 60 * 1000;
+      const isExpired =
+        !timestamp || Date.now() - timestamp > 24 * 60 * 60 * 1000;
 
       // Step 1: Try to load from localStorage first (persists across redirects like Stripe)
       // Then fall back to sessionStorage for backward compatibility
@@ -133,9 +134,14 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
           let guestId: string | null = null;
           if (guestRaw) {
             const parsed = JSON.parse(guestRaw);
-            guestId = parsed?.data?.guestId || parsed?.data?.guest_id 
-              || parsed?.guestId || parsed?.guest_id 
-              || parsed?.value?.guestId || parsed?.value?.guest_id || null;
+            guestId =
+              parsed?.data?.guestId ||
+              parsed?.data?.guest_id ||
+              parsed?.guestId ||
+              parsed?.guest_id ||
+              parsed?.value?.guestId ||
+              parsed?.value?.guest_id ||
+              null;
           }
 
           let dbSession: any = null;
@@ -143,7 +149,9 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
           if (userId) {
             const { data } = await supabase
               .from('checkout_sessions')
-              .select('personal_info, shipping_info, current_step, last_completed_step, promo_code, promo_code_valid, promo_discount_type, promo_discount_value, promo_discount_applied, promo_free_shipping')
+              .select(
+                'personal_info, shipping_info, current_step, last_completed_step, promo_code, promo_code_valid, promo_discount_type, promo_discount_value, promo_discount_applied, promo_free_shipping'
+              )
               .eq('user_id', userId)
               .eq('status', 'in_progress')
               .order('created_at', { ascending: false })
@@ -153,7 +161,9 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
           } else if (guestId) {
             const { data } = await supabase
               .from('checkout_sessions')
-              .select('personal_info, shipping_info, current_step, last_completed_step, promo_code, promo_code_valid, promo_discount_type, promo_discount_value, promo_discount_applied, promo_free_shipping')
+              .select(
+                'personal_info, shipping_info, current_step, last_completed_step, promo_code, promo_code_valid, promo_discount_type, promo_discount_value, promo_discount_applied, promo_free_shipping'
+              )
               .eq('guest_id', guestId)
               .eq('status', 'in_progress')
               .order('created_at', { ascending: false })
@@ -165,7 +175,7 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
           if (dbSession) {
             const pi = dbSession.personal_info as any;
             const si = dbSession.shipping_info as any;
-            
+
             if (pi) {
               loadedData.firstName = pi.first_name || '';
               loadedData.lastName = pi.last_name || '';
@@ -178,7 +188,9 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
               loadedData.postalCode = si.postal_code || '';
               loadedData.city = si.city || '';
               const validCountries = ['FR', 'BE', 'CH', 'MC', 'LU'];
-              loadedData.country = validCountries.includes(si.country) ? si.country : 'FR';
+              loadedData.country = validCountries.includes(si.country)
+                ? si.country
+                : 'FR';
             }
 
             // Restore step/completed from DB session
@@ -187,17 +199,26 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
                 { length: dbSession.last_completed_step },
                 (_, i) => i + 1
               );
-              setSavedStep(dbSession.current_step || dbSession.last_completed_step + 1);
+              setSavedStep(
+                dbSession.current_step || dbSession.last_completed_step + 1
+              );
               setSavedCompletedSteps(completedFromDb);
             }
 
-            console.log('[useCheckoutFormPersistence] Rehydrated from DB checkout_session');
-            
+            console.log(
+              '[useCheckoutFormPersistence] Rehydrated from DB checkout_session'
+            );
+
             // Re-persist to localStorage so future loads are fast
-            safeSetItem(CHECKOUT_TIMESTAMP_KEY, Date.now(), { storage: 'localStorage' });
+            safeSetItem(CHECKOUT_TIMESTAMP_KEY, Date.now(), {
+              storage: 'localStorage',
+            });
           }
         } catch (dbErr) {
-          console.warn('[useCheckoutFormPersistence] DB fallback failed (non-blocking):', dbErr);
+          console.warn(
+            '[useCheckoutFormPersistence] DB fallback failed (non-blocking):',
+            dbErr
+          );
         }
       }
 

@@ -24,7 +24,8 @@ export function useCheckoutResume(): CheckoutResumeInfo {
     const timestamp = safeGetItem<number>(CHECKOUT_TIMESTAMP_KEY, {
       storage: 'localStorage',
     });
-    const isExpired = !timestamp || (Date.now() - timestamp) > 24 * 60 * 60 * 1000;
+    const isExpired =
+      !timestamp || Date.now() - timestamp > 24 * 60 * 60 * 1000;
 
     // Check for saved step
     const savedStep = safeGetItem<number>(CHECKOUT_STEP_KEY, {
