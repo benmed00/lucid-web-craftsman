@@ -1,6 +1,9 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.2';
 
+// Ambient declaration for Deno runtime (Supabase Edge Functions run on Deno)
+declare const Deno: { env: { get(key: string): string | undefined } };
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
