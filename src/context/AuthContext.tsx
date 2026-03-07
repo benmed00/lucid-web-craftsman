@@ -331,31 +331,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // THEN check for existing session
+    // Note: onAuthStateChange fires for existing sessions too, but we also
+    // call getSession() as a fast synchronous read from localStorage to
+    // reduce perceived loading time. getUser() is deferred to background
+    // to avoid blocking init with a network round-trip.
     const initAuth = async () => {
       try {
         const {
           data: { session },
         } = await supabase.auth.getSession();
 
-        if (session) {
-          // CRITICAL: Validate the token server-side with getUser()
-          // getSession() only reads from localStorage and does NOT verify the JWT signature.
-          // If the token is corrupted/expired, API calls will fail with 403.
-          const {
-            data: { user: validatedUser },
-            error: userError,
-          } = await supabase.auth.getUser();
+        if (session?.user) {
+          // Fast path: trust the local session for immediate UI rendering.
+          // onAuthStateChange will also fire and keep state in sync.
+          if (isMounted) {
+            setAuthState((prev) => ({
+              ...prev,
+              session,
+              user: session.user,
+              isLoading: false,
+              isInitialized: true,
+            }));
+            initializeWishlistStore(session.user.id);
+            loadUserProfile(session.user.id);
+          }
 
-          if (userError || !validatedUser) {
-            // Token is invalid — clean up stale session
-            console.warn(
-              '[AuthContext] Stale JWT detected, cleaning up:',
-              userError?.message
-            );
-            cleanupAuthState();
-            await supabase.auth.signOut({ scope: 'local' });
-
-            if (isMounted) {
+          // Background validation: verify JWT is still valid server-side.
+          // If invalid, sign out gracefully without blocking init.
+          supabase.auth.getUser().then(({ error: userError }) => {
+            if (userError && isMounted) {
+              console.warn(
+                '[AuthContext] Background JWT validation failed, signing out:',
+                userError.message
+              );
+              cleanupAuthState();
+              supabase.auth.signOut({ scope: 'local' });
               setAuthState({
                 user: null,
                 session: null,
@@ -364,21 +374,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 isInitialized: true,
               });
             }
-            return;
-          }
-
-          // Token is valid
-          if (isMounted) {
-            setAuthState((prev) => ({
-              ...prev,
-              session,
-              user: validatedUser,
-              isLoading: false,
-              isInitialized: true,
-            }));
-            initializeWishlistStore(validatedUser.id);
-            loadUserProfile(validatedUser.id);
-          }
+          });
         } else {
           // No session at all
           if (isMounted) {
