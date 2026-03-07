@@ -86,13 +86,9 @@ const ALLOWED_ORIGINS = [
   'https://id-preview--1ed5c182-2490-4180-9969-ca6a7e19e8ca.lovable.app',
 ];
 
-const getValidOrigin = (req: Request): string => {
-  const origin = req.headers.get('origin') || '';
-  if (ALLOWED_ORIGINS.includes(origin)) return origin;
-  // Also allow any *.lovable.app or *.lovableproject.com origin for staging
-  if (/^https:\/\/[a-z0-9._-]+\.lovable(project\.com|\.app)$/.test(origin))
-    return origin;
-  // Default to production domain, never to lovable.app
+const getValidOrigin = (_req: Request): string => {
+  // Always use SITE_URL for Stripe redirects to avoid iframe/preview origin mismatch
+  // The SITE_URL secret is the canonical production domain
   return PRODUCTION_ORIGIN;
 };
 
