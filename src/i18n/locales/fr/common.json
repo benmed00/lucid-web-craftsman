@@ -138,7 +138,12 @@
     "tooltipRequired": "Requis pour activer le bouton d'abonnement",
     "consentText": "J'accepte de recevoir la newsletter de Rif Raw Straw et confirme avoir lu la",
     "privacyPolicy": "politique de confidentialité",
-    "unsubscribeNote": "Vous pouvez vous désabonner à tout moment en cliquant sur le lien de désinscription présent dans chaque email."
+    "unsubscribeNote": "Vous pouvez vous désabonner à tout moment en cliquant sur le lien de désinscription présent dans chaque email.",
+    "exitIntent": {
+      "title": "Avant de partir… 🌿",
+      "description": "Recevez 10% de réduction sur votre première commande en vous inscrivant à notre newsletter artisanale.",
+      "close": "Fermer"
+    }
   },
   "notifications": {
     "title": "Restez informé",
