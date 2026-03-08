@@ -246,14 +246,14 @@ const App = () => {
                     </Suspense>
 
                     <Routes>
-                      {/* Critical routes loaded immediately */}
+                      {/* Critical route loaded immediately */}
                       <Route path="/" element={<Index />} />
-                      <Route path="/products" element={<Products />} />
+                      <Route path="/products" element={<Suspense fallback={<PageLoadingFallback />}><Products /></Suspense>} />
                       <Route
                         path="/shop"
                         element={<Navigate to="/products" replace />}
                       />
-                      <Route path="/products/:id" element={<ProductDetail />} />
+                      <Route path="/products/:id" element={<Suspense fallback={<PageLoadingFallback />}><ProductDetail /></Suspense>} />
 
                       {/* Non-critical routes with lazy loading */}
                       <Route
