@@ -77,7 +77,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
     try {
       const { data, error } = await supabase
         .from('user_preferences')
-        .insert([
+        .upsert(
           {
             user_id: user.id,
             email_notifications: true,
@@ -89,7 +89,8 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
             privacy_show_email: false,
             privacy_show_phone: false,
           },
-        ])
+          { onConflict: 'user_id', ignoreDuplicates: true }
+        )
         .select()
         .single();
 
