@@ -133,6 +133,7 @@ const AdminProductCatalog = lazy(
 const AdminTranslations = lazy(() => import('./pages/admin/AdminTranslations'));
 const AdminBlog = lazy(() => import('./pages/admin/AdminBlog'));
 const AdminTags = lazy(() => import('./pages/admin/AdminTags'));
+const AdminNewsletter = lazy(() => import('./pages/admin/AdminNewsletter'));
 
 // Loading fallback component
 const PageLoadingFallback = () => (
