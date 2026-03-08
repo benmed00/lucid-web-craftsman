@@ -65,6 +65,7 @@ const Story = lazyWithRetry(() => import('./pages/Story'));
 const Terms = lazyWithRetry(() => import('./pages/Terms'));
 const TermsOfService = lazyWithRetry(() => import('./pages/TermsOfService'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
+const NewsletterExitIntent = lazyWithRetry(() => import('./components/NewsletterExitIntent'));
 
 // Essential context providers (Auth only - Cart/Wishlist/Currency/Theme migrated to Zustand)
 import { AuthProvider } from '@/context/AuthContext';
