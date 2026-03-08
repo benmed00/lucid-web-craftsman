@@ -1,14 +1,17 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 
-const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
-const FROM_NAME = 'Rif Raw Straw';
+const FROM_NAME = 'Rif Straw';
+const FROM_EMAIL_FALLBACK = 'contact@rif-elegance.com';
 
-const parseFromEmail = (raw: string | undefined): string => {
-  if (!raw) return 'noreply@rifelegance.com';
+const getFromEmail = (): string => {
+  const raw = Deno.env.get('RESEND_FROM_EMAIL');
+  console.log('RESEND_FROM_EMAIL raw value:', raw);
+  if (!raw) return FROM_EMAIL_FALLBACK;
   const match = raw.match(/<([^>]+)>/);
-  return match ? match[1].trim() : raw.trim();
+  const result = match ? match[1].trim() : raw.trim();
+  console.log('Parsed FROM_EMAIL:', result);
+  return result || FROM_EMAIL_FALLBACK;
 };
-const FROM_EMAIL = parseFromEmail(Deno.env.get('RESEND_FROM_EMAIL'));
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -83,6 +86,7 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
+    const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
     if (!BREVO_API_KEY) {
       console.error('BREVO_API_KEY is not set');
       return new Response(JSON.stringify({ error: 'Email service not configured' }), {
@@ -91,8 +95,9 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
+    const FROM_EMAIL = getFromEmail();
     const htmlContent = generateWelcomeHtml(email);
-    const subject = 'Bienvenue chez Rif Raw Straw ! 🌿';
+    const subject = 'Bienvenue chez Rif Straw ! 🌿';
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
