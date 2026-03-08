@@ -526,7 +526,9 @@ export default function Auth() {
                           </Label>
                           <Input
                             id="signup-phone"
+                            name="phone"
                             type="tel"
+                            autoComplete="tel"
                             placeholder={t('auth:register.phonePlaceholder')}
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
