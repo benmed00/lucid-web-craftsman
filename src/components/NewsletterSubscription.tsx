@@ -136,6 +136,7 @@ const NewsletterSubscription = ({
               <div className="flex gap-2">
                 <Input
                   id="newsletter-email"
+                  name="email"
                   type="email"
                   placeholder={t('newsletter.emailPlaceholder')}
                   value={email}
