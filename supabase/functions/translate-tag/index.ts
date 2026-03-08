@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,6 +29,43 @@ serve(async (req) => {
   }
 
   try {
+    // --- Admin authorization check ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userError } =
+      await supabaseAdmin.auth.getUser(token);
+    if (userError || !userData?.user) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { data: isAdmin } = await supabaseAdmin.rpc('is_admin_user', {
+      user_uuid: userData.user.id,
+    });
+    if (!isAdmin) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden - Admin access required' }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+    // --- End admin authorization check ---
+
     const {
       tag,
       targetLanguages = ['en', 'ar', 'es', 'de'],
@@ -99,7 +137,6 @@ Respond ONLY with a JSON object in this exact format (no markdown, no code block
       return new Response(
         JSON.stringify({
           error: 'Translation service error',
-          details: errorText,
         }),
         {
           status: 500,
@@ -135,7 +172,6 @@ Respond ONLY with a JSON object in this exact format (no markdown, no code block
       return new Response(
         JSON.stringify({
           error: 'Failed to parse translation',
-          rawContent: content,
         }),
         {
           status: 500,
@@ -162,7 +198,7 @@ Respond ONLY with a JSON object in this exact format (no markdown, no code block
     });
   } catch (error) {
     console.error('Error in translate-tag function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
