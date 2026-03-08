@@ -12,9 +12,6 @@ import { useWebVitals } from '@/hooks/useWebVitals';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { lazy, Suspense, startTransition, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { taskScheduler } from '@/utils/taskScheduler';
-import { mainThreadOptimizer } from '@/utils/mainThreadOptimizer';
-import { inputResponsivenessOptimizer } from '@/utils/inputResponsivenessOptimizer';
 
 // Critical page loaded immediately (landing page only)
 import Index from './pages/Index';
