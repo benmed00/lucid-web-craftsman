@@ -86,6 +86,7 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
+    const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
     if (!BREVO_API_KEY) {
       console.error('BREVO_API_KEY is not set');
       return new Response(JSON.stringify({ error: 'Email service not configured' }), {
@@ -94,7 +95,6 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
     const FROM_EMAIL = getFromEmail();
     const htmlContent = generateWelcomeHtml(email);
     const subject = 'Bienvenue chez Rif Straw ! 🌿';
