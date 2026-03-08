@@ -62,6 +62,8 @@ const generateWelcomeHtml = (email: string): string => `
           <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.5;">
             Vous recevez cet email car vous vous êtes inscrit(e) sur rifrawstraw.com.<br/>
             <a href="https://rif-raw-straw.lovable.app" style="color:#2d5016;text-decoration:underline;">Visiter le site</a>
+            &nbsp;|&nbsp;
+            <a href="https://rif-raw-straw.lovable.app/unsubscribe?email=${encodeURIComponent(email)}" style="color:#9ca3af;text-decoration:underline;">Se désinscrire</a>
           </p>
         </td></tr>
       </table>

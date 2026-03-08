@@ -65,6 +65,8 @@ const Story = lazyWithRetry(() => import('./pages/Story'));
 const Terms = lazyWithRetry(() => import('./pages/Terms'));
 const TermsOfService = lazyWithRetry(() => import('./pages/TermsOfService'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
+const Unsubscribe = lazyWithRetry(() => import('./pages/Unsubscribe'));
+const NewsletterExitIntent = lazyWithRetry(() => import('./components/NewsletterExitIntent'));
 
 // Essential context providers (Auth only - Cart/Wishlist/Currency/Theme migrated to Zustand)
 import { AuthProvider } from '@/context/AuthContext';
@@ -384,6 +386,14 @@ const App = () => {
                         }
                       />
                       <Route
+                        path="/unsubscribe"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Unsubscribe />
+                          </Suspense>
+                        }
+                      />
+                      <Route
                         path="/story"
                         element={
                           <Suspense fallback={<PageLoadingFallback />}>
@@ -585,6 +595,11 @@ const App = () => {
                     </Routes>
                   </MaintenanceWrapper>
                 </BrowserRouter>
+
+                {/* Newsletter exit-intent popup */}
+                <Suspense fallback={null}>
+                  <NewsletterExitIntent />
+                </Suspense>
 
                 {/* Système de notifications */}
                 <Toaster />
