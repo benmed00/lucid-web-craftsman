@@ -506,7 +506,9 @@ export default function Auth() {
                           </Label>
                           <Input
                             id="signup-name"
+                            name="name"
                             type="text"
+                            autoComplete="name"
                             placeholder={t('auth:register.fullNamePlaceholder')}
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
