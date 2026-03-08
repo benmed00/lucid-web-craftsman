@@ -586,6 +586,11 @@ const App = () => {
                   </MaintenanceWrapper>
                 </BrowserRouter>
 
+                {/* Newsletter exit-intent popup */}
+                <Suspense fallback={null}>
+                  <NewsletterExitIntent />
+                </Suspense>
+
                 {/* Système de notifications */}
                 <Toaster />
                 <Sonner richColors expand visibleToasts={3} />
