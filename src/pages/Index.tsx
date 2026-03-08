@@ -4,24 +4,39 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Leaf, Instagram } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import Footer from '@/components/Footer';
-import ProductShowcase from '@/components/ProductShowcase';
-import Testimonials from '@/components/Testimonials';
-import InstagramFeed from '@/components/InstagramFeed';
-import ArtisansSection from '@/components/ArtisansSection';
 import { Link } from 'react-router-dom';
 import HeroImage from '@/components/HeroImage';
 import ScrollToTop from '@/components/ScrollToTop';
 import FloatingCartButton from '@/components/ui/FloatingCartButton';
-import { RecentlyViewedProducts } from '@/components/RecentlyViewedProducts';
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import {
   useProductsWithTranslations,
   ProductWithTranslation,
 } from '@/hooks/useTranslatedContent';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import SEOHelmet from '@/components/seo/SEOHelmet';
-import NewsletterSubscription from '@/components/NewsletterSubscription';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Lazy load below-fold sections to improve Speed Index
+const Footer = lazy(() => import('@/components/Footer'));
+const ProductShowcase = lazy(() => import('@/components/ProductShowcase'));
+const Testimonials = lazy(() => import('@/components/Testimonials'));
+const InstagramFeed = lazy(() => import('@/components/InstagramFeed'));
+const ArtisansSection = lazy(() => import('@/components/ArtisansSection'));
+const NewsletterSubscription = lazy(() => import('@/components/NewsletterSubscription'));
+const RecentlyViewedProducts = lazy(() =>
+  import('@/components/RecentlyViewedProducts').then((m) => ({
+    default: m.RecentlyViewedProducts,
+  }))
+);
+
+const SectionFallback = () => (
+  <div className="py-12 container mx-auto px-4">
+    <Skeleton className="h-8 w-1/3 mx-auto mb-6" />
+    <Skeleton className="h-48 w-full" />
+  </div>
+);
+
 const Index = () => {
   const { t } = useTranslation(['pages', 'common']);
 
@@ -225,6 +240,7 @@ const Index = () => {
         </section>
 
         {/* Product Showcase - Mobile Responsive */}
+        <Suspense fallback={<SectionFallback />}>
         <section id="shop" className="py-16 md:py-20 lg:py-28">
           <div className="container mx-auto px-4">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-8 md:mb-12 lg:mb-16 gap-6">
@@ -253,9 +269,11 @@ const Index = () => {
 
             {/* Recently Viewed Section - Hidden by default, configurable */}
             {sectionConfig.showRecentlyViewed && (
-              <div className="mt-12 md:mt-16">
-                <RecentlyViewedProducts />
-              </div>
+              <Suspense fallback={null}>
+                <div className="mt-12 md:mt-16">
+                  <RecentlyViewedProducts />
+                </div>
+              </Suspense>
             )}
 
             {/* Mobile CTA Button */}
@@ -274,11 +292,15 @@ const Index = () => {
             </div>
           </div>
         </section>
+        </Suspense>
 
         {/* Artisans Section */}
-        <ArtisansSection />
+        <Suspense fallback={<SectionFallback />}>
+          <ArtisansSection />
+        </Suspense>
 
         {/* Testimonials - Mobile Responsive */}
+        <Suspense fallback={<SectionFallback />}>
         <section
           id="testimonials"
           className="bg-secondary py-12 md:py-20 lg:py-24"
@@ -295,8 +317,10 @@ const Index = () => {
             <Testimonials />
           </div>
         </section>
+        </Suspense>
 
         {/* Instagram Section - Mobile Responsive */}
+        <Suspense fallback={<SectionFallback />}>
         <section className="py-12 md:py-20 lg:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center mb-8 md:mb-12">
@@ -313,8 +337,10 @@ const Index = () => {
             <InstagramFeed />
           </div>
         </section>
+        </Suspense>
 
         {/* Newsletter Section */}
+        <Suspense fallback={<SectionFallback />}>
         <section className="bg-muted/50 dark:bg-muted/20 py-16 md:py-20">
           <div className="container mx-auto px-4">
             <div className="max-w-xl mx-auto">
@@ -322,9 +348,12 @@ const Index = () => {
             </div>
           </div>
         </section>
+        </Suspense>
       </main>
 
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
       <ScrollToTop />
       <FloatingCartButton />
     </div>

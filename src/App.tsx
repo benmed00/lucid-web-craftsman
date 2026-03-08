@@ -16,10 +16,8 @@ import { taskScheduler } from '@/utils/taskScheduler';
 import { mainThreadOptimizer } from '@/utils/mainThreadOptimizer';
 import { inputResponsivenessOptimizer } from '@/utils/inputResponsivenessOptimizer';
 
-// Critical pages loaded immediately
+// Critical page loaded immediately (landing page only)
 import Index from './pages/Index';
-import Products from './pages/Products';
-import ProductDetail from './pages/ProductDetail';
 import Maintenance from './pages/Maintenance';
 
 // Helper for resilient lazy loading with retry and reload fallback
@@ -45,6 +43,10 @@ const lazyWithRetry = (
     }
   });
 };
+
+// Products pages lazy-loaded (not needed for initial landing page render)
+const Products = lazyWithRetry(() => import('./pages/Products'));
+const ProductDetail = lazyWithRetry(() => import('./pages/ProductDetail'));
 
 // Non-critical pages lazy loaded with retry logic
 const About = lazyWithRetry(() => import('./pages/About'));
@@ -244,14 +246,14 @@ const App = () => {
                     </Suspense>
 
                     <Routes>
-                      {/* Critical routes loaded immediately */}
+                      {/* Critical route loaded immediately */}
                       <Route path="/" element={<Index />} />
-                      <Route path="/products" element={<Products />} />
+                      <Route path="/products" element={<Suspense fallback={<PageLoadingFallback />}><Products /></Suspense>} />
                       <Route
                         path="/shop"
                         element={<Navigate to="/products" replace />}
                       />
-                      <Route path="/products/:id" element={<ProductDetail />} />
+                      <Route path="/products/:id" element={<Suspense fallback={<PageLoadingFallback />}><ProductDetail /></Suspense>} />
 
                       {/* Non-critical routes with lazy loading */}
                       <Route
