@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { X } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import NewsletterSubscription from '@/components/NewsletterSubscription';
 import { useTranslation } from 'react-i18next';
