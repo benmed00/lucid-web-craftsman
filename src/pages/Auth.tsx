@@ -448,7 +448,9 @@ export default function Auth() {
                         <div className="relative">
                           <Input
                             id="signin-password"
+                            name="password"
                             type={showPassword ? 'text' : 'password'}
+                            autoComplete="current-password"
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
