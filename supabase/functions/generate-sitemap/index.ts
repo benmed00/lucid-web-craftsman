@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const SITE_URL = 'https://rif-raw-straw.lovable.app';
+const SITE_URL = Deno.env.get('SITE_URL')?.replace(/\/+$/, '') || 'https://www.rif-elegance.com';
 
 serve(async (req: Request): Promise<Response> => {
   try {

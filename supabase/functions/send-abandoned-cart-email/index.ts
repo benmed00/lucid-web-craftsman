@@ -4,6 +4,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const FROM_NAME = 'Rif Straw';
 const FROM_EMAIL_FALLBACK = 'contact@rif-elegance.com';
 
+const getSiteUrl = (): string => {
+  const url = Deno.env.get('SITE_URL') || 'https://www.rif-elegance.com';
+  return url.replace(/\/+$/, '');
+};
+
 const getFromEmail = (): string => {
   const raw = Deno.env.get('RESEND_FROM_EMAIL');
   if (!raw) return FROM_EMAIL_FALLBACK;
@@ -25,6 +30,7 @@ const generateAbandonedCartHtml = (
   personalInfo: any,
   sessionId: string
 ): string => {
+  const siteUrl = getSiteUrl();
   const firstName = personalInfo?.firstName || personalInfo?.first_name || 'Client';
   const itemsHtml = (items || [])
     .slice(0, 5)
@@ -72,7 +78,7 @@ const generateAbandonedCartHtml = (
 
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
             <tr><td align="center">
-              <a href="https://rif-raw-straw.lovable.app/checkout"
+              <a href="${siteUrl}/checkout"
                  style="display:inline-block;background-color:#2d5016;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;">
                 Finaliser ma commande
               </a>
@@ -82,8 +88,10 @@ const generateAbandonedCartHtml = (
 
         <tr><td style="padding-top:32px;text-align:center;">
           <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.5;">
-            Cet email a été envoyé car vous avez commencé une commande sur rifrawstraw.com.<br/>
-            <a href="https://rif-raw-straw.lovable.app" style="color:#2d5016;text-decoration:underline;">Visiter le site</a>
+            Cet email a été envoyé car vous avez commencé une commande sur rif-elegance.com.<br/>
+            <a href="${siteUrl}" style="color:#2d5016;text-decoration:underline;">Visiter le site</a>
+            &nbsp;|&nbsp;
+            <a href="${siteUrl}/unsubscribe?email=${encodeURIComponent(personalInfo?.email || '')}" style="color:#9ca3af;text-decoration:underline;">Se désinscrire</a>
           </p>
         </td></tr>
       </table>
