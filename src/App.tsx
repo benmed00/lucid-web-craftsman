@@ -202,30 +202,16 @@ const App = () => {
   useWebVitals();
 
   // Schedule non-critical initializations to avoid blocking main thread
-  // Ultra-optimized initializations to prevent FID issues
   useEffect(() => {
-    // Use input responsiveness optimizer for FID-safe initialization
-    inputResponsivenessOptimizer.scheduleWhenIdle(
-      async () => {
-        // Break initialization into tiny chunks to prevent long tasks
-        await inputResponsivenessOptimizer.executeWithYielding(
-          async () => {
-            try {
-              // Process initialization data in small chunks
-              await mainThreadOptimizer.executeInWorker('COMPRESS_DATA', {
-                config: 'app_initialization',
-                timestamp: Date.now(),
-              });
-              console.log('App initialized with FID optimization');
-            } catch (error) {
-              console.log('App initialized with fallback processing');
-            }
-          },
-          { priority: 'background' }
-        );
-      },
-      { timeout: 2000 }
-    );
+    // Use requestIdleCallback for truly non-blocking initialization
+    const init = () => {
+      console.log('App initialized with FID optimization');
+    };
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(init, { timeout: 3000 });
+    } else {
+      setTimeout(init, 100);
+    }
   }, []);
 
   return (
