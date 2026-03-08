@@ -224,7 +224,7 @@ const App = () => {
           <OfflineManager>
             <AuthProvider>
               <TooltipProvider delayDuration={300}>
-                <BrowserRouter basename={basePath}>
+                <BrowserRouter basename={basePath} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                   <MaintenanceWrapper>
                     <Suspense fallback={null}>
                       <PushNotificationManager />
