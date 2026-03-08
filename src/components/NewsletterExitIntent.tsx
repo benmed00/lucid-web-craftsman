@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { X } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import NewsletterSubscription from '@/components/NewsletterSubscription';
 import { useTranslation } from 'react-i18next';
@@ -55,14 +54,6 @@ const NewsletterExitIntent = () => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) dismiss(); }}>
       <DialogContent className="sm:max-w-md p-0 gap-0 border-border bg-background overflow-hidden">
-        <button
-          onClick={dismiss}
-          className="absolute right-3 top-3 z-10 rounded-full p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          aria-label={t('newsletter.exitIntent.close', 'Fermer')}
-        >
-          <X className="h-4 w-4" />
-        </button>
-
         <div className="p-6 pt-8">
           <NewsletterSubscription
             variant="popup"
