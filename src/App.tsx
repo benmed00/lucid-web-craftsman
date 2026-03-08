@@ -590,8 +590,10 @@ const App = () => {
                 <Toaster />
                 <Sonner richColors expand visibleToasts={3} />
 
-                {/* TTI Optimizer - runs after everything else */}
-                <TTIOptimizer />
+                {/* TTI Optimizer - lazy loaded, runs after everything else */}
+                <Suspense fallback={null}>
+                  <TTIOptimizer />
+                </Suspense>
 
                 {/* Devtools React Query (en développement seulement) */}
                 {import.meta.env.DEV && (
