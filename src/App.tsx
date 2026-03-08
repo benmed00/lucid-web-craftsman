@@ -12,9 +12,6 @@ import { useWebVitals } from '@/hooks/useWebVitals';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { lazy, Suspense, startTransition, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { taskScheduler } from '@/utils/taskScheduler';
-import { mainThreadOptimizer } from '@/utils/mainThreadOptimizer';
-import { inputResponsivenessOptimizer } from '@/utils/inputResponsivenessOptimizer';
 
 // Critical page loaded immediately (landing page only)
 import Index from './pages/Index';
@@ -77,7 +74,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import TTIOptimizer from '@/components/performance/TTIOptimizer';
+const TTIOptimizer = lazy(() => import('@/components/performance/TTIOptimizer'));
 
 // PWA Components - lazy loaded since not critical for initial render
 const PWAInstallPrompt = lazy(() =>
@@ -205,30 +202,16 @@ const App = () => {
   useWebVitals();
 
   // Schedule non-critical initializations to avoid blocking main thread
-  // Ultra-optimized initializations to prevent FID issues
   useEffect(() => {
-    // Use input responsiveness optimizer for FID-safe initialization
-    inputResponsivenessOptimizer.scheduleWhenIdle(
-      async () => {
-        // Break initialization into tiny chunks to prevent long tasks
-        await inputResponsivenessOptimizer.executeWithYielding(
-          async () => {
-            try {
-              // Process initialization data in small chunks
-              await mainThreadOptimizer.executeInWorker('COMPRESS_DATA', {
-                config: 'app_initialization',
-                timestamp: Date.now(),
-              });
-              console.log('App initialized with FID optimization');
-            } catch (error) {
-              console.log('App initialized with fallback processing');
-            }
-          },
-          { priority: 'background' }
-        );
-      },
-      { timeout: 2000 }
-    );
+    // Use requestIdleCallback for truly non-blocking initialization
+    const init = () => {
+      console.log('App initialized with FID optimization');
+    };
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(init, { timeout: 3000 });
+    } else {
+      setTimeout(init, 100);
+    }
   }, []);
 
   return (
@@ -607,8 +590,10 @@ const App = () => {
                 <Toaster />
                 <Sonner richColors expand visibleToasts={3} />
 
-                {/* TTI Optimizer - runs after everything else */}
-                <TTIOptimizer />
+                {/* TTI Optimizer - lazy loaded, runs after everything else */}
+                <Suspense fallback={null}>
+                  <TTIOptimizer />
+                </Suspense>
 
                 {/* Devtools React Query (en développement seulement) */}
                 {import.meta.env.DEV && (
