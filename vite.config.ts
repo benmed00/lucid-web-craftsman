@@ -95,6 +95,13 @@ export default defineConfig(({ mode }) => ({
     cssCodeSplit: true,
     rollupOptions: {
       output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-router': ['react-router-dom'],
+          'vendor-query': ['@tanstack/react-query'],
+          'vendor-i18n': ['i18next', 'react-i18next'],
+          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
+        },
         assetFileNames: (assetInfo: PreRenderedAsset) => {
           const name = assetInfo.name || 'asset';
           const info = name.split('.');
