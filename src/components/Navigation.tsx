@@ -402,6 +402,7 @@ const Navigation = () => {
                 className="flex gap-3 md:gap-4 lg:gap-2"
               >
                 <Input
+                  name="search"
                   type="text"
                   placeholder={t('common:nav.searchPlaceholder')}
                   value={searchQuery}
