@@ -20,8 +20,8 @@
  *   old caches on the next service worker activation.
  */
 
-const STATIC_CACHE_NAME = 'rif-static-v6';
-const IMAGE_CACHE_NAME = 'rif-images-v6';
+const STATIC_CACHE_NAME = 'rif-static-v7';
+const IMAGE_CACHE_NAME = 'rif-images-v7';
 
 const MAX_CACHE_SIZE = 100; // per bucket
 
@@ -116,13 +116,21 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ── Images (local + Supabase storage) → cache-first ──
+  // ── Images → cache strategy depends on type ──
   if (
     request.url.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)(\?.*)?$/) ||
     (url.hostname.endsWith('supabase.co') &&
       url.pathname.startsWith('/storage/'))
   ) {
-    event.respondWith(cacheFirst(request, IMAGE_CACHE_NAME));
+    // Hero images from Supabase storage → network-first (they change when admin updates)
+    if (
+      url.hostname.endsWith('supabase.co') &&
+      url.pathname.includes('/hero-images/')
+    ) {
+      event.respondWith(networkFirst(request, IMAGE_CACHE_NAME));
+    } else {
+      event.respondWith(cacheFirst(request, IMAGE_CACHE_NAME));
+    }
     return;
   }
 
@@ -152,6 +160,24 @@ async function cacheFirst(request, cacheName) {
     }
     return response;
   } catch (error) {
+    return new Response('Network error', { status: 503 });
+  }
+}
+
+// ── Network-first helper (for content that changes, e.g. hero images) ─
+async function networkFirst(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      cache.put(request, response.clone());
+      trimCache(cacheName, MAX_CACHE_SIZE);
+    }
+    return response;
+  } catch (error) {
+    // Network failed — fall back to cache
+    const cached = await cache.match(request);
+    if (cached) return cached;
     return new Response('Network error', { status: 503 });
   }
 }
