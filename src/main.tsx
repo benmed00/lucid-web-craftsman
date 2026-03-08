@@ -44,15 +44,18 @@ if (!window.__PERF_OPTIMIZED__) {
   initializeThemeStore();
   initializeLanguageStore();
 
-  // Defer non-critical initializations to after render
+  // Defer ALL non-critical initializations to after first paint
+  // Use double-rAF to ensure we're past the first frame
   requestAnimationFrame(() => {
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       initPerformanceOptimizations();
       addResourceHints();
-      registerServiceWorker();
-      // monitorCachePerformance removed - PerformanceObserver on every resource is expensive
-      initializeBusinessRules().catch(console.warn);
-    }, 100);
+      // Defer service worker even further to avoid competing with main thread
+      setTimeout(() => {
+        registerServiceWorker();
+        initializeBusinessRules().catch(console.warn);
+      }, 2000);
+    });
   });
 }
 
