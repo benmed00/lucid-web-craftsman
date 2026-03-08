@@ -4,6 +4,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const FROM_NAME = 'Rif Straw';
 const FROM_EMAIL_FALLBACK = 'contact@rif-elegance.com';
 
+const getSiteUrl = (): string => {
+  const url = Deno.env.get('SITE_URL') || 'https://www.rif-elegance.com';
+  return url.replace(/\/+$/, '');
+};
+
 const getFromEmail = (): string => {
   const raw = Deno.env.get('RESEND_FROM_EMAIL');
   if (!raw) return FROM_EMAIL_FALLBACK;
@@ -25,6 +30,7 @@ const generateAbandonedCartHtml = (
   personalInfo: any,
   sessionId: string
 ): string => {
+  const siteUrl = getSiteUrl();
   const firstName = personalInfo?.firstName || personalInfo?.first_name || 'Client';
   const itemsHtml = (items || [])
     .slice(0, 5)
