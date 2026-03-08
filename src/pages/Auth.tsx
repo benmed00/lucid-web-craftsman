@@ -427,7 +427,9 @@ export default function Auth() {
                         </Label>
                         <Input
                           id="signin-email"
+                          name="email"
                           type="email"
+                          autoComplete="email"
                           placeholder={t('auth:login.emailPlaceholder')}
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
@@ -446,7 +448,9 @@ export default function Auth() {
                         <div className="relative">
                           <Input
                             id="signin-password"
+                            name="password"
                             type={showPassword ? 'text' : 'password'}
+                            autoComplete="current-password"
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -502,7 +506,9 @@ export default function Auth() {
                           </Label>
                           <Input
                             id="signup-name"
+                            name="name"
                             type="text"
+                            autoComplete="name"
                             placeholder={t('auth:register.fullNamePlaceholder')}
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
@@ -520,7 +526,9 @@ export default function Auth() {
                           </Label>
                           <Input
                             id="signup-phone"
+                            name="phone"
                             type="tel"
+                            autoComplete="tel"
                             placeholder={t('auth:register.phonePlaceholder')}
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
@@ -538,7 +546,9 @@ export default function Auth() {
                         </Label>
                         <Input
                           id="signup-email"
+                          name="email"
                           type="email"
+                          autoComplete="email"
                           placeholder={t('auth:register.emailPlaceholder')}
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
@@ -557,7 +567,9 @@ export default function Auth() {
                         <div className="relative">
                           <Input
                             id="signup-password"
+                            name="new-password"
                             type={showPassword ? 'text' : 'password'}
+                            autoComplete="new-password"
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -637,7 +649,9 @@ export default function Auth() {
                         <div className="relative">
                           <Input
                             id="confirm-password"
+                            name="confirm-password"
                             type={showConfirmPassword ? 'text' : 'password'}
+                            autoComplete="new-password"
                             placeholder="••••••••"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
