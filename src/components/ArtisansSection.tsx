@@ -132,7 +132,6 @@ const ArtisansSection = () => {
                       decoding="async"
                       width={400}
                       height={400}
-                      fetchpriority="low"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent sm:bg-gradient-to-r" />
 
