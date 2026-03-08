@@ -192,6 +192,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const safetyTimeout = setTimeout(async () => {
       if (!isMounted) return;
 
+      // Check current state — skip if already initialized
+      const alreadyDone = await new Promise<boolean>((resolve) => {
+        setAuthState((prev) => {
+          resolve(!prev.isLoading);
+          return prev;
+        });
+      });
+      if (alreadyDone) return;
+
       // One retry before giving up
       if (!retried) {
         retried = true;
