@@ -70,7 +70,9 @@ const NewsletterSubscription = ({
 
       if (error) {
         if (error.code === '23505') {
-          toast.info(t('newsletter.alreadySubscribed'));
+          setIsSubscribed(true);
+          toast.info(t('newsletter.alreadySubscribed'), { duration: 5000 });
+          setTimeout(() => setIsSubscribed(false), 5000);
         } else {
           throw error;
         }
