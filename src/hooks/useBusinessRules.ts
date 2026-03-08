@@ -66,7 +66,7 @@ async function fetchBusinessRules(): Promise<BusinessRules> {
       .from('app_settings')
       .select('setting_value')
       .eq('setting_key', 'business_rules')
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.warn(

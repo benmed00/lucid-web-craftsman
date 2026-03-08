@@ -50,7 +50,7 @@ export const BusinessRulesConfig: React.FC = () => {
         .from('app_settings')
         .select('setting_value')
         .eq('setting_key', 'business_rules')
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         throw error;
