@@ -94,8 +94,10 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
+    const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
+    const FROM_EMAIL = getFromEmail();
     const htmlContent = generateWelcomeHtml(email);
-    const subject = 'Bienvenue chez Rif Raw Straw ! 🌿';
+    const subject = 'Bienvenue chez Rif Straw ! 🌿';
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
