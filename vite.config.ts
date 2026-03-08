@@ -99,8 +99,11 @@ export default defineConfig(({ mode }) => ({
           'vendor-react': ['react', 'react-dom'],
           'vendor-router': ['react-router-dom'],
           'vendor-query': ['@tanstack/react-query'],
-          'vendor-i18n': ['i18next', 'react-i18next'],
+          'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+          'vendor-supabase': ['@supabase/supabase-js'],
           'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
+          'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          'vendor-charts': ['recharts'],
         },
         assetFileNames: (assetInfo: PreRenderedAsset) => {
           const name = assetInfo.name || 'asset';
