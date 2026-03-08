@@ -149,6 +149,11 @@ const AdminLayout = () => {
     },
     {
       icon: Mail,
+      label: 'Newsletter',
+      path: '/admin/newsletter',
+    },
+    {
+      icon: Mail,
       label: 'Tests Emails',
       path: '/admin/email-testing',
     },

@@ -133,6 +133,7 @@ const AdminProductCatalog = lazy(
 const AdminTranslations = lazy(() => import('./pages/admin/AdminTranslations'));
 const AdminBlog = lazy(() => import('./pages/admin/AdminBlog'));
 const AdminTags = lazy(() => import('./pages/admin/AdminTags'));
+const AdminNewsletter = lazy(() => import('./pages/admin/AdminNewsletter'));
 
 // Loading fallback component
 const PageLoadingFallback = () => (
@@ -570,6 +571,14 @@ const App = () => {
                           element={
                             <Suspense fallback={<PageLoadingFallback />}>
                               <AdminTags />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="newsletter"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminNewsletter />
                             </Suspense>
                           }
                         />

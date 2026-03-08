@@ -46,5 +46,11 @@ verify_jwt = false
 [functions.verify-paypal-payment]
 verify_jwt = false
 
+[functions.send-abandoned-cart-email]
+verify_jwt = false
+
+[functions.generate-sitemap]
+verify_jwt = false
+
 [functions.send-newsletter-welcome]
 verify_jwt = false
