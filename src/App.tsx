@@ -575,6 +575,14 @@ const App = () => {
                           }
                         />
                         <Route
+                          path="newsletter"
+                          element={
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <AdminNewsletter />
+                            </Suspense>
+                          }
+                        />
+                        <Route
                           path="settings"
                           element={
                             <Suspense fallback={<PageLoadingFallback />}>
