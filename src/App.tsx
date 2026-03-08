@@ -74,7 +74,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import TTIOptimizer from '@/components/performance/TTIOptimizer';
+const TTIOptimizer = lazy(() => import('@/components/performance/TTIOptimizer'));
 
 // PWA Components - lazy loaded since not critical for initial render
 const PWAInstallPrompt = lazy(() =>
