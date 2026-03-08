@@ -52,32 +52,23 @@ const NewsletterSubscription = ({
     try {
       const normalizedEmail = email.trim().toLowerCase();
 
-      // Use upsert to handle both new subscriptions and reactivations
-      // This avoids needing SELECT permission which anonymous users don't have
-      const { error } = await supabase.from('newsletter_subscriptions').upsert(
-        {
-          email: normalizedEmail,
-          status: 'active',
-          consent_given: true,
-          consent_date: new Date().toISOString(),
-          source: variant,
-          double_opt_in: false,
-          confirmed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          metadata: {
-            subscription_variant: variant,
-            user_agent: navigator.userAgent,
-            timestamp: Date.now(),
-          },
+      const { error } = await supabase.from('newsletter_subscriptions').insert({
+        email: normalizedEmail,
+        status: 'active',
+        consent_given: true,
+        consent_date: new Date().toISOString(),
+        source: variant,
+        double_opt_in: false,
+        confirmed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        metadata: {
+          subscription_variant: variant,
+          user_agent: navigator.userAgent,
+          timestamp: Date.now(),
         },
-        {
-          onConflict: 'email',
-          ignoreDuplicates: false,
-        }
-      );
+      });
 
       if (error) {
-        // Check if it's a duplicate error (email already active)
         if (error.code === '23505') {
           toast.info(t('newsletter.alreadySubscribed'));
         } else {
@@ -89,7 +80,6 @@ const NewsletterSubscription = ({
         setConsent(false);
         toast.success(t('newsletter.success'));
 
-        // Reset success state after 5 seconds
         setTimeout(() => setIsSubscribed(false), 5000);
       }
     } catch (error) {
