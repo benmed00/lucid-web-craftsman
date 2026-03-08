@@ -20,10 +20,6 @@ import { inputResponsivenessOptimizer } from '@/utils/inputResponsivenessOptimiz
 import Index from './pages/Index';
 import Maintenance from './pages/Maintenance';
 
-// Products pages lazy-loaded (not needed for initial landing page render)
-const Products = lazyWithRetry(() => import('./pages/Products'));
-const ProductDetail = lazyWithRetry(() => import('./pages/ProductDetail'));
-
 // Helper for resilient lazy loading with retry and reload fallback
 const lazyWithRetry = (
   importFn: () => Promise<{ default: React.ComponentType<any> }>
@@ -47,6 +43,10 @@ const lazyWithRetry = (
     }
   });
 };
+
+// Products pages lazy-loaded (not needed for initial landing page render)
+const Products = lazyWithRetry(() => import('./pages/Products'));
+const ProductDetail = lazyWithRetry(() => import('./pages/ProductDetail'));
 
 // Non-critical pages lazy loaded with retry logic
 const About = lazyWithRetry(() => import('./pages/About'));
