@@ -3,13 +3,16 @@ import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 const FROM_NAME = 'Rif Straw';
 const FROM_EMAIL_FALLBACK = 'contact@rif-elegance.com';
 
+const getSiteUrl = (): string => {
+  const url = Deno.env.get('SITE_URL') || 'https://www.rif-elegance.com';
+  return url.replace(/\/+$/, '');
+};
+
 const getFromEmail = (): string => {
   const raw = Deno.env.get('RESEND_FROM_EMAIL');
-  console.log('RESEND_FROM_EMAIL raw value:', raw);
   if (!raw) return FROM_EMAIL_FALLBACK;
   const match = raw.match(/<([^>]+)>/);
   const result = match ? match[1].trim() : raw.trim();
-  console.log('Parsed FROM_EMAIL:', result);
   return result || FROM_EMAIL_FALLBACK;
 };
 
@@ -19,7 +22,9 @@ const corsHeaders = {
     'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const generateWelcomeHtml = (email: string): string => `
+const generateWelcomeHtml = (email: string): string => {
+  const siteUrl = getSiteUrl();
+  return `
 <!DOCTYPE html>
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
@@ -49,7 +54,7 @@ const generateWelcomeHtml = (email: string): string => `
 
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr><td align="center">
-              <a href="https://rif-raw-straw.lovable.app/products"
+              <a href="${siteUrl}/products"
                  style="display:inline-block;background-color:#2d5016;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;">
                 Découvrir nos produits
               </a>
@@ -60,18 +65,18 @@ const generateWelcomeHtml = (email: string): string => `
         <!-- Footer -->
         <tr><td style="padding-top:32px;text-align:center;">
           <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.5;">
-            Vous recevez cet email car vous vous êtes inscrit(e) sur rifrawstraw.com.<br/>
-            <a href="https://rif-raw-straw.lovable.app" style="color:#2d5016;text-decoration:underline;">Visiter le site</a>
+            Vous recevez cet email car vous vous êtes inscrit(e) sur rif-elegance.com.<br/>
+            <a href="${siteUrl}" style="color:#2d5016;text-decoration:underline;">Visiter le site</a>
             &nbsp;|&nbsp;
-            <a href="https://rif-raw-straw.lovable.app/unsubscribe?email=${encodeURIComponent(email)}" style="color:#9ca3af;text-decoration:underline;">Se désinscrire</a>
+            <a href="${siteUrl}/unsubscribe?email=${encodeURIComponent(email)}" style="color:#9ca3af;text-decoration:underline;">Se désinscrire</a>
           </p>
         </td></tr>
       </table>
     </td></tr>
   </table>
 </body>
-</html>
-`;
+</html>`;
+};
 
 serve(async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') {
