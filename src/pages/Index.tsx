@@ -240,6 +240,7 @@ const Index = () => {
         </section>
 
         {/* Product Showcase - Mobile Responsive */}
+        <Suspense fallback={<SectionFallback />}>
         <section id="shop" className="py-16 md:py-20 lg:py-28">
           <div className="container mx-auto px-4">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-8 md:mb-12 lg:mb-16 gap-6">
@@ -268,9 +269,11 @@ const Index = () => {
 
             {/* Recently Viewed Section - Hidden by default, configurable */}
             {sectionConfig.showRecentlyViewed && (
-              <div className="mt-12 md:mt-16">
-                <RecentlyViewedProducts />
-              </div>
+              <Suspense fallback={null}>
+                <div className="mt-12 md:mt-16">
+                  <RecentlyViewedProducts />
+                </div>
+              </Suspense>
             )}
 
             {/* Mobile CTA Button */}
@@ -289,11 +292,15 @@ const Index = () => {
             </div>
           </div>
         </section>
+        </Suspense>
 
         {/* Artisans Section */}
-        <ArtisansSection />
+        <Suspense fallback={<SectionFallback />}>
+          <ArtisansSection />
+        </Suspense>
 
         {/* Testimonials - Mobile Responsive */}
+        <Suspense fallback={<SectionFallback />}>
         <section
           id="testimonials"
           className="bg-secondary py-12 md:py-20 lg:py-24"
@@ -310,8 +317,10 @@ const Index = () => {
             <Testimonials />
           </div>
         </section>
+        </Suspense>
 
         {/* Instagram Section - Mobile Responsive */}
+        <Suspense fallback={<SectionFallback />}>
         <section className="py-12 md:py-20 lg:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center mb-8 md:mb-12">
@@ -328,8 +337,10 @@ const Index = () => {
             <InstagramFeed />
           </div>
         </section>
+        </Suspense>
 
         {/* Newsletter Section */}
+        <Suspense fallback={<SectionFallback />}>
         <section className="bg-muted/50 dark:bg-muted/20 py-16 md:py-20">
           <div className="container mx-auto px-4">
             <div className="max-w-xl mx-auto">
@@ -337,9 +348,12 @@ const Index = () => {
             </div>
           </div>
         </section>
+        </Suspense>
       </main>
 
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
       <ScrollToTop />
       <FloatingCartButton />
     </div>
