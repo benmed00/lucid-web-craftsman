@@ -163,6 +163,7 @@ const PageFooter = () => {
                 {t('common:footer.emailPlaceholder')}
               </label>
               <Input
+                name="email"
                 type="email"
                 id="newsletter-email-footer"
                 placeholder={t('common:footer.emailPlaceholder')}
