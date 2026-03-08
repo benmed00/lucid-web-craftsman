@@ -164,6 +164,24 @@ async function cacheFirst(request, cacheName) {
   }
 }
 
+// ── Network-first helper (for content that changes, e.g. hero images) ─
+async function networkFirst(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      cache.put(request, response.clone());
+      trimCache(cacheName, MAX_CACHE_SIZE);
+    }
+    return response;
+  } catch (error) {
+    // Network failed — fall back to cache
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    return new Response('Network error', { status: 503 });
+  }
+}
+
 // ── Push Notifications ───────────────────────────────────────────────
 self.addEventListener('push', (event) => {
   const options = {
