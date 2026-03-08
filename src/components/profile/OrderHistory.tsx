@@ -46,7 +46,9 @@ export function OrderHistory({ user }: OrderHistoryProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadOrders();
+    // Safety timeout: never stay in skeleton state longer than 6s
+    const timeout = setTimeout(() => setIsLoading(false), 6000);
+    loadOrders().finally(() => clearTimeout(timeout));
   }, [user.id]);
 
   const loadOrders = async () => {
