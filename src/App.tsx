@@ -16,11 +16,13 @@ import { taskScheduler } from '@/utils/taskScheduler';
 import { mainThreadOptimizer } from '@/utils/mainThreadOptimizer';
 import { inputResponsivenessOptimizer } from '@/utils/inputResponsivenessOptimizer';
 
-// Critical pages loaded immediately
+// Critical page loaded immediately (landing page only)
 import Index from './pages/Index';
-import Products from './pages/Products';
-import ProductDetail from './pages/ProductDetail';
 import Maintenance from './pages/Maintenance';
+
+// Products pages lazy-loaded (not needed for initial landing page render)
+const Products = lazyWithRetry(() => import('./pages/Products'));
+const ProductDetail = lazyWithRetry(() => import('./pages/ProductDetail'));
 
 // Helper for resilient lazy loading with retry and reload fallback
 const lazyWithRetry = (
