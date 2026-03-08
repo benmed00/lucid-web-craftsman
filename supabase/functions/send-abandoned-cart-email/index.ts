@@ -88,8 +88,10 @@ const generateAbandonedCartHtml = (
 
         <tr><td style="padding-top:32px;text-align:center;">
           <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.5;">
-            Cet email a été envoyé car vous avez commencé une commande sur rifrawstraw.com.<br/>
-            <a href="https://rif-raw-straw.lovable.app" style="color:#2d5016;text-decoration:underline;">Visiter le site</a>
+            Cet email a été envoyé car vous avez commencé une commande sur rif-elegance.com.<br/>
+            <a href="${siteUrl}" style="color:#2d5016;text-decoration:underline;">Visiter le site</a>
+            &nbsp;|&nbsp;
+            <a href="${siteUrl}/unsubscribe?email=${encodeURIComponent(personalInfo?.email || '')}" style="color:#9ca3af;text-decoration:underline;">Se désinscrire</a>
           </p>
         </td></tr>
       </table>
