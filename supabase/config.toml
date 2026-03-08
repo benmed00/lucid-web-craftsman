@@ -45,3 +45,6 @@ verify_jwt = false
 
 [functions.verify-paypal-payment]
 verify_jwt = false
+
+[functions.send-newsletter-welcome]
+verify_jwt = false
