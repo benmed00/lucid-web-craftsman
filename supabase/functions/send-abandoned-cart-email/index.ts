@@ -78,7 +78,7 @@ const generateAbandonedCartHtml = (
 
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
             <tr><td align="center">
-              <a href="https://rif-raw-straw.lovable.app/checkout"
+              <a href="${siteUrl}/checkout"
                  style="display:inline-block;background-color:#2d5016;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;">
                 Finaliser ma commande
               </a>
