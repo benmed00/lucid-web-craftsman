@@ -4,24 +4,39 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Leaf, Instagram } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import Footer from '@/components/Footer';
-import ProductShowcase from '@/components/ProductShowcase';
-import Testimonials from '@/components/Testimonials';
-import InstagramFeed from '@/components/InstagramFeed';
-import ArtisansSection from '@/components/ArtisansSection';
 import { Link } from 'react-router-dom';
 import HeroImage from '@/components/HeroImage';
 import ScrollToTop from '@/components/ScrollToTop';
 import FloatingCartButton from '@/components/ui/FloatingCartButton';
-import { RecentlyViewedProducts } from '@/components/RecentlyViewedProducts';
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import {
   useProductsWithTranslations,
   ProductWithTranslation,
 } from '@/hooks/useTranslatedContent';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import SEOHelmet from '@/components/seo/SEOHelmet';
-import NewsletterSubscription from '@/components/NewsletterSubscription';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Lazy load below-fold sections to improve Speed Index
+const Footer = lazy(() => import('@/components/Footer'));
+const ProductShowcase = lazy(() => import('@/components/ProductShowcase'));
+const Testimonials = lazy(() => import('@/components/Testimonials'));
+const InstagramFeed = lazy(() => import('@/components/InstagramFeed'));
+const ArtisansSection = lazy(() => import('@/components/ArtisansSection'));
+const NewsletterSubscription = lazy(() => import('@/components/NewsletterSubscription'));
+const RecentlyViewedProducts = lazy(() =>
+  import('@/components/RecentlyViewedProducts').then((m) => ({
+    default: m.RecentlyViewedProducts,
+  }))
+);
+
+const SectionFallback = () => (
+  <div className="py-12 container mx-auto px-4">
+    <Skeleton className="h-8 w-1/3 mx-auto mb-6" />
+    <Skeleton className="h-48 w-full" />
+  </div>
+);
+
 const Index = () => {
   const { t } = useTranslation(['pages', 'common']);
 
