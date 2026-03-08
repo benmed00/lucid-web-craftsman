@@ -116,13 +116,21 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ── Images (local + Supabase storage) → cache-first ──
+  // ── Images → cache strategy depends on type ──
   if (
     request.url.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)(\?.*)?$/) ||
     (url.hostname.endsWith('supabase.co') &&
       url.pathname.startsWith('/storage/'))
   ) {
-    event.respondWith(cacheFirst(request, IMAGE_CACHE_NAME));
+    // Hero images from Supabase storage → network-first (they change when admin updates)
+    if (
+      url.hostname.endsWith('supabase.co') &&
+      url.pathname.includes('/hero-images/')
+    ) {
+      event.respondWith(networkFirst(request, IMAGE_CACHE_NAME));
+    } else {
+      event.respondWith(cacheFirst(request, IMAGE_CACHE_NAME));
+    }
     return;
   }
 
