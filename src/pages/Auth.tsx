@@ -427,7 +427,9 @@ export default function Auth() {
                         </Label>
                         <Input
                           id="signin-email"
+                          name="email"
                           type="email"
+                          autoComplete="email"
                           placeholder={t('auth:login.emailPlaceholder')}
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
