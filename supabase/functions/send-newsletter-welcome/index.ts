@@ -1,14 +1,17 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 
-const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
-const FROM_NAME = 'Rif Raw Straw';
+const FROM_NAME = 'Rif Straw';
+const FROM_EMAIL_FALLBACK = 'contact@rif-elegance.com';
 
-const parseFromEmail = (raw: string | undefined): string => {
-  if (!raw) return 'noreply@rifelegance.com';
+const getFromEmail = (): string => {
+  const raw = Deno.env.get('RESEND_FROM_EMAIL');
+  console.log('RESEND_FROM_EMAIL raw value:', raw);
+  if (!raw) return FROM_EMAIL_FALLBACK;
   const match = raw.match(/<([^>]+)>/);
-  return match ? match[1].trim() : raw.trim();
+  const result = match ? match[1].trim() : raw.trim();
+  console.log('Parsed FROM_EMAIL:', result);
+  return result || FROM_EMAIL_FALLBACK;
 };
-const FROM_EMAIL = parseFromEmail(Deno.env.get('RESEND_FROM_EMAIL'));
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
