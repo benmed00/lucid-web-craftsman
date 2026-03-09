@@ -23,13 +23,31 @@ import {
 } from '@/stores';
 import { initializeLanguageStore } from '@/stores/languageStore';
 import { initializeBusinessRules } from '@/hooks/useBusinessRules';
+import { supabase } from '@/integrations/supabase/client';
 
 // Declare global flag
 declare global {
   interface Window {
     __PERF_OPTIMIZED__?: boolean;
+    __SUPABASE_WARMED__?: boolean;
   }
 }
+
+// Warm up Supabase connection pool with lightweight query
+// This prevents cold-start delays on first real query
+const warmupSupabase = async () => {
+  if (window.__SUPABASE_WARMED__) return;
+  window.__SUPABASE_WARMED__ = true;
+
+  try {
+    // Ultra-lightweight query to wake connection pool
+    await supabase.from('products').select('id').limit(1).maybeSingle();
+    console.log('[Supabase] Connection pool warmed up');
+  } catch (e) {
+    // Silent fail - warmup is best-effort
+    console.warn('[Supabase] Warmup failed:', e);
+  }
+};
 
 // Setup error suppression for production
 setupProductionErrorSuppression();
@@ -43,6 +61,9 @@ if (!window.__PERF_OPTIMIZED__) {
   initializeCurrencyStore();
   initializeThemeStore();
   initializeLanguageStore();
+
+  // Warm up Supabase immediately (async, non-blocking)
+  warmupSupabase();
 
   // Defer ALL non-critical initializations to after first paint
   // Use double-rAF to ensure we're past the first frame
