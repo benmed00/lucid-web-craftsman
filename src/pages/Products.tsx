@@ -99,6 +99,13 @@ const Products = () => {
     [translatedProducts]
   );
 
+  // Batch stock fetching - eliminates N+1 query pattern
+  const productIds = useMemo(() => products.map((p) => p.id), [products]);
+  const { stockMap } = useBatchStock({
+    productIds,
+    enabled: products.length > 0,
+  });
+
   const error = fetchError ? t('fetch.error') : null;
 
   // Enhanced filters hook with analytics and cache
