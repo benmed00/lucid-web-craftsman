@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Quote, MapPin, Clock, Heart } from 'lucide-react';
+import { Quote, MapPin, Clock, Heart, AlertCircle, RefreshCw } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
 
 interface Artisan {
   id: string;
@@ -22,7 +24,7 @@ const ArtisansSection = () => {
   const currentLocale = i18n.language?.split('-')[0] || 'fr';
 
   // Fetch artisans directly from the artisans table
-  const { data: artisans = [], isLoading } = useQuery({
+  const { data: artisans = [], isLoading, error: fetchError, refetch } = useQuery({
     queryKey: ['artisans', currentLocale],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -38,6 +40,7 @@ const ArtisansSection = () => {
           bio_short,
           quote,
           artisan_translations!left (
+            locale,
             specialty,
             quote,
             bio_short
@@ -50,7 +53,7 @@ const ArtisansSection = () => {
 
       if (error) {
         console.error('Error fetching artisans:', error);
-        return [];
+        throw error;
       }
 
       // Map with translation fallback
@@ -66,10 +69,18 @@ const ArtisansSection = () => {
         };
       }) as Artisan[];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+    retryDelay: 2000,
   });
 
-  if (isLoading) {
+  // Safety timeout — escape skeleton after 12s
+  const { hasTimedOut: forceRender } = useSafetyTimeout(isLoading, {
+    timeout: 12000,
+    slowThreshold: 6000,
+  });
+
+  if (isLoading && !forceRender) {
     return (
       <section className="py-16 md:py-24 bg-gradient-to-b from-background to-secondary/30">
         <div className="container mx-auto px-4">
@@ -83,6 +94,25 @@ const ArtisansSection = () => {
               <Skeleton key={i} className="h-64 rounded-2xl" />
             ))}
           </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Error or timeout-with-no-data state
+  const showError = (fetchError || (forceRender && isLoading)) && artisans.length === 0;
+  if (showError) {
+    return (
+      <section className="py-16 md:py-24 bg-gradient-to-b from-background to-secondary/30">
+        <div className="container mx-auto px-4 text-center">
+          <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-3" />
+          <p className="text-muted-foreground mb-4">
+            {t('pages:home.artisans.loadError', 'Impossible de charger les artisans.')}
+          </p>
+          <Button variant="outline" onClick={() => refetch()} className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            {t('common:buttons.retry', 'Réessayer')}
+          </Button>
         </div>
       </section>
     );
