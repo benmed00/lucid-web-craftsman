@@ -43,9 +43,6 @@ if (!window.__PERF_OPTIMIZED__) {
   initializeThemeStore();
   initializeLanguageStore();
 
-  // Warm up Supabase immediately (async, non-blocking)
-  warmupSupabase();
-
   // Defer ALL non-critical initializations to after first paint
   // Use double-rAF to ensure we're past the first frame
   requestAnimationFrame(() => {

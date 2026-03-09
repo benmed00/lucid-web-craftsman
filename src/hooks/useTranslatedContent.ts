@@ -5,7 +5,7 @@
  * to provide locale-aware data fetching with caching.
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
   getProductWithTranslation,

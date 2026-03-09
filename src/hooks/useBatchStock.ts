@@ -29,6 +29,32 @@ export function useBatchStock({
   // Memoize the product IDs string to prevent unnecessary re-fetches
   const productIdsKey = useMemo(() => productIds.sort().join(','), [productIds]);
 
+  // Refetch on window focus for fresh stock data
+  useEffect(() => {
+    const handleFocus = () => {
+      if (enabled && productIds.length > 0) {
+        fetchBatchStock();
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [productIdsKey, enabled]);
+
+  const fetchBatchStock = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await stockService.getMultipleStockInfo(productIds);
+      setStockMap(result);
+    } catch (err) {
+      console.error('[useBatchStock] Error fetching batch stock:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch stock info');
+      setStockMap({});
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!enabled || productIds.length === 0) {
       setStockMap({});
@@ -37,37 +63,25 @@ export function useBatchStock({
 
     let cancelled = false;
 
-    const fetchBatchStock = async () => {
+    const doFetch = async () => {
       setLoading(true);
       setError(null);
-
       try {
         const result = await stockService.getMultipleStockInfo(productIds);
-        if (!cancelled) {
-          setStockMap(result);
-        }
+        if (!cancelled) setStockMap(result);
       } catch (err) {
         console.error('[useBatchStock] Error fetching batch stock:', err);
         if (!cancelled) {
-          setError(
-            err instanceof Error ? err.message : 'Failed to fetch stock info'
-          );
+          setError(err instanceof Error ? err.message : 'Failed to fetch stock info');
           setStockMap({});
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     };
 
-    // Debounce to handle rapid product list changes
-    const timeoutId = setTimeout(fetchBatchStock, 100);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timeoutId);
-    };
+    const timeoutId = setTimeout(doFetch, 100);
+    return () => { cancelled = true; clearTimeout(timeoutId); };
   }, [productIdsKey, enabled]);
 
   return { stockMap, loading, error };
