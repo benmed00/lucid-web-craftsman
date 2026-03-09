@@ -8,6 +8,7 @@ import { fr, enUS } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import PageFooter from '@/components/PageFooter';
+import SEOHelmet from '@/components/seo/SEOHelmet';
 import BlogContent from '@/components/BlogContent';
 import { useBlogPostWithTranslation } from '@/hooks/useTranslatedContent';
 import { TranslationFallbackIndicator } from '@/components/ui/TranslationFallbackIndicator';
