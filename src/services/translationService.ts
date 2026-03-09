@@ -23,9 +23,6 @@ export const SUPPORTED_LOCALES: SupportedLocale[] = [
   'de',
 ];
 
-/** Request timeout in ms — prevents hanging promises */
-const REQUEST_TIMEOUT_MS = 10_000;
-
 /**
  * Get current locale from i18n, with fallback to default
  */
@@ -35,25 +32,28 @@ export function getCurrentLocale(): SupportedLocale {
 }
 
 /**
- * Wrap a Supabase query builder result in a timeout.
- * Returns { data, error } — on timeout, error is set and data is null.
+ * Simple Supabase query wrapper with structured error logging.
+ * Real HTTP-level timeouts are handled by the AbortController in supabase/client.ts (15s).
+ * This wrapper just normalises errors for the calling code.
  */
-async function withTimeout<T>(
+async function safeQuery<T>(
   promise: PromiseLike<{ data: T | null; error: unknown }>,
-  label: string,
-  ms = REQUEST_TIMEOUT_MS
+  label: string
 ): Promise<{ data: T | null; error: unknown }> {
-  let timer: ReturnType<typeof setTimeout>;
-  const timeout = new Promise<{ data: null; error: Error }>((resolve) => {
-    timer = setTimeout(() => {
-      console.error(`[TranslationService] ${label} timed out after ${ms}ms`);
-      resolve({ data: null, error: new Error(`${label} timed out after ${ms}ms`) });
-    }, ms);
-  });
-
-  const result = await Promise.race([promise, timeout]);
-  clearTimeout(timer!);
-  return result as { data: T | null; error: unknown };
+  try {
+    const result = await promise;
+    if (result.error) {
+      console.error(`[TranslationService] ${label} failed:`, result.error);
+    }
+    return result;
+  } catch (err) {
+    const isAbort = err instanceof DOMException && err.name === 'AbortError';
+    console.error(
+      `[TranslationService] ${label} ${isAbort ? 'aborted (timeout)' : 'threw'}:`,
+      err
+    );
+    return { data: null, error: err };
+  }
 }
 
 // =====================================================
