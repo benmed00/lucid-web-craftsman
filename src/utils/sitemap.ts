@@ -139,6 +139,7 @@ export class SitemapGenerator {
       ...this.getProductRoutes(products),
       ...this.getBlogRoutes(posts),
       ...this.getCategoryRoutes(products),
+      ...this.getPaginatedRoutes(products),
     ];
 
     const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
