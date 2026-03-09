@@ -56,10 +56,13 @@ export default function EnhancedProfile() {
     user,
     signOut,
     isLoading: authLoading,
+    isInitialized,
     profile,
     refreshProfile,
   } = useOptimizedAuth();
-  const isProfileLoading = authLoading && !profile;
+  // Only treat as "loading" during the very first initialization burst,
+  // NOT on every re-render or tab switch (authLoading can briefly flip to true).
+  const isProfileLoading = !isInitialized;
 
   // Derive active tab from URL hash
   const getTabFromHash = (): ProfileTab => {
