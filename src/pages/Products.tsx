@@ -1,304 +1,53 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Loader2, RefreshCw } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { RecentlyViewedProducts } from '@/components/RecentlyViewedProducts';
-import { ProductRecommendations } from '@/components/ProductRecommendations';
-import SEOHelmet from '@/components/seo/SEOHelmet';
-import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
-import { useBatchStock } from '@/hooks/useBatchStock';
-import { StockContext } from '@/components/ProductCard';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-
 import PageFooter from '@/components/PageFooter';
-import ProductCard from '@/components/ProductCard';
-import ProductGridSkeleton from '@/components/ProductGridSkeleton';
-import { ProductQuickView } from '@/components/ProductQuickView';
-import { AdvancedProductFilters } from '@/components/AdvancedProductFilters';
-
-import { SearchResultsHeader, HighlightText } from '@/components/SearchResults';
+import SEOHelmet from '@/components/seo/SEOHelmet';
+import { StockContext } from '@/components/ProductCard';
+import { SearchResultsHeader } from '@/components/SearchResults';
 import FloatingCartButton from '@/components/ui/FloatingCartButton';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
-import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { VoiceSearch } from '@/components/ui/VoiceSearch';
 import { MobilePromotions } from '@/components/ui/MobilePromotions';
-
-import {
-  useProductsWithTranslations,
-  ProductWithTranslation,
-  SupportedLocale,
-} from '@/hooks/useTranslatedContent';
-import { useCart } from '@/stores';
-import { useAdvancedProductFilters } from '@/hooks/useAdvancedProductFilters';
-import { Product } from '@/shared/interfaces/Iproduct.interface';
+import { AdvancedProductFilters } from '@/components/AdvancedProductFilters';
+import { ProductQuickView } from '@/components/ProductQuickView';
+import { RecentlyViewedProducts } from '@/components/RecentlyViewedProducts';
+import { ProductRecommendations } from '@/components/ProductRecommendations';
 import { toast } from 'sonner';
-import { appNavigate } from '@/lib/navigation';
+
+import { ProductsHeroBanner } from '@/components/products/ProductsHeroBanner';
+import { ProductsCategoryFilters } from '@/components/products/ProductsCategoryFilters';
+import { ProductsGrid } from '@/components/products/ProductsGrid';
+import { ProductsLoadingSkeleton } from '@/components/products/ProductsLoadingSkeleton';
+import { useProductsPage } from '@/hooks/useProductsPage';
 
 const Products = () => {
-  const { t } = useTranslation(['products', 'common']);
-  const [searchParams] = useSearchParams();
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(
-    null
-  );
+  const page = useProductsPage();
 
-  const { addItem, cart } = useCart();
-  const isMobile = useIsMobile();
-
-  // SEO pagination: read ?page= for crawlers (users see infinite scroll)
-  const PRODUCTS_PER_PAGE = 16;
-  const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-
-  // Fetch products with translations based on current locale
-  const {
-    data: translatedProducts = [],
-    isLoading: loading,
-    error: fetchError,
-    refetch,
-  } = useProductsWithTranslations();
-
-  // Safety timeout: extended to 12s with progressive "slow loading" indicator at 5s
-  const { hasTimedOut: forceRender, isSlowLoading } = useSafetyTimeout(loading, {
-    timeout: 12000,
-    slowThreshold: 5000,
-    onTimeout: () =>
-      console.warn('[Products] Loading timed out after 12s, rendering page'),
-    onSlowLoading: () =>
-      console.info('[Products] Loading is slow, showing indicator'),
-  });
-
-  // Create a map of product ID to fallback info
-  const fallbackInfo = useMemo(() => {
-    const info: Record<
-      number,
-      { isFallback: boolean; locale: SupportedLocale }
-    > = {};
-    translatedProducts.forEach((p: ProductWithTranslation) => {
-      info[p.id] = { isFallback: p._fallbackUsed, locale: p._locale };
-    });
-    return info;
-  }, [translatedProducts]);
-
-  // Convert translated products to Product interface for compatibility
-  const products = useMemo(
-    () =>
-      translatedProducts.map(
-        (p): Product => ({
-          id: p.id,
-          name: p.name,
-          description: p.description,
-          price: p.price,
-          images: p.images,
-          category: p.category,
-          artisan: p.artisan,
-          details: p.details,
-          care: p.care,
-          is_new: p.is_new ?? false,
-          is_available: p.is_available ?? true,
-          stock_quantity: p.stock_quantity ?? 0,
-          rating_average: p.rating_average ?? 0,
-          rating_count: p.rating_count ?? 0,
-        })
-      ),
-    [translatedProducts]
-  );
-
-  // Batch stock fetching - eliminates N+1 query pattern
-  const productIds = useMemo(() => products.map((p) => p.id), [products]);
-  const { stockMap } = useBatchStock({
-    productIds,
-    enabled: products.length > 0,
-  });
-
-  const error = fetchError ? t('fetch.error') : null;
-
-  // Enhanced filters hook with analytics and cache
-  const {
-    filters,
-    filteredProducts,
-    availableOptions,
-    searchHistory,
-    isLoading: filterLoading,
-    isSearchStale,
-    updateFilters,
-    resetFilters,
-    clearFilter,
-    getSearchSuggestions,
-    activeFiltersCount,
-    totalProducts: totalProductsCount,
-    filteredCount,
-    getCacheStats,
-    invalidateCache,
-  } = useAdvancedProductFilters({
-    products,
-    enableAnalytics: true,
-    debounceMs: 300,
-  });
-
-  // Get cache statistics
-  const cacheStats = getCacheStats?.() ?? {
-    cachedQueries: 0,
-    totalCacheSize: 0,
-  };
-
-  const handleClearCache = () => {
-    invalidateCache?.();
-    toast.success(t('cache.cleared'));
-  };
-
-  // Infinite scroll for mobile with better performance
-  const {
-    visibleItems: visibleProducts,
-    hasMore,
-    isLoading: isLoadingMore,
-    sentinelRef,
-  } = useInfiniteScroll({
-    items: filteredProducts,
-    itemsPerPage: isMobile ? 8 : 16,
-  });
-
-  const handleRefresh = async () => {
-    await refetch();
-    toast.success(t('refresh.success'));
-  };
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  // Memoized categories for performance
-  const displayCategories = useMemo(
-    () => availableOptions.categories,
-    [availableOptions.categories]
-  );
-
-  const handleAddToCart = (product: Product, event?: React.MouseEvent) => {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    addItem(product, 1);
-
-    toast.success(t('recommendations.addedToCart', { name: product.name }), {
-      duration: 3000,
-      action: {
-        label: t('common:buttons.viewCart', 'Voir le panier'),
-        onClick: () => { appNavigate('/cart'); },
-      },
-    });
-  };
-
-  const handleQuickView = (product: Product) => {
-    setQuickViewProduct(product);
-  };
-
-  const handleVoiceSearch = (query: string) => {
-    updateFilters({ searchQuery: query });
-  };
-
-  const handleQuickViewAddToCart = (product: Product, quantity: number) => {
-    addItem(product, quantity);
-
-    toast.success(
-      t('recommendations.addedToCartQuantity', {
-        name: product.name,
-        quantity,
-      }),
-      {
-        duration: 3000,
-        action: {
-          label: t('common:buttons.viewCart', 'Voir le panier'),
-          onClick: () => { appNavigate('/cart'); },
-        },
-      }
-    );
-
-    setQuickViewProduct(null);
-  };
-
-  // If force-rendered but still no data, trigger a refetch
-  useEffect(() => {
-    if (forceRender && products.length === 0 && !fetchError) {
-      refetch();
-    }
-  }, [forceRender, products.length, fetchError, refetch]);
-
-  if (loading && !forceRender) {
+  // Loading state
+  if (page.loading && !page.forceRender) {
     return (
-      <div className="min-h-screen bg-background">
-        {/* Hero Banner Skeleton */}
-        <div className="bg-gradient-to-r from-secondary to-muted py-8 md:py-12 lg:py-16">
-          <div className="container mx-auto px-4 text-center animate-pulse">
-            <div className="h-8 md:h-10 lg:h-12 bg-muted-foreground/20 rounded w-80 mx-auto mb-3 md:mb-4"></div>
-            <div className="h-5 md:h-6 bg-muted-foreground/20 rounded w-96 mx-auto max-w-2xl"></div>
-          </div>
-        </div>
-
-        <div className="container mx-auto px-4 py-6 md:py-8 lg:py-12 safe-area">
-          {/* Progressive loading indicator after 5s */}
-          {isSlowLoading && (
-            <div className="mb-6 p-4 bg-muted/50 border border-border rounded-lg flex items-center justify-center gap-3 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="text-sm font-medium">
-                {t('common:messages.stillLoading', 'Still loading products...')}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => refetch()}
-                className="ml-2"
-              >
-                <RefreshCw className="h-4 w-4 mr-1" />
-                {t('common:buttons.retry', 'Retry')}
-              </Button>
-            </div>
-          )}
-
-          {/* Mobile Features Skeleton */}
-          {isMobile && (
-            <div className="space-y-6 mb-6 animate-pulse">
-              <div className="h-12 bg-muted rounded-xl"></div>
-              <div className="h-20 bg-muted rounded-xl"></div>
-            </div>
-          )}
-
-          {/* Advanced Filters Skeleton */}
-          <div className="mb-8 space-y-4 animate-pulse">
-            <div className="flex gap-4">
-              <div className="h-12 bg-muted rounded flex-1"></div>
-              <div className="h-12 bg-muted rounded w-48"></div>
-              <div className="h-12 bg-muted rounded w-32"></div>
-            </div>
-            <div className="flex gap-2">
-              <div className="h-6 bg-muted rounded w-20"></div>
-              <div className="h-6 bg-muted rounded w-24"></div>
-              <div className="h-6 bg-muted rounded w-28"></div>
-            </div>
-          </div>
-
-          {/* Products Grid Skeleton */}
-          <ProductGridSkeleton count={isMobile ? 8 : 12} />
-        </div>
-
-        <PageFooter />
-      </div>
+      <ProductsLoadingSkeleton
+        isMobile={page.isMobile}
+        isSlowLoading={page.isSlowLoading}
+        onRetry={() => page.refetch()}
+      />
     );
   }
 
-  if (error) {
+  // Error state
+  if (page.error) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
             <h1 className="text-2xl font-serif text-foreground mb-4">
-              {t('common:messages.error')}
+              {page.t('common:messages.error')}
             </h1>
-            <p className="text-muted-foreground mb-8">{error}</p>
+            <p className="text-muted-foreground mb-8">{page.error}</p>
             <Button onClick={() => window.location.reload()}>
-              {t('common:buttons.retry')}
+              {page.t('common:buttons.retry')}
             </Button>
           </div>
         </div>
@@ -310,255 +59,123 @@ const Products = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHelmet
-        title={currentPage > 1 ? `${t('title')} - Page ${currentPage} | Rif Raw Straw` : `${t('title')} | Rif Raw Straw`}
-        description={t('subtitle')}
-        keywords={t('seo.keywords', { returnObjects: true }) as string[]}
-        url={currentPage > 1 ? `/products?page=${currentPage}` : '/products'}
+        title={
+          page.currentPage > 1
+            ? `${page.t('title')} - Page ${page.currentPage} | Rif Raw Straw`
+            : `${page.t('title')} | Rif Raw Straw`
+        }
+        description={page.t('subtitle')}
+        keywords={page.t('seo.keywords', { returnObjects: true }) as string[]}
+        url={page.currentPage > 1 ? `/products?page=${page.currentPage}` : '/products'}
         type="website"
         pagination={{
-          currentPage,
-          totalPages: Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE),
+          currentPage: page.currentPage,
+          totalPages: page.totalPages,
           baseUrl: '/products',
         }}
       />
 
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-secondary to-muted py-8 md:py-12 lg:py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground mb-3 md:mb-4 leading-tight">
-            {t('title')}
-          </h1>
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            {t('subtitle')}
-          </p>
-        </div>
-      </div>
+      <ProductsHeroBanner />
 
       <div className="container mx-auto px-4 py-6 md:py-8 lg:py-12 safe-area">
-        {/* Enhanced Mobile Features */}
-        {isMobile && (
+        {/* Mobile Features */}
+        {page.isMobile && (
           <div className="space-y-6 mb-6">
-            {/* Voice Search */}
             <VoiceSearch
-              onSearch={handleVoiceSearch}
-              placeholder={t('filters.searchPlaceholder')}
+              onSearch={page.handleVoiceSearch}
+              placeholder={page.t('filters.searchPlaceholder')}
             />
-
-            {/* Mobile Promotions with Dynamic Cart Total */}
             <MobilePromotions
-              cartTotal={cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)}
-              onPromotionApply={(code) =>
-                toast.success(t('promo.applied', { code }))
-              }
+              cartTotal={page.cartTotal}
+              onPromotionApply={(code) => toast.success(page.t('promo.applied', { code }))}
             />
           </div>
         )}
 
-        {/* Advanced Product Filters */}
+        {/* Filters */}
         <AdvancedProductFilters
-          filters={filters}
-          availableOptions={availableOptions}
-          searchHistory={searchHistory}
-          isLoading={filterLoading}
-          totalProducts={totalProductsCount}
-          filteredCount={filteredCount}
-          activeFiltersCount={activeFiltersCount}
-          onFiltersChange={updateFilters}
-          onResetFilters={resetFilters}
-          onClearFilter={clearFilter}
-          getSearchSuggestions={getSearchSuggestions}
-          onClearCache={handleClearCache}
-          cacheStats={cacheStats}
+          filters={page.filters}
+          availableOptions={page.availableOptions}
+          searchHistory={page.searchHistory}
+          isLoading={page.filterLoading}
+          totalProducts={page.totalProductsCount}
+          filteredCount={page.filteredCount}
+          activeFiltersCount={page.activeFiltersCount}
+          onFiltersChange={page.updateFilters}
+          onResetFilters={page.resetFilters}
+          onClearFilter={page.clearFilter}
+          getSearchSuggestions={page.getSearchSuggestions}
+          onClearCache={page.handleClearCache}
+          cacheStats={page.cacheStats}
         />
 
-        {/* Enhanced Search Results Header */}
         <SearchResultsHeader
-          searchQuery={filters.searchQuery}
-          totalResults={filteredCount}
-          showingCount={isMobile ? visibleProducts.length : filteredCount}
+          searchQuery={page.filters.searchQuery}
+          totalResults={page.filteredCount}
+          showingCount={page.isMobile ? page.visibleProducts.length : page.filteredCount}
         />
 
-        {/* Smart Category Filters */}
-        {!filters.searchQuery && (
-          <div className="flex flex-wrap gap-2 mb-6 md:mb-8 overflow-x-auto mobile-scroll">
-            <div className="flex gap-2 min-w-max">
-              <Button
-                variant={filters.category.length === 0 ? 'default' : 'outline'}
-                size="sm"
-                className="min-h-[44px] touch-manipulation whitespace-nowrap"
-                onClick={() => {
-                  updateFilters({ category: [] });
-                }}
-              >
-                {t('filters.all')} ({totalProductsCount})
-              </Button>
-              {displayCategories.map((category) => {
-                const categoryCount = products.filter(
-                  (p) => p.category === category
-                ).length;
-                const isSelected = filters.category.includes(category);
-                return (
-                  <Button
-                    key={category}
-                    variant={isSelected ? 'default' : 'outline'}
-                    size="sm"
-                    className="min-h-[44px] touch-manipulation whitespace-nowrap"
-                    onClick={() => {
-                      if (isSelected) {
-                        updateFilters({
-                          category: filters.category.filter(
-                            (c) => c !== category
-                          ),
-                        });
-                      } else {
-                        updateFilters({
-                          category: [...filters.category, category],
-                        });
-                      }
-                    }}
-                  >
-                    {category} ({categoryCount})
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        <ProductsCategoryFilters
+          filters={page.filters}
+          displayCategories={page.displayCategories}
+          products={page.products}
+          totalProductsCount={page.totalProductsCount}
+          updateFilters={page.updateFilters}
+        />
 
-        {/* Products Grid with Pull to Refresh - wrapped with StockContext for batch fetching */}
-        <StockContext.Provider value={stockMap}>
-          <PullToRefresh onRefresh={handleRefresh} disabled={loading}>
-            {filteredProducts.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="mb-8">
-                  <div className="text-6xl mb-4">🔍</div>
-                  <h2 className="font-serif text-2xl text-foreground mb-4">
-                    {t('common:messages.noResults')}
-                  </h2>
-                  <p className="text-muted-foreground mb-6">
-                    {filters.searchQuery
-                      ? t('common:messages.noResults')
-                      : t('common:messages.noResults')}
-                  </p>
-                  <Button onClick={resetFilters} variant="outline">
-                    {t('filters.clearFilters')}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {/* Skeleton loader during search */}
-                {isSearchStale ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-center gap-2 text-muted-foreground py-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">
-                        {t('common:messages.loading')}...
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
-                      {Array.from({ length: isMobile ? 4 : 8 }).map(
-                        (_, index) => (
-                          <div
-                            key={`skeleton-${index}`}
-                            className="animate-pulse"
-                            style={{ animationDelay: `${index * 50}ms` }}
-                          >
-                            <div className="bg-card rounded-lg overflow-hidden border border-border">
-                              <div className="aspect-square bg-muted" />
-                              <div className="p-3 md:p-4 space-y-3">
-                                <div className="h-4 bg-muted rounded w-3/4" />
-                                <div className="h-3 bg-muted rounded w-1/2" />
-                                <div className="h-5 bg-muted rounded w-1/3" />
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
-                    {(isMobile ? visibleProducts : filteredProducts).map(
-                      (product, index) => (
-                        <div
-                          key={product.id}
-                          className="animate-fade-in mobile-product-card"
-                          style={{
-                            animationDelay: `${Math.min(index * 50, 400)}ms`,
-                            animationFillMode: 'both',
-                          }}
-                        >
-                          <ProductCard
-                            product={product}
-                            onAddToCart={handleAddToCart}
-                            onQuickView={handleQuickView}
-                            isFallback={fallbackInfo[product.id]?.isFallback}
-                            fallbackLocale={fallbackInfo[product.id]?.locale}
-                          />
-                        </div>
-                      )
-                    )}
-                  </div>
-                )}
-
-                {/* Infinite Scroll Sentinel and Loading */}
-                {isMobile && hasMore && (
-                  <div ref={sentinelRef} className="flex justify-center py-8">
-                    {isLoadingMore && (
-                      <div className="flex items-center space-x-2 text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="text-sm">
-                          {t('common:messages.loading')}...
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+        {/* Products Grid */}
+        <StockContext.Provider value={page.stockMap}>
+          <PullToRefresh onRefresh={page.handleRefresh} disabled={page.loading}>
+            <ProductsGrid
+              filteredProducts={page.filteredProducts}
+              visibleProducts={page.visibleProducts}
+              fallbackInfo={page.fallbackInfo}
+              isMobile={page.isMobile}
+              isSearchStale={page.isSearchStale}
+              hasMore={page.hasMore}
+              isLoadingMore={page.isLoadingMore}
+              sentinelRef={page.sentinelRef}
+              filters={page.filters}
+              onAddToCart={page.handleAddToCart}
+              onQuickView={page.handleQuickView}
+              onResetFilters={page.resetFilters}
+            />
           </PullToRefresh>
         </StockContext.Provider>
 
-        {/* CTA Section */}
-        {filteredProducts.length > 0 && (
+        {/* CTA */}
+        {page.filteredProducts.length > 0 && (
           <div className="text-center py-16 border-t border-border">
-            <h2 className="font-serif text-2xl text-foreground mb-4">
-              {t('cta.title')}
-            </h2>
-            <p className="text-muted-foreground mb-6">{t('cta.description')}</p>
+            <h2 className="font-serif text-2xl text-foreground mb-4">{page.t('cta.title')}</h2>
+            <p className="text-muted-foreground mb-6">{page.t('cta.description')}</p>
             <Button asChild className="bg-primary hover:bg-primary/90">
               <Link to="/contact" className="inline-flex items-center">
-                {t('cta.button')}
+                {page.t('cta.button')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
         )}
 
-        {/* Recently Viewed Products */}
         <div className="mt-16">
-          <RecentlyViewedProducts onQuickView={setQuickViewProduct} />
+          <RecentlyViewedProducts onQuickView={page.setQuickViewProduct} />
         </div>
-
-        {/* General Recommendations */}
         <div className="mt-16">
           <ProductRecommendations
-            allProducts={products}
-            title={t('recommendations.title')}
+            allProducts={page.products}
+            title={page.t('recommendations.title')}
             maxRecommendations={8}
-            onQuickView={setQuickViewProduct}
+            onQuickView={page.setQuickViewProduct}
           />
         </div>
       </div>
 
-      {/* Quick View Modal */}
-      {quickViewProduct && (
+      {page.quickViewProduct && (
         <ProductQuickView
-          product={quickViewProduct}
-          isOpen={!!quickViewProduct}
-          onClose={() => setQuickViewProduct(null)}
-          onAddToCart={handleQuickViewAddToCart}
+          product={page.quickViewProduct}
+          isOpen={!!page.quickViewProduct}
+          onClose={() => page.setQuickViewProduct(null)}
+          onAddToCart={page.handleQuickViewAddToCart}
         />
       )}
 
