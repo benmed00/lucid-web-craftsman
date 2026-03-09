@@ -539,6 +539,17 @@
       "shippingCostValue": "Livraison gratuite dès 80€ d'achat",
       "returns": "Retours",
       "returnsValue": "Retours gratuits sous 14 jours"
+    },
+    "backInStock": {
+      "title": "Être notifié du retour en stock",
+      "description": "Nous vous enverrons un email quand {{name}} sera de nouveau disponible.",
+      "emailPlaceholder": "Votre email",
+      "emailAria": "Entrez votre email pour être notifié quand ce produit sera de retour en stock",
+      "notify": "Me prévenir",
+      "success": "Vous serez notifié quand ce produit sera de retour en stock !",
+      "alreadySubscribed": "Vous êtes déjà inscrit pour ce produit.",
+      "confirmed": "Nous vous préviendrons quand ce produit sera disponible.",
+      "error": "Une erreur est survenue. Veuillez réessayer."
     }
   },
   "profile": {

@@ -53,6 +53,7 @@ import ProductReviews from '@/components/ProductReviews';
 import { ProductRecommendations } from '@/components/ProductRecommendations';
 import { WishlistButton } from '@/components/ui/WishlistButton';
 import { RecentlyViewedProducts } from '@/components/RecentlyViewedProducts';
+import { BackInStockNotification } from '@/components/BackInStockNotification';
 import {
   TranslationFallbackIndicator,
   FallbackDot,
