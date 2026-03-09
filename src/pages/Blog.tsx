@@ -66,7 +66,7 @@ const Blog = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  if (isLoading) {
+  if (isLoading && !forceRender) {
     return (
       <>
         <BlogSkeleton />

@@ -112,7 +112,10 @@ export function useBlogPostsWithTranslations() {
   return useQuery<BlogPostWithTranslation[]>({
     queryKey: ['blogPosts', locale],
     queryFn: () => getBlogPostsWithTranslations(locale),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
   });
 }
 
