@@ -175,10 +175,9 @@ const ProductShowcase = () => {
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
-            className="animate-fade-in opacity-0"
+            className="animate-fade-in"
             style={{
               animationDelay: `${i * 100}ms`,
-              animationFillMode: 'forwards',
             }}
           >
             <Card className="bg-card border-none overflow-hidden animate-pulse rounded-xl shadow-md">
