@@ -35,6 +35,7 @@ import { useCart } from '@/stores';
 import { useAdvancedProductFilters } from '@/hooks/useAdvancedProductFilters';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { toast } from 'sonner';
+import { appNavigate } from '@/lib/navigation';
 
 const Products = () => {
   const { t } = useTranslation(['products', 'common']);
