@@ -1,13 +1,10 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
-import * as React from 'https://esm.sh/react@18.3.1';
-import { renderAsync } from 'https://esm.sh/@react-email/components@0.0.22';
-import { OrderConfirmationEmail } from './_templates/order-confirmation.tsx';
+import { buildOrderConfirmationHtml } from './_templates/order-confirmation.ts';
 
 const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
 const FROM_NAME = 'Rif Raw Straw';
 
-// Extract clean email from RESEND_FROM_EMAIL (may be "Name <email>" or plain email)
 const parseFromEmail = (raw: string | undefined): string => {
   if (!raw) return 'noreply@rifelegance.com';
   const match = raw.match(/<([^>]+)>/);
@@ -64,8 +61,6 @@ const sendBrevoEmail = async (
 ): Promise<{ messageId?: string }> => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
-
-  // Build clean sender email (strip "Name <email>" format if present)
   const senderEmail = FROM_EMAIL.replace(/.*<(.+)>/, '$1').trim() || FROM_EMAIL;
 
   try {
@@ -124,6 +119,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+  let data: OrderConfirmationRequest | undefined;
 
   try {
     const authHeader = req.headers.get('Authorization');
@@ -142,9 +138,7 @@ const handler = async (req: Request): Promise<Response> => {
       const authClient = createClient(
         supabaseUrl,
         Deno.env.get('SUPABASE_ANON_KEY')!,
-        {
-          global: { headers: { Authorization: authHeader } },
-        }
+        { global: { headers: { Authorization: authHeader } } }
       );
       const { data: claimsData, error: claimsError } =
         await authClient.auth.getClaims(token);
@@ -170,10 +164,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     logStep('Starting order confirmation email send');
-    let data: OrderConfirmationRequest | undefined;
     data = await req.json();
 
-    if (!data.orderId || !data.customerEmail || !data.customerName) {
+    if (!data!.orderId || !data!.customerEmail || !data!.customerName) {
       throw new Error(
         'Missing required fields: orderId, customerEmail, or customerName'
       );
@@ -191,29 +184,27 @@ const handler = async (req: Request): Promise<Response> => {
       month: 'long',
     });
 
-    logStep('Rendering email template');
-    const html = await renderAsync(
-      React.createElement(OrderConfirmationEmail, {
-        customerName: data.customerName,
-        orderNumber: data.orderId.slice(-8).toUpperCase(),
-        orderDate,
-        items: data.items || [],
-        subtotal: data.subtotal || 0,
-        shipping: data.shipping || 0,
-        discount: data.discount || 0,
-        total: data.total || 0,
-        currency: data.currency || 'EUR',
-        shippingAddress: data.shippingAddress || {
-          address: '',
-          city: '',
-          postalCode: '',
-          country: 'France',
-        },
-        estimatedDelivery,
-      })
-    );
+    logStep('Building email HTML');
+    const html = buildOrderConfirmationHtml({
+      customerName: data!.customerName,
+      orderNumber: data!.orderId.slice(-8).toUpperCase(),
+      orderDate,
+      items: data!.items || [],
+      subtotal: data!.subtotal || 0,
+      shipping: data!.shipping || 0,
+      discount: data!.discount || 0,
+      total: data!.total || 0,
+      currency: data!.currency || 'EUR',
+      shippingAddress: data!.shippingAddress || {
+        address: '',
+        city: '',
+        postalCode: '',
+        country: 'France',
+      },
+      estimatedDelivery,
+    });
 
-    if (data.previewOnly) {
+    if (data!.previewOnly) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -227,23 +218,23 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const subject = `Confirmation de commande #${data.orderId.slice(-8).toUpperCase()} - Rif Raw Straw`;
-    logStep('Sending email via Brevo', { to: data.customerEmail });
-    const emailResult = await sendBrevoEmail(data.customerEmail, subject, html);
+    const subject = `Confirmation de commande #${data!.orderId.slice(-8).toUpperCase()} - Rif Raw Straw`;
+    logStep('Sending email via Brevo', { to: data!.customerEmail });
+    const emailResult = await sendBrevoEmail(data!.customerEmail, subject, html);
     logStep('Email sent successfully', { messageId: emailResult.messageId });
 
     await logEmailToDatabase(
       serviceClient,
       'order-confirmation',
-      data.customerEmail,
-      data.customerName,
-      data.orderId,
+      data!.customerEmail,
+      data!.customerName,
+      data!.orderId,
       'sent',
       null,
       {
         messageId: emailResult.messageId,
-        itemCount: data.items?.length || 0,
-        total: data.total,
+        itemCount: data!.items?.length || 0,
+        total: data!.total,
       }
     );
 
@@ -260,7 +251,6 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     logStep('Error sending order confirmation', { error: error.message });
-    // Safely extract body for logging — don't use req.clone() as body may already be consumed
     try {
       await logEmailToDatabase(
         serviceClient,
