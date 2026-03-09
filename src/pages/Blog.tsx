@@ -74,7 +74,7 @@ const Blog = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Loading state
+  // Loading state (skeleton)
   if (isLoading && !forceRender) {
     return (
       <>
@@ -89,8 +89,9 @@ const Blog = () => {
     );
   }
 
-  // Error state
-  if (fetchError && posts.length === 0) {
+  // Error OR timeout-with-no-data state → show error UI with retry
+  const showError = (fetchError || (forceRender && isLoading)) && posts.length === 0;
+  if (showError) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16">
@@ -100,7 +101,9 @@ const Blog = () => {
               {t('blog.errorTitle', 'Impossible de charger les articles')}
             </h1>
             <p className="text-muted-foreground mb-8">
-              {t('blog.errorDescription', 'Veuillez réessayer dans quelques instants.')}
+              {fetchError
+                ? t('blog.errorDescription', 'Veuillez réessayer dans quelques instants.')
+                : t('blog.timeoutDescription', 'Le chargement a pris trop de temps. Veuillez réessayer.')}
             </p>
             <Button onClick={() => refetch()} className="gap-2">
               <RefreshCw className="h-4 w-4" />
@@ -113,7 +116,7 @@ const Blog = () => {
     );
   }
 
-  // Empty state
+  // Empty state (loaded successfully but no data)
   if (!isLoading && posts.length === 0) {
     return (
       <div className="min-h-screen bg-background">
