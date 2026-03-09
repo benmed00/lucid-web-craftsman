@@ -36,23 +36,30 @@ export function getCurrentLocale(): SupportedLocale {
 }
 
 /**
- * Wrap a Supabase query in error handling.
- * HTTP timeouts are handled by AbortController in client.ts.
+ * Wrap a Supabase query in error handling with timing and size logging.
+ * HTTP timeouts are handled by AbortController in client.ts (8s).
  */
 async function safeQuery<T>(
   promise: PromiseLike<{ data: T | null; error: unknown }>,
   label: string
 ): Promise<{ data: T | null; error: unknown }> {
+  const start = performance.now();
   try {
     const result = await promise;
+    const elapsed = Math.round(performance.now() - start);
+    const size = Array.isArray(result.data) ? result.data.length : (result.data ? 1 : 0);
+
     if (result.error) {
-      console.error(`[TranslationService] ${label} failed:`, result.error);
+      console.error(`[safeQuery] ❌ ${label} failed (${elapsed}ms):`, result.error);
+    } else {
+      console.info(`[safeQuery] ✅ ${label} → ${size} rows in ${elapsed}ms`);
     }
     return result;
   } catch (err) {
+    const elapsed = Math.round(performance.now() - start);
     const isAbort = err instanceof DOMException && err.name === 'AbortError';
     console.error(
-      `[TranslationService] ${label} ${isAbort ? 'aborted (timeout)' : 'threw'}:`,
+      `[safeQuery] 🚨 ${label} ${isAbort ? `aborted after ${elapsed}ms (timeout)` : `threw after ${elapsed}ms`}:`,
       err
     );
     return { data: null, error: err };

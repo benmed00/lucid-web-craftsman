@@ -36,9 +36,9 @@ export function useProductsPage() {
   } = useProductsWithTranslations();
 
   const { hasTimedOut: forceRender, isSlowLoading } = useSafetyTimeout(loading, {
-    timeout: 12000,
-    slowThreshold: 5000,
-    onTimeout: () => console.warn('[Products] Loading timed out after 12s, rendering page'),
+    timeout: 10000,
+    slowThreshold: 4000,
+    onTimeout: () => console.warn('[Products] Loading timed out after 10s, rendering page'),
     onSlowLoading: () => console.info('[Products] Loading is slow, showing indicator'),
   });
 
