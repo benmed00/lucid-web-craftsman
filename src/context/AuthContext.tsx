@@ -13,7 +13,8 @@ import React, {
 import { User, Session, AuthOtpResponse } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { initializeWishlistStore } from '@/stores';
-import { QueryClient, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { profileCache, useProfileActions } from './useProfileManager';
 
 // ============= Auth State Cleanup Utility =============
 export const cleanupAuthState = () => {
@@ -30,41 +31,6 @@ export const cleanupAuthState = () => {
     }
   });
 };
-
-// ============= Profile Cache =============
-class ProfileCache {
-  private cache = new Map<
-    string,
-    { data: Profile | null; timestamp: number }
-  >();
-  private readonly TTL = 5 * 60 * 1000; // 5 minutes
-
-  set(userId: string, data: Profile | null) {
-    this.cache.set(userId, { data, timestamp: Date.now() });
-  }
-
-  get(userId: string): Profile | null {
-    const item = this.cache.get(userId);
-    if (!item) return null;
-
-    if (Date.now() - item.timestamp > this.TTL) {
-      this.cache.delete(userId);
-      return null;
-    }
-
-    return item.data;
-  }
-
-  invalidate(userId?: string) {
-    if (userId) {
-      this.cache.delete(userId);
-    } else {
-      this.cache.clear();
-    }
-  }
-}
-
-const profileCache = new ProfileCache();
 
 // ============= Types =============
 import type { Json } from '@/integrations/supabase/types';
@@ -150,37 +116,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = useMemo(() => !!authState.user, [authState.user]);
 
-  // Load user profile with caching
-  const loadUserProfile = useCallback(
-    async (userId: string): Promise<Profile | null> => {
-      // Check cache first
-      const cached = profileCache.get(userId);
-      if (cached) {
-        setAuthState((prev) => ({ ...prev, profile: cached }));
-        return cached;
-      }
+  // Profile management (extracted to useProfileManager)
+  const setProfile = useCallback((profile: Profile | null) => {
+    setAuthState((prev) => ({ ...prev, profile }));
+  }, []);
 
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          throw error;
-        }
-
-        const profile = data as Profile | null;
-        profileCache.set(userId, profile);
-        setAuthState((prev) => ({ ...prev, profile }));
-        return profile;
-      } catch (error) {
-        console.error('Error loading profile:', error);
-        return null;
-      }
-    },
-    []
+  const { loadUserProfile, updateProfile, refreshProfile } = useProfileActions(
+    authState.user?.id,
+    setProfile
   );
 
   // Initialize auth state
@@ -575,33 +518,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
-  const updateProfile = useCallback(
-    async (profileData: Partial<Profile>): Promise<Profile> => {
-      if (!authState.user) throw new Error('No user logged in');
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(profileData)
-        .eq('id', authState.user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const profile = data as Profile;
-      profileCache.set(authState.user.id, profile);
-      setAuthState((prev) => ({ ...prev, profile }));
-
-      return profile;
-    },
-    [authState.user]
-  );
-
-  const refreshProfile = useCallback(async (): Promise<Profile | null> => {
-    if (!authState.user) return null;
-    profileCache.invalidate(authState.user.id);
-    return loadUserProfile(authState.user.id);
-  }, [authState.user, loadUserProfile]);
+  // updateProfile and refreshProfile are provided by useProfileActions above
 
   // ============= Context Value =============
   const value = useMemo<AuthContextType>(

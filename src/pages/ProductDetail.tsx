@@ -53,6 +53,7 @@ import ProductReviews from '@/components/ProductReviews';
 import { ProductRecommendations } from '@/components/ProductRecommendations';
 import { WishlistButton } from '@/components/ui/WishlistButton';
 import { RecentlyViewedProducts } from '@/components/RecentlyViewedProducts';
+import { BackInStockNotification } from '@/components/BackInStockNotification';
 import {
   TranslationFallbackIndicator,
   FallbackDot,
@@ -754,7 +755,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                 {singleStockInfo && (
                   <Alert>
                     <AlertDescription className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <CheckCircle className="h-4 w-4 text-primary" />
                       <span className="text-sm">
                         {!singleStockInfo.isOutOfStock
                           ? `${t('productDetail.stock.inStock')} • ${singleStockInfo.available} ${t('productDetail.stock.available')}`
@@ -762,6 +763,14 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                       </span>
                     </AlertDescription>
                   </Alert>
+                )}
+
+                {/* Back-in-stock notification for out-of-stock products */}
+                {singleStockInfo?.isOutOfStock && product && (
+                  <BackInStockNotification
+                    productId={product.id}
+                    productName={product.name}
+                  />
                 )}
 
                 <Alert>

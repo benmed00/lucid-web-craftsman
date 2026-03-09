@@ -187,6 +187,17 @@
       "shippingCostValue": "Free shipping on orders over €80",
       "returns": "Returns",
       "returnsValue": "Free returns within 14 days"
+    },
+    "backInStock": {
+      "title": "Get notified when back in stock",
+      "description": "We'll email you when {{name}} is available again.",
+      "emailPlaceholder": "Your email",
+      "emailAria": "Enter your email to be notified when this product is back in stock",
+      "notify": "Notify me",
+      "success": "You'll be notified when this product is back in stock!",
+      "alreadySubscribed": "You're already subscribed for this product.",
+      "confirmed": "We'll notify you when this product is available again.",
+      "error": "Something went wrong. Please try again."
     }
   },
 
