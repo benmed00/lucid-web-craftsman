@@ -54,12 +54,11 @@ export function useProductsWithTranslations() {
   const query = useQuery<ProductWithTranslation[]>({
     queryKey: ['products', locale],
     queryFn: () => getProductsWithTranslations(locale),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    retry: 2,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
-    placeholderData: (previousData) => previousData,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
   });
 
   // Warm individual product cache entries from list data
@@ -113,7 +112,10 @@ export function useBlogPostsWithTranslations() {
   return useQuery<BlogPostWithTranslation[]>({
     queryKey: ['blogPosts', locale],
     queryFn: () => getBlogPostsWithTranslations(locale),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
   });
 }
 

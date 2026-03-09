@@ -397,20 +397,23 @@ export async function getBlogPostsWithTranslations(
     return [];
   }
 
-  // Get translations for requested locale
+  // Fetch translations in parallel for speed
   const postIds = posts.map((p) => p.id);
-  const { data: translations } = await supabase
-    .from('blog_post_translations')
-    .select('*')
-    .in('blog_post_id', postIds)
-    .eq('locale', locale);
+  const [translationsResult, fallbackResult] = await Promise.all([
+    supabase
+      .from('blog_post_translations')
+      .select('*')
+      .in('blog_post_id', postIds)
+      .eq('locale', locale),
+    supabase
+      .from('blog_post_translations')
+      .select('*')
+      .in('blog_post_id', postIds)
+      .eq('locale', DEFAULT_LOCALE),
+  ]);
 
-  // Get fallback translations
-  const { data: fallbackTranslations } = await supabase
-    .from('blog_post_translations')
-    .select('*')
-    .in('blog_post_id', postIds)
-    .eq('locale', DEFAULT_LOCALE);
+  const { data: translations } = translationsResult;
+  const { data: fallbackTranslations } = fallbackResult;
 
   // Create lookup maps
   const translationMap = new Map(
