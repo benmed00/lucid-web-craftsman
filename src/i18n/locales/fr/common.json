@@ -70,7 +70,9 @@
     "seeAll": "Voir tout",
     "apply": "Appliquer",
     "remove": "Retirer",
-    "clear": "Effacer"
+    "clear": "Effacer",
+    "retry": "Réessayer",
+    "viewCart": "Voir le panier"
   },
   "messages": {
     "loading": "Chargement...",
