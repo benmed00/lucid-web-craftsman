@@ -9,6 +9,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useStock } from '@/hooks/useStock';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   useProductsWithTranslations,
   ProductWithTranslation,
@@ -24,8 +27,14 @@ const ProductShowcase = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Fetch products with translations
-  const { data: translatedProducts = [], isLoading: loading } =
+  const { data: translatedProducts = [], isLoading: loading, error: fetchError, refetch } =
     useProductsWithTranslations();
+
+  // Safety timeout — force out of skeleton after 12s
+  const { hasTimedOut: forceRender } = useSafetyTimeout(loading, {
+    timeout: 12000,
+    slowThreshold: 6000,
+  });
 
   // Create a map of product ID to fallback info
   const fallbackInfo = useMemo(() => {
@@ -104,15 +113,12 @@ const ProductShowcase = () => {
   }, [searchParams, featuredProducts, translatedProducts]);
 
   const handleAddToCart = async (product: Product) => {
-    // Made async
     try {
-      // Call mock API service first
       const response = await import('@/api/mockApiService').then((api) =>
         api.addToCart(product, 1)
       );
 
       if (response.success) {
-        // Use direct action instead of dispatch
         addItem(product, 1);
         toast.success(t('recommendations.addedToCart', { name: product.name }), {
           action: {
@@ -124,7 +130,6 @@ const ProductShowcase = () => {
         toast.error(t('recommendations.addError'));
       }
     } catch (error) {
-      // Silent error handling for production
       toast.error(t('recommendations.addError'));
     }
   };
@@ -149,24 +154,22 @@ const ProductShowcase = () => {
     quantity: number
   ) => {
     try {
-      // Call mock API service first
       const response = await import('@/api/mockApiService').then((api) =>
         api.addToCart(product, quantity)
       );
 
       if (response.success) {
-        // Use direct action instead of dispatch
         addItem(product, quantity);
       } else {
         toast.error(t('recommendations.addError'));
       }
     } catch (error) {
-      // Silent error handling for production
       toast.error(t('recommendations.addError'));
     }
   };
 
-  if (loading) {
+  // Loading state with safety timeout escape hatch
+  if (loading && !forceRender) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         {[...Array(4)].map((_, i) => (
@@ -191,6 +194,34 @@ const ProductShowcase = () => {
             </Card>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  // Error or timeout-with-no-data state
+  const showError = (fetchError || (forceRender && loading)) && featuredProducts.length === 0;
+  if (showError) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-3" />
+        <p className="text-muted-foreground mb-4">
+          {t('showcase.loadError', 'Impossible de charger les produits.')}
+        </p>
+        <Button variant="outline" onClick={() => refetch()} className="gap-2">
+          <RefreshCw className="h-4 w-4" />
+          {t('common:buttons.retry', 'Réessayer')}
+        </Button>
+      </div>
+    );
+  }
+
+  // Empty state (loaded but no products)
+  if (!loading && featuredProducts.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">
+          {t('showcase.empty', 'Aucun produit disponible pour le moment.')}
+        </p>
       </div>
     );
   }
