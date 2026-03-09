@@ -15,6 +15,7 @@ import { StockInfo } from '@/services/stockService';
 import { SupportedLocale } from '@/services/translationService';
 import { useEffect, useState, useContext, createContext } from 'react';
 import { useCurrency } from '@/stores';
+import { hapticFeedback } from '@/utils/haptics';
 
 // Create context for stock sharing - this will be provided by ProductShowcase
 const StockContext = createContext<Record<number, StockInfo>>({});
