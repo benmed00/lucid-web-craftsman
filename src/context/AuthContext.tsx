@@ -518,33 +518,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
-  const updateProfile = useCallback(
-    async (profileData: Partial<Profile>): Promise<Profile> => {
-      if (!authState.user) throw new Error('No user logged in');
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(profileData)
-        .eq('id', authState.user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const profile = data as Profile;
-      profileCache.set(authState.user.id, profile);
-      setAuthState((prev) => ({ ...prev, profile }));
-
-      return profile;
-    },
-    [authState.user]
-  );
-
-  const refreshProfile = useCallback(async (): Promise<Profile | null> => {
-    if (!authState.user) return null;
-    profileCache.invalidate(authState.user.id);
-    return loadUserProfile(authState.user.id);
-  }, [authState.user, loadUserProfile]);
+  // updateProfile and refreshProfile are provided by useProfileActions above
 
   // ============= Context Value =============
   const value = useMemo<AuthContextType>(
