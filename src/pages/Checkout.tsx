@@ -26,9 +26,8 @@ import {
   validateShippingAddress,
   validateCheckoutForm,
   validatePromoCode,
-  sanitizeUserInput,
-  type CartItemSnapshot,
 } from '@/utils/checkoutValidation';
+import { sanitizeUserInput } from '@/utils/xssProtection';
 import { retryWithBackoff } from '@/lib/retryWithBackoff';
 import {
   useCheckoutSession,
