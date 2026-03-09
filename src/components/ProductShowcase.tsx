@@ -234,10 +234,9 @@ const ProductShowcase = () => {
         {featuredProducts.map((product, index) => (
           <article
             key={product.id}
-            className="animate-fade-in opacity-0"
+            className="animate-fade-in"
             style={{
               animationDelay: `${index * 100}ms`,
-              animationFillMode: 'forwards',
             }}
             aria-labelledby={`product-${product.id}-name`}
           >

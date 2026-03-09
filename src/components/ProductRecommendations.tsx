@@ -77,10 +77,9 @@ export const ProductRecommendations = ({
           {recommendations.map((product, index) => (
             <div
               key={product.id}
-              className="animate-fade-in opacity-0"
+              className="animate-fade-in"
               style={{
                 animationDelay: `${index * 100}ms`,
-                animationFillMode: 'forwards',
               }}
             >
               <ProductCard
