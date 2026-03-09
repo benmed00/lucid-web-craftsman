@@ -40,6 +40,7 @@ const ProductCard = ({
   fallbackLocale,
 }: ProductCardProps) => {
   const { t } = useTranslation('products');
+  const { addItem: addToCompare, isInCompare } = useCompareStore();
 
   // Try to get stock info from context first (for ProductShowcase)
   const stockContext = useStockContext();
