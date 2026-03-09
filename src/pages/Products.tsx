@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/components/ui/button';
 import PageFooter from '@/components/PageFooter';
