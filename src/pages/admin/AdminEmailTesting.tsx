@@ -137,7 +137,7 @@ const emailTemplates: EmailTemplate[] = [
     },
     previewFields: [
       'Numéro de commande',
-      'Montant: 80,00 €',
+      'Montant: 170,90 €',
       '2 articles',
       'Adresse de livraison',
     ],
