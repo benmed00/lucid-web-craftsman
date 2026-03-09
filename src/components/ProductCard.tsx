@@ -240,6 +240,7 @@ const ProductCard = ({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                hapticFeedback('medium');
                 onAddToCart(product);
               }}
               disabled={singleStockInfo?.isOutOfStock}
