@@ -76,6 +76,33 @@ export class ProductService {
   }
 
   /**
+   * Fetch multiple products by IDs in a single query
+   */
+  static async getProductsByIds(ids: number[]): Promise<Map<number, Product>> {
+    if (ids.length === 0) return new Map();
+    try {
+      const { data, error } = await supabase
+        .from(this.TABLE)
+        .select('*')
+        .in('id', ids)
+        .eq('is_active', true);
+
+      if (error) {
+        throw new DatabaseError(
+          `Failed to fetch products by IDs: ${error.message}`,
+          error.code
+        );
+      }
+
+      const products = normalizeProducts(data || []);
+      return new Map(products.map((p) => [p.id, p]));
+    } catch (error) {
+      handleError(error, 'ProductService.getProductsByIds');
+      throw error;
+    }
+  }
+
+  /**
    * Fetch products by category
    */
   static async getProductsByCategory(category: string): Promise<Product[]> {

@@ -59,40 +59,44 @@ function sanitizeQuantity(quantity: number): number {
 export async function loadProductsForCartItems(
   items: { id: number; quantity: number }[]
 ): Promise<CartItem[]> {
+  if (items.length === 0) return [];
   const { maxQuantityPerItem } = getCartLimits();
 
-  const cartItems = await Promise.all(
-    items.map(async (item) => {
-      try {
-        let sanitizedQuantity = sanitizeQuantity(item.quantity);
+  try {
+    // Single batch query instead of N individual queries
+    const productMap = await ProductService.getProductsByIds(
+      items.map((i) => i.id)
+    );
 
-        if (sanitizedQuantity > maxQuantityPerItem) {
-          console.warn(
-            `Cart item ${item.id} had quantity ${item.quantity}, enforcing limit of ${maxQuantityPerItem}`
-          );
-          sanitizedQuantity = maxQuantityPerItem;
-        }
+    const cartItems: CartItem[] = [];
+    for (const item of items) {
+      let sanitizedQuantity = sanitizeQuantity(item.quantity);
 
-        if (sanitizedQuantity <= 0) {
-          console.warn(
-            `Skipping cart item ${item.id} with invalid quantity:`,
-            item.quantity
-          );
-          return null;
-        }
-
-        const product = await ProductService.getProductById(item.id);
-        if (product) {
-          return { id: item.id, quantity: sanitizedQuantity, product };
-        }
-        return null;
-      } catch (error) {
-        console.error(`Error loading product ${item.id}:`, error);
-        return null;
+      if (sanitizedQuantity > maxQuantityPerItem) {
+        console.warn(
+          `Cart item ${item.id} had quantity ${item.quantity}, enforcing limit of ${maxQuantityPerItem}`
+        );
+        sanitizedQuantity = maxQuantityPerItem;
       }
-    })
-  );
-  return cartItems.filter((item): item is CartItem => item !== null);
+
+      if (sanitizedQuantity <= 0) {
+        console.warn(
+          `Skipping cart item ${item.id} with invalid quantity:`,
+          item.quantity
+        );
+        continue;
+      }
+
+      const product = productMap.get(item.id);
+      if (product) {
+        cartItems.push({ id: item.id, quantity: sanitizedQuantity, product });
+      }
+    }
+    return cartItems;
+  } catch (error) {
+    console.error('Error batch-loading products for cart:', error);
+    return [];
+  }
 }
 
 // Load cart from local storage
