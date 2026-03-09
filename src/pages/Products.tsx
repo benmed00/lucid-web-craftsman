@@ -310,11 +310,16 @@ const Products = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHelmet
-        title={t('title') + ' | Rif Raw Straw'}
+        title={currentPage > 1 ? `${t('title')} - Page ${currentPage} | Rif Raw Straw` : `${t('title')} | Rif Raw Straw`}
         description={t('subtitle')}
         keywords={t('seo.keywords', { returnObjects: true }) as string[]}
-        url="/products"
+        url={currentPage > 1 ? `/products?page=${currentPage}` : '/products'}
         type="website"
+        pagination={{
+          currentPage,
+          totalPages: Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE),
+          baseUrl: '/products',
+        }}
       />
 
       {/* Hero Banner */}
