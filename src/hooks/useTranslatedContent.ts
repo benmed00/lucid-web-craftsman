@@ -53,7 +53,11 @@ export function useProductsWithTranslations() {
   return useQuery<ProductWithTranslation[]>({
     queryKey: ['products', locale],
     queryFn: () => getProductsWithTranslations(locale),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes - data considered fresh
+    gcTime: 30 * 60 * 1000, // 30 minutes - keep in cache
+    refetchOnWindowFocus: false, // Don't refetch when user returns to tab
+    retry: 2, // Retry failed requests twice
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000), // Exponential backoff
   });
 }
 
