@@ -113,6 +113,26 @@ const ProductCard = ({
             </div>
           )}
 
+          {/* Compare Button */}
+          <div className="absolute top-12 left-2 sm:top-14 sm:left-3 z-10">
+            <TooltipWrapper content={t('compare.add', 'Comparer')} side="right">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  hapticFeedback('selection');
+                  addToCompare(product);
+                }}
+                className={`bg-background/90 backdrop-blur-sm hover:bg-background shadow-lg p-2 rounded-full touch-manipulation min-h-[36px] min-w-[36px] sm:min-h-[40px] sm:min-w-[40px] ${isInCompare(product.id) ? 'text-primary ring-2 ring-primary' : 'text-foreground'}`}
+                aria-label={t('compare.add', 'Comparer')}
+              >
+                <GitCompareArrows className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </Button>
+            </TooltipWrapper>
+          </div>
+
           {/* Share Button - Mobile Only */}
           <div className="absolute top-12 right-2 sm:top-14 sm:right-3 z-10 md:hidden">
             <TooltipWrapper content={t('details.share')} side="left">
