@@ -114,6 +114,17 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
 
+  // Sanitized HTML content (async DOMPurify)
+  const [sanitizedDetails, setSanitizedDetails] = useState('');
+  const [sanitizedCare, setSanitizedCare] = useState('');
+
+  useEffect(() => {
+    if (product) {
+      sanitizeHtmlContent(product.details).then(setSanitizedDetails);
+      sanitizeHtmlContent(product.care).then(setSanitizedCare);
+    }
+  }, [product?.details, product?.care]);
+
   // Refs
   const imageGalleryRef = useRef<HTMLDivElement>(null);
   const thumbnailsRef = useRef<HTMLDivElement>(null);
