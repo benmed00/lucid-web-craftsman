@@ -56,10 +56,13 @@ export default function EnhancedProfile() {
     user,
     signOut,
     isLoading: authLoading,
+    isInitialized,
     profile,
     refreshProfile,
   } = useOptimizedAuth();
-  const isProfileLoading = authLoading && !profile;
+  // Only treat as "loading" during the very first initialization burst,
+  // NOT on every re-render or tab switch (authLoading can briefly flip to true).
+  const isProfileLoading = !isInitialized;
 
   // Derive active tab from URL hash
   const getTabFromHash = (): ProfileTab => {
@@ -79,19 +82,9 @@ export default function EnhancedProfile() {
     navigate(`/profile#${validTab}`, { replace: true });
   };
 
-  // Safety timeout: force render after 5s to prevent infinite skeleton
-  const [forceRender, setForceRender] = useState(false);
-  useEffect(() => {
-    if (authLoading || isProfileLoading) {
-      const timeout = setTimeout(() => {
-        console.warn(
-          '[EnhancedProfile] Loading timed out after 5s, force rendering'
-        );
-        setForceRender(true);
-      }, 5000);
-      return () => clearTimeout(timeout);
-    }
-  }, [authLoading, isProfileLoading]);
+  // No timeout needed anymore — isProfileLoading is based on isInitialized
+  // which resolves within 4s max (AuthContext safety timeout).
+  const forceRender = false;
 
   // Don't auto-redirect — show a friendly "login required" message instead
 

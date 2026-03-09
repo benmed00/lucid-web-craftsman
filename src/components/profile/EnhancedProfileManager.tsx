@@ -13,7 +13,8 @@ export const EnhancedProfileManager: React.FC = () => {
     await refreshProfile();
   };
 
-  if (authLoading && !profile) {
+  // Only show skeleton on first initialisation, not on subsequent re-renders
+  if (authLoading && !profile && !user) {
     return (
       <div className="container mx-auto py-8 px-4">
         <div className="space-y-6">

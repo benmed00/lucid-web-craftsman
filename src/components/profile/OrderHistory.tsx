@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Package,
   Calendar,
@@ -14,10 +14,10 @@ import {
   Clock,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { formatPrice } from '@/lib/stripe';
+import { useQuery } from '@tanstack/react-query';
 
 interface Order {
   id: string;
@@ -41,39 +41,28 @@ interface OrderHistoryProps {
   user: User;
 }
 
+async function fetchOrders(userId: string): Promise<Order[]> {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(
+      `id, amount, currency, status, order_status, created_at, updated_at,
+       tracking_number, carrier, estimated_delivery,
+       order_items (id, quantity, product_snapshot)`
+    )
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data as Order[]) || [];
+}
+
 export function OrderHistory({ user }: OrderHistoryProps) {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Safety timeout: never stay in skeleton state longer than 6s
-    const timeout = setTimeout(() => setIsLoading(false), 6000);
-    loadOrders().finally(() => clearTimeout(timeout));
-  }, [user.id]);
-
-  const loadOrders = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(
-          `
-          id, amount, currency, status, order_status, created_at, updated_at,
-          tracking_number, carrier, estimated_delivery,
-          order_items (id, quantity, product_snapshot)
-        `
-        )
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setOrders((data as Order[]) || []);
-    } catch (error: any) {
-      console.error('Error loading orders:', error);
-      toast.error('Erreur lors du chargement des commandes');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: orders = [], isLoading } = useQuery({
+    queryKey: ['orders', user.id],
+    queryFn: () => fetchOrders(user.id),
+    staleTime: 5 * 60 * 1000, // cache 5 min — no re-fetch on tab switch
+    retry: 1,
+  });
 
   const getStatusBadge = (order: Order) => {
     const status = order.order_status || order.status || 'pending';
@@ -119,10 +108,10 @@ export function OrderHistory({ user }: OrderHistoryProps) {
         {[...Array(3)].map((_, i) => (
           <Card key={i}>
             <CardContent className="pt-6">
-              <div className="animate-pulse space-y-4">
-                <div className="h-4 bg-muted rounded w-3/4"></div>
-                <div className="h-4 bg-muted rounded w-1/2"></div>
-                <div className="h-4 bg-muted rounded w-2/3"></div>
+              <div className="space-y-4">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-2/3" />
               </div>
             </CardContent>
           </Card>
