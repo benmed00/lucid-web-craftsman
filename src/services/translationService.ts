@@ -7,6 +7,10 @@
  * ARCHITECTURE:
  * - UI labels → react-i18next (src/i18n/)
  * - Business content (products, blog) → This service (Supabase tables)
+ *
+ * TIMEOUT STRATEGY:
+ * HTTP-level timeouts are handled by the AbortController in supabase/client.ts (15s).
+ * This service catches AbortError and other failures, returning { data: null, error }.
  */
 
 import { supabase } from '@/integrations/supabase/client';
@@ -32,9 +36,8 @@ export function getCurrentLocale(): SupportedLocale {
 }
 
 /**
- * Simple Supabase query wrapper with structured error logging.
- * Real HTTP-level timeouts are handled by the AbortController in supabase/client.ts (15s).
- * This wrapper just normalises errors for the calling code.
+ * Wrap a Supabase query in error handling.
+ * HTTP timeouts are handled by AbortController in client.ts.
  */
 async function safeQuery<T>(
   promise: PromiseLike<{ data: T | null; error: unknown }>,
@@ -115,6 +118,49 @@ export interface ProductWithTranslation {
   _fallbackUsed: boolean;
 }
 
+// Helper to merge a product row with an optional translation
+function mergeProductTranslation(
+  product: Record<string, unknown>,
+  activeTranslation: Record<string, unknown> | null,
+  fallbackUsed: boolean
+): ProductWithTranslation {
+  return {
+    id: product.id as number,
+    price: product.price as number,
+    images: product.images as string[],
+    category: product.category as string,
+    artisan: product.artisan as string,
+    is_new: product.is_new as boolean | null,
+    is_available: product.is_available as boolean | null,
+    is_active: product.is_active as boolean | null,
+    is_featured: product.is_featured as boolean | null,
+    stock_quantity: product.stock_quantity as number | null,
+    min_stock_level: product.min_stock_level as number | null,
+    material: product.material as string | null,
+    color: product.color as string | null,
+    dimensions_cm: product.dimensions_cm as string | null,
+    weight_grams: product.weight_grams as number | null,
+    rating_average: product.rating_average as number | null,
+    rating_count: product.rating_count as number | null,
+    slug: product.slug as string | null,
+    related_products: product.related_products as number[] | null,
+    created_at: product.created_at as string,
+    updated_at: product.updated_at as string,
+
+    name: (activeTranslation?.name as string) || (product.name as string),
+    description: (activeTranslation?.description as string) || (product.description as string),
+    short_description: (activeTranslation?.short_description as string | null) || (product.short_description as string | null),
+    details: (activeTranslation?.details as string) || (product.details as string),
+    care: (activeTranslation?.care as string) || (product.care as string),
+    artisan_story: (activeTranslation?.artisan_story as string | null) || (product.artisan_story as string | null),
+    seo_title: (activeTranslation?.seo_title as string | null) || (product.seo_title as string | null),
+    seo_description: (activeTranslation?.seo_description as string | null) || (product.seo_description as string | null),
+
+    _locale: ((activeTranslation?.locale as string) as SupportedLocale) || DEFAULT_LOCALE,
+    _fallbackUsed: fallbackUsed || !activeTranslation,
+  };
+}
+
 /**
  * Fetch a single product with translations for the specified locale
  */
@@ -125,7 +171,7 @@ export async function getProductWithTranslation(
   const startMs = performance.now();
 
   // First, try to get translation for requested locale
-  const { data: translation } = await withTimeout(
+  const { data: translation } = await safeQuery(
     supabase
       .from('product_translations')
       .select('*')
@@ -140,7 +186,7 @@ export async function getProductWithTranslation(
   let fallbackUsed = false;
 
   if (!translation && locale !== DEFAULT_LOCALE) {
-    const { data: fallback } = await withTimeout(
+    const { data: fallback } = await safeQuery(
       supabase
         .from('product_translations')
         .select('*')
@@ -154,10 +200,10 @@ export async function getProductWithTranslation(
     fallbackUsed = true;
   }
 
-  const activeTranslation = translation || fallbackTranslation;
+  const activeTranslation = (translation || fallbackTranslation) as Record<string, unknown> | null;
 
   // Get base product data
-  const { data: product, error: productError } = await withTimeout(
+  const { data: product, error: productError } = await safeQuery(
     supabase
       .from('products')
       .select('*')
@@ -173,44 +219,7 @@ export async function getProductWithTranslation(
 
   console.info(`[TranslationService] getProductWithTranslation(${productId}) → ${Math.round(performance.now() - startMs)}ms`);
 
-  // Merge product with translation
-  return {
-    id: product.id,
-    price: product.price,
-    images: product.images,
-    category: product.category,
-    artisan: product.artisan,
-    is_new: product.is_new,
-    is_available: product.is_available,
-    is_active: product.is_active,
-    is_featured: product.is_featured,
-    stock_quantity: product.stock_quantity,
-    min_stock_level: product.min_stock_level,
-    material: product.material,
-    color: product.color,
-    dimensions_cm: product.dimensions_cm,
-    weight_grams: product.weight_grams,
-    rating_average: product.rating_average,
-    rating_count: product.rating_count,
-    slug: product.slug,
-    related_products: product.related_products,
-    created_at: product.created_at,
-    updated_at: product.updated_at,
-
-    name: activeTranslation?.name || product.name,
-    description: activeTranslation?.description || product.description,
-    short_description:
-      activeTranslation?.short_description || product.short_description,
-    details: activeTranslation?.details || product.details,
-    care: activeTranslation?.care || product.care,
-    artisan_story: activeTranslation?.artisan_story || product.artisan_story,
-    seo_title: activeTranslation?.seo_title || product.seo_title,
-    seo_description:
-      activeTranslation?.seo_description || product.seo_description,
-
-    _locale: (activeTranslation?.locale as SupportedLocale) || DEFAULT_LOCALE,
-    _fallbackUsed: fallbackUsed || !activeTranslation,
-  };
+  return mergeProductTranslation(product as Record<string, unknown>, activeTranslation, fallbackUsed);
 }
 
 /**
@@ -221,9 +230,9 @@ export async function getProductsWithTranslations(
 ): Promise<ProductWithTranslation[]> {
   const startMs = performance.now();
 
-  // Fetch products and all translations in parallel with timeout
+  // Fetch products and all translations in parallel
   const [productsResult, translationsResult, fallbackResult] = await Promise.all([
-    withTimeout(
+    safeQuery(
       supabase
         .from('products')
         .select('*')
@@ -231,14 +240,14 @@ export async function getProductsWithTranslations(
         .order('created_at', { ascending: false }),
       'products_list'
     ),
-    withTimeout(
+    safeQuery(
       supabase
         .from('product_translations')
         .select('*')
         .eq('locale', locale),
       `product_translations(${locale})`
     ),
-    withTimeout(
+    safeQuery(
       supabase
         .from('product_translations')
         .select('*')
@@ -258,11 +267,12 @@ export async function getProductsWithTranslations(
   const { data: fallbackTranslations } = fallbackResult;
 
   // Create lookup maps
-  const translationMap = new Map(
-    translations?.map((t) => [t.product_id, t]) || []
+  type TranslationRow = Record<string, unknown>;
+  const translationMap = new Map<number, TranslationRow>(
+    (translations as TranslationRow[] | null)?.map((t) => [t.product_id as number, t]) || []
   );
-  const fallbackMap = new Map(
-    fallbackTranslations?.map((t) => [t.product_id, t]) || []
+  const fallbackMap = new Map<number, TranslationRow>(
+    (fallbackTranslations as TranslationRow[] | null)?.map((t) => [t.product_id as number, t]) || []
   );
 
   const elapsed = Math.round(performance.now() - startMs);
@@ -270,47 +280,12 @@ export async function getProductsWithTranslations(
 
   // Merge products with translations
   return products.map((product) => {
-    const translation = translationMap.get(product.id);
-    const fallback = fallbackMap.get(product.id);
-    const activeTranslation = translation || fallback;
+    const p = product as Record<string, unknown>;
+    const translation = translationMap.get(p.id as number);
+    const fallback = fallbackMap.get(p.id as number);
+    const activeTranslation = translation || fallback || null;
 
-    return {
-      id: product.id,
-      price: product.price,
-      images: product.images,
-      category: product.category,
-      artisan: product.artisan,
-      is_new: product.is_new,
-      is_available: product.is_available,
-      is_active: product.is_active,
-      is_featured: product.is_featured,
-      stock_quantity: product.stock_quantity,
-      min_stock_level: product.min_stock_level,
-      material: product.material,
-      color: product.color,
-      dimensions_cm: product.dimensions_cm,
-      weight_grams: product.weight_grams,
-      rating_average: product.rating_average,
-      rating_count: product.rating_count,
-      slug: product.slug,
-      related_products: product.related_products,
-      created_at: product.created_at,
-      updated_at: product.updated_at,
-
-      name: activeTranslation?.name || product.name,
-      description: activeTranslation?.description || product.description,
-      short_description:
-        activeTranslation?.short_description || product.short_description,
-      details: activeTranslation?.details || product.details,
-      care: activeTranslation?.care || product.care,
-      artisan_story: activeTranslation?.artisan_story || product.artisan_story,
-      seo_title: activeTranslation?.seo_title || product.seo_title,
-      seo_description:
-        activeTranslation?.seo_description || product.seo_description,
-
-      _locale: (activeTranslation?.locale as SupportedLocale) || DEFAULT_LOCALE,
-      _fallbackUsed: !translation && !!fallback,
-    };
+    return mergeProductTranslation(p, activeTranslation, !translation && !!fallback);
   });
 }
 
@@ -356,6 +331,36 @@ export interface BlogPostWithTranslation {
   _fallbackUsed: boolean;
 }
 
+// Helper to merge a blog post row with an optional translation
+function mergeBlogTranslation(
+  post: Record<string, unknown>,
+  activeTranslation: Record<string, unknown> | null,
+  fallbackUsed: boolean
+): BlogPostWithTranslation {
+  return {
+    id: post.id as string,
+    slug: post.slug as string,
+    featured_image_url: post.featured_image_url as string | null,
+    author_id: post.author_id as string | null,
+    status: post.status as string | null,
+    is_featured: post.is_featured as boolean | null,
+    tags: post.tags as string[] | null,
+    published_at: post.published_at as string | null,
+    view_count: post.view_count as number | null,
+    created_at: post.created_at as string | null,
+    updated_at: post.updated_at as string | null,
+
+    title: (activeTranslation?.title as string) || (post.title as string),
+    excerpt: (activeTranslation?.excerpt as string | null) || (post.excerpt as string | null),
+    content: (activeTranslation?.content as string) || (post.content as string),
+    seo_title: (activeTranslation?.seo_title as string | null) || (post.seo_title as string | null),
+    seo_description: (activeTranslation?.seo_description as string | null) || (post.seo_description as string | null),
+
+    _locale: ((activeTranslation?.locale as string) as SupportedLocale) || DEFAULT_LOCALE,
+    _fallbackUsed: fallbackUsed || !activeTranslation,
+  };
+}
+
 /**
  * Fetch a single blog post with translations
  */
@@ -363,7 +368,7 @@ export async function getBlogPostWithTranslation(
   blogPostId: string,
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<BlogPostWithTranslation | null> {
-  const { data: translation } = await withTimeout(
+  const { data: translation } = await safeQuery(
     supabase
       .from('blog_post_translations')
       .select('*')
@@ -377,7 +382,7 @@ export async function getBlogPostWithTranslation(
   let fallbackUsed = false;
 
   if (!translation && locale !== DEFAULT_LOCALE) {
-    const { data: fallback } = await withTimeout(
+    const { data: fallback } = await safeQuery(
       supabase
         .from('blog_post_translations')
         .select('*')
@@ -391,9 +396,9 @@ export async function getBlogPostWithTranslation(
     fallbackUsed = true;
   }
 
-  const activeTranslation = translation || fallbackTranslation;
+  const activeTranslation = (translation || fallbackTranslation) as Record<string, unknown> | null;
 
-  const { data: post, error: postError } = await withTimeout(
+  const { data: post, error: postError } = await safeQuery(
     supabase
       .from('blog_posts')
       .select('*')
@@ -407,28 +412,7 @@ export async function getBlogPostWithTranslation(
     return null;
   }
 
-  return {
-    id: post.id,
-    slug: post.slug,
-    featured_image_url: post.featured_image_url,
-    author_id: post.author_id,
-    status: post.status,
-    is_featured: post.is_featured,
-    tags: post.tags,
-    published_at: post.published_at,
-    view_count: post.view_count,
-    created_at: post.created_at,
-    updated_at: post.updated_at,
-
-    title: activeTranslation?.title || post.title,
-    excerpt: activeTranslation?.excerpt || post.excerpt,
-    content: activeTranslation?.content || post.content,
-    seo_title: activeTranslation?.seo_title || post.seo_title,
-    seo_description: activeTranslation?.seo_description || post.seo_description,
-
-    _locale: (activeTranslation?.locale as SupportedLocale) || DEFAULT_LOCALE,
-    _fallbackUsed: fallbackUsed || !activeTranslation,
-  };
+  return mergeBlogTranslation(post as Record<string, unknown>, activeTranslation, fallbackUsed);
 }
 
 /**
@@ -439,8 +423,8 @@ export async function getBlogPostsWithTranslations(
 ): Promise<BlogPostWithTranslation[]> {
   const startMs = performance.now();
 
-  // Get all published posts with timeout
-  const { data: posts, error: postsError } = await withTimeout(
+  // Get all published posts
+  const { data: posts, error: postsError } = await safeQuery(
     supabase
       .from('blog_posts')
       .select('*')
@@ -454,15 +438,16 @@ export async function getBlogPostsWithTranslations(
     throw new Error(`Failed to fetch blog posts: ${postsError instanceof Error ? postsError.message : String(postsError)}`);
   }
 
-  if (posts.length === 0) {
+  if ((posts as unknown[]).length === 0) {
     console.info('[TranslationService] No published blog posts found');
     return [];
   }
 
-  // Fetch translations in parallel with timeout
-  const postIds = posts.map((p) => p.id);
+  // Fetch translations in parallel
+  type BlogRow = Record<string, unknown>;
+  const postIds = (posts as BlogRow[]).map((p) => p.id as string);
   const [translationsResult, fallbackResult] = await Promise.all([
-    withTimeout(
+    safeQuery(
       supabase
         .from('blog_post_translations')
         .select('*')
@@ -470,7 +455,7 @@ export async function getBlogPostsWithTranslations(
         .eq('locale', locale),
       `blog_translations(${locale})`
     ),
-    withTimeout(
+    safeQuery(
       supabase
         .from('blog_post_translations')
         .select('*')
@@ -483,44 +468,22 @@ export async function getBlogPostsWithTranslations(
   const { data: translations } = translationsResult;
   const { data: fallbackTranslations } = fallbackResult;
 
-  const translationMap = new Map(
-    translations?.map((t) => [t.blog_post_id, t]) || []
+  const translationMap = new Map<string, BlogRow>(
+    (translations as BlogRow[] | null)?.map((t) => [t.blog_post_id as string, t]) || []
   );
-  const fallbackMap = new Map(
-    fallbackTranslations?.map((t) => [t.blog_post_id, t]) || []
+  const fallbackMap = new Map<string, BlogRow>(
+    (fallbackTranslations as BlogRow[] | null)?.map((t) => [t.blog_post_id as string, t]) || []
   );
 
   const elapsed = Math.round(performance.now() - startMs);
-  console.info(`[TranslationService] getBlogPostsWithTranslations(${locale}) → ${posts.length} posts in ${elapsed}ms`);
+  console.info(`[TranslationService] getBlogPostsWithTranslations(${locale}) → ${(posts as unknown[]).length} posts in ${elapsed}ms`);
 
-  return posts.map((post) => {
-    const translation = translationMap.get(post.id);
-    const fallback = fallbackMap.get(post.id);
-    const activeTranslation = translation || fallback;
+  return (posts as BlogRow[]).map((post) => {
+    const translation = translationMap.get(post.id as string);
+    const fallback = fallbackMap.get(post.id as string);
+    const activeTranslation = translation || fallback || null;
 
-    return {
-      id: post.id,
-      slug: post.slug,
-      featured_image_url: post.featured_image_url,
-      author_id: post.author_id,
-      status: post.status,
-      is_featured: post.is_featured,
-      tags: post.tags,
-      published_at: post.published_at,
-      view_count: post.view_count,
-      created_at: post.created_at,
-      updated_at: post.updated_at,
-
-      title: activeTranslation?.title || post.title,
-      excerpt: activeTranslation?.excerpt || post.excerpt,
-      content: activeTranslation?.content || post.content,
-      seo_title: activeTranslation?.seo_title || post.seo_title,
-      seo_description:
-        activeTranslation?.seo_description || post.seo_description,
-
-      _locale: (activeTranslation?.locale as SupportedLocale) || DEFAULT_LOCALE,
-      _fallbackUsed: !translation && !!fallback,
-    };
+    return mergeBlogTranslation(post, activeTranslation, !translation && !!fallback);
   });
 }
 
@@ -531,7 +494,7 @@ export async function getBlogPostBySlugWithTranslation(
   slug: string,
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<BlogPostWithTranslation | null> {
-  const { data: post, error } = await withTimeout(
+  const { data: post, error } = await safeQuery(
     supabase
       .from('blog_posts')
       .select('*')
@@ -545,5 +508,5 @@ export async function getBlogPostBySlugWithTranslation(
     return null;
   }
 
-  return getBlogPostWithTranslation(post.id, locale);
+  return getBlogPostWithTranslation((post as Record<string, unknown>).id as string, locale);
 }
