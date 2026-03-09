@@ -13,7 +13,8 @@ import React, {
 import { User, Session, AuthOtpResponse } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { initializeWishlistStore } from '@/stores';
-import { QueryClient, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { profileCache, useProfileActions } from './useProfileManager';
 
 // ============= Auth State Cleanup Utility =============
 export const cleanupAuthState = () => {
@@ -30,41 +31,6 @@ export const cleanupAuthState = () => {
     }
   });
 };
-
-// ============= Profile Cache =============
-class ProfileCache {
-  private cache = new Map<
-    string,
-    { data: Profile | null; timestamp: number }
-  >();
-  private readonly TTL = 5 * 60 * 1000; // 5 minutes
-
-  set(userId: string, data: Profile | null) {
-    this.cache.set(userId, { data, timestamp: Date.now() });
-  }
-
-  get(userId: string): Profile | null {
-    const item = this.cache.get(userId);
-    if (!item) return null;
-
-    if (Date.now() - item.timestamp > this.TTL) {
-      this.cache.delete(userId);
-      return null;
-    }
-
-    return item.data;
-  }
-
-  invalidate(userId?: string) {
-    if (userId) {
-      this.cache.delete(userId);
-    } else {
-      this.cache.clear();
-    }
-  }
-}
-
-const profileCache = new ProfileCache();
 
 // ============= Types =============
 import type { Json } from '@/integrations/supabase/types';
