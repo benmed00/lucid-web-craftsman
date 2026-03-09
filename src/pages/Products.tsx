@@ -39,12 +39,17 @@ import { appNavigate } from '@/lib/navigation';
 
 const Products = () => {
   const { t } = useTranslation(['products', 'common']);
+  const [searchParams] = useSearchParams();
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(
     null
   );
 
   const { addItem, cart } = useCart();
   const isMobile = useIsMobile();
+
+  // SEO pagination: read ?page= for crawlers (users see infinite scroll)
+  const PRODUCTS_PER_PAGE = 16;
+  const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
 
   // Fetch products with translations based on current locale
   const {
