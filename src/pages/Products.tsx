@@ -182,6 +182,7 @@ const Products = () => {
 
       <PageFooter />
       <FloatingCartButton />
+      <CompareFloatingBar />
     </div>
   );
 };
