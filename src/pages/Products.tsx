@@ -232,6 +232,25 @@ const Products = () => {
         </div>
 
         <div className="container mx-auto px-4 py-6 md:py-8 lg:py-12 safe-area">
+          {/* Progressive loading indicator after 5s */}
+          {isSlowLoading && (
+            <div className="mb-6 p-4 bg-muted/50 border border-border rounded-lg flex items-center justify-center gap-3 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="text-sm font-medium">
+                {t('common:messages.stillLoading', 'Still loading products...')}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refetch()}
+                className="ml-2"
+              >
+                <RefreshCw className="h-4 w-4 mr-1" />
+                {t('common:buttons.retry', 'Retry')}
+              </Button>
+            </div>
+          )}
+
           {/* Mobile Features Skeleton */}
           {isMobile && (
             <div className="space-y-6 mb-6 animate-pulse">
