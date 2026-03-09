@@ -207,9 +207,9 @@ const ProductShowcase = () => {
         <p className="text-muted-foreground mb-4">
           {t('showcase.loadError', 'Impossible de charger les produits.')}
         </p>
-        <Button variant="outline" onClick={() => refetch()} className="gap-2">
+        <Button variant="outline" onClick={() => { refetch(); }} className="gap-2">
           <RefreshCw className="h-4 w-4" />
-          {t('common:buttons.retry', 'Réessayer')}
+          {t('common:buttons.retry')}
         </Button>
       </div>
     );
