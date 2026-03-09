@@ -68,16 +68,6 @@ export function useProductsWithTranslations() {
     retryDelay: 2000,
   });
 
-  // Log state transitions for debugging
-  useEffect(() => {
-    const status = query.status;
-    const fetchStatus = query.fetchStatus;
-    const dataLen = query.data?.length ?? 0;
-    console.info(
-      `[useProductsWithTranslations] status=${status} fetchStatus=${fetchStatus} data=${dataLen} error=${query.error ? String(query.error) : 'none'}`
-    );
-  }, [query.status, query.fetchStatus, query.data?.length, query.error]);
-
   // Warm individual product cache entries from list data
   useEffect(() => {
     if (query.data) {
