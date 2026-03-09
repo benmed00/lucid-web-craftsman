@@ -4,7 +4,7 @@
  * These hooks integrate with react-query and react-i18next
  * to provide locale-aware data fetching with caching.
  */
-
+import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
