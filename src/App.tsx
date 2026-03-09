@@ -161,7 +161,7 @@ const queryClient = new QueryClient({
       gcTime: 1000 * 60 * 10, // 10 minutes cache retention
       retry: 1,
       refetchOnWindowFocus: false,
-      refetchOnMount: false,
+      refetchOnMount: true,
       refetchOnReconnect: true,
       networkMode: 'offlineFirst',
     },
