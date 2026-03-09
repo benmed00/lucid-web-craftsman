@@ -73,12 +73,16 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // ── BYPASS: Supabase API / Auth / Functions (everything except /storage/) ──
-  if (
-    url.hostname.endsWith('supabase.co') &&
-    !url.pathname.startsWith('/storage/')
-  ) {
-    return; // network-only, no interception
+  // ── BYPASS: Supabase API / Auth / Functions (except /storage/ and /rest/ for products) ──
+  if (url.hostname.endsWith('supabase.co')) {
+    // Allow caching of product catalog queries for offline browsing
+    if (url.pathname.startsWith('/rest/') && url.search.includes('products')) {
+      event.respondWith(networkFirst(request, DATA_CACHE_NAME));
+      return;
+    }
+    if (!url.pathname.startsWith('/storage/')) {
+      return; // network-only, no interception
+    }
   }
 
   // ── BYPASS: Stripe ──
