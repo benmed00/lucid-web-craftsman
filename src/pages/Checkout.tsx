@@ -54,9 +54,6 @@ import StepSummary from '@/components/checkout/StepSummary';
 import PaymentButton from '@/components/checkout/PaymentButton';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Lazy initialize Stripe only when needed
-const _stripePromise: Promise<Stripe | null> | null = null;
-
 // Discount coupon type
 interface DiscountCoupon {
   id: string;

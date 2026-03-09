@@ -336,7 +336,7 @@ const Products = () => {
 
             {/* Mobile Promotions with Dynamic Cart Total */}
             <MobilePromotions
-              cartTotal={150} // Pass actual cart total
+              cartTotal={cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)}
               onPromotionApply={(code) =>
                 toast.success(t('promo.applied', { code }))
               }
