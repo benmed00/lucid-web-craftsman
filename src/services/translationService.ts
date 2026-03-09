@@ -184,32 +184,34 @@ export async function getProductWithTranslation(
 export async function getProductsWithTranslations(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<ProductWithTranslation[]> {
-  // Get all active products
-  const { data: products, error: productsError } = await supabase
-    .from('products')
-    .select('*')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false });
+  // Fetch products and all translations in parallel for faster loading
+  const [productsResult, translationsResult, fallbackResult] = await Promise.all([
+    supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false }),
+    // Get translations for requested locale (for all products)
+    supabase
+      .from('product_translations')
+      .select('*')
+      .eq('locale', locale),
+    // Get fallback translations (default locale)
+    supabase
+      .from('product_translations')
+      .select('*')
+      .eq('locale', DEFAULT_LOCALE),
+  ]);
+
+  const { data: products, error: productsError } = productsResult;
 
   if (productsError || !products) {
     console.error('Error fetching products:', productsError);
     return [];
   }
 
-  // Get all translations for requested locale
-  const productIds = products.map((p) => p.id);
-  const { data: translations } = await supabase
-    .from('product_translations')
-    .select('*')
-    .in('product_id', productIds)
-    .eq('locale', locale);
-
-  // Get fallback translations if needed
-  const { data: fallbackTranslations } = await supabase
-    .from('product_translations')
-    .select('*')
-    .in('product_id', productIds)
-    .eq('locale', DEFAULT_LOCALE);
+  const { data: translations } = translationsResult;
+  const { data: fallbackTranslations } = fallbackResult;
 
   // Create lookup maps
   const translationMap = new Map(
