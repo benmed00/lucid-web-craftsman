@@ -1,6 +1,6 @@
 import { CalendarIcon, User, AlertCircle, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import { format } from 'date-fns';
