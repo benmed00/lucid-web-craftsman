@@ -1,18 +1,14 @@
 /**
  * Safety Timeout Hook
  * Prevents infinite loading states by forcing a fallback after a configurable delay.
- * Now supports progressive disclosure with intermediate "slow loading" state.
- * 
- * Usage:
- *   const { hasTimedOut, isSlowLoading } = useSafetyTimeout(isLoading, {
- *     timeout: 12000,
- *     slowThreshold: 5000,
- *   });
- *   if (isSlowLoading) show "Still loading..." message
- *   if (hasTimedOut) show error state instead of skeleton
+ * Supports progressive disclosure with intermediate "slow loading" state.
+ *
+ * CRITICAL FIX: Callbacks are stored in refs so they don't reset the timer
+ * on every render (unstable arrow-function references were the root cause
+ * of the timeout never firing).
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface SafetyTimeoutOptions {
   /** Timeout in ms (default: 12000) */
@@ -39,48 +35,39 @@ export function useSafetyTimeout(
 
   const [hasTimedOut, setHasTimedOut] = useState(false);
   const [isSlowLoading, setIsSlowLoading] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const slowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Store callbacks in refs to avoid resetting timers on every render
+  const onTimeoutRef = useRef(onTimeout);
+  const onSlowLoadingRef = useRef(onSlowLoading);
+  onTimeoutRef.current = onTimeout;
+  onSlowLoadingRef.current = onSlowLoading;
 
   useEffect(() => {
     if (isLoading) {
       setHasTimedOut(false);
       setIsSlowLoading(false);
 
-      // Set slow loading indicator after slowThreshold
-      slowTimerRef.current = setTimeout(() => {
+      const slowTimer = setTimeout(() => {
         setIsSlowLoading(true);
-        onSlowLoading?.();
+        onSlowLoadingRef.current?.();
       }, slowThreshold);
 
-      // Set final timeout
-      timerRef.current = setTimeout(() => {
+      const mainTimer = setTimeout(() => {
+        console.warn(`[SafetyTimeout] Loading exceeded ${timeout}ms — forcing render`);
         setHasTimedOut(true);
-        onTimeout?.();
+        onTimeoutRef.current?.();
       }, timeout);
+
+      return () => {
+        clearTimeout(slowTimer);
+        clearTimeout(mainTimer);
+      };
     } else {
       setHasTimedOut(false);
       setIsSlowLoading(false);
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-      if (slowTimerRef.current) {
-        clearTimeout(slowTimerRef.current);
-        slowTimerRef.current = null;
-      }
     }
-
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-      if (slowTimerRef.current) {
-        clearTimeout(slowTimerRef.current);
-      }
-    };
-  }, [isLoading, timeout, slowThreshold, onTimeout, onSlowLoading]);
+    // Only depend on primitive values — callbacks are in refs
+  }, [isLoading, timeout, slowThreshold]);
 
   return { hasTimedOut, isSlowLoading };
 }
-

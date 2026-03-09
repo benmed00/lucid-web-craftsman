@@ -40,12 +40,15 @@ export function useProductWithTranslation(productId: number | null) {
     queryFn: () =>
       productId ? getProductWithTranslation(productId, locale) : null,
     enabled: productId !== null,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 }
 
 /**
- * Hook for fetching all products with translations
+ * Hook for fetching all products with translations.
+ *
+ * Uses throwOnError so React Query surfaces failures immediately
+ * instead of swallowing them and leaving isLoading=true.
  */
 export function useProductsWithTranslations() {
   const locale = useCurrentLocale();
@@ -54,11 +57,11 @@ export function useProductsWithTranslations() {
   const query = useQuery<ProductWithTranslation[]>({
     queryKey: ['products', locale],
     queryFn: () => getProductsWithTranslations(locale),
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: true,
-    retry: 3,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
   });
 
   // Warm individual product cache entries from list data
@@ -114,8 +117,8 @@ export function useBlogPostsWithTranslations() {
     queryFn: () => getBlogPostsWithTranslations(locale),
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: true,
-    retry: 3,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
   });
 }
 
