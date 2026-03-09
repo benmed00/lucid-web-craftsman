@@ -7,20 +7,20 @@ interface DesktopNavProps {
 }
 
 export const DesktopNav = ({ currentPath, onNavClick }: DesktopNavProps) => {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['common']);
 
   const links = [
-    { to: '/', label: t('nav.home') },
-    { to: '/products', label: t('nav.shop') },
-    { to: '/blog', label: t('nav.blog') },
-    { to: '/contact', label: t('nav.contact') },
+    { to: '/', label: t('common:nav.home') },
+    { to: '/products', label: t('common:nav.shop') },
+    { to: '/blog', label: t('common:nav.blog') },
+    { to: '/contact', label: t('common:nav.contact') },
   ];
 
   return (
     <nav
       className="header-nav hidden md:flex items-center justify-center flex-1 max-w-md lg:max-w-lg xl:max-w-xl mx-2"
       role="navigation"
-      aria-label={t('accessibility.mainNav')}
+      aria-label={t('common:accessibility.mainNav')}
     >
       <ul className="flex items-center justify-center space-x-2 lg:space-x-3 list-none m-0 p-0">
         {links.map((link) => (
