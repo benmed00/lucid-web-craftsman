@@ -170,6 +170,15 @@ const queryClient = new QueryClient({
 
 const basePath: string = '/';
 
+// Scroll to top on every route change
+const ScrollRestoration = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname]);
+  return null;
+};
+
 // Wrapper component to handle maintenance mode check inside Router context
 const MaintenanceWrapper = ({ children }: { children: React.ReactNode }) => {
   const { isMaintenanceMode, isLoading } = useMaintenanceMode();
