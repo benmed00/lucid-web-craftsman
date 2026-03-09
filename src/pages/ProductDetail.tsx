@@ -77,6 +77,7 @@ import { StockInfo } from '@/services/stockService';
 
 // Utils
 import { sanitizeHtmlContent } from '@/utils/xssProtection';
+import { appNavigate } from '@/lib/navigation';
 
 interface ProductDetailProps {}
 
@@ -221,7 +222,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
         {
           action: {
             label: t('common:buttons.viewCart', 'Voir le panier'),
-            onClick: () => { window.location.href = '/cart'; },
+            onClick: () => { appNavigate('/cart'); },
           },
         }
       );

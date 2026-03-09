@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { toast } from 'sonner';
+import { appNavigate } from '@/lib/navigation';
 import { useCurrency } from '@/stores';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -102,7 +103,7 @@ export const ProductQuickView = ({
       {
         action: {
           label: t('common:buttons.viewCart', 'Voir le panier'),
-          onClick: () => { window.location.href = '/cart'; },
+          onClick: () => { appNavigate('/cart'); },
         },
       }
     );

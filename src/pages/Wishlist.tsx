@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Heart, Trash2 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { appNavigate } from '@/lib/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -135,7 +136,7 @@ const Wishlist = () => {
         toast.success(t('common:messages.addedToCart'), {
           action: {
             label: t('common:buttons.viewCart', 'Voir le panier'),
-            onClick: () => { window.location.href = '/cart'; },
+            onClick: () => { appNavigate('/cart'); },
           },
         });
       } catch (error) {

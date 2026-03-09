@@ -1,5 +1,6 @@
 import { useCart } from '@/stores';
 import { toast } from 'sonner';
+import { appNavigate } from '@/lib/navigation';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import ProductCard, { StockContext } from './ProductCard';
@@ -116,7 +117,7 @@ const ProductShowcase = () => {
         toast.success(t('recommendations.addedToCart', { name: product.name }), {
           action: {
             label: t('common:buttons.viewCart', 'Voir le panier'),
-            onClick: () => { window.location.href = '/cart'; },
+            onClick: () => { appNavigate('/cart'); },
           },
         });
       } else {

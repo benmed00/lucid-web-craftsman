@@ -2,6 +2,7 @@ import { useProductRecommendations } from '@/hooks/useProductRecommendations';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { useCart } from '@/stores';
 import { toast } from 'sonner';
+import { appNavigate } from '@/lib/navigation';
 import ProductCard from './ProductCard';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Sparkles } from 'lucide-react';
@@ -47,7 +48,7 @@ export const ProductRecommendations = ({
         toast.success(t('common:messages.addedToCart'), {
           action: {
             label: t('common:buttons.viewCart', 'Voir le panier'),
-            onClick: () => { window.location.href = '/cart'; },
+            onClick: () => { appNavigate('/cart'); },
           },
         });
       } else {

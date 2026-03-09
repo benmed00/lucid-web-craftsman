@@ -5,6 +5,7 @@ import { useBusinessRules } from '@/hooks/useBusinessRules';
 import { useCurrency } from '@/stores/currencyStore';
 import { useCheckoutResume } from '@/hooks/useCheckoutResume';
 
+import { appNavigate } from '@/lib/navigation';
 import Footer from '@/components/Footer';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import { Button } from '@/components/ui/button';
@@ -83,7 +84,7 @@ const Cart = () => {
     // Clear cart and redirect
     clearCart();
     setTimeout(() => {
-      window.location.href = '/payment-success';
+      appNavigate('/payment-success');
     }, 1500);
   };
 

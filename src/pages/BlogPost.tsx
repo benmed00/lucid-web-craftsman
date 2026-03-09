@@ -8,6 +8,7 @@ import { fr, enUS } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import PageFooter from '@/components/PageFooter';
+import SEOHelmet from '@/components/seo/SEOHelmet';
 import BlogContent from '@/components/BlogContent';
 import { useBlogPostWithTranslation } from '@/hooks/useTranslatedContent';
 import { TranslationFallbackIndicator } from '@/components/ui/TranslationFallbackIndicator';
@@ -72,6 +73,21 @@ const BlogPost = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHelmet
+        title={`${post.title} - Rif Raw Straw Blog`}
+        description={post.excerpt || post.content?.substring(0, 155)}
+        image={post.featured_image_url || undefined}
+        url={`/blog/${post.id}`}
+        type="article"
+        article={{
+          author: 'Rif Raw Straw',
+          publishedTime: post.published_at || undefined,
+          modifiedTime: post.updated_at || post.published_at || undefined,
+          section: post.tags?.[0] || 'Artisanat',
+          tags: post.tags || undefined,
+        }}
+        keywords={post.tags || ['artisanat', 'blog', 'handmade']}
+      />
       {/* Article Header */}
       <div className="bg-muted py-16">
         <div className="container mx-auto px-4">

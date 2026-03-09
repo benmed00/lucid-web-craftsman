@@ -6,7 +6,9 @@ import {
   Routes,
   Navigate,
   useLocation,
+  useNavigate,
 } from 'react-router-dom';
+import { setNavigate } from '@/lib/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useWebVitals } from '@/hooks/useWebVitals';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
@@ -170,6 +172,13 @@ const queryClient = new QueryClient({
 
 const basePath: string = '/';
 
+// Register global navigate function for use in toast callbacks etc.
+const NavigateRegistrar = () => {
+  const nav = useNavigate();
+  useEffect(() => { setNavigate(nav); }, [nav]);
+  return null;
+};
+
 // Scroll to top on every route change
 const ScrollRestoration = () => {
   const { pathname } = useLocation();
@@ -244,6 +253,7 @@ const App = () => {
             <AuthProvider>
               <TooltipProvider delayDuration={300}>
                 <BrowserRouter basename={basePath} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                  <NavigateRegistrar />
                   <ScrollRestoration />
                   <MaintenanceWrapper>
                     <Suspense fallback={null}>
