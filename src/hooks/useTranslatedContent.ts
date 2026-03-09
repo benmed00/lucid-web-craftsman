@@ -58,6 +58,8 @@ export function useProductsWithTranslations() {
     refetchOnWindowFocus: false, // Don't refetch when user returns to tab
     retry: 2, // Retry failed requests twice
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000), // Exponential backoff
+    // Stale-while-revalidate: show previous locale's data while fetching new
+    placeholderData: (previousData) => previousData,
   });
 }
 

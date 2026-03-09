@@ -43,7 +43,7 @@ const Products = () => {
     null
   );
 
-  const { addItem } = useCart();
+  const { addItem, cart } = useCart();
   const isMobile = useIsMobile();
 
   // Fetch products with translations based on current locale
@@ -336,7 +336,7 @@ const Products = () => {
 
             {/* Mobile Promotions with Dynamic Cart Total */}
             <MobilePromotions
-              cartTotal={150} // Pass actual cart total
+              cartTotal={cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)}
               onPromotionApply={(code) =>
                 toast.success(t('promo.applied', { code }))
               }
