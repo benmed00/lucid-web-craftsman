@@ -51,7 +51,7 @@ export function useProductsWithTranslations() {
   const locale = useCurrentLocale();
   const queryClient = useQueryClient();
 
-  return useQuery<ProductWithTranslation[]>({
+  const query = useQuery<ProductWithTranslation[]>({
     queryKey: ['products', locale],
     queryFn: () => getProductsWithTranslations(locale),
     staleTime: 5 * 60 * 1000,
@@ -60,13 +60,18 @@ export function useProductsWithTranslations() {
     retry: 2,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
     placeholderData: (previousData) => previousData,
-    // Warm individual product cache entries from list data
-    onSuccess: (products) => {
-      products.forEach((product) => {
+  });
+
+  // Warm individual product cache entries from list data
+  useEffect(() => {
+    if (query.data) {
+      query.data.forEach((product) => {
         queryClient.setQueryData(['product', product.id, locale], product);
       });
-    },
-  });
+    }
+  }, [query.data, locale, queryClient]);
+
+  return query;
 }
 
 /**
