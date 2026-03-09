@@ -230,15 +230,20 @@ export async function getProductWithTranslation(
 }
 
 /**
- * Fetch all products with translations for the specified locale
+ * Fetch all products with translations for the specified locale.
+ *
+ * OPTIMISATION: when locale === DEFAULT_LOCALE we skip the redundant
+ * fallback query (it would be identical), saving a connection slot.
+ * All queries run in parallel via Promise.all — no sequential dependency.
  */
 export async function getProductsWithTranslations(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<ProductWithTranslation[]> {
   const startMs = performance.now();
+  const needsFallback = locale !== DEFAULT_LOCALE;
 
-  // Fetch products and all translations in parallel
-  const [productsResult, translationsResult, fallbackResult] = await Promise.all([
+  // Build query batch — 2 queries when locale is default, 3 otherwise
+  const queries: Array<Promise<{ data: unknown; error: unknown }>> = [
     safeQuery(
       supabase
         .from('products')
@@ -254,14 +259,26 @@ export async function getProductsWithTranslations(
         .eq('locale', locale),
       `product_translations(${locale})`
     ),
-    safeQuery(
-      supabase
-        .from('product_translations')
-        .select('*')
-        .eq('locale', DEFAULT_LOCALE),
-      'product_translations(fallback)'
-    ),
-  ]);
+  ];
+
+  if (needsFallback) {
+    queries.push(
+      safeQuery(
+        supabase
+          .from('product_translations')
+          .select('*')
+          .eq('locale', DEFAULT_LOCALE),
+        'product_translations(fallback)'
+      )
+    );
+  }
+
+  const results = await Promise.all(queries);
+  const productsResult = results[0] as { data: Record<string, unknown>[] | null; error: unknown };
+  const translationsResult = results[1] as { data: Record<string, unknown>[] | null; error: unknown };
+  const fallbackResult = needsFallback
+    ? (results[2] as { data: Record<string, unknown>[] | null; error: unknown })
+    : translationsResult; // reuse same data when locale IS the default
 
   const { data: products, error: productsError } = productsResult;
 
@@ -283,7 +300,8 @@ export async function getProductsWithTranslations(
   );
 
   const elapsed = Math.round(performance.now() - startMs);
-  console.info(`[TranslationService] getProductsWithTranslations(${locale}) → ${products.length} products in ${elapsed}ms`);
+  const queryCount = needsFallback ? 3 : 2;
+  console.info(`[TranslationService] getProductsWithTranslations(${locale}) → ${products.length} products in ${elapsed}ms (${queryCount} queries)`);
 
   // Merge products with translations
   return products.map((product) => {
