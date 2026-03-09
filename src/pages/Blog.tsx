@@ -20,7 +20,19 @@ import { useTranslateTag } from '@/hooks/useTagTranslations';
 
 const Blog = () => {
   const { t, i18n } = useTranslation('pages');
-  const { data: posts = [], isLoading } = useBlogPostsWithTranslations();
+  const { data: posts = [], isLoading, refetch } = useBlogPostsWithTranslations();
+
+  // Safety timeout: force render after 8s even if still loading
+  const [forceRender, setForceRender] = useState(false);
+  useEffect(() => {
+    if (!isLoading) return;
+    const timer = setTimeout(() => {
+      console.warn('[Blog] Loading timed out after 8s, forcing render');
+      setForceRender(true);
+      refetch();
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, [isLoading, refetch]);
 
   // Dynamic tag translation
   const { translateTag } = useTranslateTag();
