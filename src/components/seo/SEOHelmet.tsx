@@ -16,6 +16,11 @@ interface SEOProps {
     section?: string;
     tags?: string[];
   };
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    baseUrl: string;
+  };
 }
 
 const SEOHelmet = ({
