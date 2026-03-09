@@ -205,7 +205,7 @@ const Products = () => {
         duration: 3000,
         action: {
           label: t('common:buttons.viewCart', 'Voir le panier'),
-          onClick: () => { window.location.href = '/cart'; },
+          onClick: () => { appNavigate('/cart'); },
         },
       }
     );
