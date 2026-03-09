@@ -116,37 +116,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = useMemo(() => !!authState.user, [authState.user]);
 
-  // Load user profile with caching
-  const loadUserProfile = useCallback(
-    async (userId: string): Promise<Profile | null> => {
-      // Check cache first
-      const cached = profileCache.get(userId);
-      if (cached) {
-        setAuthState((prev) => ({ ...prev, profile: cached }));
-        return cached;
-      }
+  // Profile management (extracted to useProfileManager)
+  const setProfile = useCallback((profile: Profile | null) => {
+    setAuthState((prev) => ({ ...prev, profile }));
+  }, []);
 
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          throw error;
-        }
-
-        const profile = data as Profile | null;
-        profileCache.set(userId, profile);
-        setAuthState((prev) => ({ ...prev, profile }));
-        return profile;
-      } catch (error) {
-        console.error('Error loading profile:', error);
-        return null;
-      }
-    },
-    []
+  const { loadUserProfile, updateProfile, refreshProfile } = useProfileActions(
+    authState.user?.id,
+    setProfile
   );
 
   // Initialize auth state
