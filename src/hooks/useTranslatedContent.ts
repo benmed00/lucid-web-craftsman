@@ -117,8 +117,8 @@ export function useBlogPostsWithTranslations() {
     queryFn: () => getBlogPostsWithTranslations(locale),
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: true,
-    retry: 2,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
+    retry: 1,
+    retryDelay: 2000,
   });
 }
 
