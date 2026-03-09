@@ -56,13 +56,30 @@ export const supabase = createClient<Database>(
     global: {
       // Use a function to dynamically resolve x-guest-id on EVERY request
       // Prevents 42501 RLS errors when guest ID wasn't yet generated
+      // Also adds AbortController timeout to prevent hanging connections
+      // that exhaust the browser's 6-connection-per-host limit.
       fetch: (url: RequestInfo | URL, options?: RequestInit) => {
         const guestId = getGuestId();
         const headers = new Headers(options?.headers);
         if (guestId) {
           headers.set('x-guest-id', guestId);
         }
-        return fetch(url, { ...options, headers });
+
+        // Abort hanging requests after 15s to free connection slots
+        const controller = new AbortController();
+        const existingSignal = options?.signal;
+        const timeoutId = setTimeout(() => controller.abort(), 15_000);
+
+        // If caller already provided a signal, respect it too
+        if (existingSignal) {
+          existingSignal.addEventListener('abort', () => controller.abort());
+        }
+
+        return fetch(url, {
+          ...options,
+          headers,
+          signal: controller.signal,
+        }).finally(() => clearTimeout(timeoutId));
       },
     },
     realtime: {
