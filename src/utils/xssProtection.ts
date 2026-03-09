@@ -1,7 +1,18 @@
-import DOMPurify from 'dompurify';
-
 // Enhanced XSS Protection utilities with stricter controls
-export const sanitizeHtmlContent = (content: string): string => {
+
+// Lazy-loaded DOMPurify instance
+let _DOMPurify: typeof import('dompurify').default | null = null;
+
+async function getDOMPurify() {
+  if (!_DOMPurify) {
+    const mod = await import('dompurify');
+    _DOMPurify = mod.default;
+  }
+  return _DOMPurify;
+}
+
+export const sanitizeHtmlContent = async (content: string): Promise<string> => {
+  const DOMPurify = await getDOMPurify();
   return DOMPurify.sanitize(content, {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a'],
     ALLOWED_ATTR: ['href', 'target'],
