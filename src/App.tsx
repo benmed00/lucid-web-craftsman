@@ -234,6 +234,7 @@ const App = () => {
             <AuthProvider>
               <TooltipProvider delayDuration={300}>
                 <BrowserRouter basename={basePath} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                  <ScrollRestoration />
                   <MaintenanceWrapper>
                     <Suspense fallback={null}>
                       <PushNotificationManager />
