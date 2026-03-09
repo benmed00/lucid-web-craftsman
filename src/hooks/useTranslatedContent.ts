@@ -119,10 +119,7 @@ export function useBlogPostsWithTranslations() {
 
   const query = useQuery<BlogPostWithTranslation[]>({
     queryKey: ['blogPosts', locale],
-    queryFn: () => {
-      console.info(`[useBlogPostsWithTranslations] 🔄 queryFn firing for locale=${locale}`);
-      return getBlogPostsWithTranslations(locale);
-    },
+    queryFn: () => getBlogPostsWithTranslations(locale),
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
