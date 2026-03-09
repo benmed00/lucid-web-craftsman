@@ -79,6 +79,7 @@ import { StockInfo } from '@/services/stockService';
 // Utils
 import { sanitizeHtmlContent } from '@/utils/xssProtection';
 import { appNavigate } from '@/lib/navigation';
+import { hapticFeedback } from '@/utils/haptics';
 
 interface ProductDetailProps {}
 
