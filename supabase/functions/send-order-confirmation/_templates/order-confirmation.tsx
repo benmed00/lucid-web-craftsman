@@ -118,13 +118,13 @@ export const OrderConfirmationEmail = ({
             {items.map((item, index) => (
               <Row key={index} style={itemRow}>
                 <Column style={itemImageColumn}>
-                  <div style={itemImagePlaceholder}>
-                    {item.image ? (
-                      <Img src={item.image} alt={item.name} style={itemImage} />
-                    ) : (
+                  {item.image ? (
+                    <Img src={item.image} alt={item.name} style={itemImage} />
+                  ) : (
+                    <Section style={itemImagePlaceholder}>
                       <Text style={itemImageIcon}>🧺</Text>
-                    )}
-                  </div>
+                    </Section>
+                  )}
                 </Column>
                 <Column style={itemDetailsColumn}>
                   <Text style={itemName}>{item.name}</Text>
