@@ -117,7 +117,7 @@ const ProductShowcase = () => {
         toast.success(t('recommendations.addedToCart', { name: product.name }), {
           action: {
             label: t('common:buttons.viewCart', 'Voir le panier'),
-            onClick: () => { window.location.href = '/cart'; },
+            onClick: () => { appNavigate('/cart'); },
           },
         });
       } else {

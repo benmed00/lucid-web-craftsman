@@ -83,7 +83,7 @@ const Cart = () => {
     // Clear cart and redirect
     clearCart();
     setTimeout(() => {
-      window.location.href = '/payment-success';
+      appNavigate('/payment-success');
     }, 1500);
   };
 

@@ -48,7 +48,7 @@ export const ProductRecommendations = ({
         toast.success(t('common:messages.addedToCart'), {
           action: {
             label: t('common:buttons.viewCart', 'Voir le panier'),
-            onClick: () => { window.location.href = '/cart'; },
+            onClick: () => { appNavigate('/cart'); },
           },
         });
       } else {

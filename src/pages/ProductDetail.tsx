@@ -222,7 +222,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
         {
           action: {
             label: t('common:buttons.viewCart', 'Voir le panier'),
-            onClick: () => { window.location.href = '/cart'; },
+            onClick: () => { appNavigate('/cart'); },
           },
         }
       );
