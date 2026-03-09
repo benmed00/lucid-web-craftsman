@@ -43,7 +43,7 @@ const Products = () => {
     null
   );
 
-  const { addItem } = useCart();
+  const { addItem, cart } = useCart();
   const isMobile = useIsMobile();
 
   // Fetch products with translations based on current locale
