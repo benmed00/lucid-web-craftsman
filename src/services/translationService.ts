@@ -232,85 +232,59 @@ export async function getProductWithTranslation(
 /**
  * Fetch all products with translations for the specified locale.
  *
- * OPTIMISATION: when locale === DEFAULT_LOCALE we skip the redundant
- * fallback query (it would be identical), saving a connection slot.
- * All queries run in parallel via Promise.all — no sequential dependency.
+ * OPTIMISATION: Uses a single Supabase query with a left-join on
+ * product_translations, reducing 2–3 HTTP requests to just 1.
+ * This is critical for avoiding Chrome's 6-connection-per-host limit
+ * during initial page load.
  */
 export async function getProductsWithTranslations(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<ProductWithTranslation[]> {
   const startMs = performance.now();
-  const needsFallback = locale !== DEFAULT_LOCALE;
 
-  // Build query batch — 2 queries when locale is default, 3 otherwise
-  const queries: Array<Promise<{ data: unknown; error: unknown }>> = [
-    safeQuery(
-      supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false }),
-      'products_list'
-    ),
-    safeQuery(
-      supabase
-        .from('product_translations')
-        .select('*')
-        .eq('locale', locale),
-      `product_translations(${locale})`
-    ),
-  ];
-
-  if (needsFallback) {
-    queries.push(
-      safeQuery(
-        supabase
-          .from('product_translations')
-          .select('*')
-          .eq('locale', DEFAULT_LOCALE),
-        'product_translations(fallback)'
-      )
-    );
-  }
-
-  const results = await Promise.all(queries);
-  const productsResult = results[0] as { data: Record<string, unknown>[] | null; error: unknown };
-  const translationsResult = results[1] as { data: Record<string, unknown>[] | null; error: unknown };
-  const fallbackResult = needsFallback
-    ? (results[2] as { data: Record<string, unknown>[] | null; error: unknown })
-    : translationsResult; // reuse same data when locale IS the default
-
-  const { data: products, error: productsError } = productsResult;
+  // Single query with embedded translations via Supabase join
+  const { data: products, error: productsError } = await safeQuery(
+    supabase
+      .from('products')
+      .select(`
+        *,
+        product_translations!left (
+          locale,
+          name,
+          description,
+          short_description,
+          details,
+          care,
+          artisan_story,
+          seo_title,
+          seo_description
+        )
+      `)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false }),
+    `products_with_translations(${locale})`
+  );
 
   if (productsError || !products) {
     console.error('[TranslationService] Error fetching products:', productsError);
     throw new Error(`Failed to fetch products: ${productsError instanceof Error ? productsError.message : String(productsError)}`);
   }
 
-  const { data: translations } = translationsResult;
-  const { data: fallbackTranslations } = fallbackResult;
-
-  // Create lookup maps
-  type TranslationRow = Record<string, unknown>;
-  const translationMap = new Map<number, TranslationRow>(
-    (translations as TranslationRow[] | null)?.map((t) => [t.product_id as number, t]) || []
-  );
-  const fallbackMap = new Map<number, TranslationRow>(
-    (fallbackTranslations as TranslationRow[] | null)?.map((t) => [t.product_id as number, t]) || []
-  );
-
   const elapsed = Math.round(performance.now() - startMs);
-  const queryCount = needsFallback ? 3 : 2;
-  console.info(`[TranslationService] getProductsWithTranslations(${locale}) → ${products.length} products in ${elapsed}ms (${queryCount} queries)`);
+  console.info(`[TranslationService] getProductsWithTranslations(${locale}) → ${(products as unknown[]).length} products in ${elapsed}ms (1 query, joined)`);
 
-  // Merge products with translations
-  return products.map((product) => {
-    const p = product as Record<string, unknown>;
-    const translation = translationMap.get(p.id as number);
-    const fallback = fallbackMap.get(p.id as number);
+  // Merge products with the best matching translation
+  return (products as Record<string, unknown>[]).map((product) => {
+    const translations = (product.product_translations || []) as Record<string, unknown>[];
+
+    // Prefer requested locale, then fall back to default locale
+    const translation = translations.find((t) => t.locale === locale) || null;
+    const fallback = locale !== DEFAULT_LOCALE
+      ? translations.find((t) => t.locale === DEFAULT_LOCALE) || null
+      : null;
     const activeTranslation = translation || fallback || null;
 
-    return mergeProductTranslation(p, activeTranslation, !translation && !!fallback);
+    return mergeProductTranslation(product, activeTranslation, !translation && !!fallback);
   });
 }
 
@@ -443,89 +417,52 @@ export async function getBlogPostWithTranslation(
 /**
  * Fetch all published blog posts with translations.
  *
- * ARCHITECTURAL FIX: All queries now run in parallel (posts + translations
- * + fallback translations). The old sequential pattern (posts first, then
- * translations) doubled the worst-case latency and could exceed the safety
- * timeout, causing the refetch-loop that left the page stuck in skeleton.
- *
- * We fetch ALL translations for the locale (not filtered by post IDs)
- * which is fine for the small dataset and eliminates the sequential dependency.
- * Duplicate fallback query is also skipped when locale === DEFAULT_LOCALE.
+ * Uses a single Supabase query with left-join on blog_post_translations,
+ * same optimization as getProductsWithTranslations (1 request instead of 2-3).
  */
 export async function getBlogPostsWithTranslations(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<BlogPostWithTranslation[]> {
   const startMs = performance.now();
-  const needsFallback = locale !== DEFAULT_LOCALE;
 
-  // All queries in parallel — no sequential dependency
-  const queries: Array<Promise<{ data: unknown; error: unknown }>> = [
-    safeQuery(
-      supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('status', 'published')
-        .order('published_at', { ascending: false }),
-      'blog_posts_list'
-    ),
-    safeQuery(
-      supabase
-        .from('blog_post_translations')
-        .select('*')
-        .eq('locale', locale),
-      `blog_translations(${locale})`
-    ),
-  ];
-
-  if (needsFallback) {
-    queries.push(
-      safeQuery(
-        supabase
-          .from('blog_post_translations')
-          .select('*')
-          .eq('locale', DEFAULT_LOCALE),
-        'blog_translations(fallback)'
-      )
-    );
-  }
-
-  const results = await Promise.all(queries);
-  const postsResult = results[0] as { data: Record<string, unknown>[] | null; error: unknown };
-  const translationsResult = results[1] as { data: Record<string, unknown>[] | null; error: unknown };
-  const fallbackResult = needsFallback
-    ? (results[2] as { data: Record<string, unknown>[] | null; error: unknown })
-    : translationsResult;
-
-  const { data: posts, error: postsError } = postsResult;
+  const { data: posts, error: postsError } = await safeQuery(
+    supabase
+      .from('blog_posts')
+      .select(`
+        *,
+        blog_post_translations!left (
+          locale,
+          title,
+          excerpt,
+          content,
+          seo_title,
+          seo_description
+        )
+      `)
+      .eq('status', 'published')
+      .order('published_at', { ascending: false }),
+    `blog_posts_with_translations(${locale})`
+  );
 
   if (postsError || !posts) {
     console.error('[TranslationService] Error fetching blog posts:', postsError);
     throw new Error(`Failed to fetch blog posts: ${postsError instanceof Error ? postsError.message : String(postsError)}`);
   }
 
-  if (posts.length === 0) {
+  if ((posts as unknown[]).length === 0) {
     console.info('[TranslationService] No published blog posts found');
     return [];
   }
 
-  const { data: translations } = translationsResult;
-  const { data: fallbackTranslations } = fallbackResult;
-
-  type BlogRow = Record<string, unknown>;
-  const translationMap = new Map<string, BlogRow>(
-    (translations as BlogRow[] | null)?.map((t) => [t.blog_post_id as string, t]) || []
-  );
-  const fallbackMap = new Map<string, BlogRow>(
-    (fallbackTranslations as BlogRow[] | null)?.map((t) => [t.blog_post_id as string, t]) || []
-  );
-
   const elapsed = Math.round(performance.now() - startMs);
-  const queryCount = needsFallback ? 3 : 2;
-  console.info(`[TranslationService] getBlogPostsWithTranslations(${locale}) → ${posts.length} posts in ${elapsed}ms (${queryCount} queries)`);
+  console.info(`[TranslationService] getBlogPostsWithTranslations(${locale}) → ${(posts as unknown[]).length} posts in ${elapsed}ms (1 query, joined)`);
 
-  return (posts as BlogRow[]).map((post) => {
-    const translation = translationMap.get(post.id as string);
-    const fallback = fallbackMap.get(post.id as string);
+  return (posts as Record<string, unknown>[]).map((post) => {
+    const translations = (post.blog_post_translations || []) as Record<string, unknown>[];
+    const translation = translations.find((t) => t.locale === locale) || null;
+    const fallback = locale !== DEFAULT_LOCALE
+      ? translations.find((t) => t.locale === DEFAULT_LOCALE) || null
+      : null;
     const activeTranslation = translation || fallback || null;
 
     return mergeBlogTranslation(post, activeTranslation, !translation && !!fallback);

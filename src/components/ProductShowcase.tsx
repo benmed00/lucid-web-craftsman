@@ -69,11 +69,12 @@ const ProductShowcase = () => {
     );
   }, [translatedProducts]);
 
-  // Batch stock loading for all featured products
+  // Batch stock loading — deferred until products have rendered
+  // to avoid competing with product queries for connection slots
   const productIds = featuredProducts.map((p) => p.id);
   const { stockInfo } = useStock({
     productIds,
-    enabled: productIds.length > 0,
+    enabled: productIds.length > 0 && !loading,
   });
 
   // Handle URL-based quick view state

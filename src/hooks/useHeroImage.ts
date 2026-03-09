@@ -43,16 +43,28 @@ function persistHeroImage(data: HeroImageData): void {
 export const useHeroImage = () => {
   const [heroImageData, setHeroImageData] =
     useState<HeroImageData>(getInitialHeroImage);
+  // Start as NOT loading — we show the cached/default image immediately.
+  // The Supabase fetch is deferred to avoid competing with product queries.
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load hero image data on mount
+  // Defer the Supabase fetch so product queries get priority.
+  // Hero image is non-critical because we always have a localStorage
+  // cached version or a sensible default.
   useEffect(() => {
-    const loadHeroImage = async () => {
+    let cancelled = false;
+
+    // Wait 3 seconds before fetching from Supabase to free connection
+    // slots for critical product data during initial page load.
+    const timer = setTimeout(async () => {
+      if (cancelled) return;
       try {
         const data = await heroImageService.get();
+        if (cancelled) return;
 
-        // Update state and persist for next visit
-        setHeroImageData(data);
+        // Only update if different from current (avoid flash)
+        if (data.imageUrl !== heroImageData.imageUrl) {
+          setHeroImageData(data);
+        }
         persistHeroImage(data);
 
         // Add dynamic preload for LCP optimization
@@ -74,10 +86,13 @@ export const useHeroImage = () => {
         console.error('Error loading hero image:', error);
         // Keep cached or default image on error
       }
-    };
+    }, 3000);
 
-    loadHeroImage();
-  }, []);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateHeroImage = async (data: HeroImageData): Promise<void> => {
     try {

@@ -45,7 +45,9 @@ export const useMaintenanceMode = (): MaintenanceModeState => {
   useEffect(() => {
     let isMounted = true;
 
-    const checkMaintenanceMode = async () => {
+    // Defer maintenance check by 2s to avoid competing with critical
+    // product queries for Chrome's 6-connection-per-host limit.
+    const deferTimer = setTimeout(async () => {
       try {
         const { data, error } = await supabase
           .from('app_settings')
@@ -73,34 +75,38 @@ export const useMaintenanceMode = (): MaintenanceModeState => {
           setState((prev) => ({ ...prev, isLoading: false }));
         }
       }
-    };
+    }, 2000);
 
-    checkMaintenanceMode();
-
-    // Subscribe to realtime changes
-    const channel = supabase
-      .channel('maintenance-mode')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'app_settings',
-          filter: `setting_key=eq.${SETTINGS_KEY}`,
-        },
-        (payload) => {
-          if (payload.new && 'setting_value' in payload.new) {
-            const settings = payload.new
-              .setting_value as unknown as DisplaySettings;
-            updateFromSettings(settings);
+    // Subscribe to realtime changes (deferred — non-critical)
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    const realtimeTimer = setTimeout(() => {
+      if (!isMounted) return;
+      channel = supabase
+        .channel('maintenance-mode')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'app_settings',
+            filter: `setting_key=eq.${SETTINGS_KEY}`,
+          },
+          (payload) => {
+            if (payload.new && 'setting_value' in payload.new) {
+              const settings = payload.new
+                .setting_value as unknown as DisplaySettings;
+              updateFromSettings(settings);
+            }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
+    }, 5000);
 
     return () => {
       isMounted = false;
-      supabase.removeChannel(channel);
+      clearTimeout(deferTimer);
+      clearTimeout(realtimeTimer);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [updateFromSettings]);
 
