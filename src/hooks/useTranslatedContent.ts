@@ -4,8 +4,8 @@
  * These hooks integrate with react-query and react-i18next
  * to provide locale-aware data fetching with caching.
  */
-
-import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
   getProductWithTranslation,
@@ -49,18 +49,29 @@ export function useProductWithTranslation(productId: number | null) {
  */
 export function useProductsWithTranslations() {
   const locale = useCurrentLocale();
+  const queryClient = useQueryClient();
 
-  return useQuery<ProductWithTranslation[]>({
+  const query = useQuery<ProductWithTranslation[]>({
     queryKey: ['products', locale],
     queryFn: () => getProductsWithTranslations(locale),
-    staleTime: 5 * 60 * 1000, // 5 minutes - data considered fresh
-    gcTime: 30 * 60 * 1000, // 30 minutes - keep in cache
-    refetchOnWindowFocus: false, // Don't refetch when user returns to tab
-    retry: 2, // Retry failed requests twice
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000), // Exponential backoff
-    // Stale-while-revalidate: show previous locale's data while fetching new
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
     placeholderData: (previousData) => previousData,
   });
+
+  // Warm individual product cache entries from list data
+  useEffect(() => {
+    if (query.data) {
+      query.data.forEach((product) => {
+        queryClient.setQueryData(['product', product.id, locale], product);
+      });
+    }
+  }, [query.data, locale, queryClient]);
+
+  return query;
 }
 
 /**

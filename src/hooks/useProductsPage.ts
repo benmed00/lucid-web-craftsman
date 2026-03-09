@@ -145,7 +145,7 @@ export function useProductsPage() {
     if (forceRender && products.length === 0 && !fetchError) { refetch(); }
   }, [forceRender, products.length, fetchError, refetch]);
 
-  const cartTotal = cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const cartTotal = cart.items.reduce((sum, item) => sum + (item.product?.price ?? 0) * item.quantity, 0);
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
 
   return {
