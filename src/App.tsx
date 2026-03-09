@@ -330,6 +330,14 @@ const App = () => {
                         }
                       />
                       <Route
+                        path="/compare"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <CompareProducts />
+                          </Suspense>
+                        }
+                      />
+                      <Route
                         path="/wishlist"
                         element={
                           <Suspense fallback={<PageLoadingFallback />}>
