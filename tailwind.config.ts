@@ -168,10 +168,10 @@ export default {
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'fade-in': 'fade-in 0.5s ease-out forwards',
-        'fade-in-up': 'fade-in-up 0.6s ease-out forwards',
-        'scale-in': 'scale-in 0.3s ease-out forwards',
-        'slide-in-left': 'slide-in-left 0.4s ease-out forwards',
+        'fade-in': 'fade-in 0.5s ease-out both',
+        'fade-in-up': 'fade-in-up 0.6s ease-out both',
+        'scale-in': 'scale-in 0.3s ease-out both',
+        'slide-in-left': 'slide-in-left 0.4s ease-out both',
         'pulse-gentle': 'pulse-gentle 2s ease-in-out infinite',
       },
       boxShadow: {
