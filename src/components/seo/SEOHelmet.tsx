@@ -187,7 +187,19 @@ const SEOHelmet = ({
       <meta name="keywords" content={keywords.join(', ')} />
       <link rel="canonical" href={fullUrl} />
 
-      {/* Open Graph */}
+      {/* Pagination Meta */}
+      {pagination && pagination.currentPage > 1 && (
+        <link
+          rel="prev"
+          href={`${siteUrl}${pagination.baseUrl}?page=${pagination.currentPage - 1}`}
+        />
+      )}
+      {pagination && pagination.currentPage < pagination.totalPages && (
+        <link
+          rel="next"
+          href={`${siteUrl}${pagination.baseUrl}?page=${pagination.currentPage + 1}`}
+        />
+      )}
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={fullImageUrl} />
