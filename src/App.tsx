@@ -227,8 +227,11 @@ const App = () => {
   useEffect(() => {
     const prefetchProducts = () => {
       // Import the translation service and prefetch products for the current locale
-      import('@/services/translationService').then(({ getProductsWithTranslations }) => {
-        const locale = (localStorage.getItem('i18nextLng') || 'fr') as 'fr' | 'en';
+      import('@/services/translationService').then(({ getProductsWithTranslations, SUPPORTED_LOCALES, DEFAULT_LOCALE }) => {
+        // Normalize locale the same way useCurrentLocale() does to ensure cache key match
+        const rawLang = localStorage.getItem('i18nextLng') || 'fr';
+        const normalizedLang = rawLang.split('-')[0];
+        const locale = (SUPPORTED_LOCALES as readonly string[]).includes(normalizedLang) ? normalizedLang : DEFAULT_LOCALE;
         queryClient.prefetchQuery({
           queryKey: ['products', locale],
           queryFn: () => getProductsWithTranslations(locale),
