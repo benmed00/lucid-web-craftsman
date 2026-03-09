@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ShoppingCart, Eye, AlertTriangle, Share } from 'lucide-react';
+import { ShoppingCart, Eye, AlertTriangle, Share, GitCompareArrows } from 'lucide-react';
 import { Product, isProductNew } from '@/shared/interfaces/Iproduct.interface';
 import { ProductImage } from '@/components/ui/GlobalImage';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,6 +15,8 @@ import { StockInfo } from '@/services/stockService';
 import { SupportedLocale } from '@/services/translationService';
 import { useEffect, useState, useContext, createContext } from 'react';
 import { useCurrency } from '@/stores';
+import { hapticFeedback } from '@/utils/haptics';
+import { useCompareStore } from '@/stores/compareStore';
 
 // Create context for stock sharing - this will be provided by ProductShowcase
 const StockContext = createContext<Record<number, StockInfo>>({});
@@ -38,6 +40,7 @@ const ProductCard = ({
   fallbackLocale,
 }: ProductCardProps) => {
   const { t } = useTranslation('products');
+  const { addItem: addToCompare, isInCompare } = useCompareStore();
 
   // Try to get stock info from context first (for ProductShowcase)
   const stockContext = useStockContext();
@@ -109,6 +112,26 @@ const ProductCard = ({
               </TooltipWrapper>
             </div>
           )}
+
+          {/* Compare Button */}
+          <div className="absolute top-12 left-2 sm:top-14 sm:left-3 z-10">
+            <TooltipWrapper content={t('compare.add', 'Comparer')} side="right">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  hapticFeedback('selection');
+                  addToCompare(product);
+                }}
+                className={`bg-background/90 backdrop-blur-sm hover:bg-background shadow-lg p-2 rounded-full touch-manipulation min-h-[36px] min-w-[36px] sm:min-h-[40px] sm:min-w-[40px] ${isInCompare(product.id) ? 'text-primary ring-2 ring-primary' : 'text-foreground'}`}
+                aria-label={t('compare.add', 'Comparer')}
+              >
+                <GitCompareArrows className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </Button>
+            </TooltipWrapper>
+          </div>
 
           {/* Share Button - Mobile Only */}
           <div className="absolute top-12 right-2 sm:top-14 sm:right-3 z-10 md:hidden">
@@ -239,6 +262,7 @@ const ProductCard = ({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                hapticFeedback('medium');
                 onAddToCart(product);
               }}
               disabled={singleStockInfo?.isOutOfStock}

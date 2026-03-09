@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -79,6 +79,7 @@ import { StockInfo } from '@/services/stockService';
 // Utils
 import { sanitizeHtmlContent } from '@/utils/xssProtection';
 import { appNavigate } from '@/lib/navigation';
+import { hapticFeedback } from '@/utils/haptics';
 
 interface ProductDetailProps {}
 
@@ -113,6 +114,17 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
+
+  // Sanitized HTML content (async DOMPurify)
+  const [sanitizedDetails, setSanitizedDetails] = useState('');
+  const [sanitizedCare, setSanitizedCare] = useState('');
+
+  useEffect(() => {
+    if (product) {
+      sanitizeHtmlContent(product.details).then(setSanitizedDetails);
+      sanitizeHtmlContent(product.care).then(setSanitizedCare);
+    }
+  }, [product?.details, product?.care]);
 
   // Refs
   const imageGalleryRef = useRef<HTMLDivElement>(null);
@@ -215,6 +227,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
 
     try {
       // Update global cart state directly
+      hapticFeedback('success');
       addItem(product, quantity);
 
       // Show success message
@@ -822,7 +835,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     <div
                       className="prose prose-stone dark:prose-invert max-w-none text-muted-foreground"
                       dangerouslySetInnerHTML={{
-                        __html: sanitizeHtmlContent(product.details),
+                        __html: sanitizedDetails,
                       }}
                     />
                   </CardContent>
@@ -902,7 +915,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     <div
                       className="prose prose-stone dark:prose-invert max-w-none text-muted-foreground"
                       dangerouslySetInnerHTML={{
-                        __html: sanitizeHtmlContent(product.care),
+                        __html: sanitizedCare,
                       }}
                     />
                   </CardContent>

@@ -20,8 +20,9 @@
  *   old caches on the next service worker activation.
  */
 
-const STATIC_CACHE_NAME = 'rif-static-v7';
-const IMAGE_CACHE_NAME = 'rif-images-v7';
+const STATIC_CACHE_NAME = 'rif-static-v8';
+const IMAGE_CACHE_NAME = 'rif-images-v8';
+const DATA_CACHE_NAME = 'rif-data-v8';
 
 const MAX_CACHE_SIZE = 100; // per bucket
 
@@ -44,7 +45,7 @@ self.addEventListener('install', (event) => {
 
 // ── Activate — purge old caches ──────────────────────────────────────
 self.addEventListener('activate', (event) => {
-  const currentCaches = [STATIC_CACHE_NAME, IMAGE_CACHE_NAME];
+  const currentCaches = [STATIC_CACHE_NAME, IMAGE_CACHE_NAME, DATA_CACHE_NAME];
 
   event.waitUntil(
     caches
@@ -72,12 +73,16 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // ── BYPASS: Supabase API / Auth / Functions (everything except /storage/) ──
-  if (
-    url.hostname.endsWith('supabase.co') &&
-    !url.pathname.startsWith('/storage/')
-  ) {
-    return; // network-only, no interception
+  // ── BYPASS: Supabase API / Auth / Functions (except /storage/ and /rest/ for products) ──
+  if (url.hostname.endsWith('supabase.co')) {
+    // Allow caching of product catalog queries for offline browsing
+    if (url.pathname.startsWith('/rest/') && url.search.includes('products')) {
+      event.respondWith(networkFirst(request, DATA_CACHE_NAME));
+      return;
+    }
+    if (!url.pathname.startsWith('/storage/')) {
+      return; // network-only, no interception
+    }
   }
 
   // ── BYPASS: Stripe ──

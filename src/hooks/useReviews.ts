@@ -28,6 +28,7 @@ interface CreateReviewData {
   rating: number;
   title?: string;
   comment?: string;
+  photo_urls?: string[];
 }
 
 export const useReviews = (productId?: number) => {

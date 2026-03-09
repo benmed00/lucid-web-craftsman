@@ -7,6 +7,7 @@ import SEOHelmet from '@/components/seo/SEOHelmet';
 import { StockContext } from '@/components/ProductCard';
 import { SearchResultsHeader } from '@/components/SearchResults';
 import FloatingCartButton from '@/components/ui/FloatingCartButton';
+import { CompareFloatingBar } from '@/components/products/CompareFloatingBar';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { VoiceSearch } from '@/components/ui/VoiceSearch';
 import { MobilePromotions } from '@/components/ui/MobilePromotions';
@@ -181,6 +182,7 @@ const Products = () => {
 
       <PageFooter />
       <FloatingCartButton />
+      <CompareFloatingBar />
     </div>
   );
 };
