@@ -31,6 +31,7 @@ import { sanitizeUserInput } from '@/utils/xssProtection';
 import { retryWithBackoff } from '@/lib/retryWithBackoff';
 import {
   useCheckoutSession,
+  type CartItemSnapshot,
 } from '@/hooks/useCheckoutSession';
 import CheckoutProgress from '@/components/checkout/CheckoutProgress';
 import { useCheckoutFormPersistence } from '@/hooks/useCheckoutFormPersistence';
