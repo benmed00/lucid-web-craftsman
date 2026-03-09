@@ -3,9 +3,6 @@
  *
  * These hooks integrate with react-query and react-i18next
  * to provide locale-aware data fetching with caching.
- *
- * DIAGNOSTIC LOGGING: Each hook logs React Query state transitions
- * to help debug Chrome-specific skeleton loading issues.
  */
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
