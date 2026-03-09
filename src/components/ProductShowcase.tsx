@@ -1,5 +1,6 @@
 import { useCart } from '@/stores';
 import { toast } from 'sonner';
+import { appNavigate } from '@/lib/navigation';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import ProductCard, { StockContext } from './ProductCard';
