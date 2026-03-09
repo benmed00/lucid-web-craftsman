@@ -34,13 +34,9 @@ const Blog = () => {
     slowThreshold: 4000,
   });
 
-  // Auto-retry once when the timeout fires
-  useEffect(() => {
-    if (forceRender && posts.length === 0 && !fetchError) {
-      console.warn('[Blog] Safety timeout fired — triggering refetch');
-      refetch();
-    }
-  }, [forceRender, posts.length, fetchError, refetch]);
+  // NOTE: Auto-refetch on timeout was REMOVED — it caused a refetch loop
+  // that cancelled in-flight queries. React Query's own retry (1 attempt)
+  // handles transient failures. The safety timeout now just shows error UI.
 
   // Dynamic tag translation
   const { translateTag } = useTranslateTag();
