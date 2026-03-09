@@ -227,6 +227,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
 
     try {
       // Update global cart state directly
+      hapticFeedback('success');
       addItem(product, quantity);
 
       // Show success message
