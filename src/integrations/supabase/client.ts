@@ -65,10 +65,10 @@ export const supabase = createClient<Database>(
           headers.set('x-guest-id', guestId);
         }
 
-        // Abort hanging requests after 15s to free connection slots
+        // Abort hanging requests after 8s to free connection slots
         const controller = new AbortController();
         const existingSignal = options?.signal;
-        const timeoutId = setTimeout(() => controller.abort(), 15_000);
+        const timeoutId = setTimeout(() => controller.abort(), 8_000);
 
         // If caller already provided a signal, respect it too
         if (existingSignal) {
