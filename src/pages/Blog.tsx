@@ -1,4 +1,4 @@
-import { CalendarIcon, User } from 'lucide-react';
+import { CalendarIcon, User, AlertCircle, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -17,22 +17,30 @@ import NewsletterSubscription from '@/components/NewsletterSubscription';
 import { useBlogPostsWithTranslations } from '@/hooks/useTranslatedContent';
 import { FallbackDot } from '@/components/ui/TranslationFallbackIndicator';
 import { useTranslateTag } from '@/hooks/useTagTranslations';
+import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
 
 const Blog = () => {
   const { t, i18n } = useTranslation('pages');
-  const { data: posts = [], isLoading, refetch } = useBlogPostsWithTranslations();
+  const {
+    data: posts = [],
+    isLoading,
+    error: fetchError,
+    refetch,
+  } = useBlogPostsWithTranslations();
 
-  // Safety timeout: force render after 8s even if still loading
-  const [forceRender, setForceRender] = useState(false);
+  // Safety timeout — force render after 8s
+  const { hasTimedOut: forceRender, isSlowLoading } = useSafetyTimeout(isLoading, {
+    timeout: 8000,
+    slowThreshold: 4000,
+  });
+
+  // Auto-retry once when the timeout fires
   useEffect(() => {
-    if (!isLoading) return;
-    const timer = setTimeout(() => {
-      console.warn('[Blog] Loading timed out after 8s, forcing render');
-      setForceRender(true);
+    if (forceRender && posts.length === 0 && !fetchError) {
+      console.warn('[Blog] Safety timeout fired — triggering refetch');
       refetch();
-    }, 8000);
-    return () => clearTimeout(timer);
-  }, [isLoading, refetch]);
+    }
+  }, [forceRender, posts.length, fetchError, refetch]);
 
   // Dynamic tag translation
   const { translateTag } = useTranslateTag();
@@ -66,12 +74,69 @@ const Blog = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Loading state
   if (isLoading && !forceRender) {
     return (
       <>
         <BlogSkeleton />
+        {isSlowLoading && (
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-muted text-muted-foreground px-4 py-2 rounded-full text-sm shadow-lg z-50">
+            {t('blog.slowLoading', 'Chargement en cours…')}
+          </div>
+        )}
         <PageFooter />
       </>
+    );
+  }
+
+  // Error state
+  if (fetchError && posts.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <h1 className="text-2xl font-serif text-foreground mb-4">
+              {t('blog.errorTitle', 'Impossible de charger les articles')}
+            </h1>
+            <p className="text-muted-foreground mb-8">
+              {t('blog.errorDescription', 'Veuillez réessayer dans quelques instants.')}
+            </p>
+            <Button onClick={() => refetch()} className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              {t('blog.retry', 'Réessayer')}
+            </Button>
+          </div>
+        </div>
+        <PageFooter />
+      </div>
+    );
+  }
+
+  // Empty state
+  if (!isLoading && posts.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SEOHelmet
+          title={t('blog.seo.title')}
+          description={t('blog.seo.description')}
+          url="/blog"
+          type="website"
+        />
+        <div className="bg-secondary py-16">
+          <div className="container mx-auto px-4 text-center">
+            <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
+              {t('blog.heading')}
+            </h1>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-16 text-center">
+          <p className="text-muted-foreground text-lg">
+            {t('blog.noPosts', 'Aucun article disponible pour le moment.')}
+          </p>
+        </div>
+        <PageFooter />
+      </div>
     );
   }
 

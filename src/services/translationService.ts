@@ -23,12 +23,37 @@ export const SUPPORTED_LOCALES: SupportedLocale[] = [
   'de',
 ];
 
+/** Request timeout in ms — prevents hanging promises */
+const REQUEST_TIMEOUT_MS = 10_000;
+
 /**
  * Get current locale from i18n, with fallback to default
  */
 export function getCurrentLocale(): SupportedLocale {
   const lang = i18n.language?.split('-')[0] as SupportedLocale;
   return SUPPORTED_LOCALES.includes(lang) ? lang : DEFAULT_LOCALE;
+}
+
+/**
+ * Wrap a Supabase query builder result in a timeout.
+ * Returns { data, error } — on timeout, error is set and data is null.
+ */
+async function withTimeout<T>(
+  promise: PromiseLike<{ data: T | null; error: unknown }>,
+  label: string,
+  ms = REQUEST_TIMEOUT_MS
+): Promise<{ data: T | null; error: unknown }> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<{ data: null; error: Error }>((resolve) => {
+    timer = setTimeout(() => {
+      console.error(`[TranslationService] ${label} timed out after ${ms}ms`);
+      resolve({ data: null, error: new Error(`${label} timed out after ${ms}ms`) });
+    }, ms);
+  });
+
+  const result = await Promise.race([promise, timeout]);
+  clearTimeout(timer!);
+  return result as { data: T | null; error: unknown };
 }
 
 // =====================================================
@@ -97,25 +122,33 @@ export async function getProductWithTranslation(
   productId: number,
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<ProductWithTranslation | null> {
+  const startMs = performance.now();
+
   // First, try to get translation for requested locale
-  const { data: translation, error: translationError } = await supabase
-    .from('product_translations')
-    .select('*')
-    .eq('product_id', productId)
-    .eq('locale', locale)
-    .single();
+  const { data: translation } = await withTimeout(
+    supabase
+      .from('product_translations')
+      .select('*')
+      .eq('product_id', productId)
+      .eq('locale', locale)
+      .single(),
+    `product_translation(${productId},${locale})`
+  );
 
   // If no translation found, try fallback to default locale
   let fallbackTranslation = null;
   let fallbackUsed = false;
 
   if (!translation && locale !== DEFAULT_LOCALE) {
-    const { data: fallback } = await supabase
-      .from('product_translations')
-      .select('*')
-      .eq('product_id', productId)
-      .eq('locale', DEFAULT_LOCALE)
-      .single();
+    const { data: fallback } = await withTimeout(
+      supabase
+        .from('product_translations')
+        .select('*')
+        .eq('product_id', productId)
+        .eq('locale', DEFAULT_LOCALE)
+        .single(),
+      `product_translation_fallback(${productId})`
+    );
 
     fallbackTranslation = fallback;
     fallbackUsed = true;
@@ -124,20 +157,24 @@ export async function getProductWithTranslation(
   const activeTranslation = translation || fallbackTranslation;
 
   // Get base product data
-  const { data: product, error: productError } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', productId)
-    .single();
+  const { data: product, error: productError } = await withTimeout(
+    supabase
+      .from('products')
+      .select('*')
+      .eq('id', productId)
+      .single(),
+    `product(${productId})`
+  );
 
   if (productError || !product) {
-    console.error('Error fetching product:', productError);
+    console.error('[TranslationService] Error fetching product:', productError);
     return null;
   }
 
+  console.info(`[TranslationService] getProductWithTranslation(${productId}) → ${Math.round(performance.now() - startMs)}ms`);
+
   // Merge product with translation
   return {
-    // Base fields
     id: product.id,
     price: product.price,
     images: product.images,
@@ -160,7 +197,6 @@ export async function getProductWithTranslation(
     created_at: product.created_at,
     updated_at: product.updated_at,
 
-    // Translated fields (from translation or fallback to base product)
     name: activeTranslation?.name || product.name,
     description: activeTranslation?.description || product.description,
     short_description:
@@ -172,7 +208,6 @@ export async function getProductWithTranslation(
     seo_description:
       activeTranslation?.seo_description || product.seo_description,
 
-    // Locale metadata
     _locale: (activeTranslation?.locale as SupportedLocale) || DEFAULT_LOCALE,
     _fallbackUsed: fallbackUsed || !activeTranslation,
   };
@@ -184,30 +219,39 @@ export async function getProductWithTranslation(
 export async function getProductsWithTranslations(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<ProductWithTranslation[]> {
-  // Fetch products and all translations in parallel for faster loading
+  const startMs = performance.now();
+
+  // Fetch products and all translations in parallel with timeout
   const [productsResult, translationsResult, fallbackResult] = await Promise.all([
-    supabase
-      .from('products')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false }),
-    // Get translations for requested locale (for all products)
-    supabase
-      .from('product_translations')
-      .select('*')
-      .eq('locale', locale),
-    // Get fallback translations (default locale)
-    supabase
-      .from('product_translations')
-      .select('*')
-      .eq('locale', DEFAULT_LOCALE),
+    withTimeout(
+      supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false }),
+      'products_list'
+    ),
+    withTimeout(
+      supabase
+        .from('product_translations')
+        .select('*')
+        .eq('locale', locale),
+      `product_translations(${locale})`
+    ),
+    withTimeout(
+      supabase
+        .from('product_translations')
+        .select('*')
+        .eq('locale', DEFAULT_LOCALE),
+      'product_translations(fallback)'
+    ),
   ]);
 
   const { data: products, error: productsError } = productsResult;
 
   if (productsError || !products) {
-    console.error('Error fetching products:', productsError);
-    return [];
+    console.error('[TranslationService] Error fetching products:', productsError);
+    throw new Error(`Failed to fetch products: ${productsError instanceof Error ? productsError.message : String(productsError)}`);
   }
 
   const { data: translations } = translationsResult;
@@ -220,6 +264,9 @@ export async function getProductsWithTranslations(
   const fallbackMap = new Map(
     fallbackTranslations?.map((t) => [t.product_id, t]) || []
   );
+
+  const elapsed = Math.round(performance.now() - startMs);
+  console.info(`[TranslationService] getProductsWithTranslations(${locale}) → ${products.length} products in ${elapsed}ms`);
 
   // Merge products with translations
   return products.map((product) => {
@@ -285,7 +332,6 @@ export interface BlogPostTranslation {
 }
 
 export interface BlogPostWithTranslation {
-  // Base blog post fields (non-translatable)
   id: string;
   slug: string;
   featured_image_url: string | null;
@@ -317,25 +363,29 @@ export async function getBlogPostWithTranslation(
   blogPostId: string,
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<BlogPostWithTranslation | null> {
-  // Get translation for requested locale
-  const { data: translation } = await supabase
-    .from('blog_post_translations')
-    .select('*')
-    .eq('blog_post_id', blogPostId)
-    .eq('locale', locale)
-    .single();
+  const { data: translation } = await withTimeout(
+    supabase
+      .from('blog_post_translations')
+      .select('*')
+      .eq('blog_post_id', blogPostId)
+      .eq('locale', locale)
+      .single(),
+    `blog_translation(${blogPostId},${locale})`
+  );
 
-  // Fallback to default locale if needed
   let fallbackTranslation = null;
   let fallbackUsed = false;
 
   if (!translation && locale !== DEFAULT_LOCALE) {
-    const { data: fallback } = await supabase
-      .from('blog_post_translations')
-      .select('*')
-      .eq('blog_post_id', blogPostId)
-      .eq('locale', DEFAULT_LOCALE)
-      .single();
+    const { data: fallback } = await withTimeout(
+      supabase
+        .from('blog_post_translations')
+        .select('*')
+        .eq('blog_post_id', blogPostId)
+        .eq('locale', DEFAULT_LOCALE)
+        .single(),
+      `blog_translation_fallback(${blogPostId})`
+    );
 
     fallbackTranslation = fallback;
     fallbackUsed = true;
@@ -343,15 +393,17 @@ export async function getBlogPostWithTranslation(
 
   const activeTranslation = translation || fallbackTranslation;
 
-  // Get base blog post
-  const { data: post, error: postError } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('id', blogPostId)
-    .single();
+  const { data: post, error: postError } = await withTimeout(
+    supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('id', blogPostId)
+      .single(),
+    `blog_post(${blogPostId})`
+  );
 
   if (postError || !post) {
-    console.error('Error fetching blog post:', postError);
+    console.error('[TranslationService] Error fetching blog post:', postError);
     return null;
   }
 
@@ -385,43 +437,61 @@ export async function getBlogPostWithTranslation(
 export async function getBlogPostsWithTranslations(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<BlogPostWithTranslation[]> {
-  // Get all published posts
-  const { data: posts, error: postsError } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('status', 'published')
-    .order('published_at', { ascending: false });
+  const startMs = performance.now();
+
+  // Get all published posts with timeout
+  const { data: posts, error: postsError } = await withTimeout(
+    supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false }),
+    'blog_posts_list'
+  );
 
   if (postsError || !posts) {
-    console.error('Error fetching blog posts:', postsError);
+    console.error('[TranslationService] Error fetching blog posts:', postsError);
+    throw new Error(`Failed to fetch blog posts: ${postsError instanceof Error ? postsError.message : String(postsError)}`);
+  }
+
+  if (posts.length === 0) {
+    console.info('[TranslationService] No published blog posts found');
     return [];
   }
 
-  // Fetch translations in parallel for speed
+  // Fetch translations in parallel with timeout
   const postIds = posts.map((p) => p.id);
   const [translationsResult, fallbackResult] = await Promise.all([
-    supabase
-      .from('blog_post_translations')
-      .select('*')
-      .in('blog_post_id', postIds)
-      .eq('locale', locale),
-    supabase
-      .from('blog_post_translations')
-      .select('*')
-      .in('blog_post_id', postIds)
-      .eq('locale', DEFAULT_LOCALE),
+    withTimeout(
+      supabase
+        .from('blog_post_translations')
+        .select('*')
+        .in('blog_post_id', postIds)
+        .eq('locale', locale),
+      `blog_translations(${locale})`
+    ),
+    withTimeout(
+      supabase
+        .from('blog_post_translations')
+        .select('*')
+        .in('blog_post_id', postIds)
+        .eq('locale', DEFAULT_LOCALE),
+      'blog_translations(fallback)'
+    ),
   ]);
 
   const { data: translations } = translationsResult;
   const { data: fallbackTranslations } = fallbackResult;
 
-  // Create lookup maps
   const translationMap = new Map(
     translations?.map((t) => [t.blog_post_id, t]) || []
   );
   const fallbackMap = new Map(
     fallbackTranslations?.map((t) => [t.blog_post_id, t]) || []
   );
+
+  const elapsed = Math.round(performance.now() - startMs);
+  console.info(`[TranslationService] getBlogPostsWithTranslations(${locale}) → ${posts.length} posts in ${elapsed}ms`);
 
   return posts.map((post) => {
     const translation = translationMap.get(post.id);
@@ -461,13 +531,15 @@ export async function getBlogPostBySlugWithTranslation(
   slug: string,
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<BlogPostWithTranslation | null> {
-  // Get base post by slug
-  const { data: post, error } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('slug', slug)
-    .eq('status', 'published')
-    .single();
+  const { data: post, error } = await withTimeout(
+    supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('slug', slug)
+      .eq('status', 'published')
+      .single(),
+    `blog_post_by_slug(${slug})`
+  );
 
   if (error || !post) {
     return null;
