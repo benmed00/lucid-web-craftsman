@@ -217,11 +217,11 @@ const App = () => {
   useEffect(() => {
     const prefetchProducts = () => {
       // Import the translation service and prefetch products for the current locale
-      import('@/services/translationService').then(({ translationService }) => {
+      import('@/services/translationService').then(({ getProductsWithTranslations }) => {
         const locale = (localStorage.getItem('i18nextLng') || 'fr') as 'fr' | 'en';
         queryClient.prefetchQuery({
           queryKey: ['products-translated', locale],
-          queryFn: () => translationService.getProductsWithTranslations(locale),
+          queryFn: () => getProductsWithTranslations(locale),
           staleTime: 1000 * 60 * 5, // 5 minutes
         });
         console.log('[App] Products prefetched for locale:', locale);
