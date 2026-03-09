@@ -45,7 +45,7 @@ self.addEventListener('install', (event) => {
 
 // ── Activate — purge old caches ──────────────────────────────────────
 self.addEventListener('activate', (event) => {
-  const currentCaches = [STATIC_CACHE_NAME, IMAGE_CACHE_NAME];
+  const currentCaches = [STATIC_CACHE_NAME, IMAGE_CACHE_NAME, DATA_CACHE_NAME];
 
   event.waitUntil(
     caches
