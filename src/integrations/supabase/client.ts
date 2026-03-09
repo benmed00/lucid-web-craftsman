@@ -65,10 +65,15 @@ export const supabase = createClient<Database>(
           headers.set('x-guest-id', guestId);
         }
 
-        // Abort hanging requests after 8s to free connection slots
+        // Abort hanging requests after 30s to free connection slots.
+        // IMPORTANT: This timer starts when fetch() is called, NOT when the
+        // connection opens. With 6+ parallel Supabase requests on page load,
+        // the browser queues requests beyond the 6-per-host limit. A short
+        // timeout (e.g. 8s) would abort queued requests before they even start,
+        // causing blank pages. 30s gives ample headroom for queuing + response.
         const controller = new AbortController();
         const existingSignal = options?.signal;
-        const timeoutId = setTimeout(() => controller.abort(), 8_000);
+        const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
         // If caller already provided a signal, respect it too
         if (existingSignal) {
