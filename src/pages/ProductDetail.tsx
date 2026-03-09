@@ -913,7 +913,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
                     <div
                       className="prose prose-stone dark:prose-invert max-w-none text-muted-foreground"
                       dangerouslySetInnerHTML={{
-                        __html: sanitizeHtmlContent(product.care),
+                        __html: sanitizedCare,
                       }}
                     />
                   </CardContent>
