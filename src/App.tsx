@@ -6,7 +6,9 @@ import {
   Routes,
   Navigate,
   useLocation,
+  useNavigate,
 } from 'react-router-dom';
+import { setNavigate } from '@/lib/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useWebVitals } from '@/hooks/useWebVitals';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
