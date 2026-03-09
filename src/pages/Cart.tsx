@@ -5,7 +5,7 @@ import { useBusinessRules } from '@/hooks/useBusinessRules';
 import { useCurrency } from '@/stores/currencyStore';
 import { useCheckoutResume } from '@/hooks/useCheckoutResume';
 
-import Footer from '@/components/Footer';
+import { appNavigate } from '@/lib/navigation';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
