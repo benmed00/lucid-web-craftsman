@@ -59,10 +59,7 @@ export function useProductsWithTranslations() {
 
   const query = useQuery<ProductWithTranslation[]>({
     queryKey: ['products', locale],
-    queryFn: () => {
-      console.info(`[useProductsWithTranslations] 🔄 queryFn firing for locale=${locale}`);
-      return getProductsWithTranslations(locale);
-    },
+    queryFn: () => getProductsWithTranslations(locale),
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
