@@ -12,7 +12,7 @@ import { setNavigate } from '@/lib/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useWebVitals } from '@/hooks/useWebVitals';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
-import { lazy, Suspense, startTransition, useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Critical page loaded immediately (landing page only)
@@ -226,33 +226,10 @@ const App = () => {
   // Initialize Web Vitals tracking
   useWebVitals();
 
-  // Prefetch products during idle time to avoid cold-start delays
-  useEffect(() => {
-    const prefetchProducts = () => {
-      // Import the translation service and prefetch products for the current locale
-      import('@/services/translationService').then(({ getProductsWithTranslations, SUPPORTED_LOCALES, DEFAULT_LOCALE }) => {
-        // Normalize locale the same way useCurrentLocale() does to ensure cache key match
-        const rawLang = localStorage.getItem('i18nextLng') || 'fr';
-        const normalizedLang = rawLang.split('-')[0];
-        const locale = (SUPPORTED_LOCALES as readonly string[]).includes(normalizedLang)
-          ? (normalizedLang as typeof SUPPORTED_LOCALES[number])
-          : DEFAULT_LOCALE;
-        queryClient.prefetchQuery({
-          queryKey: ['products', locale],
-          queryFn: () => getProductsWithTranslations(locale),
-          staleTime: 1000 * 60 * 5, // 5 minutes
-        });
-        console.log('[App] Products prefetched for locale:', locale);
-      }).catch(console.warn);
-    };
-
-    // Use requestIdleCallback to prefetch without blocking
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(prefetchProducts, { timeout: 3000 });
-    } else {
-      setTimeout(prefetchProducts, 500);
-    }
-  }, []);
+  // Product prefetch removed — the Index page's useProductsWithTranslations()
+  // hook is the single owner of the ['products', locale] query. The old
+  // requestIdleCallback prefetch raced with the real query, wasting a
+  // connection slot on the 6-per-host Chrome limit.
 
   return (
     <ErrorBoundary>

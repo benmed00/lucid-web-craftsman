@@ -19,13 +19,19 @@ interface Artisan {
   quote: string | null;
 }
 
-const ArtisansSection = () => {
+interface ArtisansSectionProps {
+  /** When false, the Supabase query is deferred to avoid Chrome connection pool saturation */
+  enabled?: boolean;
+}
+
+const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
   const { t, i18n } = useTranslation(['pages', 'common']);
   const currentLocale = i18n.language?.split('-')[0] || 'fr';
 
-  // Fetch artisans directly from the artisans table
+  // Fetch artisans — deferred when `enabled` is false (Phase 2 loading)
   const { data: artisans = [], isLoading, error: fetchError, refetch } = useQuery({
     queryKey: ['artisans', currentLocale],
+    enabled,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('artisans')

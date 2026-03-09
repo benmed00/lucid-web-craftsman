@@ -3,9 +3,6 @@
  *
  * These hooks integrate with react-query and react-i18next
  * to provide locale-aware data fetching with caching.
- *
- * DIAGNOSTIC LOGGING: Each hook logs React Query state transitions
- * to help debug Chrome-specific skeleton loading issues.
  */
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -62,10 +59,7 @@ export function useProductsWithTranslations() {
 
   const query = useQuery<ProductWithTranslation[]>({
     queryKey: ['products', locale],
-    queryFn: () => {
-      console.info(`[useProductsWithTranslations] 🔄 queryFn firing for locale=${locale}`);
-      return getProductsWithTranslations(locale);
-    },
+    queryFn: () => getProductsWithTranslations(locale),
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -73,16 +67,6 @@ export function useProductsWithTranslations() {
     retry: 1,
     retryDelay: 2000,
   });
-
-  // Log state transitions for debugging
-  useEffect(() => {
-    const status = query.status;
-    const fetchStatus = query.fetchStatus;
-    const dataLen = query.data?.length ?? 0;
-    console.info(
-      `[useProductsWithTranslations] status=${status} fetchStatus=${fetchStatus} data=${dataLen} error=${query.error ? String(query.error) : 'none'}`
-    );
-  }, [query.status, query.fetchStatus, query.data?.length, query.error]);
 
   // Warm individual product cache entries from list data
   useEffect(() => {
@@ -135,23 +119,13 @@ export function useBlogPostsWithTranslations() {
 
   const query = useQuery<BlogPostWithTranslation[]>({
     queryKey: ['blogPosts', locale],
-    queryFn: () => {
-      console.info(`[useBlogPostsWithTranslations] 🔄 queryFn firing for locale=${locale}`);
-      return getBlogPostsWithTranslations(locale);
-    },
+    queryFn: () => getBlogPostsWithTranslations(locale),
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     retry: 1,
     retryDelay: 2000,
   });
-
-  // Log state transitions for debugging
-  useEffect(() => {
-    console.info(
-      `[useBlogPostsWithTranslations] status=${query.status} fetchStatus=${query.fetchStatus} data=${query.data?.length ?? 0} error=${query.error ? String(query.error) : 'none'}`
-    );
-  }, [query.status, query.fetchStatus, query.data?.length, query.error]);
 
   return query;
 }

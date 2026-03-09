@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import HeroImage from '@/components/HeroImage';
 import ScrollToTop from '@/components/ScrollToTop';
 import FloatingCartButton from '@/components/ui/FloatingCartButton';
-import { lazy, Suspense, useMemo } from 'react';
+import { lazy, Suspense, useMemo, useState, useEffect } from 'react';
 import {
   useProductsWithTranslations,
   ProductWithTranslation,
@@ -40,8 +40,19 @@ const SectionFallback = () => (
 const Index = () => {
   const { t } = useTranslation(['pages', 'common']);
 
-  // Fetch products with translations
-  const { data: translatedProducts = [] } = useProductsWithTranslations();
+  // Phase 1: Fetch products (critical for first render)
+  const { data: translatedProducts = [], isSuccess: productsReady } = useProductsWithTranslations();
+
+  // Phase 2: Defer secondary content until products resolve
+  // This prevents Chrome's 6-connection-per-host limit from queuing product requests
+  const [phase2Ready, setPhase2Ready] = useState(false);
+  useEffect(() => {
+    if (productsReady) {
+      // Small delay to let product images start loading before firing artisans query
+      const timer = setTimeout(() => setPhase2Ready(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [productsReady]);
 
   // Transform to Product interface for compatibility
   const allProducts = useMemo(() => {
@@ -294,9 +305,9 @@ const Index = () => {
         </section>
         </Suspense>
 
-        {/* Artisans Section */}
+        {/* Artisans Section — Phase 2: deferred until products are loaded */}
         <Suspense fallback={<SectionFallback />}>
-          <ArtisansSection />
+          <ArtisansSection enabled={phase2Ready} />
         </Suspense>
 
         {/* Testimonials - Mobile Responsive */}
