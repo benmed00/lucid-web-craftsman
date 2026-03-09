@@ -170,7 +170,8 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     logStep('Starting order confirmation email send');
-    const data: OrderConfirmationRequest = await req.json();
+    let data: OrderConfirmationRequest | undefined;
+    data = await req.json();
 
     if (!data.orderId || !data.customerEmail || !data.customerName) {
       throw new Error(
