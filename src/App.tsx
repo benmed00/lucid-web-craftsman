@@ -172,6 +172,13 @@ const queryClient = new QueryClient({
 
 const basePath: string = '/';
 
+// Register global navigate function for use in toast callbacks etc.
+const NavigateRegistrar = () => {
+  const nav = useNavigate();
+  useEffect(() => { setNavigate(nav); }, [nav]);
+  return null;
+};
+
 // Scroll to top on every route change
 const ScrollRestoration = () => {
   const { pathname } = useLocation();
