@@ -27,7 +27,12 @@ export const RecentlyViewedProducts = ({
 
       if (response.success) {
         addItem(product, 1);
-        toast.success(t('common:messages.addedToCart'));
+        toast.success(t('common:messages.addedToCart'), {
+          action: {
+            label: t('common:buttons.viewCart', 'Voir le panier'),
+            onClick: () => { window.location.href = '/cart'; },
+          },
+        });
       } else {
         toast.error(t('recentlyViewed.addError'));
       }

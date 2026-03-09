@@ -98,7 +98,13 @@ export const ProductQuickView = ({
             {t('common:messages.addedToCart')}
           </div>
         </div>
-      </div>
+      </div>,
+      {
+        action: {
+          label: t('common:buttons.viewCart', 'Voir le panier'),
+          onClick: () => { window.location.href = '/cart'; },
+        },
+      }
     );
   };
 

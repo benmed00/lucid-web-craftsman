@@ -132,7 +132,12 @@ const Wishlist = () => {
     (product: WishlistProduct) => {
       try {
         addItem(product, 1);
-        toast.success(t('common:messages.addedToCart'));
+        toast.success(t('common:messages.addedToCart'), {
+          action: {
+            label: t('common:buttons.viewCart', 'Voir le panier'),
+            onClick: () => { window.location.href = '/cart'; },
+          },
+        });
       } catch (error) {
         console.error('Failed to add to cart:', error);
         toast.error(t('common:messages.error'));

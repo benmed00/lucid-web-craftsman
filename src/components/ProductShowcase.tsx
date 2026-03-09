@@ -113,7 +113,12 @@ const ProductShowcase = () => {
       if (response.success) {
         // Use direct action instead of dispatch
         addItem(product, 1);
-        toast.success(t('recommendations.addedToCart', { name: product.name }));
+        toast.success(t('recommendations.addedToCart', { name: product.name }), {
+          action: {
+            label: t('common:buttons.viewCart', 'Voir le panier'),
+            onClick: () => { window.location.href = '/cart'; },
+          },
+        });
       } else {
         toast.error(t('recommendations.addError'));
       }

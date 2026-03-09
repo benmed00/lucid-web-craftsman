@@ -217,7 +217,13 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
 
       // Show success message
       toast.success(
-        `${quantity} × ${product.name} ${t('productDetail.cart.added')}`
+        `${quantity} × ${product.name} ${t('productDetail.cart.added')}`,
+        {
+          action: {
+            label: t('common:buttons.viewCart', 'Voir le panier'),
+            onClick: () => { window.location.href = '/cart'; },
+          },
+        }
       );
     } catch (error) {
       console.error('Error adding product to cart:', error);

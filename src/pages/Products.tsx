@@ -190,7 +190,11 @@ const Products = () => {
         quantity,
       }),
       {
-        duration: 2000,
+        duration: 3000,
+        action: {
+          label: t('common:buttons.viewCart', 'Voir le panier'),
+          onClick: () => { window.location.href = '/cart'; },
+        },
       }
     );
 
