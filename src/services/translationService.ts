@@ -232,85 +232,59 @@ export async function getProductWithTranslation(
 /**
  * Fetch all products with translations for the specified locale.
  *
- * OPTIMISATION: when locale === DEFAULT_LOCALE we skip the redundant
- * fallback query (it would be identical), saving a connection slot.
- * All queries run in parallel via Promise.all — no sequential dependency.
+ * OPTIMISATION: Uses a single Supabase query with a left-join on
+ * product_translations, reducing 2–3 HTTP requests to just 1.
+ * This is critical for avoiding Chrome's 6-connection-per-host limit
+ * during initial page load.
  */
 export async function getProductsWithTranslations(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<ProductWithTranslation[]> {
   const startMs = performance.now();
-  const needsFallback = locale !== DEFAULT_LOCALE;
 
-  // Build query batch — 2 queries when locale is default, 3 otherwise
-  const queries: Array<Promise<{ data: unknown; error: unknown }>> = [
-    safeQuery(
-      supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false }),
-      'products_list'
-    ),
-    safeQuery(
-      supabase
-        .from('product_translations')
-        .select('*')
-        .eq('locale', locale),
-      `product_translations(${locale})`
-    ),
-  ];
-
-  if (needsFallback) {
-    queries.push(
-      safeQuery(
-        supabase
-          .from('product_translations')
-          .select('*')
-          .eq('locale', DEFAULT_LOCALE),
-        'product_translations(fallback)'
-      )
-    );
-  }
-
-  const results = await Promise.all(queries);
-  const productsResult = results[0] as { data: Record<string, unknown>[] | null; error: unknown };
-  const translationsResult = results[1] as { data: Record<string, unknown>[] | null; error: unknown };
-  const fallbackResult = needsFallback
-    ? (results[2] as { data: Record<string, unknown>[] | null; error: unknown })
-    : translationsResult; // reuse same data when locale IS the default
-
-  const { data: products, error: productsError } = productsResult;
+  // Single query with embedded translations via Supabase join
+  const { data: products, error: productsError } = await safeQuery(
+    supabase
+      .from('products')
+      .select(`
+        *,
+        product_translations!left (
+          locale,
+          name,
+          description,
+          short_description,
+          details,
+          care,
+          artisan_story,
+          seo_title,
+          seo_description
+        )
+      `)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false }),
+    `products_with_translations(${locale})`
+  );
 
   if (productsError || !products) {
     console.error('[TranslationService] Error fetching products:', productsError);
     throw new Error(`Failed to fetch products: ${productsError instanceof Error ? productsError.message : String(productsError)}`);
   }
 
-  const { data: translations } = translationsResult;
-  const { data: fallbackTranslations } = fallbackResult;
-
-  // Create lookup maps
-  type TranslationRow = Record<string, unknown>;
-  const translationMap = new Map<number, TranslationRow>(
-    (translations as TranslationRow[] | null)?.map((t) => [t.product_id as number, t]) || []
-  );
-  const fallbackMap = new Map<number, TranslationRow>(
-    (fallbackTranslations as TranslationRow[] | null)?.map((t) => [t.product_id as number, t]) || []
-  );
-
   const elapsed = Math.round(performance.now() - startMs);
-  const queryCount = needsFallback ? 3 : 2;
-  console.info(`[TranslationService] getProductsWithTranslations(${locale}) → ${products.length} products in ${elapsed}ms (${queryCount} queries)`);
+  console.info(`[TranslationService] getProductsWithTranslations(${locale}) → ${(products as unknown[]).length} products in ${elapsed}ms (1 query, joined)`);
 
-  // Merge products with translations
-  return products.map((product) => {
-    const p = product as Record<string, unknown>;
-    const translation = translationMap.get(p.id as number);
-    const fallback = fallbackMap.get(p.id as number);
+  // Merge products with the best matching translation
+  return (products as Record<string, unknown>[]).map((product) => {
+    const translations = (product.product_translations || []) as Record<string, unknown>[];
+
+    // Prefer requested locale, then fall back to default locale
+    const translation = translations.find((t) => t.locale === locale) || null;
+    const fallback = locale !== DEFAULT_LOCALE
+      ? translations.find((t) => t.locale === DEFAULT_LOCALE) || null
+      : null;
     const activeTranslation = translation || fallback || null;
 
-    return mergeProductTranslation(p, activeTranslation, !translation && !!fallback);
+    return mergeProductTranslation(product, activeTranslation, !translation && !!fallback);
   });
 }
 
