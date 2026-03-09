@@ -49,17 +49,23 @@ export function useProductWithTranslation(productId: number | null) {
  */
 export function useProductsWithTranslations() {
   const locale = useCurrentLocale();
+  const queryClient = useQueryClient();
 
   return useQuery<ProductWithTranslation[]>({
     queryKey: ['products', locale],
     queryFn: () => getProductsWithTranslations(locale),
-    staleTime: 5 * 60 * 1000, // 5 minutes - data considered fresh
-    gcTime: 30 * 60 * 1000, // 30 minutes - keep in cache
-    refetchOnWindowFocus: false, // Don't refetch when user returns to tab
-    retry: 2, // Retry failed requests twice
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000), // Exponential backoff
-    // Stale-while-revalidate: show previous locale's data while fetching new
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
     placeholderData: (previousData) => previousData,
+    // Warm individual product cache entries from list data
+    onSuccess: (products) => {
+      products.forEach((product) => {
+        queryClient.setQueryData(['product', product.id, locale], product);
+      });
+    },
   });
 }
 
