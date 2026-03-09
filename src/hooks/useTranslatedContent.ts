@@ -111,7 +111,8 @@ export function useBlogPostBySlug(slug: string | null) {
 }
 
 /**
- * Hook for fetching all blog posts with translations
+ * Hook for fetching all blog posts with translations.
+ * Same resilience config as products.
  */
 export function useBlogPostsWithTranslations() {
   const locale = useCurrentLocale();
@@ -120,7 +121,8 @@ export function useBlogPostsWithTranslations() {
     queryKey: ['blogPosts', locale],
     queryFn: () => getBlogPostsWithTranslations(locale),
     staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
     retry: 1,
     retryDelay: 2000,
   });
