@@ -5,24 +5,24 @@
  *   - Fingerprinted static assets (JS/CSS/fonts in /assets/) → cache-first
  *   - Images (local + Supabase storage)                      → cache-first
  *   - HTML / navigation requests                             → network-only (NEVER cached)
- *   - Supabase API / Auth / Functions                        → bypassed entirely
+ *   - Supabase API / Auth / Functions / REST                 → bypassed entirely
  *   - Stripe                                                 → bypassed entirely
  *   - Everything else                                        → network-only
  *
- * Why HTML is never cached:
- *   Caching the HTML shell can serve stale auth state after login/logout or
- *   stale code after deployments. Since the SPA shell is tiny and always
- *   available from the CDN, the cost of a network round-trip is negligible
- *   compared to the risk of state incoherence.
+ * CRITICAL: Supabase REST API calls MUST NOT be intercepted.
+ * The Supabase client uses a custom fetch wrapper with AbortController
+ * timeouts and dynamic headers (x-guest-id). If the SW intercepts these
+ * requests and makes its own fetch(), the AbortController signal does NOT
+ * propagate — the SW's fetch hangs indefinitely in Chrome, holding a
+ * connection slot and causing skeleton loading states that never resolve.
  *
  * Cache versioning:
- *   Bump the version suffix (e.g. v5 → v6) to force all clients to purge
- *   old caches on the next service worker activation.
+ *   Bump the version suffix to force all clients to purge old caches
+ *   on the next service worker activation.
  */
 
-const STATIC_CACHE_NAME = 'rif-static-v8';
-const IMAGE_CACHE_NAME = 'rif-images-v8';
-const DATA_CACHE_NAME = 'rif-data-v8';
+const STATIC_CACHE_NAME = 'rif-static-v9';
+const IMAGE_CACHE_NAME = 'rif-images-v9';
 
 const MAX_CACHE_SIZE = 100; // per bucket
 
@@ -45,7 +45,7 @@ self.addEventListener('install', (event) => {
 
 // ── Activate — purge old caches ──────────────────────────────────────
 self.addEventListener('activate', (event) => {
-  const currentCaches = [STATIC_CACHE_NAME, IMAGE_CACHE_NAME, DATA_CACHE_NAME];
+  const currentCaches = [STATIC_CACHE_NAME, IMAGE_CACHE_NAME];
 
   event.waitUntil(
     caches
@@ -54,7 +54,10 @@ self.addEventListener('activate', (event) => {
         return Promise.all(
           cacheNames
             .filter((name) => !currentCaches.includes(name))
-            .map((name) => caches.delete(name))
+            .map((name) => {
+              console.log('[SW] Purging old cache:', name);
+              return caches.delete(name);
+            })
         );
       })
       .then(() => self.clients.claim())
@@ -73,16 +76,12 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // ── BYPASS: Supabase API / Auth / Functions (except /storage/ and /rest/ for products) ──
+  // ── BYPASS: ALL Supabase requests (API, Auth, Functions, REST, Storage) ──
+  // CRITICAL: Never intercept Supabase calls. The client's AbortController
+  // signal does NOT propagate through SW fetch, causing Chrome to hold
+  // connections indefinitely and triggering permanent skeleton states.
   if (url.hostname.endsWith('supabase.co')) {
-    // Allow caching of product catalog queries for offline browsing
-    if (url.pathname.startsWith('/rest/') && url.search.includes('products')) {
-      event.respondWith(networkFirst(request, DATA_CACHE_NAME));
-      return;
-    }
-    if (!url.pathname.startsWith('/storage/')) {
-      return; // network-only, no interception
-    }
+    return; // Let the browser handle these directly
   }
 
   // ── BYPASS: Stripe ──
@@ -121,21 +120,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ── Images → cache strategy depends on type ──
-  if (
-    request.url.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)(\?.*)?$/) ||
-    (url.hostname.endsWith('supabase.co') &&
-      url.pathname.startsWith('/storage/'))
-  ) {
-    // Hero images from Supabase storage → network-first (they change when admin updates)
-    if (
-      url.hostname.endsWith('supabase.co') &&
-      url.pathname.includes('/hero-images/')
-    ) {
-      event.respondWith(networkFirst(request, IMAGE_CACHE_NAME));
-    } else {
-      event.respondWith(cacheFirst(request, IMAGE_CACHE_NAME));
-    }
+  // ── Images → cache-first ──
+  if (request.url.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)(\?.*)?$/)) {
+    event.respondWith(cacheFirst(request, IMAGE_CACHE_NAME));
     return;
   }
 
@@ -165,24 +152,6 @@ async function cacheFirst(request, cacheName) {
     }
     return response;
   } catch (error) {
-    return new Response('Network error', { status: 503 });
-  }
-}
-
-// ── Network-first helper (for content that changes, e.g. hero images) ─
-async function networkFirst(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      cache.put(request, response.clone());
-      trimCache(cacheName, MAX_CACHE_SIZE);
-    }
-    return response;
-  } catch (error) {
-    // Network failed — fall back to cache
-    const cached = await cache.match(request);
-    if (cached) return cached;
     return new Response('Network error', { status: 503 });
   }
 }
