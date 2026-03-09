@@ -1,5 +1,6 @@
 import { ProductService } from '@/services/productService';
 import { SitemapGenerator } from './sitemap';
+import { blogPosts } from '@/data/blogPosts';
 
 export const generateAndUpdateSitemap = async () => {
   try {
@@ -9,8 +10,8 @@ export const generateAndUpdateSitemap = async () => {
     // Initialize sitemap generator
     const generator = new SitemapGenerator();
 
-    // Generate sitemap XML
-    const sitemapXml = generator.generateSitemap(products, []);
+    // Generate sitemap XML with blog posts included
+    const sitemapXml = generator.generateSitemap(products, blogPosts);
 
     // Generate robots.txt
     const robotsTxt = generator.generateRobotsTxt();
