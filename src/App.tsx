@@ -12,7 +12,7 @@ import { setNavigate } from '@/lib/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useWebVitals } from '@/hooks/useWebVitals';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
-import { lazy, Suspense, startTransition, useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Critical page loaded immediately (landing page only)
