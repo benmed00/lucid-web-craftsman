@@ -1983,6 +1983,7 @@ export type Database = {
           id: string
           is_approved: boolean | null
           is_verified_purchase: boolean | null
+          photo_urls: string[] | null
           product_id: number | null
           rating: number
           reported_count: number | null
@@ -1997,6 +1998,7 @@ export type Database = {
           id?: string
           is_approved?: boolean | null
           is_verified_purchase?: boolean | null
+          photo_urls?: string[] | null
           product_id?: number | null
           rating: number
           reported_count?: number | null
@@ -2011,6 +2013,7 @@ export type Database = {
           id?: string
           is_approved?: boolean | null
           is_verified_purchase?: boolean | null
+          photo_urls?: string[] | null
           product_id?: number | null
           rating?: number
           reported_count?: number | null
