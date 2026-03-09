@@ -127,13 +127,6 @@ export function useBlogPostsWithTranslations() {
     retryDelay: 2000,
   });
 
-  // Log state transitions for debugging
-  useEffect(() => {
-    console.info(
-      `[useBlogPostsWithTranslations] status=${query.status} fetchStatus=${query.fetchStatus} data=${query.data?.length ?? 0} error=${query.error ? String(query.error) : 'none'}`
-    );
-  }, [query.status, query.fetchStatus, query.data?.length, query.error]);
-
   return query;
 }
 
