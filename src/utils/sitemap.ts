@@ -120,6 +120,18 @@ export class SitemapGenerator {
     }));
   }
 
+  // Generate paginated product listing routes for crawlers
+  private getPaginatedRoutes(products: Product[], perPage = 16): SitemapUrl[] {
+    const totalPages = Math.ceil(products.length / perPage);
+    if (totalPages <= 1) return [];
+    return Array.from({ length: totalPages - 1 }, (_, i) => ({
+      url: `${this.baseUrl}/products?page=${i + 2}`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'daily' as const,
+      priority: 0.6,
+    }));
+  }
+
   // Generate complete sitemap
   generateSitemap(products: Product[] = [], posts: BlogPost[] = []): string {
     const urls: SitemapUrl[] = [
@@ -127,6 +139,7 @@ export class SitemapGenerator {
       ...this.getProductRoutes(products),
       ...this.getBlogRoutes(posts),
       ...this.getCategoryRoutes(products),
+      ...this.getPaginatedRoutes(products),
     ];
 
     const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>

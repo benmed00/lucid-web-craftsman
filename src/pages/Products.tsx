@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Loader2, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { RecentlyViewedProducts } from '@/components/RecentlyViewedProducts';
@@ -39,12 +39,17 @@ import { appNavigate } from '@/lib/navigation';
 
 const Products = () => {
   const { t } = useTranslation(['products', 'common']);
+  const [searchParams] = useSearchParams();
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(
     null
   );
 
   const { addItem, cart } = useCart();
   const isMobile = useIsMobile();
+
+  // SEO pagination: read ?page= for crawlers (users see infinite scroll)
+  const PRODUCTS_PER_PAGE = 16;
+  const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
 
   // Fetch products with translations based on current locale
   const {
@@ -305,11 +310,16 @@ const Products = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHelmet
-        title={t('title') + ' | Rif Raw Straw'}
+        title={currentPage > 1 ? `${t('title')} - Page ${currentPage} | Rif Raw Straw` : `${t('title')} | Rif Raw Straw`}
         description={t('subtitle')}
         keywords={t('seo.keywords', { returnObjects: true }) as string[]}
-        url="/products"
+        url={currentPage > 1 ? `/products?page=${currentPage}` : '/products'}
         type="website"
+        pagination={{
+          currentPage,
+          totalPages: Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE),
+          baseUrl: '/products',
+        }}
       />
 
       {/* Hero Banner */}
