@@ -213,16 +213,26 @@ const App = () => {
   // Initialize Web Vitals tracking
   useWebVitals();
 
-  // Schedule non-critical initializations to avoid blocking main thread
+  // Prefetch products during idle time to avoid cold-start delays
   useEffect(() => {
-    // Use requestIdleCallback for truly non-blocking initialization
-    const init = () => {
-      console.log('App initialized with FID optimization');
+    const prefetchProducts = () => {
+      // Import the translation service and prefetch products for the current locale
+      import('@/services/translationService').then(({ translationService }) => {
+        const locale = (localStorage.getItem('i18nextLng') || 'fr') as 'fr' | 'en';
+        queryClient.prefetchQuery({
+          queryKey: ['products-translated', locale],
+          queryFn: () => translationService.getProductsWithTranslations(locale),
+          staleTime: 1000 * 60 * 5, // 5 minutes
+        });
+        console.log('[App] Products prefetched for locale:', locale);
+      }).catch(console.warn);
     };
+
+    // Use requestIdleCallback to prefetch without blocking
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(init, { timeout: 3000 });
+      requestIdleCallback(prefetchProducts, { timeout: 3000 });
     } else {
-      setTimeout(init, 100);
+      setTimeout(prefetchProducts, 500);
     }
   }, []);
 
