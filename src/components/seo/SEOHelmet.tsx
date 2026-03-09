@@ -40,6 +40,7 @@ const SEOHelmet = ({
   type = 'website',
   product,
   article,
+  pagination,
 }: SEOProps) => {
   // Ensure keywords is always an array
   const keywords = Array.isArray(keywordsProp)
