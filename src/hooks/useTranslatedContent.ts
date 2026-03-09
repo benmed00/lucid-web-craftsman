@@ -47,8 +47,11 @@ export function useProductWithTranslation(productId: number | null) {
 /**
  * Hook for fetching all products with translations.
  *
- * Uses throwOnError so React Query surfaces failures immediately
- * instead of swallowing them and leaving isLoading=true.
+ * RESILIENCE CONFIG:
+ * - retry: 1 (one retry after failure)
+ * - retryDelay: 2s flat
+ * - refetchOnMount: true ensures fresh data on navigation
+ * - gcTime: 10min keeps cache warm for back-navigation
  */
 export function useProductsWithTranslations() {
   const locale = useCurrentLocale();
@@ -59,7 +62,8 @@ export function useProductsWithTranslations() {
     queryFn: () => getProductsWithTranslations(locale),
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
     retry: 1,
     retryDelay: 2000,
   });
@@ -107,7 +111,8 @@ export function useBlogPostBySlug(slug: string | null) {
 }
 
 /**
- * Hook for fetching all blog posts with translations
+ * Hook for fetching all blog posts with translations.
+ * Same resilience config as products.
  */
 export function useBlogPostsWithTranslations() {
   const locale = useCurrentLocale();
@@ -116,7 +121,8 @@ export function useBlogPostsWithTranslations() {
     queryKey: ['blogPosts', locale],
     queryFn: () => getBlogPostsWithTranslations(locale),
     staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
     retry: 1,
     retryDelay: 2000,
   });

@@ -141,9 +141,8 @@ export function useProductsPage() {
     setQuickViewProduct(null);
   };
 
-  useEffect(() => {
-    if (forceRender && products.length === 0 && !fetchError) { refetch(); }
-  }, [forceRender, products.length, fetchError, refetch]);
+  // NOTE: Auto-refetch on timeout was REMOVED — it caused a refetch loop
+  // that cancelled in-flight queries. React Query's own retry handles transient failures.
 
   const cartTotal = cart.items.reduce((sum, item) => sum + (item.product?.price ?? 0) * item.quantity, 0);
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
