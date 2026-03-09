@@ -6,6 +6,7 @@ import { useCurrency } from '@/stores/currencyStore';
 import { useCheckoutResume } from '@/hooks/useCheckoutResume';
 
 import { appNavigate } from '@/lib/navigation';
+import Footer from '@/components/Footer';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
