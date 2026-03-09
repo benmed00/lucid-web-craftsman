@@ -220,7 +220,7 @@ const App = () => {
       import('@/services/translationService').then(({ getProductsWithTranslations }) => {
         const locale = (localStorage.getItem('i18nextLng') || 'fr') as 'fr' | 'en';
         queryClient.prefetchQuery({
-          queryKey: ['products-translated', locale],
+          queryKey: ['products', locale],
           queryFn: () => getProductsWithTranslations(locale),
           staleTime: 1000 * 60 * 5, // 5 minutes
         });
