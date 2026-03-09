@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { RecentlyViewedProducts } from '@/components/RecentlyViewedProducts';
 import { ProductRecommendations } from '@/components/ProductRecommendations';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
+import { useBatchStock } from '@/hooks/useBatchStock';
+import { StockContext } from '@/components/ProductCard';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -51,11 +53,14 @@ const Products = () => {
     refetch,
   } = useProductsWithTranslations();
 
-  // Safety timeout: never show skeleton for more than 8 seconds
-  const { hasTimedOut: forceRender } = useSafetyTimeout(loading, {
-    timeout: 8000,
+  // Safety timeout: extended to 12s with progressive "slow loading" indicator at 5s
+  const { hasTimedOut: forceRender, isSlowLoading } = useSafetyTimeout(loading, {
+    timeout: 12000,
+    slowThreshold: 5000,
     onTimeout: () =>
-      console.warn('[Products] Loading timed out, rendering page'),
+      console.warn('[Products] Loading timed out after 12s, rendering page'),
+    onSlowLoading: () =>
+      console.info('[Products] Loading is slow, showing indicator'),
   });
 
   // Create a map of product ID to fallback info
