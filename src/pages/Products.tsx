@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import PageFooter from '@/components/PageFooter';
@@ -26,7 +26,7 @@ import { useProductsPage } from '@/hooks/useProductsPage';
 const Products = () => {
   const page = useProductsPage();
 
-  // Loading state
+  // Loading state (skeleton)
   if (page.loading && !page.forceRender) {
     return (
       <ProductsLoadingSkeleton
@@ -37,17 +37,22 @@ const Products = () => {
     );
   }
 
-  // Error state
-  if (page.error) {
+  // Error OR timeout-with-no-data state → show error UI with retry
+  const showError = (page.error || (page.forceRender && page.loading)) && page.products.length === 0;
+  if (showError) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
             <h1 className="text-2xl font-serif text-foreground mb-4">
               {page.t('common:messages.error')}
             </h1>
-            <p className="text-muted-foreground mb-8">{page.error}</p>
-            <Button onClick={() => window.location.reload()}>
+            <p className="text-muted-foreground mb-8">
+              {page.error || page.t('common:messages.timeout', 'Le chargement a pris trop de temps.')}
+            </p>
+            <Button onClick={() => page.refetch()} className="gap-2">
+              <RefreshCw className="h-4 w-4" />
               {page.t('common:buttons.retry')}
             </Button>
           </div>
