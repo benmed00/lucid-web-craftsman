@@ -231,7 +231,9 @@ const App = () => {
         // Normalize locale the same way useCurrentLocale() does to ensure cache key match
         const rawLang = localStorage.getItem('i18nextLng') || 'fr';
         const normalizedLang = rawLang.split('-')[0];
-        const locale = (SUPPORTED_LOCALES as readonly string[]).includes(normalizedLang) ? normalizedLang : DEFAULT_LOCALE;
+        const locale = (SUPPORTED_LOCALES as readonly string[]).includes(normalizedLang)
+          ? (normalizedLang as typeof SUPPORTED_LOCALES[number])
+          : DEFAULT_LOCALE;
         queryClient.prefetchQuery({
           queryKey: ['products', locale],
           queryFn: () => getProductsWithTranslations(locale),
