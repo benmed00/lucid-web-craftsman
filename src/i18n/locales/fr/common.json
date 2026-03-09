@@ -70,11 +70,14 @@
     "seeAll": "Voir tout",
     "apply": "Appliquer",
     "remove": "Retirer",
-    "clear": "Effacer"
+    "clear": "Effacer",
+    "retry": "Réessayer",
+    "viewCart": "Voir le panier"
   },
   "messages": {
     "loading": "Chargement...",
     "error": "Une erreur est survenue",
+    "timeout": "Le chargement a pris trop de temps.",
     "success": "Opération réussie",
     "noResults": "Aucun résultat",
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer ?",

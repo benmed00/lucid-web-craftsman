@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/components/ui/button';
 import PageFooter from '@/components/PageFooter';
@@ -25,6 +26,13 @@ import { useProductsPage } from '@/hooks/useProductsPage';
 
 const Products = () => {
   const page = useProductsPage();
+  const queryClient = useQueryClient();
+
+  // Force-clear cache and refetch
+  const handleRetry = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['products'] });
+    page.refetch();
+  };
 
   // Loading state (skeleton)
   if (page.loading && !page.forceRender) {
@@ -32,7 +40,7 @@ const Products = () => {
       <ProductsLoadingSkeleton
         isMobile={page.isMobile}
         isSlowLoading={page.isSlowLoading}
-        onRetry={() => page.refetch()}
+        onRetry={handleRetry}
       />
     );
   }
@@ -49,9 +57,9 @@ const Products = () => {
               {page.t('common:messages.error')}
             </h1>
             <p className="text-muted-foreground mb-8">
-              {page.error || page.t('common:messages.timeout', 'Le chargement a pris trop de temps.')}
+              {page.error || page.t('common:messages.timeout')}
             </p>
-            <Button onClick={() => page.refetch()} className="gap-2">
+            <Button onClick={handleRetry} className="gap-2">
               <RefreshCw className="h-4 w-4" />
               {page.t('common:buttons.retry')}
             </Button>

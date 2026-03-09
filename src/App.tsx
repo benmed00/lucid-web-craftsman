@@ -163,7 +163,10 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       refetchOnMount: true,
       refetchOnReconnect: true,
-      networkMode: 'offlineFirst',
+      // networkMode deliberately left as default ('online').
+      // 'offlineFirst' caused Chrome-specific hangs: queued requests
+      // beyond Chrome's 6-per-host limit combined with offlineFirst
+      // prevented proper status transitions, leaving skeletons stuck.
     },
     mutations: {
       retry: 0,
