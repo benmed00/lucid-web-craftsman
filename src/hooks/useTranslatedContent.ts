@@ -66,7 +66,6 @@ export function useProductsWithTranslations() {
     refetchOnMount: true,
     retry: 2,
     retryDelay: (attempt) => Math.min(1000 * Math.pow(2, attempt), 8000),
-    networkMode: 'always',
   });
 
   // Warm individual product cache entries from list data
