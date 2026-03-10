@@ -28,11 +28,17 @@ import { useProductsPage } from '@/hooks/useProductsPage';
 const Products = () => {
   const page = useProductsPage();
   const queryClient = useQueryClient();
+  const [isRetrying, setIsRetrying] = useState(false);
 
-  // Force-clear cache and refetch
+  // Force-clear cache and refetch with spinner feedback
   const handleRetry = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['products'] });
-    page.refetch();
+    setIsRetrying(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await page.refetch();
+    } finally {
+      setIsRetrying(false);
+    }
   };
 
   // Loading state (skeleton)
