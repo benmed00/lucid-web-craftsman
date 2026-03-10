@@ -10,8 +10,9 @@ import { useStock } from '@/hooks/useStock';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useProductsWithTranslations,
   ProductWithTranslation,
