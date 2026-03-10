@@ -202,6 +202,7 @@ const handler = async (req: Request): Promise<Response> => {
         country: 'France',
       },
       estimatedDelivery,
+      orderId: data!.orderId,
     });
 
     if (data!.previewOnly) {
