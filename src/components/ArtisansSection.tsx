@@ -28,6 +28,9 @@ interface ArtisansSectionProps {
 const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
   const { t, i18n } = useTranslation(['pages', 'common']);
   const currentLocale = i18n.language?.split('-')[0] || 'fr';
+  const queryClient = useQueryClient();
+  const [isRetrying, setIsRetrying] = useState(false);
+  const currentLocale = i18n.language?.split('-')[0] || 'fr';
 
   // Fetch artisans — deferred when `enabled` is false (Phase 2 loading)
   const { data: artisans = [], isLoading, error: fetchError, refetch } = useQuery({
