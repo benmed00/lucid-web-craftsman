@@ -33,20 +33,19 @@ const ProductShowcase = () => {
   const { data: translatedProducts = [], isLoading: loading, error: fetchError, refetch } =
     useProductsWithTranslations();
 
-  // Unified retry: invalidate cache → refetch → spinner feedback
+  // Unified retry: reset query state completely → forces loading state → refetch
   const handleRetry = useCallback(async () => {
     setIsRetrying(true);
     try {
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
-      await queryClient.invalidateQueries({ queryKey: ['products-with-translations'] });
-      await refetch();
+      // resetQueries (not invalidate) forces isLoading back to true
+      await queryClient.resetQueries({ queryKey: ['products'] });
+      await queryClient.resetQueries({ queryKey: ['products-with-translations'] });
     } catch {
       // Error handled by React Query
     } finally {
-      // Small delay so user sees the spinner
       setTimeout(() => setIsRetrying(false), 500);
     }
-  }, [queryClient, refetch]);
+  }, [queryClient]);
 
   // Safety timeout — force out of skeleton after 12s
   const { hasTimedOut: forceRender } = useSafetyTimeout(loading, {
