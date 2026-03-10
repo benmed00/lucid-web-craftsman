@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Quote, MapPin, Clock, Heart, AlertCircle, RefreshCw } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Quote, MapPin, Clock, Heart, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
+import { useState, useCallback } from 'react';
 
 interface Artisan {
   id: string;
