@@ -25,7 +25,7 @@ interface ArtisansSectionProps {
   enabled?: boolean;
 }
 
-const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
+const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => { // v2
   const { t, i18n } = useTranslation(['pages', 'common']);
   const currentLocale = i18n.language?.split('-')[0] || 'fr';
   const queryClient = useQueryClient();
