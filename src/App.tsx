@@ -163,13 +163,15 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       refetchOnMount: true,
       refetchOnReconnect: true,
-      // networkMode deliberately left as default ('online').
-      // 'offlineFirst' caused Chrome-specific hangs: queued requests
-      // beyond Chrome's 6-per-host limit combined with offlineFirst
-      // prevented proper status transitions, leaving skeletons stuck.
+      // IMPORTANT: 'always' ensures queries fire even when navigator.onLine
+      // is false (common in iframe/preview environments like Lovable).
+      // Without this, React Query pauses all queries and the UI shows
+      // infinite skeletons / SafetyTimeout errors.
+      networkMode: 'always',
     },
     mutations: {
       retry: 0,
+      networkMode: 'always',
     },
   },
 });
