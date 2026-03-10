@@ -38,43 +38,17 @@ const SectionFallback = () => (
 const Index = () => {
   const { t } = useTranslation(['pages', 'common']);
 
-  // Phase 1: Fetch products (critical for first render)
-  const { data: translatedProducts = [], isSuccess: productsReady } = useProductsWithTranslations();
+  // Phase 1: Check if products are ready (ProductShowcase owns the query)
+  const { isSuccess: productsReady } = useProductsWithTranslations();
 
   // Phase 2: Defer secondary content until products resolve
-  // This prevents Chrome's 6-connection-per-host limit from queuing product requests
   const [phase2Ready, setPhase2Ready] = useState(false);
   useEffect(() => {
     if (productsReady) {
-      // Small delay to let product images start loading before firing artisans query
       const timer = setTimeout(() => setPhase2Ready(true), 100);
       return () => clearTimeout(timer);
     }
   }, [productsReady]);
-
-  // Transform to Product interface for compatibility
-  const allProducts = useMemo(() => {
-    return translatedProducts.map(
-      (p: ProductWithTranslation): Product => ({
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        images: p.images,
-        category: p.category,
-        description: p.description,
-        details: p.details,
-        care: p.care,
-        artisan: p.artisan,
-        is_new: p.is_new ?? false,
-        is_available: p.is_available ?? true,
-        stock_quantity: p.stock_quantity ?? 0,
-        artisan_story: p.artisan_story ?? undefined,
-        short_description: p.short_description ?? undefined,
-        rating_average: p.rating_average ?? undefined,
-        rating_count: p.rating_count ?? undefined,
-      })
-    );
-  }, [translatedProducts]);
 
   // Configuration for showing/hiding sections - easily configurable for future
   const sectionConfig = {

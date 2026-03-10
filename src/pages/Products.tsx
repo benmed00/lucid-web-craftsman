@@ -66,9 +66,9 @@ const Products = () => {
             <p className="text-muted-foreground mb-8">
               {page.error || page.t('common:messages.timeout')}
             </p>
-            <Button onClick={handleRetry} className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              {page.t('common:buttons.retry')}
+            <Button onClick={handleRetry} disabled={isRetrying} className="gap-2">
+              {isRetrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              {isRetrying ? page.t('common:messages.loading', 'Chargement…') : page.t('common:buttons.retry')}
             </Button>
           </div>
         </div>
