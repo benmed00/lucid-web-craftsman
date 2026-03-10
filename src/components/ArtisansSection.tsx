@@ -36,6 +36,7 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => { // v2
     queryKey: ['artisans', currentLocale],
     enabled,
     queryFn: async () => {
+      console.info('[ArtisansSection] queryFn CALLED, locale:', currentLocale);
       const { data, error } = await supabase
         .from('artisans')
         .select(

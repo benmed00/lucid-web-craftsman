@@ -240,6 +240,7 @@ export async function getProductWithTranslation(
 export async function getProductsWithTranslations(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<ProductWithTranslation[]> {
+  console.info('[TranslationService] getProductsWithTranslations CALLED, locale:', locale);
   const startMs = performance.now();
 
   // Single query with embedded translations via Supabase join
