@@ -121,8 +121,8 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => { // v2
           <Button variant="outline" onClick={async () => {
             setIsRetrying(true);
             try {
-              await queryClient.invalidateQueries({ queryKey: ['artisans'] });
-              await refetch();
+              // resetQueries forces isLoading back to true → shows skeleton → refetches
+              await queryClient.resetQueries({ queryKey: ['artisans'] });
             } catch { /* handled by RQ */ } finally {
               setTimeout(() => setIsRetrying(false), 500);
             }
