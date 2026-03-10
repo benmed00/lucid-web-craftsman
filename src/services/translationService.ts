@@ -44,6 +44,7 @@ async function safeQuery<T>(
   label: string
 ): Promise<{ data: T | null; error: unknown }> {
   const start = performance.now();
+  console.info(`[safeQuery] ⏳ ${label} — starting…`);
   try {
     const result = await promise;
     const elapsed = Math.round(performance.now() - start);
