@@ -9,10 +9,7 @@ import { Link } from 'react-router-dom';
 import HeroImage from '@/components/HeroImage';
 import ScrollToTop from '@/components/ScrollToTop';
 import FloatingCartButton from '@/components/ui/FloatingCartButton';
-import { lazy, Suspense, useState, useEffect } from 'react';
-import {
-  useProductsWithTranslations,
-} from '@/hooks/useTranslatedContent';
+import { lazy, Suspense } from 'react';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import { Skeleton } from '@/components/ui/skeleton';
 
