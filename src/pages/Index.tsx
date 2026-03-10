@@ -1,4 +1,4 @@
-// Retry strategy: ProductShowcase owns the product query; Index only checks readiness
+// Index page — all sections render independently
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
