@@ -9,10 +9,7 @@ import { Link } from 'react-router-dom';
 import HeroImage from '@/components/HeroImage';
 import ScrollToTop from '@/components/ScrollToTop';
 import FloatingCartButton from '@/components/ui/FloatingCartButton';
-import { lazy, Suspense, useState, useEffect } from 'react';
-import {
-  useProductsWithTranslations,
-} from '@/hooks/useTranslatedContent';
+import { lazy, Suspense } from 'react';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -39,17 +36,7 @@ const SectionFallback = () => (
 const Index = () => {
   const { t } = useTranslation(['pages', 'common']);
 
-  // Phase 1: Check if products are ready (ProductShowcase owns the query)
-  const { isSuccess: productsReady } = useProductsWithTranslations();
-
-  // Phase 2: Defer secondary content until products resolve
-  const [phase2Ready, setPhase2Ready] = useState(false);
-  useEffect(() => {
-    if (productsReady) {
-      const timer = setTimeout(() => setPhase2Ready(true), 100);
-      return () => clearTimeout(timer);
-    }
-  }, [productsReady]);
+  // All sections render independently — no phased gating
 
   // Configuration for showing/hiding sections - easily configurable for future
   const sectionConfig = {
@@ -278,9 +265,9 @@ const Index = () => {
         </section>
         </Suspense>
 
-        {/* Artisans Section — Phase 2: deferred until products are loaded */}
+        {/* Artisans Section */}
         <Suspense fallback={<SectionFallback />}>
-          <ArtisansSection enabled={phase2Ready} />
+          <ArtisansSection />
         </Suspense>
 
         {/* Testimonials - Mobile Responsive */}
