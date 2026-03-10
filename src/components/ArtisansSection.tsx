@@ -118,9 +118,17 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
           <p className="text-muted-foreground mb-4">
             {t('pages:home.artisans.loadError', 'Impossible de charger les artisans.')}
           </p>
-          <Button variant="outline" onClick={() => { refetch(); }} className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            {t('common:buttons.retry')}
+          <Button variant="outline" onClick={async () => {
+            setIsRetrying(true);
+            try {
+              await queryClient.invalidateQueries({ queryKey: ['artisans'] });
+              await refetch();
+            } catch { /* handled by RQ */ } finally {
+              setTimeout(() => setIsRetrying(false), 500);
+            }
+          }} disabled={isRetrying} className="gap-2">
+            {isRetrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            {isRetrying ? t('common:messages.loading', 'Chargement…') : t('common:buttons.retry')}
           </Button>
         </div>
       </section>
