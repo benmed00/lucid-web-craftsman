@@ -65,26 +65,39 @@ export const supabase = createClient<Database>(
           headers.set('x-guest-id', guestId);
         }
 
-        // Abort hanging requests after 30s to free connection slots.
-        // IMPORTANT: This timer starts when fetch() is called, NOT when the
-        // connection opens. With 6+ parallel Supabase requests on page load,
-        // the browser queues requests beyond the 6-per-host limit. A short
-        // timeout (e.g. 8s) would abort queued requests before they even start,
-        // causing blank pages. 30s gives ample headroom for queuing + response.
+        // Abort hanging requests after 15s to free connection slots.
+        // Previous value was 30s, but that's longer than the UI safety
+        // timeout (12s), meaning users see errors before the fetch fails.
+        // 15s gives enough headroom for browser connection queuing while
+        // still failing fast enough for React Query retries to complete.
         const controller = new AbortController();
         const existingSignal = options?.signal;
-        const timeoutId = setTimeout(() => controller.abort(), 30_000);
+        const timeoutId = setTimeout(() => controller.abort(), 15_000);
 
         // If caller already provided a signal, respect it too
         if (existingSignal) {
           existingSignal.addEventListener('abort', () => controller.abort());
         }
 
+        const urlStr = typeof url === 'string' ? url : url instanceof URL ? url.href : '(Request)';
+        const shortUrl = urlStr.includes('supabase.co') ? urlStr.split('supabase.co')[1]?.substring(0, 60) : urlStr.substring(0, 80);
+        console.info(`[SupabaseFetch] → ${shortUrl}`);
+
         return fetch(url, {
           ...options,
           headers,
           signal: controller.signal,
-        }).finally(() => clearTimeout(timeoutId));
+        })
+          .then((response) => {
+            clearTimeout(timeoutId);
+            console.info(`[SupabaseFetch] ← ${response.status} ${shortUrl}`);
+            return response;
+          })
+          .catch((err) => {
+            clearTimeout(timeoutId);
+            console.error(`[SupabaseFetch] ✘ ${shortUrl}`, err?.message || err);
+            throw err;
+          });
       },
     },
     realtime: {

@@ -44,6 +44,7 @@ async function safeQuery<T>(
   label: string
 ): Promise<{ data: T | null; error: unknown }> {
   const start = performance.now();
+  console.info(`[safeQuery] ⏳ ${label} — starting…`);
   try {
     const result = await promise;
     const elapsed = Math.round(performance.now() - start);
@@ -240,6 +241,7 @@ export async function getProductWithTranslation(
 export async function getProductsWithTranslations(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<ProductWithTranslation[]> {
+  console.info('[TranslationService] getProductsWithTranslations CALLED, locale:', locale);
   const startMs = performance.now();
 
   // Single query with embedded translations via Supabase join
