@@ -265,9 +265,9 @@ const Index = () => {
         </section>
         </Suspense>
 
-        {/* Artisans Section — Phase 2: deferred until products are loaded */}
+        {/* Artisans Section */}
         <Suspense fallback={<SectionFallback />}>
-          <ArtisansSection enabled={phase2Ready} />
+          <ArtisansSection />
         </Suspense>
 
         {/* Testimonials - Mobile Responsive */}
