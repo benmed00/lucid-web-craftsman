@@ -10,8 +10,9 @@ import { useStock } from '@/hooks/useStock';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useProductsWithTranslations,
   ProductWithTranslation,
@@ -21,14 +22,27 @@ import {
 const ProductShowcase = () => {
   const { t } = useTranslation('products');
   const { addItem } = useCart();
+  const queryClient = useQueryClient();
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(
     null
   );
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isRetrying, setIsRetrying] = useState(false);
 
   // Fetch products with translations
   const { data: translatedProducts = [], isLoading: loading, error: fetchError, refetch } =
     useProductsWithTranslations();
+
+  // Unified retry: invalidate cache → refetch → spinner feedback
+  const handleRetry = useCallback(async () => {
+    setIsRetrying(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await refetch();
+    } finally {
+      setIsRetrying(false);
+    }
+  }, [queryClient, refetch]);
 
   // Safety timeout — force out of skeleton after 12s
   const { hasTimedOut: forceRender } = useSafetyTimeout(loading, {
@@ -207,9 +221,9 @@ const ProductShowcase = () => {
         <p className="text-muted-foreground mb-4">
           {t('showcase.loadError', 'Impossible de charger les produits.')}
         </p>
-        <Button variant="outline" onClick={() => { refetch(); }} className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          {t('common:buttons.retry')}
+        <Button variant="outline" onClick={handleRetry} disabled={isRetrying} className="gap-2">
+          {isRetrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          {isRetrying ? t('common:messages.loading', 'Chargement…') : t('common:buttons.retry')}
         </Button>
       </div>
     );

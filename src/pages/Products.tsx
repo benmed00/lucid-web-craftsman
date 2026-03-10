@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
+import { ArrowRight, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/components/ui/button';
@@ -27,11 +28,17 @@ import { useProductsPage } from '@/hooks/useProductsPage';
 const Products = () => {
   const page = useProductsPage();
   const queryClient = useQueryClient();
+  const [isRetrying, setIsRetrying] = useState(false);
 
-  // Force-clear cache and refetch
+  // Force-clear cache and refetch with spinner feedback
   const handleRetry = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['products'] });
-    page.refetch();
+    setIsRetrying(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await page.refetch();
+    } finally {
+      setIsRetrying(false);
+    }
   };
 
   // Loading state (skeleton)
@@ -59,9 +66,9 @@ const Products = () => {
             <p className="text-muted-foreground mb-8">
               {page.error || page.t('common:messages.timeout')}
             </p>
-            <Button onClick={handleRetry} className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              {page.t('common:buttons.retry')}
+            <Button onClick={handleRetry} disabled={isRetrying} className="gap-2">
+              {isRetrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              {isRetrying ? page.t('common:messages.loading', 'Chargement…') : page.t('common:buttons.retry')}
             </Button>
           </div>
         </div>
