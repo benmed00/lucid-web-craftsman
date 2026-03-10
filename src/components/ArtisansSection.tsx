@@ -81,6 +81,7 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => { // v2
     staleTime: 5 * 60 * 1000,
     retry: 1,
     retryDelay: 2000,
+    networkMode: 'always',
   });
 
   // Safety timeout — escape skeleton after 12s
