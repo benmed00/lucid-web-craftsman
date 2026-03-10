@@ -22,14 +22,27 @@ import {
 const ProductShowcase = () => {
   const { t } = useTranslation('products');
   const { addItem } = useCart();
+  const queryClient = useQueryClient();
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(
     null
   );
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isRetrying, setIsRetrying] = useState(false);
 
   // Fetch products with translations
   const { data: translatedProducts = [], isLoading: loading, error: fetchError, refetch } =
     useProductsWithTranslations();
+
+  // Unified retry: invalidate cache → refetch → spinner feedback
+  const handleRetry = useCallback(async () => {
+    setIsRetrying(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await refetch();
+    } finally {
+      setIsRetrying(false);
+    }
+  }, [queryClient, refetch]);
 
   // Safety timeout — force out of skeleton after 12s
   const { hasTimedOut: forceRender } = useSafetyTimeout(loading, {
