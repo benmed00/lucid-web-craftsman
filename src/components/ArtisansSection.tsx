@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Quote, MapPin, Clock, Heart, AlertCircle, RefreshCw } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Quote, MapPin, Clock, Heart, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
+import { useState, useCallback } from 'react';
 
 interface Artisan {
   id: string;
@@ -27,6 +28,8 @@ interface ArtisansSectionProps {
 const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
   const { t, i18n } = useTranslation(['pages', 'common']);
   const currentLocale = i18n.language?.split('-')[0] || 'fr';
+  const queryClient = useQueryClient();
+  const [isRetrying, setIsRetrying] = useState(false);
 
   // Fetch artisans — deferred when `enabled` is false (Phase 2 loading)
   const { data: artisans = [], isLoading, error: fetchError, refetch } = useQuery({
@@ -115,9 +118,17 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
           <p className="text-muted-foreground mb-4">
             {t('pages:home.artisans.loadError', 'Impossible de charger les artisans.')}
           </p>
-          <Button variant="outline" onClick={() => { refetch(); }} className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            {t('common:buttons.retry')}
+          <Button variant="outline" onClick={async () => {
+            setIsRetrying(true);
+            try {
+              await queryClient.invalidateQueries({ queryKey: ['artisans'] });
+              await refetch();
+            } catch { /* handled by RQ */ } finally {
+              setTimeout(() => setIsRetrying(false), 500);
+            }
+          }} disabled={isRetrying} className="gap-2">
+            {isRetrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            {isRetrying ? t('common:messages.loading', 'Chargement…') : t('common:buttons.retry')}
           </Button>
         </div>
       </section>

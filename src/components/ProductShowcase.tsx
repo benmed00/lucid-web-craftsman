@@ -38,9 +38,13 @@ const ProductShowcase = () => {
     setIsRetrying(true);
     try {
       await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await queryClient.invalidateQueries({ queryKey: ['products-with-translations'] });
       await refetch();
+    } catch {
+      // Error handled by React Query
     } finally {
-      setIsRetrying(false);
+      // Small delay so user sees the spinner
+      setTimeout(() => setIsRetrying(false), 500);
     }
   }, [queryClient, refetch]);
 
