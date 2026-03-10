@@ -39,17 +39,7 @@ const SectionFallback = () => (
 const Index = () => {
   const { t } = useTranslation(['pages', 'common']);
 
-  // Phase 1: Check if products are ready (ProductShowcase owns the query)
-  const { isSuccess: productsReady } = useProductsWithTranslations();
-
-  // Phase 2: Defer secondary content until products resolve
-  const [phase2Ready, setPhase2Ready] = useState(false);
-  useEffect(() => {
-    if (productsReady) {
-      const timer = setTimeout(() => setPhase2Ready(true), 100);
-      return () => clearTimeout(timer);
-    }
-  }, [productsReady]);
+  // All sections render independently — no phased gating
 
   // Configuration for showing/hiding sections - easily configurable for future
   const sectionConfig = {
