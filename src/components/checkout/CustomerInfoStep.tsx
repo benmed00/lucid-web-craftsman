@@ -1,4 +1,4 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -33,12 +33,16 @@ const CustomerInfoStep = ({
   const { t } = useTranslation('checkout');
 
   return (
-    <fieldset className="space-y-6 animate-fade-in">
-      <legend className="text-xl font-medium mb-4">
+    <fieldset className="space-y-5 animate-fade-in">
+      <legend className="text-xl font-semibold text-foreground mb-2 flex items-center gap-2">
+        <ShieldCheck className="h-5 w-5 text-primary" />
         {t('steps.information')}
       </legend>
+      <p className="text-sm text-muted-foreground -mt-1">
+        Vos informations sont protégées et ne seront jamais partagées.
+      </p>
 
-      {/* Honeypot field - hidden from real users */}
+      {/* Honeypot field */}
       <div className="absolute -left-[9999px]" aria-hidden="true">
         <Label htmlFor="website">Website</Label>
         <Input
@@ -68,8 +72,7 @@ const CustomerInfoStep = ({
           maxLength={50}
           validate={(value) => {
             if (value.length < 2) return t('errors.requiredField');
-            if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value))
-              return t('errors.requiredField');
+            if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value)) return t('errors.requiredField');
             return null;
           }}
         />
@@ -89,8 +92,7 @@ const CustomerInfoStep = ({
           maxLength={50}
           validate={(value) => {
             if (value.length < 2) return t('errors.requiredField');
-            if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value))
-              return t('errors.requiredField');
+            if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value)) return t('errors.requiredField');
             return null;
           }}
         />
@@ -112,9 +114,7 @@ const CustomerInfoStep = ({
         maxLength={254}
         validate={(value) => {
           if (!value.includes('@')) return t('errors.invalidEmail');
-          if (
-            !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)
-          ) {
+          if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
             return t('errors.invalidEmail');
           }
           return null;
@@ -145,7 +145,7 @@ const CustomerInfoStep = ({
       />
 
       <Button
-        className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground gap-2 min-h-[48px] text-base"
+        className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground gap-2 min-h-[48px] text-base font-medium shadow-sm"
         onClick={onNext}
         aria-describedby="step1-instructions"
       >
