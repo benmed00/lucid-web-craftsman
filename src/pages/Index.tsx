@@ -8,12 +8,10 @@ import { Link } from 'react-router-dom';
 import HeroImage from '@/components/HeroImage';
 import ScrollToTop from '@/components/ScrollToTop';
 import FloatingCartButton from '@/components/ui/FloatingCartButton';
-import { lazy, Suspense, useMemo, useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import {
   useProductsWithTranslations,
-  ProductWithTranslation,
 } from '@/hooks/useTranslatedContent';
-import { Product } from '@/shared/interfaces/Iproduct.interface';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import { Skeleton } from '@/components/ui/skeleton';
 
