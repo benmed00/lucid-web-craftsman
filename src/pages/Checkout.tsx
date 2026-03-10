@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -43,7 +43,7 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-muted/20">
       <SEOHelmet
         title={c.t('payment.title') + ' - Rif Raw Straw'}
         description={c.t('payment.securePayment')}
@@ -51,14 +51,18 @@ const Checkout = () => {
         url="/checkout"
         type="website"
       />
-      <div className="container mx-auto px-4 py-6 md:py-12 pb-24 md:pb-12">
-        <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground mb-4 md:mb-8 text-center">
-          {c.t('payment.title')}
-        </h1>
+
+      <div className="container mx-auto px-4 py-6 md:py-10 pb-28 md:pb-12">
+        {/* Header */}
+        <div className="text-center mb-2">
+          <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground">
+            {c.t('payment.title')}
+          </h1>
+        </div>
 
         <CheckoutProgress
           currentStep={c.step}
-          completedSteps={[]} // completedSteps managed internally
+          completedSteps={[]}
           onStepClick={c.handleEditStep}
         />
 
@@ -67,7 +71,7 @@ const Checkout = () => {
             {/* Form Section */}
             <div className="lg:col-span-2">
               {(c.isFormLoading || !c.hasRestoredState) && (
-                <div className="space-y-6 animate-fade-in">
+                <div className="space-y-6 animate-fade-in bg-card rounded-xl p-6 border border-border shadow-sm">
                   <Skeleton className="h-8 w-48" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2"><Skeleton className="h-4 w-16" /><Skeleton className="h-10 w-full" /></div>
@@ -79,39 +83,45 @@ const Checkout = () => {
               )}
 
               {!c.isFormLoading && c.hasRestoredState && c.step === 1 && (
-                <CustomerInfoStep
-                  formData={c.formData}
-                  formErrors={c.formErrors}
-                  honeypot={c.honeypot}
-                  onFieldChange={c.handleFieldChange}
-                  onClearError={c.handleClearError}
-                  onHoneypotChange={c.setHoneypot}
-                  onNext={c.goToNextStep}
-                />
+                <div className="bg-card rounded-xl p-6 md:p-8 border border-border shadow-sm">
+                  <CustomerInfoStep
+                    formData={c.formData}
+                    formErrors={c.formErrors}
+                    honeypot={c.honeypot}
+                    onFieldChange={c.handleFieldChange}
+                    onClearError={c.handleClearError}
+                    onHoneypotChange={c.setHoneypot}
+                    onNext={c.goToNextStep}
+                  />
+                </div>
               )}
 
               {!c.isFormLoading && c.hasRestoredState && c.step === 2 && (
-                <ShippingStep
-                  formData={c.formData}
-                  formErrors={c.formErrors}
-                  onFieldChange={c.handleFieldChange}
-                  onClearError={c.handleClearError}
-                  onInputChange={c.handleInputChange}
-                  onNext={c.goToNextStep}
-                  onEditStep={c.handleEditStep}
-                />
+                <div className="bg-card rounded-xl p-6 md:p-8 border border-border shadow-sm">
+                  <ShippingStep
+                    formData={c.formData}
+                    formErrors={c.formErrors}
+                    onFieldChange={c.handleFieldChange}
+                    onClearError={c.handleClearError}
+                    onInputChange={c.handleInputChange}
+                    onNext={c.goToNextStep}
+                    onEditStep={c.handleEditStep}
+                  />
+                </div>
               )}
 
               {!c.isFormLoading && c.hasRestoredState && c.step === 3 && (
-                <PaymentStep
-                  formData={c.formData}
-                  paymentMethod={c.paymentMethod}
-                  total={c.total}
-                  isProcessing={c.isProcessing}
-                  onPaymentMethodChange={c.setPaymentMethod}
-                  onPayment={c.handlePayment}
-                  onEditStep={c.handleEditStep}
-                />
+                <div className="bg-card rounded-xl p-6 md:p-8 border border-border shadow-sm">
+                  <PaymentStep
+                    formData={c.formData}
+                    paymentMethod={c.paymentMethod}
+                    total={c.total}
+                    isProcessing={c.isProcessing}
+                    onPaymentMethodChange={c.setPaymentMethod}
+                    onPayment={c.handlePayment}
+                    onEditStep={c.handleEditStep}
+                  />
+                </div>
               )}
             </div>
 
@@ -135,31 +145,37 @@ const Checkout = () => {
             />
           </div>
         </div>
+
+        {/* Security footer */}
+        <div className="max-w-6xl mx-auto mt-8 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <ShieldCheck className="h-4 w-4 text-primary" />
+          <span>Paiement sécurisé par Stripe — Vos données sont chiffrées en SSL 256-bit</span>
+        </div>
       </div>
 
       {/* Mobile sticky bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4 md:hidden safe-area z-50">
-        <div className="flex items-center justify-between gap-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border p-4 md:hidden safe-area z-50 shadow-lg">
+        <div className="flex items-center justify-between gap-3">
           {c.step > 1 ? (
-            <Button variant="outline" className="flex-1 min-h-[48px]" onClick={() => c.handleEditStep(c.step - 1)}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
+            <Button variant="outline" className="flex-1 min-h-[48px] text-sm" onClick={() => c.handleEditStep(c.step - 1)}>
+              <ArrowLeft className="h-4 w-4 mr-1.5" />
               {c.t('cart.continueShopping').split(' ')[0]}
             </Button>
           ) : (
-            <Button variant="outline" className="flex-1 min-h-[48px]" onClick={() => window.history.back()}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
+            <Button variant="outline" className="flex-1 min-h-[48px] text-sm" onClick={() => window.history.back()}>
+              <ArrowLeft className="h-4 w-4 mr-1.5" />
               {c.t('cart.title')}
             </Button>
           )}
 
           {c.step < 3 ? (
-            <Button className="flex-1 min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground" onClick={c.goToNextStep}>
+            <Button className="flex-1 min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground font-medium" onClick={c.goToNextStep}>
               {c.t('cart.proceedToCheckout')}
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <ArrowRight className="h-4 w-4 ml-1.5" />
             </Button>
           ) : (
             <Button
-              className="flex-1 min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="flex-1 min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
               onClick={c.handlePayment}
               disabled={c.isProcessing}
             >

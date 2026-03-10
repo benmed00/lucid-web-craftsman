@@ -4,7 +4,8 @@ import {
   X,
   Truck,
   CheckCircle,
-  AlertCircle,
+  ShieldCheck,
+  Lock,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -74,8 +75,8 @@ const CheckoutOrderSummary = ({
 
   return (
     <div className="lg:col-span-1">
-      <div className="border border-border rounded-lg p-6 bg-secondary sticky top-8">
-        <h3 className="font-serif text-xl text-foreground mb-4">
+      <div className="border border-border rounded-xl p-6 bg-card shadow-sm sticky top-8">
+        <h3 className="font-serif text-xl text-foreground mb-5 flex items-center gap-2">
           {t('cart.title')}
         </h3>
 
@@ -84,25 +85,26 @@ const CheckoutOrderSummary = ({
           {cartItems.map((item, index) => (
             <div
               key={item.product.id || index}
-              className="flex items-center"
+              className="flex items-center gap-4 group"
             >
-              <div className="w-16 h-16 rounded-md overflow-hidden mr-4 bg-background border border-border">
+              <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted/30 border border-border flex-shrink-0">
                 <img
                   src={item.product.images[0]}
                   alt={item.product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
                 />
               </div>
-              <div className="flex-1">
-                <h4 className="text-sm font-medium text-foreground">
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-medium text-foreground truncate">
                   {item.product.name}
                 </h4>
-                <div className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   {t('cart.updateQuantity')}: {item.quantity}
-                </div>
+                </p>
               </div>
-              <div className="text-primary font-medium">
-                {formatPrice(item.product.price)}
+              <div className="text-sm font-semibold text-foreground whitespace-nowrap">
+                {formatPrice(item.product.price * item.quantity)}
               </div>
             </div>
           ))}
@@ -112,15 +114,15 @@ const CheckoutOrderSummary = ({
 
         {/* Promo Code Section */}
         <div className="mb-4">
-          <Label className="text-sm font-medium mb-2 flex items-center gap-1">
-            <Tag className="h-4 w-4" />
+          <Label className="text-sm font-medium mb-2 flex items-center gap-1.5 text-muted-foreground">
+            <Tag className="h-3.5 w-3.5" />
             {t('promo.label')}
           </Label>
 
           {appliedCoupon ? (
-            <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-md p-3 mt-2">
+            <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg p-3 mt-2">
               <div>
-                <span className="font-medium text-primary">
+                <span className="font-semibold text-primary text-sm">
                   {appliedCoupon.code}
                 </span>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -144,7 +146,7 @@ const CheckoutOrderSummary = ({
                 placeholder={t('promo.placeholder')}
                 value={promoCode}
                 onChange={(e) => onPromoCodeChange(e.target.value.toUpperCase())}
-                className="flex-1 uppercase"
+                className="flex-1 uppercase text-sm"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -157,7 +159,7 @@ const CheckoutOrderSummary = ({
                 size="sm"
                 onClick={onValidatePromo}
                 disabled={isValidatingPromo || !promoCode.trim()}
-                className="shrink-0"
+                className="shrink-0 h-10"
               >
                 {isValidatingPromo ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -169,33 +171,31 @@ const CheckoutOrderSummary = ({
           )}
 
           {promoError && (
-            <p className="text-xs text-destructive mt-1">{promoError}</p>
+            <p className="text-xs text-destructive mt-1.5">{promoError}</p>
           )}
         </div>
 
         <Separator className="my-4" />
 
         {/* Order Totals */}
-        <div className="space-y-3 mb-6">
-          <div className="flex justify-between">
+        <div className="space-y-3 mb-4">
+          <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">{t('cart.subtotal')}</span>
-            <span className="font-medium">{formatPrice(subtotal)}</span>
+            <span className="font-medium text-foreground">{formatPrice(subtotal)}</span>
           </div>
 
           {discount > 0 && (
-            <div className="flex justify-between text-primary">
-              <span>{t('cart.discount')}</span>
-              <span className="font-medium">-{formatPrice(discount)}</span>
+            <div className="flex justify-between text-sm">
+              <span className="text-primary">{t('cart.discount')}</span>
+              <span className="font-medium text-primary">-{formatPrice(discount)}</span>
             </div>
           )}
 
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">
-              {t('cart.shipping')}
-            </span>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">{t('cart.shipping')}</span>
             {hasFreeShipping ? (
               <div className="flex items-center gap-2">
-                <span className="text-muted-foreground line-through text-sm">
+                <span className="text-muted-foreground line-through text-xs">
                   {formatPrice(shippingCost)}
                 </span>
                 <span className="font-medium text-primary flex items-center gap-1">
@@ -204,35 +204,45 @@ const CheckoutOrderSummary = ({
                 </span>
               </div>
             ) : (
-              <span className="font-medium">{formatPrice(shipping)}</span>
+              <span className="font-medium text-foreground">{formatPrice(shipping)}</span>
             )}
           </div>
 
-          {/* Free shipping progress hint */}
-          {!hasFreeShipping &&
-            freeShippingSettings.enabled &&
-            subtotal > 0 && (
-              <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded-md">
-                <Truck className="h-3 w-3 inline mr-1" />
+          {/* Free shipping progress */}
+          {!hasFreeShipping && freeShippingSettings.enabled && subtotal > 0 && (
+            <div className="bg-primary/5 border border-primary/10 rounded-lg p-3 text-xs text-muted-foreground flex items-start gap-2">
+              <Truck className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+              <span>
                 {t('shipping.freeFrom', {
                   amount: formatPrice(freeShippingSettings.amount - subtotal),
                 })}
-              </div>
-            )}
-          <Separator className="my-2" />
-          <div className="flex justify-between text-lg">
-            <span className="font-medium">{t('cart.total')}</span>
-            <span className="font-medium text-primary">
+              </span>
+            </div>
+          )}
+
+          <Separator />
+
+          <div className="flex justify-between pt-1">
+            <span className="text-base font-semibold text-foreground">{t('cart.total')}</span>
+            <span className="text-lg font-bold text-primary">
               {formatPrice(total)}
             </span>
           </div>
         </div>
 
         {/* Trust Badges */}
-        <div className="bg-background p-3 rounded-md border border-border mt-6">
-          <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-            <CheckCircle className="h-4 w-4 text-primary" />
+        <div className="bg-muted/30 rounded-lg p-4 mt-4 space-y-2.5">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <CheckCircle className="h-4 w-4 text-primary shrink-0" />
             <span>{t('payment.securePayment')}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+            <span>{t('payment.ssl')}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Lock className="h-4 w-4 text-primary shrink-0" />
+            <span>{t('payment.secureLabel')}</span>
           </div>
         </div>
       </div>

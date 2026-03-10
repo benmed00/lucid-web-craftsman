@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, AlertCircle, Truck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -45,22 +45,25 @@ const ShippingStep = ({
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
       <StepSummary
         step={2}
         customerData={customerData}
         onEditStep={onEditStep}
       />
 
-      <div className="flex items-center mb-2">
+      <div className="flex items-center gap-3 mb-2">
         <button
-          className="text-primary hover:text-primary/80 flex items-center text-sm"
+          className="text-primary hover:text-primary/80 flex items-center text-sm font-medium transition-colors"
           onClick={() => onEditStep(1)}
         >
-          <ArrowLeft className="h-4 w-4 mr-1" />{' '}
+          <ArrowLeft className="h-4 w-4 mr-1" />
           {t('cart.continueShopping').split(' ')[0]}
         </button>
-        <h2 className="text-xl font-medium ml-4">{t('shipping.title')}</h2>
+        <div className="flex items-center gap-2">
+          <Truck className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-semibold text-foreground">{t('shipping.title')}</h2>
+        </div>
       </div>
 
       <FormFieldWithValidation
@@ -98,49 +101,49 @@ const ShippingStep = ({
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <FormFieldWithValidation
-          id="postalCode"
-          label={t('form.postalCode')}
-          value={formData.postalCode}
-          onChange={(value) => {
-            onFieldChange('postalCode', value);
-            onClearError('postalCode');
-          }}
-          error={formErrors.postalCode}
-          placeholder={
-            formData.country === 'BE' ||
-            formData.country === 'CH' ||
-            formData.country === 'LU'
-              ? '1000'
-              : 'ex: 75001'
-          }
-          required
-          autoComplete="postal-code"
-          maxLength={10}
-          validate={(value) => {
-            const countryPatterns: Record<string, RegExp> = {
-              FR: /^\d{5}$/,
-              BE: /^\d{4}$/,
-              CH: /^\d{4}$/,
-              MC: /^\d{5}$/,
-              LU: /^\d{4}$/,
-            };
-            const pattern = countryPatterns[formData.country];
-            if (pattern && !pattern.test(value)) {
-              return t('errors.invalidPostalCode');
+        <div>
+          <FormFieldWithValidation
+            id="postalCode"
+            label={t('form.postalCode')}
+            value={formData.postalCode}
+            onChange={(value) => {
+              onFieldChange('postalCode', value);
+              onClearError('postalCode');
+            }}
+            error={formErrors.postalCode}
+            placeholder={
+              formData.country === 'BE' || formData.country === 'CH' || formData.country === 'LU'
+                ? '1000'
+                : 'ex: 75001'
             }
-            return null;
-          }}
-        />
-        <p className="text-xs text-muted-foreground mt-1">
-          {formData.country === 'FR' || formData.country === 'MC'
-            ? '5 chiffres (ex: 75001)'
-            : formData.country === 'BE' || formData.country === 'LU'
-              ? '4 chiffres (ex: 1000)'
-              : formData.country === 'CH'
-                ? '4 chiffres (ex: 1200)'
-                : ''}
-        </p>
+            required
+            autoComplete="postal-code"
+            maxLength={10}
+            validate={(value) => {
+              const countryPatterns: Record<string, RegExp> = {
+                FR: /^\d{5}$/,
+                BE: /^\d{4}$/,
+                CH: /^\d{4}$/,
+                MC: /^\d{5}$/,
+                LU: /^\d{4}$/,
+              };
+              const pattern = countryPatterns[formData.country];
+              if (pattern && !pattern.test(value)) {
+                return t('errors.invalidPostalCode');
+              }
+              return null;
+            }}
+          />
+          <p className="text-[11px] text-muted-foreground mt-1">
+            {formData.country === 'FR' || formData.country === 'MC'
+              ? '5 chiffres (ex: 75001)'
+              : formData.country === 'BE' || formData.country === 'LU'
+                ? '4 chiffres (ex: 1000)'
+                : formData.country === 'CH'
+                  ? '4 chiffres (ex: 1200)'
+                  : ''}
+          </p>
+        </div>
 
         <div className="md:col-span-2">
           <FormFieldWithValidation
@@ -158,8 +161,7 @@ const ShippingStep = ({
             maxLength={100}
             validate={(value) => {
               if (value.length < 2) return t('errors.requiredField');
-              if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value))
-                return t('errors.requiredField');
+              if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value)) return t('errors.requiredField');
               return null;
             }}
           />
@@ -167,10 +169,12 @@ const ShippingStep = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="country">{t('form.country')} *</Label>
+        <Label htmlFor="country" className="text-sm font-medium">
+          {t('form.country')} <span className="text-destructive">*</span>
+        </Label>
         <select
           id="country"
-          className={`w-full h-10 px-3 py-2 border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors ${
+          className={`w-full h-10 px-3 py-2 border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-sm ${
             formErrors.country ? 'border-destructive' : 'border-border'
           }`}
           value={formData.country}
@@ -191,7 +195,7 @@ const ShippingStep = ({
       </div>
 
       <Button
-        className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground gap-2 min-h-[48px] text-base"
+        className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground gap-2 min-h-[48px] text-base font-medium shadow-sm"
         onClick={onNext}
       >
         {t('steps.payment')}

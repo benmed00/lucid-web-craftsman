@@ -1,4 +1,4 @@
-import { Pencil } from 'lucide-react';
+import { Pencil, User, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 
@@ -40,9 +40,7 @@ const StepSummary = ({
 }: StepSummaryProps) => {
   const { t } = useTranslation('checkout');
 
-  // Show customer info summary in step 2 and 3
   const showCustomerSummary = step >= 2 && customerData;
-  // Show shipping summary in step 3
   const showShippingSummary = step >= 3 && shippingData;
 
   if (!showCustomerSummary && !showShippingSummary) {
@@ -52,31 +50,36 @@ const StepSummary = ({
   return (
     <div className="space-y-3 mb-6">
       {showCustomerSummary && (
-        <div className="bg-muted/50 rounded-lg p-4 border border-border/50">
+        <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
           <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                {t('steps.summary.contact')}
-              </p>
-              <p className="font-medium text-sm">
-                {customerData.firstName} {customerData.lastName}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {customerData.email}
-              </p>
-              {customerData.phone && (
-                <p className="text-sm text-muted-foreground">
-                  {customerData.phone}
+            <div className="flex gap-3">
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                <User className="h-4 w-4 text-primary" />
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  {t('steps.summary.contact')}
                 </p>
-              )}
+                <p className="font-medium text-sm text-foreground">
+                  {customerData.firstName} {customerData.lastName}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {customerData.email}
+                </p>
+                {customerData.phone && (
+                  <p className="text-sm text-muted-foreground">
+                    {customerData.phone}
+                  </p>
+                )}
+              </div>
             </div>
             <Button
               variant="ghost"
               size="sm"
-              className="text-primary hover:text-primary/80 -mt-1 -mr-2"
+              className="text-primary hover:text-primary/80 hover:bg-primary/5 -mt-1 -mr-2"
               onClick={() => onEditStep(1)}
             >
-              <Pencil className="h-3 w-3 mr-1" />
+              <Pencil className="h-3.5 w-3.5 mr-1.5" />
               {t('steps.summary.edit')}
             </Button>
           </div>
@@ -84,30 +87,35 @@ const StepSummary = ({
       )}
 
       {showShippingSummary && (
-        <div className="bg-muted/50 rounded-lg p-4 border border-border/50">
+        <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
           <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                {t('steps.summary.shippingAddress')}
-              </p>
-              <p className="font-medium text-sm">{shippingData.address}</p>
-              {shippingData.addressComplement && (
-                <p className="text-sm text-muted-foreground">
-                  {shippingData.addressComplement}
+            <div className="flex gap-3">
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                <MapPin className="h-4 w-4 text-primary" />
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  {t('steps.summary.shippingAddress')}
                 </p>
-              )}
-              <p className="text-sm text-muted-foreground">
-                {shippingData.postalCode} {shippingData.city},{' '}
-                {COUNTRY_NAMES[shippingData.country] || shippingData.country}
-              </p>
+                <p className="font-medium text-sm text-foreground">{shippingData.address}</p>
+                {shippingData.addressComplement && (
+                  <p className="text-sm text-muted-foreground">
+                    {shippingData.addressComplement}
+                  </p>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  {shippingData.postalCode} {shippingData.city},{' '}
+                  {COUNTRY_NAMES[shippingData.country] || shippingData.country}
+                </p>
+              </div>
             </div>
             <Button
               variant="ghost"
               size="sm"
-              className="text-primary hover:text-primary/80 -mt-1 -mr-2"
+              className="text-primary hover:text-primary/80 hover:bg-primary/5 -mt-1 -mr-2"
               onClick={() => onEditStep(2)}
             >
-              <Pencil className="h-3 w-3 mr-1" />
+              <Pencil className="h-3.5 w-3.5 mr-1.5" />
               {t('steps.summary.edit')}
             </Button>
           </div>
