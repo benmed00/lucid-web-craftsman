@@ -38,6 +38,7 @@ import FloatingCartButton from '@/components/ui/FloatingCartButton';
 import { MobilePaymentButtons } from '@/components/ui/MobilePaymentButtons';
 import { LocationBasedFeatures } from '@/components/ui/LocationBasedFeatures';
 import { TooltipWrapper } from '@/components/ui/TooltipWrapper';
+import PostalCodeAutocomplete from '@/components/ui/PostalCodeAutocomplete';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { RemainingSlots } from '@/components/ui/RemainingSlots';
