@@ -38,6 +38,7 @@ import FloatingCartButton from '@/components/ui/FloatingCartButton';
 import { MobilePaymentButtons } from '@/components/ui/MobilePaymentButtons';
 import { LocationBasedFeatures } from '@/components/ui/LocationBasedFeatures';
 import { TooltipWrapper } from '@/components/ui/TooltipWrapper';
+import PostalCodeAutocomplete from '@/components/ui/PostalCodeAutocomplete';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { RemainingSlots } from '@/components/ui/RemainingSlots';
@@ -554,12 +555,15 @@ const Cart = () => {
                     {t('cart.calculateShipping')}
                   </legend>
                   <div className="flex gap-2">
-                    <input
-                      type="text"
+                    <PostalCodeAutocomplete
                       value={postalCode}
-                      onChange={(e) => setPostalCode(e.target.value)}
+                      onChange={setPostalCode}
+                      onSelect={(suggestion) => {
+                        setPostalCode(suggestion.postcode);
+                        // Auto-trigger shipping calculation on selection
+                        setTimeout(() => loadZones(), 100);
+                      }}
                       placeholder={t('cart.postalCodePlaceholder')}
-                      className="flex-1 px-3 py-2 border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                       id="shipping-postal-code"
                       name="postal-code-input"
                       aria-label={t('cart.postalCodeAria')}
