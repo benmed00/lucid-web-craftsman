@@ -36,33 +36,57 @@ setupProductionErrorSuppression();
 // Diagnostic: Test Supabase connectivity early
 // This helps identify if the network layer is working
 {
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://xcvlijchkmhjonhfildm.supabase.co';
-  const testController = new AbortController();
-  const testTimeout = setTimeout(() => testController.abort(), 5000);
-  console.info('[Diagnostic] Testing Supabase connectivity…');
-  fetch(`${SUPABASE_URL}/rest/v1/products?select=id&limit=1`, {
-    headers: {
-      'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdmxpamNoa21oam9uaGZpbGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2MDY3MDEsImV4cCI6MjA2MzE4MjcwMX0.3_FZWbV4qCqs1xQmh0Hws83xQxofSApzVRScSCEi9Pg',
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdmxpamNoa21oam9uaGZpbGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2MDY3MDEsImV4cCI6MjA2MzE4MjcwMX0.3_FZWbV4qCqs1xQmh0Hws83xQxofSApzVRScSCEi9Pg'}`,
-    },
-    signal: testController.signal,
-  })
-    .then((r) => {
-      clearTimeout(testTimeout);
-      console.info(`[Diagnostic] Supabase connectivity: ${r.status} ${r.ok ? '✅' : '❌'}`);
-      return r.text().then((t) => console.info(`[Diagnostic] Response preview: ${t.substring(0, 200)}`));
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+  const SUPABASE_PUBLISHABLE_KEY = import.meta.env
+    .VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+    console.error(
+      '[Diagnostic] Supabase connectivity test skipped: missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY'
+    );
+  } else {
+    const testController = new AbortController();
+    const testTimeout = setTimeout(() => testController.abort(), 5000);
+    console.info('[Diagnostic] Testing Supabase connectivity…');
+    fetch(`${SUPABASE_URL}/rest/v1/products?select=id&limit=1`, {
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      signal: testController.signal,
     })
-    .catch((err) => {
-      clearTimeout(testTimeout);
-      console.error(`[Diagnostic] Supabase connectivity FAILED:`, err?.message || err);
-    });
+      .then((r) => {
+        clearTimeout(testTimeout);
+        console.info(
+          `[Diagnostic] Supabase connectivity: ${r.status} ${r.ok ? '✅' : '❌'}`
+        );
+        return r
+          .text()
+          .then((t) =>
+            console.info(
+              `[Diagnostic] Response preview: ${t.substring(0, 200)}`
+            )
+          );
+      })
+      .catch((err) => {
+        clearTimeout(testTimeout);
+        console.error(
+          `[Diagnostic] Supabase connectivity FAILED:`,
+          err?.message || err
+        );
+      });
+  }
 }
 
 // ============= Safe localStorage validation =============
 // Validate persisted Zustand stores before initialization.
 // Corrupted JSON will crash store hydration and break the entire app.
 {
-  const PERSISTED_STORES = ['cart-storage', 'currency-storage', 'rif-raw-straw-theme', 'language-storage'];
+  const PERSISTED_STORES = [
+    'cart-storage',
+    'currency-storage',
+    'rif-raw-straw-theme',
+    'language-storage',
+  ];
   for (const key of PERSISTED_STORES) {
     try {
       const raw = localStorage.getItem(key);
@@ -76,7 +100,11 @@ setupProductionErrorSuppression();
       }
     } catch {
       console.warn(`[StorageGuard] Corrupted JSON in "${key}", clearing`);
-      try { localStorage.removeItem(key); } catch { /* ignore */ }
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -92,7 +120,11 @@ setupProductionErrorSuppression();
     }
   } catch {
     console.warn('[StorageGuard] Corrupted hero cache, clearing');
-    try { localStorage.removeItem('rif_hero_image_cache'); } catch { /* ignore */ }
+    try {
+      localStorage.removeItem('rif_hero_image_cache');
+    } catch {
+      /* ignore */
+    }
   }
 }
 
