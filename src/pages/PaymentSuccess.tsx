@@ -150,6 +150,16 @@ const PaymentSuccess = () => {
 
     const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+    const runKey = isPayPal
+      ? `paypal:${paypalOrderId || ''}:${orderId || ''}`
+      : `stripe:${sessionId || ''}`;
+
+    // Prevent duplicate verification calls (e.g. rerenders/profile hydration) from overriding state.
+    if (verificationRunRef.current === runKey) {
+      return;
+    }
+    verificationRunRef.current = runKey;
+
     // Retry helper with exponential backoff
     const retryVerifyStripe = async (sessionIdVal: string, maxRetries = 3): Promise<{ data: any; error: any }> => {
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -161,13 +171,32 @@ const PaymentSuccess = () => {
           const result = await supabase.functions.invoke('verify-payment', {
             body: { session_id: sessionIdVal },
           });
-          // If the function returned successfully (even with success:false in body), return
-          if (!result.error) return result;
+
+          if (!result.error) {
+            const bodyMessage = String(result.data?.message || result.data?.error || '').toLowerCase();
+            const isTransientBodyFailure =
+              result.data?.success === false &&
+              (bodyMessage.includes('not found') ||
+                bodyMessage.includes('introuvable') ||
+                bodyMessage.includes('not completed') ||
+                bodyMessage.includes('pas finalisé'));
+
+            if (isTransientBodyFailure && attempt < maxRetries) {
+              console.warn(
+                `[PaymentSuccess] verify-payment returned transient body failure on attempt ${attempt + 1}, retrying...`
+              );
+              continue;
+            }
+
+            return result;
+          }
+
           // If it's a transient error (500), retry
           if (attempt < maxRetries) {
             console.warn(`[PaymentSuccess] verify-payment attempt ${attempt + 1} failed, retrying...`);
             continue;
           }
+
           return result;
         } catch (err) {
           if (attempt < maxRetries) {
