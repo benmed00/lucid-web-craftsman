@@ -154,32 +154,32 @@ const Checkout = () => {
       </div>
 
       {/* Mobile sticky bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border p-4 md:hidden safe-area z-50 shadow-lg">
-        <div className="flex items-center justify-between gap-3">
+      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border p-3 px-4 md:hidden safe-area z-50 shadow-lg">
+        <div className="flex items-center justify-between gap-2">
           {c.step > 1 ? (
-            <Button variant="outline" className="flex-1 min-h-[48px] text-sm" onClick={() => c.handleEditStep(c.step - 1)}>
-              <ArrowLeft className="h-4 w-4 mr-1.5" />
-              {c.t('cart.continueShopping').split(' ')[0]}
+            <Button variant="outline" className="flex-1 min-h-[48px] text-xs px-2" onClick={() => c.handleEditStep(c.step - 1)}>
+              <ArrowLeft className="h-4 w-4 mr-1 flex-shrink-0" />
+              <span className="truncate">{c.t('cart.continueShopping').split(' ')[0]}</span>
             </Button>
           ) : (
-            <Button variant="outline" className="flex-1 min-h-[48px] text-sm" onClick={() => window.history.back()}>
-              <ArrowLeft className="h-4 w-4 mr-1.5" />
-              {c.t('cart.title')}
+            <Button variant="outline" className="flex-1 min-h-[48px] text-xs px-2" onClick={() => window.history.back()}>
+              <ArrowLeft className="h-4 w-4 mr-1 flex-shrink-0" />
+              <span className="truncate">{c.t('cart.title')}</span>
             </Button>
           )}
 
           {c.step < 3 ? (
-            <Button className="flex-1 min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground font-medium" onClick={c.goToNextStep}>
-              {c.t('cart.proceedToCheckout')}
-              <ArrowRight className="h-4 w-4 ml-1.5" />
+            <Button className="flex-[1.3] min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs px-2" onClick={c.goToNextStep}>
+              <span className="truncate">{c.t('cart.proceedToCheckout')}</span>
+              <ArrowRight className="h-4 w-4 ml-1 flex-shrink-0" />
             </Button>
           ) : (
             <Button
-              className="flex-1 min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+              className="flex-[1.3] min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs px-2"
               onClick={c.handlePayment}
               disabled={c.isProcessing}
             >
-              {c.isProcessing ? c.t('payment.processing') : c.t('payment.payNow') + ` ${c.formatPrice(c.total)}`}
+              <span className="truncate">{c.isProcessing ? c.t('payment.processing') : c.t('payment.payNow') + ` ${c.formatPrice(c.total)}`}</span>
             </Button>
           )}
         </div>
