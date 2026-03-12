@@ -31,6 +31,7 @@ export const LocationBasedFeatures = ({
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [nearbyStores, setNearbyStores] = useState<StoreLocation[]>([]);
   const [deliveryEstimate, setDeliveryEstimate] = useState<string | null>(null);
+  const [locationDenied, setLocationDenied] = useState(false);
 
   const mockStores: StoreLocation[] = [
     {
