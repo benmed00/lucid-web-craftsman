@@ -39,6 +39,15 @@ interface OrderItem {
   product_snapshot: any;
 }
 
+interface StatusHistoryEntry {
+  id: string;
+  new_status: string;
+  previous_status: string | null;
+  created_at: string;
+  reason_message: string | null;
+  changed_by: string;
+}
+
 interface Order {
   id: string;
   user_id: string;
@@ -46,9 +55,17 @@ interface Order {
   currency: string;
   status: string;
   stripe_session_id: string | null;
+  tracking_number: string | null;
+  tracking_url: string | null;
+  carrier: string | null;
+  estimated_delivery: string | null;
+  actual_delivery: string | null;
+  shipping_address: any;
+  payment_method: string | null;
   created_at: string;
   updated_at: string;
   order_items: OrderItem[];
+  order_status_history: StatusHistoryEntry[];
 }
 
 const OrderHistory = () => {
