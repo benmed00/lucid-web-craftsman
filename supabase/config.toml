@@ -54,3 +54,6 @@ verify_jwt = false
 
 [functions.send-newsletter-welcome]
 verify_jwt = false
+
+[functions.order-lookup]
+verify_jwt = false

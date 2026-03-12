@@ -55,6 +55,16 @@ interface InvoiceData {
   stripeSessionId: string;
 }
 
+interface OrderLookupResult {
+  found: boolean;
+  order_id?: string;
+  status?: string;
+  is_paid?: boolean;
+  webhook_processed?: boolean;
+  amount?: number;
+  currency?: string;
+}
+
 const COUNTRY_NAMES: Record<string, string> = {
   FR: 'France',
   DE: 'Allemagne',
@@ -94,12 +104,11 @@ const PaymentSuccess = () => {
   } | null>(null);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
-  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(
-    null
-  );
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+  const [processingMessage, setProcessingMessage] = useState<string>('');
   const { clearCart } = useCart();
   const { user, profile } = useAuth();
-  const verificationRunRef = useRef<string | null>(null);
+  const verificationRunRef = useRef(false);
 
   // Build invoice data from verify-payment response
   const buildInvoiceFromResponse = useCallback(
@@ -107,9 +116,7 @@ const PaymentSuccess = () => {
       if (!responseInvoice?.items) return;
       setInvoiceData({
         orderId: fetchedOrderId,
-        date: new Date(responseInvoice.date || Date.now()).toLocaleDateString(
-          'fr-FR'
-        ),
+        date: new Date(responseInvoice.date || Date.now()).toLocaleDateString('fr-FR'),
         customer,
         items: responseInvoice.items,
         subtotal: responseInvoice.subtotal || 0,
@@ -145,181 +152,238 @@ const PaymentSuccess = () => {
   }, [user, verificationResult?.success, isVerifying, navigate]);
 
   useEffect(() => {
-    // Clear checkout processing flag on payment success page load
+    // Clear checkout processing flag
     localStorage.removeItem('checkout_payment_pending');
 
-    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    // Prevent duplicate runs from re-renders
+    if (verificationRunRef.current) return;
+    verificationRunRef.current = true;
 
-    const runKey = isPayPal
-      ? `paypal:${paypalOrderId || ''}:${orderId || ''}`
-      : `stripe:${sessionId || ''}`;
+    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    // Prevent duplicate verification calls (e.g. rerenders/profile hydration) from overriding state.
-    if (verificationRunRef.current === runKey) {
-      return;
-    }
-    verificationRunRef.current = runKey;
-
-    // Retry helper with exponential backoff
-    const retryVerifyStripe = async (sessionIdVal: string, maxRetries = 3): Promise<{ data: any; error: any }> => {
-      for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        if (attempt > 0) {
-          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-          await sleep(delay);
-        }
-        try {
-          const result = await supabase.functions.invoke('verify-payment', {
-            body: { session_id: sessionIdVal },
-          });
-
-          if (!result.error) {
-            const bodyMessage = String(result.data?.message || result.data?.error || '').toLowerCase();
-            const isTransientBodyFailure =
-              result.data?.success === false &&
-              (bodyMessage.includes('not found') ||
-                bodyMessage.includes('introuvable') ||
-                bodyMessage.includes('not completed') ||
-                bodyMessage.includes('pas finalisé'));
-
-            if (isTransientBodyFailure && attempt < maxRetries) {
-              console.warn(
-                `[PaymentSuccess] verify-payment returned transient body failure on attempt ${attempt + 1}, retrying...`
-              );
-              continue;
-            }
-
-            return result;
-          }
-
-          // If it's a transient error (500), retry
-          if (attempt < maxRetries) {
-            console.warn(`[PaymentSuccess] verify-payment attempt ${attempt + 1} failed, retrying...`);
-            continue;
-          }
-
-          return result;
-        } catch (err) {
-          if (attempt < maxRetries) {
-            console.warn(`[PaymentSuccess] Network error on attempt ${attempt + 1}, retrying...`);
-            continue;
-          }
-          return { data: null, error: err };
-        }
-      }
-      return { data: null, error: new Error('Max retries exceeded') };
+    const getCustomerInfo = (): CustomerInfo => {
+      const nameParts = (profile?.full_name || '').split(' ');
+      return {
+        firstName: nameParts[0] || '',
+        lastName: nameParts.slice(1).join(' ') || '',
+        email: user?.email || '',
+      };
     };
 
-    const handleStripeSuccess = (data: any) => {
+    const setSuccess = (oid: string, message?: string) => {
       setVerificationResult({
         success: true,
-        message: data.message || t('pages:paymentSuccess.success.verified'),
-        orderId: data.orderId,
-        transactionId: sessionId!.slice(-8).toUpperCase(),
+        message: message || t('pages:paymentSuccess.success.verified'),
+        orderId: oid,
+        transactionId: sessionId ? sessionId.slice(-8).toUpperCase() : undefined,
       });
-      let cust: CustomerInfo;
-      if (data.customerInfo) {
-        cust = data.customerInfo;
-      } else {
-        const nameParts = (profile?.full_name || '').split(' ');
-        cust = {
-          firstName: nameParts[0] || '',
-          lastName: nameParts.slice(1).join(' ') || '',
-          email: user?.email || '',
-        };
-      }
-      setCustomerInfo(cust);
-      if (data.invoiceData && data.orderId)
-        buildInvoiceFromResponse(data.invoiceData, data.orderId, cust);
+      setCustomerInfo(getCustomerInfo());
       clearCart();
       localStorage.removeItem('cart');
       toast.success(t('pages:paymentSuccess.success.confirmed'));
     };
 
-    const verifyPayment = async () => {
-      if (isPayPal && paypalOrderId && orderId) {
-        try {
-          const { data, error } = await supabase.functions.invoke(
-            'verify-paypal-payment',
-            {
-              body: { paypal_order_id: paypalOrderId, order_id: orderId },
-            }
-          );
+    // ================================================================
+    // STEP 1: Lightweight DB lookup by stripe_session_id
+    // ================================================================
+    const lookupOrder = async (sid: string): Promise<OrderLookupResult> => {
+      try {
+        const { data, error } = await supabase.functions.invoke('order-lookup', {
+          body: { session_id: sid },
+        });
+        if (error || !data) return { found: false };
+        return data as OrderLookupResult;
+      } catch {
+        return { found: false };
+      }
+    };
 
-          if (error) {
-            setVerificationResult({
-              success: false,
-              message: t('pages:paymentSuccess.errors.verificationError'),
-            });
-          } else if (data?.success) {
-            const finalOrderId = data.order_id || orderId;
-            setVerificationResult({
-              success: true,
-              message:
-                data.message || t('pages:paymentSuccess.success.verified'),
-              orderId: finalOrderId,
-              transactionId: data.transaction_id,
-            });
-            const cust = { firstName: '', lastName: '', email: '' };
-            if (profile || user) {
-              const nameParts = (profile?.full_name || '').split(' ');
-              cust.firstName = nameParts[0] || '';
-              cust.lastName = nameParts.slice(1).join(' ') || '';
-              cust.email = user?.email || '';
-            }
-            setCustomerInfo(cust);
-            if (data.invoiceData)
-              buildInvoiceFromResponse(data.invoiceData, finalOrderId, cust);
-            clearCart();
-            localStorage.removeItem('cart');
-            toast.success(t('pages:paymentSuccess.success.confirmed'));
-          } else {
-            setVerificationResult({
-              success: false,
-              message:
-                data?.message ||
-                t('pages:paymentSuccess.errors.verificationFailed'),
-            });
-          }
-        } catch {
-          setVerificationResult({
-            success: false,
-            message: t('pages:paymentSuccess.errors.unexpectedError'),
-          });
-        } finally {
+    // ================================================================
+    // STEP 2: Poll for pending order becoming paid (max ~10s)
+    // ================================================================
+    const pollUntilPaid = async (sid: string): Promise<OrderLookupResult> => {
+      const maxPolls = 5;
+      const pollInterval = 2000;
+      for (let i = 0; i < maxPolls; i++) {
+        setProcessingMessage(
+          `Traitement en cours… (${i + 1}/${maxPolls})`
+        );
+        await sleep(pollInterval);
+        const result = await lookupOrder(sid);
+        if (result.found && result.is_paid) return result;
+      }
+      // Final check
+      return lookupOrder(sid);
+    };
+
+    // ================================================================
+    // STEP 3: verify-payment as last resort fallback (single call)
+    // ================================================================
+    const verifyPaymentFallback = async (sid: string) => {
+      console.log('[PaymentSuccess] Calling verify-payment as fallback');
+      try {
+        const { data, error } = await supabase.functions.invoke('verify-payment', {
+          body: { session_id: sid },
+        });
+        if (error) return null;
+        return data;
+      } catch {
+        return null;
+      }
+    };
+
+    // ================================================================
+    // MAIN FLOW: Deterministic order confirmation
+    // ================================================================
+    const verifyStripePayment = async (sid: string) => {
+      console.log('[PaymentSuccess] Starting deterministic verification', { session_id: sid });
+
+      // Step 1: Immediate DB lookup
+      const initial = await lookupOrder(sid);
+
+      if (initial.found && initial.is_paid) {
+        // Order already confirmed — instant success
+        console.log('[PaymentSuccess] Order already paid in DB', { order_id: initial.order_id });
+        setSuccess(initial.order_id!);
+        setIsVerifying(false);
+        return;
+      }
+
+      if (initial.found && !initial.is_paid) {
+        // Order exists but pending — webhook hasn't fired yet, poll
+        console.log('[PaymentSuccess] Order pending, polling...', { order_id: initial.order_id });
+        setProcessingMessage('Votre paiement est en cours de validation…');
+        const polled = await pollUntilPaid(sid);
+
+        if (polled.found && polled.is_paid) {
+          console.log('[PaymentSuccess] Order confirmed after polling');
+          setSuccess(polled.order_id!);
           setIsVerifying(false);
+          return;
         }
-      } else if (sessionId) {
-        // Stripe verification with retry + backoff
-        const { data, error } = await retryVerifyStripe(sessionId);
 
-        if (error) {
-          // All retries failed — show reassuring message since webhook handles it
-          setVerificationResult({
-            success: false,
-            message: 'La vérification a pris trop de temps. Si vous avez été débité, votre commande sera traitée automatiquement.',
-          });
-        } else if (data?.success) {
-          handleStripeSuccess(data);
-        } else {
-          // Function returned but success=false (e.g. payment not completed)
-          setVerificationResult({
-            success: false,
-            message:
-              data?.message ||
-              t('pages:paymentSuccess.errors.verificationFailed'),
-          });
+        // Still pending after polling — show success anyway (webhook will handle it)
+        console.log('[PaymentSuccess] Order still pending after polling, showing reassuring success');
+        setVerificationResult({
+          success: true,
+          message: 'Votre paiement a été reçu. Votre commande est en cours de finalisation.',
+          orderId: polled.order_id || initial.order_id,
+        });
+        setCustomerInfo(getCustomerInfo());
+        clearCart();
+        localStorage.removeItem('cart');
+        setIsVerifying(false);
+        return;
+      }
+
+      // Step 3: No order found at all — call verify-payment as fallback
+      console.log('[PaymentSuccess] No order found, calling verify-payment fallback');
+      setProcessingMessage('Vérification du paiement…');
+
+      const fallbackData = await verifyPaymentFallback(sid);
+
+      if (fallbackData?.success) {
+        console.log('[PaymentSuccess] verify-payment fallback succeeded', { order_id: fallbackData.orderId });
+        setSuccess(fallbackData.orderId);
+        if (fallbackData.invoiceData && fallbackData.orderId) {
+          const cust = fallbackData.customerInfo || getCustomerInfo();
+          setCustomerInfo(cust);
+          buildInvoiceFromResponse(fallbackData.invoiceData, fallbackData.orderId, cust);
         }
         setIsVerifying(false);
-      } else {
+        return;
+      }
+
+      // Last resort: one more DB check (webhook may have arrived during verify-payment call)
+      const finalCheck = await lookupOrder(sid);
+      if (finalCheck.found && finalCheck.is_paid) {
+        console.log('[PaymentSuccess] Order confirmed on final DB check');
+        setSuccess(finalCheck.order_id!);
+        setIsVerifying(false);
+        return;
+      }
+
+      if (finalCheck.found) {
+        // Order exists but not yet paid — show reassuring message, never show failure
+        console.log('[PaymentSuccess] Order exists but not yet paid, showing reassuring message');
+        setVerificationResult({
+          success: true,
+          message: 'Votre paiement a été reçu. La confirmation sera envoyée par email sous quelques minutes.',
+          orderId: finalCheck.order_id,
+        });
+        setCustomerInfo(getCustomerInfo());
+        clearCart();
+        localStorage.removeItem('cart');
+        setIsVerifying(false);
+        return;
+      }
+
+      // Truly no order and verify-payment failed — this is a real failure
+      console.error('[PaymentSuccess] No order found and verify-payment failed');
+      setVerificationResult({
+        success: false,
+        message: fallbackData?.message || 'La vérification a pris trop de temps. Si vous avez été débité, votre commande sera traitée automatiquement.',
+      });
+      setIsVerifying(false);
+    };
+
+    // ================================================================
+    // PayPal flow (unchanged)
+    // ================================================================
+    const verifyPayPalPayment = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          'verify-paypal-payment',
+          { body: { paypal_order_id: paypalOrderId, order_id: orderId } }
+        );
+
+        if (error) {
+          setVerificationResult({
+            success: false,
+            message: t('pages:paymentSuccess.errors.verificationError'),
+          });
+        } else if (data?.success) {
+          const finalOrderId = data.order_id || orderId;
+          setVerificationResult({
+            success: true,
+            message: data.message || t('pages:paymentSuccess.success.verified'),
+            orderId: finalOrderId,
+            transactionId: data.transaction_id,
+          });
+          const cust = getCustomerInfo();
+          setCustomerInfo(cust);
+          if (data.invoiceData) buildInvoiceFromResponse(data.invoiceData, finalOrderId!, cust);
+          clearCart();
+          localStorage.removeItem('cart');
+          toast.success(t('pages:paymentSuccess.success.confirmed'));
+        } else {
+          setVerificationResult({
+            success: false,
+            message: data?.message || t('pages:paymentSuccess.errors.verificationFailed'),
+          });
+        }
+      } catch {
         setVerificationResult({
           success: false,
-          message: t('pages:paymentSuccess.errors.missingSession'),
+          message: t('pages:paymentSuccess.errors.unexpectedError'),
         });
+      } finally {
         setIsVerifying(false);
       }
     };
 
-    verifyPayment();
+    // Entry point
+    if (isPayPal && paypalOrderId && orderId) {
+      verifyPayPalPayment();
+    } else if (sessionId) {
+      verifyStripePayment(sessionId);
+    } else {
+      setVerificationResult({
+        success: false,
+        message: t('pages:paymentSuccess.errors.missingSession'),
+      });
+      setIsVerifying(false);
+    }
   }, [
     sessionId,
     isPayPal,
@@ -339,8 +403,7 @@ const PaymentSuccess = () => {
     const formatPrice = (value: number) => value.toFixed(2) + ' €';
     const invoiceNumber = `${new Date().getFullYear()}-${invoiceData.orderId.slice(-8).toUpperCase()}`;
     const paymentLabel =
-      PAYMENT_METHOD_LABELS[invoiceData.paymentMethod] ||
-      invoiceData.paymentMethod;
+      PAYMENT_METHOD_LABELS[invoiceData.paymentMethod] || invoiceData.paymentMethod;
     const countryName = invoiceData.shippingAddress?.country
       ? COUNTRY_NAMES[invoiceData.shippingAddress.country] ||
         invoiceData.shippingAddress.country
@@ -357,30 +420,20 @@ const PaymentSuccess = () => {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: #1a1a1a; background: #fff; }
     .page { max-width: 800px; margin: 0 auto; padding: 48px 40px; }
-
-    /* === HEADER === */
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
-    .brand { }
     .brand-name { font-size: 28px; font-weight: 700; color: #2d5016; letter-spacing: -0.5px; }
     .brand-tagline { font-size: 11px; color: #8a8a8a; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }
-    .invoice-badge { text-align: right; }
     .invoice-badge h1 { font-size: 32px; font-weight: 300; color: #2d5016; text-transform: uppercase; letter-spacing: 3px; }
-
-    /* === INVOICE META STRIP === */
     .meta-strip { display: flex; gap: 0; border: 1px solid #e5e5e5; border-radius: 6px; margin-bottom: 32px; overflow: hidden; }
     .meta-cell { flex: 1; padding: 14px 16px; border-right: 1px solid #e5e5e5; }
     .meta-cell:last-child { border-right: none; }
     .meta-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #999; font-weight: 600; margin-bottom: 4px; }
     .meta-value { font-size: 13px; font-weight: 600; color: #1a1a1a; }
-
-    /* === ADDRESSES === */
     .addresses { display: flex; gap: 40px; margin-bottom: 36px; }
     .address-block { flex: 1; }
     .address-title { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: #2d5016; font-weight: 700; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px solid #2d5016; display: inline-block; }
     .address-line { font-size: 12.5px; line-height: 1.7; color: #444; }
     .address-line strong { color: #1a1a1a; }
-
-    /* === TABLE === */
     table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
     thead th { background: #2d5016; color: #fff; padding: 11px 14px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
     thead th:first-child { border-radius: 4px 0 0 0; text-align: left; }
@@ -391,8 +444,6 @@ const PaymentSuccess = () => {
     tbody tr:last-child td { border-bottom: none; }
     tbody tr:nth-child(even) { background: #fafaf8; }
     .product-name { font-weight: 500; }
-
-    /* === TOTALS === */
     .totals-wrapper { display: flex; justify-content: flex-end; margin-bottom: 36px; }
     .totals { width: 300px; }
     .totals-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 12.5px; color: #555; }
@@ -400,23 +451,16 @@ const PaymentSuccess = () => {
     .totals-row.grand { border-top: 2px solid #2d5016; margin-top: 8px; padding-top: 12px; font-size: 16px; font-weight: 700; color: #2d5016; }
     .totals-value { font-variant-numeric: tabular-nums; font-weight: 500; }
     .totals-row.grand .totals-value { font-weight: 700; }
-
-    /* === LEGAL MENTIONS === */
     .legal { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e5e5; }
     .legal-title { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #2d5016; font-weight: 700; margin-bottom: 8px; }
     .legal-text { font-size: 10.5px; line-height: 1.7; color: #888; }
-
-    /* === FOOTER === */
     .footer { margin-top: 32px; padding-top: 20px; border-top: 1px solid #e5e5e5; display: flex; justify-content: space-between; align-items: flex-start; }
     .footer-company { font-size: 10px; color: #999; line-height: 1.8; }
     .footer-contact { font-size: 10px; color: #999; line-height: 1.8; text-align: right; }
     .footer-contact a { color: #2d5016; text-decoration: none; }
-
-    /* === THANK YOU === */
     .thank-you { text-align: center; margin-top: 40px; padding: 20px; background: #f7f7f2; border-radius: 6px; }
     .thank-you p { font-size: 14px; color: #2d5016; font-weight: 500; }
     .thank-you .sub { font-size: 11px; color: #888; margin-top: 4px; font-weight: 400; }
-
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .page { padding: 24px 20px; }
@@ -426,8 +470,6 @@ const PaymentSuccess = () => {
 </head>
 <body>
   <div class="page">
-
-    <!-- HEADER -->
     <div class="header">
       <div class="brand">
         <div class="brand-name">Rif Raw Straw</div>
@@ -437,8 +479,6 @@ const PaymentSuccess = () => {
         <h1>Facture</h1>
       </div>
     </div>
-
-    <!-- META STRIP -->
     <div class="meta-strip">
       <div class="meta-cell">
         <div class="meta-label">N° Facture</div>
@@ -457,8 +497,6 @@ const PaymentSuccess = () => {
         <div class="meta-value">${invoiceData.orderId.slice(-8).toUpperCase()}</div>
       </div>
     </div>
-
-    <!-- ADDRESSES -->
     <div class="addresses">
       <div class="address-block">
         <div class="address-title">Vendeur</div>
@@ -487,8 +525,6 @@ const PaymentSuccess = () => {
         }
       </div>
     </div>
-
-    <!-- PRODUCTS TABLE -->
     <table>
       <thead>
         <tr>
@@ -512,8 +548,6 @@ const PaymentSuccess = () => {
           .join('')}
       </tbody>
     </table>
-
-    <!-- TOTALS -->
     <div class="totals-wrapper">
       <div class="totals">
         <div class="totals-row">
@@ -539,8 +573,6 @@ const PaymentSuccess = () => {
         </div>
       </div>
     </div>
-
-    <!-- LEGAL MENTIONS -->
     <div class="legal">
       <div class="legal-title">Mentions légales</div>
       <div class="legal-text">
@@ -550,8 +582,6 @@ const PaymentSuccess = () => {
         Conditions de retour : conformément à notre politique, retour possible sous 14 jours après réception.
       </div>
     </div>
-
-    <!-- REFERENCES -->
     <div class="legal" style="margin-top: 16px; border-top: none;">
       <div class="legal-title">Références techniques</div>
       <div class="legal-text">
@@ -560,8 +590,6 @@ const PaymentSuccess = () => {
         Date de paiement : ${invoiceData.date}
       </div>
     </div>
-
-    <!-- FOOTER -->
     <div class="footer">
       <div class="footer-company">
         Rif Raw Straw<br>
@@ -574,15 +602,11 @@ const PaymentSuccess = () => {
         Service client disponible par email
       </div>
     </div>
-
-    <!-- THANK YOU -->
     <div class="thank-you">
       <p>Merci pour votre confiance !</p>
       <p class="sub">Chaque pièce est fabriquée à la main par nos artisans du Rif.</p>
     </div>
-
   </div>
-
   <script>window.onload = function() { window.print(); }</script>
 </body>
 </html>`;
@@ -616,7 +640,7 @@ const PaymentSuccess = () => {
                   {t('pages:paymentSuccess.verifying.title')}
                 </h1>
                 <p className="text-lg text-muted-foreground mb-2">
-                  {t('pages:paymentSuccess.verifying.description')}
+                  {processingMessage || t('pages:paymentSuccess.verifying.description')}
                 </p>
               </>
             ) : verificationResult?.success ? (
@@ -754,7 +778,6 @@ const PaymentSuccess = () => {
                 )}
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
-                {/* Primary CTA: View Orders (logged in) */}
                 {user && verificationResult?.success && (
                   <Button asChild size="lg" className="gap-2">
                     <Link to="/orders">
@@ -766,7 +789,6 @@ const PaymentSuccess = () => {
                   </Button>
                 )}
 
-                {/* Invoice Download */}
                 {verificationResult?.success && invoiceData && (
                   <Button
                     onClick={handleDownloadInvoice}
