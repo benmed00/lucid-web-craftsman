@@ -103,7 +103,7 @@ serve(async (req) => {
     const { data: orderData, error: orderError } = await supabaseService
       .from('orders')
       .select(
-        'id, status, order_status, amount, currency, shipping_address, metadata, created_at'
+        'id, status, order_status, amount, currency, shipping_address, metadata, created_at, user_id'
       )
       .eq('stripe_session_id', session_id)
       .maybeSingle();
