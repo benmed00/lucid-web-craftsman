@@ -615,6 +615,7 @@ const PaymentSuccess = () => {
             )}
           </div>
 
+          {verificationResult?.success && (
           <div className="bg-muted rounded-lg p-8 mb-8">
             <h2 className="text-xl font-medium text-foreground mb-4">
               {t('pages:paymentSuccess.nextSteps.title')}
