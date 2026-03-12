@@ -49,9 +49,41 @@ export const useLanguageStore = create<LanguageState>()(
     }),
     {
       name: 'language-storage',
+      version: 1,
       partialize: (state) => ({ locale: state.locale }),
+      migrate: (persisted: any, version: number) => {
+        try {
+          if (version < 1) {
+            const locale = persisted?.locale;
+            if (locale && supportedLanguages.includes(locale)) {
+              return { locale };
+            }
+            return { locale: 'fr' };
+          }
+          return persisted;
+        } catch {
+          return { locale: 'fr' };
+        }
+      },
+      storage: {
+        getItem: (name) => {
+          try {
+            const raw = localStorage.getItem(name);
+            if (!raw) return null;
+            return JSON.parse(raw);
+          } catch {
+            try { localStorage.removeItem(name); } catch { /* ignore */ }
+            return null;
+          }
+        },
+        setItem: (name, value) => {
+          try { localStorage.setItem(name, JSON.stringify(value)); } catch { /* ignore */ }
+        },
+        removeItem: (name) => {
+          try { localStorage.removeItem(name); } catch { /* ignore */ }
+        },
+      },
       onRehydrateStorage: () => (state) => {
-        // Sync i18next with stored locale on rehydration
         if (state?.locale) {
           i18n.changeLanguage(state.locale);
         }

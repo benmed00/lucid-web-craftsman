@@ -68,9 +68,41 @@ export const useThemeStore = create<ThemeState>()(
       }),
       {
         name: 'rif-raw-straw-theme',
+        version: 1,
         partialize: (state) => ({ theme: state.theme }),
+        migrate: (persisted: any, version: number) => {
+          try {
+            if (version < 1) {
+              const theme = persisted?.theme;
+              if (theme && ['light', 'dark', 'system'].includes(theme)) {
+                return { theme };
+              }
+              return { theme: 'system' };
+            }
+            return persisted;
+          } catch {
+            return { theme: 'system' };
+          }
+        },
+        storage: {
+          getItem: (name) => {
+            try {
+              const raw = localStorage.getItem(name);
+              if (!raw) return null;
+              return JSON.parse(raw);
+            } catch {
+              try { localStorage.removeItem(name); } catch { /* ignore */ }
+              return null;
+            }
+          },
+          setItem: (name, value) => {
+            try { localStorage.setItem(name, JSON.stringify(value)); } catch { /* ignore */ }
+          },
+          removeItem: (name) => {
+            try { localStorage.removeItem(name); } catch { /* ignore */ }
+          },
+        },
         onRehydrateStorage: () => (state) => {
-          // After rehydration, update resolved theme
           if (state) {
             state._updateResolvedTheme();
           }

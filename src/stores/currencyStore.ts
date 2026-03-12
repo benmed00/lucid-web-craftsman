@@ -209,7 +209,40 @@ export const useCurrencyStore = create<CurrencyState>()(
       }),
       {
         name: 'currency-storage',
+        version: 1,
         partialize: (state) => ({ currency: state.currency }),
+        migrate: (persisted: any, version: number) => {
+          try {
+            if (version < 1) {
+              const currency = persisted?.currency;
+              if (currency && ['EUR', 'USD', 'GBP', 'MAD'].includes(currency)) {
+                return { currency };
+              }
+              return { currency: 'EUR' };
+            }
+            return persisted;
+          } catch {
+            return { currency: 'EUR' };
+          }
+        },
+        storage: {
+          getItem: (name) => {
+            try {
+              const raw = localStorage.getItem(name);
+              if (!raw) return null;
+              return JSON.parse(raw);
+            } catch {
+              try { localStorage.removeItem(name); } catch { /* ignore */ }
+              return null;
+            }
+          },
+          setItem: (name, value) => {
+            try { localStorage.setItem(name, JSON.stringify(value)); } catch { /* ignore */ }
+          },
+          removeItem: (name) => {
+            try { localStorage.removeItem(name); } catch { /* ignore */ }
+          },
+        },
       }
     ),
     { name: 'currency-store' }
