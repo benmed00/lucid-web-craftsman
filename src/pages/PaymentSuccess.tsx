@@ -99,6 +99,7 @@ const PaymentSuccess = () => {
   );
   const { clearCart } = useCart();
   const { user, profile } = useAuth();
+  const verificationRunRef = useRef<string | null>(null);
 
   // Build invoice data from verify-payment response
   const buildInvoiceFromResponse = useCallback(
