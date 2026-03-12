@@ -615,6 +615,7 @@ const PaymentSuccess = () => {
             )}
           </div>
 
+          {verificationResult?.success && (
           <div className="bg-muted rounded-lg p-8 mb-8">
             <h2 className="text-xl font-medium text-foreground mb-4">
               {t('pages:paymentSuccess.nextSteps.title')}
@@ -661,6 +662,24 @@ const PaymentSuccess = () => {
               </div>
             </div>
           </div>
+          )}
+
+          {/* Error-specific guidance */}
+          {!isVerifying && !verificationResult?.success && (
+            <div className="bg-muted rounded-lg p-8 mb-8">
+              <h2 className="text-xl font-medium text-foreground mb-4">
+                Que faire maintenant ?
+              </h2>
+              <div className="space-y-3 text-left max-w-md mx-auto">
+                <p className="text-muted-foreground text-sm">
+                  Si vous avez été débité, ne vous inquiétez pas. Votre paiement a bien été enregistré par Stripe et votre commande sera traitée automatiquement.
+                </p>
+                <p className="text-muted-foreground text-sm">
+                  Vérifiez votre boîte email pour la confirmation de commande. Si vous ne la recevez pas dans les 15 minutes, contactez notre support.
+                </p>
+              </div>
+            </div>
+          )}
 
           {!isVerifying && (
             <div className="space-y-4">

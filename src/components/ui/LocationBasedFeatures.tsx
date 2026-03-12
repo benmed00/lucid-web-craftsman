@@ -31,6 +31,7 @@ export const LocationBasedFeatures = ({
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [nearbyStores, setNearbyStores] = useState<StoreLocation[]>([]);
   const [deliveryEstimate, setDeliveryEstimate] = useState<string | null>(null);
+  const [locationDenied, setLocationDenied] = useState(false);
 
   const mockStores: StoreLocation[] = [
     {
@@ -119,24 +120,24 @@ export const LocationBasedFeatures = ({
       (error) => {
         console.error('Geolocation error:', error);
         setIsGettingLocation(false);
+        setLocationDenied(true);
 
         let errorMessage = 'Erreur de géolocalisation';
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = 'Permission de géolocalisation refusée';
+            errorMessage = 'Permission refusée — veuillez saisir votre code postal ci-dessus';
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage = 'Position indisponible';
+            errorMessage = 'Position indisponible — veuillez saisir votre code postal';
             break;
           case error.TIMEOUT:
-            errorMessage = 'Délai de géolocalisation dépassé';
+            errorMessage = 'Délai dépassé — veuillez saisir votre code postal';
             break;
         }
 
         toast({
-          title: 'Erreur de localisation',
+          title: 'Localisation indisponible',
           description: errorMessage,
-          variant: 'destructive',
         });
       },
       options
@@ -215,27 +216,35 @@ export const LocationBasedFeatures = ({
         <CardContent className="pt-0">
           {!currentLocation ? (
             <div className="text-center py-4">
-              <p className="text-stone-600 mb-4 text-sm">
-                Activez la géolocalisation pour obtenir les meilleures options
-                de livraison et trouver nos boutiques près de chez vous.
-              </p>
-              <Button
-                onClick={requestLocation}
-                disabled={isGettingLocation}
-                className="bg-olive-700 hover:bg-olive-800 text-white"
-              >
-                {isGettingLocation ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Localisation...
-                  </>
-                ) : (
-                  <>
-                    <Navigation className="mr-2 h-4 w-4" />
-                    Activer la géolocalisation
-                  </>
-                )}
-              </Button>
+              {locationDenied ? (
+                <p className="text-muted-foreground text-sm">
+                  📍 Géolocalisation non disponible. Utilisez le champ « Code postal » ci-dessus pour calculer vos frais de livraison.
+                </p>
+              ) : (
+                <>
+                  <p className="text-muted-foreground mb-4 text-sm">
+                    Activez la géolocalisation pour obtenir les meilleures options
+                    de livraison et trouver nos boutiques près de chez vous.
+                  </p>
+                  <Button
+                    onClick={requestLocation}
+                    disabled={isGettingLocation}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    {isGettingLocation ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Localisation...
+                      </>
+                    ) : (
+                      <>
+                        <Navigation className="mr-2 h-4 w-4" />
+                        Activer la géolocalisation
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
