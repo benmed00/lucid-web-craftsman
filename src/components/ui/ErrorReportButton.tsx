@@ -22,6 +22,8 @@ interface ErrorReportForm {
   errorType: string;
 }
 
+const ERROR_REPORT_GUEST_KEY = 'error_report_guest_id';
+
 export const ErrorReportButton = () => {
   const { t } = useTranslation('errors');
   const [isOpen, setIsOpen] = useState(false);
@@ -68,11 +70,24 @@ export const ErrorReportButton = () => {
     }
   };
 
-  const uploadScreenshot = async (file: File): Promise<string | null> => {
+  const getGuestOwnerId = (): string => {
+    let guestId = localStorage.getItem(ERROR_REPORT_GUEST_KEY);
+    if (!guestId) {
+      guestId = crypto.randomUUID();
+      localStorage.setItem(ERROR_REPORT_GUEST_KEY, guestId);
+    }
+    return `guest-${guestId}`;
+  };
+
+  const uploadScreenshot = async (
+    file: File,
+    userId?: string
+  ): Promise<string | null> => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `reports/${fileName}`;
+      const ownerSegment = userId || getGuestOwnerId();
+      const filePath = `reports/${ownerSegment}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('error-screenshots')
@@ -113,7 +128,7 @@ export const ErrorReportButton = () => {
       // Upload screenshot if present
       let screenshotUrl: string | null = null;
       if (screenshot) {
-        screenshotUrl = await uploadScreenshot(screenshot);
+        screenshotUrl = await uploadScreenshot(screenshot, user?.id);
       }
 
       const reportData = {
