@@ -100,6 +100,14 @@ const OrderHistory = () => {
             unit_price,
             total_price,
             product_snapshot
+          ),
+          order_status_history (
+            id,
+            new_status,
+            previous_status,
+            created_at,
+            reason_message,
+            changed_by
           )
         `
         )
