@@ -68,6 +68,7 @@ Scope: Supabase database schema/policies/migrations, storage policies, edge func
    - Impact: business/security configuration disclosure.
    - Fix applied:
      - Added restrictive policy allowing only approved storefront keys or admin users.
+     - Added anon safe-key read policy for storefront-only keys to preserve guest UX without exposing sensitive settings.
 
 5. **Storage policies had weak write constraints on sensitive buckets.**
 

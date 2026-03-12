@@ -87,6 +87,21 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "app_settings_select_anon_safe_keys_v2" ON public.app_settings;
+CREATE POLICY "app_settings_select_anon_safe_keys_v2"
+ON public.app_settings
+FOR SELECT
+TO anon
+USING (
+  setting_key = ANY (
+    ARRAY[
+      'business_rules',
+      'display_settings',
+      'free_shipping_threshold'
+    ]::text[]
+  )
+);
+
 -- ---------------------------------------------------------------------------
 -- 3) Restrict log/security inserts to admin users only
 -- ---------------------------------------------------------------------------
