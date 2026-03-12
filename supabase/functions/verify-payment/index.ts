@@ -68,13 +68,109 @@ serve(async (req) => {
 
     logStep('Verifying session', { sessionId: session_id });
 
+    const selectOrderFields =
+      'id, status, order_status, amount, currency, shipping_address, metadata, created_at, user_id';
+
+    const isOrderConfirmed = (order: any): boolean => {
+      const status = String(order?.status || '').toLowerCase();
+      const orderStatus = String(order?.order_status || '').toLowerCase();
+      const metadata = (order?.metadata || {}) as Record<string, unknown>;
+
+      return (
+        status === 'paid' ||
+        status === 'completed' ||
+        orderStatus === 'paid' ||
+        orderStatus === 'completed' ||
+        metadata.webhook_processed === true ||
+        metadata.webhook_processed === 'true'
+      );
+    };
+
+    const findOrderBySession = async (
+      sessionIdValue: string,
+      fallbackOrderId?: string
+    ) => {
+      const { data: bySession } = await supabaseService
+        .from('orders')
+        .select(selectOrderFields)
+        .eq('stripe_session_id', sessionIdValue)
+        .maybeSingle();
+
+      if (bySession) return bySession;
+
+      const { data: byMetadata } = await supabaseService
+        .from('orders')
+        .select(selectOrderFields)
+        .contains('metadata', { stripe_session_id: sessionIdValue })
+        .maybeSingle();
+
+      if (byMetadata) return byMetadata;
+
+      if (fallbackOrderId) {
+        const { data: byOrderId } = await supabaseService
+          .from('orders')
+          .select(selectOrderFields)
+          .eq('id', fallbackOrderId)
+          .maybeSingle();
+
+        if (byOrderId) return byOrderId;
+      }
+
+      return null;
+    };
+
+    // DB-first path: if webhook already confirmed the order, don't block UX on Stripe API lookup.
+    const preConfirmedOrder = await findOrderBySession(session_id);
+    if (preConfirmedOrder && isOrderConfirmed(preConfirmedOrder)) {
+      logStep('Order already confirmed in DB before Stripe lookup', {
+        orderId: preConfirmedOrder.id,
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Commande confirmée',
+          orderId: preConfirmedOrder.id,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
+    }
+
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2025-08-27.basil',
     });
 
-    const session = await stripe.checkout.sessions.retrieve(session_id, {
-      expand: ['customer', 'payment_intent'],
-    });
+    let session: Stripe.Checkout.Session;
+
+    try {
+      session = await stripe.checkout.sessions.retrieve(session_id, {
+        expand: ['customer', 'payment_intent'],
+      });
+    } catch (stripeErr) {
+      logStep('Stripe lookup failed, retrying via DB-only confirmation path', {
+        message: (stripeErr as Error).message,
+      });
+
+      const recoveredOrder = await findOrderBySession(session_id);
+      if (recoveredOrder && isOrderConfirmed(recoveredOrder)) {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'Commande confirmée',
+            orderId: recoveredOrder.id,
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
+          }
+        );
+      }
+
+      throw stripeErr;
+    }
 
     if (!session) {
       throw new Error('Session not found');
@@ -99,17 +195,14 @@ serve(async (req) => {
       );
     }
 
-    // Find order by stripe_session_id
-    const { data: orderData, error: orderError } = await supabaseService
-      .from('orders')
-      .select(
-        'id, status, order_status, amount, currency, shipping_address, metadata, created_at, user_id'
-      )
-      .eq('stripe_session_id', session_id)
-      .maybeSingle();
+    // Find order by stripe_session_id, metadata.stripe_session_id, then Stripe metadata order_id.
+    const orderData = await findOrderBySession(session_id, session.metadata?.order_id);
 
-    if (orderError || !orderData) {
-      logStep('Order not found', { error: orderError });
+    if (!orderData) {
+      logStep('Order not found after Stripe verification', {
+        sessionId: session_id,
+        fallbackOrderId: session.metadata?.order_id,
+      });
       throw new Error('Order not found');
     }
 
