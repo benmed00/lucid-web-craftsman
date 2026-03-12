@@ -119,24 +119,24 @@ export const LocationBasedFeatures = ({
       (error) => {
         console.error('Geolocation error:', error);
         setIsGettingLocation(false);
+        setLocationDenied(true);
 
         let errorMessage = 'Erreur de géolocalisation';
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = 'Permission de géolocalisation refusée';
+            errorMessage = 'Permission refusée — veuillez saisir votre code postal ci-dessus';
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage = 'Position indisponible';
+            errorMessage = 'Position indisponible — veuillez saisir votre code postal';
             break;
           case error.TIMEOUT:
-            errorMessage = 'Délai de géolocalisation dépassé';
+            errorMessage = 'Délai dépassé — veuillez saisir votre code postal';
             break;
         }
 
         toast({
-          title: 'Erreur de localisation',
+          title: 'Localisation indisponible',
           description: errorMessage,
-          variant: 'destructive',
         });
       },
       options
