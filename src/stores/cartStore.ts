@@ -281,6 +281,7 @@ export const useCartStore = create<CartState>()(
         }),
         {
           name: 'cart-storage',
+          version: 2,
           partialize: (state) => ({
             items: state.items.map((item) => ({
               id: item.id,
@@ -288,54 +289,91 @@ export const useCartStore = create<CartState>()(
             })),
             offlineQueue: state.offlineQueue,
           }),
+          migrate: (persisted: any, version: number) => {
+            try {
+              // v0/v1 → v2: ensure items have correct shape
+              if (version < 2) {
+                const state = persisted as any;
+                const items = Array.isArray(state?.items)
+                  ? state.items
+                      .filter((item: any) => item && typeof item.id === 'number' && typeof item.quantity === 'number')
+                      .map((item: any) => ({ id: item.id, quantity: Math.max(1, Math.min(item.quantity, 99)) }))
+                  : [];
+                return { items, offlineQueue: [] };
+              }
+              return persisted;
+            } catch {
+              console.warn('[CartStore] Migration failed, resetting cart');
+              return { items: [], offlineQueue: [] };
+            }
+          },
           storage: {
             getItem: (name) => {
-              const data = safeGetItem<{ state: unknown; version: number }>(
-                name as keyof typeof StorageKeys
-              );
-              return data || null;
+              try {
+                const raw = localStorage.getItem(name);
+                if (!raw) return null;
+                return JSON.parse(raw);
+              } catch {
+                // Corrupted data — remove and return null
+                try { localStorage.removeItem(name); } catch { /* ignore */ }
+                return null;
+              }
             },
             setItem: (name, value) => {
-              safeSetItem(name as keyof typeof StorageKeys, value, {
-                ttl: StorageTTL.WEEK,
-              });
+              try {
+                localStorage.setItem(name, JSON.stringify(value));
+              } catch {
+                // Quota exceeded — non-fatal
+              }
             },
             removeItem: (name) => {
-              safeRemoveItem(name as keyof typeof StorageKeys);
+              try { localStorage.removeItem(name); } catch { /* ignore */ }
             },
           },
           onRehydrateStorage: () => {
-            return async (state, error) => {
+            return (state, error) => {
               if (error) {
-                console.error('Cart rehydration error:', error);
+                console.error('Cart rehydration error, clearing persisted state:', error);
+                try { localStorage.removeItem('cart-storage'); } catch { /* ignore */ }
                 return;
               }
 
+              // Validate items shape — if corrupt, reset
+              if (state?.items && !Array.isArray(state.items)) {
+                console.warn('[CartStore] Invalid items shape after rehydration, resetting');
+                useCartStore.setState({ items: [], offlineQueue: [] });
+                return;
+              }
+
+              // Async product loading — deferred, non-blocking
               if (state?.items?.length > 0) {
                 const itemsNeedingProducts = state.items.filter(
                   (item) => !item.product
                 );
 
                 if (itemsNeedingProducts.length > 0) {
-                  try {
-                    const reloadedItems = await loadProductsForCartItems(
-                      itemsNeedingProducts.map((item) => ({
-                        id: item.id,
-                        quantity: item.quantity,
-                      }))
-                    );
-                    const existingValidItems = state.items.filter(
-                      (item) => item.product
-                    );
-                    useCartStore.setState({
-                      items: [...existingValidItems, ...reloadedItems],
-                    });
-                  } catch (err) {
-                    console.error(
-                      'Failed to reload products during rehydration:',
-                      err
-                    );
-                  }
+                  // Use setTimeout to avoid blocking render
+                  setTimeout(async () => {
+                    try {
+                      const reloadedItems = await loadProductsForCartItems(
+                        itemsNeedingProducts.map((item) => ({
+                          id: item.id,
+                          quantity: item.quantity,
+                        }))
+                      );
+                      const existingValidItems = (useCartStore.getState().items || []).filter(
+                        (item) => item.product
+                      );
+                      useCartStore.setState({
+                        items: [...existingValidItems, ...reloadedItems],
+                      });
+                    } catch (err) {
+                      console.error(
+                        'Failed to reload products during rehydration:',
+                        err
+                      );
+                    }
+                  }, 0);
                 }
               }
             };

@@ -58,6 +58,44 @@ setupProductionErrorSuppression();
     });
 }
 
+// ============= Safe localStorage validation =============
+// Validate persisted Zustand stores before initialization.
+// Corrupted JSON will crash store hydration and break the entire app.
+{
+  const PERSISTED_STORES = ['cart-storage', 'currency-storage', 'rif-raw-straw-theme', 'language-storage'];
+  for (const key of PERSISTED_STORES) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Zustand persist format: { state: {...}, version: number }
+        if (!parsed || typeof parsed !== 'object' || !('state' in parsed)) {
+          console.warn(`[StorageGuard] Invalid format for "${key}", clearing`);
+          localStorage.removeItem(key);
+        }
+      }
+    } catch {
+      console.warn(`[StorageGuard] Corrupted JSON in "${key}", clearing`);
+      try { localStorage.removeItem(key); } catch { /* ignore */ }
+    }
+  }
+
+  // Also validate hero image cache (not a Zustand store but causes issues)
+  try {
+    const heroCache = localStorage.getItem('rif_hero_image_cache');
+    if (heroCache) {
+      const parsed = JSON.parse(heroCache);
+      if (!parsed || !parsed.imageUrl || !parsed.title) {
+        console.warn('[StorageGuard] Invalid hero cache, clearing');
+        localStorage.removeItem('rif_hero_image_cache');
+      }
+    }
+  } catch {
+    console.warn('[StorageGuard] Corrupted hero cache, clearing');
+    try { localStorage.removeItem('rif_hero_image_cache'); } catch { /* ignore */ }
+  }
+}
+
 // Initialize only critical stores before render
 if (!window.__PERF_OPTIMIZED__) {
   window.__PERF_OPTIMIZED__ = true;
@@ -69,12 +107,10 @@ if (!window.__PERF_OPTIMIZED__) {
   initializeLanguageStore();
 
   // Defer ALL non-critical initializations to after first paint
-  // Use double-rAF to ensure we're past the first frame
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       initPerformanceOptimizations();
       addResourceHints();
-      // Defer service worker even further to avoid competing with main thread
       setTimeout(() => {
         registerServiceWorker();
         initializeBusinessRules().catch(console.warn);
