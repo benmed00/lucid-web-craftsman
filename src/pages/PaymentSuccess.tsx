@@ -147,6 +147,64 @@ const PaymentSuccess = () => {
     // Clear checkout processing flag on payment success page load
     localStorage.removeItem('checkout_payment_pending');
 
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // Retry helper with exponential backoff
+    const retryVerifyStripe = async (sessionIdVal: string, maxRetries = 3): Promise<{ data: any; error: any }> => {
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        if (attempt > 0) {
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+          await sleep(delay);
+        }
+        try {
+          const result = await supabase.functions.invoke('verify-payment', {
+            body: { session_id: sessionIdVal },
+          });
+          // If the function returned successfully (even with success:false in body), return
+          if (!result.error) return result;
+          // If it's a transient error (500), retry
+          if (attempt < maxRetries) {
+            console.warn(`[PaymentSuccess] verify-payment attempt ${attempt + 1} failed, retrying...`);
+            continue;
+          }
+          return result;
+        } catch (err) {
+          if (attempt < maxRetries) {
+            console.warn(`[PaymentSuccess] Network error on attempt ${attempt + 1}, retrying...`);
+            continue;
+          }
+          return { data: null, error: err };
+        }
+      }
+      return { data: null, error: new Error('Max retries exceeded') };
+    };
+
+    const handleStripeSuccess = (data: any) => {
+      setVerificationResult({
+        success: true,
+        message: data.message || t('pages:paymentSuccess.success.verified'),
+        orderId: data.orderId,
+        transactionId: sessionId!.slice(-8).toUpperCase(),
+      });
+      let cust: CustomerInfo;
+      if (data.customerInfo) {
+        cust = data.customerInfo;
+      } else {
+        const nameParts = (profile?.full_name || '').split(' ');
+        cust = {
+          firstName: nameParts[0] || '',
+          lastName: nameParts.slice(1).join(' ') || '',
+          email: user?.email || '',
+        };
+      }
+      setCustomerInfo(cust);
+      if (data.invoiceData && data.orderId)
+        buildInvoiceFromResponse(data.invoiceData, data.orderId, cust);
+      clearCart();
+      localStorage.removeItem('cart');
+      toast.success(t('pages:paymentSuccess.success.confirmed'));
+    };
+
     const verifyPayment = async () => {
       if (isPayPal && paypalOrderId && orderId) {
         try {
@@ -201,60 +259,27 @@ const PaymentSuccess = () => {
           setIsVerifying(false);
         }
       } else if (sessionId) {
-        try {
-          const { data, error } = await supabase.functions.invoke(
-            'verify-payment',
-            {
-              body: { session_id: sessionId },
-            }
-          );
+        // Stripe verification with retry + backoff
+        const { data, error } = await retryVerifyStripe(sessionId);
 
-          if (error) {
-            setVerificationResult({
-              success: false,
-              message: t('pages:paymentSuccess.errors.verificationError'),
-            });
-          } else if (data?.success) {
-            setVerificationResult({
-              success: true,
-              message:
-                data.message || t('pages:paymentSuccess.success.verified'),
-              orderId: data.orderId,
-              transactionId: sessionId.slice(-8).toUpperCase(),
-            });
-            let cust: CustomerInfo;
-            if (data.customerInfo) {
-              cust = data.customerInfo;
-            } else {
-              const nameParts = (profile?.full_name || '').split(' ');
-              cust = {
-                firstName: nameParts[0] || '',
-                lastName: nameParts.slice(1).join(' ') || '',
-                email: user?.email || '',
-              };
-            }
-            setCustomerInfo(cust);
-            if (data.invoiceData && data.orderId)
-              buildInvoiceFromResponse(data.invoiceData, data.orderId, cust);
-            clearCart();
-            localStorage.removeItem('cart');
-            toast.success(t('pages:paymentSuccess.success.confirmed'));
-          } else {
-            setVerificationResult({
-              success: false,
-              message:
-                data?.message ||
-                t('pages:paymentSuccess.errors.verificationFailed'),
-            });
-          }
-        } catch {
+        if (error) {
+          // All retries failed — show reassuring message since webhook handles it
           setVerificationResult({
             success: false,
-            message: t('pages:paymentSuccess.errors.unexpectedError'),
+            message: 'La vérification a pris trop de temps. Si vous avez été débité, votre commande sera traitée automatiquement.',
           });
-        } finally {
-          setIsVerifying(false);
+        } else if (data?.success) {
+          handleStripeSuccess(data);
+        } else {
+          // Function returned but success=false (e.g. payment not completed)
+          setVerificationResult({
+            success: false,
+            message:
+              data?.message ||
+              t('pages:paymentSuccess.errors.verificationFailed'),
+          });
         }
+        setIsVerifying(false);
       } else {
         setVerificationResult({
           success: false,
