@@ -180,11 +180,8 @@ export async function validateCouponForOrder(
 ): Promise<{ valid: boolean; discount: number; message: string }> {
   try {
     const { data: coupon, error } = await supabase
-      .from('discount_coupons')
-      .select('*')
-      .eq('code', code.toUpperCase())
-      .eq('is_active', true)
-      .single();
+      .rpc('validate_coupon_code', { p_code: code.toUpperCase() })
+      .maybeSingle();
 
     if (error || !coupon) {
       return { valid: false, discount: 0, message: 'Code promo invalide' };
