@@ -195,10 +195,7 @@ export function useCheckoutPage() {
 
     try {
       const { data, error } = await supabase
-        .from('discount_coupons')
-        .select('*')
-        .eq('code', sanitizedCode)
-        .eq('is_active', true)
+        .rpc('validate_coupon_code', { p_code: sanitizedCode })
         .maybeSingle();
 
       if (error || !data) { setPromoError(t('promo.invalid')); return; }

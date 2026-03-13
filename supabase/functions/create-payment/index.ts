@@ -174,25 +174,33 @@ serve(async (req) => {
     const csrfToken = req.headers.get('x-csrf-token');
     const csrfNonce = req.headers.get('x-csrf-nonce');
     const csrfHash = req.headers.get('x-csrf-hash');
-    if (csrfToken && csrfNonce && csrfHash) {
-      const csrfValid = await verifyCsrfToken(csrfToken, csrfNonce, csrfHash);
-      if (!csrfValid) {
-        logStep('CSRF verification failed');
-        return new Response(
-          JSON.stringify({
-            error:
-              'Requête invalide. Veuillez rafraîchir la page et réessayer.',
-          }),
-          {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 403,
-          }
-        );
-      }
-      logStep('CSRF verification passed');
-    } else {
-      logStep('CSRF headers missing - allowing request with warning');
+    if (!csrfToken || !csrfNonce || !csrfHash) {
+      logStep('CSRF headers missing - rejecting request');
+      return new Response(
+        JSON.stringify({
+          error: 'CSRF token required. Please refresh the page and try again.',
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403,
+        }
+      );
     }
+    const csrfValid = await verifyCsrfToken(csrfToken, csrfNonce, csrfHash);
+    if (!csrfValid) {
+      logStep('CSRF verification failed');
+      return new Response(
+        JSON.stringify({
+          error:
+            'Requête invalide. Veuillez rafraîchir la page et réessayer.',
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403,
+        }
+      );
+    }
+    logStep('CSRF verification passed');
 
     const { items, customerInfo, discount, guestSession } = await req.json();
 

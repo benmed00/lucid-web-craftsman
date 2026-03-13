@@ -138,10 +138,7 @@ export function usePromoCode({
 
     try {
       const { data, error: fetchError } = await supabase
-        .from('discount_coupons')
-        .select('*')
-        .eq('code', sanitizedCode)
-        .eq('is_active', true)
+        .rpc('validate_coupon_code', { p_code: sanitizedCode })
         .maybeSingle();
 
       if (fetchError) {
