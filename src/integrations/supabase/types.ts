@@ -3473,6 +3473,35 @@ export type Database = {
         Args: { subscription_email: string }
         Returns: boolean
       }
+      validate_coupon_code: {
+        Args: { p_code: string }
+        Returns: {
+          applicable_categories: string[] | null
+          applicable_products: number[] | null
+          code: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          includes_free_shipping: boolean | null
+          is_active: boolean | null
+          maximum_discount_amount: number | null
+          minimum_order_amount: number | null
+          per_user_limit: number | null
+          type: string
+          updated_at: string | null
+          usage_count: number | null
+          usage_limit: number | null
+          valid_from: string | null
+          valid_until: string | null
+          value: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "discount_coupons"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       validate_order_status_transition: {
         Args: {
           p_actor?: Database["public"]["Enums"]["status_change_actor"]
