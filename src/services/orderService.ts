@@ -153,10 +153,8 @@ export async function getOrderCouponUsage(
 
     // Get coupon details
     const { data: coupon, error: couponError } = await supabase
-      .from('discount_coupons')
-      .select('id, code, type, value')
-      .eq('code', metadata.coupon_code as string)
-      .single();
+      .rpc('validate_coupon_code', { p_code: metadata.coupon_code as string })
+      .maybeSingle();
 
     if (couponError) return null;
 
