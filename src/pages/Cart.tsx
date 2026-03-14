@@ -80,19 +80,6 @@ const Cart = () => {
     enabled: productIds.length > 0,
   });
 
-  const handlePaymentSuccess = (paymentMethod: string) => {
-    toast.success(t('cart.paymentSuccess', { method: paymentMethod }));
-    // Clear cart and redirect
-    clearCart();
-    setTimeout(() => {
-      appNavigate('/payment-success');
-    }, 1500);
-  };
-
-  const handlePaymentError = (error: string) => {
-    toast.error(error);
-    setIsCheckingOut(false);
-  };
 
   // Check stock for all items and get any issues
   const stockIssues = useMemo(() => {
