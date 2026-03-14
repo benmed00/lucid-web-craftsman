@@ -229,6 +229,11 @@ const App = () => {
   // Initialize Web Vitals tracking
   useWebVitals();
 
+  // Resolve hydration watchdog — app rendered successfully
+  useEffect(() => {
+    resolveHydrationWatchdog();
+  }, []);
+
   // Product prefetch removed — the Index page's useProductsWithTranslations()
   // hook is the single owner of the ['products', locale] query. The old
   // requestIdleCallback prefetch raced with the real query, wasting a
