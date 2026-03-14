@@ -35,7 +35,7 @@ import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 // Mock API calls removed - cart state is now fully managed by Zustand store
 import FloatingCartButton from '@/components/ui/FloatingCartButton';
-import { MobilePaymentButtons } from '@/components/ui/MobilePaymentButtons';
+
 import { LocationBasedFeatures } from '@/components/ui/LocationBasedFeatures';
 import { TooltipWrapper } from '@/components/ui/TooltipWrapper';
 import PostalCodeAutocomplete from '@/components/ui/PostalCodeAutocomplete';
@@ -80,19 +80,6 @@ const Cart = () => {
     enabled: productIds.length > 0,
   });
 
-  const handlePaymentSuccess = (paymentMethod: string) => {
-    toast.success(t('cart.paymentSuccess', { method: paymentMethod }));
-    // Clear cart and redirect
-    clearCart();
-    setTimeout(() => {
-      appNavigate('/payment-success');
-    }, 1500);
-  };
-
-  const handlePaymentError = (error: string) => {
-    toast.error(error);
-    setIsCheckingOut(false);
-  };
 
   // Check stock for all items and get any issues
   const stockIssues = useMemo(() => {
@@ -593,15 +580,6 @@ const Cart = () => {
                 {/* Mobile-specific features */}
                 {isMobile && (
                   <div className="space-y-6 mb-6">
-                    {/* Mobile Payment Buttons */}
-                    <MobilePaymentButtons
-                      amount={total}
-                      currency={currency}
-                      onPaymentSuccess={handlePaymentSuccess}
-                      onPaymentError={handlePaymentError}
-                      disabled={isCheckingOut || stockIssues.length > 0}
-                    />
-
                     {/* Location-based features */}
                     <LocationBasedFeatures />
                   </div>
