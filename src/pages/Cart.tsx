@@ -593,15 +593,6 @@ const Cart = () => {
                 {/* Mobile-specific features */}
                 {isMobile && (
                   <div className="space-y-6 mb-6">
-                    {/* Mobile Payment Buttons */}
-                    <MobilePaymentButtons
-                      amount={total}
-                      currency={currency}
-                      onPaymentSuccess={handlePaymentSuccess}
-                      onPaymentError={handlePaymentError}
-                      disabled={isCheckingOut || stockIssues.length > 0}
-                    />
-
                     {/* Location-based features */}
                     <LocationBasedFeatures />
                   </div>
