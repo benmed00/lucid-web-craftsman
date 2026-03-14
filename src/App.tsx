@@ -14,6 +14,7 @@ import { useWebVitals } from '@/hooks/useWebVitals';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { lazy, Suspense, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { resolveHydrationWatchdog } from '@/lib/storage/StorageGuard';
 
 // Critical page loaded immediately (landing page only)
 import Index from './pages/Index';
@@ -227,6 +228,11 @@ const MaintenanceWrapper = ({ children }: { children: React.ReactNode }) => {
 const App = () => {
   // Initialize Web Vitals tracking
   useWebVitals();
+
+  // Resolve hydration watchdog — app rendered successfully
+  useEffect(() => {
+    resolveHydrationWatchdog();
+  }, []);
 
   // Product prefetch removed — the Index page's useProductsWithTranslations()
   // hook is the single owner of the ['products', locale] query. The old
