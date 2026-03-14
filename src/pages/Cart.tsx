@@ -35,7 +35,7 @@ import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 // Mock API calls removed - cart state is now fully managed by Zustand store
 import FloatingCartButton from '@/components/ui/FloatingCartButton';
-import { MobilePaymentButtons } from '@/components/ui/MobilePaymentButtons';
+
 import { LocationBasedFeatures } from '@/components/ui/LocationBasedFeatures';
 import { TooltipWrapper } from '@/components/ui/TooltipWrapper';
 import PostalCodeAutocomplete from '@/components/ui/PostalCodeAutocomplete';
