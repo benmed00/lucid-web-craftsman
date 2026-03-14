@@ -14,6 +14,8 @@ import { useWebVitals } from '@/hooks/useWebVitals';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { lazy, Suspense, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { resolveHydrationWatchdog } from '@/lib/storage/StorageGuard';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Critical page loaded immediately (landing page only)
 import Index from './pages/Index';
