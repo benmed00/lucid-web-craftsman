@@ -111,8 +111,14 @@ export function useProductsPage() {
   } = useInfiniteScroll({ items: filteredProducts, itemsPerPage: isMobile ? 8 : 16 });
 
   const handleRefresh = async () => {
-    await refetch();
-    toast.success(t('refresh.success'));
+    try {
+      const result = await refetch();
+      if (result.status === 'success') {
+        toast.success(t('refresh.success'));
+      }
+    } catch {
+      toast.error(t('common:messages.error'));
+    }
   };
 
   useEffect(() => { window.scrollTo(0, 0); }, []);

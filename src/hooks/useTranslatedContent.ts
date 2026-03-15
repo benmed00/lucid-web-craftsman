@@ -57,14 +57,9 @@ export function useProductsWithTranslations() {
   const locale = useCurrentLocale();
   const queryClient = useQueryClient();
 
-  console.info('[useProductsWithTranslations] Hook called, locale:', locale);
-
   const query = useQuery<ProductWithTranslation[]>({
     queryKey: ['products', locale],
-    queryFn: () => {
-      console.info('[useProductsWithTranslations] queryFn EXECUTING');
-      return getProductsWithTranslations(locale);
-    },
+    queryFn: () => getProductsWithTranslations(locale),
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -72,16 +67,6 @@ export function useProductsWithTranslations() {
     retry: 2,
     retryDelay: (attempt) => Math.min(1000 * Math.pow(2, attempt), 8000),
     networkMode: 'always',
-  });
-
-  console.info('[useProductsWithTranslations] Query state:', {
-    status: query.status,
-    fetchStatus: query.fetchStatus,
-    isLoading: query.isLoading,
-    isFetching: query.isFetching,
-    isPaused: query.isPaused,
-    dataLength: query.data?.length,
-    error: query.error?.message,
   });
 
   // Warm individual product cache entries from list data
