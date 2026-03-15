@@ -30,12 +30,18 @@ const Products = () => {
   const queryClient = useQueryClient();
   const [isRetrying, setIsRetrying] = useState(false);
 
-  // Force-clear cache and refetch with spinner feedback
+  // Enterprise retry: cancel → reset → refetch
   const handleRetry = async () => {
     setIsRetrying(true);
     try {
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      // 1. Cancel any in-flight product queries to avoid race conditions
+      await queryClient.cancelQueries({ queryKey: ['products'] });
+      // 2. Reset queries: clears error state AND cached data, forces fresh isLoading
+      await queryClient.resetQueries({ queryKey: ['products'] });
+      // 3. Refetch triggers a clean network request
       await page.refetch();
+    } catch (err) {
+      console.warn('[Products] Retry failed:', err);
     } finally {
       setIsRetrying(false);
     }
