@@ -192,11 +192,19 @@ export function safeSetItem<T>(
       try {
         store.setItem(key, serialized);
       } catch (e) {
-        // Quota exceeded - try to free up space
+        // Quota exceeded OR SecurityError (Safari private mode)
         if (
           e instanceof DOMException &&
-          (e.code === 22 || e.name === 'QuotaExceededError')
+          (e.code === 22 ||
+            e.name === 'QuotaExceededError' ||
+            e.name === 'SecurityError')
         ) {
+          if (e.name === 'SecurityError') {
+            console.warn(`SecurityError writing "${key}" — Safari private mode?`);
+            memoryFallback.set(key, serialized);
+            return false;
+          }
+
           console.warn('Storage quota exceeded, clearing old items...');
           clearExpiredItems(storage);
 
