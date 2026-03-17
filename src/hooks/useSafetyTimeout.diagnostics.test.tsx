@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { useSafetyTimeout } from './useSafetyTimeout';
 
 describe('useSafetyTimeout diagnostics', () => {
@@ -19,11 +19,15 @@ describe('useSafetyTimeout diagnostics', () => {
     expect(result.current.isSlowLoading).toBe(false);
     expect(result.current.hasTimedOut).toBe(false);
 
-    vi.advanceTimersByTime(450);
+    act(() => {
+      vi.advanceTimersByTime(450);
+    });
     expect(result.current.isSlowLoading).toBe(true);
     expect(result.current.hasTimedOut).toBe(false);
 
-    vi.advanceTimersByTime(600);
+    act(() => {
+      vi.advanceTimersByTime(600);
+    });
     expect(result.current.hasTimedOut).toBe(true);
   });
 
@@ -34,7 +38,9 @@ describe('useSafetyTimeout diagnostics', () => {
       { initialProps: { loading: true } }
     );
 
-    vi.advanceTimersByTime(1300);
+    act(() => {
+      vi.advanceTimersByTime(1300);
+    });
     expect(result.current.hasTimedOut).toBe(true);
     expect(result.current.isSlowLoading).toBe(true);
 

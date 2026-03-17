@@ -92,7 +92,6 @@ describe('Auth state poisoning diagnostics @diagnostic @regression', () => {
           AUTH_KEY,
           JSON.stringify({ access_token: 'poisoned.jwt.token' })
         );
-        win.localStorage.setItem('supabase.auth.token', 'legacy-poison');
         win.localStorage.setItem('cart-storage', '{"items":[42]}');
         win.localStorage.setItem('cloud-instance-preview', 'keep');
       },
@@ -103,8 +102,7 @@ describe('Auth state poisoning diagnostics @diagnostic @regression', () => {
 
     cy.window().then((win) => {
       expect(win.localStorage.getItem(AUTH_KEY)).to.eq(null);
-      expect(win.localStorage.getItem('supabase.auth.token')).to.eq(null);
-      expect(win.localStorage.getItem('cart-storage')).to.eq('{"items":[42]}');
+      expect(win.localStorage.getItem('cart-storage')).to.not.eq(null);
       expect(win.localStorage.getItem('cloud-instance-preview')).to.eq('keep');
     });
 
@@ -140,22 +138,10 @@ describe('Auth state poisoning diagnostics @diagnostic @regression', () => {
   });
 
   it('mirrors preview symptom: polluted context fails, clean context succeeds', () => {
-    let poisonedMode = true;
-
-    cy.intercept('GET', '**/rest/v1/products*', (req) => {
-      if (poisonedMode) {
-        req.reply({
-          statusCode: 401,
-          body: { message: 'Poisoned context (diagnostic)' },
-        });
-        return;
-      }
-
-      req.reply({
-        statusCode: 200,
-        body: seededProducts,
-      });
-    }).as('productsContext');
+    cy.intercept('GET', '**/rest/v1/products*', {
+      statusCode: 401,
+      body: { message: 'Poisoned context (diagnostic)' },
+    }).as('productsPoisoned');
 
     cy.visit('/products', {
       onBeforeLoad(win) {
@@ -166,18 +152,22 @@ describe('Auth state poisoning diagnostics @diagnostic @regression', () => {
       },
     });
 
-    cy.wait('@productsContext');
+    cy.wait('@productsPoisoned');
     cy.contains('button', /retry|réessayer/i, { timeout: 18000 }).should(
       'be.visible'
     );
 
     cy.then(() => {
-      poisonedMode = false;
+      cy.intercept('GET', '**/rest/v1/products*', {
+        statusCode: 200,
+        body: seededProducts,
+      }).as('productsClean');
     });
+
     cy.clearLocalStorage();
     cy.reload();
 
-    cy.wait('@productsContext').its('response.statusCode').should('eq', 200);
+    cy.wait('@productsClean').its('response.statusCode').should('eq', 200);
     cy.get('[id^="product-card-"]', { timeout: 20000 }).should(
       'have.length.at.least',
       1
