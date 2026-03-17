@@ -39,8 +39,13 @@ class ErrorBoundary extends Component<Props, State> {
 
     // Self-healing: if this is a hydration/hook-order error, purge stores and auto-reload
     if (isHydrationError(error) && !this.state.selfHealAttempted) {
-      console.warn('[ErrorBoundary] Hydration error detected — triggering self-heal');
-      purgeAllPersistedStores('boundary_reset', `Hydration error: ${error.message}`);
+      console.warn(
+        '[ErrorBoundary] Hydration error detected — triggering self-heal'
+      );
+      purgeAllPersistedStores(
+        'boundary_reset',
+        `Hydration error: ${error.message}`
+      );
 
       this.setState({ selfHealAttempted: true });
 
@@ -59,11 +64,18 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private handleRetry = () => {
-    this.setState({ hasError: false, error: undefined, selfHealAttempted: false });
+    this.setState({
+      hasError: false,
+      error: undefined,
+      selfHealAttempted: false,
+    });
   };
 
   private handlePurgeAndReload = () => {
-    purgeAllPersistedStores('boundary_reset', 'User-initiated purge from error screen');
+    purgeAllPersistedStores(
+      'boundary_reset',
+      'User-initiated purge from error screen'
+    );
     window.location.reload();
   };
 

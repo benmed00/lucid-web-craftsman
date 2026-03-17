@@ -29,10 +29,13 @@ const Blog = () => {
   } = useBlogPostsWithTranslations();
 
   // Safety timeout — force render after 8s
-  const { hasTimedOut: forceRender, isSlowLoading } = useSafetyTimeout(isLoading, {
-    timeout: 8000,
-    slowThreshold: 4000,
-  });
+  const { hasTimedOut: forceRender, isSlowLoading } = useSafetyTimeout(
+    isLoading,
+    {
+      timeout: 8000,
+      slowThreshold: 4000,
+    }
+  );
 
   // NOTE: Auto-refetch on timeout was REMOVED — it caused a refetch loop
   // that cancelled in-flight queries. React Query's own retry (1 attempt)
@@ -86,7 +89,8 @@ const Blog = () => {
   }
 
   // Error OR timeout-with-no-data state → show error UI with retry
-  const showError = (fetchError || (forceRender && isLoading)) && posts.length === 0;
+  const showError =
+    (fetchError || (forceRender && isLoading)) && posts.length === 0;
   if (showError) {
     return (
       <div className="min-h-screen bg-background">
@@ -98,8 +102,14 @@ const Blog = () => {
             </h1>
             <p className="text-muted-foreground mb-8">
               {fetchError
-                ? t('blog.errorDescription', 'Veuillez réessayer dans quelques instants.')
-                : t('blog.timeoutDescription', 'Le chargement a pris trop de temps. Veuillez réessayer.')}
+                ? t(
+                    'blog.errorDescription',
+                    'Veuillez réessayer dans quelques instants.'
+                  )
+                : t(
+                    'blog.timeoutDescription',
+                    'Le chargement a pris trop de temps. Veuillez réessayer.'
+                  )}
             </p>
             <Button onClick={() => refetch()} className="gap-2">
               <RefreshCw className="h-4 w-4" />

@@ -32,7 +32,10 @@ const Checkout = () => {
           </h1>
           <div className="text-center">
             <p className="text-muted-foreground">{c.t('cart.empty')}</p>
-            <Button className="mt-4" onClick={() => (window.location.href = '/products')}>
+            <Button
+              className="mt-4"
+              onClick={() => (window.location.href = '/products')}
+            >
               {c.t('cart.continueShopping')}
             </Button>
           </div>
@@ -47,7 +50,12 @@ const Checkout = () => {
       <SEOHelmet
         title={c.t('payment.title') + ' - Rif Raw Straw'}
         description={c.t('payment.securePayment')}
-        keywords={['paiement sécurisé', 'checkout', 'commande', 'artisanat berbère']}
+        keywords={[
+          'paiement sécurisé',
+          'checkout',
+          'commande',
+          'artisanat berbère',
+        ]}
         url="/checkout"
         type="website"
       />
@@ -74,10 +82,19 @@ const Checkout = () => {
                 <div className="space-y-6 animate-fade-in bg-card rounded-xl p-6 border border-border shadow-sm">
                   <Skeleton className="h-8 w-48" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2"><Skeleton className="h-4 w-16" /><Skeleton className="h-10 w-full" /></div>
-                    <div className="space-y-2"><Skeleton className="h-4 w-16" /><Skeleton className="h-10 w-full" /></div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
                   </div>
-                  <div className="space-y-2"><Skeleton className="h-4 w-16" /><Skeleton className="h-10 w-full" /></div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
                   <Skeleton className="h-12 w-48" />
                 </div>
               )}
@@ -139,7 +156,10 @@ const Checkout = () => {
               promoCode={c.promoCode}
               promoError={c.promoError}
               isValidatingPromo={c.isValidatingPromo}
-              onPromoCodeChange={(code) => { c.setPromoCode(code); c.setPromoError(''); }}
+              onPromoCodeChange={(code) => {
+                c.setPromoCode(code);
+                c.setPromoError('');
+              }}
               onValidatePromo={c.handleValidatePromoCode}
               onRemovePromo={c.removePromoCode}
             />
@@ -149,7 +169,10 @@ const Checkout = () => {
         {/* Security footer */}
         <div className="max-w-6xl mx-auto mt-8 flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="h-4 w-4 text-primary" />
-          <span>Paiement sécurisé par Stripe — Vos données sont chiffrées en SSL 256-bit</span>
+          <span>
+            Paiement sécurisé par Stripe — Vos données sont chiffrées en SSL
+            256-bit
+          </span>
         </div>
       </div>
 
@@ -157,19 +180,32 @@ const Checkout = () => {
       <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border p-3 px-4 md:hidden safe-area z-50 shadow-lg">
         <div className="flex items-center justify-between gap-2">
           {c.step > 1 ? (
-            <Button variant="outline" className="flex-1 min-h-[48px] text-xs px-2" onClick={() => c.handleEditStep(c.step - 1)}>
+            <Button
+              variant="outline"
+              className="flex-1 min-h-[48px] text-xs px-2"
+              onClick={() => c.handleEditStep(c.step - 1)}
+            >
               <ArrowLeft className="h-4 w-4 mr-1 flex-shrink-0" />
-              <span className="truncate">{c.t('cart.continueShopping').split(' ')[0]}</span>
+              <span className="truncate">
+                {c.t('cart.continueShopping').split(' ')[0]}
+              </span>
             </Button>
           ) : (
-            <Button variant="outline" className="flex-1 min-h-[48px] text-xs px-2" onClick={() => window.history.back()}>
+            <Button
+              variant="outline"
+              className="flex-1 min-h-[48px] text-xs px-2"
+              onClick={() => window.history.back()}
+            >
               <ArrowLeft className="h-4 w-4 mr-1 flex-shrink-0" />
               <span className="truncate">{c.t('cart.title')}</span>
             </Button>
           )}
 
           {c.step < 3 ? (
-            <Button className="flex-[1.3] min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs px-2" onClick={c.goToNextStep}>
+            <Button
+              className="flex-[1.3] min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs px-2"
+              onClick={c.goToNextStep}
+            >
               <span className="truncate">{c.t('cart.proceedToCheckout')}</span>
               <ArrowRight className="h-4 w-4 ml-1 flex-shrink-0" />
             </Button>
@@ -179,7 +215,11 @@ const Checkout = () => {
               onClick={c.handlePayment}
               disabled={c.isProcessing}
             >
-              <span className="truncate">{c.isProcessing ? c.t('payment.processing') : c.t('payment.payNow') + ` ${c.formatPrice(c.total)}`}</span>
+              <span className="truncate">
+                {c.isProcessing
+                  ? c.t('payment.processing')
+                  : c.t('payment.payNow') + ` ${c.formatPrice(c.total)}`}
+              </span>
             </Button>
           )}
         </div>

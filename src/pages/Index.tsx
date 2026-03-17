@@ -19,7 +19,9 @@ const ProductShowcase = lazy(() => import('@/components/ProductShowcase'));
 const Testimonials = lazy(() => import('@/components/Testimonials'));
 const InstagramFeed = lazy(() => import('@/components/InstagramFeed'));
 const ArtisansSection = lazy(() => import('@/components/ArtisansSection'));
-const NewsletterSubscription = lazy(() => import('@/components/NewsletterSubscription'));
+const NewsletterSubscription = lazy(
+  () => import('@/components/NewsletterSubscription')
+);
 const RecentlyViewedProducts = lazy(() =>
   import('@/components/RecentlyViewedProducts').then((m) => ({
     default: m.RecentlyViewedProducts,
@@ -212,57 +214,57 @@ const Index = () => {
 
         {/* Product Showcase - Mobile Responsive */}
         <Suspense fallback={<SectionFallback />}>
-        <section id="shop" className="py-16 md:py-20 lg:py-28">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-8 md:mb-12 lg:mb-16 gap-6">
-              <div className="max-w-2xl text-center lg:text-left">
-                <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20 border-none px-4 py-2">
-                  {t('pages:home.products.badge')}
-                </Badge>
-                <h2 className="font-serif text-2xl md:text-4xl lg:text-5xl text-foreground mb-4 leading-tight">
-                  {t('pages:home.products.title')}
-                </h2>
-                <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-                  {t('pages:home.products.description')}
-                </p>
-              </div>
-              <Link
-                to="/products"
-                className="hidden lg:flex items-center text-primary hover:text-primary/80 transition-all duration-300 font-medium group hover-underline icon-bounce"
-              >
-                <span id="collection-link-desktop" className="cursor-pointer">
-                  {t('pages:home.products.viewAll')}
-                </span>
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
-            </div>
-            <ProductShowcase />
-
-            {/* Recently Viewed Section - Hidden by default, configurable */}
-            {sectionConfig.showRecentlyViewed && (
-              <Suspense fallback={null}>
-                <div className="mt-12 md:mt-16">
-                  <RecentlyViewedProducts />
+          <section id="shop" className="py-16 md:py-20 lg:py-28">
+            <div className="container mx-auto px-4">
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-8 md:mb-12 lg:mb-16 gap-6">
+                <div className="max-w-2xl text-center lg:text-left">
+                  <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20 border-none px-4 py-2">
+                    {t('pages:home.products.badge')}
+                  </Badge>
+                  <h2 className="font-serif text-2xl md:text-4xl lg:text-5xl text-foreground mb-4 leading-tight">
+                    {t('pages:home.products.title')}
+                  </h2>
+                  <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+                    {t('pages:home.products.description')}
+                  </p>
                 </div>
-              </Suspense>
-            )}
-
-            {/* Mobile CTA Button */}
-            <div className="mt-12 text-center lg:hidden">
-              <Link to="/products" className="group">
-                <Button
-                  variant="outline"
-                  className="border-2 border-border text-foreground hover:bg-muted hover:border-primary/50 px-6 md:px-8 py-4 rounded-lg font-medium transition-all duration-300 hover:scale-105 button-press hover-glow touch-manipulation min-h-[48px]"
-                  id="mobile-view-all-products"
-                  name="view-all-products-mobile"
+                <Link
+                  to="/products"
+                  className="hidden lg:flex items-center text-primary hover:text-primary/80 transition-all duration-300 font-medium group hover-underline icon-bounce"
                 >
-                  {t('pages:home.products.viewAllMobile')}
+                  <span id="collection-link-desktop" className="cursor-pointer">
+                    {t('pages:home.products.viewAll')}
+                  </span>
                   <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-                </Button>
-              </Link>
+                </Link>
+              </div>
+              <ProductShowcase />
+
+              {/* Recently Viewed Section - Hidden by default, configurable */}
+              {sectionConfig.showRecentlyViewed && (
+                <Suspense fallback={null}>
+                  <div className="mt-12 md:mt-16">
+                    <RecentlyViewedProducts />
+                  </div>
+                </Suspense>
+              )}
+
+              {/* Mobile CTA Button */}
+              <div className="mt-12 text-center lg:hidden">
+                <Link to="/products" className="group">
+                  <Button
+                    variant="outline"
+                    className="border-2 border-border text-foreground hover:bg-muted hover:border-primary/50 px-6 md:px-8 py-4 rounded-lg font-medium transition-all duration-300 hover:scale-105 button-press hover-glow touch-manipulation min-h-[48px]"
+                    id="mobile-view-all-products"
+                    name="view-all-products-mobile"
+                  >
+                    {t('pages:home.products.viewAllMobile')}
+                    <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Button>
+                </Link>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
         </Suspense>
 
         {/* Artisans Section */}
@@ -272,53 +274,53 @@ const Index = () => {
 
         {/* Testimonials - Mobile Responsive */}
         <Suspense fallback={<SectionFallback />}>
-        <section
-          id="testimonials"
-          className="bg-secondary py-12 md:py-20 lg:py-24"
-        >
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center mb-8 md:mb-12">
-              <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none">
-                {t('pages:home.testimonials.badge')}
-              </Badge>
-              <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground">
-                {t('pages:home.testimonials.title')}
-              </h2>
+          <section
+            id="testimonials"
+            className="bg-secondary py-12 md:py-20 lg:py-24"
+          >
+            <div className="container mx-auto px-4">
+              <div className="max-w-3xl mx-auto text-center mb-8 md:mb-12">
+                <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none">
+                  {t('pages:home.testimonials.badge')}
+                </Badge>
+                <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground">
+                  {t('pages:home.testimonials.title')}
+                </h2>
+              </div>
+              <Testimonials />
             </div>
-            <Testimonials />
-          </div>
-        </section>
+          </section>
         </Suspense>
 
         {/* Instagram Section - Mobile Responsive */}
         <Suspense fallback={<SectionFallback />}>
-        <section className="py-12 md:py-20 lg:py-24">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center mb-8 md:mb-12">
-              <div className="flex items-center justify-center mb-2">
-                <Instagram className="h-4 w-4 md:h-5 md:w-5 text-foreground mr-2" />
-                <span className="text-sm md:text-base text-foreground font-medium">
-                  {t('pages:home.instagram.follow')}
-                </span>
+          <section className="py-12 md:py-20 lg:py-24">
+            <div className="container mx-auto px-4">
+              <div className="max-w-3xl mx-auto text-center mb-8 md:mb-12">
+                <div className="flex items-center justify-center mb-2">
+                  <Instagram className="h-4 w-4 md:h-5 md:w-5 text-foreground mr-2" />
+                  <span className="text-sm md:text-base text-foreground font-medium">
+                    {t('pages:home.instagram.follow')}
+                  </span>
+                </div>
+                <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground">
+                  {t('pages:home.instagram.title')}
+                </h2>
               </div>
-              <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground">
-                {t('pages:home.instagram.title')}
-              </h2>
+              <InstagramFeed />
             </div>
-            <InstagramFeed />
-          </div>
-        </section>
+          </section>
         </Suspense>
 
         {/* Newsletter Section */}
         <Suspense fallback={<SectionFallback />}>
-        <section className="bg-muted/50 dark:bg-muted/20 py-16 md:py-20">
-          <div className="container mx-auto px-4">
-            <div className="max-w-xl mx-auto">
-              <NewsletterSubscription variant="inline" />
+          <section className="bg-muted/50 dark:bg-muted/20 py-16 md:py-20">
+            <div className="container mx-auto px-4">
+              <div className="max-w-xl mx-auto">
+                <NewsletterSubscription variant="inline" />
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
         </Suspense>
       </main>
 

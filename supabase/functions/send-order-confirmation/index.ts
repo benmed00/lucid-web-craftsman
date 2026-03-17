@@ -221,7 +221,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     const subject = `Confirmation de commande #${data!.orderId.slice(-8).toUpperCase()} - Rif Raw Straw`;
     logStep('Sending email via Brevo', { to: data!.customerEmail });
-    const emailResult = await sendBrevoEmail(data!.customerEmail, subject, html);
+    const emailResult = await sendBrevoEmail(
+      data!.customerEmail,
+      subject,
+      html
+    );
     logStep('Email sent successfully', { messageId: emailResult.messageId });
 
     await logEmailToDatabase(

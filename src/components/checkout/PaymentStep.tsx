@@ -70,7 +70,9 @@ const PaymentStep = ({
         </button>
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">{t('payment.title')}</h2>
+          <h2 className="text-xl font-semibold text-foreground">
+            {t('payment.title')}
+          </h2>
         </div>
       </div>
 
@@ -94,7 +96,8 @@ const PaymentStep = ({
                 htmlFor="card"
                 className="text-base font-medium flex items-center cursor-pointer"
               >
-                <CreditCard className="mr-2 h-5 w-5 text-primary" /> {t('payment.payNow')}
+                <CreditCard className="mr-2 h-5 w-5 text-primary" />{' '}
+                {t('payment.payNow')}
               </Label>
               <p className="text-sm text-muted-foreground mt-1">
                 Visa, Mastercard, American Express
@@ -118,7 +121,10 @@ const PaymentStep = ({
         >
           <div className="flex items-center">
             <RadioGroupItem value="paypal" id="paypal" />
-            <Label htmlFor="paypal" className="ml-3 text-base font-medium cursor-pointer">
+            <Label
+              htmlFor="paypal"
+              className="ml-3 text-base font-medium cursor-pointer"
+            >
               PayPal
             </Label>
           </div>

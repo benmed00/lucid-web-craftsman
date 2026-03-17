@@ -103,7 +103,9 @@ export const ProductQuickView = ({
       {
         action: {
           label: t('common:buttons.viewCart', 'Voir le panier'),
-          onClick: () => { appNavigate('/cart'); },
+          onClick: () => {
+            appNavigate('/cart');
+          },
         },
       }
     );

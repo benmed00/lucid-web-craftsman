@@ -13,10 +13,9 @@ interface BackInStockNotificationProps {
   productName: string;
 }
 
-export const BackInStockNotification: React.FC<BackInStockNotificationProps> = ({
-  productId,
-  productName,
-}) => {
+export const BackInStockNotification: React.FC<
+  BackInStockNotificationProps
+> = ({ productId, productName }) => {
   const { t } = useTranslation('pages');
   const { user } = useAuth();
   const [email, setEmail] = useState(user?.email || '');

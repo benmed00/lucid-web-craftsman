@@ -273,9 +273,10 @@ export const useCartStore = create<CartState>()(
                 createQueueOperation(operation),
               ];
               // Enforce queue size limit — drop oldest operations
-              const trimmed = newQueue.length > MAX_QUEUE
-                ? newQueue.slice(newQueue.length - MAX_QUEUE)
-                : newQueue;
+              const trimmed =
+                newQueue.length > MAX_QUEUE
+                  ? newQueue.slice(newQueue.length - MAX_QUEUE)
+                  : newQueue;
               return { offlineQueue: trimmed };
             });
           },
@@ -302,8 +303,16 @@ export const useCartStore = create<CartState>()(
                 const state = persisted as any;
                 const items = Array.isArray(state?.items)
                   ? state.items
-                      .filter((item: any) => item && typeof item.id === 'number' && typeof item.quantity === 'number')
-                      .map((item: any) => ({ id: item.id, quantity: Math.max(1, Math.min(item.quantity, 99)) }))
+                      .filter(
+                        (item: any) =>
+                          item &&
+                          typeof item.id === 'number' &&
+                          typeof item.quantity === 'number'
+                      )
+                      .map((item: any) => ({
+                        id: item.id,
+                        quantity: Math.max(1, Math.min(item.quantity, 99)),
+                      }))
                   : [];
                 return { items, offlineQueue: [] };
               }
@@ -321,7 +330,11 @@ export const useCartStore = create<CartState>()(
                 return JSON.parse(raw);
               } catch {
                 // Corrupted data — remove and return null
-                try { localStorage.removeItem(name); } catch { /* ignore */ }
+                try {
+                  localStorage.removeItem(name);
+                } catch {
+                  /* ignore */
+                }
                 return null;
               }
             },
@@ -333,20 +346,33 @@ export const useCartStore = create<CartState>()(
               }
             },
             removeItem: (name) => {
-              try { localStorage.removeItem(name); } catch { /* ignore */ }
+              try {
+                localStorage.removeItem(name);
+              } catch {
+                /* ignore */
+              }
             },
           },
           onRehydrateStorage: () => {
             return (state, error) => {
               if (error) {
-                console.error('Cart rehydration error, clearing persisted state:', error);
-                try { localStorage.removeItem('cart-storage'); } catch { /* ignore */ }
+                console.error(
+                  'Cart rehydration error, clearing persisted state:',
+                  error
+                );
+                try {
+                  localStorage.removeItem('cart-storage');
+                } catch {
+                  /* ignore */
+                }
                 return;
               }
 
               // Validate items shape — if corrupt, reset
               if (state?.items && !Array.isArray(state.items)) {
-                console.warn('[CartStore] Invalid items shape after rehydration, resetting');
+                console.warn(
+                  '[CartStore] Invalid items shape after rehydration, resetting'
+                );
                 useCartStore.setState({ items: [], offlineQueue: [] });
                 return;
               }
@@ -367,9 +393,9 @@ export const useCartStore = create<CartState>()(
                           quantity: item.quantity,
                         }))
                       );
-                      const existingValidItems = (useCartStore.getState().items || []).filter(
-                        (item) => item.product
-                      );
+                      const existingValidItems = (
+                        useCartStore.getState().items || []
+                      ).filter((item) => item.product);
                       useCartStore.setState({
                         items: [...existingValidItems, ...reloadedItems],
                       });

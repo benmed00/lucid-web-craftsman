@@ -31,7 +31,8 @@ const generateAbandonedCartHtml = (
   sessionId: string
 ): string => {
   const siteUrl = getSiteUrl();
-  const firstName = personalInfo?.firstName || personalInfo?.first_name || 'Client';
+  const firstName =
+    personalInfo?.firstName || personalInfo?.first_name || 'Client';
   const itemsHtml = (items || [])
     .slice(0, 5)
     .map(
@@ -111,7 +112,10 @@ serve(async (req: Request): Promise<Response> => {
     if (!BREVO_API_KEY) {
       return new Response(
         JSON.stringify({ error: 'BREVO_API_KEY not configured' }),
-        { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
       );
     }
 
@@ -119,7 +123,9 @@ serve(async (req: Request): Promise<Response> => {
 
     // Find sessions abandoned > 1 hour ago, not yet emailed
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const twentyFourHoursAgo = new Date(
+      Date.now() - 24 * 60 * 60 * 1000
+    ).toISOString();
 
     const { data: sessions, error: fetchError } = await supabase
       .from('checkout_sessions')
@@ -158,7 +164,11 @@ serve(async (req: Request): Promise<Response> => {
       }
 
       const cartItems = session.cart_items as any[];
-      const htmlContent = generateAbandonedCartHtml(cartItems, personalInfo, session.id);
+      const htmlContent = generateAbandonedCartHtml(
+        cartItems,
+        personalInfo,
+        session.id
+      );
 
       try {
         const controller = new AbortController();
@@ -191,32 +201,49 @@ serve(async (req: Request): Promise<Response> => {
           recipient_name: personalInfo?.firstName || null,
           status: 'sent',
           sent_at: new Date().toISOString(),
-          metadata: { session_id: session.id, cart_items_count: cartItems?.length || 0 },
+          metadata: {
+            session_id: session.id,
+            cart_items_count: cartItems?.length || 0,
+          },
         });
 
         // Mark session as abandoned
         await supabase
           .from('checkout_sessions')
-          .update({ status: 'abandoned', abandoned_at: new Date().toISOString() })
+          .update({
+            status: 'abandoned',
+            abandoned_at: new Date().toISOString(),
+          })
           .eq('id', session.id);
 
         results.push({ session_id: session.id, email, status: 'sent' });
         console.log(`Abandoned cart email sent to ${email}`);
       } catch (emailError: any) {
         console.error(`Failed to send to ${email}:`, emailError.message);
-        results.push({ session_id: session.id, email, status: 'failed', error: emailError.message });
+        results.push({
+          session_id: session.id,
+          email,
+          status: 'failed',
+          error: emailError.message,
+        });
       }
     }
 
     return new Response(
       JSON.stringify({ success: true, processed: results.length, results }),
-      { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
     );
   } catch (error: any) {
     console.error('Error in send-abandoned-cart-email:', error);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
     );
   }
 });

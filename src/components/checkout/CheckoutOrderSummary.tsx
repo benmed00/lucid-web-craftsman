@@ -145,7 +145,9 @@ const CheckoutOrderSummary = ({
               <Input
                 placeholder={t('promo.placeholder')}
                 value={promoCode}
-                onChange={(e) => onPromoCodeChange(e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  onPromoCodeChange(e.target.value.toUpperCase())
+                }
                 className="flex-1 uppercase text-sm"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -181,13 +183,17 @@ const CheckoutOrderSummary = ({
         <div className="space-y-3 mb-4">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">{t('cart.subtotal')}</span>
-            <span className="font-medium text-foreground">{formatPrice(subtotal)}</span>
+            <span className="font-medium text-foreground">
+              {formatPrice(subtotal)}
+            </span>
           </div>
 
           {discount > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-primary">{t('cart.discount')}</span>
-              <span className="font-medium text-primary">-{formatPrice(discount)}</span>
+              <span className="font-medium text-primary">
+                -{formatPrice(discount)}
+              </span>
             </div>
           )}
 
@@ -204,7 +210,9 @@ const CheckoutOrderSummary = ({
                 </span>
               </div>
             ) : (
-              <span className="font-medium text-foreground">{formatPrice(shipping)}</span>
+              <span className="font-medium text-foreground">
+                {formatPrice(shipping)}
+              </span>
             )}
           </div>
 
@@ -223,7 +231,9 @@ const CheckoutOrderSummary = ({
           <Separator />
 
           <div className="flex justify-between pt-1">
-            <span className="text-base font-semibold text-foreground">{t('cart.total')}</span>
+            <span className="text-base font-semibold text-foreground">
+              {t('cart.total')}
+            </span>
             <span className="text-lg font-bold text-primary">
               {formatPrice(total)}
             </span>

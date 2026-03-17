@@ -96,10 +96,13 @@ serve(async (req: Request): Promise<Response> => {
     const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
     if (!BREVO_API_KEY) {
       console.error('BREVO_API_KEY is not set');
-      return new Response(JSON.stringify({ error: 'Email service not configured' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
+      return new Response(
+        JSON.stringify({ error: 'Email service not configured' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
     }
 
     const FROM_EMAIL = getFromEmail();
@@ -134,7 +137,10 @@ serve(async (req: Request): Promise<Response> => {
 
       return new Response(
         JSON.stringify({ success: true, messageId: data.messageId }),
-        { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
       );
     } finally {
       clearTimeout(timeout);
@@ -143,7 +149,10 @@ serve(async (req: Request): Promise<Response> => {
     console.error('Error sending newsletter welcome email:', error);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
     );
   }
 });

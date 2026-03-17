@@ -84,7 +84,9 @@ const NewsletterSubscription = ({
 
         // Send welcome email via Brevo (fire-and-forget)
         supabase.functions
-          .invoke('send-newsletter-welcome', { body: { email: normalizedEmail } })
+          .invoke('send-newsletter-welcome', {
+            body: { email: normalizedEmail },
+          })
           .then(({ error: emailErr }) => {
             if (emailErr) console.error('Welcome email error:', emailErr);
           });

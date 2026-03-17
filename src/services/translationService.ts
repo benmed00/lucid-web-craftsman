@@ -48,10 +48,17 @@ async function safeQuery<T>(
   try {
     const result = await promise;
     const elapsed = Math.round(performance.now() - start);
-    const size = Array.isArray(result.data) ? result.data.length : (result.data ? 1 : 0);
+    const size = Array.isArray(result.data)
+      ? result.data.length
+      : result.data
+        ? 1
+        : 0;
 
     if (result.error) {
-      console.error(`[safeQuery] ❌ ${label} failed (${elapsed}ms):`, result.error);
+      console.error(
+        `[safeQuery] ❌ ${label} failed (${elapsed}ms):`,
+        result.error
+      );
     } else {
       console.info(`[safeQuery] ✅ ${label} → ${size} rows in ${elapsed}ms`);
     }
@@ -156,15 +163,28 @@ function mergeProductTranslation(
     updated_at: product.updated_at as string,
 
     name: (activeTranslation?.name as string) || (product.name as string),
-    description: (activeTranslation?.description as string) || (product.description as string),
-    short_description: (activeTranslation?.short_description as string | null) || (product.short_description as string | null),
-    details: (activeTranslation?.details as string) || (product.details as string),
+    description:
+      (activeTranslation?.description as string) ||
+      (product.description as string),
+    short_description:
+      (activeTranslation?.short_description as string | null) ||
+      (product.short_description as string | null),
+    details:
+      (activeTranslation?.details as string) || (product.details as string),
     care: (activeTranslation?.care as string) || (product.care as string),
-    artisan_story: (activeTranslation?.artisan_story as string | null) || (product.artisan_story as string | null),
-    seo_title: (activeTranslation?.seo_title as string | null) || (product.seo_title as string | null),
-    seo_description: (activeTranslation?.seo_description as string | null) || (product.seo_description as string | null),
+    artisan_story:
+      (activeTranslation?.artisan_story as string | null) ||
+      (product.artisan_story as string | null),
+    seo_title:
+      (activeTranslation?.seo_title as string | null) ||
+      (product.seo_title as string | null),
+    seo_description:
+      (activeTranslation?.seo_description as string | null) ||
+      (product.seo_description as string | null),
 
-    _locale: ((activeTranslation?.locale as string) as SupportedLocale) || DEFAULT_LOCALE,
+    _locale:
+      (activeTranslation?.locale as string as SupportedLocale) ||
+      DEFAULT_LOCALE,
     _fallbackUsed: fallbackUsed || !activeTranslation,
   };
 }
@@ -208,15 +228,14 @@ export async function getProductWithTranslation(
     fallbackUsed = true;
   }
 
-  const activeTranslation = (translation || fallbackTranslation) as Record<string, unknown> | null;
+  const activeTranslation = (translation || fallbackTranslation) as Record<
+    string,
+    unknown
+  > | null;
 
   // Get base product data
   const { data: product, error: productError } = await safeQuery(
-    supabase
-      .from('products')
-      .select('*')
-      .eq('id', productId)
-      .single(),
+    supabase.from('products').select('*').eq('id', productId).single(),
     `product(${productId})`
   );
 
@@ -225,9 +244,15 @@ export async function getProductWithTranslation(
     return null;
   }
 
-  console.info(`[TranslationService] getProductWithTranslation(${productId}) → ${Math.round(performance.now() - startMs)}ms`);
+  console.info(
+    `[TranslationService] getProductWithTranslation(${productId}) → ${Math.round(performance.now() - startMs)}ms`
+  );
 
-  return mergeProductTranslation(product as Record<string, unknown>, activeTranslation, fallbackUsed);
+  return mergeProductTranslation(
+    product as Record<string, unknown>,
+    activeTranslation,
+    fallbackUsed
+  );
 }
 
 /**
@@ -241,14 +266,18 @@ export async function getProductWithTranslation(
 export async function getProductsWithTranslations(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<ProductWithTranslation[]> {
-  console.info('[TranslationService] getProductsWithTranslations CALLED, locale:', locale);
+  console.info(
+    '[TranslationService] getProductsWithTranslations CALLED, locale:',
+    locale
+  );
   const startMs = performance.now();
 
   // Single query with embedded translations via Supabase join
   const { data: products, error: productsError } = await safeQuery(
     supabase
       .from('products')
-      .select(`
+      .select(
+        `
         *,
         product_translations!left (
           locale,
@@ -261,32 +290,48 @@ export async function getProductsWithTranslations(
           seo_title,
           seo_description
         )
-      `)
+      `
+      )
       .eq('is_active', true)
       .order('created_at', { ascending: false }),
     `products_with_translations(${locale})`
   );
 
   if (productsError || !products) {
-    console.error('[TranslationService] Error fetching products:', productsError);
-    throw new Error(`Failed to fetch products: ${productsError instanceof Error ? productsError.message : String(productsError)}`);
+    console.error(
+      '[TranslationService] Error fetching products:',
+      productsError
+    );
+    throw new Error(
+      `Failed to fetch products: ${productsError instanceof Error ? productsError.message : String(productsError)}`
+    );
   }
 
   const elapsed = Math.round(performance.now() - startMs);
-  console.info(`[TranslationService] getProductsWithTranslations(${locale}) → ${(products as unknown[]).length} products in ${elapsed}ms (1 query, joined)`);
+  console.info(
+    `[TranslationService] getProductsWithTranslations(${locale}) → ${(products as unknown[]).length} products in ${elapsed}ms (1 query, joined)`
+  );
 
   // Merge products with the best matching translation
   return (products as Record<string, unknown>[]).map((product) => {
-    const translations = (product.product_translations || []) as Record<string, unknown>[];
+    const translations = (product.product_translations || []) as Record<
+      string,
+      unknown
+    >[];
 
     // Prefer requested locale, then fall back to default locale
     const translation = translations.find((t) => t.locale === locale) || null;
-    const fallback = locale !== DEFAULT_LOCALE
-      ? translations.find((t) => t.locale === DEFAULT_LOCALE) || null
-      : null;
+    const fallback =
+      locale !== DEFAULT_LOCALE
+        ? translations.find((t) => t.locale === DEFAULT_LOCALE) || null
+        : null;
     const activeTranslation = translation || fallback || null;
 
-    return mergeProductTranslation(product, activeTranslation, !translation && !!fallback);
+    return mergeProductTranslation(
+      product,
+      activeTranslation,
+      !translation && !!fallback
+    );
   });
 }
 
@@ -352,12 +397,20 @@ function mergeBlogTranslation(
     updated_at: post.updated_at as string | null,
 
     title: (activeTranslation?.title as string) || (post.title as string),
-    excerpt: (activeTranslation?.excerpt as string | null) || (post.excerpt as string | null),
+    excerpt:
+      (activeTranslation?.excerpt as string | null) ||
+      (post.excerpt as string | null),
     content: (activeTranslation?.content as string) || (post.content as string),
-    seo_title: (activeTranslation?.seo_title as string | null) || (post.seo_title as string | null),
-    seo_description: (activeTranslation?.seo_description as string | null) || (post.seo_description as string | null),
+    seo_title:
+      (activeTranslation?.seo_title as string | null) ||
+      (post.seo_title as string | null),
+    seo_description:
+      (activeTranslation?.seo_description as string | null) ||
+      (post.seo_description as string | null),
 
-    _locale: ((activeTranslation?.locale as string) as SupportedLocale) || DEFAULT_LOCALE,
+    _locale:
+      (activeTranslation?.locale as string as SupportedLocale) ||
+      DEFAULT_LOCALE,
     _fallbackUsed: fallbackUsed || !activeTranslation,
   };
 }
@@ -397,14 +450,13 @@ export async function getBlogPostWithTranslation(
     fallbackUsed = true;
   }
 
-  const activeTranslation = (translation || fallbackTranslation) as Record<string, unknown> | null;
+  const activeTranslation = (translation || fallbackTranslation) as Record<
+    string,
+    unknown
+  > | null;
 
   const { data: post, error: postError } = await safeQuery(
-    supabase
-      .from('blog_posts')
-      .select('*')
-      .eq('id', blogPostId)
-      .single(),
+    supabase.from('blog_posts').select('*').eq('id', blogPostId).single(),
     `blog_post(${blogPostId})`
   );
 
@@ -413,7 +465,11 @@ export async function getBlogPostWithTranslation(
     return null;
   }
 
-  return mergeBlogTranslation(post as Record<string, unknown>, activeTranslation, fallbackUsed);
+  return mergeBlogTranslation(
+    post as Record<string, unknown>,
+    activeTranslation,
+    fallbackUsed
+  );
 }
 
 /**
@@ -430,7 +486,8 @@ export async function getBlogPostsWithTranslations(
   const { data: posts, error: postsError } = await safeQuery(
     supabase
       .from('blog_posts')
-      .select(`
+      .select(
+        `
         *,
         blog_post_translations!left (
           locale,
@@ -440,15 +497,21 @@ export async function getBlogPostsWithTranslations(
           seo_title,
           seo_description
         )
-      `)
+      `
+      )
       .eq('status', 'published')
       .order('published_at', { ascending: false }),
     `blog_posts_with_translations(${locale})`
   );
 
   if (postsError || !posts) {
-    console.error('[TranslationService] Error fetching blog posts:', postsError);
-    throw new Error(`Failed to fetch blog posts: ${postsError instanceof Error ? postsError.message : String(postsError)}`);
+    console.error(
+      '[TranslationService] Error fetching blog posts:',
+      postsError
+    );
+    throw new Error(
+      `Failed to fetch blog posts: ${postsError instanceof Error ? postsError.message : String(postsError)}`
+    );
   }
 
   if ((posts as unknown[]).length === 0) {
@@ -457,17 +520,27 @@ export async function getBlogPostsWithTranslations(
   }
 
   const elapsed = Math.round(performance.now() - startMs);
-  console.info(`[TranslationService] getBlogPostsWithTranslations(${locale}) → ${(posts as unknown[]).length} posts in ${elapsed}ms (1 query, joined)`);
+  console.info(
+    `[TranslationService] getBlogPostsWithTranslations(${locale}) → ${(posts as unknown[]).length} posts in ${elapsed}ms (1 query, joined)`
+  );
 
   return (posts as Record<string, unknown>[]).map((post) => {
-    const translations = (post.blog_post_translations || []) as Record<string, unknown>[];
+    const translations = (post.blog_post_translations || []) as Record<
+      string,
+      unknown
+    >[];
     const translation = translations.find((t) => t.locale === locale) || null;
-    const fallback = locale !== DEFAULT_LOCALE
-      ? translations.find((t) => t.locale === DEFAULT_LOCALE) || null
-      : null;
+    const fallback =
+      locale !== DEFAULT_LOCALE
+        ? translations.find((t) => t.locale === DEFAULT_LOCALE) || null
+        : null;
     const activeTranslation = translation || fallback || null;
 
-    return mergeBlogTranslation(post, activeTranslation, !translation && !!fallback);
+    return mergeBlogTranslation(
+      post,
+      activeTranslation,
+      !translation && !!fallback
+    );
   });
 }
 
@@ -492,5 +565,8 @@ export async function getBlogPostBySlugWithTranslation(
     return null;
   }
 
-  return getBlogPostWithTranslation((post as Record<string, unknown>).id as string, locale);
+  return getBlogPostWithTranslation(
+    (post as Record<string, unknown>).id as string,
+    locale
+  );
 }

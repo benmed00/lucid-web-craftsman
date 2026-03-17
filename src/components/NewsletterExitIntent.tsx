@@ -1,5 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import NewsletterSubscription from '@/components/NewsletterSubscription';
 import { useTranslation } from 'react-i18next';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
@@ -53,11 +58,23 @@ const NewsletterExitIntent = () => {
   }, [isDismissed]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) dismiss(); }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) dismiss();
+      }}
+    >
       <DialogContent className="sm:max-w-md p-0 gap-0 border-border bg-background overflow-hidden">
         <VisuallyHidden>
-          <DialogTitle>{t('newsletter.exitIntent.title', 'Newsletter')}</DialogTitle>
-          <DialogDescription>{t('newsletter.exitIntent.description', 'Subscribe to our newsletter')}</DialogDescription>
+          <DialogTitle>
+            {t('newsletter.exitIntent.title', 'Newsletter')}
+          </DialogTitle>
+          <DialogDescription>
+            {t(
+              'newsletter.exitIntent.description',
+              'Subscribe to our newsletter'
+            )}
+          </DialogDescription>
         </VisuallyHidden>
         <div className="p-6 pt-8">
           <NewsletterSubscription

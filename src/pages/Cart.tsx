@@ -80,7 +80,6 @@ const Cart = () => {
     enabled: productIds.length > 0,
   });
 
-
   // Check stock for all items and get any issues
   const stockIssues = useMemo(() => {
     const issues: {

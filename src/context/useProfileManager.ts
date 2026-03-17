@@ -5,7 +5,10 @@ import type { Profile } from './AuthContext';
 
 // ============= Profile Cache =============
 class ProfileCache {
-  private cache = new Map<string, { data: Profile | null; timestamp: number }>();
+  private cache = new Map<
+    string,
+    { data: Profile | null; timestamp: number }
+  >();
   private readonly TTL = 5 * 60 * 1000; // 5 minutes
 
   set(userId: string, data: Profile | null) {

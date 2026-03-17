@@ -21,7 +21,11 @@ interface ReviewFormProps {
 const MAX_PHOTOS = 3;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProps) => {
+export const ReviewForm = ({
+  productId,
+  productName,
+  onSuccess,
+}: ReviewFormProps) => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState('');
@@ -44,7 +48,9 @@ export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProp
         return;
       }
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-        toast.error(`${file.name} : format non supporté (JPEG, PNG, WebP uniquement)`);
+        toast.error(
+          `${file.name} : format non supporté (JPEG, PNG, WebP uniquement)`
+        );
         return;
       }
     }
@@ -52,7 +58,8 @@ export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProp
     setPhotos((prev) => [...prev, ...selected]);
     selected.forEach((file) => {
       const reader = new FileReader();
-      reader.onload = (ev) => setPhotoPreviews((prev) => [...prev, ev.target?.result as string]);
+      reader.onload = (ev) =>
+        setPhotoPreviews((prev) => [...prev, ev.target?.result as string]);
       reader.readAsDataURL(file);
     });
 
@@ -71,9 +78,13 @@ export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProp
     for (const file of photos) {
       const ext = file.name.split('.').pop();
       const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage.from('review-photos').upload(path, file);
+      const { error } = await supabase.storage
+        .from('review-photos')
+        .upload(path, file);
       if (error) throw error;
-      const { data } = supabase.storage.from('review-photos').getPublicUrl(path);
+      const { data } = supabase.storage
+        .from('review-photos')
+        .getPublicUrl(path);
       urls.push(data.publicUrl);
     }
 
@@ -148,7 +159,10 @@ export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProp
                   className="p-1 hover:scale-110 transition-transform"
                   onMouseEnter={() => setHoverRating(star)}
                   onMouseLeave={() => setHoverRating(0)}
-                  onClick={() => { hapticFeedback('selection'); setRating(star); }}
+                  onClick={() => {
+                    hapticFeedback('selection');
+                    setRating(star);
+                  }}
                 >
                   <Star
                     className={cn(
@@ -205,8 +219,15 @@ export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProp
             <Label>Photos (optionnel, {MAX_PHOTOS} max)</Label>
             <div className="flex flex-wrap gap-3">
               {photoPreviews.map((preview, i) => (
-                <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border">
-                  <img src={preview} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                <div
+                  key={i}
+                  className="relative w-20 h-20 rounded-lg overflow-hidden border border-border"
+                >
+                  <img
+                    src={preview}
+                    alt={`Photo ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
                   <button
                     type="button"
                     onClick={() => removePhoto(i)}
@@ -234,11 +255,17 @@ export const ReviewForm = ({ productId, productName, onSuccess }: ReviewFormProp
               className="hidden"
               onChange={handlePhotoSelect}
             />
-            <p className="text-xs text-muted-foreground">JPEG, PNG ou WebP • 5 Mo max par photo</p>
+            <p className="text-xs text-muted-foreground">
+              JPEG, PNG ou WebP • 5 Mo max par photo
+            </p>
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" disabled={!rating || isSubmitting} className="w-full">
+          <Button
+            type="submit"
+            disabled={!rating || isSubmitting}
+            className="w-full"
+          >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
