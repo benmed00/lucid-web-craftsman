@@ -61,14 +61,14 @@ Scope: Supabase database schema/policies/migrations, storage policies, edge func
 
 ## HIGH
 
-4. **`app_settings` read policy too broad for authenticated users.**
+4. **`app_settings` read policy required post-merge reconciliation after upstream admin-only tightening.**
 
    - Table: `app_settings`
    - Vulnerability: unrestricted read of operational settings.
    - Impact: business/security configuration disclosure.
    - Fix applied:
-     - Added restrictive policy allowing only approved storefront keys or admin users.
-     - Added anon safe-key read policy for storefront-only keys to preserve guest UX without exposing sensitive settings.
+     - Added reconciled policy set: safe-key `SELECT` for `anon, authenticated` + admin-all `SELECT` for authenticated admins.
+     - Preserves storefront behavior while keeping sensitive settings restricted.
 
 5. **Storage policies had weak write constraints on sensitive buckets.**
 
