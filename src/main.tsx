@@ -3,6 +3,28 @@ import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import './index.css';
 
+// ============= 1. Storage self-healing (MUST run before anything else) =============
+import {
+  validateAndSanitizeStorage,
+  startHydrationWatchdog,
+  wasWatchdogReload,
+} from '@/lib/storage/StorageGuard';
+
+// Validate all persisted stores SYNCHRONOUSLY before any store initializes
+const repairedCount = validateAndSanitizeStorage();
+
+// If this is a watchdog-triggered reload, log it
+if (wasWatchdogReload()) {
+  console.info('[StorageGuard] This page load was triggered by the hydration watchdog');
+}
+
+// Start the hydration watchdog — if App doesn't resolve within 4s, purge & reload
+// Skip if we already did a watchdog reload (prevent infinite loop)
+if (!wasWatchdogReload()) {
+  startHydrationWatchdog(4000);
+}
+
+// ============= 2. i18n initialization =============
 // Import i18n FIRST to ensure it's initialized before any components
 import './i18n';
 
@@ -23,6 +45,7 @@ import {
 } from '@/stores';
 import { initializeLanguageStore } from '@/stores/languageStore';
 import { initializeBusinessRules } from '@/hooks/useBusinessRules';
+
 // Declare global flag
 declare global {
   interface Window {
@@ -34,7 +57,6 @@ declare global {
 setupProductionErrorSuppression();
 
 // Diagnostic: Test Supabase connectivity early
-// This helps identify if the network layer is working
 {
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
   const SUPABASE_PUBLISHABLE_KEY = import.meta.env
@@ -77,66 +99,15 @@ setupProductionErrorSuppression();
   }
 }
 
-// ============= Safe localStorage validation =============
-// Validate persisted Zustand stores before initialization.
-// Corrupted JSON will crash store hydration and break the entire app.
-{
-  const PERSISTED_STORES = [
-    'cart-storage',
-    'currency-storage',
-    'rif-raw-straw-theme',
-    'language-storage',
-  ];
-  for (const key of PERSISTED_STORES) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        // Zustand persist format: { state: {...}, version: number }
-        if (!parsed || typeof parsed !== 'object' || !('state' in parsed)) {
-          console.warn(`[StorageGuard] Invalid format for "${key}", clearing`);
-          localStorage.removeItem(key);
-        }
-      }
-    } catch {
-      console.warn(`[StorageGuard] Corrupted JSON in "${key}", clearing`);
-      try {
-        localStorage.removeItem(key);
-      } catch {
-        /* ignore */
-      }
-    }
-  }
-
-  // Also validate hero image cache (not a Zustand store but causes issues)
-  try {
-    const heroCache = localStorage.getItem('rif_hero_image_cache');
-    if (heroCache) {
-      const parsed = JSON.parse(heroCache);
-      if (!parsed || !parsed.imageUrl || !parsed.title) {
-        console.warn('[StorageGuard] Invalid hero cache, clearing');
-        localStorage.removeItem('rif_hero_image_cache');
-      }
-    }
-  } catch {
-    console.warn('[StorageGuard] Corrupted hero cache, clearing');
-    try {
-      localStorage.removeItem('rif_hero_image_cache');
-    } catch {
-      /* ignore */
-    }
-  }
-}
-
-// Initialize only critical stores before render
+// ============= 3. Deterministic store initialization =============
+// Order: Theme → Language → Currency → Cart (theme first to avoid FOUC)
 if (!window.__PERF_OPTIMIZED__) {
   window.__PERF_OPTIMIZED__ = true;
 
-  // Initialize Zustand stores (synchronous, lightweight)
-  initializeCartStore();
-  initializeCurrencyStore();
   initializeThemeStore();
   initializeLanguageStore();
+  initializeCurrencyStore();
+  initializeCartStore();
 
   // Defer ALL non-critical initializations to after first paint
   requestAnimationFrame(() => {
@@ -151,6 +122,7 @@ if (!window.__PERF_OPTIMIZED__) {
   });
 }
 
+// ============= 4. Render =============
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>
