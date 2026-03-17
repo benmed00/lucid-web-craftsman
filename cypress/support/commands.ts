@@ -11,6 +11,12 @@ type MockScenario =
   | 'invalidPayload'
   | 'latency';
 
+// Tab key press for keyboard navigation tests (uses cypress-real-events)
+Cypress.Commands.add('tab', { prevSubject: 'optional' }, (subject) => {
+  cy.realPress('Tab');
+  return subject;
+});
+
 Cypress.Commands.add('addProductToCart', (options?: { productId?: number }) => {
   cy.visit('/products');
   const id = options?.productId;
@@ -22,19 +28,21 @@ Cypress.Commands.add('addProductToCart', (options?: { productId?: number }) => {
 });
 
 Cypress.Commands.add('resetDatabase', () => {
-  const url = Cypress.env('DB_RESET_URL') as string | undefined;
-  const token = Cypress.env('DB_RESET_TOKEN') as string | undefined;
-  if (!url) {
-    cy.clearCookies();
-    cy.clearLocalStorage();
-    return;
-  }
-  cy.request({
-    method: 'POST',
-    url,
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    failOnStatusCode: true,
-  });
+  cy.env(['DB_RESET_URL', 'DB_RESET_TOKEN']).then(
+    ({ DB_RESET_URL: url, DB_RESET_TOKEN: token }) => {
+      if (!url) {
+        cy.clearCookies();
+        cy.clearLocalStorage();
+        return;
+      }
+      cy.request({
+        method: 'POST',
+        url,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        failOnStatusCode: true,
+      });
+    }
+  );
 });
 
 Cypress.Commands.add(
@@ -91,6 +99,7 @@ declare global {
   /* eslint-disable @typescript-eslint/no-namespace -- Cypress Chainable augmentation requires namespace */
   namespace Cypress {
     interface Chainable {
+      tab(): Chainable<unknown>;
       addProductToCart(options?: { productId?: number }): Chainable<void>;
       resetDatabase(): Chainable<void>;
       mockSupabaseResponse(

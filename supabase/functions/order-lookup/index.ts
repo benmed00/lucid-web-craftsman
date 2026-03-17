@@ -24,13 +24,35 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseService = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    { auth: { persistSession: false } }
-  );
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  const supabaseService = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
+  const authHeader = req.headers.get('Authorization');
+  const bearerToken = authHeader?.startsWith('Bearer ')
+    ? authHeader.replace('Bearer ', '')
+    : null;
+  const guestId = req.headers.get('x-guest-id')?.trim() || null;
+  const isInternalServiceCall = !!bearerToken && bearerToken === serviceRoleKey;
+  let requesterUserId: string | null = null;
 
   try {
+    if (bearerToken && !isInternalServiceCall) {
+      try {
+        const anonClient = createClient(
+          supabaseUrl,
+          Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+        );
+        const {
+          data: { user },
+        } = await anonClient.auth.getUser(bearerToken);
+        requesterUserId = user?.id || null;
+      } catch {
+        requesterUserId = null;
+      }
+    }
+
     const { session_id } = await req.json();
     if (!session_id) {
       return new Response(
@@ -55,6 +77,13 @@ serve(async (req) => {
       .maybeSingle();
 
     if (byColumn) {
+      if (!isAuthorized(byColumn)) {
+        logStep('Order access denied by ownership rules');
+        return new Response(JSON.stringify({ found: false }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        });
+      }
       logStep('Found by stripe_session_id column', {
         orderId: byColumn.id,
         status: byColumn.status,
@@ -70,6 +99,13 @@ serve(async (req) => {
       .maybeSingle();
 
     if (byMetadata) {
+      if (!isAuthorized(byMetadata)) {
+        logStep('Order access denied by ownership rules');
+        return new Response(JSON.stringify({ found: false }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        });
+      }
       logStep('Found by metadata', {
         orderId: byMetadata.id,
         status: byMetadata.status,
@@ -116,5 +152,20 @@ serve(async (req) => {
         status: 200,
       }
     );
+  }
+
+  function isAuthorized(order: any): boolean {
+    if (isInternalServiceCall) return true;
+    if (
+      requesterUserId &&
+      order?.user_id &&
+      requesterUserId === order.user_id
+    ) {
+      return true;
+    }
+    const metadata = (order?.metadata || {}) as Record<string, unknown>;
+    const orderGuestId =
+      typeof metadata.guest_id === 'string' ? metadata.guest_id : null;
+    return !!(guestId && orderGuestId && guestId === orderGuestId);
   }
 });

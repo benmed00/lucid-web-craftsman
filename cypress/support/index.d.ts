@@ -4,6 +4,7 @@
 declare global {
   namespace Cypress {
     interface Chainable {
+      tab(): Chainable<unknown>;
       addProductToCart(options?: { productId?: number }): Chainable<void>;
       resetDatabase(): Chainable<void>;
       mockSupabaseResponse(

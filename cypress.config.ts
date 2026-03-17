@@ -14,6 +14,9 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
 export default defineConfig({
+  // allowCypressEnv must stay true: @cypress/grep uses Cypress.env('grep') internally
+  // Avoid "failed to trash" on Windows when clearing screenshots/videos
+  trashAssetsBeforeRuns: false,
   e2e: {
     // Specs from integration (header, mobile, nav) and e2e (checkout)
     specPattern: 'cypress/{integration,e2e}/**/*.{js,ts}',

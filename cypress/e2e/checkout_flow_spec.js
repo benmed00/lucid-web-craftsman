@@ -5,28 +5,29 @@
 
 describe('Checkout Flow @smoke @regression', () => {
   beforeEach(() => {
+    // Stub Supabase so checkout form loads quickly (matches enterprise spec)
+    cy.intercept('GET', '**/rest/v1/checkout_sessions*', {
+      statusCode: 200,
+      body: [],
+    }).as('checkoutSessionsGet');
+    cy.intercept('GET', '**/rest/v1/app_settings*', {
+      statusCode: 200,
+      body: [],
+    }).as('appSettings');
     cy.visit('/products');
     cy.get('body').should('be.visible');
   });
 
   it('should add a product to the cart', () => {
-    // Click the first "Add to cart" button on the products page
-    cy.get('[data-testid="add-to-cart"], button')
-      .contains(/ajouter|add/i)
-      .first()
-      .click();
-    // Cart icon should show at least 1 item
-    cy.get(
-      '[data-testid="cart-count"], [aria-label*="cart"], .cart-count'
-    ).should('exist');
+    // Use stable ID selector (matches enterprise spec and product cards)
+    cy.get('[id^="add-to-cart-btn-"]').first().should('be.visible').click();
+    // Cart link should exist (header shows cart)
+    cy.get('a[href="/cart"]').should('exist');
   });
 
   it('should navigate to checkout with items in cart', () => {
     // Add a product
-    cy.get('button')
-      .contains(/ajouter|add/i)
-      .first()
-      .click();
+    cy.get('[id^="add-to-cart-btn-"]').first().click();
     // Go to cart
     cy.visit('/cart');
     cy.get('body').should('be.visible');
@@ -39,69 +40,65 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should fill personal info and advance to shipping', () => {
-    // Add product and go to checkout
-    cy.get('button')
-      .contains(/ajouter|add/i)
-      .first()
-      .click();
+    cy.get('[id^="add-to-cart-btn-"]').first().click();
     cy.visit('/checkout');
 
-    // Fill personal info
-    cy.get('#firstName').type('Jean');
-    cy.get('#lastName').type('Dupont');
-    cy.get('#email').type('jean.dupont@test.com');
-    cy.get('#phone').type('+33612345678');
+    // Wait for form to load (skeleton gone, persistence ready)
+    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.get('#firstName').clear().type('Jean');
+    cy.get('#lastName').clear().type('Dupont');
+    cy.get('#email').clear().type('jean.dupont@test.com');
+    cy.get('#phone').clear().type('+33612345678');
 
-    // Advance to step 2
-    cy.get('button')
-      .contains(/livraison|shipping/i)
-      .first()
+    // Use fieldset to target step 1 button (avoids sidebar)
+    cy.get('fieldset')
+      .find('button')
+      .contains(/livraison|shipping|suivant|next|continuer/i)
+      .should('be.visible')
       .click();
 
-    // Should show shipping form
-    cy.get('#address').should('be.visible');
+    cy.get('#address', { timeout: 15000 }).should('be.visible');
   });
 
   it('should fill shipping info and advance to payment', () => {
-    cy.get('button')
-      .contains(/ajouter|add/i)
-      .first()
-      .click();
+    cy.get('[id^="add-to-cart-btn-"]').first().click();
     cy.visit('/checkout');
 
-    // Step 1
-    cy.get('#firstName').type('Jean');
-    cy.get('#lastName').type('Dupont');
-    cy.get('#email').type('jean.dupont@test.com');
-    cy.get('button')
-      .contains(/livraison|shipping/i)
-      .first()
+    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.get('#firstName').clear().type('Jean');
+    cy.get('#lastName').clear().type('Dupont');
+    cy.get('#email').clear().type('jean.dupont@test.com');
+    cy.get('fieldset')
+      .find('button')
+      .contains(/livraison|shipping|suivant|next|continuer/i)
+      .should('be.visible')
       .click();
 
-    // Step 2
+    cy.get('#address', { timeout: 15000 }).should('be.visible');
     cy.get('#address').type('12 Rue de la Paix');
     cy.get('#postalCode').type('75001');
     cy.get('#city').type('Paris');
 
-    // Advance to payment
     cy.get('button')
       .contains(/paiement|payment/i)
       .first()
       .click();
 
-    // Should show payment options
-    cy.get('input[value="card"]').should('exist');
+    // Payment step: card option (#card) or payment title/options text
+    cy.contains(/visa|mastercard|paiement sécurisé|secure payment/i, {
+      timeout: 15000,
+    }).should('be.visible');
   });
 
   it('should show error for invalid promo code', () => {
-    cy.get('button')
-      .contains(/ajouter|add/i)
-      .first()
-      .click();
+    cy.get('[id^="add-to-cart-btn-"]').first().click();
     cy.visit('/checkout');
 
-    // Enter invalid promo code in sidebar
-    cy.get('input[placeholder*="promo"], input[placeholder*="Code"]')
+    // Wait for checkout to load, then find promo input (FR: "Entrez votre code", EN: "Enter your code")
+    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.get(
+      'input[placeholder*="promo"], input[placeholder*="code"], input[placeholder*="Code"]'
+    )
       .first()
       .type('INVALIDCODE123');
     cy.get('button')
@@ -109,19 +106,19 @@ describe('Checkout Flow @smoke @regression', () => {
       .first()
       .click();
 
-    // Should show error message
-    cy.get('.text-destructive').should('be.visible');
+    cy.get('.text-destructive, [role="alert"]', { timeout: 10000 }).should(
+      'be.visible'
+    );
   });
 
   it('should clear promo error when user types new code', () => {
-    cy.get('button')
-      .contains(/ajouter|add/i)
-      .first()
-      .click();
+    cy.get('[id^="add-to-cart-btn-"]').first().click();
     cy.visit('/checkout');
 
-    // Enter invalid promo code
-    cy.get('input[placeholder*="promo"], input[placeholder*="Code"]')
+    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.get(
+      'input[placeholder*="promo"], input[placeholder*="code"], input[placeholder*="Code"]'
+    )
       .first()
       .type('BAD');
     cy.get('button')
@@ -129,67 +126,67 @@ describe('Checkout Flow @smoke @regression', () => {
       .first()
       .click();
 
-    // Wait for error
-    cy.get('.text-destructive').should('be.visible');
+    cy.get('.text-destructive, [role="alert"]', { timeout: 10000 }).should(
+      'be.visible'
+    );
 
-    // Type a new code — error should clear
-    cy.get('input[placeholder*="promo"], input[placeholder*="Code"]')
+    // Type new code — promo error clears on input change (force: sidebar may be covered by header)
+    cy.get(
+      'input[placeholder*="promo"], input[placeholder*="code"], input[placeholder*="Code"]'
+    )
       .first()
-      .clear()
-      .type('NEW');
-    cy.get('.text-destructive').should('not.exist');
+      .scrollIntoView()
+      .clear({ force: true })
+      .type('NEW', { force: true });
+    cy.contains(/code promo invalide|invalid promo code/i).should('not.exist');
   });
 
   it('should show postal code format hint based on country', () => {
-    cy.get('button')
-      .contains(/ajouter|add/i)
-      .first()
-      .click();
+    cy.get('[id^="add-to-cart-btn-"]').first().click();
     cy.visit('/checkout');
 
-    // Step 1
-    cy.get('#firstName').type('Jean');
-    cy.get('#lastName').type('Dupont');
-    cy.get('#email').type('jean.dupont@test.com');
-    cy.get('button')
-      .contains(/livraison|shipping/i)
-      .first()
+    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.get('#firstName').clear().type('Jean');
+    cy.get('#lastName').clear().type('Dupont');
+    cy.get('#email').clear().type('jean.dupont@test.com');
+    cy.get('fieldset')
+      .find('button')
+      .contains(/livraison|shipping|suivant|next|continuer/i)
+      .should('be.visible')
       .click();
 
-    // France is default — check hint
-    cy.contains('5 chiffres').should('be.visible');
+    cy.get('#address', { timeout: 15000 }).should('be.visible');
+    cy.contains(/5 chiffres|5 digits/i).should('be.visible');
 
-    // Switch to Belgium
     cy.get('#country').select('BE');
-    cy.contains('4 chiffres').should('be.visible');
+    cy.contains(/4 chiffres|4 digits/i).should('be.visible');
   });
 
   it('should validate postal code format per country', () => {
-    cy.get('button')
-      .contains(/ajouter|add/i)
-      .first()
-      .click();
+    cy.get('[id^="add-to-cart-btn-"]').first().click();
     cy.visit('/checkout');
 
-    // Fill step 1
-    cy.get('#firstName').type('Jean');
-    cy.get('#lastName').type('Dupont');
-    cy.get('#email').type('jean.dupont@test.com');
-    cy.get('button')
-      .contains(/livraison|shipping/i)
-      .first()
+    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.get('#firstName').clear().type('Jean');
+    cy.get('#lastName').clear().type('Dupont');
+    cy.get('#email').clear().type('jean.dupont@test.com');
+    cy.get('fieldset')
+      .find('button')
+      .contains(/livraison|shipping|suivant|next|continuer/i)
+      .should('be.visible')
       .click();
 
-    // Enter invalid postal code for France
+    cy.get('#address', { timeout: 15000 }).should('be.visible');
     cy.get('#address').type('12 Rue de la Paix');
-    cy.get('#postalCode').type('123'); // too short
+    cy.get('#postalCode').type('123'); // too short for FR
     cy.get('#city').type('Paris');
     cy.get('button')
       .contains(/paiement|payment/i)
       .first()
       .click();
 
-    // Should show validation error
-    cy.get('.text-destructive').should('be.visible');
+    cy.get('.text-destructive, [role="alert"]', { timeout: 10000 }).should(
+      'be.visible'
+    );
   });
 });

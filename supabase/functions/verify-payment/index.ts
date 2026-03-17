@@ -30,25 +30,29 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseService = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    { auth: { persistSession: false } }
-  );
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  const supabaseService = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
+  const authHeader = req.headers.get('Authorization');
+  const bearerToken = authHeader?.startsWith('Bearer ')
+    ? authHeader.replace('Bearer ', '')
+    : null;
+  const guestId = req.headers.get('x-guest-id')?.trim() || null;
+  const isInternalServiceCall = !!bearerToken && bearerToken === serviceRoleKey;
 
   // Try to get authenticated user from request (for order association)
   let authenticatedUserId: string | null = null;
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (authHeader) {
+    if (bearerToken && !isInternalServiceCall) {
       const anonClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
+        supabaseUrl,
         Deno.env.get('SUPABASE_ANON_KEY') ?? ''
       );
-      const token = authHeader.replace('Bearer ', '');
       const {
         data: { user },
-      } = await anonClient.auth.getUser(token);
+      } = await anonClient.auth.getUser(bearerToken);
       authenticatedUserId = user?.id || null;
       if (authenticatedUserId) {
         logStep('Authenticated user detected', { userId: authenticatedUserId });
@@ -121,6 +125,21 @@ serve(async (req) => {
 
     // DB-first path: if webhook already confirmed the order, don't block UX on Stripe API lookup.
     const preConfirmedOrder = await findOrderBySession(session_id);
+    if (preConfirmedOrder) {
+      if (!isAuthorizedOrder(preConfirmedOrder)) {
+        logStep('Order access denied by ownership rules');
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: 'Order not found',
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 404,
+          }
+        );
+      }
+    }
     if (preConfirmedOrder && isOrderConfirmed(preConfirmedOrder)) {
       logStep('Order already confirmed in DB before Stripe lookup', {
         orderId: preConfirmedOrder.id,
@@ -155,6 +174,21 @@ serve(async (req) => {
       });
 
       const recoveredOrder = await findOrderBySession(session_id);
+      if (recoveredOrder) {
+        if (!isAuthorizedOrder(recoveredOrder)) {
+          logStep('Recovered order denied by ownership rules');
+          return new Response(
+            JSON.stringify({
+              success: false,
+              message: 'Order not found',
+            }),
+            {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 404,
+            }
+          );
+        }
+      }
       if (recoveredOrder && isOrderConfirmed(recoveredOrder)) {
         return new Response(
           JSON.stringify({
@@ -207,6 +241,20 @@ serve(async (req) => {
         fallbackOrderId: session.metadata?.order_id,
       });
       throw new Error('Order not found');
+    }
+
+    if (!isAuthorizedOrder(orderData)) {
+      logStep('Order access denied by ownership rules');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'Order not found',
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404,
+        }
+      );
     }
 
     logStep('Order found', {
@@ -647,5 +695,20 @@ serve(async (req) => {
         status: 500,
       }
     );
+  }
+
+  function isAuthorizedOrder(order: any): boolean {
+    if (isInternalServiceCall) return true;
+    if (
+      authenticatedUserId &&
+      order?.user_id &&
+      authenticatedUserId === order.user_id
+    ) {
+      return true;
+    }
+    const metadata = (order?.metadata || {}) as Record<string, unknown>;
+    const orderGuestId =
+      typeof metadata.guest_id === 'string' ? metadata.guest_id : null;
+    return !!(guestId && orderGuestId && guestId === orderGuestId);
   }
 });
