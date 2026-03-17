@@ -91,6 +91,30 @@ export const supabase = createClient<Database>(
           .then((response) => {
             clearTimeout(timeoutId);
             console.info(`[SupabaseFetch] ← ${response.status} ${shortUrl}`);
+
+            // CRITICAL FIX: If we get a 401 (bad JWT), the stored auth token
+            // is poisoning ALL requests — even anonymous ones.
+            // Clear the bad token immediately so subsequent retries use the anon key.
+            if (response.status === 401) {
+              console.warn('[SupabaseFetch] 401 detected — clearing stale auth tokens');
+              try {
+                // Remove all Supabase auth keys from storage
+                const keysToRemove: string[] = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                  const key = localStorage.key(i);
+                  if (key && (key.startsWith('sb-') || key.startsWith('supabase.auth.'))) {
+                    keysToRemove.push(key);
+                  }
+                }
+                keysToRemove.forEach((key) => localStorage.removeItem(key));
+                if (keysToRemove.length > 0) {
+                  console.warn(`[SupabaseFetch] Cleared ${keysToRemove.length} stale auth keys`);
+                }
+              } catch (e) {
+                // Storage access may fail in private mode — ignore
+              }
+            }
+
             return response;
           })
           .catch((err) => {
