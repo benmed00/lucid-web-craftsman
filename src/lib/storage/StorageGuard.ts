@@ -219,6 +219,48 @@ export function validateAndSanitizeStorage(): number {
     }
   }
 
+  // Also check for potentially stale Supabase auth tokens
+  // A bad JWT will poison ALL requests (even anonymous ones) with 401
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith('sb-')) continue;
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      try {
+        const parsed = JSON.parse(raw);
+        // Supabase stores session as { access_token, refresh_token, ... }
+        // or { currentSession: { access_token, ... } }
+        const token = parsed?.access_token || parsed?.currentSession?.access_token;
+        if (token && typeof token === 'string') {
+          // Quick JWT expiry check (decode payload without verification)
+          const parts = token.split('.');
+          if (parts.length === 3) {
+            try {
+              const payload = JSON.parse(atob(parts[1]));
+              if (payload.exp && payload.exp * 1000 < Date.now()) {
+                console.warn(`[StorageGuard] Expired JWT found in "${key}", removing`);
+                safeRemove(key);
+                logDiagnostic({ key, action: 'cleared', reason: 'Expired JWT token' });
+                repaired++;
+              }
+            } catch {
+              // Malformed JWT payload — remove it
+              console.warn(`[StorageGuard] Malformed JWT in "${key}", removing`);
+              safeRemove(key);
+              logDiagnostic({ key, action: 'cleared', reason: 'Malformed JWT token' });
+              repaired++;
+            }
+          }
+        }
+      } catch {
+        // Not JSON — ignore
+      }
+    }
+  } catch {
+    // Storage enumeration failed — ignore
+  }
+
   if (repaired > 0) {
     console.info(`[StorageGuard] Repaired ${repaired} persisted store(s)`);
   }
