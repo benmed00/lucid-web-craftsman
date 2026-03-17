@@ -54,6 +54,35 @@ function getStorage(type: StorageType): Storage | Map<string, string> {
 /**
  * Get remaining storage quota (approximate)
  */
+/**
+ * App-managed storage key prefix.
+ * All keys written by this app should use this prefix so that
+ * getStorageQuota and clearOldestItems never touch third-party keys.
+ */
+export const STORAGE_PREFIX = 'rif_';
+
+/**
+ * All known app storage keys (Zustand persist names + manual keys).
+ * StorageGuard and quota management only operate on these.
+ */
+export const APP_STORAGE_KEYS = [
+  'cart-storage',
+  'currency-storage',
+  'rif-raw-straw-theme',
+  'language-storage',
+  'rif_hero_image_cache',
+  'cart',
+  'cart_offline_queue',
+  'preferred_currency',
+  'recentlyViewedProducts',
+  'theme',
+  'auth_state',
+  'i18nextLng',
+] as const;
+
+/**
+ * Get remaining storage quota (approximate, scoped to app keys only)
+ */
 export function getStorageQuota(): {
   used: number;
   remaining: number;
@@ -63,13 +92,16 @@ export function getStorageQuota(): {
   let used = 0;
 
   try {
-    for (const key in localStorage) {
-      if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
-        used += localStorage[key].length * 2; // UTF-16 = 2 bytes per char
+    for (const key of APP_STORAGE_KEYS) {
+      const value = localStorage.getItem(key);
+      if (value) {
+        // UTF-16: ~2 bytes per char (heuristic, not exact)
+        used += (key.length + value.length) * 2;
       }
     }
   } catch {
-    // Ignore errors
+    // Storage access failed — assume worst case
+    return { used: 0, remaining: 0, total };
   }
 
   return {
