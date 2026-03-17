@@ -266,12 +266,18 @@ export const useCartStore = create<CartState>()(
           _setInitialized: (init) => set({ isInitialized: init }),
 
           _addToQueue: (operation) => {
-            set((state) => ({
-              offlineQueue: [
+            set((state) => {
+              const MAX_QUEUE = 50;
+              const newQueue = [
                 ...state.offlineQueue,
                 createQueueOperation(operation),
-              ],
-            }));
+              ];
+              // Enforce queue size limit — drop oldest operations
+              const trimmed = newQueue.length > MAX_QUEUE
+                ? newQueue.slice(newQueue.length - MAX_QUEUE)
+                : newQueue;
+              return { offlineQueue: trimmed };
+            });
           },
 
           _clearQueue: () => {
