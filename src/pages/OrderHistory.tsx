@@ -333,18 +333,36 @@ const OrderHistory = () => {
                                 <div className="flex items-start gap-3 p-3 bg-primary/5 rounded-lg border border-primary/10">
                                   <Truck className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                                   <div className="text-sm flex-1">
-                                    <p className="font-medium text-foreground">Suivi de livraison</p>
+                                    <p className="font-medium text-foreground">
+                                      Suivi de livraison
+                                    </p>
                                     <p className="text-muted-foreground">
-                                      {selectedOrder.carrier && `${selectedOrder.carrier} — `}N° {selectedOrder.tracking_number}
+                                      {selectedOrder.carrier &&
+                                        `${selectedOrder.carrier} — `}
+                                      N° {selectedOrder.tracking_number}
                                     </p>
                                     {selectedOrder.estimated_delivery && (
                                       <p className="text-xs text-muted-foreground mt-1">
-                                        Livraison prévue : {format(new Date(selectedOrder.estimated_delivery), 'dd MMMM yyyy', { locale: dateLocale })}
+                                        Livraison prévue :{' '}
+                                        {format(
+                                          new Date(
+                                            selectedOrder.estimated_delivery
+                                          ),
+                                          'dd MMMM yyyy',
+                                          { locale: dateLocale }
+                                        )}
                                       </p>
                                     )}
                                     {selectedOrder.actual_delivery && (
                                       <p className="text-xs text-green-600 mt-1">
-                                        ✓ Livré le {format(new Date(selectedOrder.actual_delivery), 'dd MMMM yyyy', { locale: dateLocale })}
+                                        ✓ Livré le{' '}
+                                        {format(
+                                          new Date(
+                                            selectedOrder.actual_delivery
+                                          ),
+                                          'dd MMMM yyyy',
+                                          { locale: dateLocale }
+                                        )}
                                       </p>
                                     )}
                                     {selectedOrder.tracking_url && (
@@ -354,7 +372,8 @@ const OrderHistory = () => {
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline"
                                       >
-                                        Suivre mon colis <ExternalLink className="h-3 w-3" />
+                                        Suivre mon colis{' '}
+                                        <ExternalLink className="h-3 w-3" />
                                       </a>
                                     )}
                                   </div>
@@ -362,27 +381,47 @@ const OrderHistory = () => {
                               )}
 
                               {/* Shipping address */}
-                              {selectedOrder.shipping_address && (() => {
-                                const addr = selectedOrder.shipping_address;
-                                const line1 = addr.address_line1 || addr.address || addr.line1 || '';
-                                const city = addr.city || '';
-                                if (!line1 && !city) return null;
-                                return (
-                                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                                    <div className="text-sm">
-                                      <p className="font-medium text-foreground mb-0.5">Adresse de livraison</p>
-                                      {(addr.name || addr.full_name) && <p className="text-muted-foreground">{addr.name || addr.full_name}</p>}
-                                      <p className="text-muted-foreground">{line1}</p>
-                                      {(addr.address_line2 || addr.line2) && <p className="text-muted-foreground">{addr.address_line2 || addr.line2}</p>}
-                                      <p className="text-muted-foreground">
-                                        {addr.postal_code || addr.zip || ''} {city}
-                                        {addr.country ? `, ${addr.country}` : ''}
-                                      </p>
+                              {selectedOrder.shipping_address &&
+                                (() => {
+                                  const addr = selectedOrder.shipping_address;
+                                  const line1 =
+                                    addr.address_line1 ||
+                                    addr.address ||
+                                    addr.line1 ||
+                                    '';
+                                  const city = addr.city || '';
+                                  if (!line1 && !city) return null;
+                                  return (
+                                    <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                                      <div className="text-sm">
+                                        <p className="font-medium text-foreground mb-0.5">
+                                          Adresse de livraison
+                                        </p>
+                                        {(addr.name || addr.full_name) && (
+                                          <p className="text-muted-foreground">
+                                            {addr.name || addr.full_name}
+                                          </p>
+                                        )}
+                                        <p className="text-muted-foreground">
+                                          {line1}
+                                        </p>
+                                        {(addr.address_line2 || addr.line2) && (
+                                          <p className="text-muted-foreground">
+                                            {addr.address_line2 || addr.line2}
+                                          </p>
+                                        )}
+                                        <p className="text-muted-foreground">
+                                          {addr.postal_code || addr.zip || ''}{' '}
+                                          {city}
+                                          {addr.country
+                                            ? `, ${addr.country}`
+                                            : ''}
+                                        </p>
+                                      </div>
                                     </div>
-                                  </div>
-                                );
-                              })()}
+                                  );
+                                })()}
 
                               {/* Order items */}
                               <div>
@@ -428,40 +467,76 @@ const OrderHistory = () => {
                               {selectedOrder.payment_method && (
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                   <CreditCard className="h-3 w-3" />
-                                  Paiement par {selectedOrder.payment_method === 'card' ? 'carte bancaire' : selectedOrder.payment_method}
+                                  Paiement par{' '}
+                                  {selectedOrder.payment_method === 'card'
+                                    ? 'carte bancaire'
+                                    : selectedOrder.payment_method}
                                 </div>
                               )}
 
                               {/* Order Timeline */}
-                              {selectedOrder.order_status_history?.length > 0 && (
+                              {selectedOrder.order_status_history?.length >
+                                0 && (
                                 <div>
-                                  <h4 className="font-medium text-foreground mb-3">Chronologie</h4>
+                                  <h4 className="font-medium text-foreground mb-3">
+                                    Chronologie
+                                  </h4>
                                   <div className="relative pl-6 space-y-4">
                                     <div className="absolute left-[9px] top-1 bottom-1 w-px bg-border" />
                                     {[...selectedOrder.order_status_history]
-                                      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                                      .sort(
+                                        (a, b) =>
+                                          new Date(b.created_at).getTime() -
+                                          new Date(a.created_at).getTime()
+                                      )
                                       .map((entry, idx) => {
                                         const isLatest = idx === 0;
-                                        const statusLabels: Record<string, string> = {
-                                          created: 'Créée', payment_pending: 'Paiement en attente', paid: 'Payée',
-                                          preparing: 'En préparation', shipped: 'Expédiée', in_transit: 'En transit',
-                                          delivered: 'Livrée', cancelled: 'Annulée', refunded: 'Remboursée',
-                                          validated: 'Validée', payment_failed: 'Paiement échoué',
+                                        const statusLabels: Record<
+                                          string,
+                                          string
+                                        > = {
+                                          created: 'Créée',
+                                          payment_pending:
+                                            'Paiement en attente',
+                                          paid: 'Payée',
+                                          preparing: 'En préparation',
+                                          shipped: 'Expédiée',
+                                          in_transit: 'En transit',
+                                          delivered: 'Livrée',
+                                          cancelled: 'Annulée',
+                                          refunded: 'Remboursée',
+                                          validated: 'Validée',
+                                          payment_failed: 'Paiement échoué',
                                         };
                                         return (
-                                          <div key={entry.id} className="relative flex items-start gap-3">
-                                            <div className={`absolute left-[-15px] top-1 h-[18px] w-[18px] rounded-full flex items-center justify-center ${isLatest ? 'bg-primary text-primary-foreground' : 'bg-muted border border-border'}`}>
+                                          <div
+                                            key={entry.id}
+                                            className="relative flex items-start gap-3"
+                                          >
+                                            <div
+                                              className={`absolute left-[-15px] top-1 h-[18px] w-[18px] rounded-full flex items-center justify-center ${isLatest ? 'bg-primary text-primary-foreground' : 'bg-muted border border-border'}`}
+                                            >
                                               <CircleDot className="h-3 w-3" />
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                              <p className={`text-sm font-medium ${isLatest ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                                {statusLabels[entry.new_status] || entry.new_status}
+                                              <p
+                                                className={`text-sm font-medium ${isLatest ? 'text-foreground' : 'text-muted-foreground'}`}
+                                              >
+                                                {statusLabels[
+                                                  entry.new_status
+                                                ] || entry.new_status}
                                               </p>
                                               <p className="text-xs text-muted-foreground">
-                                                {format(new Date(entry.created_at), "dd MMM yyyy 'à' HH:mm", { locale: dateLocale })}
+                                                {format(
+                                                  new Date(entry.created_at),
+                                                  "dd MMM yyyy 'à' HH:mm",
+                                                  { locale: dateLocale }
+                                                )}
                                               </p>
                                               {entry.reason_message && (
-                                                <p className="text-xs text-muted-foreground mt-0.5 italic">{entry.reason_message}</p>
+                                                <p className="text-xs text-muted-foreground mt-0.5 italic">
+                                                  {entry.reason_message}
+                                                </p>
                                               )}
                                             </div>
                                           </div>
@@ -473,7 +548,8 @@ const OrderHistory = () => {
 
                               {selectedOrder.stripe_session_id && (
                                 <div className="text-xs text-muted-foreground">
-                                  {t('orders.details.sessionId')}: {selectedOrder.stripe_session_id.slice(-12)}
+                                  {t('orders.details.sessionId')}:{' '}
+                                  {selectedOrder.stripe_session_id.slice(-12)}
                                 </div>
                               )}
                             </div>

@@ -29,14 +29,20 @@ interface OrderConfirmationProps {
 }
 
 const esc = (s: string) =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 
 const formatPrice = (price: number, currency: string) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency }).format(price);
 
 const SITE_URL = 'https://www.rifelegance.com';
 
-export function buildOrderConfirmationHtml(props: OrderConfirmationProps): string {
+export function buildOrderConfirmationHtml(
+  props: OrderConfirmationProps
+): string {
   const {
     customerName,
     orderNumber,

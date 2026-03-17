@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import { MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -319,11 +325,15 @@ const PostalCodeAutocomplete = ({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setActiveIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+        setActiveIndex((prev) =>
+          prev < suggestions.length - 1 ? prev + 1 : 0
+        );
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setActiveIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+        setActiveIndex((prev) =>
+          prev > 0 ? prev - 1 : suggestions.length - 1
+        );
         break;
       case 'Enter':
         e.preventDefault();
@@ -338,14 +348,19 @@ const PostalCodeAutocomplete = ({
   // Scroll active item into view
   useEffect(() => {
     if (activeIndex >= 0 && listRef.current?.children[activeIndex]) {
-      (listRef.current.children[activeIndex] as HTMLElement).scrollIntoView({ block: 'nearest' });
+      (listRef.current.children[activeIndex] as HTMLElement).scrollIntoView({
+        block: 'nearest',
+      });
     }
   }, [activeIndex]);
 
   // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -373,7 +388,9 @@ const PostalCodeAutocomplete = ({
           aria-expanded={isOpen}
           aria-autocomplete="list"
           aria-controls="postal-suggestions"
-          aria-activedescendant={activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined}
+          aria-activedescendant={
+            activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined
+          }
           autoComplete="off"
           {...ariaProps}
         />

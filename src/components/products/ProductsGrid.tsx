@@ -8,7 +8,10 @@ import type { SupportedLocale } from '@/hooks/useTranslatedContent';
 interface ProductsGridProps {
   filteredProducts: Product[];
   visibleProducts: Product[];
-  fallbackInfo: Record<number, { isFallback: boolean; locale: SupportedLocale }>;
+  fallbackInfo: Record<
+    number,
+    { isFallback: boolean; locale: SupportedLocale }
+  >;
   isMobile: boolean;
   isSearchStale: boolean;
   hasMore: boolean;
@@ -84,24 +87,26 @@ export const ProductsGrid = ({
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
-          {(isMobile ? visibleProducts : filteredProducts).map((product, index) => (
-            <div
-              key={product.id}
-              className="animate-fade-in mobile-product-card"
-              style={{
-                animationDelay: `${Math.min(index * 50, 400)}ms`,
-                animationFillMode: 'both',
-              }}
-            >
-              <ProductCard
-                product={product}
-                onAddToCart={onAddToCart}
-                onQuickView={onQuickView}
-                isFallback={fallbackInfo[product.id]?.isFallback}
-                fallbackLocale={fallbackInfo[product.id]?.locale}
-              />
-            </div>
-          ))}
+          {(isMobile ? visibleProducts : filteredProducts).map(
+            (product, index) => (
+              <div
+                key={product.id}
+                className="animate-fade-in mobile-product-card"
+                style={{
+                  animationDelay: `${Math.min(index * 50, 400)}ms`,
+                  animationFillMode: 'both',
+                }}
+              >
+                <ProductCard
+                  product={product}
+                  onAddToCart={onAddToCart}
+                  onQuickView={onQuickView}
+                  isFallback={fallbackInfo[product.id]?.isFallback}
+                  fallbackLocale={fallbackInfo[product.id]?.locale}
+                />
+              </div>
+            )
+          )}
         </div>
       )}
 

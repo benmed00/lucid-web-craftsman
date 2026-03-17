@@ -15,7 +15,9 @@ const repairedCount = validateAndSanitizeStorage();
 
 // If this is a watchdog-triggered reload, log it
 if (wasWatchdogReload()) {
-  console.info('[StorageGuard] This page load was triggered by the hydration watchdog');
+  console.info(
+    '[StorageGuard] This page load was triggered by the hydration watchdog'
+  );
 }
 
 // Start the hydration watchdog — if App doesn't resolve within 4s, purge & reload

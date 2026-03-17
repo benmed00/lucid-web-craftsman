@@ -136,7 +136,9 @@ const Wishlist = () => {
         toast.success(t('common:messages.addedToCart'), {
           action: {
             label: t('common:buttons.viewCart', 'Voir le panier'),
-            onClick: () => { appNavigate('/cart'); },
+            onClick: () => {
+              appNavigate('/cart');
+            },
           },
         });
       } catch (error) {

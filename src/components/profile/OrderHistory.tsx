@@ -115,27 +115,94 @@ function getStatusConfig(status: string) {
       color: string;
     }
   > = {
-    created: { label: 'Créée', variant: 'outline', icon: Clock, color: 'text-muted-foreground' },
-    payment_pending: { label: 'En attente', variant: 'outline', icon: Clock, color: 'text-muted-foreground' },
-    pending: { label: 'En attente', variant: 'outline', icon: Clock, color: 'text-muted-foreground' },
-    paid: { label: 'Payée', variant: 'default', icon: CheckCircle, color: 'text-green-500' },
-    validated: { label: 'Validée', variant: 'default', icon: CheckCircle, color: 'text-green-500' },
-    preparing: { label: 'Préparation', variant: 'secondary', icon: Package, color: 'text-blue-500' },
-    processing: { label: 'En cours', variant: 'secondary', icon: Package, color: 'text-blue-500' },
-    shipped: { label: 'Expédiée', variant: 'default', icon: Truck, color: 'text-blue-500' },
-    in_transit: { label: 'En transit', variant: 'default', icon: Truck, color: 'text-blue-500' },
-    delivered: { label: 'Livrée', variant: 'default', icon: CheckCircle, color: 'text-green-600' },
-    cancelled: { label: 'Annulée', variant: 'destructive', icon: Clock, color: 'text-destructive' },
-    refunded: { label: 'Remboursée', variant: 'destructive', icon: Clock, color: 'text-destructive' },
-    payment_failed: { label: 'Paiement échoué', variant: 'destructive', icon: Clock, color: 'text-destructive' },
+    created: {
+      label: 'Créée',
+      variant: 'outline',
+      icon: Clock,
+      color: 'text-muted-foreground',
+    },
+    payment_pending: {
+      label: 'En attente',
+      variant: 'outline',
+      icon: Clock,
+      color: 'text-muted-foreground',
+    },
+    pending: {
+      label: 'En attente',
+      variant: 'outline',
+      icon: Clock,
+      color: 'text-muted-foreground',
+    },
+    paid: {
+      label: 'Payée',
+      variant: 'default',
+      icon: CheckCircle,
+      color: 'text-green-500',
+    },
+    validated: {
+      label: 'Validée',
+      variant: 'default',
+      icon: CheckCircle,
+      color: 'text-green-500',
+    },
+    preparing: {
+      label: 'Préparation',
+      variant: 'secondary',
+      icon: Package,
+      color: 'text-blue-500',
+    },
+    processing: {
+      label: 'En cours',
+      variant: 'secondary',
+      icon: Package,
+      color: 'text-blue-500',
+    },
+    shipped: {
+      label: 'Expédiée',
+      variant: 'default',
+      icon: Truck,
+      color: 'text-blue-500',
+    },
+    in_transit: {
+      label: 'En transit',
+      variant: 'default',
+      icon: Truck,
+      color: 'text-blue-500',
+    },
+    delivered: {
+      label: 'Livrée',
+      variant: 'default',
+      icon: CheckCircle,
+      color: 'text-green-600',
+    },
+    cancelled: {
+      label: 'Annulée',
+      variant: 'destructive',
+      icon: Clock,
+      color: 'text-destructive',
+    },
+    refunded: {
+      label: 'Remboursée',
+      variant: 'destructive',
+      icon: Clock,
+      color: 'text-destructive',
+    },
+    payment_failed: {
+      label: 'Paiement échoué',
+      variant: 'destructive',
+      icon: Clock,
+      color: 'text-destructive',
+    },
   };
 
-  return statusMap[status] || {
-    label: STATUS_LABELS[status] || status,
-    variant: 'secondary' as const,
-    icon: Clock,
-    color: 'text-muted-foreground',
-  };
+  return (
+    statusMap[status] || {
+      label: STATUS_LABELS[status] || status,
+      variant: 'secondary' as const,
+      icon: Clock,
+      color: 'text-muted-foreground',
+    }
+  );
 }
 
 function ShippingAddressBlock({ address }: { address: any }) {
@@ -154,7 +221,9 @@ function ShippingAddressBlock({ address }: { address: any }) {
     <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
       <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
       <div className="text-sm">
-        <p className="font-medium text-foreground mb-0.5">Adresse de livraison</p>
+        <p className="font-medium text-foreground mb-0.5">
+          Adresse de livraison
+        </p>
         {name && <p className="text-muted-foreground">{name}</p>}
         <p className="text-muted-foreground">{line1}</p>
         {line2 && <p className="text-muted-foreground">{line2}</p>}
@@ -171,7 +240,8 @@ function OrderTimeline({ history }: { history: StatusHistoryEntry[] }) {
   if (!history || history.length === 0) return null;
 
   const sorted = [...history].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
 
   return (
@@ -187,17 +257,23 @@ function OrderTimeline({ history }: { history: StatusHistoryEntry[] }) {
             <div key={entry.id} className="relative flex items-start gap-3">
               <div
                 className={`absolute left-[-15px] top-1 h-[18px] w-[18px] rounded-full flex items-center justify-center ${
-                  isLatest ? 'bg-primary text-primary-foreground' : 'bg-muted border border-border'
+                  isLatest
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted border border-border'
                 }`}
               >
                 <CircleDot className="h-3 w-3" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className={`text-sm font-medium ${isLatest ? 'text-foreground' : 'text-muted-foreground'}`}>
+                <p
+                  className={`text-sm font-medium ${isLatest ? 'text-foreground' : 'text-muted-foreground'}`}
+                >
                   {STATUS_LABELS[entry.new_status] || entry.new_status}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {format(new Date(entry.created_at), "dd MMM yyyy 'à' HH:mm", { locale: fr })}
+                  {format(new Date(entry.created_at), "dd MMM yyyy 'à' HH:mm", {
+                    locale: fr,
+                  })}
                 </p>
                 {entry.reason_message && (
                   <p className="text-xs text-muted-foreground mt-0.5 italic">
@@ -220,17 +296,20 @@ function OrderItemsList({ items }: { items: Order['order_items'] }) {
     <div className="space-y-2">
       <p className="text-sm font-medium text-foreground">Articles commandés</p>
       {items.map((item) => (
-        <div key={item.id} className="flex justify-between items-center p-2 bg-muted/30 rounded text-sm">
+        <div
+          key={item.id}
+          className="flex justify-between items-center p-2 bg-muted/30 rounded text-sm"
+        >
           <div className="flex-1 min-w-0">
             <span className="text-foreground truncate block">
               {item.product_snapshot?.name || 'Produit'}
             </span>
             <span className="text-xs text-muted-foreground">
-              {formatPrice((item.unit_price ?? 0))} × {item.quantity}
+              {formatPrice(item.unit_price ?? 0)} × {item.quantity}
             </span>
           </div>
           <span className="font-medium text-foreground ml-2">
-            {formatPrice((item.total_price ?? 0))}
+            {formatPrice(item.total_price ?? 0)}
           </span>
         </div>
       ))}
@@ -313,7 +392,10 @@ export function OrderHistory({ user }: OrderHistoryProps) {
 
               return (
                 <div key={order.id}>
-                  <Collapsible open={isExpanded} onOpenChange={() => toggleOrder(order.id)}>
+                  <Collapsible
+                    open={isExpanded}
+                    onOpenChange={() => toggleOrder(order.id)}
+                  >
                     {/* Compact header - always visible */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
                       <div className="flex-1 min-w-0">
@@ -321,7 +403,10 @@ export function OrderHistory({ user }: OrderHistoryProps) {
                           <h4 className="font-medium text-sm">
                             Commande #{order.id.slice(-8)}
                           </h4>
-                          <Badge variant={config.variant} className="flex items-center gap-1 text-xs">
+                          <Badge
+                            variant={config.variant}
+                            className="flex items-center gap-1 text-xs"
+                          >
                             <Icon className="h-3 w-3" />
                             {config.label}
                           </Badge>
@@ -329,7 +414,9 @@ export function OrderHistory({ user }: OrderHistoryProps) {
                         <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            {format(new Date(order.created_at), 'dd MMM yyyy', { locale: fr })}
+                            {format(new Date(order.created_at), 'dd MMM yyyy', {
+                              locale: fr,
+                            })}
                           </span>
                           {order.amount && (
                             <span className="flex items-center gap-1">
@@ -339,7 +426,8 @@ export function OrderHistory({ user }: OrderHistoryProps) {
                           )}
                           {order.order_items?.length > 0 && (
                             <span>
-                              {order.order_items.length} article{order.order_items.length > 1 ? 's' : ''}
+                              {order.order_items.length} article
+                              {order.order_items.length > 1 ? 's' : ''}
                             </span>
                           )}
                           {order.tracking_number && (
@@ -352,7 +440,11 @@ export function OrderHistory({ user }: OrderHistoryProps) {
                       </div>
 
                       <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="sm" className="gap-1 text-xs shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="gap-1 text-xs shrink-0"
+                        >
                           <ChevronDown
                             className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                           />
@@ -369,18 +461,31 @@ export function OrderHistory({ user }: OrderHistoryProps) {
                           <div className="flex items-start gap-3 p-3 bg-primary/5 rounded-lg border border-primary/10">
                             <Truck className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                             <div className="text-sm flex-1">
-                              <p className="font-medium text-foreground">Suivi de livraison</p>
+                              <p className="font-medium text-foreground">
+                                Suivi de livraison
+                              </p>
                               <p className="text-muted-foreground">
-                                {order.carrier && `${order.carrier} — `}N° {order.tracking_number}
+                                {order.carrier && `${order.carrier} — `}N°{' '}
+                                {order.tracking_number}
                               </p>
                               {order.estimated_delivery && (
                                 <p className="text-xs text-muted-foreground mt-1">
-                                  Livraison prévue : {format(new Date(order.estimated_delivery), 'dd MMMM yyyy', { locale: fr })}
+                                  Livraison prévue :{' '}
+                                  {format(
+                                    new Date(order.estimated_delivery),
+                                    'dd MMMM yyyy',
+                                    { locale: fr }
+                                  )}
                                 </p>
                               )}
                               {order.actual_delivery && (
                                 <p className="text-xs text-green-600 mt-1">
-                                  ✓ Livré le {format(new Date(order.actual_delivery), 'dd MMMM yyyy', { locale: fr })}
+                                  ✓ Livré le{' '}
+                                  {format(
+                                    new Date(order.actual_delivery),
+                                    'dd MMMM yyyy',
+                                    { locale: fr }
+                                  )}
                                 </p>
                               )}
                               {order.tracking_url && (
@@ -390,7 +495,8 @@ export function OrderHistory({ user }: OrderHistoryProps) {
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline"
                                 >
-                                  Suivre mon colis <ExternalLink className="h-3 w-3" />
+                                  Suivre mon colis{' '}
+                                  <ExternalLink className="h-3 w-3" />
                                 </a>
                               )}
                             </div>
@@ -398,7 +504,9 @@ export function OrderHistory({ user }: OrderHistoryProps) {
                         )}
 
                         {/* Shipping address */}
-                        <ShippingAddressBlock address={order.shipping_address} />
+                        <ShippingAddressBlock
+                          address={order.shipping_address}
+                        />
 
                         {/* Order items */}
                         <OrderItemsList items={order.order_items} />
@@ -407,7 +515,10 @@ export function OrderHistory({ user }: OrderHistoryProps) {
                         {order.payment_method && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <CreditCard className="h-3 w-3" />
-                            Paiement par {order.payment_method === 'card' ? 'carte bancaire' : order.payment_method}
+                            Paiement par{' '}
+                            {order.payment_method === 'card'
+                              ? 'carte bancaire'
+                              : order.payment_method}
                           </div>
                         )}
 

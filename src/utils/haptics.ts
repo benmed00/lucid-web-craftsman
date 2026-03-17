@@ -4,7 +4,13 @@
  * Gracefully no-ops on unsupported platforms (iOS Safari, desktop)
  */
 
-type HapticPattern = 'light' | 'medium' | 'heavy' | 'success' | 'error' | 'selection';
+type HapticPattern =
+  | 'light'
+  | 'medium'
+  | 'heavy'
+  | 'success'
+  | 'error'
+  | 'selection';
 
 const PATTERNS: Record<HapticPattern, number | number[]> = {
   light: 10,

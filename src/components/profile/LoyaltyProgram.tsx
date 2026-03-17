@@ -185,7 +185,7 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
       queryClient.invalidateQueries({ queryKey: ['loyalty', user.id] });
     } catch (error: any) {
       console.error('Error redeeming reward:', error);
-      toast.error('Erreur lors de l\'échange de la récompense');
+      toast.error("Erreur lors de l'échange de la récompense");
     } finally {
       setIsRedeeming(null);
     }
@@ -207,9 +207,12 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
         <CardContent className="pt-6">
           <div className="text-center py-8">
             <Crown className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Programme de fidélité</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              Programme de fidélité
+            </h3>
             <p className="text-muted-foreground">
-              Votre compte de fidélité est en cours d'initialisation. Passez votre première commande pour commencer à gagner des points!
+              Votre compte de fidélité est en cours d'initialisation. Passez
+              votre première commande pour commencer à gagner des points!
             </p>
           </div>
         </CardContent>
@@ -219,9 +222,13 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
 
   const tierInfo = getTierInfo(loyaltyData.tier);
   const TierIcon = tierInfo.icon;
-  const progressPercentage = loyaltyData.next_tier_threshold > 0
-    ? Math.min((loyaltyData.tier_progress / loyaltyData.next_tier_threshold) * 100, 100)
-    : 100;
+  const progressPercentage =
+    loyaltyData.next_tier_threshold > 0
+      ? Math.min(
+          (loyaltyData.tier_progress / loyaltyData.next_tier_threshold) * 100,
+          100
+        )
+      : 100;
 
   return (
     <div className="space-y-6">
@@ -236,33 +243,46 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="text-center">
-              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full ${tierInfo.color} mb-3`}>
+              <div
+                className={`inline-flex items-center justify-center w-16 h-16 rounded-full ${tierInfo.color} mb-3`}
+              >
                 <TierIcon className="h-8 w-8 text-white" />
               </div>
               <p className="text-sm text-muted-foreground">Niveau actuel</p>
-              <p className={`text-xl font-bold ${tierInfo.textColor}`}>{tierInfo.name}</p>
+              <p className={`text-xl font-bold ${tierInfo.textColor}`}>
+                {tierInfo.name}
+              </p>
             </div>
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-3">
                 <Sparkles className="h-8 w-8 text-primary" />
               </div>
               <p className="text-sm text-muted-foreground">Solde de points</p>
-              <p className="text-xl font-bold text-foreground">{loyaltyData.points_balance.toLocaleString()}</p>
+              <p className="text-xl font-bold text-foreground">
+                {loyaltyData.points_balance.toLocaleString()}
+              </p>
             </div>
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-3">
                 <Trophy className="h-8 w-8 text-primary" />
               </div>
               <p className="text-sm text-muted-foreground">Total gagné</p>
-              <p className="text-xl font-bold text-foreground">{loyaltyData.total_points_earned.toLocaleString()}</p>
+              <p className="text-xl font-bold text-foreground">
+                {loyaltyData.total_points_earned.toLocaleString()}
+              </p>
             </div>
           </div>
 
           {/* Progress to next tier */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Progression vers le niveau suivant</span>
-              <span className="font-medium">{loyaltyData.tier_progress.toLocaleString()} / {loyaltyData.next_tier_threshold.toLocaleString()} pts</span>
+              <span className="text-muted-foreground">
+                Progression vers le niveau suivant
+              </span>
+              <span className="font-medium">
+                {loyaltyData.tier_progress.toLocaleString()} /{' '}
+                {loyaltyData.next_tier_threshold.toLocaleString()} pts
+              </span>
             </div>
             <Progress value={progressPercentage} className="h-2" />
           </div>
@@ -287,20 +307,28 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
             <Card>
               <CardContent className="pt-6 text-center py-8">
                 <Gift className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Aucune récompense disponible pour le moment.</p>
+                <p className="text-muted-foreground">
+                  Aucune récompense disponible pour le moment.
+                </p>
               </CardContent>
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {rewards.map((reward) => {
-                const canAfford = loyaltyData.points_balance >= reward.points_cost;
+                const canAfford =
+                  loyaltyData.points_balance >= reward.points_cost;
                 return (
-                  <Card key={reward.id} className={!canAfford ? 'opacity-60' : ''}>
+                  <Card
+                    key={reward.id}
+                    className={!canAfford ? 'opacity-60' : ''}
+                  >
                     <CardContent className="pt-6">
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h4 className="font-semibold">{reward.name}</h4>
-                          <p className="text-sm text-muted-foreground">{reward.description}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {reward.description}
+                          </p>
                         </div>
                         <Badge variant="secondary" className="ml-2 shrink-0">
                           {reward.points_cost.toLocaleString()} pts
@@ -313,7 +341,11 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                         onClick={() => handleRedeemReward(reward)}
                       >
                         <ShoppingCart className="h-4 w-4 mr-2" />
-                        {isRedeeming === reward.id ? 'Échange en cours...' : canAfford ? 'Échanger' : 'Points insuffisants'}
+                        {isRedeeming === reward.id
+                          ? 'Échange en cours...'
+                          : canAfford
+                            ? 'Échanger'
+                            : 'Points insuffisants'}
                       </Button>
                     </CardContent>
                   </Card>
@@ -329,7 +361,9 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
               {transactions.length === 0 ? (
                 <div className="text-center py-8">
                   <History className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Aucune transaction pour le moment.</p>
+                  <p className="text-muted-foreground">
+                    Aucune transaction pour le moment.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -337,16 +371,31 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
                     <div key={transaction.id}>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium text-sm">{transaction.description}</p>
+                          <p className="font-medium text-sm">
+                            {transaction.description}
+                          </p>
                           <p className="text-xs text-muted-foreground">
-                            {format(new Date(transaction.created_at), 'dd MMMM yyyy à HH:mm', { locale: fr })}
+                            {format(
+                              new Date(transaction.created_at),
+                              'dd MMMM yyyy à HH:mm',
+                              { locale: fr }
+                            )}
                           </p>
                         </div>
-                        <Badge variant={transaction.points_change >= 0 ? 'default' : 'destructive'}>
-                          {transaction.points_change >= 0 ? '+' : ''}{transaction.points_change} pts
+                        <Badge
+                          variant={
+                            transaction.points_change >= 0
+                              ? 'default'
+                              : 'destructive'
+                          }
+                        >
+                          {transaction.points_change >= 0 ? '+' : ''}
+                          {transaction.points_change} pts
                         </Badge>
                       </div>
-                      {index < transactions.length - 1 && <Separator className="mt-4" />}
+                      {index < transactions.length - 1 && (
+                        <Separator className="mt-4" />
+                      )}
                     </div>
                   ))}
                 </div>

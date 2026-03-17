@@ -97,7 +97,9 @@ const StepSummary = ({
                 <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                   {t('steps.summary.shippingAddress')}
                 </p>
-                <p className="font-medium text-sm text-foreground">{shippingData.address}</p>
+                <p className="font-medium text-sm text-foreground">
+                  {shippingData.address}
+                </p>
                 {shippingData.addressComplement && (
                   <p className="text-sm text-muted-foreground">
                     {shippingData.addressComplement}

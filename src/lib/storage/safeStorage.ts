@@ -200,7 +200,9 @@ export function safeSetItem<T>(
             e.name === 'SecurityError')
         ) {
           if (e.name === 'SecurityError') {
-            console.warn(`SecurityError writing "${key}" — Safari private mode?`);
+            console.warn(
+              `SecurityError writing "${key}" — Safari private mode?`
+            );
             memoryFallback.set(key, serialized);
             return false;
           }

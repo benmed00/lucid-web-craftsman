@@ -119,9 +119,7 @@ describe('Navigation Bar - Zero Flickering & Layout Stability @regression', () =
 
   describe('Performance Tests', () => {
     it('should have smooth transitions', () => {
-      cy.get('.header-nav a')
-        .first()
-        .should('have.class', 'transition-all');
+      cy.get('.header-nav a').first().should('have.class', 'transition-all');
     });
 
     it('should load without MIME type errors', () => {

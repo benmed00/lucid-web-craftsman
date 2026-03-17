@@ -69,7 +69,9 @@ const Terms = lazyWithRetry(() => import('./pages/Terms'));
 const TermsOfService = lazyWithRetry(() => import('./pages/TermsOfService'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
 const Unsubscribe = lazyWithRetry(() => import('./pages/Unsubscribe'));
-const NewsletterExitIntent = lazyWithRetry(() => import('./components/NewsletterExitIntent'));
+const NewsletterExitIntent = lazyWithRetry(
+  () => import('./components/NewsletterExitIntent')
+);
 const CompareProducts = lazyWithRetry(() => import('./pages/CompareProducts'));
 
 // Essential context providers (Auth only - Cart/Wishlist/Currency/Theme migrated to Zustand)
@@ -80,7 +82,9 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
-const TTIOptimizer = lazy(() => import('@/components/performance/TTIOptimizer'));
+const TTIOptimizer = lazy(
+  () => import('@/components/performance/TTIOptimizer')
+);
 
 // PWA Components - lazy loaded since not critical for initial render
 const PWAInstallPrompt = lazy(() =>
@@ -161,7 +165,8 @@ const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5, // 5 minutes
       gcTime: 1000 * 60 * 10, // 10 minutes cache retention
       retry: 2,
-      retryDelay: (attempt: number) => Math.min(1000 * Math.pow(2, attempt), 8000),
+      retryDelay: (attempt: number) =>
+        Math.min(1000 * Math.pow(2, attempt), 8000),
       refetchOnWindowFocus: false,
       refetchOnMount: true,
       refetchOnReconnect: true,
@@ -183,7 +188,9 @@ const basePath: string = '/';
 // Register global navigate function for use in toast callbacks etc.
 const NavigateRegistrar = () => {
   const nav = useNavigate();
-  useEffect(() => { setNavigate(nav); }, [nav]);
+  useEffect(() => {
+    setNavigate(nav);
+  }, [nav]);
   return null;
 };
 
@@ -247,7 +254,13 @@ const App = () => {
           <OfflineManager>
             <AuthProvider>
               <TooltipProvider delayDuration={300}>
-                <BrowserRouter basename={basePath} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <BrowserRouter
+                  basename={basePath}
+                  future={{
+                    v7_startTransition: true,
+                    v7_relativeSplatPath: true,
+                  }}
+                >
                   <NavigateRegistrar />
                   <ScrollRestoration />
                   <MaintenanceWrapper>
@@ -259,12 +272,26 @@ const App = () => {
                     <Routes>
                       {/* Critical route loaded immediately */}
                       <Route path="/" element={<Index />} />
-                      <Route path="/products" element={<Suspense fallback={<PageLoadingFallback />}><Products /></Suspense>} />
+                      <Route
+                        path="/products"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Products />
+                          </Suspense>
+                        }
+                      />
                       <Route
                         path="/shop"
                         element={<Navigate to="/products" replace />}
                       />
-                      <Route path="/products/:id" element={<Suspense fallback={<PageLoadingFallback />}><ProductDetail /></Suspense>} />
+                      <Route
+                        path="/products/:id"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <ProductDetail />
+                          </Suspense>
+                        }
+                      />
 
                       {/* Non-critical routes with lazy loading */}
                       <Route

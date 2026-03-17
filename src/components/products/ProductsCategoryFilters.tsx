@@ -33,7 +33,9 @@ export const ProductsCategoryFilters = ({
           {t('filters.all')} ({totalProductsCount})
         </Button>
         {displayCategories.map((category) => {
-          const categoryCount = products.filter((p) => p.category === category).length;
+          const categoryCount = products.filter(
+            (p) => p.category === category
+          ).length;
           const isSelected = filters.category.includes(category);
           return (
             <Button
@@ -43,7 +45,9 @@ export const ProductsCategoryFilters = ({
               className="min-h-[44px] touch-manipulation whitespace-nowrap"
               onClick={() => {
                 if (isSelected) {
-                  updateFilters({ category: filters.category.filter((c) => c !== category) });
+                  updateFilters({
+                    category: filters.category.filter((c) => c !== category),
+                  });
                 } else {
                   updateFilters({ category: [...filters.category, category] });
                 }

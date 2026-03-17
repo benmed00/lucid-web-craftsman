@@ -34,7 +34,12 @@ export const ProductsLoadingSkeleton = ({
             <span className="text-sm font-medium">
               {t('messages.stillLoading', 'Still loading products...')}
             </span>
-            <Button variant="ghost" size="sm" onClick={onRetry} className="ml-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onRetry}
+              className="ml-2"
+            >
               <RefreshCw className="h-4 w-4 mr-1" />
               {t('buttons.retry', 'Retry')}
             </Button>

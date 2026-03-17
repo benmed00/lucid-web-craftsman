@@ -12,7 +12,9 @@ const Unsubscribe = () => {
   const { t } = useTranslation('common');
   const [searchParams] = useSearchParams();
   const email = searchParams.get('email') || '';
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<
+    'idle' | 'loading' | 'success' | 'error'
+  >('idle');
 
   const handleUnsubscribe = async () => {
     if (!email) {
@@ -56,7 +58,10 @@ const Unsubscribe = () => {
                   {t('unsubscribe.successTitle', 'Désinscription confirmée')}
                 </h1>
                 <p className="text-muted-foreground">
-                  {t('unsubscribe.successMessage', 'Vous ne recevrez plus notre newsletter. Vous pouvez vous réinscrire à tout moment.')}
+                  {t(
+                    'unsubscribe.successMessage',
+                    'Vous ne recevrez plus notre newsletter. Vous pouvez vous réinscrire à tout moment.'
+                  )}
                 </p>
               </>
             ) : status === 'error' ? (
@@ -66,7 +71,10 @@ const Unsubscribe = () => {
                   {t('unsubscribe.errorTitle', 'Erreur')}
                 </h1>
                 <p className="text-muted-foreground">
-                  {t('unsubscribe.errorMessage', 'Impossible de traiter votre désinscription. Veuillez réessayer ou nous contacter.')}
+                  {t(
+                    'unsubscribe.errorMessage',
+                    'Impossible de traiter votre désinscription. Veuillez réessayer ou nous contacter.'
+                  )}
                 </p>
               </>
             ) : (
@@ -75,9 +83,14 @@ const Unsubscribe = () => {
                   {t('unsubscribe.title', 'Se désinscrire de la newsletter')}
                 </h1>
                 <p className="text-muted-foreground">
-                  {t('unsubscribe.message', 'Êtes-vous sûr(e) de vouloir vous désinscrire ?')}
+                  {t(
+                    'unsubscribe.message',
+                    'Êtes-vous sûr(e) de vouloir vous désinscrire ?'
+                  )}
                   {email && (
-                    <span className="block mt-2 font-medium text-foreground">{email}</span>
+                    <span className="block mt-2 font-medium text-foreground">
+                      {email}
+                    </span>
                   )}
                 </p>
                 <Button

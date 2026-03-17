@@ -298,7 +298,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // poisons ALL Supabase requests (including anonymous ones) with 401.
           // Do this SYNCHRONOUSLY in init, not deferred to background.
           const { error: userError } = await supabase.auth.getUser();
-          
+
           if (userError) {
             // JWT is invalid — clear it immediately
             console.warn(

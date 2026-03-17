@@ -125,10 +125,12 @@ export const LocationBasedFeatures = ({
         let errorMessage = 'Erreur de géolocalisation';
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = 'Permission refusée — veuillez saisir votre code postal ci-dessus';
+            errorMessage =
+              'Permission refusée — veuillez saisir votre code postal ci-dessus';
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage = 'Position indisponible — veuillez saisir votre code postal';
+            errorMessage =
+              'Position indisponible — veuillez saisir votre code postal';
             break;
           case error.TIMEOUT:
             errorMessage = 'Délai dépassé — veuillez saisir votre code postal';
@@ -218,13 +220,15 @@ export const LocationBasedFeatures = ({
             <div className="text-center py-4">
               {locationDenied ? (
                 <p className="text-muted-foreground text-sm">
-                  📍 Géolocalisation non disponible. Utilisez le champ « Code postal » ci-dessus pour calculer vos frais de livraison.
+                  📍 Géolocalisation non disponible. Utilisez le champ « Code
+                  postal » ci-dessus pour calculer vos frais de livraison.
                 </p>
               ) : (
                 <>
                   <p className="text-muted-foreground mb-4 text-sm">
-                    Activez la géolocalisation pour obtenir les meilleures options
-                    de livraison et trouver nos boutiques près de chez vous.
+                    Activez la géolocalisation pour obtenir les meilleures
+                    options de livraison et trouver nos boutiques près de chez
+                    vous.
                   </p>
                   <Button
                     onClick={requestLocation}

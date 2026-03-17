@@ -17,8 +17,18 @@ const CheckoutProgress = ({
 
   const steps = [
     { id: 1, label: t('steps.information'), shortLabel: 'Info', icon: User },
-    { id: 2, label: t('steps.shipping'), shortLabel: t('steps.shipping'), icon: MapPin },
-    { id: 3, label: t('steps.payment'), shortLabel: t('steps.payment'), icon: CreditCard },
+    {
+      id: 2,
+      label: t('steps.shipping'),
+      shortLabel: t('steps.shipping'),
+      icon: MapPin,
+    },
+    {
+      id: 3,
+      label: t('steps.payment'),
+      shortLabel: t('steps.payment'),
+      icon: CreditCard,
+    },
   ];
 
   const handleStepClick = (stepId: number) => {
@@ -39,7 +49,9 @@ const CheckoutProgress = ({
         {/* Active track */}
         <div
           className="absolute top-6 md:top-7 left-[40px] h-[2px] bg-primary transition-all duration-700 ease-out"
-          style={{ width: `calc(${progressPercent}% - ${progressPercent > 0 ? '40px' : '0px'})` }}
+          style={{
+            width: `calc(${progressPercent}% - ${progressPercent > 0 ? '40px' : '0px'})`,
+          }}
         />
 
         {/* Steps */}
@@ -48,7 +60,8 @@ const CheckoutProgress = ({
             const isCompleted = completedSteps.includes(step.id);
             const isCurrent = currentStep === step.id;
             const isUpcoming = currentStep < step.id;
-            const isClickable = (isCompleted || step.id < currentStep) && !!onStepClick;
+            const isClickable =
+              (isCompleted || step.id < currentStep) && !!onStepClick;
             const Icon = step.icon;
 
             return (
@@ -59,17 +72,32 @@ const CheckoutProgress = ({
                   disabled={!isClickable}
                   className={cn(
                     'w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-300 border-2 relative',
-                    isCompleted && 'bg-primary border-primary text-primary-foreground shadow-md',
-                    isCurrent && 'bg-background border-primary text-primary shadow-lg ring-4 ring-primary/15',
-                    isUpcoming && 'bg-muted/60 border-border text-muted-foreground',
-                    isClickable && 'cursor-pointer hover:scale-105 hover:shadow-lg active:scale-95',
+                    isCompleted &&
+                      'bg-primary border-primary text-primary-foreground shadow-md',
+                    isCurrent &&
+                      'bg-background border-primary text-primary shadow-lg ring-4 ring-primary/15',
+                    isUpcoming &&
+                      'bg-muted/60 border-border text-muted-foreground',
+                    isClickable &&
+                      'cursor-pointer hover:scale-105 hover:shadow-lg active:scale-95',
                     !isClickable && 'cursor-default'
                   )}
-                  aria-label={isClickable ? t('steps.returnToStep', { step: step.label }) : step.label}
-                  title={isClickable ? t('steps.clickToModify', { step: step.label }) : undefined}
+                  aria-label={
+                    isClickable
+                      ? t('steps.returnToStep', { step: step.label })
+                      : step.label
+                  }
+                  title={
+                    isClickable
+                      ? t('steps.clickToModify', { step: step.label })
+                      : undefined
+                  }
                 >
                   {isCompleted ? (
-                    <Check className="h-5 w-5 md:h-6 md:w-6" strokeWidth={2.5} />
+                    <Check
+                      className="h-5 w-5 md:h-6 md:w-6"
+                      strokeWidth={2.5}
+                    />
                   ) : (
                     <Icon className="h-5 w-5 md:h-6 md:w-6" />
                   )}

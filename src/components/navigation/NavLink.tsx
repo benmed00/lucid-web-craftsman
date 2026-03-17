@@ -9,7 +9,13 @@ interface NavLinkProps {
   tabIndex?: number;
 }
 
-export const NavLink = ({ to, label, currentPath, onClick, tabIndex }: NavLinkProps) => {
+export const NavLink = ({
+  to,
+  label,
+  currentPath,
+  onClick,
+  tabIndex,
+}: NavLinkProps) => {
   const isActive = currentPath === to;
 
   return (

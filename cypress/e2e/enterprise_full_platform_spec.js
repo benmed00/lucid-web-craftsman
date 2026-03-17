@@ -42,7 +42,9 @@ describe('Enterprise: Redirections @enterprise @smoke', () => {
     cy.visit('/nonexistent-page-xyz-123', { failOnStatusCode: false });
     cy.get('body').should('be.visible');
     // NotFound page should render (straw illustration or similar)
-    cy.get('body').contains(/404|not found|page introuvable/i).should('exist');
+    cy.get('body')
+      .contains(/404|not found|page introuvable/i)
+      .should('exist');
   });
 });
 
@@ -108,7 +110,9 @@ describe('Enterprise: Navigation & Buttons @enterprise @regression', () => {
   });
 
   it('should navigate via header links', () => {
-    cy.get('nav').contains(/boutique|shop/i).click();
+    cy.get('nav')
+      .contains(/boutique|shop/i)
+      .click();
     cy.url().should('include', '/products');
 
     cy.visit('/');
@@ -116,7 +120,9 @@ describe('Enterprise: Navigation & Buttons @enterprise @regression', () => {
     cy.url().should('include', '/blog');
 
     cy.visit('/');
-    cy.get('nav').contains(/contact/i).click();
+    cy.get('nav')
+      .contains(/contact/i)
+      .click();
     cy.url().should('include', '/contact');
   });
 
@@ -153,7 +159,9 @@ describe('Enterprise: Mobile Menu @enterprise @regression', () => {
 
   it('should close menu when link is clicked', () => {
     cy.get('[aria-label="Ouvrir le menu"]').click();
-    cy.get('#mobile-menu').contains(/boutique|shop/i).click();
+    cy.get('#mobile-menu')
+      .contains(/boutique|shop/i)
+      .click();
     cy.url().should('include', '/products');
     cy.get('#mobile-menu').should('have.class', 'translate-x-full');
   });
@@ -202,7 +210,10 @@ describe('Enterprise: Products & Product Cards @enterprise @smoke', () => {
     const searchSelector =
       'input[placeholder*="Rechercher"], input[placeholder*="Search"], input[placeholder*="recherche"]';
     cy.get(searchSelector).filter(':visible').first().type('straw');
-    cy.get(searchSelector).filter(':visible').first().should('have.value', 'straw');
+    cy.get(searchSelector)
+      .filter(':visible')
+      .first()
+      .should('have.value', 'straw');
     cy.url().should('include', '/products');
   });
 });
@@ -392,7 +403,9 @@ describe('Enterprise: Checkout Flow @enterprise @smoke', () => {
       .contains(/livraison|shipping|suivant|next|continuer/i)
       .should('be.visible')
       .click();
-    cy.get('#address', { timeout: 15000 }).should('be.visible').type('12 Rue de la Paix');
+    cy.get('#address', { timeout: 15000 })
+      .should('be.visible')
+      .type('12 Rue de la Paix');
     cy.get('#postalCode').type('123');
     cy.get('#city').type('Paris');
     cy.get('button')
@@ -491,10 +504,9 @@ describe('Enterprise: Loading States @enterprise @regression', () => {
   it('should show content after lazy route load', () => {
     cy.visit('/blog');
     cy.get('body').should('be.visible');
-    cy.get(
-      'main, #main-content, footer, .container, .min-h-screen',
-      { timeout: 10000 }
-    ).should('exist');
+    cy.get('main, #main-content, footer, .container, .min-h-screen', {
+      timeout: 10000,
+    }).should('exist');
     cy.get('body').should('not.contain', 'Error');
   });
 
@@ -532,10 +544,9 @@ describe('Enterprise: Blog @enterprise @regression', () => {
 
   it('should display blog posts or empty state', () => {
     cy.get('body').should('be.visible');
-    cy.get(
-      'main, #main-content, footer, .container, .min-h-screen',
-      { timeout: 10000 }
-    ).should('exist');
+    cy.get('main, #main-content, footer, .container, .min-h-screen', {
+      timeout: 10000,
+    }).should('exist');
   });
 
   it('should navigate to blog post when available', () => {
@@ -551,13 +562,18 @@ describe('Enterprise: Blog @enterprise @regression', () => {
 
 // ─── Legal & policy pages ───────────────────────────────────────────────────
 describe('Enterprise: Legal Pages @enterprise @regression', () => {
-  ['/shipping', '/returns', '/faq', '/cgv', '/terms', '/terms-of-service'].forEach(
-    (path) => {
-      it(`should load ${path}`, () => {
-        cy.visit(path);
-        cy.get('body').should('be.visible');
-        cy.get('main, #main-content, [role="main"]').should('exist');
-      });
-    }
-  );
+  [
+    '/shipping',
+    '/returns',
+    '/faq',
+    '/cgv',
+    '/terms',
+    '/terms-of-service',
+  ].forEach((path) => {
+    it(`should load ${path}`, () => {
+      cy.visit(path);
+      cy.get('body').should('be.visible');
+      cy.get('main, #main-content, [role="main"]').should('exist');
+    });
+  });
 });

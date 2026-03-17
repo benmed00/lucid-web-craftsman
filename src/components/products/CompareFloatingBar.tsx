@@ -18,15 +18,18 @@ export const CompareFloatingBar = () => {
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-card border border-border rounded-full shadow-xl px-6 py-3 flex items-center gap-4 animate-fade-in">
       <GitCompareArrows className="h-5 w-5 text-primary" />
       <span className="text-sm font-medium text-foreground">
-        {t('compare.selected', '{{count}} sélectionné(s)', { count: items.length })}
+        {t('compare.selected', '{{count}} sélectionné(s)', {
+          count: items.length,
+        })}
       </span>
       <Button asChild size="sm" className="rounded-full">
-        <Link to="/compare">
-          {t('compare.compareNow', 'Comparer')}
-        </Link>
+        <Link to="/compare">{t('compare.compareNow', 'Comparer')}</Link>
       </Button>
       <button
-        onClick={() => { hapticFeedback('light'); clear(); }}
+        onClick={() => {
+          hapticFeedback('light');
+          clear();
+        }}
         className="text-muted-foreground hover:text-foreground transition-colors p-1"
         aria-label={t('compare.clearAll', 'Tout effacer')}
       >

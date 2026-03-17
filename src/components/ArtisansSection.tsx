@@ -1,7 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Quote, MapPin, Clock, Heart, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
+import {
+  Quote,
+  MapPin,
+  Clock,
+  Heart,
+  AlertCircle,
+  RefreshCw,
+  Loader2,
+} from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,14 +33,20 @@ interface ArtisansSectionProps {
   enabled?: boolean;
 }
 
-const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => { // v2
+const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
+  // v2
   const { t, i18n } = useTranslation(['pages', 'common']);
   const currentLocale = i18n.language?.split('-')[0] || 'fr';
   const queryClient = useQueryClient();
   const [isRetrying, setIsRetrying] = useState(false);
 
   // Fetch artisans — deferred when `enabled` is false (Phase 2 loading)
-  const { data: artisans = [], isLoading, error: fetchError, refetch } = useQuery({
+  const {
+    data: artisans = [],
+    isLoading,
+    error: fetchError,
+    refetch,
+  } = useQuery({
     queryKey: ['artisans', currentLocale],
     enabled,
     queryFn: async () => {
@@ -111,26 +125,43 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => { // v2
   }
 
   // Error or timeout-with-no-data state
-  const showError = (fetchError || (forceRender && isLoading)) && artisans.length === 0;
+  const showError =
+    (fetchError || (forceRender && isLoading)) && artisans.length === 0;
   if (showError) {
     return (
       <section className="py-16 md:py-24 bg-gradient-to-b from-background to-secondary/30">
         <div className="container mx-auto px-4 text-center">
           <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-3" />
           <p className="text-muted-foreground mb-4">
-            {t('pages:home.artisans.loadError', 'Impossible de charger les artisans.')}
+            {t(
+              'pages:home.artisans.loadError',
+              'Impossible de charger les artisans.'
+            )}
           </p>
-          <Button variant="outline" onClick={async () => {
-            setIsRetrying(true);
-            try {
-              // resetQueries forces isLoading back to true → shows skeleton → refetches
-              await queryClient.resetQueries({ queryKey: ['artisans'] });
-            } catch { /* handled by RQ */ } finally {
-              setTimeout(() => setIsRetrying(false), 500);
-            }
-          }} disabled={isRetrying} className="gap-2">
-            {isRetrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            {isRetrying ? t('common:messages.loading', 'Chargement…') : t('common:buttons.retry')}
+          <Button
+            variant="outline"
+            onClick={async () => {
+              setIsRetrying(true);
+              try {
+                // resetQueries forces isLoading back to true → shows skeleton → refetches
+                await queryClient.resetQueries({ queryKey: ['artisans'] });
+              } catch {
+                /* handled by RQ */
+              } finally {
+                setTimeout(() => setIsRetrying(false), 500);
+              }
+            }}
+            disabled={isRetrying}
+            className="gap-2"
+          >
+            {isRetrying ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            {isRetrying
+              ? t('common:messages.loading', 'Chargement…')
+              : t('common:buttons.retry')}
           </Button>
         </div>
       </section>
