@@ -68,7 +68,9 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
 
     // Enforce cooldown between requests
     if (timeLeft > 0) {
-      toast.error(`Veuillez patienter ${timeLeft} secondes avant de réessayer.`);
+      toast.error(
+        `Veuillez patienter ${timeLeft} secondes avant de réessayer.`
+      );
       return;
     }
 

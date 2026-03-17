@@ -79,10 +79,7 @@ describe('Checkout Persistence — Anonymous User', () => {
     // Verify localStorage keys are removed after clearSavedData
     cy.visit('/checkout');
     cy.window().then((win) => {
-      win.localStorage.setItem(
-        'checkout_form_data',
-        JSON.stringify(testData)
-      );
+      win.localStorage.setItem('checkout_form_data', JSON.stringify(testData));
       win.localStorage.setItem('checkout_timestamp', String(Date.now()));
     });
     cy.reload();

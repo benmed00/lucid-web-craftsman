@@ -54,9 +54,13 @@ describe('supabase client auth-state poisoning diagnostics', () => {
       new Response(JSON.stringify({ message: 'invalid JWT' }), { status: 401 })
     );
 
-    await wrappedFetch('https://xcvlijchkmhjonhfildm.supabase.co/rest/v1/products');
+    await wrappedFetch(
+      'https://xcvlijchkmhjonhfildm.supabase.co/rest/v1/products'
+    );
 
-    expect(localStorage.getItem('sb-xcvlijchkmhjonhfildm-auth-token')).toBeNull();
+    expect(
+      localStorage.getItem('sb-xcvlijchkmhjonhfildm-auth-token')
+    ).toBeNull();
     expect(localStorage.getItem('supabase.auth.token')).toBeNull();
     expect(localStorage.getItem('cart-storage')).toBe('{"items":[1,2]}');
     expect(localStorage.getItem('cloud-instance-preview')).toBe('keep');
@@ -72,11 +76,13 @@ describe('supabase client auth-state poisoning diagnostics', () => {
     const wrappedFetch = await loadWrappedFetch();
     fetchMock.mockResolvedValueOnce(new Response('{}', { status: 200 }));
 
-    await wrappedFetch('https://xcvlijchkmhjonhfildm.supabase.co/rest/v1/products');
-
-    expect(localStorage.getItem('sb-xcvlijchkmhjonhfildm-auth-token')).toContain(
-      'token-should-stay'
+    await wrappedFetch(
+      'https://xcvlijchkmhjonhfildm.supabase.co/rest/v1/products'
     );
+
+    expect(
+      localStorage.getItem('sb-xcvlijchkmhjonhfildm-auth-token')
+    ).toContain('token-should-stay');
   });
 
   it('adds x-guest-id header dynamically from current guest session storage', async () => {
@@ -87,13 +93,17 @@ describe('supabase client auth-state poisoning diagnostics', () => {
       'guest_session',
       JSON.stringify({ data: { guest_id: 'guest-from-wrapper' } })
     );
-    await wrappedFetch('https://xcvlijchkmhjonhfildm.supabase.co/rest/v1/products');
+    await wrappedFetch(
+      'https://xcvlijchkmhjonhfildm.supabase.co/rest/v1/products'
+    );
 
     localStorage.setItem(
       'guest_session',
       JSON.stringify({ guestId: 'guest-direct-shape' })
     );
-    await wrappedFetch('https://xcvlijchkmhjonhfildm.supabase.co/rest/v1/products');
+    await wrappedFetch(
+      'https://xcvlijchkmhjonhfildm.supabase.co/rest/v1/products'
+    );
 
     const firstHeaders = new Headers(fetchMock.mock.calls[0][1]?.headers);
     const secondHeaders = new Headers(fetchMock.mock.calls[1][1]?.headers);

@@ -117,7 +117,10 @@ export const useCachedProductSearch = ({
 }: UseCachedProductSearchOptions) => {
   const filteredProducts = useMemo(() => {
     if (products.length === 0) return [];
-    const searchedProducts = searchAndScoreProducts(products, filters.searchQuery);
+    const searchedProducts = searchAndScoreProducts(
+      products,
+      filters.searchQuery
+    );
     return applyFiltersAndSort(searchedProducts, filters);
   }, [products, filters]);
 

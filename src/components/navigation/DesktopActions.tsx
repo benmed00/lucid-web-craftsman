@@ -1,5 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Heart, ShoppingBag, User, Package, LogOut } from 'lucide-react';
+import {
+  Search,
+  Heart,
+  ShoppingBag,
+  User,
+  Package,
+  LogOut,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
@@ -24,8 +31,15 @@ interface DesktopActionsProps {
 }
 
 export const DesktopActions = ({
-  user, profile, isLoading, itemCount, wishlistCount,
-  currentPath, showSearch, onToggleSearch, onSignOut,
+  user,
+  profile,
+  isLoading,
+  itemCount,
+  wishlistCount,
+  currentPath,
+  showSearch,
+  onToggleSearch,
+  onSignOut,
 }: DesktopActionsProps) => {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
@@ -59,7 +73,12 @@ export const DesktopActions = ({
         disabled={!user}
         aria-label={t('nav.wishlist')}
       >
-        <span className={clsx('flex items-center justify-center w-full h-full text-foreground hover:text-primary transition-colors duration-300', !user && 'opacity-30')}>
+        <span
+          className={clsx(
+            'flex items-center justify-center w-full h-full text-foreground hover:text-primary transition-colors duration-300',
+            !user && 'opacity-30'
+          )}
+        >
           <Heart className="h-4 w-4 transition-colors" />
           {user && wishlistCount > 0 && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center min-w-[16px] font-medium">
@@ -70,13 +89,17 @@ export const DesktopActions = ({
       </Button>
 
       {/* Language Selector - xl+ */}
-      <div className="hidden xl:block"><LanguageSelector variant="minimal" /></div>
+      <div className="hidden xl:block">
+        <LanguageSelector variant="minimal" />
+      </div>
 
       {/* Compact Settings - md to xl */}
       <CompactSettingsMenu className="hidden md:flex xl:hidden" />
 
       {/* Currency - xl+ */}
-      <div className="hidden xl:block"><CurrencySelector /></div>
+      <div className="hidden xl:block">
+        <CurrencySelector />
+      </div>
 
       {/* Theme - xl+ */}
       <ThemeToggle className="hidden xl:flex" />
@@ -93,7 +116,14 @@ export const DesktopActions = ({
               : 'bg-background text-foreground hover:bg-primary/10 hover:text-primary hover:border-border'
           )}
         >
-          <ShoppingBag className={clsx('h-4 w-4 transition-colors lg:mr-1', itemCount >= 1 ? 'text-primary-foreground group-hover:text-primary' : 'text-foreground group-hover:text-primary')} />
+          <ShoppingBag
+            className={clsx(
+              'h-4 w-4 transition-colors lg:mr-1',
+              itemCount >= 1
+                ? 'text-primary-foreground group-hover:text-primary'
+                : 'text-foreground group-hover:text-primary'
+            )}
+          />
           <span className="hidden lg:inline">({itemCount})</span>
         </Button>
       </Link>
@@ -104,26 +134,57 @@ export const DesktopActions = ({
           <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg bg-muted animate-pulse" />
         ) : user ? (
           <>
-            <Button variant="ghost" size="sm" asChild className="group relative hidden xl:inline-flex hover:bg-primary/10 rounded-lg transition-all duration-300">
-              <Link to="/orders" className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 text-foreground hover:text-primary transition-colors duration-300">
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="group relative hidden xl:inline-flex hover:bg-primary/10 rounded-lg transition-all duration-300"
+            >
+              <Link
+                to="/orders"
+                className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 text-foreground hover:text-primary transition-colors duration-300"
+              >
                 <Package className="h-4 w-4 transition-colors" />
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild className="group relative hover:bg-primary/10 rounded-lg transition-all duration-300 touch-manipulation">
-              <Link to="/profile" className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 transition-colors duration-300">
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="group relative hover:bg-primary/10 rounded-lg transition-all duration-300 touch-manipulation"
+            >
+              <Link
+                to="/profile"
+                className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 transition-colors duration-300"
+              >
                 {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt={profile.full_name || 'Profile'} className="w-7 h-7 lg:w-8 lg:h-8 rounded-full object-cover border-2 border-border group-hover:border-primary transition-colors" />
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.full_name || 'Profile'}
+                    className="w-7 h-7 lg:w-8 lg:h-8 rounded-full object-cover border-2 border-border group-hover:border-primary transition-colors"
+                  />
                 ) : (
                   <User className="h-4 w-4 text-foreground group-hover:text-primary transition-colors" />
                 )}
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" onClick={onSignOut} className="hidden md:inline-flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hover:bg-primary/10 text-foreground hover:text-primary rounded-lg transition-all duration-300" aria-label={t('nav.logout')}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSignOut}
+              className="hidden md:inline-flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 hover:bg-primary/10 text-foreground hover:text-primary rounded-lg transition-all duration-300"
+              aria-label={t('nav.logout')}
+            >
               <LogOut className="h-4 w-4 transition-colors" />
             </Button>
           </>
         ) : (
-          <Button variant="ghost" size="sm" asChild className="text-xs lg:text-sm px-2 lg:px-3 py-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all duration-300 touch-manipulation font-medium whitespace-nowrap">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="text-xs lg:text-sm px-2 lg:px-3 py-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all duration-300 touch-manipulation font-medium whitespace-nowrap"
+          >
             <Link to="/auth">{t('nav.login')}</Link>
           </Button>
         )}

@@ -36,7 +36,9 @@ const Navigation = () => {
   const currentPath = location.pathname;
 
   // Close search on route change
-  useEffect(() => { setShowSearch(false); }, [location.pathname]);
+  useEffect(() => {
+    setShowSearch(false);
+  }, [location.pathname]);
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -45,18 +47,23 @@ const Navigation = () => {
       navigate('/auth');
     } catch (error) {
       console.error('Sign out error:', error);
-      toast.error(t('common:nav.signOutError', 'Erreur lors de la déconnexion'));
+      toast.error(
+        t('common:nav.signOutError', 'Erreur lors de la déconnexion')
+      );
     }
   }, [signOut, navigate, t]);
 
-  const handleNavClick = useCallback((targetPath: string, e?: React.MouseEvent) => {
-    if (currentPath === targetPath) {
-      e?.preventDefault();
-      toast.info(t('common:messages.alreadyOnPage'), { duration: 2000 });
-      return false;
-    }
-    return true;
-  }, [currentPath, t]);
+  const handleNavClick = useCallback(
+    (targetPath: string, e?: React.MouseEvent) => {
+      if (currentPath === targetPath) {
+        e?.preventDefault();
+        toast.info(t('common:messages.alreadyOnPage'), { duration: 2000 });
+        return false;
+      }
+      return true;
+    },
+    [currentPath, t]
+  );
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,8 +90,14 @@ const Navigation = () => {
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-16 lg:h-16 w-full gap-2 md:gap-4">
             {/* Logo */}
             <div className="flex items-center flex-shrink-0 min-w-fit w-auto md:w-48 lg:w-52">
-              <Link to="/" className="group flex items-center space-x-2 md:space-x-3 min-w-0" onClick={() => setIsMenuOpen(false)}>
-                <span className="sr-only sm:hidden">{t('common:brand.name')}</span>
+              <Link
+                to="/"
+                className="group flex items-center space-x-2 md:space-x-3 min-w-0"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span className="sr-only sm:hidden">
+                  {t('common:brand.name')}
+                </span>
                 <div className="p-2 rounded-full bg-primary group-hover:bg-primary/90 transition-all duration-300 shadow-md group-hover:shadow-lg flex-shrink-0">
                   <Leaf className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
                 </div>
@@ -117,17 +130,32 @@ const Navigation = () => {
             <button
               className={`md:hidden text-foreground hover:text-primary p-1.5 sm:p-2 rounded-md hover:bg-primary/10 transition-all duration-300 touch-manipulation ${isMenuOpen ? 'relative z-mobile-toggle' : ''}`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label={isMenuOpen ? t('common:accessibility.closeMenu') : t('common:accessibility.openMenu')}
+              aria-label={
+                isMenuOpen
+                  ? t('common:accessibility.closeMenu')
+                  : t('common:accessibility.openMenu')
+              }
               aria-expanded={isMenuOpen}
               aria-haspopup="true"
               aria-controls="mobile-menu"
             >
-              {isMenuOpen ? <X className="h-6 w-6 transition-colors" /> : <Menu className="h-6 w-6 transition-colors" />}
+              {isMenuOpen ? (
+                <X className="h-6 w-6 transition-colors" />
+              ) : (
+                <Menu className="h-6 w-6 transition-colors" />
+              )}
             </button>
           </div>
         </div>
 
-        {showSearch && <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} onSubmit={handleSearch} variant="desktop" />}
+        {showSearch && (
+          <SearchBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onSubmit={handleSearch}
+            variant="desktop"
+          />
+        )}
       </header>
 
       <MobileMenu

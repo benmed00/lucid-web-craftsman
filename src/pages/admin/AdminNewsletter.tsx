@@ -104,7 +104,11 @@ const AdminNewsletter = () => {
 
       const allSubs = subs || [];
       const now = new Date();
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const monthStart = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1
+      ).toISOString();
 
       setSubscribers(allSubs);
       setStats({
@@ -127,10 +131,14 @@ const AdminNewsletter = () => {
       setAbandonedCartCount(count || 0);
 
       // Fetch email logs (last 30 days)
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const thirtyDaysAgo = new Date(
+        Date.now() - 30 * 24 * 60 * 60 * 1000
+      ).toISOString();
       const { data: logs, error: logsError } = await supabase
         .from('email_logs')
-        .select('id, template_name, recipient_email, status, sent_at, created_at, error_message')
+        .select(
+          'id, template_name, recipient_email, status, sent_at, created_at, error_message'
+        )
         .gte('created_at', thirtyDaysAgo)
         .order('created_at', { ascending: false })
         .limit(200);
@@ -183,7 +191,9 @@ const AdminNewsletter = () => {
   const handleSendAbandonedCartEmails = async () => {
     setSendingAbandonedEmails(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-abandoned-cart-email');
+      const { data, error } = await supabase.functions.invoke(
+        'send-abandoned-cart-email'
+      );
       if (error) throw error;
       toast.success(`${data?.processed || 0} email(s) de relance envoyé(s)`);
       fetchData();
@@ -220,13 +230,22 @@ const AdminNewsletter = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Newsletter & Emails</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            Newsletter & Emails
+          </h1>
           <p className="text-muted-foreground">
             Abonnés, analytics emails et relances
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={fetchData}
+          disabled={loading}
+        >
+          <RefreshCw
+            className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`}
+          />
           Actualiser
         </Button>
       </div>
@@ -243,38 +262,54 @@ const AdminNewsletter = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total
+                </CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">{stats.total}</div>
+                <div className="text-2xl font-bold text-foreground">
+                  {stats.total}
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Actifs</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Actifs
+                </CardTitle>
                 <Mail className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-primary">{stats.active}</div>
+                <div className="text-2xl font-bold text-primary">
+                  {stats.active}
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Désabonnés</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Désabonnés
+                </CardTitle>
                 <UserMinus className="h-4 w-4 text-destructive" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-destructive">{stats.unsubscribed}</div>
+                <div className="text-2xl font-bold text-destructive">
+                  {stats.unsubscribed}
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Ce mois</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Ce mois
+                </CardTitle>
                 <TrendingUp className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">{stats.thisMonth}</div>
+                <div className="text-2xl font-bold text-foreground">
+                  {stats.thisMonth}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -285,7 +320,9 @@ const AdminNewsletter = () => {
               <div className="flex items-center justify-between">
                 <CardTitle>Abonnés</CardTitle>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Source :</span>
+                  <span className="text-sm text-muted-foreground">
+                    Source :
+                  </span>
                   <Select value={sourceFilter} onValueChange={setSourceFilter}>
                     <SelectTrigger className="w-[160px]">
                       <SelectValue />
@@ -317,7 +354,11 @@ const AdminNewsletter = () => {
                     <TableRow key={sub.id}>
                       <TableCell className="font-medium">{sub.email}</TableCell>
                       <TableCell>
-                        <Badge variant={sub.status === 'active' ? 'default' : 'destructive'}>
+                        <Badge
+                          variant={
+                            sub.status === 'active' ? 'default' : 'destructive'
+                          }
+                        >
                           {sub.status === 'active' ? 'Actif' : 'Désabonné'}
                         </Badge>
                       </TableCell>
@@ -329,13 +370,18 @@ const AdminNewsletter = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {format(new Date(sub.created_at), 'dd MMM yyyy', { locale: fr })}
+                        {format(new Date(sub.created_at), 'dd MMM yyyy', {
+                          locale: fr,
+                        })}
                       </TableCell>
                     </TableRow>
                   ))}
                   {filteredSubscribers.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      <TableCell
+                        colSpan={4}
+                        className="text-center text-muted-foreground py-8"
+                      >
                         Aucun abonné
                       </TableCell>
                     </TableRow>
@@ -351,34 +397,48 @@ const AdminNewsletter = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total envois (30j)</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total envois (30j)
+                </CardTitle>
                 <Send className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">{emailStats.total}</div>
+                <div className="text-2xl font-bold text-foreground">
+                  {emailStats.total}
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Envoyés</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Envoyés
+                </CardTitle>
                 <CheckCircle2 className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-primary">{emailStats.sent}</div>
+                <div className="text-2xl font-bold text-primary">
+                  {emailStats.sent}
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Échoués</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Échoués
+                </CardTitle>
                 <AlertCircle className="h-4 w-4 text-destructive" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-destructive">{emailStats.failed}</div>
+                <div className="text-2xl font-bold text-destructive">
+                  {emailStats.failed}
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Taux succès</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Taux succès
+                </CardTitle>
                 <BarChart3 className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
@@ -408,19 +468,34 @@ const AdminNewsletter = () => {
                 </TableHeader>
                 <TableBody>
                   {Object.entries(emailStats.byTemplate)
-                    .sort(([, a], [, b]) => b.sent + b.failed - (a.sent + a.failed))
+                    .sort(
+                      ([, a], [, b]) => b.sent + b.failed - (a.sent + a.failed)
+                    )
                     .map(([template, data]) => {
                       const total = data.sent + data.failed;
-                      const rate = total > 0 ? Math.round((data.sent / total) * 100) : 0;
+                      const rate =
+                        total > 0 ? Math.round((data.sent / total) * 100) : 0;
                       return (
                         <TableRow key={template}>
                           <TableCell className="font-medium">
                             {templateLabels[template] || template}
                           </TableCell>
-                          <TableCell className="text-right text-primary">{data.sent}</TableCell>
-                          <TableCell className="text-right text-destructive">{data.failed}</TableCell>
+                          <TableCell className="text-right text-primary">
+                            {data.sent}
+                          </TableCell>
+                          <TableCell className="text-right text-destructive">
+                            {data.failed}
+                          </TableCell>
                           <TableCell className="text-right">
-                            <Badge variant={rate >= 90 ? 'default' : rate >= 70 ? 'secondary' : 'destructive'}>
+                            <Badge
+                              variant={
+                                rate >= 90
+                                  ? 'default'
+                                  : rate >= 70
+                                    ? 'secondary'
+                                    : 'destructive'
+                              }
+                            >
                               {rate}%
                             </Badge>
                           </TableCell>
@@ -429,7 +504,10 @@ const AdminNewsletter = () => {
                     })}
                   {Object.keys(emailStats.byTemplate).length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      <TableCell
+                        colSpan={4}
+                        className="text-center text-muted-foreground py-8"
+                      >
                         Aucun email envoyé ces 30 derniers jours
                       </TableCell>
                     </TableRow>
@@ -457,7 +535,9 @@ const AdminNewsletter = () => {
                 <TableBody>
                   {emailLogs.slice(0, 20).map((log) => (
                     <TableRow key={log.id}>
-                      <TableCell className="font-medium text-sm">{log.recipient_email}</TableCell>
+                      <TableCell className="font-medium text-sm">
+                        {log.recipient_email}
+                      </TableCell>
                       <TableCell className="text-sm">
                         {templateLabels[log.template_name] || log.template_name}
                       </TableCell>
@@ -471,17 +551,26 @@ const AdminNewsletter = () => {
                                 : 'secondary'
                           }
                         >
-                          {log.status === 'sent' ? 'Envoyé' : log.status === 'failed' ? 'Échoué' : 'En attente'}
+                          {log.status === 'sent'
+                            ? 'Envoyé'
+                            : log.status === 'failed'
+                              ? 'Échoué'
+                              : 'En attente'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
-                        {format(new Date(log.created_at), 'dd MMM yyyy HH:mm', { locale: fr })}
+                        {format(new Date(log.created_at), 'dd MMM yyyy HH:mm', {
+                          locale: fr,
+                        })}
                       </TableCell>
                     </TableRow>
                   ))}
                   {emailLogs.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      <TableCell
+                        colSpan={4}
+                        className="text-center text-muted-foreground py-8"
+                      >
                         Aucun email récent
                       </TableCell>
                     </TableRow>
@@ -522,9 +611,12 @@ const AdminNewsletter = () => {
               </p>
 
               {/* Show recent abandoned cart emails */}
-              {emailLogs.filter((l) => l.template_name === 'abandoned-cart').length > 0 && (
+              {emailLogs.filter((l) => l.template_name === 'abandoned-cart')
+                .length > 0 && (
                 <div className="mt-4">
-                  <h4 className="text-sm font-medium text-foreground mb-2">Relances récentes</h4>
+                  <h4 className="text-sm font-medium text-foreground mb-2">
+                    Relances récentes
+                  </h4>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -539,14 +631,26 @@ const AdminNewsletter = () => {
                         .slice(0, 10)
                         .map((log) => (
                           <TableRow key={log.id}>
-                            <TableCell className="font-medium text-sm">{log.recipient_email}</TableCell>
+                            <TableCell className="font-medium text-sm">
+                              {log.recipient_email}
+                            </TableCell>
                             <TableCell>
-                              <Badge variant={log.status === 'sent' ? 'default' : 'destructive'}>
+                              <Badge
+                                variant={
+                                  log.status === 'sent'
+                                    ? 'default'
+                                    : 'destructive'
+                                }
+                              >
                                 {log.status === 'sent' ? 'Envoyé' : 'Échoué'}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-muted-foreground text-sm">
-                              {format(new Date(log.created_at), 'dd MMM yyyy HH:mm', { locale: fr })}
+                              {format(
+                                new Date(log.created_at),
+                                'dd MMM yyyy HH:mm',
+                                { locale: fr }
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}

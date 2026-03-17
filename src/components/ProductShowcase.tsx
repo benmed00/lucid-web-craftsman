@@ -30,8 +30,12 @@ const ProductShowcase = () => {
   const [isRetrying, setIsRetrying] = useState(false);
 
   // Fetch products with translations
-  const { data: translatedProducts = [], isLoading: loading, error: fetchError, refetch } =
-    useProductsWithTranslations();
+  const {
+    data: translatedProducts = [],
+    isLoading: loading,
+    error: fetchError,
+    refetch,
+  } = useProductsWithTranslations();
 
   // Unified retry: reset query state completely → forces loading state → refetch
   const handleRetry = useCallback(async () => {
@@ -39,7 +43,9 @@ const ProductShowcase = () => {
     try {
       // resetQueries (not invalidate) forces isLoading back to true
       await queryClient.resetQueries({ queryKey: ['products'] });
-      await queryClient.resetQueries({ queryKey: ['products-with-translations'] });
+      await queryClient.resetQueries({
+        queryKey: ['products-with-translations'],
+      });
     } catch {
       // Error handled by React Query
     } finally {
@@ -138,12 +144,17 @@ const ProductShowcase = () => {
 
       if (response.success) {
         addItem(product, 1);
-        toast.success(t('recommendations.addedToCart', { name: product.name }), {
-          action: {
-            label: t('common:buttons.viewCart', 'Voir le panier'),
-            onClick: () => { appNavigate('/cart'); },
-          },
-        });
+        toast.success(
+          t('recommendations.addedToCart', { name: product.name }),
+          {
+            action: {
+              label: t('common:buttons.viewCart', 'Voir le panier'),
+              onClick: () => {
+                appNavigate('/cart');
+              },
+            },
+          }
+        );
       } else {
         toast.error(t('recommendations.addError'));
       }
@@ -216,7 +227,8 @@ const ProductShowcase = () => {
   }
 
   // Error or timeout-with-no-data state
-  const showError = (fetchError || (forceRender && loading)) && featuredProducts.length === 0;
+  const showError =
+    (fetchError || (forceRender && loading)) && featuredProducts.length === 0;
   if (showError) {
     return (
       <div className="text-center py-12">
@@ -224,9 +236,20 @@ const ProductShowcase = () => {
         <p className="text-muted-foreground mb-4">
           {t('showcase.loadError', 'Impossible de charger les produits.')}
         </p>
-        <Button variant="outline" onClick={handleRetry} disabled={isRetrying} className="gap-2">
-          {isRetrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          {isRetrying ? t('common:messages.loading', 'Chargement…') : t('common:buttons.retry')}
+        <Button
+          variant="outline"
+          onClick={handleRetry}
+          disabled={isRetrying}
+          className="gap-2"
+        >
+          {isRetrying ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4" />
+          )}
+          {isRetrying
+            ? t('common:messages.loading', 'Chargement…')
+            : t('common:buttons.retry')}
         </Button>
       </div>
     );

@@ -21,7 +21,9 @@ interface ShippingStepProps {
   formErrors: Record<string, string>;
   onFieldChange: (field: string, value: string) => void;
   onClearError: (field: string) => void;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  onInputChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => void;
   onNext: () => void;
   onEditStep: (step: number) => void;
 }
@@ -62,7 +64,9 @@ const ShippingStep = ({
         </button>
         <div className="flex items-center gap-2">
           <Truck className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">{t('shipping.title')}</h2>
+          <h2 className="text-xl font-semibold text-foreground">
+            {t('shipping.title')}
+          </h2>
         </div>
       </div>
 
@@ -112,7 +116,9 @@ const ShippingStep = ({
             }}
             error={formErrors.postalCode}
             placeholder={
-              formData.country === 'BE' || formData.country === 'CH' || formData.country === 'LU'
+              formData.country === 'BE' ||
+              formData.country === 'CH' ||
+              formData.country === 'LU'
                 ? '1000'
                 : 'ex: 75001'
             }
@@ -161,7 +167,8 @@ const ShippingStep = ({
             maxLength={100}
             validate={(value) => {
               if (value.length < 2) return t('errors.requiredField');
-              if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value)) return t('errors.requiredField');
+              if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value))
+                return t('errors.requiredField');
               return null;
             }}
           />

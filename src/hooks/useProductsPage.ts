@@ -22,11 +22,16 @@ const PRODUCTS_PER_PAGE = 16;
 export function useProductsPage() {
   const { t } = useTranslation(['products', 'common']);
   const [searchParams] = useSearchParams();
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(
+    null
+  );
   const { addItem, cart } = useCart();
   const isMobile = useIsMobile();
 
-  const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+  const currentPage = Math.max(
+    1,
+    parseInt(searchParams.get('page') || '1', 10)
+  );
 
   const {
     data: translatedProducts = [],
@@ -35,15 +40,23 @@ export function useProductsPage() {
     refetch,
   } = useProductsWithTranslations();
 
-  const { hasTimedOut: forceRender, isSlowLoading } = useSafetyTimeout(loading, {
-    timeout: 10000,
-    slowThreshold: 4000,
-    onTimeout: () => console.warn('[Products] Loading timed out after 10s, rendering page'),
-    onSlowLoading: () => console.info('[Products] Loading is slow, showing indicator'),
-  });
+  const { hasTimedOut: forceRender, isSlowLoading } = useSafetyTimeout(
+    loading,
+    {
+      timeout: 10000,
+      slowThreshold: 4000,
+      onTimeout: () =>
+        console.warn('[Products] Loading timed out after 10s, rendering page'),
+      onSlowLoading: () =>
+        console.info('[Products] Loading is slow, showing indicator'),
+    }
+  );
 
   const fallbackInfo = useMemo(() => {
-    const info: Record<number, { isFallback: boolean; locale: SupportedLocale }> = {};
+    const info: Record<
+      number,
+      { isFallback: boolean; locale: SupportedLocale }
+    > = {};
     translatedProducts.forEach((p: ProductWithTranslation) => {
       info[p.id] = { isFallback: p._fallbackUsed, locale: p._locale };
     });
@@ -74,7 +87,10 @@ export function useProductsPage() {
   );
 
   const productIds = useMemo(() => products.map((p) => p.id), [products]);
-  const { stockMap } = useBatchStock({ productIds, enabled: products.length > 0 });
+  const { stockMap } = useBatchStock({
+    productIds,
+    enabled: products.length > 0,
+  });
 
   const error = fetchError ? t('fetch.error') : null;
 
@@ -94,9 +110,16 @@ export function useProductsPage() {
     filteredCount,
     getCacheStats,
     invalidateCache,
-  } = useAdvancedProductFilters({ products, enableAnalytics: true, debounceMs: 300 });
+  } = useAdvancedProductFilters({
+    products,
+    enableAnalytics: true,
+    debounceMs: 300,
+  });
 
-  const cacheStats = getCacheStats?.() ?? { cachedQueries: 0, totalCacheSize: 0 };
+  const cacheStats = getCacheStats?.() ?? {
+    cachedQueries: 0,
+    totalCacheSize: 0,
+  };
 
   const handleClearCache = () => {
     invalidateCache?.();
@@ -108,7 +131,10 @@ export function useProductsPage() {
     hasMore,
     isLoading: isLoadingMore,
     sentinelRef,
-  } = useInfiniteScroll({ items: filteredProducts, itemsPerPage: isMobile ? 8 : 16 });
+  } = useInfiniteScroll({
+    items: filteredProducts,
+    itemsPerPage: isMobile ? 8 : 16,
+  });
 
   const handleRefresh = async () => {
     try {
@@ -121,58 +147,115 @@ export function useProductsPage() {
     }
   };
 
-  useEffect(() => { window.scrollTo(0, 0); }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
-  const displayCategories = useMemo(() => availableOptions.categories, [availableOptions.categories]);
+  const displayCategories = useMemo(
+    () => availableOptions.categories,
+    [availableOptions.categories]
+  );
 
   const handleAddToCart = (product: Product, event?: React.MouseEvent) => {
-    if (event) { event.preventDefault(); event.stopPropagation(); }
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     addItem(product, 1);
     toast.success(t('recommendations.addedToCart', { name: product.name }), {
       duration: 3000,
-      action: { label: t('common:buttons.viewCart', 'Voir le panier'), onClick: () => { appNavigate('/cart'); } },
+      action: {
+        label: t('common:buttons.viewCart', 'Voir le panier'),
+        onClick: () => {
+          appNavigate('/cart');
+        },
+      },
     });
   };
 
   const handleQuickView = (product: Product) => setQuickViewProduct(product);
 
-  const handleVoiceSearch = (query: string) => updateFilters({ searchQuery: query });
+  const handleVoiceSearch = (query: string) =>
+    updateFilters({ searchQuery: query });
 
   const handleQuickViewAddToCart = (product: Product, quantity: number) => {
     addItem(product, quantity);
-    toast.success(t('recommendations.addedToCartQuantity', { name: product.name, quantity }), {
-      duration: 3000,
-      action: { label: t('common:buttons.viewCart', 'Voir le panier'), onClick: () => { appNavigate('/cart'); } },
-    });
+    toast.success(
+      t('recommendations.addedToCartQuantity', {
+        name: product.name,
+        quantity,
+      }),
+      {
+        duration: 3000,
+        action: {
+          label: t('common:buttons.viewCart', 'Voir le panier'),
+          onClick: () => {
+            appNavigate('/cart');
+          },
+        },
+      }
+    );
     setQuickViewProduct(null);
   };
 
   // NOTE: Auto-refetch on timeout was REMOVED — it caused a refetch loop
   // that cancelled in-flight queries. React Query's own retry handles transient failures.
 
-  const cartTotal = cart.items.reduce((sum, item) => sum + (item.product?.price ?? 0) * item.quantity, 0);
+  const cartTotal = cart.items.reduce(
+    (sum, item) => sum + (item.product?.price ?? 0) * item.quantity,
+    0
+  );
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
 
   return {
     // State
-    quickViewProduct, setQuickViewProduct,
+    quickViewProduct,
+    setQuickViewProduct,
     // Data
-    products, filteredProducts, fallbackInfo, stockMap,
+    products,
+    filteredProducts,
+    fallbackInfo,
+    stockMap,
     // Loading
-    loading, forceRender, isSlowLoading, error, filterLoading, isSearchStale,
+    loading,
+    forceRender,
+    isSlowLoading,
+    error,
+    filterLoading,
+    isSearchStale,
     // Filters
-    filters, availableOptions, searchHistory, displayCategories,
-    activeFiltersCount, totalProductsCount, filteredCount,
-    updateFilters, resetFilters, clearFilter, getSearchSuggestions,
-    cacheStats, handleClearCache,
+    filters,
+    availableOptions,
+    searchHistory,
+    displayCategories,
+    activeFiltersCount,
+    totalProductsCount,
+    filteredCount,
+    updateFilters,
+    resetFilters,
+    clearFilter,
+    getSearchSuggestions,
+    cacheStats,
+    handleClearCache,
     // Infinite scroll
-    visibleProducts, hasMore, isLoadingMore, sentinelRef,
+    visibleProducts,
+    hasMore,
+    isLoadingMore,
+    sentinelRef,
     // Actions
-    handleAddToCart, handleQuickView, handleQuickViewAddToCart,
-    handleVoiceSearch, handleRefresh, refetch,
+    handleAddToCart,
+    handleQuickView,
+    handleQuickViewAddToCart,
+    handleVoiceSearch,
+    handleRefresh,
+    refetch,
     // SEO / pagination
-    currentPage, totalPages, PRODUCTS_PER_PAGE,
+    currentPage,
+    totalPages,
+    PRODUCTS_PER_PAGE,
     // Misc
-    isMobile, cartTotal, t,
+    isMobile,
+    cartTotal,
+    t,
   };
 }

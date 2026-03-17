@@ -104,7 +104,9 @@ const PaymentSuccess = () => {
   } | null>(null);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
-  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(
+    null
+  );
   const [processingMessage, setProcessingMessage] = useState<string>('');
   const { clearCart } = useCart();
   const { user, profile } = useAuth();
@@ -116,7 +118,9 @@ const PaymentSuccess = () => {
       if (!responseInvoice?.items) return;
       setInvoiceData({
         orderId: fetchedOrderId,
-        date: new Date(responseInvoice.date || Date.now()).toLocaleDateString('fr-FR'),
+        date: new Date(responseInvoice.date || Date.now()).toLocaleDateString(
+          'fr-FR'
+        ),
         customer,
         items: responseInvoice.items,
         subtotal: responseInvoice.subtotal || 0,
@@ -159,7 +163,8 @@ const PaymentSuccess = () => {
     if (verificationRunRef.current) return;
     verificationRunRef.current = true;
 
-    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    const sleep = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
 
     const getCustomerInfo = (): CustomerInfo => {
       const nameParts = (profile?.full_name || '').split(' ');
@@ -175,7 +180,9 @@ const PaymentSuccess = () => {
         success: true,
         message: message || t('pages:paymentSuccess.success.verified'),
         orderId: oid,
-        transactionId: sessionId ? sessionId.slice(-8).toUpperCase() : undefined,
+        transactionId: sessionId
+          ? sessionId.slice(-8).toUpperCase()
+          : undefined,
       });
       setCustomerInfo(getCustomerInfo());
       clearCart();
@@ -188,9 +195,12 @@ const PaymentSuccess = () => {
     // ================================================================
     const lookupOrder = async (sid: string): Promise<OrderLookupResult> => {
       try {
-        const { data, error } = await supabase.functions.invoke('order-lookup', {
-          body: { session_id: sid },
-        });
+        const { data, error } = await supabase.functions.invoke(
+          'order-lookup',
+          {
+            body: { session_id: sid },
+          }
+        );
         if (error || !data) return { found: false };
         return data as OrderLookupResult;
       } catch {
@@ -205,9 +215,7 @@ const PaymentSuccess = () => {
       const maxPolls = 5;
       const pollInterval = 2000;
       for (let i = 0; i < maxPolls; i++) {
-        setProcessingMessage(
-          `Traitement en cours… (${i + 1}/${maxPolls})`
-        );
+        setProcessingMessage(`Traitement en cours… (${i + 1}/${maxPolls})`);
         await sleep(pollInterval);
         const result = await lookupOrder(sid);
         if (result.found && result.is_paid) return result;
@@ -222,9 +230,12 @@ const PaymentSuccess = () => {
     const verifyPaymentFallback = async (sid: string) => {
       console.log('[PaymentSuccess] Calling verify-payment as fallback');
       try {
-        const { data, error } = await supabase.functions.invoke('verify-payment', {
-          body: { session_id: sid },
-        });
+        const { data, error } = await supabase.functions.invoke(
+          'verify-payment',
+          {
+            body: { session_id: sid },
+          }
+        );
         if (error) return null;
         return data;
       } catch {
@@ -236,14 +247,18 @@ const PaymentSuccess = () => {
     // MAIN FLOW: Deterministic order confirmation
     // ================================================================
     const verifyStripePayment = async (sid: string) => {
-      console.log('[PaymentSuccess] Starting deterministic verification', { session_id: sid });
+      console.log('[PaymentSuccess] Starting deterministic verification', {
+        session_id: sid,
+      });
 
       // Step 1: Immediate DB lookup
       const initial = await lookupOrder(sid);
 
       if (initial.found && initial.is_paid) {
         // Order already confirmed — instant success
-        console.log('[PaymentSuccess] Order already paid in DB', { order_id: initial.order_id });
+        console.log('[PaymentSuccess] Order already paid in DB', {
+          order_id: initial.order_id,
+        });
         setSuccess(initial.order_id!);
         setIsVerifying(false);
         return;
@@ -251,7 +266,9 @@ const PaymentSuccess = () => {
 
       if (initial.found && !initial.is_paid) {
         // Order exists but pending — webhook hasn't fired yet, poll
-        console.log('[PaymentSuccess] Order pending, polling...', { order_id: initial.order_id });
+        console.log('[PaymentSuccess] Order pending, polling...', {
+          order_id: initial.order_id,
+        });
         setProcessingMessage('Votre paiement est en cours de validation…');
         const polled = await pollUntilPaid(sid);
 
@@ -263,10 +280,13 @@ const PaymentSuccess = () => {
         }
 
         // Still pending after polling — show success anyway (webhook will handle it)
-        console.log('[PaymentSuccess] Order still pending after polling, showing reassuring success');
+        console.log(
+          '[PaymentSuccess] Order still pending after polling, showing reassuring success'
+        );
         setVerificationResult({
           success: true,
-          message: 'Votre paiement a été reçu. Votre commande est en cours de finalisation.',
+          message:
+            'Votre paiement a été reçu. Votre commande est en cours de finalisation.',
           orderId: polled.order_id || initial.order_id,
         });
         setCustomerInfo(getCustomerInfo());
@@ -277,18 +297,26 @@ const PaymentSuccess = () => {
       }
 
       // Step 3: No order found at all — call verify-payment as fallback
-      console.log('[PaymentSuccess] No order found, calling verify-payment fallback');
+      console.log(
+        '[PaymentSuccess] No order found, calling verify-payment fallback'
+      );
       setProcessingMessage('Vérification du paiement…');
 
       const fallbackData = await verifyPaymentFallback(sid);
 
       if (fallbackData?.success) {
-        console.log('[PaymentSuccess] verify-payment fallback succeeded', { order_id: fallbackData.orderId });
+        console.log('[PaymentSuccess] verify-payment fallback succeeded', {
+          order_id: fallbackData.orderId,
+        });
         setSuccess(fallbackData.orderId);
         if (fallbackData.invoiceData && fallbackData.orderId) {
           const cust = fallbackData.customerInfo || getCustomerInfo();
           setCustomerInfo(cust);
-          buildInvoiceFromResponse(fallbackData.invoiceData, fallbackData.orderId, cust);
+          buildInvoiceFromResponse(
+            fallbackData.invoiceData,
+            fallbackData.orderId,
+            cust
+          );
         }
         setIsVerifying(false);
         return;
@@ -305,10 +333,13 @@ const PaymentSuccess = () => {
 
       if (finalCheck.found) {
         // Order exists but not yet paid — show reassuring message, never show failure
-        console.log('[PaymentSuccess] Order exists but not yet paid, showing reassuring message');
+        console.log(
+          '[PaymentSuccess] Order exists but not yet paid, showing reassuring message'
+        );
         setVerificationResult({
           success: true,
-          message: 'Votre paiement a été reçu. La confirmation sera envoyée par email sous quelques minutes.',
+          message:
+            'Votre paiement a été reçu. La confirmation sera envoyée par email sous quelques minutes.',
           orderId: finalCheck.order_id,
         });
         setCustomerInfo(getCustomerInfo());
@@ -319,10 +350,14 @@ const PaymentSuccess = () => {
       }
 
       // Truly no order and verify-payment failed — this is a real failure
-      console.error('[PaymentSuccess] No order found and verify-payment failed');
+      console.error(
+        '[PaymentSuccess] No order found and verify-payment failed'
+      );
       setVerificationResult({
         success: false,
-        message: fallbackData?.message || 'La vérification a pris trop de temps. Si vous avez été débité, votre commande sera traitée automatiquement.',
+        message:
+          fallbackData?.message ||
+          'La vérification a pris trop de temps. Si vous avez été débité, votre commande sera traitée automatiquement.',
       });
       setIsVerifying(false);
     };
@@ -352,14 +387,17 @@ const PaymentSuccess = () => {
           });
           const cust = getCustomerInfo();
           setCustomerInfo(cust);
-          if (data.invoiceData) buildInvoiceFromResponse(data.invoiceData, finalOrderId!, cust);
+          if (data.invoiceData)
+            buildInvoiceFromResponse(data.invoiceData, finalOrderId!, cust);
           clearCart();
           localStorage.removeItem('cart');
           toast.success(t('pages:paymentSuccess.success.confirmed'));
         } else {
           setVerificationResult({
             success: false,
-            message: data?.message || t('pages:paymentSuccess.errors.verificationFailed'),
+            message:
+              data?.message ||
+              t('pages:paymentSuccess.errors.verificationFailed'),
           });
         }
       } catch {
@@ -403,7 +441,8 @@ const PaymentSuccess = () => {
     const formatPrice = (value: number) => value.toFixed(2) + ' €';
     const invoiceNumber = `${new Date().getFullYear()}-${invoiceData.orderId.slice(-8).toUpperCase()}`;
     const paymentLabel =
-      PAYMENT_METHOD_LABELS[invoiceData.paymentMethod] || invoiceData.paymentMethod;
+      PAYMENT_METHOD_LABELS[invoiceData.paymentMethod] ||
+      invoiceData.paymentMethod;
     const countryName = invoiceData.shippingAddress?.country
       ? COUNTRY_NAMES[invoiceData.shippingAddress.country] ||
         invoiceData.shippingAddress.country
@@ -640,7 +679,8 @@ const PaymentSuccess = () => {
                   {t('pages:paymentSuccess.verifying.title')}
                 </h1>
                 <p className="text-lg text-muted-foreground mb-2">
-                  {processingMessage || t('pages:paymentSuccess.verifying.description')}
+                  {processingMessage ||
+                    t('pages:paymentSuccess.verifying.description')}
                 </p>
               </>
             ) : verificationResult?.success ? (
@@ -695,52 +735,52 @@ const PaymentSuccess = () => {
           </div>
 
           {verificationResult?.success && (
-          <div className="bg-muted rounded-lg p-8 mb-8">
-            <h2 className="text-xl font-medium text-foreground mb-4">
-              {t('pages:paymentSuccess.nextSteps.title')}
-            </h2>
-            <div className="space-y-3 text-left max-w-md mx-auto">
-              <div className="flex items-start">
-                <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3 mt-1">
-                  1
+            <div className="bg-muted rounded-lg p-8 mb-8">
+              <h2 className="text-xl font-medium text-foreground mb-4">
+                {t('pages:paymentSuccess.nextSteps.title')}
+              </h2>
+              <div className="space-y-3 text-left max-w-md mx-auto">
+                <div className="flex items-start">
+                  <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3 mt-1">
+                    1
+                  </div>
+                  <div>
+                    <p className="text-foreground font-medium">
+                      {t('pages:paymentSuccess.nextSteps.step1.title')}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {t('pages:paymentSuccess.nextSteps.step1.description')}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-foreground font-medium">
-                    {t('pages:paymentSuccess.nextSteps.step1.title')}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {t('pages:paymentSuccess.nextSteps.step1.description')}
-                  </p>
+                <div className="flex items-start">
+                  <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3 mt-1">
+                    2
+                  </div>
+                  <div>
+                    <p className="text-foreground font-medium">
+                      {t('pages:paymentSuccess.nextSteps.step2.title')}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {t('pages:paymentSuccess.nextSteps.step2.description')}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start">
-                <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3 mt-1">
-                  2
-                </div>
-                <div>
-                  <p className="text-foreground font-medium">
-                    {t('pages:paymentSuccess.nextSteps.step2.title')}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {t('pages:paymentSuccess.nextSteps.step2.description')}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3 mt-1">
-                  3
-                </div>
-                <div>
-                  <p className="text-foreground font-medium">
-                    {t('pages:paymentSuccess.nextSteps.step3.title')}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {t('pages:paymentSuccess.nextSteps.step3.description')}
-                  </p>
+                <div className="flex items-start">
+                  <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3 mt-1">
+                    3
+                  </div>
+                  <div>
+                    <p className="text-foreground font-medium">
+                      {t('pages:paymentSuccess.nextSteps.step3.title')}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {t('pages:paymentSuccess.nextSteps.step3.description')}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
           )}
 
           {/* Error-specific guidance */}
@@ -751,10 +791,14 @@ const PaymentSuccess = () => {
               </h2>
               <div className="space-y-3 text-left max-w-md mx-auto">
                 <p className="text-muted-foreground text-sm">
-                  Si vous avez été débité, ne vous inquiétez pas. Votre paiement a bien été enregistré par Stripe et votre commande sera traitée automatiquement.
+                  Si vous avez été débité, ne vous inquiétez pas. Votre paiement
+                  a bien été enregistré par Stripe et votre commande sera
+                  traitée automatiquement.
                 </p>
                 <p className="text-muted-foreground text-sm">
-                  Vérifiez votre boîte email pour la confirmation de commande. Si vous ne la recevez pas dans les 15 minutes, contactez notre support.
+                  Vérifiez votre boîte email pour la confirmation de commande.
+                  Si vous ne la recevez pas dans les 15 minutes, contactez notre
+                  support.
                 </p>
               </div>
             </div>

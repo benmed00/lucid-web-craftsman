@@ -191,8 +191,7 @@ serve(async (req) => {
       logStep('CSRF verification failed');
       return new Response(
         JSON.stringify({
-          error:
-            'Requête invalide. Veuillez rafraîchir la page et réessayer.',
+          error: 'Requête invalide. Veuillez rafraîchir la page et réessayer.',
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

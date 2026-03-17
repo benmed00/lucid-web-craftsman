@@ -27,7 +27,10 @@ export function useBatchStock({
   const [error, setError] = useState<string | null>(null);
 
   // Memoize the product IDs string to prevent unnecessary re-fetches
-  const productIdsKey = useMemo(() => productIds.sort().join(','), [productIds]);
+  const productIdsKey = useMemo(
+    () => productIds.sort().join(','),
+    [productIds]
+  );
 
   // Refetch on window focus for fresh stock data
   useEffect(() => {
@@ -48,7 +51,9 @@ export function useBatchStock({
       setStockMap(result);
     } catch (err) {
       console.error('[useBatchStock] Error fetching batch stock:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch stock info');
+      setError(
+        err instanceof Error ? err.message : 'Failed to fetch stock info'
+      );
       setStockMap({});
     } finally {
       setLoading(false);
@@ -72,7 +77,9 @@ export function useBatchStock({
       } catch (err) {
         console.error('[useBatchStock] Error fetching batch stock:', err);
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to fetch stock info');
+          setError(
+            err instanceof Error ? err.message : 'Failed to fetch stock info'
+          );
           setStockMap({});
         }
       } finally {
@@ -81,7 +88,10 @@ export function useBatchStock({
     };
 
     const timeoutId = setTimeout(doFetch, 100);
-    return () => { cancelled = true; clearTimeout(timeoutId); };
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [productIdsKey, enabled]);
 
   return { stockMap, loading, error };

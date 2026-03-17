@@ -59,7 +59,9 @@ const Products = () => {
   }
 
   // Error OR timeout-with-no-data state → show error UI with retry
-  const showError = (page.error || (page.forceRender && page.loading)) && page.products.length === 0;
+  const showError =
+    (page.error || (page.forceRender && page.loading)) &&
+    page.products.length === 0;
   if (showError) {
     return (
       <div className="min-h-screen bg-background">
@@ -72,9 +74,19 @@ const Products = () => {
             <p className="text-muted-foreground mb-8">
               {page.error || page.t('common:messages.timeout')}
             </p>
-            <Button onClick={handleRetry} disabled={isRetrying} className="gap-2">
-              {isRetrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-              {isRetrying ? page.t('common:messages.loading', 'Chargement…') : page.t('common:buttons.retry')}
+            <Button
+              onClick={handleRetry}
+              disabled={isRetrying}
+              className="gap-2"
+            >
+              {isRetrying ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {isRetrying
+                ? page.t('common:messages.loading', 'Chargement…')
+                : page.t('common:buttons.retry')}
             </Button>
           </div>
         </div>
@@ -93,7 +105,11 @@ const Products = () => {
         }
         description={page.t('subtitle')}
         keywords={page.t('seo.keywords', { returnObjects: true }) as string[]}
-        url={page.currentPage > 1 ? `/products?page=${page.currentPage}` : '/products'}
+        url={
+          page.currentPage > 1
+            ? `/products?page=${page.currentPage}`
+            : '/products'
+        }
         type="website"
         pagination={{
           currentPage: page.currentPage,
@@ -114,7 +130,9 @@ const Products = () => {
             />
             <MobilePromotions
               cartTotal={page.cartTotal}
-              onPromotionApply={(code) => toast.success(page.t('promo.applied', { code }))}
+              onPromotionApply={(code) =>
+                toast.success(page.t('promo.applied', { code }))
+              }
             />
           </div>
         )}
@@ -139,7 +157,9 @@ const Products = () => {
         <SearchResultsHeader
           searchQuery={page.filters.searchQuery}
           totalResults={page.filteredCount}
-          showingCount={page.isMobile ? page.visibleProducts.length : page.filteredCount}
+          showingCount={
+            page.isMobile ? page.visibleProducts.length : page.filteredCount
+          }
         />
 
         <ProductsCategoryFilters
@@ -173,8 +193,12 @@ const Products = () => {
         {/* CTA */}
         {page.filteredProducts.length > 0 && (
           <div className="text-center py-16 border-t border-border">
-            <h2 className="font-serif text-2xl text-foreground mb-4">{page.t('cta.title')}</h2>
-            <p className="text-muted-foreground mb-6">{page.t('cta.description')}</p>
+            <h2 className="font-serif text-2xl text-foreground mb-4">
+              {page.t('cta.title')}
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              {page.t('cta.description')}
+            </p>
             <Button asChild className="bg-primary hover:bg-primary/90">
               <Link to="/contact" className="inline-flex items-center">
                 {page.t('cta.button')}

@@ -35,7 +35,10 @@ serve(async (req) => {
     if (!session_id) {
       return new Response(
         JSON.stringify({ found: false, error: 'Missing session_id' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
       );
     }
 
@@ -52,7 +55,10 @@ serve(async (req) => {
       .maybeSingle();
 
     if (byColumn) {
-      logStep('Found by stripe_session_id column', { orderId: byColumn.id, status: byColumn.status });
+      logStep('Found by stripe_session_id column', {
+        orderId: byColumn.id,
+        status: byColumn.status,
+      });
       return buildResponse(byColumn);
     }
 
@@ -64,29 +70,34 @@ serve(async (req) => {
       .maybeSingle();
 
     if (byMetadata) {
-      logStep('Found by metadata', { orderId: byMetadata.id, status: byMetadata.status });
+      logStep('Found by metadata', {
+        orderId: byMetadata.id,
+        status: byMetadata.status,
+      });
       return buildResponse(byMetadata);
     }
 
     logStep('Order not found', { session_id });
-    return new Response(
-      JSON.stringify({ found: false }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    );
+    return new Response(JSON.stringify({ found: false }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     logStep('ERROR', { message: msg });
-    return new Response(
-      JSON.stringify({ found: false, error: msg }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    );
+    return new Response(JSON.stringify({ found: false, error: msg }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500,
+    });
   }
 
   function buildResponse(order: any) {
     const status = String(order.status || '').toLowerCase();
     const metadata = (order.metadata || {}) as Record<string, unknown>;
     const isPaid = status === 'paid' || status === 'completed';
-    const webhookProcessed = metadata.webhook_processed === true || metadata.webhook_processed === 'true';
+    const webhookProcessed =
+      metadata.webhook_processed === true ||
+      metadata.webhook_processed === 'true';
 
     return new Response(
       JSON.stringify({
@@ -100,7 +111,10 @@ serve(async (req) => {
         currency: order.currency,
         created_at: order.created_at,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
     );
   }
 });

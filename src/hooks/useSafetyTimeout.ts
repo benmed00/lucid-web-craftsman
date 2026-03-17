@@ -31,7 +31,12 @@ export function useSafetyTimeout(
   options: SafetyTimeoutOptions | number = 12000
 ): SafetyTimeoutReturn {
   const opts = typeof options === 'number' ? { timeout: options } : options;
-  const { timeout = 12000, slowThreshold = 5000, onTimeout, onSlowLoading } = opts;
+  const {
+    timeout = 12000,
+    slowThreshold = 5000,
+    onTimeout,
+    onSlowLoading,
+  } = opts;
 
   const [hasTimedOut, setHasTimedOut] = useState(false);
   const [isSlowLoading, setIsSlowLoading] = useState(false);
@@ -53,7 +58,9 @@ export function useSafetyTimeout(
       }, slowThreshold);
 
       const mainTimer = setTimeout(() => {
-        console.warn(`[SafetyTimeout] Loading exceeded ${timeout}ms — forcing render`);
+        console.warn(
+          `[SafetyTimeout] Loading exceeded ${timeout}ms — forcing render`
+        );
         setHasTimedOut(true);
         onTimeoutRef.current?.();
       }, timeout);

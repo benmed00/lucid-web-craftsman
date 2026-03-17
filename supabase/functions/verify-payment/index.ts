@@ -196,7 +196,10 @@ serve(async (req) => {
     }
 
     // Find order by stripe_session_id, metadata.stripe_session_id, then Stripe metadata order_id.
-    const orderData = await findOrderBySession(session_id, session.metadata?.order_id);
+    const orderData = await findOrderBySession(
+      session_id,
+      session.metadata?.order_id
+    );
 
     if (!orderData) {
       logStep('Order not found after Stripe verification', {

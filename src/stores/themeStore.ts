@@ -91,15 +91,27 @@ export const useThemeStore = create<ThemeState>()(
               if (!raw) return null;
               return JSON.parse(raw);
             } catch {
-              try { localStorage.removeItem(name); } catch { /* ignore */ }
+              try {
+                localStorage.removeItem(name);
+              } catch {
+                /* ignore */
+              }
               return null;
             }
           },
           setItem: (name, value) => {
-            try { localStorage.setItem(name, JSON.stringify(value)); } catch { /* ignore */ }
+            try {
+              localStorage.setItem(name, JSON.stringify(value));
+            } catch {
+              /* ignore */
+            }
           },
           removeItem: (name) => {
-            try { localStorage.removeItem(name); } catch { /* ignore */ }
+            try {
+              localStorage.removeItem(name);
+            } catch {
+              /* ignore */
+            }
           },
         },
         onRehydrateStorage: () => (state) => {

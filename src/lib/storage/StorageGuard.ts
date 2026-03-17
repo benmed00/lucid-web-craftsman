@@ -35,7 +35,9 @@ const diagnosticLog: DiagnosticEntry[] = [];
 function logDiagnostic(entry: Omit<DiagnosticEntry, 'timestamp'>) {
   const full = { ...entry, timestamp: Date.now() };
   diagnosticLog.push(full);
-  console.warn(`[StorageGuard] ${entry.action}: "${entry.key}" — ${entry.reason}`);
+  console.warn(
+    `[StorageGuard] ${entry.action}: "${entry.key}" — ${entry.reason}`
+  );
 }
 
 export function getDiagnosticLog(): ReadonlyArray<DiagnosticEntry> {
@@ -75,7 +77,9 @@ function safeRemove(key: string): void {
   if (!isLocalStorageAvailable()) return;
   try {
     localStorage.removeItem(key);
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 // ============= Store Schemas =============
@@ -98,8 +102,10 @@ const STORE_SCHEMAS: StoreSchema[] = [
     validate: (state: unknown) => {
       if (!state || typeof state !== 'object') return false;
       const s = state as Record<string, unknown>;
-      return typeof s.currency === 'string' &&
-        ['EUR', 'USD', 'GBP', 'MAD'].includes(s.currency as string);
+      return (
+        typeof s.currency === 'string' &&
+        ['EUR', 'USD', 'GBP', 'MAD'].includes(s.currency as string)
+      );
     },
   },
   {
@@ -109,8 +115,10 @@ const STORE_SCHEMAS: StoreSchema[] = [
     validate: (state: unknown) => {
       if (!state || typeof state !== 'object') return false;
       const s = state as Record<string, unknown>;
-      return typeof s.theme === 'string' &&
-        ['light', 'dark', 'system'].includes(s.theme as string);
+      return (
+        typeof s.theme === 'string' &&
+        ['light', 'dark', 'system'].includes(s.theme as string)
+      );
     },
   },
   {
@@ -120,8 +128,10 @@ const STORE_SCHEMAS: StoreSchema[] = [
     validate: (state: unknown) => {
       if (!state || typeof state !== 'object') return false;
       const s = state as Record<string, unknown>;
-      return typeof s.locale === 'string' &&
-        ['fr', 'en', 'ar'].includes(s.locale as string);
+      return (
+        typeof s.locale === 'string' &&
+        ['fr', 'en', 'ar'].includes(s.locale as string)
+      );
     },
   },
 ];
@@ -176,7 +186,11 @@ export function validateAndSanitizeStorage(): number {
           version: schema.version,
         });
         localStorage.setItem(schema.key, corrected);
-        logDiagnostic({ key: schema.key, action: 'migrated', reason: 'State validation failed, reset to defaults' });
+        logDiagnostic({
+          key: schema.key,
+          action: 'migrated',
+          reason: 'State validation failed, reset to defaults',
+        });
         repaired++;
         continue;
       }
@@ -231,7 +245,8 @@ export function validateAndSanitizeStorage(): number {
         const parsed = JSON.parse(raw);
         // Supabase stores session as { access_token, refresh_token, ... }
         // or { currentSession: { access_token, ... } }
-        const token = parsed?.access_token || parsed?.currentSession?.access_token;
+        const token =
+          parsed?.access_token || parsed?.currentSession?.access_token;
         if (token && typeof token === 'string') {
           // Quick JWT expiry check (decode payload without verification)
           const parts = token.split('.');
@@ -239,16 +254,28 @@ export function validateAndSanitizeStorage(): number {
             try {
               const payload = JSON.parse(atob(parts[1]));
               if (payload.exp && payload.exp * 1000 < Date.now()) {
-                console.warn(`[StorageGuard] Expired JWT found in "${key}", removing`);
+                console.warn(
+                  `[StorageGuard] Expired JWT found in "${key}", removing`
+                );
                 safeRemove(key);
-                logDiagnostic({ key, action: 'cleared', reason: 'Expired JWT token' });
+                logDiagnostic({
+                  key,
+                  action: 'cleared',
+                  reason: 'Expired JWT token',
+                });
                 repaired++;
               }
             } catch {
               // Malformed JWT payload — remove it
-              console.warn(`[StorageGuard] Malformed JWT in "${key}", removing`);
+              console.warn(
+                `[StorageGuard] Malformed JWT in "${key}", removing`
+              );
               safeRemove(key);
-              logDiagnostic({ key, action: 'cleared', reason: 'Malformed JWT token' });
+              logDiagnostic({
+                key,
+                action: 'cleared',
+                reason: 'Malformed JWT token',
+              });
               repaired++;
             }
           }
@@ -283,14 +310,21 @@ export function startHydrationWatchdog(timeoutMs = 4000): void {
   watchdogTimer = setTimeout(() => {
     if (watchdogResolved) return;
 
-    console.error(`[StorageGuard] Hydration watchdog triggered after ${timeoutMs}ms — purging all stores`);
+    console.error(
+      `[StorageGuard] Hydration watchdog triggered after ${timeoutMs}ms — purging all stores`
+    );
 
-    purgeAllPersistedStores('watchdog_reset', `Hydration exceeded ${timeoutMs}ms`);
+    purgeAllPersistedStores(
+      'watchdog_reset',
+      `Hydration exceeded ${timeoutMs}ms`
+    );
 
     // Reload the page to get a clean start
     try {
       sessionStorage.setItem('__sg_watchdog_reload', '1');
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     window.location.reload();
   }, timeoutMs);
@@ -317,7 +351,9 @@ export function wasWatchdogReload(): boolean {
       sessionStorage.removeItem('__sg_watchdog_reload');
       return true;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return false;
 }
 

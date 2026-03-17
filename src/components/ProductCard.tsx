@@ -1,6 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ShoppingCart, Eye, AlertTriangle, Share, GitCompareArrows } from 'lucide-react';
+import {
+  ShoppingCart,
+  Eye,
+  AlertTriangle,
+  Share,
+  GitCompareArrows,
+} from 'lucide-react';
 import { Product, isProductNew } from '@/shared/interfaces/Iproduct.interface';
 import { ProductImage } from '@/components/ui/GlobalImage';
 import { Card, CardContent } from '@/components/ui/card';
