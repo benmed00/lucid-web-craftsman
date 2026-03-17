@@ -294,8 +294,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } = await supabase.auth.getSession();
 
         if (session?.user) {
-          // Fast path: trust the local session for immediate UI rendering.
-          // onAuthStateChange will also fire and keep state in sync.
+          // Validate JWT BEFORE trusting the session — a stale token
+          // poisons ALL Supabase requests (including anonymous ones) with 401.
+          // Do this SYNCHRONOUSLY in init, not deferred to background.
+          const { error: userError } = await supabase.auth.getUser();
+          
+          if (userError) {
+            // JWT is invalid — clear it immediately
+            console.warn(
+              '[AuthContext] Session JWT invalid, clearing immediately:',
+              userError.message
+            );
+            cleanupAuthState();
+            await supabase.auth.signOut({ scope: 'local' });
+            if (isMounted) {
+              setAuthState({
+                user: null,
+                session: null,
+                profile: null,
+                isLoading: false,
+                isInitialized: true,
+              });
+            }
+            return;
+          }
+
+          // JWT is valid — trust the session
           if (isMounted) {
             setAuthState((prev) => ({
               ...prev,
@@ -307,26 +331,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             initializeWishlistStore(session.user.id);
             loadUserProfile(session.user.id);
           }
-
-          // Background validation: verify JWT is still valid server-side.
-          // If invalid, sign out gracefully without blocking init.
-          supabase.auth.getUser().then(({ error: userError }) => {
-            if (userError && isMounted) {
-              console.warn(
-                '[AuthContext] Background JWT validation failed, signing out:',
-                userError.message
-              );
-              cleanupAuthState();
-              supabase.auth.signOut({ scope: 'local' });
-              setAuthState({
-                user: null,
-                session: null,
-                profile: null,
-                isLoading: false,
-                isInitialized: true,
-              });
-            }
-          });
         } else {
           // No session at all
           if (isMounted) {
