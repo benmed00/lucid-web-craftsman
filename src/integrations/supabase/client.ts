@@ -14,6 +14,29 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 // Guest session key constant
 const GUEST_SESSION_KEY = 'guest_session';
 
+function clearSupabaseAuthStorage() {
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (
+        key &&
+        (key.startsWith('sb-') || key.startsWith('supabase.auth.'))
+      ) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
+    if (keysToRemove.length > 0) {
+      console.warn(
+        `[SupabaseFetch] Cleared ${keysToRemove.length} stale auth key(s)`
+      );
+    }
+  } catch {
+    // localStorage may be unavailable (private mode), ignore
+  }
+}
+
 /**
  * Get the current guest ID from storage (if exists)
  * This is called DYNAMICALLY on each request via the fetch wrapper,
@@ -43,6 +66,76 @@ const getGuestId = (): string => {
   return '';
 };
 
+function createDynamicFetch(options: {
+  timeoutMs: number;
+  clearAuthOn401?: boolean;
+  retryOnceAfter401?: boolean;
+}) {
+  const { timeoutMs, clearAuthOn401 = false, retryOnceAfter401 = false } =
+    options;
+
+  const doFetch = async (
+    url: RequestInfo | URL,
+    init?: RequestInit,
+    hasRetried = false
+  ): Promise<Response> => {
+    const guestId = getGuestId();
+    const headers = new Headers(init?.headers);
+    if (guestId) {
+      headers.set('x-guest-id', guestId);
+    }
+
+    const controller = new AbortController();
+    const existingSignal = init?.signal;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    if (existingSignal) {
+      existingSignal.addEventListener('abort', () => controller.abort());
+    }
+
+    const urlStr =
+      typeof url === 'string'
+        ? url
+        : url instanceof URL
+          ? url.href
+          : '(Request)';
+    const shortUrl = urlStr.includes('supabase.co')
+      ? urlStr.split('supabase.co')[1]?.substring(0, 60)
+      : urlStr.substring(0, 80);
+
+    try {
+      console.info(`[SupabaseFetch] → ${shortUrl}`);
+      const response = await fetch(url, {
+        ...init,
+        headers,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      console.info(`[SupabaseFetch] ← ${response.status} ${shortUrl}`);
+
+      if (response.status === 401 && clearAuthOn401) {
+        console.warn('[SupabaseFetch] 401 detected — clearing stale auth tokens');
+        clearSupabaseAuthStorage();
+
+        if (retryOnceAfter401 && !hasRetried) {
+          console.warn(
+            '[SupabaseFetch] Retrying request once after auth storage cleanup'
+          );
+          return doFetch(url, init, true);
+        }
+      }
+
+      return response;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      console.error(`[SupabaseFetch] ✘ ${shortUrl}`, err?.message || err);
+      throw err;
+    }
+  };
+
+  return (url: RequestInfo | URL, init?: RequestInit) => doFetch(url, init);
+}
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
@@ -56,89 +149,12 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
     },
     global: {
-      // Use a function to dynamically resolve x-guest-id on EVERY request
-      // Prevents 42501 RLS errors when guest ID wasn't yet generated
-      // Also adds AbortController timeout to prevent hanging connections
-      // that exhaust the browser's 6-connection-per-host limit.
-      fetch: (url: RequestInfo | URL, options?: RequestInit) => {
-        const guestId = getGuestId();
-        const headers = new Headers(options?.headers);
-        if (guestId) {
-          headers.set('x-guest-id', guestId);
-        }
-
-        // Abort hanging requests after 15s to free connection slots.
-        // Previous value was 30s, but that's longer than the UI safety
-        // timeout (12s), meaning users see errors before the fetch fails.
-        // 15s gives enough headroom for browser connection queuing while
-        // still failing fast enough for React Query retries to complete.
-        const controller = new AbortController();
-        const existingSignal = options?.signal;
-        const timeoutId = setTimeout(() => controller.abort(), 15_000);
-
-        // If caller already provided a signal, respect it too
-        if (existingSignal) {
-          existingSignal.addEventListener('abort', () => controller.abort());
-        }
-
-        const urlStr =
-          typeof url === 'string'
-            ? url
-            : url instanceof URL
-              ? url.href
-              : '(Request)';
-        const shortUrl = urlStr.includes('supabase.co')
-          ? urlStr.split('supabase.co')[1]?.substring(0, 60)
-          : urlStr.substring(0, 80);
-        console.info(`[SupabaseFetch] → ${shortUrl}`);
-
-        return fetch(url, {
-          ...options,
-          headers,
-          signal: controller.signal,
-        })
-          .then((response) => {
-            clearTimeout(timeoutId);
-            console.info(`[SupabaseFetch] ← ${response.status} ${shortUrl}`);
-
-            // CRITICAL FIX: If we get a 401 (bad JWT), the stored auth token
-            // is poisoning ALL requests — even anonymous ones.
-            // Clear the bad token immediately so subsequent retries use the anon key.
-            if (response.status === 401) {
-              console.warn(
-                '[SupabaseFetch] 401 detected — clearing stale auth tokens'
-              );
-              try {
-                // Remove all Supabase auth keys from storage
-                const keysToRemove: string[] = [];
-                for (let i = 0; i < localStorage.length; i++) {
-                  const key = localStorage.key(i);
-                  if (
-                    key &&
-                    (key.startsWith('sb-') || key.startsWith('supabase.auth.'))
-                  ) {
-                    keysToRemove.push(key);
-                  }
-                }
-                keysToRemove.forEach((key) => localStorage.removeItem(key));
-                if (keysToRemove.length > 0) {
-                  console.warn(
-                    `[SupabaseFetch] Cleared ${keysToRemove.length} stale auth keys`
-                  );
-                }
-              } catch (e) {
-                // Storage access may fail in private mode — ignore
-              }
-            }
-
-            return response;
-          })
-          .catch((err) => {
-            clearTimeout(timeoutId);
-            console.error(`[SupabaseFetch] ✘ ${shortUrl}`, err?.message || err);
-            throw err;
-          });
-      },
+      // Auth-aware client: handles stale JWT poisoning and retries once after cleanup.
+      fetch: createDynamicFetch({
+        timeoutMs: 15_000,
+        clearAuthOn401: true,
+        retryOnceAfter401: true,
+      }),
     },
     realtime: {
       params: {
@@ -150,5 +166,24 @@ export const supabase = createClient<Database>(
   }
 );
 
-// NOTE: createGuestClient was REMOVED to prevent "Multiple GoTrueClient instances" warnings.
-// The main `supabase` client already resolves x-guest-id dynamically on every request
+// Public client for anonymous/public read flows.
+// Intentionally does not persist auth session so stale JWT cannot poison
+// products/blog/artisans requests in embedded preview environments.
+export const supabasePublic = createClient<Database>(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+    global: {
+      fetch: createDynamicFetch({
+        timeoutMs: 10_000,
+        clearAuthOn401: false,
+        retryOnceAfter401: false,
+      }),
+    },
+  }
+);

@@ -124,8 +124,9 @@ export function useBlogPostsWithTranslations() {
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
-    retry: 1,
-    retryDelay: 2000,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * Math.pow(2, attempt), 8000),
+    networkMode: 'always',
   });
 
   return query;

@@ -41,17 +41,16 @@ const ProductShowcase = () => {
   const handleRetry = useCallback(async () => {
     setIsRetrying(true);
     try {
+      await queryClient.cancelQueries({ queryKey: ['products'] });
       // resetQueries (not invalidate) forces isLoading back to true
       await queryClient.resetQueries({ queryKey: ['products'] });
-      await queryClient.resetQueries({
-        queryKey: ['products-with-translations'],
-      });
+      await refetch();
     } catch {
       // Error handled by React Query
     } finally {
-      setTimeout(() => setIsRetrying(false), 500);
+      setIsRetrying(false);
     }
-  }, [queryClient]);
+  }, [queryClient, refetch]);
 
   // Safety timeout — force out of skeleton after 12s
   const { hasTimedOut: forceRender } = useSafetyTimeout(loading, {
