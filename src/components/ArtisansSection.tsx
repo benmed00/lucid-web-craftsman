@@ -39,20 +39,6 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
   const currentLocale = i18n.language?.split('-')[0] || 'fr';
   const queryClient = useQueryClient();
   const [isRetrying, setIsRetrying] = useState(false);
-  const handleRetry = useCallback(async () => {
-    setIsRetrying(true);
-    try {
-      await queryClient.cancelQueries({
-        queryKey: ['artisans', currentLocale],
-      });
-      await queryClient.resetQueries({
-        queryKey: ['artisans', currentLocale],
-      });
-      await refetch();
-    } finally {
-      setIsRetrying(false);
-    }
-  }, [currentLocale, queryClient, refetch]);
 
   // Fetch artisans — deferred when `enabled` is false (Phase 2 loading)
   const {
@@ -112,6 +98,21 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
     retryDelay: 2000,
     networkMode: 'always',
   });
+
+  const handleRetry = useCallback(async () => {
+    setIsRetrying(true);
+    try {
+      await queryClient.cancelQueries({
+        queryKey: ['artisans', currentLocale],
+      });
+      await queryClient.resetQueries({
+        queryKey: ['artisans', currentLocale],
+      });
+      await refetch();
+    } finally {
+      setIsRetrying(false);
+    }
+  }, [currentLocale, queryClient, refetch]);
 
   // Safety timeout — escape skeleton after 12s
   const { hasTimedOut: forceRender } = useSafetyTimeout(isLoading, {
