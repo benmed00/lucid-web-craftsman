@@ -328,11 +328,8 @@ export function clearOldestItems(
     const storage = window[type];
     const items: Array<{ key: string; timestamp: number; size: number }> = [];
 
-    // Collect all items with timestamps
-    for (let i = 0; i < storage.length; i++) {
-      const key = storage.key(i);
-      if (!key) continue;
-
+    // Only scan APP_STORAGE_KEYS — never touch third-party keys
+    for (const key of APP_STORAGE_KEYS) {
       const value = storage.getItem(key);
       if (!value) continue;
 
@@ -344,7 +341,7 @@ export function clearOldestItems(
           size: value.length * 2,
         });
       } catch {
-        // Non-JSON items get lowest priority (oldest timestamp)
+        // Non-JSON app items get lowest priority (oldest timestamp)
         items.push({
           key,
           timestamp: 0,
