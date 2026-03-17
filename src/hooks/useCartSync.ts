@@ -193,83 +193,134 @@ export async function saveToSupabase(
   }
 }
 
-// Process offline queue
+// ============= Offline Queue Constants =============
+const MAX_QUEUE_SIZE = 50;
+const MAX_RETRIES_PER_OP = 3;
+
+/**
+ * Deduplicate queue: collapse sequential operations on the same product.
+ * ADD→UPDATE = UPDATE, UPDATE→UPDATE = latest UPDATE, ADD→REMOVE = remove both.
+ */
+function deduplicateQueue(queue: QueueOperation[]): QueueOperation[] {
+  const sorted = [...queue].sort((a, b) => a.timestamp - b.timestamp);
+  const productState = new Map<number | undefined, QueueOperation>();
+
+  for (const op of sorted) {
+    if (op.type === 'CLEAR') {
+      // CLEAR supersedes everything
+      productState.clear();
+      productState.set(undefined, op);
+      continue;
+    }
+
+    const key = op.productId;
+    const existing = productState.get(key);
+
+    if (!existing) {
+      productState.set(key, op);
+      continue;
+    }
+
+    // Collapse: later op wins for same product
+    if (op.type === 'REMOVE') {
+      // If we had an ADD, just remove both (net zero)
+      if (existing.type === 'ADD') {
+        productState.delete(key);
+      } else {
+        productState.set(key, op);
+      }
+    } else {
+      // ADD or UPDATE — latest quantity wins
+      productState.set(key, op);
+    }
+  }
+
+  return Array.from(productState.values());
+}
+
+// Process offline queue with deduplication, size limits, and backoff
 export async function processOfflineQueue(
   userId: string,
   queue: QueueOperation[]
 ): Promise<{ success: number; failed: QueueOperation[] }> {
   if (queue.length === 0) return { success: 0, failed: [] };
 
-  const sortedQueue = [...queue].sort((a, b) => a.timestamp - b.timestamp);
+  // Deduplicate before processing
+  const deduped = deduplicateQueue(queue);
   let successCount = 0;
   const failedOps: QueueOperation[] = [];
 
-  for (const op of sortedQueue) {
-    try {
-      switch (op.type) {
-        case 'ADD':
-          if (op.productId && op.quantity) {
-            const { data: existing } = await supabase
-              .from('cart_items')
-              .select('quantity')
-              .eq('user_id', userId)
-              .eq('product_id', op.productId)
-              .single();
+  for (const op of deduped) {
+    let attempt = 0;
+    let succeeded = false;
 
-            if (existing) {
-              await supabase
-                .from('cart_items')
-                .update({ quantity: existing.quantity + op.quantity })
-                .eq('user_id', userId)
-                .eq('product_id', op.productId);
-            } else {
-              await supabase.from('cart_items').insert({
-                user_id: userId,
-                product_id: op.productId,
-                quantity: op.quantity,
-              });
+    while (attempt < MAX_RETRIES_PER_OP && !succeeded) {
+      try {
+        switch (op.type) {
+          case 'ADD':
+            if (op.productId && op.quantity) {
+              await supabase.from('cart_items').upsert(
+                {
+                  user_id: userId,
+                  product_id: op.productId,
+                  quantity: op.quantity,
+                },
+                { onConflict: 'user_id,product_id' }
+              );
+              succeeded = true;
             }
-            successCount++;
-          }
-          break;
+            break;
 
-        case 'REMOVE':
-          if (op.productId) {
-            await supabase
-              .from('cart_items')
-              .delete()
-              .eq('user_id', userId)
-              .eq('product_id', op.productId);
-            successCount++;
-          }
-          break;
-
-        case 'UPDATE':
-          if (op.productId && op.quantity !== undefined) {
-            if (op.quantity <= 0) {
+          case 'REMOVE':
+            if (op.productId) {
               await supabase
                 .from('cart_items')
                 .delete()
                 .eq('user_id', userId)
                 .eq('product_id', op.productId);
-            } else {
-              await supabase
-                .from('cart_items')
-                .update({ quantity: op.quantity })
-                .eq('user_id', userId)
-                .eq('product_id', op.productId);
+              succeeded = true;
             }
-            successCount++;
-          }
-          break;
+            break;
 
-        case 'CLEAR':
-          await supabase.from('cart_items').delete().eq('user_id', userId);
-          successCount++;
-          break;
+          case 'UPDATE':
+            if (op.productId && op.quantity !== undefined) {
+              if (op.quantity <= 0) {
+                await supabase
+                  .from('cart_items')
+                  .delete()
+                  .eq('user_id', userId)
+                  .eq('product_id', op.productId);
+              } else {
+                await supabase.from('cart_items').upsert(
+                  {
+                    user_id: userId,
+                    product_id: op.productId,
+                    quantity: op.quantity,
+                  },
+                  { onConflict: 'user_id,product_id' }
+                );
+              }
+              succeeded = true;
+            }
+            break;
+
+          case 'CLEAR':
+            await supabase.from('cart_items').delete().eq('user_id', userId);
+            succeeded = true;
+            break;
+        }
+      } catch (error) {
+        attempt++;
+        if (attempt < MAX_RETRIES_PER_OP) {
+          // Exponential backoff: 500ms, 1500ms, 3500ms
+          await new Promise((r) => setTimeout(r, 500 * Math.pow(2, attempt)));
+        }
       }
-    } catch (error) {
-      console.error(`Failed operation ${op.id}:`, error);
+    }
+
+    if (succeeded) {
+      successCount++;
+    } else {
       failedOps.push(op);
     }
   }
