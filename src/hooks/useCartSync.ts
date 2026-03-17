@@ -161,7 +161,7 @@ export async function loadAndMergeSupabaseCart(
   }));
 }
 
-// Save cart to Supabase
+// Save cart to Supabase using atomic RPC
 export async function saveToSupabase(
   userId: string,
   items: CartItem[],
@@ -173,42 +173,18 @@ export async function saveToSupabase(
   }
 
   try {
-    // Get current cart items from Supabase
-    const { data: existingItems } = await supabase
-      .from('cart_items')
-      .select('product_id')
-      .eq('user_id', userId);
-
-    const existingProductIds = new Set(
-      (existingItems || []).map((i) => i.product_id)
-    );
-    const currentProductIds = new Set(items.map((i) => i.id));
-
-    // Delete items no longer in cart
-    const toDelete = [...existingProductIds].filter(
-      (id) => !currentProductIds.has(id)
-    );
-    if (toDelete.length > 0) {
-      await supabase
-        .from('cart_items')
-        .delete()
-        .eq('user_id', userId)
-        .in('product_id', toDelete);
-    }
-
-    // Upsert current items
-    if (items.length > 0) {
-      const { error } = await supabase.from('cart_items').upsert(
+    // Single atomic RPC call — no race conditions
+    const { error } = await supabase.rpc('sync_cart', {
+      p_user_id: userId,
+      p_items: JSON.stringify(
         items.map((item) => ({
-          user_id: userId,
           product_id: item.id,
           quantity: item.quantity,
-        })),
-        { onConflict: 'user_id,product_id' }
-      );
-      if (error) throw error;
-    }
+        }))
+      ),
+    });
 
+    if (error) throw error;
     return true;
   } catch (error) {
     console.error('Failed to save to Supabase:', error);
