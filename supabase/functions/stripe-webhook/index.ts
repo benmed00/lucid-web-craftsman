@@ -655,7 +655,7 @@ async function handlePaymentFailed(
 // Helper: Log payment event
 // ============================================================
 async function logPaymentEvent(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   event: {
     order_id?: string;
     event_type: string;
