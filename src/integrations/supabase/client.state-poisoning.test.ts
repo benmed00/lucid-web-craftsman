@@ -67,6 +67,30 @@ describe('supabase client auth-state poisoning diagnostics', () => {
     expect(localStorage.getItem('editor-store-state')).toBe('keep');
   });
 
+  it('clears Supabase auth keys after a 403 response (bad JWT signature)', async () => {
+    localStorage.setItem(
+      'sb-xcvlijchkmhjonhfildm-auth-token',
+      JSON.stringify({ access_token: 'bad-signature.jwt.token' })
+    );
+    localStorage.setItem('cart-storage', '{"items":[3]}');
+
+    const wrappedFetch = await loadWrappedFetch();
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ message: 'invalid JWT: bad signature' }), {
+        status: 403,
+      })
+    );
+
+    await wrappedFetch(
+      'https://xcvlijchkmhjonhfildm.supabase.co/auth/v1/user'
+    );
+
+    expect(
+      localStorage.getItem('sb-xcvlijchkmhjonhfildm-auth-token')
+    ).toBeNull();
+    expect(localStorage.getItem('cart-storage')).toBe('{"items":[3]}');
+  });
+
   it('keeps auth keys untouched when response is successful', async () => {
     localStorage.setItem(
       'sb-xcvlijchkmhjonhfildm-auth-token',

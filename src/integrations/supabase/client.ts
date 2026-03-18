@@ -104,9 +104,9 @@ export const supabase = createClient<Database>(
             // CRITICAL FIX: If we get a 401 (bad JWT), the stored auth token
             // is poisoning ALL requests — even anonymous ones.
             // Clear the bad token immediately so subsequent retries use the anon key.
-            if (response.status === 401) {
+            if (response.status === 401 || response.status === 403) {
               console.warn(
-                '[SupabaseFetch] 401 detected — clearing stale auth tokens'
+                `[SupabaseFetch] ${response.status} detected — clearing stale auth tokens`
               );
               try {
                 // Remove all Supabase auth keys from storage
