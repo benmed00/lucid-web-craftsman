@@ -360,11 +360,12 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('PayPal verification error:', error);
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error('PayPal verification error:', err);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: err.message,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
