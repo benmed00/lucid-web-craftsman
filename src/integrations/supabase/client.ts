@@ -106,7 +106,7 @@ export const supabase = createClient<Database>(
             // Clear the bad token immediately so subsequent retries use the anon key.
             if (response.status === 401 || response.status === 403) {
               console.warn(
-                '[SupabaseFetch] 401 detected — clearing stale auth tokens'
+                `[SupabaseFetch] ${response.status} detected — clearing stale auth tokens`
               );
               try {
                 // Remove all Supabase auth keys from storage
