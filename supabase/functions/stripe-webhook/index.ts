@@ -591,7 +591,7 @@ async function handleCheckoutExpired(
 // Handle payment_intent.payment_failed
 // ============================================================
 async function handlePaymentFailed(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   paymentIntent: Stripe.PaymentIntent
 ) {
   const orderId = paymentIntent.metadata?.order_id;
