@@ -290,7 +290,7 @@ serve(async (req) => {
 
         if (updateError) {
           logStep('Error updating order', updateError);
-          throw new Error(`Failed to update order: ${updateError.message}`);
+          throw new Error(`Failed to update order: ${(updateError as any).message}`);
         }
 
         // Create status history entry
