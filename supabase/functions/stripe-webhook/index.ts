@@ -115,7 +115,7 @@ serve(async (req) => {
 // This is the AUTHORITATIVE payment confirmation (not the client redirect)
 // ============================================================
 async function handleCheckoutCompleted(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   stripe: Stripe,
   session: Stripe.Checkout.Session
 ) {
