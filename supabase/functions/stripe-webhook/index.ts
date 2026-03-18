@@ -527,7 +527,7 @@ async function handleCheckoutCompleted(
 // Handle checkout.session.expired
 // ============================================================
 async function handleCheckoutExpired(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   session: Stripe.Checkout.Session
 ) {
   const orderId = session.metadata?.order_id;
