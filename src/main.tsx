@@ -86,17 +86,13 @@ setupProductionErrorSuppression();
         console.info(`[Diagnostic] Response preview: ${t.substring(0, 200)}`)
       );
     })
-            )
-          );
-      })
-      .catch((err) => {
-        clearTimeout(testTimeout);
-        console.error(
-          `[Diagnostic] Supabase connectivity FAILED:`,
-          err?.message || err
-        );
-      });
-  }
+    .catch((err) => {
+      clearTimeout(testTimeout);
+      console.error(
+        '[Diagnostic] Supabase connectivity FAILED:',
+        err?.message || err
+      );
+    });
 }
 
 // ============= 3. Deterministic store initialization =============
