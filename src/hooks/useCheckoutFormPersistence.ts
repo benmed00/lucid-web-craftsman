@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { isValidPersonalInfo, isValidShippingInfo } from '@/utils/checkoutSessionValidation';
 import {
   safeGetItem,
   safeSetItem,
