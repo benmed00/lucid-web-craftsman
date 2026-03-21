@@ -82,9 +82,11 @@ setupProductionErrorSuppression();
       console.info(
         `[Diagnostic] Supabase connectivity: ${r.status} ${r.ok ? '✅' : '❌'}`
       );
-      return r.text().then((t) =>
-        console.info(`[Diagnostic] Response preview: ${t.substring(0, 200)}`)
-      );
+      return r
+        .text()
+        .then((t) =>
+          console.info(`[Diagnostic] Response preview: ${t.substring(0, 200)}`)
+        );
     })
     .catch((err) => {
       clearTimeout(testTimeout);

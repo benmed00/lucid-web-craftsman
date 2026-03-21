@@ -1,0 +1,36 @@
+# Typecheck, lint, and test the create-payment edge function with a frozen lockfile.
+# Branch filters: keep in sync with `.github/workflows/ci.yml`.
+name: Deno create-payment
+
+on:
+  push:
+    branches: [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
+  pull_request:
+    branches: [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
+
+concurrency:
+  group: deno-create-payment-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deno:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supabase/functions
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Deno check (frozen lockfile)
+        run: deno check create-payment/index.ts --config deno.json --lock deno.lock --frozen
+
+      - name: Deno lint
+        run: deno lint create-payment/ --config deno.json
+
+      - name: Deno test (frozen lockfile)
+        run: deno test create-payment/ --config deno.json --lock deno.lock --frozen

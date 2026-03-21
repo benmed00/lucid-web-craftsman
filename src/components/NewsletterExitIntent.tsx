@@ -26,7 +26,9 @@ const NewsletterExitIntent = () => {
     // Suppress if already subscribed
     try {
       if (localStorage.getItem(SUBSCRIBED_KEY) === 'true') return true;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     // Suppress if recently dismissed
     try {
