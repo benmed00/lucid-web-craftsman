@@ -21,8 +21,14 @@ function getInitialHeroImage(): HeroImageData {
     const cached = localStorage.getItem(HERO_CACHE_KEY);
     if (cached) {
       const parsed = JSON.parse(cached) as HeroImageData;
-      // Basic validation
-      if (parsed.imageUrl && parsed.title) {
+      // Basic validation + guard against stale "undefined" text cached from old data.
+      const hasValidText =
+        typeof parsed.title === 'string' &&
+        typeof parsed.subtitle === 'string' &&
+        !parsed.title.toLowerCase().includes('undefined') &&
+        !parsed.subtitle.toLowerCase().includes('undefined');
+
+      if (parsed.imageUrl && parsed.title && hasValidText) {
         return parsed;
       }
     }
