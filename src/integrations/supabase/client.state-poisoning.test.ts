@@ -81,9 +81,7 @@ describe('supabase client auth-state poisoning diagnostics', () => {
       })
     );
 
-    await wrappedFetch(
-      'https://xcvlijchkmhjonhfildm.supabase.co/auth/v1/user'
-    );
+    await wrappedFetch('https://xcvlijchkmhjonhfildm.supabase.co/auth/v1/user');
 
     expect(
       localStorage.getItem('sb-xcvlijchkmhjonhfildm-auth-token')

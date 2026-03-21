@@ -2,7 +2,7 @@
  * Cypress E2E configuration
  *
  * Uses @cypress/grep for tagged specs: @smoke (critical path), @regression (full suite).
- * specPattern includes both cypress/integration and cypress/e2e (checkout flow).
+ * All specs live under cypress/e2e/ (TypeScript or JavaScript).
  *
  * @see https://docs.cypress.io/guides/references/configuration
  * @see https://github.com/cypress-io/cypress-grep
@@ -18,8 +18,7 @@ export default defineConfig({
   // Avoid "failed to trash" on Windows when clearing screenshots/videos
   trashAssetsBeforeRuns: false,
   e2e: {
-    // Specs from integration (header, mobile, nav) and e2e (checkout)
-    specPattern: 'cypress/{integration,e2e}/**/*.{js,ts}',
+    specPattern: 'cypress/e2e/**/*.{js,ts}',
 
     supportFile: 'cypress/support/index.ts',
 
@@ -38,11 +37,26 @@ export default defineConfig({
     screenshotOnRunFailure: true,
 
     env: {
-      grepFilterSpecs: false,
+      grepFilterSpecs: true,
       grepOmitFiltered: true, // When grep used, omit non-matching specs
     },
 
     setupNodeEvents(on, config) {
+      // CI: GitHub Actions can pass CYPRESS_ADMIN_* / CYPRESS_CUSTOMER_* repo secrets;
+      // merge into Cypress.env() so specs keep using ADMIN_EMAIL, CUSTOMER_EMAIL, etc.
+      const mergeFromProcess = (key: string, value: string | undefined) => {
+        if (value !== undefined && value !== '') {
+          (config.env as Record<string, string>)[key] = value;
+        }
+      };
+      mergeFromProcess('ADMIN_EMAIL', process.env.CYPRESS_ADMIN_EMAIL);
+      mergeFromProcess('ADMIN_PASSWORD', process.env.CYPRESS_ADMIN_PASSWORD);
+      mergeFromProcess('CUSTOMER_EMAIL', process.env.CYPRESS_CUSTOMER_EMAIL);
+      mergeFromProcess(
+        'CUSTOMER_PASSWORD',
+        process.env.CYPRESS_CUSTOMER_PASSWORD
+      );
+
       const { plugin: grepPlugin } = require('@cypress/grep/plugin');
       grepPlugin(config);
       return config;

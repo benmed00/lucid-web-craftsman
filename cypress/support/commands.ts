@@ -12,9 +12,8 @@ type MockScenario =
   | 'latency';
 
 // Tab key press for keyboard navigation tests (uses cypress-real-events)
-Cypress.Commands.add('tab', { prevSubject: 'optional' }, (subject) => {
-  cy.realPress('Tab');
-  return subject;
+Cypress.Commands.add('tab', { prevSubject: ['optional'] }, (_subject) => {
+  return cy.realPress('Tab');
 });
 
 Cypress.Commands.add('addProductToCart', (options?: { productId?: number }) => {
@@ -28,19 +27,44 @@ Cypress.Commands.add('addProductToCart', (options?: { productId?: number }) => {
 });
 
 Cypress.Commands.add('resetDatabase', () => {
-  cy.env(['DB_RESET_URL', 'DB_RESET_TOKEN']).then(
-    ({ DB_RESET_URL: url, DB_RESET_TOKEN: token }) => {
-      if (!url) {
-        cy.clearCookies();
-        cy.clearLocalStorage();
-        return;
-      }
-      cy.request({
-        method: 'POST',
-        url,
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        failOnStatusCode: true,
-      });
+  const url = Cypress.env('DB_RESET_URL') as string | undefined;
+  const token = Cypress.env('DB_RESET_TOKEN') as string | undefined;
+  if (!url) {
+    cy.clearCookies();
+    cy.clearLocalStorage();
+    return;
+  }
+  cy.request({
+    method: 'POST',
+    url,
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    failOnStatusCode: true,
+  });
+});
+
+/**
+ * Log in via /auth and cache the session with cy.session().
+ * Set CUSTOMER_EMAIL / CUSTOMER_PASSWORD (or ADMIN_*) in Cypress env.
+ */
+Cypress.Commands.add('loginAs', (role: 'customer' | 'admin' = 'customer') => {
+  const email = Cypress.env(`${role.toUpperCase()}_EMAIL`) as string;
+  const password = Cypress.env(`${role.toUpperCase()}_PASSWORD`) as string;
+  cy.session(
+    [role, email],
+    () => {
+      cy.visit('/auth');
+      cy.get('#signin-email').clear().type(email);
+      cy.get('#signin-password').clear().type(password, { log: false });
+      cy.get('button[type="submit"]')
+        .contains(/se connecter|sign in/i)
+        .click();
+      cy.url().should('not.include', '/auth');
+    },
+    {
+      validate() {
+        cy.visit('/profile');
+        cy.url().should('not.include', '/auth');
+      },
     }
   );
 });
@@ -49,6 +73,7 @@ Cypress.Commands.add(
   'mockSupabaseResponse',
   (method: Method, path: string, scenario: MockScenario, body?: unknown) => {
     const toGlob = (p: string) => {
+      // Match PostgREST: .../rest/v1/products?select=... (glob * covers ?query)
       if (p === '/products') return '**/rest/v1/products*';
       if (p === '/product_translations')
         return '**/rest/v1/product_translations*';
@@ -102,6 +127,7 @@ declare global {
       tab(): Chainable<unknown>;
       addProductToCart(options?: { productId?: number }): Chainable<void>;
       resetDatabase(): Chainable<void>;
+      loginAs(role?: 'customer' | 'admin'): Chainable<void>;
       mockSupabaseResponse(
         method: Method,
         path: string,

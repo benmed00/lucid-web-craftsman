@@ -21,6 +21,9 @@ const PUBLIC_ROUTES = [
   { path: '/about', name: 'About' },
   { path: '/cart', name: 'Cart' },
   { path: '/auth', name: 'Auth' },
+  { path: '/compare', name: 'Compare' },
+  { path: '/wishlist', name: 'Wishlist' },
+  { path: '/orders', name: 'Orders' },
   { path: '/shipping', name: 'Shipping' },
   { path: '/returns', name: 'Returns' },
   { path: '/faq', name: 'FAQ' },
@@ -28,6 +31,8 @@ const PUBLIC_ROUTES = [
   { path: '/terms', name: 'Terms' },
   { path: '/terms-of-service', name: 'Terms of Service' },
   { path: '/story', name: 'Story' },
+  { path: '/unsubscribe', name: 'Unsubscribe' },
+  { path: '/payment-success', name: 'Payment Success' },
 ];
 
 // ─── Redirection tests ────────────────────────────────────────────────────
@@ -206,15 +211,18 @@ describe('Enterprise: Products & Product Cards @enterprise @smoke', () => {
   });
 
   it('should filter products by search query', () => {
-    // AdvancedProductFilters search input — use visible one (exclude hidden mobile menu)
+    // Client-side filter (useAdvancedProductFilters) — assert list changes, not only input value
     const searchSelector =
       'input[placeholder*="Rechercher"], input[placeholder*="Search"], input[placeholder*="recherche"]';
-    cy.get(searchSelector).filter(':visible').first().type('straw');
+    cy.get('[id^="product-card-"]').should('have.length.at.least', 1);
     cy.get(searchSelector)
       .filter(':visible')
       .first()
-      .should('have.value', 'straw');
-    cy.url().should('include', '/products');
+      .type('xyznonexistfilter999');
+    cy.contains(/Aucun résultat|no results found/i, { timeout: 8000 }).should(
+      'be.visible'
+    );
+    cy.get('[id^="product-card-"]').should('have.length', 0);
   });
 });
 
@@ -235,6 +243,20 @@ describe('Enterprise: Cart Page @enterprise @regression', () => {
     cy.get('[id^="cart-remove-"]').should('exist');
     cy.get('[id^="cart-qty-minus-"]').should('exist');
     cy.get('[id^="cart-qty-plus-"]').should('exist');
+  });
+
+  it('should increase and decrease line-item quantity', () => {
+    // Cart.tsx: quantity span — FR "Quantité:" / EN "Quantity:" (if i18n added)
+    const qtyLabel = '[aria-label^="Quantité:"], [aria-label^="Quantity:"]';
+    cy.get('[id^="cart-item-"]')
+      .first()
+      .within(() => {
+        cy.get(qtyLabel).first().should('have.text', '1');
+        cy.get('[id^="cart-qty-plus-"]').click();
+        cy.get(qtyLabel).first().should('have.text', '2');
+        cy.get('[id^="cart-qty-minus-"]').click();
+        cy.get(qtyLabel).first().should('have.text', '1');
+      });
   });
 
   it('should have checkout button', () => {
@@ -372,7 +394,6 @@ describe('Enterprise: Checkout Flow @enterprise @smoke', () => {
   it('should advance to step 2 shipping after filling step 1', () => {
     // Wait for form to finish loading (skeleton gone, fields visible)
     cy.get('#firstName', { timeout: 15000 }).should('be.visible');
-    cy.wait(500); // Brief pause for form to stabilize
     cy.get('#firstName').clear().type('Jean');
     cy.get('#lastName').clear().type('Dupont');
     cy.get('#email').clear().type('jean.dupont@test.com');
@@ -452,11 +473,9 @@ describe('Enterprise: Macro Environment — Network & Caching @enterprise', () =
   });
 
   it('should load without critical network errors', () => {
-    cy.intercept('GET', '**/*').as('requests');
     cy.visit('/');
     cy.get('body').should('be.visible');
-    // Allow some 404s for optional resources
-    cy.wait(1000);
+    cy.get('#main-content', { timeout: 15000 }).should('exist');
   });
 
   it('should have correct document ready state', () => {
@@ -538,25 +557,66 @@ describe('Enterprise: Auth Redirects @enterprise @regression', () => {
 
 // ─── Blog page ──────────────────────────────────────────────────────────────
 describe('Enterprise: Blog @enterprise @regression', () => {
-  beforeEach(() => {
-    cy.visit('/blog');
-  });
+  const E2E_BLOG_POST = {
+    id: 999001,
+    slug: 'e2e-cypress-blog',
+    title: 'E2E Cypress Blog Post',
+    excerpt: 'E2E excerpt for list and detail.',
+    content: 'E2E full content for detail view.',
+    status: 'published',
+    is_featured: false,
+    published_at: '2024-06-01T12:00:00.000Z',
+    tags: [],
+    featured_image_url: null,
+    author_id: null,
+    created_at: '2024-06-01T12:00:00.000Z',
+    updated_at: '2024-06-01T12:00:00.000Z',
+    view_count: 0,
+    blog_post_translations: [],
+  };
 
   it('should display blog posts or empty state', () => {
+    cy.visit('/blog');
     cy.get('body').should('be.visible');
     cy.get('main, #main-content, footer, .container, .min-h-screen', {
       timeout: 10000,
     }).should('exist');
   });
 
-  it('should navigate to blog post when available', () => {
-    cy.get('body').then(($body) => {
-      const link = $body.find('a[href^="/blog/"]').first();
-      if (link.length) {
-        cy.wrap(link).click();
-        cy.url().should('match', /\/blog\/\d+/);
-      }
+  it('should navigate from blog list to post detail (stubbed API)', () => {
+    cy.intercept('GET', '**/rest/v1/blog_post_translations*', {
+      statusCode: 200,
+      body: [
+        {
+          blog_post_id: 999001,
+          locale: 'fr',
+          title: 'E2E Cypress Blog Post',
+          excerpt: 'E2E excerpt for list and detail.',
+          content: 'E2E full content for detail view.',
+          seo_title: null,
+          seo_description: null,
+        },
+      ],
     });
+    cy.intercept('GET', '**/rest/v1/blog_posts*', (req) => {
+      if (req.url.includes('id=eq.999001')) {
+        return req.reply({ statusCode: 200, body: E2E_BLOG_POST });
+      }
+      return req.reply({
+        statusCode: 200,
+        body: [{ ...E2E_BLOG_POST, blog_post_translations: [] }],
+      });
+    });
+
+    cy.visit('/blog');
+    cy.contains('E2E Cypress Blog Post', { timeout: 20000 }).should(
+      'be.visible'
+    );
+    cy.get('a[href="/blog/999001"]').first().click();
+    cy.url().should('include', '/blog/999001');
+    cy.contains('E2E Cypress Blog Post', { timeout: 15000 }).should(
+      'be.visible'
+    );
   });
 });
 

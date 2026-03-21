@@ -71,8 +71,7 @@ describe('SCENARIO 1 — Slow Network: SafetyTimeout guarantees skeleton exit', 
     const onTimeout = vi.fn();
 
     const { result, rerender } = renderHook(
-      ({ loading }) =>
-        useSafetyTimeout(loading, { timeout: 10000, onTimeout }),
+      ({ loading }) => useSafetyTimeout(loading, { timeout: 10000, onTimeout }),
       { initialProps: { loading: true } }
     );
 
