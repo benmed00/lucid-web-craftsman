@@ -62,7 +62,7 @@ Central mapping: `lib/errors.ts` (`messageFromUnknownError`, `isClientFacingVali
 - CSRF + rate limit before heavy work.
 - Correlation id in order metadata and Stripe metadata.
 - Pure helpers covered by Deno tests (`*_test.ts`).
-- **CI on `main`:** `.github/workflows/deno-create-payment.yml` (frozen lockfile on check + test).
+- **CI:** `.github/workflows/deno-create-payment.yml` on the same branches as root CI (frozen lockfile on check + test).
 
 **Gaps / follow-ups**
 
@@ -73,7 +73,7 @@ Central mapping: `lib/errors.ts` (`messageFromUnknownError`, `isClientFacingVali
 
 ## CI and lockfile
 
-- **GitHub Actions:** `.github/workflows/deno-create-payment.yml` runs on **push** and **pull_request** to **`main`**: `deno check` and `deno test` use **`--lock supabase/functions/deno.lock --frozen`** so dependency drift fails the build until the lockfile is updated and committed. `deno lint` does not take `--lock` in Deno 2.x; it still uses `--config deno.json` for import maps.
+- **GitHub Actions:** `.github/workflows/deno-create-payment.yml` runs on **push** and **pull_request** for the same branch allowlist as `.github/workflows/ci.yml`. `deno check` and `deno test` use **`--lock supabase/functions/deno.lock --frozen`** so dependency drift fails the build until the lockfile is updated and committed. `deno lint` does not take `--lock` in Deno 2.x; it still uses `--config deno.json` for import maps.
 - **Local parity before a PR:** `npm run verify:create-payment` from the repo root.
 - **After changing `deno.json` imports or versions:** from `supabase/functions`, run `deno test create-payment/ --config deno.json` (or `deno cache create-payment/index.ts --config deno.json`) to refresh `deno.lock`, then commit the lockfile.
 

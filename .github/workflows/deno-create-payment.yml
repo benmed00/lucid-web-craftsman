@@ -1,11 +1,12 @@
 # Typecheck, lint, and test the create-payment edge function with a frozen lockfile.
+# Branch filters: keep in sync with `.github/workflows/ci.yml`.
 name: Deno create-payment
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
   pull_request:
-    branches: [main]
+    branches: [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
 
 concurrency:
   group: deno-create-payment-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
