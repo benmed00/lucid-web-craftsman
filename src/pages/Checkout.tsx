@@ -70,7 +70,7 @@ const Checkout = () => {
 
         <CheckoutProgress
           currentStep={c.step}
-          completedSteps={[]}
+          completedSteps={c.completedSteps}
           onStepClick={c.handleEditStep}
         />
 

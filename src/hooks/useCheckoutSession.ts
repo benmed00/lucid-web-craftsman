@@ -111,12 +111,14 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
   const [error, setError] = useState<string | null>(null);
 
   const initRef = useRef(false);
+  const initInFlight = useRef(false);
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
 
   // Initialize or retrieve existing session — runs in background, never blocks checkout
   useEffect(() => {
     if (!isGuestReady) return;
-    if (initRef.current) return;
+    if (initRef.current || initInFlight.current) return;
+    initInFlight.current = true;
     initRef.current = true;
 
     const initSession = async () => {
@@ -264,6 +266,8 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
       } catch (err) {
         // Non-blocking: checkout works even if session tracking fails
         console.warn('[useCheckoutSession] Init failed (non-blocking):', err);
+      } finally {
+        initInFlight.current = false;
       }
     };
 

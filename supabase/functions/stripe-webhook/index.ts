@@ -115,7 +115,7 @@ serve(async (req) => {
 // This is the AUTHORITATIVE payment confirmation (not the client redirect)
 // ============================================================
 async function handleCheckoutCompleted(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   stripe: Stripe,
   session: Stripe.Checkout.Session
 ) {
@@ -527,7 +527,7 @@ async function handleCheckoutCompleted(
 // Handle checkout.session.expired
 // ============================================================
 async function handleCheckoutExpired(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   session: Stripe.Checkout.Session
 ) {
   const orderId = session.metadata?.order_id;
@@ -591,7 +591,7 @@ async function handleCheckoutExpired(
 // Handle payment_intent.payment_failed
 // ============================================================
 async function handlePaymentFailed(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   paymentIntent: Stripe.PaymentIntent
 ) {
   const orderId = paymentIntent.metadata?.order_id;
@@ -655,7 +655,7 @@ async function handlePaymentFailed(
 // Helper: Log payment event
 // ============================================================
 async function logPaymentEvent(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   event: {
     order_id?: string;
     event_type: string;

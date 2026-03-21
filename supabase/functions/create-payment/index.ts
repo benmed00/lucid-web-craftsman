@@ -752,27 +752,28 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    console.error('Payment creation error:', error);
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error('Payment creation error:', err);
 
     await logPaymentEvent({
       event_type: 'payment_initiation_failed',
       status: 'error',
       actor: 'edge_function',
-      error_message: error.message,
+      error_message: err.message,
       duration_ms: Date.now() - startTime,
-      details: { error_type: error.constructor?.name || 'Unknown' },
+      details: { error_type: err.constructor?.name || 'Unknown' },
     });
 
     const isValidationError =
-      error.message.includes('introuvable') ||
-      error.message.includes('indisponible') ||
-      error.message.includes('insuffisant') ||
-      error.message.includes('Invalid') ||
-      error.message.includes('No items');
+      err.message.includes('introuvable') ||
+      err.message.includes('indisponible') ||
+      err.message.includes('insuffisant') ||
+      err.message.includes('Invalid') ||
+      err.message.includes('No items');
 
     return new Response(
       JSON.stringify({
-        error: error.message,
+        error: err.message,
         error_type: isValidationError ? 'validation' : 'internal',
       }),
       {

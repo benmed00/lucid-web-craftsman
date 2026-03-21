@@ -2,12 +2,23 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// Fallback values for preview/CI environments where .env may not be injected
+const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL ||
+  'https://xcvlijchkmhjonhfildm.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdmxpamNoa21oam9uaGZpbGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2MDY3MDEsImV4cCI6MjA2MzE4MjcwMX0.3_FZWbV4qCqs1xQmh0Hws83xQxofSApzVRScSCEi9Pg';
+
+console.info('[ENV CHECK]', {
+  url: !!SUPABASE_URL,
+  key: !!SUPABASE_PUBLISHABLE_KEY,
+  fromEnv: !!import.meta.env.VITE_SUPABASE_URL,
+});
 
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error(
-    'Supabase configuration missing: VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY are required.'
+  console.error(
+    '[Supabase] Missing configuration — app will run in degraded mode'
   );
 }
 
@@ -113,8 +124,10 @@ function createDynamicFetch(options: {
       clearTimeout(timeoutId);
       console.info(`[SupabaseFetch] ← ${response.status} ${shortUrl}`);
 
-      if (response.status === 401 && clearAuthOn401) {
-        console.warn('[SupabaseFetch] 401 detected — clearing stale auth tokens');
+      if ((response.status === 401 || response.status === 403) && clearAuthOn401) {
+        console.warn(
+          `[SupabaseFetch] ${response.status} detected — clearing stale auth tokens`
+        );
         clearSupabaseAuthStorage();
 
         if (retryOnceAfter401 && !hasRetried) {

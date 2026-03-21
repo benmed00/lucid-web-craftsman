@@ -205,7 +205,7 @@ const handler = async (req: Request): Promise<Response> => {
         isRefund,
         refundAmount: data.refundAmount,
         currency: data.currency || 'EUR',
-        items: data.items || [],
+        items: (data.items || []).map((item: { name: string; quantity: number; price?: number }) => ({ name: item.name, quantity: item.quantity, price: item.price ?? 0 })),
         refundMethod: data.refundMethod,
         refundDelay: data.refundDelay,
       })
