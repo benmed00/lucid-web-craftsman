@@ -1,7 +1,8 @@
-import { CalendarIcon, User, AlertCircle, RefreshCw } from 'lucide-react';
+import { CalendarIcon, User, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
@@ -27,6 +28,24 @@ const Blog = () => {
     error: fetchError,
     refetch,
   } = useBlogPostsWithTranslations();
+  const queryClient = useQueryClient();
+  const [isRetrying, setIsRetrying] = useState(false);
+  const currentLang = i18n.language?.split('-')[0] || 'fr';
+
+  const handleRetry = useCallback(async () => {
+    setIsRetrying(true);
+    try {
+      await queryClient.cancelQueries({
+        queryKey: ['blogPosts', currentLang],
+      });
+      await queryClient.resetQueries({
+        queryKey: ['blogPosts', currentLang],
+      });
+      await refetch();
+    } finally {
+      setIsRetrying(false);
+    }
+  }, [currentLang, queryClient, refetch]);
 
   // Safety timeout — force render after 8s
   const { hasTimedOut: forceRender, isSlowLoading } = useSafetyTimeout(
@@ -38,12 +57,13 @@ const Blog = () => {
   );
 
   // NOTE: Auto-refetch on timeout was REMOVED — it caused a refetch loop
-  // that cancelled in-flight queries. React Query's own retry (1 attempt)
-  // handles transient failures. The safety timeout now just shows error UI.
+  // that cancelled in-flight queries. React Query retries transient failures;
+  // the safety timeout now just shows error UI.
 
   // Dynamic tag translation
   const { translateTag } = useTranslateTag();
-  const currentLang = i18n.language?.split('-')[0] || 'fr';
+
+  const getSafeTagLabel = (tag: string) => translateTag(tag, currentLang) || tag;
 
   // Get date-fns locale based on current language
   const dateLocale = i18n.language?.startsWith('fr') ? fr : enUS;
@@ -111,9 +131,15 @@ const Blog = () => {
                     'Le chargement a pris trop de temps. Veuillez réessayer.'
                   )}
             </p>
-            <Button onClick={() => refetch()} className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              {t('blog.retry', 'Réessayer')}
+            <Button onClick={handleRetry} disabled={isRetrying} className="gap-2">
+              {isRetrying ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {isRetrying
+                ? t('common:messages.loading', 'Chargement…')
+                : t('blog.retry', 'Réessayer')}
             </Button>
           </div>
         </div>
@@ -212,7 +238,7 @@ const Blog = () => {
 
                     {post.tags && post.tags[0] && (
                       <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none">
-                        {translateTag(post.tags[0], currentLang)}
+                        {getSafeTagLabel(post.tags[0])}
                       </Badge>
                     )}
 
@@ -271,7 +297,7 @@ const Blog = () => {
 
                   {post.tags && post.tags[0] && (
                     <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none text-xs">
-                      {translateTag(post.tags[0], currentLang)}
+                      {getSafeTagLabel(post.tags[0])}
                     </Badge>
                   )}
 

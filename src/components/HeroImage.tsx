@@ -7,6 +7,21 @@ const HeroImage = () => {
   const { t } = useTranslation('pages');
   const { heroImageData, isLoading } = useHeroImage();
 
+  const isReadableText = (value: unknown): value is string =>
+    typeof value === 'string' &&
+    value.trim().length > 0 &&
+    !value.toLowerCase().includes('undefined');
+
+  const safeAlt = isReadableText(heroImageData.altText)
+    ? heroImageData.altText
+    : t('home.heroImage.alt');
+  const safeTitle = isReadableText(heroImageData.title)
+    ? heroImageData.title
+    : t('home.heroImage.title');
+  const safeSubtitle = isReadableText(heroImageData.subtitle)
+    ? heroImageData.subtitle
+    : t('home.heroImage.subtitle');
+
   // Render default image immediately while loading data
   if (isLoading) {
     return (
@@ -54,7 +69,7 @@ const HeroImage = () => {
         {/* Main hero image with advanced loading and fallback */}
         <HeroImageComponent
           src={heroImageData.imageUrl}
-          alt={heroImageData.altText}
+          alt={safeAlt}
           className="object-cover w-full h-full rounded-lg"
           fallbackText={t('home.heroImage.fallback')}
           preload={true}
@@ -69,7 +84,7 @@ const HeroImage = () => {
       {/* Hover hint text */}
       <div className="absolute top-6 left-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-in-out">
         <div className="bg-foreground/60 text-background px-4 py-2 rounded-lg backdrop-blur-sm">
-          <p className="text-sm font-medium">{heroImageData.altText}</p>
+          <p className="text-sm font-medium">{safeAlt}</p>
         </div>
       </div>
 
@@ -77,10 +92,10 @@ const HeroImage = () => {
       <div className="absolute bottom-6 left-6 right-6 group-hover:opacity-0 transition-opacity duration-700 ease-in-out">
         <div className="bg-card/95 backdrop-blur-sm px-6 py-4 rounded-lg shadow-lg border border-border/50">
           <p className="text-sm font-medium text-foreground mb-1">
-            {heroImageData.title}
+            {safeTitle}
           </p>
           <p className="text-xs text-muted-foreground">
-            {heroImageData.subtitle}
+            {safeSubtitle}
           </p>
         </div>
       </div>

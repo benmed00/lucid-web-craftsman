@@ -13,8 +13,15 @@
  * This service catches AbortError and other failures, returning { data: null, error }.
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabasePublic } from '@/integrations/supabase/client';
 import i18n from '@/i18n';
+
+const isDebugLoggingEnabled = import.meta.env.DEV;
+const logDebug = (...args: unknown[]) => {
+  if (isDebugLoggingEnabled) {
+    console.info(...args);
+  }
+};
 
 // Supported locales
 export type SupportedLocale = 'fr' | 'en' | 'ar' | 'es' | 'de';
@@ -44,9 +51,28 @@ async function safeQuery<T>(
   label: string
 ): Promise<{ data: T | null; error: unknown }> {
   const start = performance.now();
-  console.info(`[safeQuery] ⏳ ${label} — starting…`);
+  logDebug(`[safeQuery] ⏳ ${label} — starting…`);
   try {
-    const result = await promise;
+    // Hard timeout at service layer so UI never waits indefinitely.
+    const timeoutMs = 8000;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const timeoutResult = new Promise<{ data: T | null; error: unknown }>(
+      (resolve) => {
+        timeoutId = setTimeout(
+          () =>
+            resolve({
+              data: null,
+              error: new Error(
+                `[safeQuery] ${label} timed out after ${timeoutMs}ms`
+              ),
+            }),
+          timeoutMs
+        );
+      }
+    );
+
+    const result = await Promise.race([Promise.resolve(promise), timeoutResult]);
+    if (timeoutId) clearTimeout(timeoutId);
     const elapsed = Math.round(performance.now() - start);
     const size = Array.isArray(result.data)
       ? result.data.length
@@ -60,7 +86,7 @@ async function safeQuery<T>(
         result.error
       );
     } else {
-      console.info(`[safeQuery] ✅ ${label} → ${size} rows in ${elapsed}ms`);
+      logDebug(`[safeQuery] ✅ ${label} → ${size} rows in ${elapsed}ms`);
     }
     return result;
   } catch (err) {
@@ -200,7 +226,7 @@ export async function getProductWithTranslation(
 
   // First, try to get translation for requested locale
   const { data: translation } = await safeQuery(
-    supabase
+    supabasePublic
       .from('product_translations')
       .select('*')
       .eq('product_id', productId)
@@ -215,7 +241,7 @@ export async function getProductWithTranslation(
 
   if (!translation && locale !== DEFAULT_LOCALE) {
     const { data: fallback } = await safeQuery(
-      supabase
+      supabasePublic
         .from('product_translations')
         .select('*')
         .eq('product_id', productId)
@@ -235,7 +261,7 @@ export async function getProductWithTranslation(
 
   // Get base product data
   const { data: product, error: productError } = await safeQuery(
-    supabase.from('products').select('*').eq('id', productId).single(),
+    supabasePublic.from('products').select('*').eq('id', productId).single(),
     `product(${productId})`
   );
 
@@ -244,7 +270,7 @@ export async function getProductWithTranslation(
     return null;
   }
 
-  console.info(
+  logDebug(
     `[TranslationService] getProductWithTranslation(${productId}) → ${Math.round(performance.now() - startMs)}ms`
   );
 
@@ -266,7 +292,7 @@ export async function getProductWithTranslation(
 export async function getProductsWithTranslations(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<ProductWithTranslation[]> {
-  console.info(
+  logDebug(
     '[TranslationService] getProductsWithTranslations CALLED, locale:',
     locale
   );
@@ -274,7 +300,7 @@ export async function getProductsWithTranslations(
 
   // Single query with embedded translations via Supabase join
   const { data: products, error: productsError } = await safeQuery(
-    supabase
+    supabasePublic
       .from('products')
       .select(
         `
@@ -308,7 +334,7 @@ export async function getProductsWithTranslations(
   }
 
   const elapsed = Math.round(performance.now() - startMs);
-  console.info(
+  logDebug(
     `[TranslationService] getProductsWithTranslations(${locale}) → ${(products as unknown[]).length} products in ${elapsed}ms (1 query, joined)`
   );
 
@@ -423,7 +449,7 @@ export async function getBlogPostWithTranslation(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<BlogPostWithTranslation | null> {
   const { data: translation } = await safeQuery(
-    supabase
+    supabasePublic
       .from('blog_post_translations')
       .select('*')
       .eq('blog_post_id', blogPostId)
@@ -437,7 +463,7 @@ export async function getBlogPostWithTranslation(
 
   if (!translation && locale !== DEFAULT_LOCALE) {
     const { data: fallback } = await safeQuery(
-      supabase
+      supabasePublic
         .from('blog_post_translations')
         .select('*')
         .eq('blog_post_id', blogPostId)
@@ -456,7 +482,7 @@ export async function getBlogPostWithTranslation(
   > | null;
 
   const { data: post, error: postError } = await safeQuery(
-    supabase.from('blog_posts').select('*').eq('id', blogPostId).single(),
+    supabasePublic.from('blog_posts').select('*').eq('id', blogPostId).single(),
     `blog_post(${blogPostId})`
   );
 
@@ -484,7 +510,7 @@ export async function getBlogPostsWithTranslations(
   const startMs = performance.now();
 
   const { data: posts, error: postsError } = await safeQuery(
-    supabase
+    supabasePublic
       .from('blog_posts')
       .select(
         `
@@ -515,12 +541,12 @@ export async function getBlogPostsWithTranslations(
   }
 
   if ((posts as unknown[]).length === 0) {
-    console.info('[TranslationService] No published blog posts found');
+    logDebug('[TranslationService] No published blog posts found');
     return [];
   }
 
   const elapsed = Math.round(performance.now() - startMs);
-  console.info(
+  logDebug(
     `[TranslationService] getBlogPostsWithTranslations(${locale}) → ${(posts as unknown[]).length} posts in ${elapsed}ms (1 query, joined)`
   );
 
@@ -552,7 +578,7 @@ export async function getBlogPostBySlugWithTranslation(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<BlogPostWithTranslation | null> {
   const { data: post, error } = await safeQuery(
-    supabase
+    supabasePublic
       .from('blog_posts')
       .select('*')
       .eq('slug', slug)

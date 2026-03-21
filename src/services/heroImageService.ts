@@ -17,6 +17,28 @@ const defaultHeroImage: HeroImageData = {
   subtitle: 'Chapeau tressé et sac naturel - Fait main avec amour',
 };
 
+const isUsableText = (value: unknown): value is string =>
+  typeof value === 'string' &&
+  value.trim().length > 0 &&
+  !value.toLowerCase().includes('undefined');
+
+function normalizeHeroImageData(data: Partial<HeroImageData> | null): HeroImageData {
+  return {
+    id: data?.id,
+    imageUrl: isUsableText(data?.imageUrl)
+      ? data.imageUrl
+      : defaultHeroImage.imageUrl,
+    altText: isUsableText(data?.altText)
+      ? data.altText
+      : defaultHeroImage.altText,
+    title: isUsableText(data?.title) ? data.title : defaultHeroImage.title,
+    subtitle: isUsableText(data?.subtitle)
+      ? data.subtitle
+      : defaultHeroImage.subtitle,
+    isActive: data?.isActive ?? true,
+  };
+}
+
 export const heroImageService = {
   // Get active hero image from database
   get: async (): Promise<HeroImageData> => {
@@ -37,14 +59,14 @@ export const heroImageService = {
         return defaultHeroImage;
       }
 
-      return {
+      return normalizeHeroImageData({
         id: data.id,
         imageUrl: data.image_url,
         altText: data.alt_text,
         title: data.title,
         subtitle: data.subtitle,
         isActive: data.is_active,
-      };
+      });
     } catch (error) {
       console.error('Error getting hero image data:', error);
       return defaultHeroImage;
@@ -108,14 +130,14 @@ export const heroImageService = {
         throw error;
       }
 
-      return {
+      return normalizeHeroImageData({
         id: newData.id,
         imageUrl: newData.image_url,
         altText: newData.alt_text,
         title: newData.title,
         subtitle: newData.subtitle,
         isActive: newData.is_active,
-      };
+      });
     } catch (error) {
       console.error('Error saving hero image data:', error);
       throw new Error('Erreur lors de la sauvegarde');
@@ -145,14 +167,14 @@ export const heroImageService = {
         throw error;
       }
 
-      return {
+      return normalizeHeroImageData({
         id: updatedData.id,
         imageUrl: updatedData.image_url,
         altText: updatedData.alt_text,
         title: updatedData.title,
         subtitle: updatedData.subtitle,
         isActive: updatedData.is_active,
-      };
+      });
     } catch (error) {
       console.error('Error updating hero image data:', error);
       throw new Error('Erreur lors de la mise à jour');

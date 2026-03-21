@@ -11,7 +11,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabasePublic } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
@@ -51,7 +51,7 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
     enabled,
     queryFn: async () => {
       console.info('[ArtisansSection] queryFn CALLED, locale:', currentLocale);
-      const { data, error } = await supabase
+      const { data, error } = await supabasePublic
         .from('artisans')
         .select(
           `
@@ -94,10 +94,26 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
       }) as Artisan[];
     },
     staleTime: 5 * 60 * 1000,
-    retry: 1,
-    retryDelay: 2000,
+    // Match blog/products resilience to avoid single-shot failures in preview.
+    retry: 2,
+    retryDelay: (attempt: number) => Math.min(1000 * Math.pow(2, attempt), 8000),
     networkMode: 'always',
   });
+
+  const handleRetry = useCallback(async () => {
+    setIsRetrying(true);
+    try {
+      await queryClient.cancelQueries({
+        queryKey: ['artisans', currentLocale],
+      });
+      await queryClient.resetQueries({
+        queryKey: ['artisans', currentLocale],
+      });
+      await refetch();
+    } finally {
+      setIsRetrying(false);
+    }
+  }, [currentLocale, queryClient, refetch]);
 
   // Safety timeout — escape skeleton after 12s
   const { hasTimedOut: forceRender } = useSafetyTimeout(isLoading, {
@@ -140,17 +156,7 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
           </p>
           <Button
             variant="outline"
-            onClick={async () => {
-              setIsRetrying(true);
-              try {
-                // resetQueries forces isLoading back to true → shows skeleton → refetches
-                await queryClient.resetQueries({ queryKey: ['artisans'] });
-              } catch {
-                /* handled by RQ */
-              } finally {
-                setTimeout(() => setIsRetrying(false), 500);
-              }
-            }}
+            onClick={handleRetry}
             disabled={isRetrying}
             className="gap-2"
           >

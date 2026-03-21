@@ -20,6 +20,11 @@ import {
   DEFAULT_LOCALE,
 } from '@/services/translationService';
 
+// Keep content-query resilience consistent across Home/Shop/Blog surfaces.
+const CONTENT_QUERY_RETRY_COUNT = 2;
+const CONTENT_QUERY_RETRY_DELAY_MS = (attempt: number) =>
+  Math.min(1000 * Math.pow(2, attempt), 8000);
+
 /**
  * Get current locale from i18n
  */
@@ -64,8 +69,8 @@ export function useProductsWithTranslations() {
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
-    retry: 2,
-    retryDelay: (attempt) => Math.min(1000 * Math.pow(2, attempt), 8000),
+    retry: CONTENT_QUERY_RETRY_COUNT,
+    retryDelay: CONTENT_QUERY_RETRY_DELAY_MS,
     networkMode: 'always',
   });
 
@@ -124,8 +129,9 @@ export function useBlogPostsWithTranslations() {
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
-    retry: 1,
-    retryDelay: 2000,
+    retry: CONTENT_QUERY_RETRY_COUNT,
+    retryDelay: CONTENT_QUERY_RETRY_DELAY_MS,
+    networkMode: 'always',
   });
 
   return query;
