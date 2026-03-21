@@ -25,7 +25,12 @@ async function loadWrappedFetch(): Promise<WrappedFetch> {
   });
 
   await import('./client');
-  const clientCall = createClientMock.mock.calls.at(-1);
+  // The module creates both an auth-aware client and a public client.
+  // These assertions validate auth poisoning cleanup, so pick the client
+  // that persists sessions (the auth-aware one).
+  const clientCall = createClientMock.mock.calls.find(
+    (call) => call[2]?.auth?.persistSession === true
+  );
   const options = clientCall?.[2] as {
     global: { fetch: WrappedFetch };
   };
