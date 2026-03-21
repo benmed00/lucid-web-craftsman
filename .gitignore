@@ -57,3 +57,7 @@ bun.lock
 
 # Temporary commit message files (used for multi-line commit messages)
 docs/commit-msg-*.txt
+
+# Local lint / analysis dumps (do not commit)
+lint-current.txt
+lint-output.json

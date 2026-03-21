@@ -32,5 +32,6 @@ See `package.json` scripts. Highlights:
 - The `.env` file needs `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`, but the Supabase client has hardcoded fallback values so the app works without them.
 - ESLint uses flat config (ESLint 9); the config file is `eslint.config.js` (ESM).
 - Vitest config is embedded in `vite.config.ts` (not a separate file).
+- Prettier uses `"endOfLine": "lf"` (see `.prettierrc.json`) to match Linux CI; on Windows, prefer `git config core.autocrlf input` or let your editor save LF for tracked sources.
 - Edge function tests (`src/tests/edge-functions.test.ts`) skip tests requiring `SUPABASE_SERVICE_ROLE_KEY` if not set.
 - The `create-payment` edge function is split across `index.ts`, `types.ts`, `constants.ts`, and `lib/` (`verified-cart`, `discount`, `amounts`, `stripe-session`, `stripe-customer`, `orders`, `auth-user`, `checkout-schema`, `payment-events`, `stripe-client`, `errors`, `security`, `rate-limit`, `log`); data flow and audit notes live in `supabase/functions/create-payment/DATA_FLOW.md`; roadmap in `REFACTOR_PLAN.md`. From `supabase/functions`: `deno check create-payment/index.ts --config deno.json --lock deno.lock --frozen`, `deno lint create-payment/ --config deno.json`, `deno test create-payment/ --config deno.json --lock deno.lock --frozen`.
