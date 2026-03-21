@@ -1,6 +1,7 @@
 import { Pencil, User, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
+import { isValidPersonalInfo, isValidShippingInfo } from '@/utils/checkoutSessionValidation';
 
 interface CustomerData {
   firstName: string;
@@ -40,16 +41,17 @@ const StepSummary = ({
 }: StepSummaryProps) => {
   const { t } = useTranslation('checkout');
 
-  const showCustomerSummary = step >= 2 && customerData;
-  const showShippingSummary = step >= 3 && shippingData;
+  // Validate data before displaying — never show empty/placeholder summaries
+  const hasValidCustomer = step >= 2 && customerData && isValidPersonalInfo(customerData);
+  const hasValidShipping = step >= 3 && shippingData && isValidShippingInfo(shippingData);
 
-  if (!showCustomerSummary && !showShippingSummary) {
+  if (!hasValidCustomer && !hasValidShipping) {
     return null;
   }
 
   return (
     <div className="space-y-3 mb-6">
-      {showCustomerSummary && (
+      {hasValidCustomer && customerData && (
         <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
           <div className="flex items-start justify-between">
             <div className="flex gap-3">
@@ -86,7 +88,7 @@ const StepSummary = ({
         </div>
       )}
 
-      {showShippingSummary && (
+      {hasValidShipping && shippingData && (
         <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
           <div className="flex items-start justify-between">
             <div className="flex gap-3">

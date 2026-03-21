@@ -8,15 +8,27 @@ import {
 import NewsletterSubscription from '@/components/NewsletterSubscription';
 import { useTranslation } from 'react-i18next';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 
 const STORAGE_KEY = 'newsletter_exit_intent_dismissed';
+const SUBSCRIBED_KEY = 'newsletter_subscribed';
 const DISMISS_DAYS = 7;
 
 const NewsletterExitIntent = () => {
   const { t } = useTranslation('common');
+  const { user } = useOptimizedAuth();
   const [isOpen, setIsOpen] = useState(false);
 
-  const isDismissed = useCallback(() => {
+  const shouldSuppress = useCallback(() => {
+    // Suppress for logged-in users
+    if (user) return true;
+
+    // Suppress if already subscribed
+    try {
+      if (localStorage.getItem(SUBSCRIBED_KEY) === 'true') return true;
+    } catch { /* ignore */ }
+
+    // Suppress if recently dismissed
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return false;
@@ -26,7 +38,7 @@ const NewsletterExitIntent = () => {
     } catch {
       return false;
     }
-  }, []);
+  }, [user]);
 
   const dismiss = useCallback(() => {
     setIsOpen(false);
@@ -38,7 +50,7 @@ const NewsletterExitIntent = () => {
   }, []);
 
   useEffect(() => {
-    if (isDismissed()) return;
+    if (shouldSuppress()) return;
 
     let triggered = false;
     const delay = setTimeout(() => {
@@ -52,10 +64,10 @@ const NewsletterExitIntent = () => {
       document.addEventListener('mouseout', handleMouseLeave);
 
       return () => document.removeEventListener('mouseout', handleMouseLeave);
-    }, 5000); // wait 5s before arming
+    }, 5000);
 
     return () => clearTimeout(delay);
-  }, [isDismissed]);
+  }, [shouldSuppress]);
 
   return (
     <Dialog
