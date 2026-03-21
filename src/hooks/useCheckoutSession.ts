@@ -111,6 +111,7 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
   const [error, setError] = useState<string | null>(null);
 
   const initRef = useRef(false);
+  const initInFlight = useRef(false);
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
 
   // Initialize or retrieve existing session — runs in background, never blocks checkout
