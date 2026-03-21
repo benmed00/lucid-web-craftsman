@@ -150,27 +150,7 @@ describe('Enterprise: Navigation & Buttons @enterprise @regression', () => {
   });
 });
 
-// ─── Mobile menu ────────────────────────────────────────────────────────────
-describe('Enterprise: Mobile Menu @enterprise @regression', () => {
-  beforeEach(() => {
-    cy.viewport(375, 667);
-    cy.visit('/');
-  });
-
-  it('should show hamburger and open mobile menu', () => {
-    cy.get('[aria-label="Ouvrir le menu"]').should('be.visible').click();
-    cy.get('#mobile-menu').should('have.class', 'translate-x-0');
-  });
-
-  it('should close menu when link is clicked', () => {
-    cy.get('[aria-label="Ouvrir le menu"]').click();
-    cy.get('#mobile-menu')
-      .contains(/boutique|shop/i)
-      .click();
-    cy.url().should('include', '/products');
-    cy.get('#mobile-menu').should('have.class', 'translate-x-full');
-  });
-});
+// Mobile menu: deep coverage lives in mobile_menu_spec.js (W10).
 
 // ─── Products page & product cards ─────────────────────────────────────────
 describe('Enterprise: Products & Product Cards @enterprise @smoke', () => {
@@ -189,40 +169,10 @@ describe('Enterprise: Products & Product Cards @enterprise @smoke', () => {
     cy.get('[id^="add-to-cart-btn-"]').should('have.length.at.least', 1);
   });
 
-  it('should add product to cart and update cart count', () => {
-    cy.get('[id^="add-to-cart-btn-"]').first().click();
-    // Cart count or cart link should reflect item
-    cy.get('a[href="/cart"]').should('exist');
-    // Zustand persists; cart count may show in header
-    cy.visit('/cart');
-    cy.get('[id^="cart-item-"]').should('have.length.at.least', 1);
-  });
-
-  it('should navigate to product detail on card click', () => {
-    cy.get('[id^="product-card-"]').first().find('a').first().click();
-    cy.url().should('match', /\/products\/\d+/);
-  });
-
   it('should have search or filter controls on products page', () => {
-    // AdvancedProductFilters: search input (placeholder FR/EN)
     cy.get(
       'input[placeholder*="Rechercher"], input[placeholder*="Search"], input[placeholder*="recherche"]'
     ).should('exist');
-  });
-
-  it('should filter products by search query', () => {
-    // Client-side filter (useAdvancedProductFilters) — assert list changes, not only input value
-    const searchSelector =
-      'input[placeholder*="Rechercher"], input[placeholder*="Search"], input[placeholder*="recherche"]';
-    cy.get('[id^="product-card-"]').should('have.length.at.least', 1);
-    cy.get(searchSelector)
-      .filter(':visible')
-      .first()
-      .type('xyznonexistfilter999');
-    cy.contains(/Aucun résultat|no results found/i, { timeout: 8000 }).should(
-      'be.visible'
-    );
-    cy.get('[id^="product-card-"]').should('have.length', 0);
   });
 });
 
@@ -245,27 +195,8 @@ describe('Enterprise: Cart Page @enterprise @regression', () => {
     cy.get('[id^="cart-qty-plus-"]').should('exist');
   });
 
-  it('should increase and decrease line-item quantity', () => {
-    // Cart.tsx: quantity span — FR "Quantité:" / EN "Quantity:" (if i18n added)
-    const qtyLabel = '[aria-label^="Quantité:"], [aria-label^="Quantity:"]';
-    cy.get('[id^="cart-item-"]')
-      .first()
-      .within(() => {
-        cy.get(qtyLabel).first().should('have.text', '1');
-        cy.get('[id^="cart-qty-plus-"]').click();
-        cy.get(qtyLabel).first().should('have.text', '2');
-        cy.get('[id^="cart-qty-minus-"]').click();
-        cy.get(qtyLabel).first().should('have.text', '1');
-      });
-  });
-
   it('should have checkout button', () => {
     cy.get('#cart-checkout-button').should('exist').and('be.visible');
-  });
-
-  it('should navigate to checkout', () => {
-    cy.get('#cart-checkout-button').click();
-    cy.url().should('include', '/checkout');
   });
 
   it('should show empty state when cart is empty', () => {
@@ -348,94 +279,16 @@ describe('Enterprise: Newsletter @enterprise @regression', () => {
   });
 });
 
-// ─── Auth page ──────────────────────────────────────────────────────────────
-describe('Enterprise: Auth Page @enterprise @regression', () => {
-  beforeEach(() => {
-    cy.visit('/auth');
-  });
+// Auth UI: auth_flows_spec.js. /auth is in PUBLIC_ROUTES above.
 
-  it('should have sign in form fields', () => {
-    cy.get('#signin-email').should('exist');
-    cy.get('#signin-password').should('exist');
-  });
-
-  it('should have sign up form when switching tab', () => {
-    cy.contains(/inscription|sign up|s'inscrire/i).click();
-    cy.get('#signup-email').should('exist');
-    cy.get('#signup-password').should('exist');
-  });
-});
-
-// ─── Checkout flow (multi-step) ──────────────────────────────────────────────
-describe('Enterprise: Checkout Flow @enterprise @smoke', () => {
-  beforeEach(() => {
-    // Stub GET checkout_sessions so form persistence loads quickly (empty = no saved session)
-    cy.intercept('GET', '**/rest/v1/checkout_sessions*', {
-      statusCode: 200,
-      body: [],
-    }).as('checkoutSessionsGet');
-    // Stub app_settings so free shipping fetch returns quickly
-    cy.intercept('GET', '**/rest/v1/app_settings*', {
-      statusCode: 200,
-      body: [],
-    }).as('appSettings');
+// ─── Checkout (thin smoke; full multi-step flow: checkout_flow_spec.js) ─────
+describe('Enterprise: Checkout smoke @enterprise @smoke', () => {
+  it('shows checkout step 1 when cart has items', () => {
+    cy.stubCheckoutIntercepts();
     cy.visit('/products');
     cy.get('[id^="add-to-cart-btn-"]').first().click();
     cy.visit('/checkout');
-  });
-
-  it('should show step 1 personal info form', () => {
     cy.get('#firstName', { timeout: 15000 }).should('be.visible');
-    cy.get('#lastName').should('be.visible');
-    cy.get('#email').should('be.visible');
-    cy.get('#phone').should('be.visible');
-  });
-
-  it('should advance to step 2 shipping after filling step 1', () => {
-    // Wait for form to finish loading (skeleton gone, fields visible)
-    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
-    cy.get('#firstName').clear().type('Jean');
-    cy.get('#lastName').clear().type('Dupont');
-    cy.get('#email').clear().type('jean.dupont@test.com');
-    cy.get('#phone').clear().type('+33612345678');
-    // Use fieldset to target step 1 form button (avoids mobile sticky bar)
-    cy.get('fieldset')
-      .find('button')
-      .contains(/livraison|shipping|suivant|next|continuer/i)
-      .should('be.visible')
-      .click();
-    cy.get('#address', { timeout: 15000 }).should('be.visible');
-  });
-
-  it('should show promo code input', () => {
-    cy.get('input[placeholder*="promo"], input[placeholder*="code"]').should(
-      'exist'
-    );
-  });
-
-  it('should validate postal code format for France', () => {
-    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
-    cy.wait(500);
-    cy.get('#firstName').clear().type('Jean');
-    cy.get('#lastName').clear().type('Dupont');
-    cy.get('#email').clear().type('jean@test.com');
-    cy.get('fieldset')
-      .find('button')
-      .contains(/livraison|shipping|suivant|next|continuer/i)
-      .should('be.visible')
-      .click();
-    cy.get('#address', { timeout: 15000 })
-      .should('be.visible')
-      .type('12 Rue de la Paix');
-    cy.get('#postalCode').type('123');
-    cy.get('#city').type('Paris');
-    cy.get('button')
-      .contains(/paiement|payment/i)
-      .first()
-      .click();
-    cy.get('.text-destructive, [role="alert"]', { timeout: 10000 }).should(
-      'be.visible'
-    );
   });
 });
 
@@ -527,13 +380,6 @@ describe('Enterprise: Loading States @enterprise @regression', () => {
       timeout: 10000,
     }).should('exist');
     cy.get('body').should('not.contain', 'Error');
-  });
-
-  it('should load product detail without blank screen', () => {
-    cy.visit('/products');
-    cy.get('[id^="product-card-"]').first().find('a').first().click();
-    cy.url().should('match', /\/products\/\d+/);
-    cy.get('body').should('be.visible');
   });
 });
 

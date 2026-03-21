@@ -6,7 +6,7 @@
 
 _Contenu ci-dessous en français — English sections follow._
 
-Ce dossier regroupe les **tests E2E navigateur** (Cypress). La **couverture fonctionnelle**, les limites métier et les scénarios hors périmètre sont décrits dans [`../docs/E2E-COVERAGE.md`](../docs/E2E-COVERAGE.md). Ce README décrit l’**exploitation** : commandes, configuration, CI et bonnes pratiques de sécurité.
+Ce dossier regroupe les **tests E2E navigateur** (Cypress). La **couverture fonctionnelle**, les limites métier et les scénarios hors périmètre sont décrits dans [`../docs/E2E-COVERAGE.md`](../docs/E2E-COVERAGE.md). Ce README décrit l’**exploitation** : commandes, configuration, CI et bonnes pratiques de sécurité. La **propriété des parcours** (checkout, menu mobile, filtres produits, etc. vs `enterprise_full_platform_spec`) est documentée dans [E2E-COVERAGE — Propriété des parcours](../docs/E2E-COVERAGE.md).
 
 | Thème             | Contenu                                                                                                                                                                                                                                                                                                                               |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -44,7 +44,7 @@ The sections below are maintained in **English**. This directory contains the br
 
 ## Scope and boundaries
 
-Functional coverage, scripts, and explicitly **out-of-scope** scenarios (e.g. real card payments, certain timing-dependent UI) are documented in [`../docs/E2E-COVERAGE.md`](../docs/E2E-COVERAGE.md). This README focuses on how to run and maintain the Cypress suite, not on product requirements.
+Functional coverage, scripts, and explicitly **out-of-scope** scenarios (e.g. real card payments, certain timing-dependent UI) are documented in [`../docs/E2E-COVERAGE.md`](../docs/E2E-COVERAGE.md). That doc also lists **spec ownership** (W10): which file is canonical for checkout, mobile menu, product filters, etc., versus the thin `enterprise_full_platform_spec.js` macro suite. This README focuses on how to run and maintain the Cypress suite, not on product requirements.
 
 ## Architecture
 

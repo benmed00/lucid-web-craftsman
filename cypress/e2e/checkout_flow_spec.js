@@ -5,15 +5,7 @@
 
 describe('Checkout Flow @smoke @regression', () => {
   beforeEach(() => {
-    // Stub Supabase so checkout form loads quickly (matches enterprise spec)
-    cy.intercept('GET', '**/rest/v1/checkout_sessions*', {
-      statusCode: 200,
-      body: [],
-    }).as('checkoutSessionsGet');
-    cy.intercept('GET', '**/rest/v1/app_settings*', {
-      statusCode: 200,
-      body: [],
-    }).as('appSettings');
+    cy.stubCheckoutIntercepts();
     cy.visit('/products');
     cy.get('body').should('be.visible');
   });
@@ -188,5 +180,20 @@ describe('Checkout Flow @smoke @regression', () => {
     cy.get('.text-destructive, [role="alert"]', { timeout: 10000 }).should(
       'be.visible'
     );
+  });
+
+  it('should increase and decrease line-item quantity on cart page', () => {
+    cy.get('[id^="add-to-cart-btn-"]').first().click();
+    cy.visit('/cart');
+    const qtyLabel = '[aria-label^="Quantité:"], [aria-label^="Quantity:"]';
+    cy.get('[id^="cart-item-"]')
+      .first()
+      .within(() => {
+        cy.get(qtyLabel).first().should('have.text', '1');
+        cy.get('[id^="cart-qty-plus-"]').click();
+        cy.get(qtyLabel).first().should('have.text', '2');
+        cy.get('[id^="cart-qty-minus-"]').click();
+        cy.get(qtyLabel).first().should('have.text', '1');
+      });
   });
 });

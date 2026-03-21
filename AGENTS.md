@@ -34,6 +34,7 @@ See `package.json` scripts. Highlights:
 - **[`cypress/README.md`](cypress/README.md)** — operational runbook (commands, CI, secrets, troubleshooting); includes a French summary at the top.
 - Extra routes are covered in [`cypress/e2e/payment_unsubscribe_routes_spec.js`](cypress/e2e/payment_unsubscribe_routes_spec.js) (`/payment-success`, `/unsubscribe`) and in the enterprise suite’s `PUBLIC_ROUTES` (includes `/compare`, `/wishlist`, `/orders`, `/payment-success`, `/unsubscribe`).
 - Blog list → detail navigation uses stubbed Supabase responses in [`cypress/e2e/enterprise_full_platform_spec.js`](cypress/e2e/enterprise_full_platform_spec.js) so the test does not depend on real `blog_posts` data.
+- **W10** — Avoid duplicating journeys: `enterprise_full_platform_spec.js` is a **macro** suite (routes, DOM, blog stub); detailed checkout, mobile menu, filters, auth, etc. live in their own specs. See **Propriété des parcours** in [`docs/E2E-COVERAGE.md`](docs/E2E-COVERAGE.md).
 
 ### Cypress E2E credentials
 
@@ -48,3 +49,4 @@ See `package.json` scripts. Highlights:
 - ESLint uses flat config (ESLint 9); the config file is `eslint.config.js` (ESM).
 - Vitest config is embedded in `vite.config.ts` (not a separate file).
 - Edge function tests (`src/tests/edge-functions.test.ts`) skip tests requiring `SUPABASE_SERVICE_ROLE_KEY` if not set.
+- **`npm run test:ui`:** Vitest UI is bound to `127.0.0.1:24678` (not the default `51204`) because Windows can reserve port ranges that cause `EACCES` on the default port. Override with e.g. `npx vitest --ui --api.host 127.0.0.1 --api.port <port>` if needed.

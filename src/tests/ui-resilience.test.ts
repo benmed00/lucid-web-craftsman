@@ -112,10 +112,10 @@ describe('SCENARIO 2 — Hard Failure: Products page state machine', () => {
     const log: string[] = [];
 
     // Phase 1: Loading, no timeout → SKELETON
-    let loading = true;
+    const loading = true;
     let forceRender = false;
     let error: string | null = null;
-    let products: unknown[] = [];
+    const products: unknown[] = [];
 
     const showSkeleton = loading && !forceRender;
     const showError =

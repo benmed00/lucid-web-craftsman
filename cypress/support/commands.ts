@@ -26,6 +26,18 @@ Cypress.Commands.add('addProductToCart', (options?: { productId?: number }) => {
   cy.get('[id^="add-to-cart-btn-"]').first().should('be.visible').click();
 });
 
+/** Supabase stubs so checkout page loads quickly (shared by checkout_flow_spec + enterprise smoke). */
+Cypress.Commands.add('stubCheckoutIntercepts', () => {
+  cy.intercept('GET', '**/rest/v1/checkout_sessions*', {
+    statusCode: 200,
+    body: [],
+  }).as('checkoutSessionsGet');
+  cy.intercept('GET', '**/rest/v1/app_settings*', {
+    statusCode: 200,
+    body: [],
+  }).as('appSettings');
+});
+
 Cypress.Commands.add('resetDatabase', () => {
   const url = Cypress.env('DB_RESET_URL') as string | undefined;
   const token = Cypress.env('DB_RESET_TOKEN') as string | undefined;
@@ -129,6 +141,7 @@ declare global {
     interface Chainable {
       tab(): Chainable<unknown>;
       addProductToCart(options?: { productId?: number }): Chainable<void>;
+      stubCheckoutIntercepts(): Chainable<void>;
       resetDatabase(): Chainable<void>;
       loginAs(role?: 'customer' | 'admin'): Chainable<void>;
       mockSupabaseResponse(

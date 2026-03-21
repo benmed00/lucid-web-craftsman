@@ -37,10 +37,7 @@ const allSpecs = walk(e2eDir)
   .sort((a, b) => a.localeCompare(b))
   .map((p) => toPosix(relative(root, p)));
 
-const shard = Math.max(
-  1,
-  parseInt(process.env.CYPRESS_SHARD || '1', 10) || 1
-);
+const shard = Math.max(1, parseInt(process.env.CYPRESS_SHARD || '1', 10) || 1);
 const total = Math.max(
   1,
   parseInt(process.env.CYPRESS_SHARD_TOTAL || '1', 10) || 1
@@ -67,14 +64,18 @@ if (specList.length === 0) {
 }
 
 const specArg = specList.join(',');
-const cypressCmd =
-  total > 1 ? `cypress run --spec ${specArg}` : 'cypress run';
+const cypressCmd = total > 1 ? `cypress run --spec ${specArg}` : 'cypress run';
 
 // One shell string so Windows cmd / PowerShell parse the last argument like npm scripts do.
 const fullCmd = `npx start-server-and-test "npm run start:api" http-get://localhost:3001 "npm run dev" http-get://localhost:8080 "${cypressCmd.replace(/"/g, '\\"')}"`;
 
 try {
-  execSync(fullCmd, { stdio: 'inherit', cwd: root, shell: true, env: process.env });
+  execSync(fullCmd, {
+    stdio: 'inherit',
+    cwd: root,
+    shell: true,
+    env: process.env,
+  });
   process.exit(0);
 } catch (e) {
   const code =

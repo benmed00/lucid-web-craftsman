@@ -34,6 +34,25 @@ Secrets repo **optionnels** (jobs **smoke** et **full**) pour éviter les skips 
 2. `npm run e2e:ci` en local avec `cypress.env.json` à jour si vous comptez sur des parcours authentifiés.
 3. Sur GitHub : Actions → **E2E** → **Run workflow** — choisir **`suite: full`** (ou **`smoke`** pour un run rapide), ou s’appuyer sur le **`schedule`** hebdomadaire.
 
+### Quand utiliser quel script (W10)
+
+| Script / grep                              | Rôle                                                                                                                                                                                                                                     |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`npm run e2e:ci`** / **`e2e:ci:shard`**  | Suite **complète** locale ou CI (tous les fichiers `cypress/e2e/*`, éventuellement découpée par shard en **e2e-full**).                                                                                                                  |
+| **`npm run e2e:ci:smoke`** / `grep=@smoke` | Sous-ensemble **@smoke** sur PR/push — **source principale** de fumée rapide.                                                                                                                                                            |
+| **`npm run e2e:enterprise`**               | **Un seul fichier** : [`enterprise_full_platform_spec.js`](../cypress/e2e/enterprise_full_platform_spec.js), souvent avec `CYPRESS_BASE_URL` = preview déployé — macro routes / DOM / blog stub, **sans** refaire tout le détail métier. |
+
+### Propriété des parcours (éviter la duplication)
+
+| Parcours                                  | Spec « détaillé » (comportement)                                                                                                               | [`enterprise_full_platform_spec.js`](../cypress/e2e/enterprise_full_platform_spec.js)                                        |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Checkout multi-étapes, promo, code postal | [`checkout_flow_spec.js`](../cypress/e2e/checkout_flow_spec.js)                                                                                | Smoke mince : écran step 1 avec panier ; `cy.stubCheckoutIntercepts()` dans [`commands.ts`](../cypress/support/commands.ts). |
+| Menu mobile, viewports                    | [`mobile_menu_spec.js`](../cypress/e2e/mobile_menu_spec.js)                                                                                    | Aucun test menu (référence dans le fichier mobile).                                                                          |
+| Filtres catégories + recherche vide       | [`product_filters_spec.ts`](../cypress/e2e/product_filters_spec.ts)                                                                            | Produits : cartes + présence recherche uniquement.                                                                           |
+| PDP, détail produit                       | [`product_detail_spec.js`](../cypress/e2e/product_detail_spec.js)                                                                              | —                                                                                                                            |
+| Auth / inscription                        | [`auth_flows_spec.js`](../cypress/e2e/auth_flows_spec.js)                                                                                      | `/auth` couvert par l’inventaire `PUBLIC_ROUTES` + auth_flows.                                                               |
+| Admin                                     | [`admin_routes_smoke_spec.js`](../cypress/e2e/admin_routes_smoke_spec.js), [`admin_dashboard_spec.js`](../cypress/e2e/admin_dashboard_spec.js) | —                                                                                                                            |
+
 ## Couvert par les specs
 
 - Parcours boutique, panier, checkout, persistance formulaire, auth (classique), OTP **UI**, profil, wishlist, comparaison, blog (dont navigation stubée), résilience API mockée (dont `product_reviews`), mode maintenance (stub `app_settings`), routes paiement / désabonnement, **toutes** les routes `/admin/*` → `/admin/login` sans session, smoke admin dashboard + **parcours optionnel** sur chaque entrée du menu admin **si** `ADMIN_*` est défini, filtres catégories sur `/products`, formulaire d’avis (UI) **si** `CUSTOMER_*` est défini.
@@ -43,13 +62,13 @@ Secrets repo **optionnels** (jobs **smoke** et **full**) pour éviter les skips 
 
 | Sujet                      | Détail                                                                                                     |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| **Stripe réel**            | Le flux mocké (`payment_success_mocked_spec`) intercepte `order-lookup` ; pas de carte réelle.             |
+| **Stripe réel**            | Le flux mocké (`payment_success_mocked_spec.ts`) intercepte `order-lookup` ; pas de carte réelle.          |
 | **OTP SMS**                | Seul le mode « code » et les boutons sont testés, pas la réception du code.                                |
 | **Exit-intent newsletter** | Déclenché après 5 s + sortie souris du haut de page — instable en CI headless ; non automatisé par défaut. |
 | **Régression visuelle**    | Pas de Percy / snapshots d’images ; uniquement assertions DOM.                                             |
-| **Parallélisation**        | Pas de sharding ni matrix de specs dans le workflow actuel (`e2e.yml` = un seul job Cypress).              |
+| **Parallélisation**        | Le job **e2e-full** lance **2 shards** (`e2e:ci:shard`) ; le job **e2e-smoke** reste **monolithique**.     |
 | **Reset DB serveur**       | `cy.resetDatabase()` utile seulement si `DB_RESET_URL` est défini.                                         |
 
 ## Dossier des specs
 
-Tout est sous **`cypress/e2e/`** (plus de dossier `integration/` dupliqué). Les specs peuvent être en **`.js`** ou **`.ts`** (ex. `product_filters_spec.ts`).
+Tout est sous **`cypress/e2e/`** (plus de dossier `integration/` dupliqué). Les specs peuvent être en **`.js`** ou **`.ts`** (ex. `product_filters_spec.ts`, `payment_success_mocked_spec.ts`).
