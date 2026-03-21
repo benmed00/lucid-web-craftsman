@@ -266,6 +266,8 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
       } catch (err) {
         // Non-blocking: checkout works even if session tracking fails
         console.warn('[useCheckoutSession] Init failed (non-blocking):', err);
+      } finally {
+        initInFlight.current = false;
       }
     };
 
