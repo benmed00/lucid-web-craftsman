@@ -117,7 +117,8 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
   // Initialize or retrieve existing session — runs in background, never blocks checkout
   useEffect(() => {
     if (!isGuestReady) return;
-    if (initRef.current) return;
+    if (initRef.current || initInFlight.current) return;
+    initInFlight.current = true;
     initRef.current = true;
 
     const initSession = async () => {
