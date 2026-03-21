@@ -603,6 +603,7 @@ export function useCheckoutPage() {
   return {
     // State
     step,
+    completedSteps,
     formData,
     formErrors,
     honeypot,
