@@ -49,6 +49,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,html,css}\"",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "test:create-payment": "deno test supabase/functions/create-payment/ --config supabase/functions/deno.json",
     "test:edge-functions": "vitest run src/tests/edge-functions.test.ts src/tests/edge-functions-carrier-mappings.test.ts",
     "test:unit": "vitest run --exclude \"**/rls-*\"",
     "coverage": "vitest run --coverage",
