@@ -7,6 +7,7 @@ declare global {
       tab(): Chainable<unknown>;
       addProductToCart(options?: { productId?: number }): Chainable<void>;
       resetDatabase(): Chainable<void>;
+      loginAs(role?: 'customer' | 'admin'): Chainable<void>;
       mockSupabaseResponse(
         method: import('cypress/types/net-stubbing').Method,
         path: string,

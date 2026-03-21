@@ -1,0 +1,101 @@
+# E2E: PR/push = smoke (@smoke) ; schedule + manual dispatch = smoke or full (input)
+name: E2E
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Cypress suite to run (ignored for push/PR/schedule)
+        required: true
+        default: full
+        type: choice
+        options:
+          - smoke
+          - full
+  schedule:
+    # Weekly full regression (default branch only)
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+  actions: write # upload-artifact on failure
+
+env:
+  VITE_SUPABASE_URL: https://test.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: test-anon-key-for-ci
+
+jobs:
+  e2e-smoke:
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'smoke')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cypress run (smoke)
+        uses: cypress-io/github-action@v6
+        with:
+          command: npm run e2e:ci:smoke
+        env:
+          CYPRESS_ADMIN_EMAIL: ${{ secrets.CYPRESS_ADMIN_EMAIL }}
+          CYPRESS_ADMIN_PASSWORD: ${{ secrets.CYPRESS_ADMIN_PASSWORD }}
+          CYPRESS_CUSTOMER_EMAIL: ${{ secrets.CYPRESS_CUSTOMER_EMAIL }}
+          CYPRESS_CUSTOMER_PASSWORD: ${{ secrets.CYPRESS_CUSTOMER_PASSWORD }}
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots-smoke
+          path: cypress/screenshots
+          if-no-files-found: ignore
+
+  e2e-full:
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'full')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Optional: enable admin dashboard spec when repo secrets are set (see docs/E2E-COVERAGE.md)
+      - name: Cypress run (full regression)
+        uses: cypress-io/github-action@v6
+        with:
+          command: npm run e2e:ci
+        env:
+          CYPRESS_ADMIN_EMAIL: ${{ secrets.CYPRESS_ADMIN_EMAIL }}
+          CYPRESS_ADMIN_PASSWORD: ${{ secrets.CYPRESS_ADMIN_PASSWORD }}
+          CYPRESS_CUSTOMER_EMAIL: ${{ secrets.CYPRESS_CUSTOMER_EMAIL }}
+          CYPRESS_CUSTOMER_PASSWORD: ${{ secrets.CYPRESS_CUSTOMER_PASSWORD }}
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots-full
+          path: cypress/screenshots
+          if-no-files-found: ignore

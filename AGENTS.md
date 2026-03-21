@@ -18,11 +18,27 @@ Start the mock API first (`npm run start:api &`), then start the frontend (`npm 
 
 See `package.json` scripts. Highlights:
 
+- **E2E (CI-style):** `npm run e2e:ci` — full suite; **`npm run e2e:ci:smoke`** — only `@smoke`. Both start mock API (3001) + Vite (8080) then Cypress. GitHub **E2E** workflow: **smoke** on PR/push to `main`; **full** `e2e:ci` on weekly **schedule** or **workflow_dispatch** (see [`docs/E2E-COVERAGE.md`](docs/E2E-COVERAGE.md)).
+- **Typecheck:** `npm run type:check` — `tsc --noEmit` for `tsconfig.app.json`, `tsconfig.node.json`, and `cypress/tsconfig.json` (also runs in `npm run validate`).
 - **Lint:** `npm run lint -- --max-warnings 9999` (0 errors expected; many pre-existing warnings)
 - **Format check:** `npm run format:check`
 - **Unit tests:** `npm run test:unit` (Vitest; excludes RLS tests)
 - **Build:** `npm run build`
-- **CI validation:** `npm run validate`
+- **CI validation:** `npm run validate` (does **not** run Cypress; use `e2e:ci` / `e2e:ci:smoke` separately).
+
+**GitHub Actions:** **[`ci.yml`](.github/workflows/ci.yml)** runs lint, typecheck, unit tests, and build. **[`e2e.yml`](.github/workflows/e2e.yml)** runs Cypress separately (smoke on PR/push; full on weekly schedule; **`workflow_dispatch`** with **`suite`** `smoke` or `full`). Both use **concurrency** (`cancel-in-progress`) and minimal **`permissions`**.
+
+### E2E route coverage
+
+- See **[`docs/E2E-COVERAGE.md`](docs/E2E-COVERAGE.md)** for the full matrix (scripts, limits, what is / isn’t automated).
+- **[`cypress/README.md`](cypress/README.md)** — operational runbook (commands, CI, secrets, troubleshooting); includes a French summary at the top.
+- Extra routes are covered in [`cypress/e2e/payment_unsubscribe_routes_spec.js`](cypress/e2e/payment_unsubscribe_routes_spec.js) (`/payment-success`, `/unsubscribe`) and in the enterprise suite’s `PUBLIC_ROUTES` (includes `/compare`, `/wishlist`, `/orders`, `/payment-success`, `/unsubscribe`).
+- Blog list → detail navigation uses stubbed Supabase responses in [`cypress/e2e/enterprise_full_platform_spec.js`](cypress/e2e/enterprise_full_platform_spec.js) so the test does not depend on real `blog_posts` data.
+
+### Cypress E2E credentials
+
+- Copy [`cypress.env.example.json`](cypress.env.example.json) to `cypress.env.json` (gitignored) and set `CUSTOMER_EMAIL` / `CUSTOMER_PASSWORD` for a real Supabase test user. Without these, `cy.loginAs('customer')` and profile/wishlist authenticated tests are skipped. Set `ADMIN_EMAIL` / `ADMIN_PASSWORD` for [`cypress/e2e/admin_dashboard_spec.js`](cypress/e2e/admin_dashboard_spec.js).
+- **CI:** add the same repository secrets as needed for both **smoke** and **full** E2E jobs: `CYPRESS_CUSTOMER_EMAIL`, `CYPRESS_CUSTOMER_PASSWORD`, `CYPRESS_ADMIN_EMAIL`, `CYPRESS_ADMIN_PASSWORD`. [`cypress.config.ts`](cypress.config.ts) merges these into `Cypress.env()` under the same keys as `cypress.env.json` (`CUSTOMER_*`, `ADMIN_*`). See [`cypress/README.md`](cypress/README.md).
 
 ### Gotchas
 

@@ -49,6 +49,10 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,html,css}\"",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "deno:check:create-payment": "deno check supabase/functions/create-payment/index.ts --config supabase/functions/deno.json --lock supabase/functions/deno.lock --frozen",
+    "deno:lint:create-payment": "deno lint supabase/functions/create-payment/ --config supabase/functions/deno.json",
+    "test:create-payment": "deno test supabase/functions/create-payment/ --config supabase/functions/deno.json",
+    "verify:create-payment": "npm run deno:check:create-payment && npm run deno:lint:create-payment && deno test supabase/functions/create-payment/ --config supabase/functions/deno.json --lock supabase/functions/deno.lock --frozen",
     "test:edge-functions": "vitest run src/tests/edge-functions.test.ts src/tests/edge-functions-carrier-mappings.test.ts",
     "test:unit": "vitest run --exclude \"**/rls-*\"",
     "coverage": "vitest run --coverage",
@@ -58,8 +62,11 @@
     "e2e:regression": "cypress run --env grep=@regression",
     "e2e:enterprise": "cypress run --spec 'cypress/e2e/enterprise_full_platform_spec.js'",
     "e2e:preview": "cross-env CYPRESS_BASE_URL=https://deploy-preview-4--benyakoub.netlify.app cypress run --spec \"cypress/e2e/enterprise_full_platform_spec.js\"",
+    "e2e:ci": "start-server-and-test \"npm run start:api\" http-get://localhost:3001 \"npm run dev\" http-get://localhost:8080 \"cypress run\"",
+    "e2e:ci:smoke": "start-server-and-test \"npm run start:api\" http-get://localhost:3001 \"npm run dev\" http-get://localhost:8080 \"cypress run --env grep=@smoke\"",
+    "type:check": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p cypress/tsconfig.json",
     "browserslist:update": "npm update caniuse-lite browserslist",
-    "validate": "npm run lint -- --max-warnings 9999 && npm run format:check && npm run test -- --run"
+    "validate": "npm run lint -- --max-warnings 9999 && npm run format:check && npm run type:check && npm run test -- --run"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -162,6 +169,7 @@
     "lovable-tagger": "^1.1.7",
     "postcss": "^8.4.47",
     "prettier": "^3.5.3",
+    "start-server-and-test": "^2.1.5",
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",

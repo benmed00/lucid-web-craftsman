@@ -1,6 +1,6 @@
 /**
  * E2E Test: Anonymous checkout session persistence
- * Validates that guest user data survives page reload and tab close.
+ * Validates that guest user data survives page reload.
  */
 
 describe('Checkout Persistence — Anonymous User', () => {
@@ -12,79 +12,81 @@ describe('Checkout Persistence — Anonymous User', () => {
     address: '5 Avenue Hassan II',
     postalCode: '75010',
     city: 'Paris',
+    country: 'FR',
   };
 
   it('should persist checkout form data across page reload', () => {
-    // Add a product and go to checkout
-    cy.visit('/products');
-    cy.get('body').should('be.visible');
-    cy.get('button')
-      .contains(/ajouter|add/i)
-      .first()
-      .click();
+    cy.addProductToCart();
     cy.visit('/checkout');
 
-    // Fill personal info
+    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
     cy.get('#firstName').type(testData.firstName);
     cy.get('#lastName').type(testData.lastName);
     cy.get('#email').type(testData.email);
     cy.get('#phone').type(testData.phone);
 
-    // Wait for debounced save (500ms + margin)
-    cy.wait(1000);
+    cy.window()
+      .its('localStorage')
+      .invoke('getItem', 'checkout_form_data')
+      .should('not.be.null');
 
-    // Reload the page
     cy.reload();
 
-    // Fields should be restored
     cy.get('#firstName').should('have.value', testData.firstName);
     cy.get('#lastName').should('have.value', testData.lastName);
     cy.get('#email').should('have.value', testData.email);
   });
 
   it('should persist shipping data after advancing steps', () => {
-    cy.visit('/products');
-    cy.get('body').should('be.visible');
-    cy.get('button')
-      .contains(/ajouter|add/i)
-      .first()
-      .click();
+    cy.addProductToCart();
     cy.visit('/checkout');
 
-    // Step 1 — personal info
+    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
     cy.get('#firstName').type(testData.firstName);
     cy.get('#lastName').type(testData.lastName);
     cy.get('#email').type(testData.email);
-    cy.get('button')
-      .contains(/livraison|shipping/i)
-      .first()
-      .click();
+    cy.get('button').contains(/livraison|shipping/i).first().click();
 
-    // Step 2 — shipping
+    cy.get('#address', { timeout: 15000 }).should('be.visible');
     cy.get('#address').type(testData.address);
     cy.get('#postalCode').type(testData.postalCode);
     cy.get('#city').type(testData.city);
 
-    // Wait for save
-    cy.wait(1000);
+    cy.window()
+      .its('localStorage')
+      .invoke('getItem', 'checkout_form_data')
+      .should('not.be.null');
 
-    // Reload
     cy.reload();
 
-    // Should restore to at least step 1 data
     cy.get('#firstName').should('have.value', testData.firstName);
   });
 
-  it('should clear data after successful checkout clear', () => {
-    // Verify localStorage keys are removed after clearSavedData
+  it('should clear form fields when localStorage checkout data is removed', () => {
     cy.visit('/checkout');
     cy.window().then((win) => {
-      win.localStorage.setItem('checkout_form_data', JSON.stringify(testData));
+      win.localStorage.setItem(
+        'checkout_form_data',
+        JSON.stringify(testData)
+      );
       win.localStorage.setItem('checkout_timestamp', String(Date.now()));
     });
     cy.reload();
 
-    // Data should load from localStorage
-    cy.get('#firstName').should('have.value', testData.firstName);
+    cy.get('#firstName', { timeout: 15000 }).should(
+      'have.value',
+      testData.firstName
+    );
+
+    cy.window().then((win) => {
+      win.localStorage.removeItem('checkout_form_data');
+      win.localStorage.removeItem('checkout_timestamp');
+    });
+    cy.reload();
+
+    cy.get('#firstName', { timeout: 15000 }).should(
+      'not.have.value',
+      testData.firstName
+    );
   });
 });
