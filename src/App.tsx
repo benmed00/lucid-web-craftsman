@@ -57,6 +57,9 @@ const Cart = lazyWithRetry(() => import('./pages/Cart'));
 const Checkout = lazyWithRetry(() => import('./pages/Checkout'));
 const Contact = lazyWithRetry(() => import('./pages/Contact'));
 const PaymentSuccess = lazyWithRetry(() => import('./pages/PaymentSuccess'));
+const OrderConfirmation = lazyWithRetry(
+  () => import('./pages/OrderConfirmation')
+);
 const Wishlist = lazyWithRetry(() => import('./pages/Wishlist'));
 const FAQ = lazyWithRetry(() => import('./pages/FAQ'));
 const Auth = lazyWithRetry(() => import('./pages/Auth'));
@@ -347,6 +350,22 @@ const App = () => {
                         element={
                           <Suspense fallback={<PageLoadingFallback />}>
                             <PaymentSuccess />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/order-confirmation"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <OrderConfirmation />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/order-confirmation/:orderReference"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <OrderConfirmation />
                           </Suspense>
                         }
                       />

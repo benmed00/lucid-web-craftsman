@@ -20,6 +20,11 @@ const corsHeaders = {
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SITE_URL = (
+  Deno.env.get('SITE_URL') || 'https://www.rifelegance.com'
+).replace(/\/+$/, '');
+const ORDER_CONFIRMATION_TOKEN_SECRET =
+  Deno.env.get('ORDER_CONFIRMATION_TOKEN_SECRET') || supabaseServiceKey;
 
 interface OrderItem {
   name: string;
@@ -46,6 +51,57 @@ interface OrderConfirmationRequest {
   };
   previewOnly?: boolean;
 }
+
+const buildOrderReference = (orderId: string): string =>
+  `CMD-${orderId.replace(/-/g, '').toUpperCase()}`;
+
+const bytesToBase64Url = (bytes: Uint8Array): string =>
+  btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
+
+const toBase64Url = (value: string): string =>
+  bytesToBase64Url(new TextEncoder().encode(value));
+
+const hmacSha256Base64Url = async (
+  value: string,
+  secret: string
+): Promise<string> => {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const signature = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    new TextEncoder().encode(value)
+  );
+  return bytesToBase64Url(new Uint8Array(signature));
+};
+
+const buildOrderConfirmationToken = async (
+  orderId: string,
+  customerEmail: string,
+  orderReference: string
+): Promise<string> => {
+  const payload = toBase64Url(
+    JSON.stringify({
+      oid: orderId,
+      ref: orderReference,
+      em: customerEmail.toLowerCase().trim(),
+      exp: Date.now() + 1000 * 60 * 60 * 24 * 30, // 30 days
+    })
+  );
+  const signature = await hmacSha256Base64Url(
+    payload,
+    ORDER_CONFIRMATION_TOKEN_SECRET
+  );
+  return `${payload}.${signature}`;
+};
 
 const logStep = (step: string, details?: any) => {
   console.log(
@@ -185,9 +241,17 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     logStep('Building email HTML');
+    const orderReference = buildOrderReference(data!.orderId);
+    const confirmationToken = await buildOrderConfirmationToken(
+      data!.orderId,
+      data!.customerEmail,
+      orderReference
+    );
+    const confirmationUrl = `${SITE_URL}/order-confirmation/${encodeURIComponent(orderReference)}?token=${encodeURIComponent(confirmationToken)}`;
+
     const html = buildOrderConfirmationHtml({
       customerName: data!.customerName,
-      orderNumber: data!.orderId.slice(-8).toUpperCase(),
+      orderNumber: orderReference,
       orderDate,
       items: data!.items || [],
       subtotal: data!.subtotal || 0,
@@ -203,6 +267,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       estimatedDelivery,
       orderId: data!.orderId,
+      confirmationUrl,
     });
 
     if (data!.previewOnly) {
@@ -219,7 +284,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const subject = `Confirmation de commande #${data!.orderId.slice(-8).toUpperCase()} - Rif Raw Straw`;
+    const subject = `Confirmation de commande #${orderReference} - Rif Raw Straw`;
     logStep('Sending email via Brevo', { to: data!.customerEmail });
     const emailResult = await sendBrevoEmail(
       data!.customerEmail,

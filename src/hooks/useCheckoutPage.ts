@@ -10,6 +10,7 @@ import { useCurrency } from '@/stores/currencyStore';
 import { useCsrfToken } from '@/hooks/useCsrfToken';
 import { useBusinessRules } from '@/hooks/useBusinessRules';
 import { useGuestSession } from '@/hooks/useGuestSession';
+import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import {
   validateCustomerInfo,
   validateShippingAddress,
@@ -47,6 +48,7 @@ export function useCheckoutPage() {
   const { getCsrfHeaders } = useCsrfToken();
   const { rules: businessRules } = useBusinessRules();
   const { getSessionData: getGuestSessionData } = useGuestSession();
+  const { user } = useOptimizedAuth();
 
   const {
     sessionId: checkoutSessionId,
@@ -488,6 +490,16 @@ export function useCheckoutPage() {
 
       const csrfHeaders = await getCsrfHeaders();
       const guestSession = getGuestSessionData();
+      if (!user && !guestSession) {
+        toast.error(
+          t(
+            'errors.genericError',
+            'Session de paiement indisponible. Veuillez reessayer.'
+          )
+        );
+        setIsProcessing(false);
+        return;
+      }
       const functionName =
         paymentMethod === 'paypal' ? 'create-paypal-payment' : 'create-payment';
 

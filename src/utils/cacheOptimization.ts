@@ -77,6 +77,18 @@ export const registerServiceWorker = async (): Promise<void> => {
     return;
   }
 
+  const pathname = window.location.pathname;
+  const isCriticalFlow =
+    pathname.startsWith('/checkout') ||
+    pathname.startsWith('/payment-success') ||
+    pathname.startsWith('/order-confirmation') ||
+    pathname.startsWith('/admin');
+
+  if (isCriticalFlow) {
+    await disableServiceWorkerForCriticalFlow();
+    return;
+  }
+
   try {
     const registration = await navigator.serviceWorker.register('/sw.js', {
       scope: '/',
@@ -87,6 +99,31 @@ export const registerServiceWorker = async (): Promise<void> => {
     // Service worker registered successfully
   } catch (error) {
     console.log('ServiceWorker registration failed:', error);
+  }
+};
+
+/**
+ * Critical checkout/payment routes must never serve stale SW state.
+ */
+export const disableServiceWorkerForCriticalFlow = async (): Promise<void> => {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+    return;
+  }
+
+  try {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((registration) => registration.unregister()));
+  } catch {
+    // ignore
+  }
+
+  if ('caches' in window) {
+    try {
+      const names = await caches.keys();
+      await Promise.all(names.map((name) => caches.delete(name)));
+    } catch {
+      // ignore
+    }
   }
 };
 

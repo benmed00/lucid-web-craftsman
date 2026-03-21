@@ -716,15 +716,31 @@ serve(async (req) => {
 
     // Update order with Stripe session ID and link to checkout session
     const checkoutSessionId = req.headers.get('x-checkout-session-id') || null;
-    await supabaseService
+    const { error: stripeLinkError } = await supabaseService
       .from('orders')
       .update({
         stripe_session_id: session.id,
+        metadata: {
+          ...(orderData.metadata || {}),
+          stripe_session_id: session.id,
+          checkout_session_id: checkoutSessionId,
+        },
         ...(checkoutSessionId
           ? { checkout_session_id: checkoutSessionId }
           : {}),
       })
       .eq('id', orderData.id);
+
+    if (stripeLinkError) {
+      logStep('Failed to persist stripe_session_id linkage', {
+        orderId: orderData.id,
+        sessionId: session.id,
+        error: stripeLinkError.message,
+      });
+      throw new Error(
+        `Failed to link Stripe session to order: ${stripeLinkError.message}`
+      );
+    }
 
     // Log payment event
     await logPaymentEvent({

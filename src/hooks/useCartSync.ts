@@ -119,6 +119,8 @@ export async function loadAndMergeSupabaseCart(
   userId: string,
   localItems: CartItem[]
 ): Promise<CartItem[]> {
+  if (!userId) return localItems;
+
   const { maxQuantityPerItem } = getCartLimits();
 
   const { data, error } = await supabase
@@ -167,21 +169,30 @@ export async function saveToSupabase(
   items: CartItem[],
   isOnline: boolean
 ): Promise<boolean> {
+  if (!userId) {
+    console.warn('[CartSync] Skipping Supabase sync: missing userId');
+    safeSetItem(StorageKeys.CART, { items }, { ttl: StorageTTL.WEEK });
+    return false;
+  }
+
   if (!isOnline) {
     safeSetItem(StorageKeys.CART, { items }, { ttl: StorageTTL.WEEK });
     return false;
   }
 
   try {
+    const sanitizedItems = items
+      .filter((item) => Number.isFinite(item.id))
+      .map((item) => ({
+        product_id: item.id,
+        quantity: Math.max(0, Math.floor(item.quantity)),
+      }))
+      .filter((item) => item.quantity > 0);
+
     // Single atomic RPC call — no race conditions
     const { error } = await supabase.rpc('sync_cart', {
       p_user_id: userId,
-      p_items: JSON.stringify(
-        items.map((item) => ({
-          product_id: item.id,
-          quantity: item.quantity,
-        }))
-      ),
+      p_items: sanitizedItems,
     });
 
     if (error) throw error;
