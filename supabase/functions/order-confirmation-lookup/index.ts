@@ -57,13 +57,16 @@ const hmacSha256Base64Url = async (
 
 interface ParsedToken {
   oid: string;
+  ref?: string;
   em: string;
   exp: number;
 }
 
+const buildOrderReference = (orderId: string): string =>
+  `CMD-${orderId.replace(/-/g, '').slice(-10).toUpperCase()}`;
+
 const parseAndVerifyToken = async (
-  token: string,
-  orderId: string
+  token: string
 ): Promise<ParsedToken | null> => {
   const [payloadPart, signaturePart] = token.split('.');
   if (!payloadPart || !signaturePart) return null;
@@ -73,9 +76,20 @@ const parseAndVerifyToken = async (
 
   const parsed = JSON.parse(decodeBase64Url(payloadPart)) as ParsedToken;
   if (!parsed?.oid || !parsed?.em || !parsed?.exp) return null;
-  if (parsed.oid !== orderId) return null;
   if (Date.now() > parsed.exp) return null;
-  return parsed;
+  return {
+    ...parsed,
+    ref: parsed.ref || buildOrderReference(parsed.oid),
+  };
+};
+
+const normalizeAmount = (rawAmount: number, itemsSubtotal: number): number => {
+  if (!Number.isFinite(rawAmount) || rawAmount <= 0) return itemsSubtotal;
+  // Some legacy rows are stored in cents while newer snapshots are in euros.
+  if (itemsSubtotal > 0 && rawAmount > itemsSubtotal * 3) {
+    return rawAmount / 100;
+  }
+  return rawAmount;
 };
 
 serve(async (req) => {
@@ -88,10 +102,10 @@ serve(async (req) => {
   }
 
   try {
-    const { order_id, token } = await req.json();
-    if (!order_id || !token) {
+    const { token, order_reference } = await req.json();
+    if (!token) {
       return new Response(
-        JSON.stringify({ found: false, error: 'Missing order_id or token' }),
+        JSON.stringify({ found: false, error: 'Missing token' }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400,
@@ -99,10 +113,22 @@ serve(async (req) => {
       );
     }
 
-    const parsedToken = await parseAndVerifyToken(String(token), String(order_id));
+    const parsedToken = await parseAndVerifyToken(String(token));
     if (!parsedToken) {
       return new Response(
         JSON.stringify({ found: false, error: 'Invalid or expired token' }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403,
+        }
+      );
+    }
+
+    const requestedReference =
+      typeof order_reference === 'string' ? order_reference.trim() : null;
+    if (requestedReference && requestedReference !== parsedToken.ref) {
+      return new Response(
+        JSON.stringify({ found: false, error: 'Reference mismatch' }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 403,
@@ -119,11 +145,14 @@ serve(async (req) => {
       .select(
         'id, status, order_status, amount, currency, created_at, shipping_address, metadata'
       )
-      .eq('id', order_id)
+      .eq('id', parsedToken.oid)
       .maybeSingle();
 
     if (orderError || !order) {
-      logStep('Order not found', { orderId: order_id, error: orderError?.message });
+      logStep('Order not found', {
+        orderId: parsedToken.oid,
+        error: orderError?.message,
+      });
       return new Response(JSON.stringify({ found: false }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
@@ -139,6 +168,12 @@ serve(async (req) => {
       (shippingAddress.email as string) ||
       (metadata.customer_email as string) ||
       null;
+    const customerName =
+      (shippingAddress.first_name || shippingAddress.last_name
+        ? `${String(shippingAddress.first_name || '')} ${String(shippingAddress.last_name || '')}`.trim()
+        : null) ||
+      (metadata.customer_name as string) ||
+      'Client inconnu';
 
     if (
       orderEmail &&
@@ -158,13 +193,20 @@ serve(async (req) => {
     const items = (orderItems || []).map((item) => {
       const snapshot = (item.product_snapshot || {}) as Record<string, unknown>;
       return {
+        product_id: snapshot.id || null,
         product_name: (snapshot.name as string) || 'Produit',
         quantity: item.quantity,
         unit_price: item.unit_price,
         total_price: item.total_price,
+        image:
+          Array.isArray(snapshot.images) && snapshot.images.length > 0
+            ? (snapshot.images[0] as string)
+            : null,
       };
     });
 
+    const itemsSubtotal = items.reduce((sum, item) => sum + item.total_price, 0);
+    const amountTotal = normalizeAmount(Number(order.amount || 0), itemsSubtotal);
     const normalizedStatus = String(order.status || '').toLowerCase();
     const normalizedOrderStatus = String(order.order_status || '').toLowerCase();
     const isPaid =
@@ -172,18 +214,39 @@ serve(async (req) => {
       normalizedStatus === 'completed' ||
       normalizedOrderStatus === 'paid' ||
       normalizedOrderStatus === 'completed';
+    const isPaymentFailed =
+      normalizedStatus === 'payment_failed' ||
+      normalizedStatus === 'failed' ||
+      normalizedStatus === 'cancelled' ||
+      normalizedStatus === 'canceled' ||
+      normalizedOrderStatus === 'payment_failed' ||
+      normalizedOrderStatus === 'cancelled' ||
+      normalizedOrderStatus === 'canceled';
+
+    const pageVariant = isPaymentFailed ? 'payment_failed' : 'success';
+    const statusLabel = isPaymentFailed
+      ? 'Paiement non abouti'
+      : 'En cours de traitement';
+    const statusMessage = isPaymentFailed
+      ? "Nous n'avons pas pu finaliser votre paiement. Aucune somme n'a ete prelevee."
+      : 'Votre commande est en cours de preparation. Nous vous enverrons le suivi par email.';
 
     return new Response(
       JSON.stringify({
         found: true,
         order_id: order.id,
+        order_reference: parsedToken.ref,
+        page_variant: pageVariant,
         status: order.status,
         order_status: order.order_status,
         is_paid: isPaid,
-        amount: order.amount,
+        amount: amountTotal,
         currency: order.currency,
         created_at: order.created_at,
+        customer_name: customerName,
         customer_email: orderEmail,
+        status_label: statusLabel,
+        status_message: statusMessage,
         items,
       }),
       {

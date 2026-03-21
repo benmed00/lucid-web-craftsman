@@ -52,6 +52,9 @@ interface OrderConfirmationRequest {
   previewOnly?: boolean;
 }
 
+const buildOrderReference = (orderId: string): string =>
+  `CMD-${orderId.replace(/-/g, '').slice(-10).toUpperCase()}`;
+
 const bytesToBase64Url = (bytes: Uint8Array): string =>
   btoa(String.fromCharCode(...bytes))
     .replace(/\+/g, '-')
@@ -82,11 +85,13 @@ const hmacSha256Base64Url = async (
 
 const buildOrderConfirmationToken = async (
   orderId: string,
-  customerEmail: string
+  customerEmail: string,
+  orderReference: string
 ): Promise<string> => {
   const payload = toBase64Url(
     JSON.stringify({
       oid: orderId,
+      ref: orderReference,
       em: customerEmail.toLowerCase().trim(),
       exp: Date.now() + 1000 * 60 * 60 * 24 * 30, // 30 days
     })
@@ -236,15 +241,17 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     logStep('Building email HTML');
+    const orderReference = buildOrderReference(data!.orderId);
     const confirmationToken = await buildOrderConfirmationToken(
       data!.orderId,
-      data!.customerEmail
+      data!.customerEmail,
+      orderReference
     );
-    const confirmationUrl = `${SITE_URL}/order-confirmation?order_id=${encodeURIComponent(data!.orderId)}&token=${encodeURIComponent(confirmationToken)}`;
+    const confirmationUrl = `${SITE_URL}/order-confirmation/${encodeURIComponent(orderReference)}?token=${encodeURIComponent(confirmationToken)}`;
 
     const html = buildOrderConfirmationHtml({
       customerName: data!.customerName,
-      orderNumber: data!.orderId.slice(-8).toUpperCase(),
+      orderNumber: orderReference,
       orderDate,
       items: data!.items || [],
       subtotal: data!.subtotal || 0,
@@ -277,7 +284,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const subject = `Confirmation de commande #${data!.orderId.slice(-8).toUpperCase()} - Rif Raw Straw`;
+    const subject = `Confirmation de commande #${orderReference} - Rif Raw Straw`;
     logStep('Sending email via Brevo', { to: data!.customerEmail });
     const emailResult = await sendBrevoEmail(
       data!.customerEmail,

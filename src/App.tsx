@@ -362,6 +362,14 @@ const App = () => {
                         }
                       />
                       <Route
+                        path="/order-confirmation/:orderReference"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <OrderConfirmation />
+                          </Suspense>
+                        }
+                      />
+                      <Route
                         path="/compare"
                         element={
                           <Suspense fallback={<PageLoadingFallback />}>
