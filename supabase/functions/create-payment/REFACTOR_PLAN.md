@@ -45,8 +45,10 @@ create-payment/
 **Verify after pulls**
 
 ```bash
-cd supabase/functions && deno check create-payment/index.ts && deno lint create-payment/ && deno test create-payment/ --config deno.json
+cd supabase/functions && deno check create-payment/index.ts --config deno.json --lock deno.lock --frozen && deno lint create-payment/ --config deno.json && deno test create-payment/ --config deno.json --lock deno.lock --frozen
 ```
+
+GitHub: workflow **Deno create-payment** (same steps on PRs/pushes to `main`). Locally from repo root: `npm run verify:create-payment`.
 
 ---
 

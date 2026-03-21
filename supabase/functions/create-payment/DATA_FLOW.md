@@ -62,6 +62,7 @@ Central mapping: `lib/errors.ts` (`messageFromUnknownError`, `isClientFacingVali
 - CSRF + rate limit before heavy work.
 - Correlation id in order metadata and Stripe metadata.
 - Pure helpers covered by Deno tests (`*_test.ts`).
+- **CI on `main`:** `.github/workflows/deno-create-payment.yml` (frozen lockfile on check + test).
 
 **Gaps / follow-ups**
 
@@ -70,8 +71,18 @@ Central mapping: `lib/errors.ts` (`messageFromUnknownError`, `isClientFacingVali
 - No generated `Database` generic on `createClient` yet (see `REFACTOR_PLAN.md` Phase 6).
 - Order update after Stripe session creation is not in the same transaction as inserts (eventual consistency risk on partial failure).
 
+## CI and lockfile
+
+- **GitHub Actions:** `.github/workflows/deno-create-payment.yml` runs on **push** and **pull_request** to **`main`**: `deno check` and `deno test` use **`--lock supabase/functions/deno.lock --frozen`** so dependency drift fails the build until the lockfile is updated and committed. `deno lint` does not take `--lock` in Deno 2.x; it still uses `--config deno.json` for import maps.
+- **Local parity before a PR:** `npm run verify:create-payment` from the repo root.
+- **After changing `deno.json` imports or versions:** from `supabase/functions`, run `deno test create-payment/ --config deno.json` (or `deno cache create-payment/index.ts --config deno.json`) to refresh `deno.lock`, then commit the lockfile.
+
+## Manual smoke (not in CI)
+
+- Full **HTTP** checkout still needs a real CSRF triple, optional auth, and Supabase/Stripe secrets — run against staging or `supabase functions serve` with env vars. Track **422 vs 500** rates and `payment_initiation_failed` after deploys.
+
 ## Feedback for maintainers
 
 - When changing Zod rules, update `lib/checkout-schema_test.ts` and this table.
 - When adding new client fields, prefer `.passthrough()` on nested objects unless you need strict validation.
-- Run from repo root: `npm run test:create-payment`, or `deno test create-payment/ --config supabase/functions/deno.json` from `supabase/functions`.
+- Quick tests from repo root: `npm run test:create-payment`. Stricter pre-PR gate: `npm run verify:create-payment`.
