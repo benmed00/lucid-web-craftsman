@@ -55,9 +55,12 @@ describe('supabase client auth-state poisoning diagnostics', () => {
     localStorage.setItem('editor-store-state', 'keep');
 
     const wrappedFetch = await loadWrappedFetch();
-    fetchMock.mockResolvedValueOnce(
-      new Response(JSON.stringify({ message: 'invalid JWT' }), { status: 401 })
-    );
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ message: 'invalid JWT' }), { status: 401 })
+      )
+      // Auth-aware fetch retries once after token cleanup.
+      .mockResolvedValueOnce(new Response('{}', { status: 200 }));
 
     await wrappedFetch(
       'https://xcvlijchkmhjonhfildm.supabase.co/rest/v1/products'
@@ -80,11 +83,14 @@ describe('supabase client auth-state poisoning diagnostics', () => {
     localStorage.setItem('cart-storage', '{"items":[3]}');
 
     const wrappedFetch = await loadWrappedFetch();
-    fetchMock.mockResolvedValueOnce(
-      new Response(JSON.stringify({ message: 'invalid JWT: bad signature' }), {
-        status: 403,
-      })
-    );
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ message: 'invalid JWT: bad signature' }), {
+          status: 403,
+        })
+      )
+      // Auth-aware fetch retries once after token cleanup.
+      .mockResolvedValueOnce(new Response('{}', { status: 200 }));
 
     await wrappedFetch(
       'https://xcvlijchkmhjonhfildm.supabase.co/auth/v1/user'
