@@ -32,7 +32,7 @@ export const ProductsGrid = ({
   hasMore,
   isLoadingMore,
   sentinelRef,
-  filters,
+  filters: _filters,
   onAddToCart,
   onQuickView,
   onResetFilters,

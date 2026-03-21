@@ -13,14 +13,9 @@ import { useHeroImage } from '@/hooks/useHeroImage';
 import { HeroImageData } from '@/services/heroImageService';
 
 const AdminHeroImage = () => {
-  const {
-    heroImageData,
-    updateHeroImage,
-    uploadImage,
-    isLoading: heroLoading,
-  } = useHeroImage();
+  const { heroImageData, updateHeroImage, uploadImage } = useHeroImage();
   const [localData, setLocalData] = useState<HeroImageData>(heroImageData);
-  const [isUploading, setIsUploading] = useState(false);
+  const [_isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // Update local data when hero image data changes
@@ -31,7 +26,7 @@ const AdminHeroImage = () => {
   const hasChanges =
     JSON.stringify(localData) !== JSON.stringify(heroImageData);
 
-  const handleImageUpload = async (file: File, previewUrl: string) => {
+  const handleImageUpload = async (file: File, _previewUrl: string) => {
     setIsUploading(true);
     try {
       // Upload to Supabase Storage

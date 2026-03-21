@@ -8,7 +8,7 @@
  * of the timeout never firing).
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface SafetyTimeoutOptions {
   /** Timeout in ms (default: 12000) */

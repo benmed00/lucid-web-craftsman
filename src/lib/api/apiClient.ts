@@ -3,7 +3,7 @@
  * Provides consistent HTTP handling with error management, retries, and caching
  */
 
-import { AppError, NetworkError, handleError } from '@/lib/errors/AppError';
+import { NetworkError } from '@/lib/errors/AppError';
 import { EXTERNAL_SERVICES } from '@/config/app.config';
 
 // Request configuration

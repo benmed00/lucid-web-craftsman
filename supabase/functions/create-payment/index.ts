@@ -78,14 +78,6 @@ const PRODUCTION_ORIGIN = (
   Deno.env.get('SITE_URL') || 'https://www.rifelegance.com'
 ).replace(/\/+$/, '');
 
-// Origin allowlist for Stripe redirect URLs
-const ALLOWED_ORIGINS = [
-  'https://www.rifelegance.com',
-  'https://rifelegance.com',
-  'https://rif-raw-straw.lovable.app',
-  'https://id-preview--1ed5c182-2490-4180-9969-ca6a7e19e8ca.lovable.app',
-];
-
 const getValidOrigin = (_req: Request): string => {
   // Always use SITE_URL for Stripe redirects to avoid iframe/preview origin mismatch
   // The SITE_URL secret is the canonical production domain

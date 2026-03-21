@@ -15,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 
 interface Artisan {
   id: string;
@@ -45,7 +45,6 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
     data: artisans = [],
     isLoading,
     error: fetchError,
-    refetch,
   } = useQuery({
     queryKey: ['artisans', currentLocale],
     enabled,

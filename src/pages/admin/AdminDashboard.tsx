@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { SecurityStatusCard } from '@/components/admin/SecurityStatusCard';
 import {
   TrendingUp,
-  TrendingDown,
   Package,
   ShoppingCart,
   Users,
@@ -48,7 +47,7 @@ interface DashboardStats {
 
 const AdminDashboard = () => {
   const { formatPrice } = useCurrency();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [_products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,

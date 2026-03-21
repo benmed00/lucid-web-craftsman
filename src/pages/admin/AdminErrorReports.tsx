@@ -16,7 +16,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,7 +23,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import {
   AlertTriangle,
-  Bug,
   Filter,
   Tag,
   Calendar,
@@ -36,9 +34,6 @@ import {
   AlertCircle,
   Search,
   Download,
-  MoreVertical,
-  Edit,
-  Trash2,
   Eye,
   Image,
   ZoomIn,

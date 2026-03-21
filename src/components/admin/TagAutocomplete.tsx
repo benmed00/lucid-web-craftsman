@@ -15,7 +15,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   X,
-  Plus,
   Tag,
   Sparkles,
   Loader2,

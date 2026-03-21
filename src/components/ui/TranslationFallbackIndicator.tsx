@@ -40,7 +40,7 @@ const LOCALE_NAMES: Record<SupportedLocale, string> = {
 export function TranslationFallbackIndicator({
   isFallback,
   displayedLocale,
-  preferredLocale,
+  preferredLocale: _preferredLocale,
   variant = 'badge',
   className,
 }: TranslationFallbackIndicatorProps) {

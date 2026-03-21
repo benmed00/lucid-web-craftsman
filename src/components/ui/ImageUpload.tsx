@@ -5,7 +5,6 @@ import {
   Upload,
   Image as ImageIcon,
   X,
-  Check,
   Loader2,
   Camera,
 } from 'lucide-react';

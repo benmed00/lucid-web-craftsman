@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -41,7 +41,7 @@ export interface FreeShippingSettings {
 
 export function useCheckoutPage() {
   const { t } = useTranslation('checkout');
-  const { loadStripe } = useLazyStripe();
+  const { loadStripe: _loadStripe } = useLazyStripe();
   const { cart } = useCart();
   const { formatPrice } = useCurrency();
   const { getCsrfHeaders } = useCsrfToken();
@@ -55,14 +55,13 @@ export function useCheckoutPage() {
     savePromoCode,
     saveCartSnapshot,
     updateStep,
-    isLoading: isSessionLoading,
+    isLoading: _isSessionLoading,
   } = useCheckoutSession();
 
   const {
     formData,
     setFormData,
     isLoading: isFormLoading,
-    clearSavedData,
     savedStep,
     savedCompletedSteps,
     saveStepState,
@@ -115,7 +114,7 @@ export function useCheckoutPage() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [honeypot, setHoneypot] = useState('');
-  const [paymentInitiated, setPaymentInitiated] = useState(false);
+  const [_paymentInitiated, setPaymentInitiated] = useState(false);
   const [paymentOpenedInTab, setPaymentOpenedInTab] = useState(false);
 
   // Fetch free shipping settings

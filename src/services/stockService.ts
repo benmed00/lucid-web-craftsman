@@ -79,8 +79,6 @@ export class StockService {
       }
 
       return result;
-    } catch (error) {
-      throw error;
     } finally {
       // Clean up pending request
       this.pendingRequests.delete(cacheKey);
@@ -141,8 +139,6 @@ export class StockService {
       this.multiCache.set(cacheKey, { data: result, timestamp: Date.now() });
 
       return result;
-    } catch (error) {
-      throw error;
     } finally {
       // Clean up pending request
       this.pendingRequests.delete(cacheKey);

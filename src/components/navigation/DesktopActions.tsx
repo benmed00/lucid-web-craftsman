@@ -37,7 +37,7 @@ export const DesktopActions = ({
   itemCount,
   wishlistCount,
   currentPath,
-  showSearch,
+  showSearch: _showSearch,
   onToggleSearch,
   onSignOut,
 }: DesktopActionsProps) => {

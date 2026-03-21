@@ -1,25 +1,19 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
-  Heart,
   Share2,
   ShoppingBag,
   Star,
   Plus,
   Minus,
   Truck,
-  Shield,
-  RotateCcw,
-  Leaf,
   CheckCircle,
   AlertTriangle,
   Eye,
   ChevronLeft,
   ChevronRight,
-  Camera,
-  Download,
   Copy,
   Facebook,
   Twitter,
@@ -39,7 +33,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
@@ -56,18 +49,14 @@ import { RecentlyViewedProducts } from '@/components/RecentlyViewedProducts';
 import { BackInStockNotification } from '@/components/BackInStockNotification';
 import {
   TranslationFallbackIndicator,
-  FallbackDot,
 } from '@/components/ui/TranslationFallbackIndicator';
 // Services & Hooks
 import { ProductService } from '@/services/productService';
 import { useCart, useCurrency } from '@/stores';
-import { useAuth } from '@/hooks/useAuth';
-import { useWishlist } from '@/hooks/useWishlist';
 import { useStock } from '@/hooks/useStock';
 import { useShipping } from '@/hooks/useShipping';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import {
-  useProductWithTranslation,
   useCurrentLocale,
   ProductWithTranslation,
 } from '@/hooks/useTranslatedContent';
@@ -81,9 +70,7 @@ import { sanitizeHtmlContent } from '@/utils/xssProtection';
 import { appNavigate } from '@/lib/navigation';
 import { hapticFeedback } from '@/utils/haptics';
 
-interface ProductDetailProps {}
-
-const ProductDetail: React.FC<ProductDetailProps> = () => {
+const ProductDetail: React.FC = () => {
   const { t } = useTranslation('pages');
 
   // Router & Navigation
@@ -91,7 +78,6 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   const navigate = useNavigate();
 
   // Auth & Cart
-  const { user } = useAuth();
   const { addItem } = useCart();
   const { formatPrice } = useCurrency();
 
@@ -99,7 +85,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   const [product, setProduct] = useState<
     Product | ProductWithTranslation | null
   >(null);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [_allProducts, setAllProducts] = useState<Product[]>([]);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -111,7 +97,6 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showImageZoom, setShowImageZoom] = useState(false);
-  const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
 
@@ -127,12 +112,10 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   }, [product?.details, product?.care]);
 
   // Refs
-  const imageGalleryRef = useRef<HTMLDivElement>(null);
   const thumbnailsRef = useRef<HTMLDivElement>(null);
 
   // Hooks
   const { addToRecentlyViewed } = useRecentlyViewed();
-  const { isInWishlist, toggleWishlist } = useWishlist();
 
   // Stock and shipping hooks
   const { stockInfo, canOrderQuantity } = useStock({
@@ -141,7 +124,7 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
   });
   const singleStockInfo = stockInfo as StockInfo | null;
 
-  const { getShippingMessage, isNantesMetropole } = useShipping({
+  const { getShippingMessage } = useShipping({
     orderAmount: product ? product.price * quantity : 0,
     postalCode: '44000', // Default to Nantes for demo
     enabled: !!product,
@@ -246,11 +229,6 @@ const ProductDetail: React.FC<ProductDetailProps> = () => {
       console.error('Error adding product to cart:', error);
       toast.error(t('productDetail.error.cartError'));
     }
-  };
-
-  const handleWishlistToggle = async () => {
-    if (!product) return;
-    await toggleWishlist(product.id);
   };
 
   const handleShare = async (platform: string) => {

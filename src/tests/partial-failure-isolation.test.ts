@@ -14,7 +14,7 @@
  * so React Query treats them as fully isolated observers.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { QueryClient } from '@tanstack/react-query';
 
 // Simulate the Supabase client behaviour for isolation testing

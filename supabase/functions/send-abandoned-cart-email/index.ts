@@ -28,7 +28,7 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const generateAbandonedCartHtml = (
   items: any[],
   personalInfo: any,
-  sessionId: string
+  _sessionId: string
 ): string => {
   const siteUrl = getSiteUrl();
   const firstName =

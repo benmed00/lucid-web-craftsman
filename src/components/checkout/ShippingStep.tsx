@@ -167,7 +167,7 @@ const ShippingStep = ({
             maxLength={100}
             validate={(value) => {
               if (value.length < 2) return t('errors.requiredField');
-              if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value))
+              if (!/^[a-zA-ZÀ-ÿ\s\-'.]+$/.test(value))
                 return t('errors.requiredField');
               return null;
             }}

@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { sanitizeUserInput } from './xssProtection';
 
 // Regex patterns for validation
-const NAME_REGEX = /^[a-zA-ZÀ-ÿ\s\-'\.]+$/;
-const PHONE_REGEX = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\./0-9]*$/;
+const NAME_REGEX = /^[a-zA-ZÀ-ÿ\s\-'.]+$/;
+const PHONE_REGEX = /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/;
 const POSTAL_CODE_REGEX: Record<string, RegExp> = {
   FR: /^\d{5}$/,
   BE: /^\d{4}$/,
@@ -30,18 +30,6 @@ const containsDangerousPatterns = (value: string): boolean => {
   const lowerValue = value.toLowerCase();
   return DANGEROUS_PATTERNS.some((pattern) => lowerValue.includes(pattern));
 };
-
-// Sanitizing transformer for string fields
-const sanitizedString = (minLength = 0, maxLength = 255) =>
-  z
-    .string()
-    .trim()
-    .min(minLength, `Ce champ doit contenir au moins ${minLength} caractères`)
-    .max(maxLength, `Ce champ ne peut pas dépasser ${maxLength} caractères`)
-    .transform((val) => sanitizeUserInput(val))
-    .refine((val) => !containsDangerousPatterns(val), {
-      message: 'Caractères non autorisés détectés',
-    });
 
 // Name schema with strict validation
 const nameSchema = z
@@ -144,7 +132,7 @@ const citySchema = z
   .trim()
   .min(2, 'La ville doit contenir au moins 2 caractères')
   .max(100, 'Le nom de ville ne peut pas dépasser 100 caractères')
-  .refine((val) => /^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(val), {
+  .refine((val) => /^[a-zA-ZÀ-ÿ\s\-'.]+$/.test(val), {
     message: 'Le nom de ville contient des caractères non autorisés',
   })
   .refine((val) => !containsDangerousPatterns(val), {
@@ -156,23 +144,6 @@ const citySchema = z
 const countrySchema = z.enum(['FR', 'BE', 'CH', 'MC', 'LU'], {
   errorMap: () => ({ message: 'Pays non supporté' }),
 });
-
-// Dynamic postal code validation based on country
-const createPostalCodeSchema = (country: string) => {
-  const regex = POSTAL_CODE_REGEX[country] || /^[A-Za-z0-9\s\-]{3,10}$/;
-  return z
-    .string()
-    .trim()
-    .min(3, 'Code postal requis')
-    .max(10, 'Code postal trop long')
-    .refine((val) => regex.test(val), {
-      message: `Code postal invalide pour ${country}`,
-    })
-    .refine((val) => !containsDangerousPatterns(val), {
-      message: 'Caractères non autorisés',
-    })
-    .transform((val) => sanitizeUserInput(val));
-};
 
 // Step 1: Customer Information Schema
 export const customerInfoSchema = z.object({

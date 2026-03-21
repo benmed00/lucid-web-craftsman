@@ -11,7 +11,7 @@ import {
 } from '@/lib/storage/StorageGuard';
 
 // Validate all persisted stores SYNCHRONOUSLY before any store initializes
-const repairedCount = validateAndSanitizeStorage();
+void validateAndSanitizeStorage();
 
 // If this is a watchdog-triggered reload, log it
 if (wasWatchdogReload()) {

@@ -72,7 +72,7 @@ const CustomerInfoStep = ({
           maxLength={50}
           validate={(value) => {
             if (value.length < 2) return t('errors.requiredField');
-            if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value))
+            if (!/^[a-zA-ZÀ-ÿ\s\-'.]+$/.test(value))
               return t('errors.requiredField');
             return null;
           }}
@@ -93,7 +93,7 @@ const CustomerInfoStep = ({
           maxLength={50}
           validate={(value) => {
             if (value.length < 2) return t('errors.requiredField');
-            if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value))
+            if (!/^[a-zA-ZÀ-ÿ\s\-'.]+$/.test(value))
               return t('errors.requiredField');
             return null;
           }}
@@ -139,7 +139,7 @@ const CustomerInfoStep = ({
         showSuccessState={false}
         validate={(value) => {
           if (!value) return null;
-          if (!/^[\+]?[(]?[0-9]{1,4}[)]?[-\s\./0-9]*$/.test(value)) {
+          if (!/^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/.test(value)) {
             return t('errors.invalidPhone');
           }
           return null;

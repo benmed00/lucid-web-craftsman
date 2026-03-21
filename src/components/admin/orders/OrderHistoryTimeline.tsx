@@ -66,7 +66,7 @@ export function OrderHistoryTimeline({ orderId }: OrderHistoryTimelineProps) {
             <div className="absolute left-5 top-0 bottom-0 w-px bg-border" />
 
             <div className="space-y-6">
-              {history.map((entry, index) => {
+              {history.map((entry) => {
                 const ActorIcon = actorIcons[entry.changed_by];
 
                 return (

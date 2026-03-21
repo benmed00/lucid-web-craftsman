@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Card,
@@ -46,10 +46,8 @@ import {
 import { toast } from 'sonner';
 import {
   Languages,
-  Plus,
   Edit,
   Check,
-  X,
   AlertTriangle,
   Globe,
 } from 'lucide-react';
@@ -91,9 +89,6 @@ interface BlogPostForTranslation {
 
 export default function AdminTranslations() {
   const [activeTab, setActiveTab] = useState('products');
-  const [editingProduct, setEditingProduct] = useState<number | null>(null);
-  const [editingBlogPost, setEditingBlogPost] = useState<string | null>(null);
-  const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>('en');
   const queryClient = useQueryClient();
 
   // Fetch products with their translations

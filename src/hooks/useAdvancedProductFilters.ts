@@ -40,11 +40,11 @@ interface FilterAnalytics {
 export const useAdvancedProductFilters = ({
   products,
   enableAnalytics = true,
-  debounceMs = 300,
+  debounceMs: _debounceMs = 300,
 }: UseAdvancedProductFiltersOptions) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
-  const [popularFilters, setPopularFilters] = useState<string[]>([]);
+  const [popularFilters, _setPopularFilters] = useState<string[]>([]);
 
   // Initialize filters from URL parameters
   const getInitialFilters = (): AdvancedFilterOptions => ({

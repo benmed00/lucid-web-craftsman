@@ -5,7 +5,6 @@ import { useBusinessRules } from '@/hooks/useBusinessRules';
 import { useCurrency } from '@/stores/currencyStore';
 import { useCheckoutResume } from '@/hooks/useCheckoutResume';
 
-import { appNavigate } from '@/lib/navigation';
 import Footer from '@/components/Footer';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import { Button } from '@/components/ui/button';
@@ -34,7 +33,6 @@ import { useStock } from '@/hooks/useStock';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 // Mock API calls removed - cart state is now fully managed by Zustand store
-import FloatingCartButton from '@/components/ui/FloatingCartButton';
 
 import { LocationBasedFeatures } from '@/components/ui/LocationBasedFeatures';
 import { TooltipWrapper } from '@/components/ui/TooltipWrapper';
@@ -54,10 +52,10 @@ const Cart = () => {
     removeItem,
   } = useCart();
   const { rules } = useBusinessRules();
-  const { formatPrice, currency } = useCurrency();
+  const { formatPrice } = useCurrency();
   const { hasPendingCheckout, savedStep } = useCheckoutResume();
   const [postalCode, setPostalCode] = useState('');
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isCheckingOut, _setIsCheckingOut] = useState(false);
   const {
     calculation,
     loading: shippingLoading,
@@ -75,7 +73,7 @@ const Cart = () => {
 
   // Get all product IDs from cart for bulk stock checking
   const productIds = cart.items.map((item) => item.product.id);
-  const { stockInfo, canOrderQuantity } = useStock({
+  const { stockInfo } = useStock({
     productIds,
     enabled: productIds.length > 0,
   });
