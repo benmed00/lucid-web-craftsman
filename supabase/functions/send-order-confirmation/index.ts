@@ -53,7 +53,7 @@ interface OrderConfirmationRequest {
 }
 
 const buildOrderReference = (orderId: string): string =>
-  `CMD-${orderId.replace(/-/g, '').slice(-10).toUpperCase()}`;
+  `CMD-${orderId.replace(/-/g, '').toUpperCase()}`;
 
 const bytesToBase64Url = (bytes: Uint8Array): string =>
   btoa(String.fromCharCode(...bytes))

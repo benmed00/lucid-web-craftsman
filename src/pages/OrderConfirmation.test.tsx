@@ -45,7 +45,7 @@ describe('OrderConfirmation 3-page outcomes', () => {
         found: true,
         page_variant: 'success',
         order_id: 'a2f4d777-e4f2-4541-a948-c6f9fd2af9aa',
-        order_reference: 'CMD-ABCDE12345',
+        order_reference: 'CMD-A2F4D777E4F24541A948C6F9FD2AF9AA',
         amount: 1.14,
         currency: 'EUR',
         customer_name: 'Mars Kassius',
@@ -57,12 +57,14 @@ describe('OrderConfirmation 3-page outcomes', () => {
       },
     });
 
-    renderAt('/order-confirmation/CMD-ABCDE12345?token=test-token');
+    renderAt('/order-confirmation/CMD-A2F4D777E4F24541A948C6F9FD2AF9AA?token=test-token');
 
     await waitFor(() =>
       expect(screen.getByText('Paiement confirme')).toBeInTheDocument()
     );
-    expect(screen.getByText(/Commande #CMD-ABCDE12345/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Commande #CMD-A2F4D777E4F24541A948C6F9FD2AF9AA/)
+    ).toBeInTheDocument();
   });
 
   it('renders payment_failed page from lookup payload', async () => {
@@ -72,7 +74,7 @@ describe('OrderConfirmation 3-page outcomes', () => {
         found: true,
         page_variant: 'payment_failed',
         order_id: 'a2f4d777-e4f2-4541-a948-c6f9fd2af9aa',
-        order_reference: 'CMD-FAILED1234',
+        order_reference: 'CMD-A2F4D777E4F24541A948C6F9FD2AF9AA',
         amount: 1.14,
         currency: 'EUR',
         customer_name: 'Client inconnu',
@@ -84,7 +86,7 @@ describe('OrderConfirmation 3-page outcomes', () => {
       },
     });
 
-    renderAt('/order-confirmation/CMD-FAILED1234?token=test-token');
+    renderAt('/order-confirmation/CMD-A2F4D777E4F24541A948C6F9FD2AF9AA?token=test-token');
 
     await waitFor(() =>
       expect(
@@ -100,7 +102,7 @@ describe('OrderConfirmation 3-page outcomes', () => {
       data: { found: false },
     });
 
-    renderAt('/order-confirmation/CMD-ERR123456?token=test-token');
+    renderAt('/order-confirmation/CMD-TECHERR001?token=test-token');
 
     await waitFor(() =>
       expect(

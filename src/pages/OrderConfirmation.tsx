@@ -221,7 +221,7 @@ const OrderConfirmation = () => {
   const orderLabel = useMemo(() => {
     if (result.orderReference) return result.orderReference;
     if (routeReference) return routeReference;
-    if (result.orderId) return `CMD-${result.orderId.slice(-10).toUpperCase()}`;
+    if (result.orderId) return `CMD-${result.orderId.replace(/-/g, '').toUpperCase()}`;
     return null;
   }, [result.orderId, result.orderReference, routeReference]);
 

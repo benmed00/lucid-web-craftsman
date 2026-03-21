@@ -63,7 +63,7 @@ interface ParsedToken {
 }
 
 const buildOrderReference = (orderId: string): string =>
-  `CMD-${orderId.replace(/-/g, '').slice(-10).toUpperCase()}`;
+  `CMD-${orderId.replace(/-/g, '').toUpperCase()}`;
 
 const parseAndVerifyToken = async (
   token: string
