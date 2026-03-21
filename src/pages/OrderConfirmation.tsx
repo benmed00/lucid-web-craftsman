@@ -16,6 +16,9 @@ interface ConfirmationResult {
   customerEmail?: string | null;
 }
 
+const ORDER_CONFIRMATION_CACHE_PREFIX = 'order_confirmation_cache:';
+const ORDER_CONFIRMATION_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
 const OrderConfirmation = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -39,10 +42,62 @@ const OrderConfirmation = () => {
     runRef.current = true;
 
     const verify = async () => {
+      const cacheKey = orderId
+        ? `${ORDER_CONFIRMATION_CACHE_PREFIX}${orderId}`
+        : null;
+      const readCache = () => {
+        if (!cacheKey) return null;
+        try {
+          const raw = localStorage.getItem(cacheKey);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw) as {
+            createdAt?: number;
+            state?: ConfirmationState;
+            message?: string;
+            result?: ConfirmationResult;
+          };
+          if (!parsed?.createdAt || !parsed?.state || !parsed?.message) return null;
+          if (Date.now() - parsed.createdAt > ORDER_CONFIRMATION_CACHE_TTL_MS) {
+            localStorage.removeItem(cacheKey);
+            return null;
+          }
+          return parsed;
+        } catch {
+          return null;
+        }
+      };
+      const persistCache = (
+        nextState: ConfirmationState,
+        nextMessage: string,
+        nextResult: ConfirmationResult
+      ) => {
+        if (!cacheKey) return;
+        try {
+          localStorage.setItem(
+            cacheKey,
+            JSON.stringify({
+              createdAt: Date.now(),
+              state: nextState,
+              message: nextMessage,
+              result: nextResult,
+            })
+          );
+        } catch {
+          // ignore storage errors
+        }
+      };
+
       if (!orderId || !token) {
+        const cached = readCache();
+        if (cached) {
+          setState(cached.state!);
+          setMessage(cached.message!);
+          setResult(cached.result || {});
+          return;
+        }
         setState('issue');
         setMessage(
-          'Le lien de confirmation est incomplet. Veuillez utiliser le lien reçu par email.'
+          'Le lien de confirmation est incomplet. Veuillez utiliser le lien recu par email.'
         );
         return;
       }
@@ -56,14 +111,15 @@ const OrderConfirmation = () => {
         );
 
         if (error || !data?.found) {
-          setState('issue');
-          setMessage(
+          const nextMessage =
             'Nous ne pouvons pas retrouver cette commande pour le moment. Contactez le support si besoin.'
-          );
+          setState('issue');
+          setMessage(nextMessage);
+          persistCache('issue', nextMessage, {});
           return;
         }
 
-        setResult({
+        const nextResult = {
           orderId: data.order_id,
           amount: typeof data.amount === 'number' ? data.amount / 100 : undefined,
           currency:
@@ -71,22 +127,28 @@ const OrderConfirmation = () => {
               ? data.currency.toUpperCase()
               : undefined,
           customerEmail: data.customer_email || null,
-        });
+        };
+        setResult(nextResult);
 
         if (data.is_paid) {
+          const nextMessage =
+            'Votre paiement est confirme et votre commande est validee.';
           setState('success');
-          setMessage('Votre paiement est confirmé et votre commande est validée.');
+          setMessage(nextMessage);
+          persistCache('success', nextMessage, nextResult);
         } else {
+          const nextMessage =
+            'Votre paiement a ete recu. Nous finalisons encore la confirmation de commande.';
           setState('processing');
-          setMessage(
-            'Votre paiement a ete recu. Nous finalisons encore la confirmation de commande.'
-          );
+          setMessage(nextMessage);
+          persistCache('processing', nextMessage, nextResult);
         }
       } catch {
+        const nextMessage =
+          'Un probleme technique empeche la verification instantanee. Notre equipe peut vous aider.';
         setState('issue');
-        setMessage(
-          'Un probleme technique empeche la verification instantanee. Notre equipe peut vous aider.'
-        );
+        setMessage(nextMessage);
+        persistCache('issue', nextMessage, {});
       } finally {
         // Remove token from URL to prevent accidental sharing/replay.
         navigate(`/order-confirmation?order_id=${encodeURIComponent(orderId)}`, {

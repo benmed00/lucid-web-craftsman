@@ -80,6 +80,9 @@ interface StripeSessionSummary {
 
 type VerificationState = 'success' | 'processing' | 'issue';
 
+const PAYMENT_RESULT_CACHE_KEY = 'payment_success_cached_result';
+const PAYMENT_RESULT_CACHE_TTL_MS = 30 * 60 * 1000;
+
 const COUNTRY_NAMES: Record<string, string> = {
   FR: 'France',
   DE: 'Allemagne',
@@ -217,6 +220,61 @@ const PaymentSuccess = () => {
       };
     };
 
+    const persistResultCache = (
+      payload: {
+        state: VerificationState;
+        message: string;
+        orderId?: string;
+        transactionId?: string;
+      },
+      summary: StripeSessionSummary | null = null,
+      customer: CustomerInfo | null = null
+    ) => {
+      try {
+        localStorage.setItem(
+          PAYMENT_RESULT_CACHE_KEY,
+          JSON.stringify({
+            createdAt: Date.now(),
+            verificationResult: payload,
+            stripeSummary: summary,
+            customerInfo: customer,
+          })
+        );
+      } catch {
+        // ignore storage errors
+      }
+    };
+
+    const readResultCache = () => {
+      const referrer = document.referrer || '';
+      if (!referrer.includes('/payment-success')) {
+        return null;
+      }
+      try {
+        const raw = localStorage.getItem(PAYMENT_RESULT_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw) as {
+          createdAt?: number;
+          verificationResult?: {
+            state: VerificationState;
+            message: string;
+            orderId?: string;
+            transactionId?: string;
+          };
+          stripeSummary?: StripeSessionSummary | null;
+          customerInfo?: CustomerInfo | null;
+        };
+        if (!parsed?.createdAt || !parsed?.verificationResult) return null;
+        if (Date.now() - parsed.createdAt > PAYMENT_RESULT_CACHE_TTL_MS) {
+          localStorage.removeItem(PAYMENT_RESULT_CACHE_KEY);
+          return null;
+        }
+        return parsed;
+      } catch {
+        return null;
+      }
+    };
+
     const clearCheckoutStateAfterPayment = () => {
       setCustomerInfo(getCustomerInfo());
       clearCart();
@@ -225,37 +283,49 @@ const PaymentSuccess = () => {
     };
 
     const setSuccess = (oid: string, message?: string) => {
-      setVerificationResult({
+      const resolved = {
         state: 'success',
         message: message || t('pages:paymentSuccess.success.verified'),
         orderId: oid,
         transactionId: sessionId
           ? sessionId.slice(-8).toUpperCase()
           : undefined,
-      });
+      } as const;
+      setVerificationResult(resolved);
       setStripeSummary(null);
+      const customer = getCustomerInfo();
+      persistResultCache(resolved, null, customer);
       clearCheckoutStateAfterPayment();
       toast.success(t('pages:paymentSuccess.success.confirmed'));
     };
 
-    const setProcessing = (message: string, orderIdValue?: string) => {
-      setVerificationResult({
+    const setProcessing = (
+      message: string,
+      orderIdValue?: string,
+      summary: StripeSessionSummary | null = null
+    ) => {
+      const resolved = {
         state: 'processing',
         message,
         orderId: orderIdValue,
         transactionId: sessionId
           ? sessionId.slice(-8).toUpperCase()
           : undefined,
-      });
+      } as const;
+      setVerificationResult(resolved);
+      setStripeSummary(summary);
+      persistResultCache(resolved, summary, getCustomerInfo());
       clearCheckoutStateAfterPayment();
     };
 
     const setIssue = (message: string) => {
       setStripeSummary(null);
-      setVerificationResult({
+      const resolved = {
         state: 'issue',
         message,
-      });
+      } as const;
+      setVerificationResult(resolved);
+      persistResultCache(resolved, null, getCustomerInfo());
       stripSensitiveParams();
     };
 
@@ -381,13 +451,13 @@ const PaymentSuccess = () => {
         return;
       }
       if (fallbackData?.processing) {
-        setStripeSummary(
-          (fallbackData.stripe_session_summary as StripeSessionSummary) || null
-        );
+        const summary =
+          (fallbackData.stripe_session_summary as StripeSessionSummary) || null;
         setProcessing(
           fallbackData.message ||
             'Paiement recu. Nous finalisons encore votre confirmation de commande.',
-          undefined
+          undefined,
+          summary
         );
         setIsVerifying(false);
         return;
@@ -440,6 +510,16 @@ const PaymentSuccess = () => {
           });
           const cust = getCustomerInfo();
           setCustomerInfo(cust);
+        persistResultCache(
+          {
+            state: 'success',
+            message: data.message || t('pages:paymentSuccess.success.verified'),
+            orderId: finalOrderId || undefined,
+            transactionId: data.transaction_id,
+          },
+          null,
+          cust
+        );
           if (data.invoiceData)
             buildInvoiceFromResponse(data.invoiceData, finalOrderId!, cust);
           clearCart();
@@ -459,6 +539,20 @@ const PaymentSuccess = () => {
     };
 
     // Entry point
+    if (!sessionId && !(isPayPal && paypalOrderId && orderId)) {
+      const cached = readResultCache();
+      if (cached?.verificationResult) {
+        setVerificationResult(cached.verificationResult);
+        setStripeSummary(cached.stripeSummary || null);
+        if (cached.customerInfo) setCustomerInfo(cached.customerInfo);
+        if (cached.verificationResult.state !== 'issue') {
+          clearCheckoutStateAfterPayment();
+        }
+        setIsVerifying(false);
+        return;
+      }
+    }
+
     if (isPayPal && paypalOrderId && orderId) {
       verifyPayPalPayment();
     } else if (sessionId) {
