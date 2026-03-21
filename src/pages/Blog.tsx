@@ -63,6 +63,8 @@ const Blog = () => {
   // Dynamic tag translation
   const { translateTag } = useTranslateTag();
 
+  const getSafeTagLabel = (tag: string) => translateTag(tag, currentLang) || tag;
+
   // Get date-fns locale based on current language
   const dateLocale = i18n.language?.startsWith('fr') ? fr : enUS;
 
@@ -236,7 +238,7 @@ const Blog = () => {
 
                     {post.tags && post.tags[0] && (
                       <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none">
-                        {translateTag(post.tags[0], currentLang)}
+                        {getSafeTagLabel(post.tags[0])}
                       </Badge>
                     )}
 
@@ -295,7 +297,7 @@ const Blog = () => {
 
                   {post.tags && post.tags[0] && (
                     <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-none text-xs">
-                      {translateTag(post.tags[0], currentLang)}
+                      {getSafeTagLabel(post.tags[0])}
                     </Badge>
                   )}
 
