@@ -246,8 +246,11 @@ const PaymentSuccess = () => {
     };
 
     const readResultCache = () => {
-      const referrer = document.referrer || '';
-      if (!referrer.includes('/payment-success')) {
+      const navigationEntry = performance.getEntriesByType(
+        'navigation'
+      )[0] as PerformanceNavigationTiming | undefined;
+      const isReload = navigationEntry?.type === 'reload';
+      if (!isReload) {
         return null;
       }
       try {
