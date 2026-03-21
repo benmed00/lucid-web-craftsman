@@ -10,26 +10,26 @@ describe('API Resilience — mocked Supabase errors @regression', () => {
     cy.mockSupabaseResponse('GET', '/products', 'error500');
     cy.visit('/products');
     // Products.tsx error state: retry button (FR/EN) + destructive icon
-    cy.contains('button', /retry|réessayer|Réessayer/i, { timeout: 25000 }).should(
-      'be.visible'
-    );
+    cy.contains('button', /retry|réessayer|Réessayer/i, {
+      timeout: 25000,
+    }).should('be.visible');
     cy.get('.text-destructive').should('exist');
   });
 
   it('shows retry UI when products request returns 400', () => {
     cy.mockSupabaseResponse('GET', '/products', 'error400');
     cy.visit('/products');
-    cy.contains('button', /retry|réessayer|Réessayer/i, { timeout: 25000 }).should(
-      'be.visible'
-    );
+    cy.contains('button', /retry|réessayer|Réessayer/i, {
+      timeout: 25000,
+    }).should('be.visible');
   });
 
   it('shows retry UI when products request has network failure', () => {
     cy.mockSupabaseResponse('GET', '/products', 'errorTimeout');
     cy.visit('/products');
-    cy.contains('button', /retry|réessayer|Réessayer/i, { timeout: 25000 }).should(
-      'be.visible'
-    );
+    cy.contains('button', /retry|réessayer|Réessayer/i, {
+      timeout: 25000,
+    }).should('be.visible');
   });
 
   it('eventually loads products after high-latency success', () => {
@@ -65,8 +65,8 @@ describe('API Resilience — mocked Supabase errors @regression', () => {
     cy.mockSupabaseResponse('GET', '/products', 'error404');
     cy.visit('/products');
     cy.get('body').should('be.visible');
-    cy.contains('button', /retry|réessayer|Réessayer/i, { timeout: 25000 }).should(
-      'exist'
-    );
+    cy.contains('button', /retry|réessayer|Réessayer/i, {
+      timeout: 25000,
+    }).should('exist');
   });
 });

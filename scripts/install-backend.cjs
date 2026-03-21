@@ -8,7 +8,9 @@ const fs = require('fs');
 
 const backendPkg = path.join(__dirname, '..', 'backend', 'package.json');
 if (!fs.existsSync(backendPkg)) {
-  console.warn('postinstall: backend/package.json not found, skipping backend install');
+  console.warn(
+    'postinstall: backend/package.json not found, skipping backend install'
+  );
   process.exit(0);
   return;
 }

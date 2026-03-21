@@ -215,7 +215,10 @@ describe('Enterprise: Products & Product Cards @enterprise @smoke', () => {
     const searchSelector =
       'input[placeholder*="Rechercher"], input[placeholder*="Search"], input[placeholder*="recherche"]';
     cy.get('[id^="product-card-"]').should('have.length.at.least', 1);
-    cy.get(searchSelector).filter(':visible').first().type('xyznonexistfilter999');
+    cy.get(searchSelector)
+      .filter(':visible')
+      .first()
+      .type('xyznonexistfilter999');
     cy.contains(/Aucun résultat|no results found/i, { timeout: 8000 }).should(
       'be.visible'
     );
@@ -244,8 +247,7 @@ describe('Enterprise: Cart Page @enterprise @regression', () => {
 
   it('should increase and decrease line-item quantity', () => {
     // Cart.tsx: quantity span — FR "Quantité:" / EN "Quantity:" (if i18n added)
-    const qtyLabel =
-      '[aria-label^="Quantité:"], [aria-label^="Quantity:"]';
+    const qtyLabel = '[aria-label^="Quantité:"], [aria-label^="Quantity:"]';
     cy.get('[id^="cart-item-"]')
       .first()
       .within(() => {
@@ -607,10 +609,14 @@ describe('Enterprise: Blog @enterprise @regression', () => {
     });
 
     cy.visit('/blog');
-    cy.contains('E2E Cypress Blog Post', { timeout: 20000 }).should('be.visible');
+    cy.contains('E2E Cypress Blog Post', { timeout: 20000 }).should(
+      'be.visible'
+    );
     cy.get('a[href="/blog/999001"]').first().click();
     cy.url().should('include', '/blog/999001');
-    cy.contains('E2E Cypress Blog Post', { timeout: 15000 }).should('be.visible');
+    cy.contains('E2E Cypress Blog Post', { timeout: 15000 }).should(
+      'be.visible'
+    );
   });
 });
 

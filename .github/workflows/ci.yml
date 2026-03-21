@@ -7,9 +7,11 @@ concurrency:
 
 on:
   push:
-    branches: [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
+    branches:
+      [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
   pull_request:
-    branches: [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
+    branches:
+      [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
 
 permissions:
   contents: read

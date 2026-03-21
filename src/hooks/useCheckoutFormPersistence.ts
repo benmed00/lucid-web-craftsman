@@ -3,7 +3,10 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { isValidPersonalInfo, isValidShippingInfo } from '@/utils/checkoutSessionValidation';
+import {
+  isValidPersonalInfo,
+  isValidShippingInfo,
+} from '@/utils/checkoutSessionValidation';
 import {
   safeGetItem,
   safeSetItem,
@@ -178,17 +181,33 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
             const si = dbSession.shipping_info as any;
 
             // Validate personal info before hydrating — reject empty/invalid data
-            if (pi && isValidPersonalInfo({ first_name: pi.first_name, last_name: pi.last_name, email: pi.email })) {
+            if (
+              pi &&
+              isValidPersonalInfo({
+                first_name: pi.first_name,
+                last_name: pi.last_name,
+                email: pi.email,
+              })
+            ) {
               loadedData.firstName = pi.first_name || '';
               loadedData.lastName = pi.last_name || '';
               loadedData.email = pi.email || '';
               loadedData.phone = pi.phone || '';
             } else if (pi) {
-              console.warn('[useCheckoutFormPersistence] Invalid personal_info in DB session — skipping hydration');
+              console.warn(
+                '[useCheckoutFormPersistence] Invalid personal_info in DB session — skipping hydration'
+              );
             }
 
             // Validate shipping info before hydrating
-            if (si && isValidShippingInfo({ address_line1: si.address_line1, city: si.city, country: si.country })) {
+            if (
+              si &&
+              isValidShippingInfo({
+                address_line1: si.address_line1,
+                city: si.city,
+                country: si.country,
+              })
+            ) {
               loadedData.address = si.address_line1 || '';
               loadedData.addressComplement = si.address_line2 || '';
               loadedData.postalCode = si.postal_code || '';
@@ -198,11 +217,17 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
                 ? si.country
                 : 'FR';
             } else if (si) {
-              console.warn('[useCheckoutFormPersistence] Invalid shipping_info in DB session — skipping hydration');
+              console.warn(
+                '[useCheckoutFormPersistence] Invalid shipping_info in DB session — skipping hydration'
+              );
             }
 
             // Restore step/completed from DB session only if data is valid
-            const hasValidPI = isValidPersonalInfo({ first_name: pi?.first_name, last_name: pi?.last_name, email: pi?.email });
+            const hasValidPI = isValidPersonalInfo({
+              first_name: pi?.first_name,
+              last_name: pi?.last_name,
+              email: pi?.email,
+            });
             if (dbSession.last_completed_step >= 1 && hasValidPI) {
               const completedFromDb = Array.from(
                 { length: dbSession.last_completed_step },

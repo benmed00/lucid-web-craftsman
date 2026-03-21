@@ -24,10 +24,9 @@ describe('Compare page @regression', () => {
   it('shows empty compare state when no products selected', () => {
     cy.visit('/compare');
     cy.get('body').should('be.visible');
-    cy.contains(
-      /Aucun produit à comparer|aucun produit|compare|comparer/i,
-      { timeout: 10000 }
-    ).should('be.visible');
+    cy.contains(/Aucun produit à comparer|aucun produit|compare|comparer/i, {
+      timeout: 10000,
+    }).should('be.visible');
     cy.get('a[href="/products"], a[href*="/products"]').first().should('exist');
   });
 });

@@ -56,14 +56,16 @@ describe('Profile: Layout @profile @regression', () => {
 
   it('renders profile navigation tabs or sections', () => {
     if (!requireCredentials()) return;
-    cy.contains(/informations|personnel|profil|overview|commandes/i, { timeout: 8000 })
-      .should('be.visible');
+    cy.contains(/informations|personnel|profil|overview|commandes/i, {
+      timeout: 8000,
+    }).should('be.visible');
   });
 
   it('has a sign-out button', () => {
     if (!requireCredentials()) return;
-    cy.contains(/se déconnecter|déconnexion|sign out|logout/i, { timeout: 8000 })
-      .should('be.visible');
+    cy.contains(/se déconnecter|déconnexion|sign out|logout/i, {
+      timeout: 8000,
+    }).should('be.visible');
   });
 });
 
@@ -75,10 +77,9 @@ describe('Profile: Personal Info @profile @regression', () => {
     cy.loginAs('customer');
     cy.visit(PROFILE_URL);
     // Navigate to personal info tab
-    cy.contains(
-      /informations personnelles|personal info|mes infos/i,
-      { timeout: 8000 }
-    ).click();
+    cy.contains(/informations personnelles|personal info|mes infos/i, {
+      timeout: 8000,
+    }).click();
   });
 
   it('shows personal info form with name and email fields', () => {
@@ -100,10 +101,11 @@ describe('Profile: Personal Info @profile @regression', () => {
   it('can edit the full name and save', () => {
     if (!requireCredentials()) return;
 
-    const nameField = cy.get(
-      'input[id*="full" i], input[id*="name" i], input[name*="full" i]',
-      { timeout: 8000 }
-    ).first();
+    const nameField = cy
+      .get('input[id*="full" i], input[id*="name" i], input[name*="full" i]', {
+        timeout: 8000,
+      })
+      .first();
 
     nameField.clear().type('Test User Updated');
 
@@ -111,39 +113,41 @@ describe('Profile: Personal Info @profile @regression', () => {
       .contains(/enregistrer|sauvegarder|save|update/i)
       .click();
 
-    cy.contains(
-      /mis à jour|sauvegardé|saved|updated|success/i,
-      { timeout: 8000 }
-    ).should('be.visible');
+    cy.contains(/mis à jour|sauvegardé|saved|updated|success/i, {
+      timeout: 8000,
+    }).should('be.visible');
   });
 
   it('shows validation error for empty required name field', () => {
     if (!requireCredentials()) return;
 
-    cy.get(
-      'input[id*="full" i], input[id*="name" i], input[name*="full" i]',
-      { timeout: 8000 }
-    ).first().clear();
+    cy.get('input[id*="full" i], input[id*="name" i], input[name*="full" i]', {
+      timeout: 8000,
+    })
+      .first()
+      .clear();
 
     cy.get('button[type="submit"]')
       .contains(/enregistrer|sauvegarder|save|update/i)
       .click();
 
-    cy.get('[role="alert"], [data-testid*="error"], input:invalid', { timeout: 4000 })
-      .should('exist');
+    cy.get('[role="alert"], [data-testid*="error"], input:invalid', {
+      timeout: 4000,
+    }).should('exist');
   });
 
   it('phone number field accepts valid phone format', () => {
     if (!requireCredentials()) return;
 
-    cy.get('input[type="tel"], input[id*="phone" i], input[name*="phone" i]', { timeout: 6000 })
-      .then(($el) => {
-        if ($el.length) {
-          cy.wrap($el).first().clear().type('+33612345678');
-        } else {
-          cy.log('No phone field found; skipping');
-        }
-      });
+    cy.get('input[type="tel"], input[id*="phone" i], input[name*="phone" i]', {
+      timeout: 6000,
+    }).then(($el) => {
+      if ($el.length) {
+        cy.wrap($el).first().clear().type('+33612345678');
+      } else {
+        cy.log('No phone field found; skipping');
+      }
+    });
   });
 });
 
@@ -159,18 +163,14 @@ describe('Profile: Order History @profile @regression', () => {
   it('navigates to order history tab and renders the section', () => {
     if (!requireCredentials()) return;
 
-    cy.contains(
-      /commandes|orders|historique/i,
-      { timeout: 8000 }
-    ).click();
+    cy.contains(/commandes|orders|historique/i, { timeout: 8000 }).click();
 
     cy.url().then((url) => {
       if (!url.includes('/orders')) {
         // Tab-based navigation — check content
-        cy.contains(
-          /commandes|orders|aucune commande|no orders/i,
-          { timeout: 6000 }
-        ).should('be.visible');
+        cy.contains(/commandes|orders|aucune commande|no orders/i, {
+          timeout: 6000,
+        }).should('be.visible');
       }
     });
   });
@@ -191,8 +191,12 @@ describe('Profile: Order History @profile @regression', () => {
     cy.then(() => {
       // Either orders or empty state
       cy.get('body', { timeout: 8000 }).then(($body) => {
-        const hasOrders = $body.find('[data-testid*="order"], .order-item, [class*="order"]').length > 0;
-        const hasEmptyState = $body.text().match(/aucune commande|no orders|pas encore|no order/i);
+        const hasOrders =
+          $body.find('[data-testid*="order"], .order-item, [class*="order"]')
+            .length > 0;
+        const hasEmptyState = $body
+          .text()
+          .match(/aucune commande|no orders|pas encore|no order/i);
 
         expect(hasOrders || hasEmptyState).to.be.true;
       });
@@ -204,18 +208,21 @@ describe('Profile: Order History @profile @regression', () => {
 
     cy.visit(ORDERS_URL);
 
-    cy.get('[data-testid*="order"], [class*="order-item"]', { timeout: 8000 })
-      .then(($orders) => {
-        if ($orders.length === 0) {
-          cy.log('No orders to test; skipping order item detail check');
-          return;
-        }
+    cy.get('[data-testid*="order"], [class*="order-item"]', {
+      timeout: 8000,
+    }).then(($orders) => {
+      if ($orders.length === 0) {
+        cy.log('No orders to test; skipping order item detail check');
+        return;
+      }
 
-        cy.wrap($orders).first().within(() => {
+      cy.wrap($orders)
+        .first()
+        .within(() => {
           // Should show some order info
           cy.contains(/\d+/).should('exist'); // order number or amount
         });
-      });
+    });
   });
 
   it('order row has a "view details" link', () => {
@@ -223,17 +230,17 @@ describe('Profile: Order History @profile @regression', () => {
 
     cy.visit(ORDERS_URL);
 
-    cy.get('[data-testid*="order"]', { timeout: 8000 })
-      .then(($orders) => {
-        if ($orders.length === 0) {
-          cy.log('No orders found; skipping detail link check');
-          return;
-        }
+    cy.get('[data-testid*="order"]', { timeout: 8000 }).then(($orders) => {
+      if ($orders.length === 0) {
+        cy.log('No orders found; skipping detail link check');
+        return;
+      }
 
-        cy.wrap($orders).first()
-          .contains(/voir le détail|voir|details|view/i)
-          .should('be.visible');
-      });
+      cy.wrap($orders)
+        .first()
+        .contains(/voir le détail|voir|details|view/i)
+        .should('be.visible');
+    });
   });
 });
 
@@ -249,11 +256,13 @@ describe('Profile: Security @profile @regression', () => {
     cy.loginAs('customer');
     cy.visit(PROFILE_URL);
 
-    cy.contains(/se déconnecter|déconnexion|sign out|logout/i, { timeout: 8000 })
-      .click();
+    cy.contains(/se déconnecter|déconnexion|sign out|logout/i, {
+      timeout: 8000,
+    }).click();
 
-    cy.url({ timeout: 8000 }).should('satisfy', (url) =>
-      url.includes('/auth') || url === `${Cypress.config('baseUrl')}/`
+    cy.url({ timeout: 8000 }).should(
+      'satisfy',
+      (url) => url.includes('/auth') || url === `${Cypress.config('baseUrl')}/`
     );
 
     // Verify session is cleared — profile should redirect

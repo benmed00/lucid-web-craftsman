@@ -16,14 +16,16 @@ function visitFirstProduct() {
   cy.get(
     'a[href*="/products/"], [data-testid*="product-link"], .product-card a',
     { timeout: 10000 }
-  ).first().then(($link) => {
-    const href = $link.attr('href');
-    if (href) {
-      cy.visit(href);
-    } else {
-      cy.wrap($link).click();
-    }
-  });
+  )
+    .first()
+    .then(($link) => {
+      const href = $link.attr('href');
+      if (href) {
+        cy.visit(href);
+      } else {
+        cy.wrap($link).click();
+      }
+    });
 }
 
 // ── Product Detail: Loading & Layout ─────────────────────────────────────────
@@ -38,11 +40,16 @@ describe('Product Detail: Page Layout @product @smoke', () => {
   });
 
   it('shows product name as a heading', () => {
-    cy.get('h1', { timeout: 8000 }).should('be.visible').invoke('text').should('not.be.empty');
+    cy.get('h1', { timeout: 8000 })
+      .should('be.visible')
+      .invoke('text')
+      .should('not.be.empty');
   });
 
   it('shows product price', () => {
-    cy.contains(/\d+[.,]\d{2}\s*€|\€\s*\d+/, { timeout: 8000 }).should('be.visible');
+    cy.contains(/\d+[.,]\d{2}\s*€|\€\s*\d+/, { timeout: 8000 }).should(
+      'be.visible'
+    );
   });
 
   it('shows at least one product image', () => {
@@ -52,33 +59,40 @@ describe('Product Detail: Page Layout @product @smoke', () => {
   });
 
   it('shows product description or details', () => {
-    cy.contains(
-      /description|détails|matière|artisan|soin/i,
-      { timeout: 8000 }
-    ).should('be.visible');
+    cy.contains(/description|détails|matière|artisan|soin/i, {
+      timeout: 8000,
+    }).should('be.visible');
   });
 
   it('shows artisan name or category', () => {
-    cy.get('[data-testid*="artisan"], [class*="artisan"], [class*="category"]', { timeout: 6000 })
-      .then(($el) => {
-        if ($el.length === 0) {
-          // Try text content fallback
-          cy.get('body').contains(/artisan|catégorie|category/i).should('exist');
-        } else {
-          cy.wrap($el).first().should('be.visible');
-        }
-      });
+    cy.get(
+      '[data-testid*="artisan"], [class*="artisan"], [class*="category"]',
+      { timeout: 6000 }
+    ).then(($el) => {
+      if ($el.length === 0) {
+        // Try text content fallback
+        cy.get('body')
+          .contains(/artisan|catégorie|category/i)
+          .should('exist');
+      } else {
+        cy.wrap($el).first().should('be.visible');
+      }
+    });
   });
 
   it('breadcrumb contains a link back to the shop', () => {
-    cy.get('[aria-label*="breadcrumb" i], nav[aria-label*="fil" i], .breadcrumb', { timeout: 6000 })
-      .then(($el) => {
-        if ($el.length) {
-          cy.wrap($el).contains(/boutique|shop|produits|products/i).should('be.visible');
-        } else {
-          cy.contains(/boutique|shop|produits|products/i).should('be.visible');
-        }
-      });
+    cy.get(
+      '[aria-label*="breadcrumb" i], nav[aria-label*="fil" i], .breadcrumb',
+      { timeout: 6000 }
+    ).then(($el) => {
+      if ($el.length) {
+        cy.wrap($el)
+          .contains(/boutique|shop|produits|products/i)
+          .should('be.visible');
+      } else {
+        cy.contains(/boutique|shop|produits|products/i).should('be.visible');
+      }
+    });
   });
 });
 
@@ -97,8 +111,8 @@ describe('Product Detail: Stock Display @product @regression', () => {
   });
 
   it('add-to-cart button is disabled when product is out of stock', () => {
-    cy.contains(/rupture de stock|out of stock/i, { timeout: 6000 })
-      .then(($el) => {
+    cy.contains(/rupture de stock|out of stock/i, { timeout: 6000 }).then(
+      ($el) => {
         if ($el.length) {
           cy.get(
             'button[disabled]:contains("Ajouter"), button[aria-disabled="true"]:contains("panier")',
@@ -107,12 +121,13 @@ describe('Product Detail: Stock Display @product @regression', () => {
         } else {
           cy.log('Product is in stock; skipping disabled state check');
         }
-      });
+      }
+    );
   });
 
   it('quantity selector is visible for in-stock products', () => {
-    cy.contains(/en stock|in stock|disponible/i, { timeout: 6000 })
-      .then(($el) => {
+    cy.contains(/en stock|in stock|disponible/i, { timeout: 6000 }).then(
+      ($el) => {
         if ($el.length) {
           cy.get(
             '[data-testid*="quantity"], [aria-label*="quantité" i], button[aria-label*="augmenter" i], button[aria-label*="diminuer" i], input[type="number"]',
@@ -121,7 +136,8 @@ describe('Product Detail: Stock Display @product @regression', () => {
         } else {
           cy.log('Product may be out of stock; skipping quantity check');
         }
-      });
+      }
+    );
   });
 
   it('quantity cannot go below 1', () => {
@@ -132,7 +148,9 @@ describe('Product Detail: Stock Display @product @regression', () => {
     ).then(($btn) => {
       if ($btn.length) {
         cy.wrap($btn).first().click();
-        cy.get('input[type="number"], [data-testid*="quantity"]', { timeout: 2000 })
+        cy.get('input[type="number"], [data-testid*="quantity"]', {
+          timeout: 2000,
+        })
           .invoke('val')
           .then((val) => {
             expect(parseInt(val) || 1).to.be.gte(1);
@@ -153,15 +171,14 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
   });
 
   it('has an "add to cart" button', () => {
-    cy.contains(
-      /ajouter au panier|add to cart/i,
-      { timeout: 8000 }
-    ).should('be.visible');
+    cy.contains(/ajouter au panier|add to cart/i, { timeout: 8000 }).should(
+      'be.visible'
+    );
   });
 
   it('clicking "add to cart" shows success feedback', () => {
-    cy.contains(/en stock|in stock|disponible/i, { timeout: 6000 })
-      .then(($inStock) => {
+    cy.contains(/en stock|in stock|disponible/i, { timeout: 6000 }).then(
+      ($inStock) => {
         if (!$inStock.length) {
           cy.log('Product out of stock; skipping add-to-cart test');
           return;
@@ -171,16 +188,16 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
           .should('not.be.disabled')
           .click();
 
-        cy.contains(
-          /ajouté au panier|added to cart|panier|cart/i,
-          { timeout: 8000 }
-        ).should('be.visible');
-      });
+        cy.contains(/ajouté au panier|added to cart|panier|cart/i, {
+          timeout: 8000,
+        }).should('be.visible');
+      }
+    );
   });
 
   it('cart item count increases after adding a product', () => {
-    cy.contains(/en stock|in stock|disponible/i, { timeout: 6000 })
-      .then(($inStock) => {
+    cy.contains(/en stock|in stock|disponible/i, { timeout: 6000 }).then(
+      ($inStock) => {
         if (!$inStock.length) {
           cy.log('Product out of stock; skipping');
           return;
@@ -194,34 +211,35 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
           const initialCount = $badge.length ? parseInt($badge.text()) || 0 : 0;
 
           cy.contains(/ajouter au panier|add to cart/i).click();
-          cy.contains(
-            /ajouté au panier|added to cart|panier|cart/i,
-            { timeout: 8000 }
-          ).should('be.visible');
+          cy.contains(/ajouté au panier|added to cart|panier|cart/i, {
+            timeout: 8000,
+          }).should('be.visible');
 
           cy.get(
             '[data-testid*="cart-count"], [aria-label*="panier" i] [data-count], .cart-badge',
             { timeout: 4000 }
-          ).invoke('text').then((text) => {
-            expect(parseInt(text) || 0).to.be.gte(initialCount);
-          });
+          )
+            .invoke('text')
+            .then((text) => {
+              expect(parseInt(text) || 0).to.be.gte(initialCount);
+            });
         });
-      });
+      }
+    );
   });
 
   it('cart persists product after navigating away and back', () => {
-    cy.contains(/en stock|in stock|disponible/i, { timeout: 6000 })
-      .then(($inStock) => {
+    cy.contains(/en stock|in stock|disponible/i, { timeout: 6000 }).then(
+      ($inStock) => {
         if (!$inStock.length) {
           cy.log('Product out of stock; skipping');
           return;
         }
 
         cy.contains(/ajouter au panier|add to cart/i).click();
-        cy.contains(
-          /ajouté au panier|added to cart|panier|cart/i,
-          { timeout: 8000 }
-        ).should('be.visible');
+        cy.contains(/ajouté au panier|added to cart|panier|cart/i, {
+          timeout: 8000,
+        }).should('be.visible');
 
         cy.visit('/');
         cy.get('body').should('be.visible');
@@ -229,7 +247,8 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
         // Cart should still have items (localStorage persistence)
         cy.visit('/cart');
         cy.contains(/article|item/i, { timeout: 8000 }).should('exist');
-      });
+      }
+    );
   });
 });
 
@@ -241,46 +260,50 @@ describe('Product Detail: Tabs @product @regression', () => {
   });
 
   it('description/details tab is visible and active by default', () => {
-    cy.contains(
-      /description|détails|details/i,
-      { timeout: 8000 }
-    ).should('be.visible');
+    cy.contains(/description|détails|details/i, { timeout: 8000 }).should(
+      'be.visible'
+    );
   });
 
   it('can navigate to the care/entretien tab', () => {
-    cy.contains(/entretien|care/i, { timeout: 6000 })
-      .then(($el) => {
-        if ($el.length) {
-          cy.wrap($el).click();
-          cy.contains(/entretien|care instructions/i, { timeout: 4000 }).should('be.visible');
-        } else {
-          cy.log('No care tab found; skipping');
-        }
-      });
+    cy.contains(/entretien|care/i, { timeout: 6000 }).then(($el) => {
+      if ($el.length) {
+        cy.wrap($el).click();
+        cy.contains(/entretien|care instructions/i, { timeout: 4000 }).should(
+          'be.visible'
+        );
+      } else {
+        cy.log('No care tab found; skipping');
+      }
+    });
   });
 
   it('can navigate to the shipping tab', () => {
-    cy.contains(/livraison|shipping/i, { timeout: 6000 })
-      .then(($el) => {
-        if ($el.length) {
-          cy.wrap($el).first().click();
-          cy.contains(/livraison|shipping information|délai/i, { timeout: 4000 }).should('be.visible');
-        } else {
-          cy.log('No shipping tab found; skipping');
-        }
-      });
+    cy.contains(/livraison|shipping/i, { timeout: 6000 }).then(($el) => {
+      if ($el.length) {
+        cy.wrap($el).first().click();
+        cy.contains(/livraison|shipping information|délai/i, {
+          timeout: 4000,
+        }).should('be.visible');
+      } else {
+        cy.log('No shipping tab found; skipping');
+      }
+    });
   });
 
   it('can navigate to the specs/characteristics tab', () => {
-    cy.contains(/caractéristiques|specs|specifications/i, { timeout: 6000 })
-      .then(($el) => {
-        if ($el.length) {
-          cy.wrap($el).click();
-          cy.contains(/matériau|material|artisan|weight|poids/i, { timeout: 4000 }).should('be.visible');
-        } else {
-          cy.log('No specs tab found; skipping');
-        }
-      });
+    cy.contains(/caractéristiques|specs|specifications/i, {
+      timeout: 6000,
+    }).then(($el) => {
+      if ($el.length) {
+        cy.wrap($el).click();
+        cy.contains(/matériau|material|artisan|weight|poids/i, {
+          timeout: 4000,
+        }).should('be.visible');
+      } else {
+        cy.log('No specs tab found; skipping');
+      }
+    });
   });
 });
 
@@ -296,14 +319,13 @@ describe('Product Detail: Accessibility @product @regression', () => {
   });
 
   it('add-to-cart button has accessible label', () => {
-    cy.contains(
-      /ajouter au panier|add to cart/i,
-      { timeout: 6000 }
-    ).should(($btn) => {
-      const text = $btn.text().trim();
-      const ariaLabel = $btn.attr('aria-label');
-      expect(text || ariaLabel).to.exist;
-    });
+    cy.contains(/ajouter au panier|add to cart/i, { timeout: 6000 }).should(
+      ($btn) => {
+        const text = $btn.text().trim();
+        const ariaLabel = $btn.attr('aria-label');
+        expect(text || ariaLabel).to.exist;
+      }
+    );
   });
 
   it('page does not have critical axe accessibility violations', () => {

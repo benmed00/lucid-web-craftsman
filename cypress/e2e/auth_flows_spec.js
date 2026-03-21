@@ -21,7 +21,10 @@ function fillSignUpForm(email, password, fullName) {
     .first()
     .clear()
     .type(fullName);
-  cy.get('#signup-email, [name="email"][id*="sign" i]').first().clear().type(email);
+  cy.get('#signup-email, [name="email"][id*="sign" i]')
+    .first()
+    .clear()
+    .type(email);
   cy.get('#signup-password, [name="password"][id*="sign" i]')
     .first()
     .clear()
@@ -38,20 +41,27 @@ describe('Auth: Sign In @auth @smoke', () => {
   it('renders the sign-in form with required fields', () => {
     cy.get('#signin-email').should('be.visible');
     cy.get('#signin-password').should('be.visible');
-    cy.get('button[type="submit"]').contains(/se connecter|sign in/i).should('be.visible');
+    cy.get('button[type="submit"]')
+      .contains(/se connecter|sign in/i)
+      .should('be.visible');
   });
 
   it('shows validation error for empty email submission', () => {
     cy.get('#signin-password').type('somepassword');
-    cy.get('button[type="submit"]').contains(/se connecter|sign in/i).click();
+    cy.get('button[type="submit"]')
+      .contains(/se connecter|sign in/i)
+      .click();
     // Either HTML5 validation or custom error
-    cy.get('#signin-email:invalid, [data-testid="email-error"], [role="alert"]')
-      .should('exist');
+    cy.get(
+      '#signin-email:invalid, [data-testid="email-error"], [role="alert"]'
+    ).should('exist');
   });
 
   it('shows error for incorrect credentials', () => {
     fillSignInForm('not-a-real-user@example.com', 'WrongPassword123!');
-    cy.get('button[type="submit"]').contains(/se connecter|sign in/i).click();
+    cy.get('button[type="submit"]')
+      .contains(/se connecter|sign in/i)
+      .click();
     cy.contains(
       /mot de passe incorrect|invalid|identifiants|connexion échouée|email ou mot de passe/i,
       { timeout: 8000 }
@@ -63,11 +73,15 @@ describe('Auth: Sign In @auth @smoke', () => {
   });
 
   it('has a link to sign-up / create account', () => {
-    cy.contains(/créer un compte|s'inscrire|register|sign up/i).should('be.visible');
+    cy.contains(/créer un compte|s'inscrire|register|sign up/i).should(
+      'be.visible'
+    );
   });
 
   it('has a link to reset password', () => {
-    cy.contains(/mot de passe oublié|forgot|réinitialiser/i).should('be.visible');
+    cy.contains(/mot de passe oublié|forgot|réinitialiser/i).should(
+      'be.visible'
+    );
   });
 
   it('navigates to the app after successful sign-in', () => {
@@ -80,7 +94,9 @@ describe('Auth: Sign In @auth @smoke', () => {
     }
 
     fillSignInForm(email, password);
-    cy.get('button[type="submit"]').contains(/se connecter|sign in/i).click();
+    cy.get('button[type="submit"]')
+      .contains(/se connecter|sign in/i)
+      .click();
 
     cy.url({ timeout: 10000 }).should('not.include', '/auth');
   });
@@ -108,7 +124,9 @@ describe('Auth: Sign Up @auth @regression', () => {
     );
 
     // If there's a password-confirm field, fill it with a different value
-    cy.get('#signup-confirm, [name="confirmPassword"], [placeholder*="confirmer" i]')
+    cy.get(
+      '#signup-confirm, [name="confirmPassword"], [placeholder*="confirmer" i]'
+    )
       .first()
       .then(($el) => {
         if ($el.length) {
@@ -116,9 +134,9 @@ describe('Auth: Sign Up @auth @regression', () => {
           cy.get('button[type="submit"]')
             .contains(/s'inscrire|créer|create|register/i)
             .click();
-          cy.contains(/mot de passe|password|ne correspondent pas|mismatch/i).should(
-            'be.visible'
-          );
+          cy.contains(
+            /mot de passe|password|ne correspondent pas|mismatch/i
+          ).should('be.visible');
         } else {
           cy.log('No confirm-password field found; skipping mismatch test');
         }
@@ -130,8 +148,9 @@ describe('Auth: Sign Up @auth @regression', () => {
     cy.get('button[type="submit"]')
       .contains(/s'inscrire|créer|create|register/i)
       .click();
-    cy.get('[id*="email"]:invalid, [data-testid="email-error"], [role="alert"]')
-      .should('exist');
+    cy.get(
+      '[id*="email"]:invalid, [data-testid="email-error"], [role="alert"]'
+    ).should('exist');
   });
 
   it('shows error for already-registered email', () => {
@@ -146,16 +165,15 @@ describe('Auth: Sign Up @auth @regression', () => {
       .contains(/s'inscrire|créer|create|register/i)
       .click();
 
-    cy.contains(
-      /déjà utilisé|already|exists|email exist|utilisé/i,
-      { timeout: 8000 }
-    ).should('be.visible');
+    cy.contains(/déjà utilisé|already|exists|email exist|utilisé/i, {
+      timeout: 8000,
+    }).should('be.visible');
   });
 
   it('page title or heading indicates the sign-up section', () => {
-    cy.contains(/créer un compte|créer votre compte|inscription|register/i).should(
-      'be.visible'
-    );
+    cy.contains(
+      /créer un compte|créer votre compte|inscription|register/i
+    ).should('be.visible');
   });
 });
 
@@ -168,8 +186,9 @@ describe('Auth: Password Reset @auth @regression', () => {
   });
 
   it('shows a reset password form with an email field', () => {
-    cy.get('input[type="email"], input[id*="reset"], input[id*="email"]')
-      .should('be.visible');
+    cy.get(
+      'input[type="email"], input[id*="reset"], input[id*="email"]'
+    ).should('be.visible');
   });
 
   it('shows success feedback after submitting a valid email', () => {
@@ -192,8 +211,9 @@ describe('Auth: Password Reset @auth @regression', () => {
       .contains(/envoyer|send|réinitialiser|reset/i)
       .click();
 
-    cy.get('input[type="email"]:invalid, [role="alert"], [data-testid*="error"]')
-      .should('exist');
+    cy.get(
+      'input[type="email"]:invalid, [role="alert"], [data-testid*="error"]'
+    ).should('exist');
   });
 
   it('has a link to go back to sign-in', () => {

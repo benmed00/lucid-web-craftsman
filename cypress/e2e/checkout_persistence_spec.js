@@ -45,7 +45,10 @@ describe('Checkout Persistence — Anonymous User', () => {
     cy.get('#firstName').type(testData.firstName);
     cy.get('#lastName').type(testData.lastName);
     cy.get('#email').type(testData.email);
-    cy.get('button').contains(/livraison|shipping/i).first().click();
+    cy.get('button')
+      .contains(/livraison|shipping/i)
+      .first()
+      .click();
 
     cy.get('#address', { timeout: 15000 }).should('be.visible');
     cy.get('#address').type(testData.address);
@@ -65,10 +68,7 @@ describe('Checkout Persistence — Anonymous User', () => {
   it('should clear form fields when localStorage checkout data is removed', () => {
     cy.visit('/checkout');
     cy.window().then((win) => {
-      win.localStorage.setItem(
-        'checkout_form_data',
-        JSON.stringify(testData)
-      );
+      win.localStorage.setItem('checkout_form_data', JSON.stringify(testData));
       win.localStorage.setItem('checkout_timestamp', String(Date.now()));
     });
     cy.reload();

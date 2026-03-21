@@ -11,8 +11,16 @@ const fs = require('fs');
 const path = require('path');
 
 let helmet, rateLimit;
-try { helmet = require('helmet'); } catch { helmet = () => (_req, _res, next) => next(); }
-try { rateLimit = require('express-rate-limit'); } catch { rateLimit = () => (_req, _res, next) => next(); }
+try {
+  helmet = require('helmet');
+} catch {
+  helmet = () => (_req, _res, next) => next();
+}
+try {
+  rateLimit = require('express-rate-limit');
+} catch {
+  rateLimit = () => (_req, _res, next) => next();
+}
 
 // ============================================================================
 // CONFIGURATION
@@ -21,7 +29,9 @@ try { rateLimit = require('express-rate-limit'); } catch { rateLimit = () => (_r
 const CONFIG = {
   port: parseInt(process.env.PORT || '3001', 10),
   env: process.env.NODE_ENV || 'development',
-  corsOrigins: (process.env.CORS_ORIGINS || '*').split(',').map((o) => o.trim()),
+  corsOrigins: (process.env.CORS_ORIGINS || '*')
+    .split(',')
+    .map((o) => o.trim()),
   rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
   rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
   bodyLimit: process.env.BODY_LIMIT || '512kb',
@@ -45,11 +55,14 @@ const startTime = Date.now();
 // UTILITIES
 // ============================================================================
 
-const generateId = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
-const generateRequestId = () => `req_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+const generateId = () =>
+  Date.now().toString(36) + Math.random().toString(36).slice(2);
+const generateRequestId = () =>
+  `req_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
 const LOG_LEVELS = { debug: 0, info: 1, warn: 2, error: 3 };
-const minLevel = CONFIG.env === 'development' ? LOG_LEVELS.debug : LOG_LEVELS.info;
+const minLevel =
+  CONFIG.env === 'development' ? LOG_LEVELS.debug : LOG_LEVELS.info;
 
 const log = (level, message, meta = {}) => {
   if (LOG_LEVELS[level] < minLevel) return;
@@ -68,7 +81,13 @@ const paginate = (arr, page = 1, limit = 10) => {
   const l = Math.min(100, Math.max(1, parseInt(limit, 10) || 10));
   const start = (p - 1) * l;
   const items = arr.slice(start, start + l);
-  return { items, page: p, limit: l, total: arr.length, totalPages: Math.ceil(arr.length / l) };
+  return {
+    items,
+    page: p,
+    limit: l,
+    total: arr.length,
+    totalPages: Math.ceil(arr.length / l),
+  };
 };
 
 const sortArray = (arr, sortBy, order = 'asc') => {
@@ -113,8 +132,7 @@ app.use(
 );
 app.use(
   cors({
-    origin:
-      CONFIG.corsOrigins[0] === '*' ? true : CONFIG.corsOrigins,
+    origin: CONFIG.corsOrigins[0] === '*' ? true : CONFIG.corsOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
@@ -164,7 +182,14 @@ app.get('/', (req, res) => {
     status: 'running',
     docs: '/api/info',
     health: '/health',
-    endpoints: ['/api', '/api/cart', '/api/orders', '/api/newsletter', '/api/contact', '/health'],
+    endpoints: [
+      '/api',
+      '/api/cart',
+      '/api/orders',
+      '/api/newsletter',
+      '/api/contact',
+      '/health',
+    ],
   });
 });
 
@@ -227,13 +252,20 @@ app.post('/api/cart', (req, res) => {
   try {
     const newCart = req.body;
     if (!newCart || typeof newCart !== 'object') {
-      return res.status(400).json({ error: 'Invalid cart format', code: 'VALIDATION_ERROR' });
+      return res
+        .status(400)
+        .json({ error: 'Invalid cart format', code: 'VALIDATION_ERROR' });
     }
     mockCart = newCart;
     res.status(200).json(mockCart);
   } catch (err) {
-    log('error', 'POST /api/cart failed', { requestId: req.id, err: err.message });
-    res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
+    log('error', 'POST /api/cart failed', {
+      requestId: req.id,
+      err: err.message,
+    });
+    res
+      .status(500)
+      .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
   }
 });
 
@@ -250,7 +282,9 @@ app.get('/api/orders', (req, res) => {
     res.status(200).json(out);
   } catch (err) {
     log('error', 'GET /api/orders failed', { requestId: req.id });
-    res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
+    res
+      .status(500)
+      .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
   }
 });
 
@@ -258,7 +292,12 @@ app.post('/api/orders', (req, res) => {
   try {
     const body = req.body;
     if (!body || !body.items || !Array.isArray(body.items)) {
-      return res.status(400).json({ error: 'Invalid order: items array required', code: 'VALIDATION_ERROR' });
+      return res
+        .status(400)
+        .json({
+          error: 'Invalid order: items array required',
+          code: 'VALIDATION_ERROR',
+        });
     }
     const order = {
       ...body,
@@ -271,7 +310,9 @@ app.post('/api/orders', (req, res) => {
     res.status(201).json(order);
   } catch (err) {
     log('error', 'POST /api/orders failed', { requestId: req.id });
-    res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
+    res
+      .status(500)
+      .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
   }
 });
 
@@ -282,8 +323,14 @@ app.post('/api/orders', (req, res) => {
 app.post('/api/newsletter', (req, res) => {
   try {
     const { email } = req.body || {};
-    if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({ error: 'Valid email required', code: 'VALIDATION_ERROR' });
+    if (
+      !email ||
+      typeof email !== 'string' ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
+      return res
+        .status(400)
+        .json({ error: 'Valid email required', code: 'VALIDATION_ERROR' });
     }
     const sub = {
       id: generateId(),
@@ -294,7 +341,9 @@ app.post('/api/newsletter', (req, res) => {
     res.status(201).json({ message: 'Subscribed successfully', id: sub.id });
   } catch (err) {
     log('error', 'POST /api/newsletter failed', { requestId: req.id });
-    res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
+    res
+      .status(500)
+      .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
   }
 });
 
@@ -306,10 +355,17 @@ app.post('/api/contact', (req, res) => {
   try {
     const { name, email, subject, message } = req.body || {};
     if (!email || !message) {
-      return res.status(400).json({ error: 'Email and message required', code: 'VALIDATION_ERROR' });
+      return res
+        .status(400)
+        .json({
+          error: 'Email and message required',
+          code: 'VALIDATION_ERROR',
+        });
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({ error: 'Invalid email', code: 'VALIDATION_ERROR' });
+      return res
+        .status(400)
+        .json({ error: 'Invalid email', code: 'VALIDATION_ERROR' });
     }
     const submission = {
       id: generateId(),
@@ -320,10 +376,14 @@ app.post('/api/contact', (req, res) => {
       createdAt: new Date().toISOString(),
     };
     contactSubmissions.push(submission);
-    res.status(201).json({ message: 'Message sent successfully', id: submission.id });
+    res
+      .status(201)
+      .json({ message: 'Message sent successfully', id: submission.id });
   } catch (err) {
     log('error', 'POST /api/contact failed', { requestId: req.id });
-    res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
+    res
+      .status(500)
+      .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
   }
 });
 
@@ -352,7 +412,9 @@ app.get('/api/products', (req, res) => {
     res.status(200).json(out);
   } catch (err) {
     log('error', 'GET /api/products failed', { requestId: req.id });
-    res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
+    res
+      .status(500)
+      .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
   }
 });
 
@@ -362,10 +424,15 @@ app.get('/api/products/:id', (req, res) => {
     const items = db.products || [];
     const id = parseInt(req.params.id, 10);
     const item = items.find((p) => p.id === id);
-    if (!item) return res.status(404).json({ error: 'Product not found', code: 'NOT_FOUND' });
+    if (!item)
+      return res
+        .status(404)
+        .json({ error: 'Product not found', code: 'NOT_FOUND' });
     res.status(200).json(item);
   } catch (err) {
-    res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
+    res
+      .status(500)
+      .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
   }
 });
 
@@ -374,13 +441,20 @@ app.get('/api/posts', (req, res) => {
     const db = loadDb();
     let items = db.posts || [];
     const { q, _sort, _order, _page, _limit } = req.query;
-    items = filterBySearch(items, q, ['title', 'excerpt', 'author', 'category']);
+    items = filterBySearch(items, q, [
+      'title',
+      'excerpt',
+      'author',
+      'category',
+    ]);
     items = sortArray(items, _sort || 'date', _order || 'desc');
     const out = paginate(items, _page, _limit);
     res.status(200).json(out);
   } catch (err) {
     log('error', 'GET /api/posts failed', { requestId: req.id });
-    res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
+    res
+      .status(500)
+      .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
   }
 });
 
@@ -390,10 +464,15 @@ app.get('/api/posts/:id', (req, res) => {
     const items = db.posts || [];
     const id = parseInt(req.params.id, 10);
     const item = items.find((p) => p.id === id);
-    if (!item) return res.status(404).json({ error: 'Post not found', code: 'NOT_FOUND' });
+    if (!item)
+      return res
+        .status(404)
+        .json({ error: 'Post not found', code: 'NOT_FOUND' });
     res.status(200).json(item);
   } catch (err) {
-    res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
+    res
+      .status(500)
+      .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
   }
 });
 
@@ -409,11 +488,21 @@ app.use('/api', router);
 // ============================================================================
 
 app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found', code: 'NOT_FOUND', path: req.originalUrl });
+  res
+    .status(404)
+    .json({
+      error: 'Route not found',
+      code: 'NOT_FOUND',
+      path: req.originalUrl,
+    });
 });
 
 app.use((err, req, res, next) => {
-  log('error', 'Unexpected error', { requestId: req?.id, err: err?.message, stack: err?.stack });
+  log('error', 'Unexpected error', {
+    requestId: req?.id,
+    err: err?.message,
+    stack: err?.stack,
+  });
   res.status(500).json({
     error: 'Internal server error',
     code: 'INTERNAL_ERROR',

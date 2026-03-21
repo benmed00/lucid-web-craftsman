@@ -52,7 +52,10 @@ export default defineConfig({
       mergeFromProcess('ADMIN_EMAIL', process.env.CYPRESS_ADMIN_EMAIL);
       mergeFromProcess('ADMIN_PASSWORD', process.env.CYPRESS_ADMIN_PASSWORD);
       mergeFromProcess('CUSTOMER_EMAIL', process.env.CYPRESS_CUSTOMER_EMAIL);
-      mergeFromProcess('CUSTOMER_PASSWORD', process.env.CYPRESS_CUSTOMER_PASSWORD);
+      mergeFromProcess(
+        'CUSTOMER_PASSWORD',
+        process.env.CYPRESS_CUSTOMER_PASSWORD
+      );
 
       const { plugin: grepPlugin } = require('@cypress/grep/plugin');
       grepPlugin(config);

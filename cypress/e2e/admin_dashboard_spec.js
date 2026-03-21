@@ -20,6 +20,8 @@ describe('Admin dashboard (authenticated) @regression', () => {
   it('loads the admin dashboard', () => {
     cy.visit('/admin');
     cy.url({ timeout: 15000 }).should('include', '/admin');
-    cy.contains('h1', 'Tableau de bord', { timeout: 25000 }).should('be.visible');
+    cy.contains('h1', 'Tableau de bord', { timeout: 25000 }).should(
+      'be.visible'
+    );
   });
 });
