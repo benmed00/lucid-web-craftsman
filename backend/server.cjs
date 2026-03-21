@@ -292,12 +292,10 @@ app.post('/api/orders', (req, res) => {
   try {
     const body = req.body;
     if (!body || !body.items || !Array.isArray(body.items)) {
-      return res
-        .status(400)
-        .json({
-          error: 'Invalid order: items array required',
-          code: 'VALIDATION_ERROR',
-        });
+      return res.status(400).json({
+        error: 'Invalid order: items array required',
+        code: 'VALIDATION_ERROR',
+      });
     }
     const order = {
       ...body,
@@ -355,12 +353,10 @@ app.post('/api/contact', (req, res) => {
   try {
     const { name, email, subject, message } = req.body || {};
     if (!email || !message) {
-      return res
-        .status(400)
-        .json({
-          error: 'Email and message required',
-          code: 'VALIDATION_ERROR',
-        });
+      return res.status(400).json({
+        error: 'Email and message required',
+        code: 'VALIDATION_ERROR',
+      });
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res
@@ -488,13 +484,11 @@ app.use('/api', router);
 // ============================================================================
 
 app.use((req, res) => {
-  res
-    .status(404)
-    .json({
-      error: 'Route not found',
-      code: 'NOT_FOUND',
-      path: req.originalUrl,
-    });
+  res.status(404).json({
+    error: 'Route not found',
+    code: 'NOT_FOUND',
+    path: req.originalUrl,
+  });
 });
 
 app.use((err, req, res, next) => {
