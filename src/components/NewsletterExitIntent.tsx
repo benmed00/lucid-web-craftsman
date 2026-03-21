@@ -20,6 +20,14 @@ const NewsletterExitIntent = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const shouldSuppress = useCallback(() => {
+    const pathname = window.location.pathname;
+    const isCriticalFlow =
+      pathname.startsWith('/checkout') ||
+      pathname.startsWith('/payment-success') ||
+      pathname.startsWith('/order-confirmation') ||
+      pathname.startsWith('/admin');
+    if (isCriticalFlow) return true;
+
     // Suppress for logged-in users
     if (user) return true;
 

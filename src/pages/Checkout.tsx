@@ -1,4 +1,5 @@
 import { ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -11,9 +12,16 @@ import PaymentStep from '@/components/checkout/PaymentStep';
 import CheckoutOrderSummary from '@/components/checkout/CheckoutOrderSummary';
 
 import { useCheckoutPage } from '@/hooks/useCheckoutPage';
+import { disableServiceWorkerForCriticalFlow } from '@/utils/cacheOptimization';
 
 const Checkout = () => {
   const c = useCheckoutPage();
+
+  useEffect(() => {
+    disableServiceWorkerForCriticalFlow().catch(() => {
+      /* non-blocking */
+    });
+  }, []);
 
   // Empty cart
   if (c.cartItems.length === 0) {
