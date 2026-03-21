@@ -76,6 +76,7 @@ describe.each([
   'security-alert-notification',
   'process-scheduled-emails',
   'carrier-webhook',
+  'order-confirmation-lookup',
 ])('Edge Function: %s', (functionName) => {
   it('should be invokable (returns response, not network error)', async () => {
     if (!isRealSupabase) return;

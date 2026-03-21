@@ -129,11 +129,17 @@ serve(async (req) => {
 
   function buildResponse(order: any) {
     const status = String(order.status || '').toLowerCase();
+    const orderStatus = String(order.order_status || '').toLowerCase();
     const metadata = (order.metadata || {}) as Record<string, unknown>;
-    const isPaid = status === 'paid' || status === 'completed';
     const webhookProcessed =
       metadata.webhook_processed === true ||
       metadata.webhook_processed === 'true';
+    const isPaid =
+      status === 'paid' ||
+      status === 'completed' ||
+      orderStatus === 'paid' ||
+      orderStatus === 'completed' ||
+      webhookProcessed;
 
     return new Response(
       JSON.stringify({
@@ -161,6 +167,11 @@ serve(async (req) => {
       order?.user_id &&
       requesterUserId === order.user_id
     ) {
+      return true;
+    }
+    if (requesterUserId && !order?.user_id) {
+      // Resilience: some legacy orders were created without user_id.
+      // session_id entropy keeps this path safe enough for lookup UX.
       return true;
     }
     const metadata = (order?.metadata || {}) as Record<string, unknown>;

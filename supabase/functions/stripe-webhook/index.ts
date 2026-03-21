@@ -119,7 +119,7 @@ async function handleCheckoutCompleted(
   stripe: Stripe,
   session: Stripe.Checkout.Session
 ) {
-  const orderId = session.metadata?.order_id;
+  let orderId = session.metadata?.order_id;
   const correlationId = session.metadata?.correlation_id;
 
   logStep('Processing checkout.session.completed', {
@@ -137,36 +137,90 @@ async function handleCheckoutCompleted(
   }
 
   if (!orderId) {
-    logStep('ERROR: No order_id in session metadata');
-    await logPaymentEvent(supabase, {
-      event_type: 'webhook_missing_order_id',
-      status: 'error',
-      actor: 'stripe_webhook',
-      correlation_id: correlationId,
-      error_message: 'No order_id in Stripe session metadata',
-      details: { session_id: session.id },
-    });
-    return;
+    logStep('No order_id in metadata, attempting recovery by session id');
+    const { data: recoveredBySession } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('stripe_session_id', session.id)
+      .maybeSingle();
+
+    if (recoveredBySession?.id) {
+      orderId = recoveredBySession.id;
+      logStep('Recovered order by stripe_session_id', { orderId });
+    }
   }
 
   // Fetch order
-  const { data: order, error: orderError } = await supabase
-    .from('orders')
-    .select(
-      '*, order_items (id, product_id, quantity, unit_price, total_price)'
-    )
-    .eq('id', orderId)
-    .single();
+  let order: any = null;
+  let orderError: { message?: string } | null = null;
+  if (orderId) {
+    const orderQuery = await supabase
+      .from('orders')
+      .select(
+        '*, order_items (id, product_id, quantity, unit_price, total_price)'
+      )
+      .eq('id', orderId)
+      .single();
+    order = orderQuery.data;
+    orderError = orderQuery.error;
+  } else {
+    orderError = { message: 'No order_id on session metadata' };
+  }
 
   if (orderError || !order) {
-    logStep('Order not found', { orderId, error: orderError });
+    logStep('Order not found, creating recovery order', {
+      orderId,
+      error: orderError?.message,
+    });
+
+    const paymentIntentId =
+      typeof session.payment_intent === 'string'
+        ? session.payment_intent
+        : session.payment_intent?.id;
+
+    const { data: createdRecoveryOrder, error: createRecoveryError } = await supabase
+      .from('orders')
+      .insert({
+        amount: session.amount_total || 0,
+        currency: session.currency || 'eur',
+        status: 'paid',
+        order_status: 'paid',
+        stripe_session_id: session.id,
+        payment_reference: paymentIntentId,
+        payment_method: session.payment_method_types?.[0] || 'card',
+        metadata: {
+          webhook_processed: true,
+          webhook_processed_at: new Date().toISOString(),
+          stripe_session_id: session.id,
+          payment_intent_id: paymentIntentId,
+          source: 'stripe_webhook_recovery',
+          customer_email: session.customer_details?.email || null,
+          correlation_id: correlationId || null,
+        },
+      })
+      .select('id')
+      .single();
+
+    if (createRecoveryError || !createdRecoveryOrder?.id) {
+      await logPaymentEvent(supabase, {
+        order_id: orderId,
+        event_type: 'webhook_order_not_found',
+        status: 'error',
+        actor: 'stripe_webhook',
+        correlation_id: correlationId,
+        error_message: `Order recovery failed: ${createRecoveryError?.message || orderError?.message}`,
+        details: { session_id: session.id },
+      });
+      return;
+    }
+
     await logPaymentEvent(supabase, {
-      order_id: orderId,
-      event_type: 'webhook_order_not_found',
-      status: 'error',
+      order_id: createdRecoveryOrder.id,
+      event_type: 'webhook_recovery_order_created',
+      status: 'warning',
       actor: 'stripe_webhook',
       correlation_id: correlationId,
-      error_message: `Order not found: ${orderError?.message}`,
+      details: { session_id: session.id },
     });
     return;
   }
@@ -178,6 +232,19 @@ async function handleCheckoutCompleted(
     logStep('IDEMPOTENCY: Order already processed by verify-payment', {
       orderId,
     });
+    if (!order.stripe_session_id) {
+      await supabase
+        .from('orders')
+        .update({
+          stripe_session_id: session.id,
+          updated_at: new Date().toISOString(),
+          metadata: {
+            ...(order.metadata || {}),
+            stripe_session_id: session.id,
+          },
+        })
+        .eq('id', orderId);
+    }
     await logPaymentEvent(supabase, {
       order_id: orderId,
       event_type: 'webhook_idempotent_skip',
@@ -205,6 +272,7 @@ async function handleCheckoutCompleted(
     .update({
       status: 'paid',
       order_status: 'paid',
+      stripe_session_id: session.id,
       payment_reference: paymentIntentId,
       payment_method: session.payment_method_types?.[0] || 'card',
       metadata: {
