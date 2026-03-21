@@ -26,14 +26,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import {
-  Collapsible,
-  CollapsibleContent,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-
-
 
 import { AdvancedFilterOptions } from '@/hooks/useAdvancedProductFilters';
 import { useTranslation } from 'react-i18next';

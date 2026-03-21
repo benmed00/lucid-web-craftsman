@@ -44,13 +44,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { toast } from 'sonner';
-import {
-  Languages,
-  Edit,
-  Check,
-  AlertTriangle,
-  Globe,
-} from 'lucide-react';
+import { Languages, Edit, Check, AlertTriangle, Globe } from 'lucide-react';
 import {
   SUPPORTED_LOCALES,
   SupportedLocale,

@@ -254,12 +254,9 @@ const AdminApiStatus = () => {
     const start = performance.now();
     try {
       // Test a simple edge function call
-      const { error } = await supabase.functions.invoke(
-        'check-promo-alerts',
-        {
-          body: { test: true },
-        }
-      );
+      const { error } = await supabase.functions.invoke('check-promo-alerts', {
+        body: { test: true },
+      });
 
       const responseTime = Math.round(performance.now() - start);
 

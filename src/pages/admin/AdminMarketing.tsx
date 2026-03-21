@@ -19,14 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Mail,
-  Percent,
-  Trash2,
-  Send,
-  Target,
-  TrendingUp,
-} from 'lucide-react';
+import { Mail, Percent, Trash2, Send, Target, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 

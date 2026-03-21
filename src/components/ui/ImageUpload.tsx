@@ -1,13 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Upload,
-  Image as ImageIcon,
-  X,
-  Loader2,
-  Camera,
-} from 'lucide-react';
+import { Upload, Image as ImageIcon, X, Loader2, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 

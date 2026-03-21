@@ -47,9 +47,7 @@ import { ProductRecommendations } from '@/components/ProductRecommendations';
 import { WishlistButton } from '@/components/ui/WishlistButton';
 import { RecentlyViewedProducts } from '@/components/RecentlyViewedProducts';
 import { BackInStockNotification } from '@/components/BackInStockNotification';
-import {
-  TranslationFallbackIndicator,
-} from '@/components/ui/TranslationFallbackIndicator';
+import { TranslationFallbackIndicator } from '@/components/ui/TranslationFallbackIndicator';
 // Services & Hooks
 import { ProductService } from '@/services/productService';
 import { useCart, useCurrency } from '@/stores';
