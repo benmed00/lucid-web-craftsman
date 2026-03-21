@@ -18,7 +18,7 @@ Start the mock API first (`npm run start:api &`), then start the frontend (`npm 
 
 See `package.json` scripts. Highlights:
 
-- **E2E (CI-style):** `npm run e2e:ci` — full suite; **`npm run e2e:ci:smoke`** — only `@smoke`. Both start mock API (3001) + Vite (8080) then Cypress. GitHub **E2E** workflow: **smoke** on PR/push to `main`; **full** `e2e:ci` on weekly **schedule** or **workflow_dispatch** (see [`docs/E2E-COVERAGE.md`](docs/E2E-COVERAGE.md)).
+- **E2E (CI-style):** `npm run e2e:ci` — full suite; **`npm run e2e:ci:smoke`** — only `@smoke`; **`npm run e2e:ci:shard`** — same as `e2e:ci` but runs a slice of spec files (`CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL`, see [`scripts/cypress-e2e-shard.mjs`](scripts/cypress-e2e-shard.mjs)). Smoke/full workflows start mock API (3001) + Vite (8080) then Cypress. GitHub **E2E**: **smoke** on PR/push to `main`; **full** uses **two parallel shard jobs** on schedule/`workflow_dispatch` (see [`docs/E2E-COVERAGE.md`](docs/E2E-COVERAGE.md)).
 - **Typecheck:** `npm run type:check` — `tsc --noEmit` for `tsconfig.app.json`, `tsconfig.node.json`, and `cypress/tsconfig.json` (also runs in `npm run validate`).
 - **Lint:** `npm run lint -- --max-warnings 9999` (0 errors expected; many pre-existing warnings)
 - **Format check:** `npm run format:check`

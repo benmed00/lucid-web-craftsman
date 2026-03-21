@@ -14,6 +14,35 @@ describe('Product reviews section @regression', () => {
   });
 });
 
+describe('Product reviews — logged-in form @regression', () => {
+  before(function () {
+    if (!Cypress.env('CUSTOMER_EMAIL') || !Cypress.env('CUSTOMER_PASSWORD')) {
+      cy.log(
+        'Skipping review form: set CUSTOMER_EMAIL / CUSTOMER_PASSWORD for authenticated UI'
+      );
+      this.skip();
+    }
+  });
+
+  it('opens the leave-review form from the card', () => {
+    cy.loginAs('customer');
+    cy.visit('/products');
+    cy.get('[id^="product-card-"]').first().find('a').first().click();
+    cy.url().should('match', /\/products\/\d+/);
+    cy.contains('h3', 'Avis clients', { timeout: 20000 })
+      .scrollIntoView()
+      .should('be.visible');
+    cy.contains('button', 'Laisser un avis', { timeout: 15000 })
+      .should('be.visible')
+      .click();
+    cy.contains('h4', /Laisser un avis pour/, { timeout: 10000 }).should(
+      'be.visible'
+    );
+    cy.get('#title').should('be.visible');
+    cy.get('#comment').should('be.visible');
+  });
+});
+
 describe('Auth OTP mode UI @regression', () => {
   it('switches to secure code mode and shows OTP entry points', () => {
     cy.visit('/auth');

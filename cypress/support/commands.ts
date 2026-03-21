@@ -79,6 +79,9 @@ Cypress.Commands.add(
         return '**/rest/v1/product_translations*';
       if (p === '/orders') return '**/rest/v1/orders*';
       if (p === '/profiles') return '**/rest/v1/profiles*';
+      if (p === '/product_reviews') return '**/rest/v1/product_reviews*';
+      if (p === '/cart_items') return '**/rest/v1/cart_items*';
+      if (p === '/blog_posts') return '**/rest/v1/blog_posts*';
       if (p === '/app_settings') return '**/rest/v1/app_settings*';
       if (p.startsWith('/rpc/')) return `**/rest/v1${p}*`;
       if (p.startsWith('/functions/')) return `**${p}*`;

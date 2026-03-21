@@ -8,20 +8,21 @@ _Contenu ci-dessous en français — English sections follow._
 
 Ce dossier regroupe les **tests E2E navigateur** (Cypress). La **couverture fonctionnelle**, les limites métier et les scénarios hors périmètre sont décrits dans [`../docs/E2E-COVERAGE.md`](../docs/E2E-COVERAGE.md). Ce README décrit l’**exploitation** : commandes, configuration, CI et bonnes pratiques de sécurité.
 
-| Thème             | Contenu                                                                                                                                                                                                                                                                                     |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Stack locale**  | Mock API **3001** → Vite **8080** (voir [`../AGENTS.md`](../AGENTS.md)).                                                                                                                                                                                                                    |
-| **Configuration** | [`../cypress.config.ts`](../cypress.config.ts), [`../cypress.env.example.json`](../cypress.env.example.json) → `cypress.env.json` (non versionné).                                                                                                                                          |
-| **Tags**          | `@smoke` (CI rapide sur PR), `@regression` (suite élargie), via `@cypress/grep`.                                                                                                                                                                                                            |
-| **CI GitHub**     | **`ci.yml`** : lint, tests unitaires, build (sans Cypress). **`e2e.yml`** : Cypress — **smoke** sur push/PR ou dispatch `suite: smoke` ; **full** sur `schedule` ou dispatch `suite: full` (défaut). Les deux workflows : **concurrence** et **permissions** restreintes (voir runbook EN). |
+| Thème             | Contenu                                                                                                                                                                                                                                                                                                                               |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stack locale**  | Mock API **3001** → Vite **8080** (voir [`../AGENTS.md`](../AGENTS.md)).                                                                                                                                                                                                                                                              |
+| **Configuration** | [`../cypress.config.ts`](../cypress.config.ts), [`../cypress.env.example.json`](../cypress.env.example.json) → `cypress.env.json` (non versionné).                                                                                                                                                                                    |
+| **Tags**          | `@smoke` (CI rapide sur PR), `@regression` (suite élargie), via `@cypress/grep`.                                                                                                                                                                                                                                                      |
+| **CI GitHub**     | **`ci.yml`** : lint, tests unitaires, build (sans Cypress). **`e2e.yml`** : Cypress — **smoke** sur push/PR ou dispatch `suite: smoke` ; **full** sur `schedule` ou dispatch `suite: full` (défaut) en **2 jobs parallèles** (`e2e:ci:shard`). Les deux workflows : **concurrence** et **permissions** restreintes (voir runbook EN). |
 
 **Scripts fréquents** (racine du dépôt) :
 
-| Commande               | Usage                                               |
-| ---------------------- | --------------------------------------------------- |
-| `npm run e2e:ci`       | Lance API mock + Vite + **toute** la suite Cypress. |
-| `npm run e2e:ci:smoke` | Idem, filtré **`@smoke`** (aligné sur la CI PR).    |
-| `npm run e2e:open`     | Mode interactif (serveurs déjà démarrés).           |
+| Commande               | Usage                                                                                                                        |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `npm run e2e:ci`       | Lance API mock + Vite + **toute** la suite Cypress.                                                                          |
+| `npm run e2e:ci:shard` | Comme `e2e:ci`, mais **un sous-ensemble de fichiers** specs (`CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL`) — job **e2e-full** CI. |
+| `npm run e2e:ci:smoke` | Idem, filtré **`@smoke`** (aligné sur la CI PR).                                                                             |
+| `npm run e2e:open`     | Mode interactif (serveurs déjà démarrés).                                                                                    |
 
 **Secrets dépôt (optionnels)** pour limiter les tests ignorés en CI : `CYPRESS_CUSTOMER_EMAIL`, `CYPRESS_CUSTOMER_PASSWORD`, `CYPRESS_ADMIN_EMAIL`, `CYPRESS_ADMIN_PASSWORD` — fusionnés vers `CUSTOMER_*` / `ADMIN_*` dans `Cypress.env()` par `setupNodeEvents` dans `cypress.config.ts`.
 
@@ -88,11 +89,11 @@ When `grep` is set (e.g. `grep=@smoke`), non-matching specs are omitted per `cyp
 1. Copy [`../cypress.env.example.json`](../cypress.env.example.json) to **`cypress.env.json`** at the repository root (file is gitignored).
 2. Set values as required by your scenarios:
 
-   | Key                                    | Purpose                                                                     |
-   | -------------------------------------- | --------------------------------------------------------------------------- |
-   | `CUSTOMER_EMAIL` / `CUSTOMER_PASSWORD` | Supabase test user for customer `cy.loginAs('customer')` and related specs. |
-   | `ADMIN_EMAIL` / `ADMIN_PASSWORD`       | Admin user for admin dashboard specs.                                       |
-   | `DB_RESET_URL` / `DB_RESET_TOKEN`      | Optional server-side reset hook; only used when configured.                 |
+   | Key                                    | Purpose                                                                                       |
+   | -------------------------------------- | --------------------------------------------------------------------------------------------- |
+   | `CUSTOMER_EMAIL` / `CUSTOMER_PASSWORD` | Supabase test user for customer `cy.loginAs('customer')` and related specs.                   |
+   | `ADMIN_EMAIL` / `ADMIN_PASSWORD`       | Admin user for admin dashboard + authenticated admin route smoke (`admin_routes_smoke_spec`). |
+   | `DB_RESET_URL` / `DB_RESET_TOKEN`      | Optional server-side reset hook; only used when configured.                                   |
 
 Never commit `cypress.env.json` or embed production credentials in the repository.
 
@@ -109,14 +110,15 @@ Then run Cypress using the npm scripts below.
 
 Commands are defined in the root [`../package.json`](../package.json). Common entries:
 
-| Script                   | Description                                                 |
-| ------------------------ | ----------------------------------------------------------- |
-| `npm run e2e:open`       | Interactive Cypress UI.                                     |
-| `npm run e2e:run`        | Headless run of all specs (expects app already running).    |
-| `npm run e2e:smoke`      | Headless; only `@smoke` (requires servers running).         |
-| `npm run e2e:regression` | Headless; `@regression` subset.                             |
-| `npm run e2e:ci`         | Starts mock API + Vite, then full `cypress run` (CI-style). |
-| `npm run e2e:ci:smoke`   | Same as `e2e:ci` but filtered to `@smoke`.                  |
+| Script                   | Description                                                                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run e2e:open`       | Interactive Cypress UI.                                                                                                                                       |
+| `npm run e2e:run`        | Headless run of all specs (expects app already running).                                                                                                      |
+| `npm run e2e:smoke`      | Headless; only `@smoke` (requires servers running).                                                                                                           |
+| `npm run e2e:regression` | Headless; `@regression` subset.                                                                                                                               |
+| `npm run e2e:ci`         | Starts mock API + Vite, then full `cypress run` (CI-style).                                                                                                   |
+| `npm run e2e:ci:shard`   | Same stack; runs a **slice of spec files** via `CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL` (see `scripts/cypress-e2e-shard.mjs`). Used by **e2e-full** CI matrix. |
+| `npm run e2e:ci:smoke`   | Same as `e2e:ci` but filtered to `@smoke`.                                                                                                                    |
 
 TypeScript checking for Cypress config and support code is included in root `npm run type:check`.
 
@@ -130,7 +132,7 @@ The E2E workflow runs:
 
 - **Smoke** on pushes and pull requests to the configured default branch: `e2e:ci:smoke`.
 - **Manual `workflow_dispatch`:** choose input **`suite`** — **`smoke`** or **`full`** (default **`full`**).
-- **Full suite** on a weekly **`schedule`**, or when dispatching with **`suite: full`**: `e2e:ci`.
+- **Full suite** on a weekly **`schedule`**, or when dispatching with **`suite: full`**: two parallel jobs run **`e2e:ci:shard`** (spec files split across shards; see `docs/E2E-COVERAGE.md`).
 
 Workflow-level environment variables supply test-safe `VITE_SUPABASE_*` values for the build. Optional **repository secrets** (same semantic keys as local env, prefixed for process injection):
 

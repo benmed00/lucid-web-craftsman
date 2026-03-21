@@ -69,4 +69,12 @@ describe('API Resilience — mocked Supabase errors @regression', () => {
       timeout: 25000,
     }).should('exist');
   });
+
+  it('still renders the reviews block when product_reviews returns 500', () => {
+    cy.mockSupabaseResponse('GET', '/product_reviews', 'error500');
+    cy.visit('/products');
+    cy.get('[id^="product-card-"]').first().find('a').first().click();
+    cy.url().should('match', /\/products\/\d+/);
+    cy.contains('h3', 'Avis clients', { timeout: 20000 }).should('be.visible');
+  });
 });

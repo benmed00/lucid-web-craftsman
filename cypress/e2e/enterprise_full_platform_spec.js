@@ -538,12 +538,8 @@ describe('Enterprise: Loading States @enterprise @regression', () => {
 });
 
 // ─── Redirect: unauthenticated protected routes ─────────────────────────────
+// Note: /admin/* redirects are covered by admin_routes_smoke_spec.js (all menu paths).
 describe('Enterprise: Auth Redirects @enterprise @regression', () => {
-  it('should redirect to admin login when accessing /admin unauthenticated', () => {
-    cy.visit('/admin');
-    cy.url().should('include', '/admin/login');
-  });
-
   it('should show auth page for /profile when not logged in', () => {
     cy.visit('/profile');
     // May redirect to /auth or show login prompt

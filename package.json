@@ -63,6 +63,7 @@
     "e2e:enterprise": "cypress run --spec 'cypress/e2e/enterprise_full_platform_spec.js'",
     "e2e:preview": "cross-env CYPRESS_BASE_URL=https://deploy-preview-4--benyakoub.netlify.app cypress run --spec \"cypress/e2e/enterprise_full_platform_spec.js\"",
     "e2e:ci": "start-server-and-test \"npm run start:api\" http-get://localhost:3001 \"npm run dev\" http-get://localhost:8080 \"cypress run\"",
+    "e2e:ci:shard": "node scripts/cypress-e2e-shard.mjs",
     "e2e:ci:smoke": "start-server-and-test \"npm run start:api\" http-get://localhost:3001 \"npm run dev\" http-get://localhost:8080 \"cypress run --env grep=@smoke\"",
     "type:check": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p cypress/tsconfig.json",
     "browserslist:update": "npm update caniuse-lite browserslist",

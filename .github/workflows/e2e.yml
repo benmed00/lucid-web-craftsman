@@ -69,6 +69,10 @@ jobs:
   e2e-full:
     if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'full')
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v4
 
@@ -81,12 +85,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Optional: enable admin dashboard spec when repo secrets are set (see docs/E2E-COVERAGE.md)
-      - name: Cypress run (full regression)
+      # Sharded across 2 matrix jobs (spec files split in scripts/cypress-e2e-shard.mjs).
+      - name: Cypress run (full regression, shard ${{ matrix.shard }}/2)
         uses: cypress-io/github-action@v6
         with:
-          command: npm run e2e:ci
+          command: npm run e2e:ci:shard
         env:
+          CYPRESS_SHARD: ${{ matrix.shard }}
+          CYPRESS_SHARD_TOTAL: 2
           CYPRESS_ADMIN_EMAIL: ${{ secrets.CYPRESS_ADMIN_EMAIL }}
           CYPRESS_ADMIN_PASSWORD: ${{ secrets.CYPRESS_ADMIN_PASSWORD }}
           CYPRESS_CUSTOMER_EMAIL: ${{ secrets.CYPRESS_CUSTOMER_EMAIL }}
@@ -96,6 +102,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-screenshots-full
+          name: cypress-screenshots-full-shard-${{ matrix.shard }}
           path: cypress/screenshots
           if-no-files-found: ignore
