@@ -48,9 +48,10 @@ const CheckoutProgress = ({
 
         {/* Active track */}
         <div
-          className="absolute top-6 md:top-7 left-[40px] h-[2px] bg-primary transition-all duration-700 ease-out"
+          className="absolute top-6 md:top-7 left-[40px] h-[2px] bg-primary transition-all duration-700 ease-out origin-left"
           style={{
             width: `calc(${progressPercent}% - ${progressPercent > 0 ? '40px' : '0px'})`,
+            transform: `scaleX(${progressPercent > 0 ? 1 : 0})`,
           }}
         />
 
