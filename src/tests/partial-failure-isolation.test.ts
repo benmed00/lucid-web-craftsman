@@ -23,7 +23,12 @@ const createMockSupabaseResponse = (table: string) => {
     // Simulate 500 error for products
     return {
       data: null,
-      error: { message: 'Simulated server error', code: '500', details: '', hint: '' },
+      error: {
+        message: 'Simulated server error',
+        code: '500',
+        details: '',
+        hint: '',
+      },
     };
   }
   if (table === 'artisans') {
@@ -168,11 +173,15 @@ describe('Partial Failure Isolation', () => {
     // Simulate products entering error state
     queryClient.setQueryData(['products', 'fr'], undefined);
     // Manually set error state via fetchQuery pattern
-    const productsCache = queryClient.getQueryCache().find({ queryKey: ['products', 'fr'] });
+    const productsCache = queryClient
+      .getQueryCache()
+      .find({ queryKey: ['products', 'fr'] });
 
     // Set artisans as successful
     queryClient.setQueryData(['artisans', 'fr'], [{ id: '1' }]);
-    const artisansCache = queryClient.getQueryCache().find({ queryKey: ['artisans', 'fr'] });
+    const artisansCache = queryClient
+      .getQueryCache()
+      .find({ queryKey: ['artisans', 'fr'] });
 
     // Verify isolation: artisans cache entry is completely separate
     expect(productsCache).not.toBe(artisansCache);

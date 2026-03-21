@@ -27,10 +27,13 @@ Deno.test('verifyCsrfToken: false when headers incomplete', async () => {
   assertEquals(await verifyCsrfToken('t', '', 'h'), false);
 });
 
-Deno.test('verifyCsrfToken: true when hash matches SHA-256(token:nonce)', async () => {
-  const token = 'csrf';
-  const nonce = 'nonce';
-  const hash = await sha256Hex(`${token}:${nonce}`);
-  assertEquals(await verifyCsrfToken(token, nonce, hash), true);
-  assertEquals(await verifyCsrfToken(token, nonce, 'deadbeef'), false);
-});
+Deno.test(
+  'verifyCsrfToken: true when hash matches SHA-256(token:nonce)',
+  async () => {
+    const token = 'csrf';
+    const nonce = 'nonce';
+    const hash = await sha256Hex(`${token}:${nonce}`);
+    assertEquals(await verifyCsrfToken(token, nonce, hash), true);
+    assertEquals(await verifyCsrfToken(token, nonce, 'deadbeef'), false);
+  }
+);

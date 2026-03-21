@@ -3,9 +3,10 @@ import { SHIPPING_COST_CENTS, STRIPE_MINIMUM_CENTS } from '../constants.ts';
 import type { CheckoutSessionLineItem, VerifiedCartItem } from '../types.ts';
 import type { LogStep } from './log.ts';
 
-export function subtotalFromVerifiedItems(
-  verifiedItems: VerifiedCartItem[]
-): { subtotalEuros: number; subtotalCents: number } {
+export function subtotalFromVerifiedItems(verifiedItems: VerifiedCartItem[]): {
+  subtotalEuros: number;
+  subtotalCents: number;
+} {
   const subtotalEuros: number = verifiedItems.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0

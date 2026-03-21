@@ -22,9 +22,7 @@ export function isCouponWithinDateRange(
   const validUntil: Date | null = coupon.valid_until
     ? new Date(coupon.valid_until)
     : null;
-  return (
-    (!validFrom || now >= validFrom) && (!validUntil || now <= validUntil)
-  );
+  return (!validFrom || now >= validFrom) && (!validUntil || now <= validUntil);
 }
 
 export function hasCouponUsageRemaining(
@@ -44,10 +42,7 @@ export function meetsCouponMinimumOrder(
 
 /** Percentage applies to subtotal (euros); fixed `value` is euros → returned cents. */
 export function computeDiscountAmountCents(
-  coupon: Pick<
-    DiscountCouponRow,
-    'type' | 'value' | 'maximum_discount_amount'
-  >,
+  coupon: Pick<DiscountCouponRow, 'type' | 'value' | 'maximum_discount_amount'>,
   subtotalEuros: number
 ): number {
   if (coupon.type === 'percentage') {

@@ -1,7 +1,10 @@
 import { Pencil, User, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
-import { isValidPersonalInfo, isValidShippingInfo } from '@/utils/checkoutSessionValidation';
+import {
+  isValidPersonalInfo,
+  isValidShippingInfo,
+} from '@/utils/checkoutSessionValidation';
 
 interface CustomerData {
   firstName: string;
@@ -42,8 +45,10 @@ const StepSummary = ({
   const { t } = useTranslation('checkout');
 
   // Validate data before displaying — never show empty/placeholder summaries
-  const hasValidCustomer = step >= 2 && customerData && isValidPersonalInfo(customerData);
-  const hasValidShipping = step >= 3 && shippingData && isValidShippingInfo(shippingData);
+  const hasValidCustomer =
+    step >= 2 && customerData && isValidPersonalInfo(customerData);
+  const hasValidShipping =
+    step >= 3 && shippingData && isValidShippingInfo(shippingData);
 
   if (!hasValidCustomer && !hasValidShipping) {
     return null;

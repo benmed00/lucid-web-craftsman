@@ -1,10 +1,7 @@
 import { assertEquals, assertThrows } from '@std/assert';
 
 import type { CheckoutCartItem, DbProductRow } from '../types.ts';
-import {
-  buildVerifiedCartItems,
-  collectProductIds,
-} from './verified-cart.ts';
+import { buildVerifiedCartItems, collectProductIds } from './verified-cart.ts';
 import type { LogStep } from './log.ts';
 
 const noopLog: LogStep = () => {};
@@ -18,7 +15,9 @@ Deno.test('collectProductIds: filters non-finite', () => {
 });
 
 Deno.test('buildVerifiedCartItems: maps DB row to VerifiedCartItem', () => {
-  const cart: CheckoutCartItem[] = [{ product: { id: 10, price: 9.99 }, quantity: 2 }];
+  const cart: CheckoutCartItem[] = [
+    { product: { id: 10, price: 9.99 }, quantity: 2 },
+  ];
   const rows: DbProductRow[] = [
     {
       id: 10,

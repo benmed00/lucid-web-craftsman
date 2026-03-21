@@ -2,7 +2,11 @@ import { serve } from '@std/http/server';
 import Stripe from 'stripe';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-import { corsHeaders, getValidOrigin, RATE_LIMIT_WINDOW_MS } from './constants.ts';
+import {
+  corsHeaders,
+  getValidOrigin,
+  RATE_LIMIT_WINDOW_MS,
+} from './constants.ts';
 import {
   buildStripeCheckoutLineItems,
   capDiscountForStripeMinimum,
@@ -147,8 +151,12 @@ serve(async (req) => {
     logStep('CSRF verification passed');
 
     const checkoutPayload = parseCheckoutRequestBody(await req.json());
-    const { items: cartItems, customerInfo, discount, guestSession } =
-      checkoutPayload;
+    const {
+      items: cartItems,
+      customerInfo,
+      discount,
+      guestSession,
+    } = checkoutPayload;
 
     const guestMetadata: GuestMetadata | null = guestSession
       ? {
@@ -195,16 +203,13 @@ serve(async (req) => {
     // ========================================================================
     // DISCOUNT VERIFICATION — server-side coupon validation
     // ========================================================================
-    let {
-      discountAmountCents,
-      hasFreeShipping,
-      verifiedDiscountCode,
-    } = await resolveServerDiscount(
-      supabaseService,
-      verifiedItems,
-      discount,
-      logStep
-    );
+    let { discountAmountCents, hasFreeShipping, verifiedDiscountCode } =
+      await resolveServerDiscount(
+        supabaseService,
+        verifiedItems,
+        discount,
+        logStep
+      );
 
     // ========================================================================
     // AMOUNT CALCULATION (all amounts in CENTS for Stripe)

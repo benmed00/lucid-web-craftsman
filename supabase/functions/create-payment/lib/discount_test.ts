@@ -44,7 +44,10 @@ Deno.test('meetsCouponMinimumOrder', () => {
     meetsCouponMinimumOrder({ minimum_order_amount: null }, 1),
     true
   );
-  assertEquals(meetsCouponMinimumOrder({ minimum_order_amount: 50 }, 49), false);
+  assertEquals(
+    meetsCouponMinimumOrder({ minimum_order_amount: 50 }, 49),
+    false
+  );
   assertEquals(meetsCouponMinimumOrder({ minimum_order_amount: 50 }, 50), true);
 });
 
@@ -56,13 +59,16 @@ Deno.test('computeDiscountAmountCents: percentage', () => {
   assertEquals(cents, 1000);
 });
 
-Deno.test('computeDiscountAmountCents: percentage capped by maximum_discount_amount', () => {
-  const cents = computeDiscountAmountCents(
-    { type: 'percentage', value: 50, maximum_discount_amount: 5 },
-    100
-  );
-  assertEquals(cents, 500);
-});
+Deno.test(
+  'computeDiscountAmountCents: percentage capped by maximum_discount_amount',
+  () => {
+    const cents = computeDiscountAmountCents(
+      { type: 'percentage', value: 50, maximum_discount_amount: 5 },
+      100
+    );
+    assertEquals(cents, 500);
+  }
+);
 
 Deno.test('computeDiscountAmountCents: fixed euros to cents', () => {
   const cents = computeDiscountAmountCents(

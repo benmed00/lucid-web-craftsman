@@ -23,13 +23,12 @@ export async function fetchProductsForCart(
   productIds: number[],
   log: LogStep
 ): Promise<DbProductRow[]> {
-  const productsQuery: SupabaseListResult<DbProductRow[]> =
-    (await supabase
-      .from('products')
-      .select(
-        'id, name, price, stock_quantity, is_active, is_available, images, description'
-      )
-      .in('id', productIds)) as SupabaseListResult<DbProductRow[]>;
+  const productsQuery: SupabaseListResult<DbProductRow[]> = (await supabase
+    .from('products')
+    .select(
+      'id, name, price, stock_quantity, is_active, is_available, images, description'
+    )
+    .in('id', productIds)) as SupabaseListResult<DbProductRow[]>;
 
   if (productsQuery.error || !productsQuery.data) {
     log('Error fetching products', productsQuery.error);
@@ -52,9 +51,7 @@ export function buildVerifiedCartItems(
   const verifiedItems: VerifiedCartItem[] = [];
 
   for (const item of cartItems) {
-    const dbProduct: DbProductRow | undefined = productMap.get(
-      item.product.id
-    );
+    const dbProduct: DbProductRow | undefined = productMap.get(item.product.id);
     if (!dbProduct) {
       throw new Error(`Produit introuvable: ${item.product.id}`);
     }

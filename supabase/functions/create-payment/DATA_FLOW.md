@@ -25,14 +25,14 @@ sequenceDiagram
 
 ## Data transfer: wire → domain → persistence
 
-| Stage | Shape | Notes |
-|--------|--------|--------|
-| HTTP body | `unknown` | Parsed immediately; never trusted for prices. |
-| After Zod | `ParsedCheckoutRequest` | Top-level unknown keys stripped; `items` strict; nested objects `.passthrough()`. |
-| Cart verification | `VerifiedCartItem[]` | Prices/names from `products` table; client `product.price` only logged if mismatched. |
-| Stripe | `CheckoutSessionLineItem[]` | `unit_amount` in **cents**; proportional discount per line; shipping line if not free. |
-| Order row | `orders` insert | `amount` = **total cents**; `shipping_address` = `ShippingAddressPayload \| null`. |
-| Line snapshots | `order_items` | `OrderItemInsert` includes `product_snapshot` JSON from `VerifiedProductSnapshot`. |
+| Stage             | Shape                       | Notes                                                                                  |
+| ----------------- | --------------------------- | -------------------------------------------------------------------------------------- |
+| HTTP body         | `unknown`                   | Parsed immediately; never trusted for prices.                                          |
+| After Zod         | `ParsedCheckoutRequest`     | Top-level unknown keys stripped; `items` strict; nested objects `.passthrough()`.      |
+| Cart verification | `VerifiedCartItem[]`        | Prices/names from `products` table; client `product.price` only logged if mismatched.  |
+| Stripe            | `CheckoutSessionLineItem[]` | `unit_amount` in **cents**; proportional discount per line; shipping line if not free. |
+| Order row         | `orders` insert             | `amount` = **total cents**; `shipping_address` = `ShippingAddressPayload \| null`.     |
+| Line snapshots    | `order_items`               | `OrderItemInsert` includes `product_snapshot` JSON from `VerifiedProductSnapshot`.     |
 
 ## Type synergy
 
@@ -43,14 +43,14 @@ sequenceDiagram
 
 ## Error management
 
-| Layer | Mechanism | HTTP |
-|--------|-----------|------|
-| Rate limit | `checkRateLimit` | **429** + French message (not JSON `error_type`). |
-| CSRF | Missing/invalid headers | **403** |
-| Body schema | `parseCheckoutRequestBody` throws `CHECKOUT_VALIDATION_ERROR_PREFIX …` | **422** via `isClientFacingValidationError` |
-| Email | `isValidEmail` | **422** (`Invalid` substring) |
-| Stock / product | French messages (`introuvable`, etc.) | **422** |
-| DB / Stripe / other | `catch` | **500**, `error_type: internal` |
+| Layer               | Mechanism                                                              | HTTP                                              |
+| ------------------- | ---------------------------------------------------------------------- | ------------------------------------------------- |
+| Rate limit          | `checkRateLimit`                                                       | **429** + French message (not JSON `error_type`). |
+| CSRF                | Missing/invalid headers                                                | **403**                                           |
+| Body schema         | `parseCheckoutRequestBody` throws `CHECKOUT_VALIDATION_ERROR_PREFIX …` | **422** via `isClientFacingValidationError`       |
+| Email               | `isValidEmail`                                                         | **422** (`Invalid` substring)                     |
+| Stock / product     | French messages (`introuvable`, etc.)                                  | **422**                                           |
+| DB / Stripe / other | `catch`                                                                | **500**, `error_type: internal`                   |
 
 Central mapping: `lib/errors.ts` (`messageFromUnknownError`, `isClientFacingValidationError`). Payment failures are logged with `createPaymentEventLogger` (`payment_initiation_failed`).
 

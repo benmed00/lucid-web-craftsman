@@ -49,8 +49,9 @@ export async function fetchVipThresholdCents(
     businessRulesResult.data;
 
   const businessRules: BusinessRulesSettingJson =
-    (businessRulesData?.setting_value as BusinessRulesSettingJson | undefined) ||
-    {};
+    (businessRulesData?.setting_value as
+      | BusinessRulesSettingJson
+      | undefined) || {};
   return (businessRules.cart?.highValueThreshold || 1000) * 100;
 }
 
@@ -83,21 +84,20 @@ export async function insertPaymentPendingOrder(
   },
   log: LogStep
 ): Promise<OrderRow> {
-  const orderInsertResult: PostgrestSingleResponse<OrderRow> =
-    (await supabase
-      .from('orders')
-      .insert({
-        user_id: params.userId,
-        amount: params.totalAmountCents,
-        currency: 'eur',
-        status: 'pending',
-        order_status: 'payment_pending',
-        shipping_address: params.shippingAddress,
-        billing_address: params.shippingAddress,
-        metadata: params.metadata,
-      })
-      .select('*')
-      .single()) as PostgrestSingleResponse<OrderRow>;
+  const orderInsertResult: PostgrestSingleResponse<OrderRow> = (await supabase
+    .from('orders')
+    .insert({
+      user_id: params.userId,
+      amount: params.totalAmountCents,
+      currency: 'eur',
+      status: 'pending',
+      order_status: 'payment_pending',
+      shipping_address: params.shippingAddress,
+      billing_address: params.shippingAddress,
+      metadata: params.metadata,
+    })
+    .select('*')
+    .single()) as PostgrestSingleResponse<OrderRow>;
   const orderError: PostgrestError | null = orderInsertResult.error;
 
   if (orderError) {
@@ -113,8 +113,9 @@ export async function insertOrderLineItems(
   orderItems: OrderItemInsert[],
   log: LogStep
 ): Promise<void> {
-  const orderItemsInsertResult: SupabaseMutationResult =
-    (await supabase.from('order_items').insert(orderItems)) as SupabaseMutationResult;
+  const orderItemsInsertResult: SupabaseMutationResult = (await supabase
+    .from('order_items')
+    .insert(orderItems)) as SupabaseMutationResult;
   const itemsError: PostgrestError | null = orderItemsInsertResult.error;
 
   if (itemsError) {

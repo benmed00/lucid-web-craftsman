@@ -1,6 +1,9 @@
 import { assertEquals, assertThrows } from '@std/assert';
 
-import { CHECKOUT_VALIDATION_ERROR_PREFIX, MAX_CART_ITEMS } from '../constants.ts';
+import {
+  CHECKOUT_VALIDATION_ERROR_PREFIX,
+  MAX_CART_ITEMS,
+} from '../constants.ts';
 import { parseCheckoutRequestBody } from './checkout-schema.ts';
 
 Deno.test('parseCheckoutRequestBody: accepts minimal valid payload', () => {
@@ -12,13 +15,16 @@ Deno.test('parseCheckoutRequestBody: accepts minimal valid payload', () => {
   assertEquals(parsed.items[0].quantity, 2);
 });
 
-Deno.test('parseCheckoutRequestBody: coerces string product id and quantity', () => {
-  const parsed = parseCheckoutRequestBody({
-    items: [{ product: { id: '42' }, quantity: '3' }],
-  });
-  assertEquals(parsed.items[0].product.id, 42);
-  assertEquals(parsed.items[0].quantity, 3);
-});
+Deno.test(
+  'parseCheckoutRequestBody: coerces string product id and quantity',
+  () => {
+    const parsed = parseCheckoutRequestBody({
+      items: [{ product: { id: '42' }, quantity: '3' }],
+    });
+    assertEquals(parsed.items[0].product.id, 42);
+    assertEquals(parsed.items[0].quantity, 3);
+  }
+);
 
 Deno.test('parseCheckoutRequestBody: strips unknown top-level keys', () => {
   const parsed = parseCheckoutRequestBody({
@@ -28,16 +34,19 @@ Deno.test('parseCheckoutRequestBody: strips unknown top-level keys', () => {
   assertEquals('evil' in parsed, false);
 });
 
-Deno.test('parseCheckoutRequestBody: passthrough nested customer fields', () => {
-  const parsed = parseCheckoutRequestBody({
-    items: [{ product: { id: 1 }, quantity: 1 }],
-    customerInfo: { firstName: 'A', futureField: 1 },
-  } as Record<string, unknown>);
-  assertEquals(
-    (parsed.customerInfo as Record<string, unknown>).futureField,
-    1
-  );
-});
+Deno.test(
+  'parseCheckoutRequestBody: passthrough nested customer fields',
+  () => {
+    const parsed = parseCheckoutRequestBody({
+      items: [{ product: { id: 1 }, quantity: 1 }],
+      customerInfo: { firstName: 'A', futureField: 1 },
+    } as Record<string, unknown>);
+    assertEquals(
+      (parsed.customerInfo as Record<string, unknown>).futureField,
+      1
+    );
+  }
+);
 
 Deno.test('parseCheckoutRequestBody: rejects empty items', () => {
   assertThrows(
