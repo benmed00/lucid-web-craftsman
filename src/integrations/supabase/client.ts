@@ -79,10 +79,14 @@ const getGuestId = (): string => {
 
 function createDynamicFetch(options: {
   timeoutMs: number;
-  clearAuthOn401?: boolean;
-  retryOnceAfter401?: boolean;
+  clearAuthOnAuthError?: boolean;
+  retryOnceAfterAuthError?: boolean;
 }) {
-  const { timeoutMs, clearAuthOn401 = false, retryOnceAfter401 = false } =
+  const {
+    timeoutMs,
+    clearAuthOnAuthError = false,
+    retryOnceAfterAuthError = false,
+  } =
     options;
 
   const doFetch = async (
@@ -124,13 +128,18 @@ function createDynamicFetch(options: {
       clearTimeout(timeoutId);
       console.info(`[SupabaseFetch] ← ${response.status} ${shortUrl}`);
 
-      if ((response.status === 401 || response.status === 403) && clearAuthOn401) {
+      if (
+        (response.status === 401 || response.status === 403) &&
+        clearAuthOnAuthError
+      ) {
         console.warn(
           `[SupabaseFetch] ${response.status} detected — clearing stale auth tokens`
         );
         clearSupabaseAuthStorage();
 
-        if (retryOnceAfter401 && !hasRetried) {
+        // Retry once after cleanup to avoid forcing the user into a manual reload.
+        // hasRetried guards against loops when the server keeps rejecting.
+        if (retryOnceAfterAuthError && !hasRetried) {
           console.warn(
             '[SupabaseFetch] Retrying request once after auth storage cleanup'
           );
@@ -165,8 +174,8 @@ export const supabase = createClient<Database>(
       // Auth-aware client: handles stale JWT poisoning and retries once after cleanup.
       fetch: createDynamicFetch({
         timeoutMs: 15_000,
-        clearAuthOn401: true,
-        retryOnceAfter401: true,
+        clearAuthOnAuthError: true,
+        retryOnceAfterAuthError: true,
       }),
     },
     realtime: {
@@ -194,8 +203,8 @@ export const supabasePublic = createClient<Database>(
     global: {
       fetch: createDynamicFetch({
         timeoutMs: 10_000,
-        clearAuthOn401: false,
-        retryOnceAfter401: false,
+        clearAuthOnAuthError: false,
+        retryOnceAfterAuthError: false,
       }),
     },
   }

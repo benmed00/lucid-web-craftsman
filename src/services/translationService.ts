@@ -16,6 +16,13 @@
 import { supabasePublic } from '@/integrations/supabase/client';
 import i18n from '@/i18n';
 
+const isDebugLoggingEnabled = import.meta.env.DEV;
+const logDebug = (...args: unknown[]) => {
+  if (isDebugLoggingEnabled) {
+    console.info(...args);
+  }
+};
+
 // Supported locales
 export type SupportedLocale = 'fr' | 'en' | 'ar' | 'es' | 'de';
 export const DEFAULT_LOCALE: SupportedLocale = 'fr';
@@ -44,7 +51,7 @@ async function safeQuery<T>(
   label: string
 ): Promise<{ data: T | null; error: unknown }> {
   const start = performance.now();
-  console.info(`[safeQuery] ⏳ ${label} — starting…`);
+  logDebug(`[safeQuery] ⏳ ${label} — starting…`);
   try {
     // Hard timeout at service layer so UI never waits indefinitely.
     const timeoutMs = 8000;
@@ -79,7 +86,7 @@ async function safeQuery<T>(
         result.error
       );
     } else {
-      console.info(`[safeQuery] ✅ ${label} → ${size} rows in ${elapsed}ms`);
+      logDebug(`[safeQuery] ✅ ${label} → ${size} rows in ${elapsed}ms`);
     }
     return result;
   } catch (err) {
@@ -263,7 +270,7 @@ export async function getProductWithTranslation(
     return null;
   }
 
-  console.info(
+  logDebug(
     `[TranslationService] getProductWithTranslation(${productId}) → ${Math.round(performance.now() - startMs)}ms`
   );
 
@@ -285,7 +292,7 @@ export async function getProductWithTranslation(
 export async function getProductsWithTranslations(
   locale: SupportedLocale = getCurrentLocale()
 ): Promise<ProductWithTranslation[]> {
-  console.info(
+  logDebug(
     '[TranslationService] getProductsWithTranslations CALLED, locale:',
     locale
   );
@@ -327,7 +334,7 @@ export async function getProductsWithTranslations(
   }
 
   const elapsed = Math.round(performance.now() - startMs);
-  console.info(
+  logDebug(
     `[TranslationService] getProductsWithTranslations(${locale}) → ${(products as unknown[]).length} products in ${elapsed}ms (1 query, joined)`
   );
 
@@ -534,12 +541,12 @@ export async function getBlogPostsWithTranslations(
   }
 
   if ((posts as unknown[]).length === 0) {
-    console.info('[TranslationService] No published blog posts found');
+    logDebug('[TranslationService] No published blog posts found');
     return [];
   }
 
   const elapsed = Math.round(performance.now() - startMs);
-  console.info(
+  logDebug(
     `[TranslationService] getBlogPostsWithTranslations(${locale}) → ${(posts as unknown[]).length} posts in ${elapsed}ms (1 query, joined)`
   );
 
