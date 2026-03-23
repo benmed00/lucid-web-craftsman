@@ -689,7 +689,7 @@ const PaymentSuccess = () => {
               </>
             ) : verificationResult?.success ? (
               <>
-                <CheckCircle className="w-20 h-20 text-green-600 dark:text-green-400 mx-auto mb-4" />
+                <CheckCircle className="w-20 h-20 text-primary mx-auto mb-4" />
                 <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
                   {t('pages:paymentSuccess.success.title')}
                 </h1>
