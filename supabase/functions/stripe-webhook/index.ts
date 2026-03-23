@@ -205,6 +205,7 @@ async function handleCheckoutCompleted(
     .update({
       status: 'paid',
       order_status: 'paid',
+      stripe_session_id: session.id,
       payment_reference: paymentIntentId,
       payment_method: session.payment_method_types?.[0] || 'card',
       metadata: {

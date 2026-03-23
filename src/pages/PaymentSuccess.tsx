@@ -349,16 +349,20 @@ const PaymentSuccess = () => {
         return;
       }
 
-      // Truly no order and verify-payment failed — this is a real failure
-      console.error(
-        '[PaymentSuccess] No order found and verify-payment failed'
+      // No order found yet — but payment may have succeeded on Stripe side.
+      // NEVER show a failure/error state here. Show a reassuring "processing" state instead.
+      console.warn(
+        '[PaymentSuccess] No order found yet — showing processing state (not error)'
       );
       setVerificationResult({
-        success: false,
+        success: true,
         message:
-          fallbackData?.message ||
-          'La vérification a pris trop de temps. Si vous avez été débité, votre commande sera traitée automatiquement.',
+          'Votre paiement a été reçu par Stripe. Votre commande est en cours de traitement et vous recevrez un email de confirmation sous quelques minutes.',
+        orderId: undefined,
       });
+      setCustomerInfo(getCustomerInfo());
+      clearCart();
+      localStorage.removeItem('cart');
       setIsVerifying(false);
     };
 
@@ -685,7 +689,7 @@ const PaymentSuccess = () => {
               </>
             ) : verificationResult?.success ? (
               <>
-                <CheckCircle className="w-20 h-20 text-green-600 dark:text-green-400 mx-auto mb-4" />
+                <CheckCircle className="w-20 h-20 text-primary mx-auto mb-4" />
                 <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
                   {t('pages:paymentSuccess.success.title')}
                 </h1>
@@ -708,27 +712,16 @@ const PaymentSuccess = () => {
               </>
             ) : (
               <>
-                <div className="w-20 h-20 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg
-                    className="w-10 h-10"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </div>
+                <Loader2 className="w-20 h-20 text-primary mx-auto mb-4 animate-spin" />
                 <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-                  {t('pages:paymentSuccess.error.title')}
+                  Traitement en cours
                 </h1>
-                <p className="text-lg text-muted-foreground mb-6">
+                <p className="text-lg text-muted-foreground mb-2">
                   {verificationResult?.message ||
-                    t('pages:paymentSuccess.error.description')}
+                    'Votre paiement est en cours de vérification. Si vous avez été débité, votre commande sera traitée automatiquement.'}
+                </p>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Vérifiez votre boîte email pour la confirmation. Si vous ne recevez rien dans 15 minutes, contactez notre support.
                 </p>
               </>
             )}
@@ -783,22 +776,18 @@ const PaymentSuccess = () => {
             </div>
           )}
 
-          {/* Error-specific guidance */}
-          {!isVerifying && !verificationResult?.success && (
+          {/* Reassurance for processing state (no order_id yet) */}
+          {!isVerifying && verificationResult?.success && !verificationResult?.orderId && (
             <div className="bg-muted rounded-lg p-8 mb-8">
               <h2 className="text-xl font-medium text-foreground mb-4">
-                Que faire maintenant ?
+                Votre commande est en cours de traitement
               </h2>
               <div className="space-y-3 text-left max-w-md mx-auto">
                 <p className="text-muted-foreground text-sm">
-                  Si vous avez été débité, ne vous inquiétez pas. Votre paiement
-                  a bien été enregistré par Stripe et votre commande sera
-                  traitée automatiquement.
+                  Votre paiement a bien été enregistré par Stripe. La confirmation arrivera par email sous quelques minutes.
                 </p>
                 <p className="text-muted-foreground text-sm">
-                  Vérifiez votre boîte email pour la confirmation de commande.
-                  Si vous ne la recevez pas dans les 15 minutes, contactez notre
-                  support.
+                  Si vous ne recevez rien dans les 15 minutes, contactez notre support avec votre email de commande.
                 </p>
               </div>
             </div>

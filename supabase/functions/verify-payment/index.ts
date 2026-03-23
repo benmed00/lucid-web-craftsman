@@ -390,6 +390,7 @@ serve(async (req) => {
       .update({
         status: 'paid',
         order_status: 'paid',
+        stripe_session_id: session_id,
         payment_reference: paymentIntentId,
         payment_method: session.payment_method_types?.[0] || 'card',
         metadata: {
@@ -398,6 +399,7 @@ serve(async (req) => {
           verified_at: new Date().toISOString(),
           correlation_id: correlationId,
           payment_intent_id: paymentIntentId,
+          stripe_session_id: session_id,
         },
         updated_at: new Date().toISOString(),
       })
