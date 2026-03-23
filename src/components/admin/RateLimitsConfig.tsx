@@ -27,7 +27,17 @@ import {
   Loader2,
   Shield,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchAppSettingIdValueMaybe,
+  fetchAppSettingValueByKey,
+  insertAppSettingRows,
+  updateAppSettingByKey,
+} from '@/services/appSettingsApi';
+import {
+  deleteRateLimitEntriesBeforeWindowStart,
+  fetchRateLimitEntries,
+} from '@/services/rateLimitsApi';
+import type { Json } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 
 interface RateLimitEntry {
@@ -89,13 +99,7 @@ export const RateLimitsConfig: React.FC = () => {
   const fetchRateLimits = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('rate_limits')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
+      const data = await fetchRateLimitEntries(100);
       setEntries((data || []) as RateLimitEntry[]);
     } catch (error) {
       console.error('Error fetching rate limits:', error);
@@ -112,15 +116,10 @@ export const RateLimitsConfig: React.FC = () => {
 
   const loadConfigs = async () => {
     try {
-      const { data, error } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'rate_limits_config')
-        .maybeSingle();
+      const raw = await fetchAppSettingValueByKey('rate_limits_config');
 
-      if (!error && data?.setting_value) {
-        const storedConfigs =
-          data.setting_value as unknown as RateLimitConfig[];
+      if (raw) {
+        const storedConfigs = raw as unknown as RateLimitConfig[];
         if (Array.isArray(storedConfigs) && storedConfigs.length > 0) {
           setConfigs(storedConfigs);
         }
@@ -133,35 +132,23 @@ export const RateLimitsConfig: React.FC = () => {
   const saveConfigs = async () => {
     setSaving(true);
     try {
-      // First try to update existing
-      const { data: existing } = await supabase
-        .from('app_settings')
-        .select('id')
-        .eq('setting_key', 'rate_limits_config')
-        .maybeSingle();
+      const existing = await fetchAppSettingIdValueMaybe('rate_limits_config');
 
-      const configsJson = JSON.parse(JSON.stringify(configs));
+      const configsJson = JSON.parse(JSON.stringify(configs)) as Json;
 
-      if (existing) {
-        const { error } = await supabase
-          .from('app_settings')
-          .update({
-            setting_value: configsJson,
-            description: 'Configuration des limites de taux',
-          })
-          .eq('setting_key', 'rate_limits_config');
-
-        if (error) throw error;
+      if (existing?.id) {
+        await updateAppSettingByKey('rate_limits_config', {
+          setting_value: configsJson,
+          description: 'Configuration des limites de taux',
+        });
       } else {
-        const { error } = await supabase.from('app_settings').insert([
+        await insertAppSettingRows([
           {
             setting_key: 'rate_limits_config',
             setting_value: configsJson,
             description: 'Configuration des limites de taux',
           },
         ]);
-
-        if (error) throw error;
       }
 
       toast.success('Configuration sauvegardée');
@@ -177,12 +164,7 @@ export const RateLimitsConfig: React.FC = () => {
     try {
       // Delete entries older than 24 hours
       const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const { error } = await supabase
-        .from('rate_limits')
-        .delete()
-        .lt('window_start', cutoff);
-
-      if (error) throw error;
+      await deleteRateLimitEntriesBeforeWindowStart(cutoff);
       toast.success('Anciennes entrées supprimées');
       fetchRateLimits();
     } catch (error) {

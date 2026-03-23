@@ -13,6 +13,8 @@ This folder holds **maintained** technical documentation for the Rif Raw Straw s
 - Local dev and AI agent shortcuts: [AGENTS.md](../AGENTS.md) (repo root)
 - Cypress: [cypress/README.md](../cypress/README.md)
 - Mock API in dev: [backend/README.md](../backend/README.md)
+- `package.json` automation: [scripts/README.md](../scripts/README.md)
+- Supabase (migrations + config + functions): [supabase/README.md](../supabase/README.md)
 
 **Supabase / payments (deep dives)** remain with the code:
 
@@ -34,13 +36,13 @@ This folder holds **maintained** technical documentation for the Rif Raw Straw s
 
 ## Keeping docs accurate
 
-| Change                                      | Update                                                                                                                                                          |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| New or renamed **React routes**             | [`src/App.tsx`](../src/App.tsx) first, then the **Route inventory** in [PLATFORM.md](./PLATFORM.md).                                                            |
-| **Checkout / payment / isolation** behavior | [PLATFORM.md](./PLATFORM.md) (SPA); Edge payload flow in [`supabase/functions/create-payment/DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md). |
-| New **npm script** or CI gate               | [AGENTS.md](../AGENTS.md) and, if it is a standard developers must follow, [STANDARDS.md](./STANDARDS.md).                                                      |
+| Change                                      | Update                                                                                                                                                                                           |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| New or renamed **React routes**             | [`src/App.tsx`](../src/App.tsx) first, then the **Route inventory** in [PLATFORM.md](./PLATFORM.md).                                                                                             |
+| **Checkout / payment / isolation** behavior | [PLATFORM.md](./PLATFORM.md) (SPA); Edge payload flow in [`supabase/functions/create-payment/DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md).                                  |
+| New **npm script** or CI gate               | [AGENTS.md](../AGENTS.md), [scripts/README.md](../scripts/README.md) (if you add a `scripts/*.mjs` helper), and [STANDARDS.md](./STANDARDS.md) when it is a required gate.                       |
 | **Edge Function** HTTP contract or Postman  | `openapi.fragment.json` / handler changes, then `npm run api:artifacts` (or individual generators); see [openapi/README.md](../openapi/README.md) and [postman/README.md](../postman/README.md). |
-| New **Cypress spec** or CI job              | [E2E-COVERAGE.md](./E2E-COVERAGE.md) and [cypress/README.md](../cypress/README.md).                                                                             |
-| **RLS** test setup or policy expectations   | [rls-test-setup.md](../src/tests/rls-test-setup.md) and [security checklist](./security/supabase-production-security-checklist.md).                              |
+| New **Cypress spec** or CI job              | [E2E-COVERAGE.md](./E2E-COVERAGE.md) and [cypress/README.md](../cypress/README.md).                                                                                                              |
+| **RLS** test setup or policy expectations   | [rls-test-setup.md](../src/tests/rls-test-setup.md) and [security checklist](./security/supabase-production-security-checklist.md).                                                              |
 
 If you add a new long-lived doc, link it from this file so it stays discoverable.

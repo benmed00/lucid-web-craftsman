@@ -1,6 +1,6 @@
 # Supabase Edge Functions
 
-Source for deployed Edge Functions lives in subdirectories here.
+Source for deployed Edge Functions lives in subdirectories here. Parent folder (migrations, `config.toml`): [`../README.md`](../README.md).
 
 **Project documentation:** [Documentation index](../../docs/README.md) · [Platform behavior](../../docs/PLATFORM.md) (checkout return, webhooks, storefront isolation).
 

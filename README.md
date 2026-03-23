@@ -211,9 +211,10 @@ rif-raw-straw/
 │   └── 📄 main.tsx             # Point d'entrée de l'application
 ├── 📁 cypress/                 # Tests E2E (specs, support) — voir cypress/README.md
 ├── 📁 docs/                    # Index: docs/README.md (platform, standards, E2E matrix)
+├── 📁 scripts/                 # Scripts npm (OpenAPI, Postman, Cypress shard…) — scripts/README.md
 ├── 📁 openapi/                 # OpenAPI généré (Edge Functions) — openapi/README.md
 ├── 📁 postman/                 # Collection Postman générée — postman/README.md
-├── 📁 supabase/functions/      # Edge Functions — supabase/functions/README.md
+├── 📁 supabase/                # Migrations, config, Edge Functions — supabase/README.md
 ├── 📄 cypress.config.ts        # Configuration Cypress
 ├── 📄 tailwind.config.ts       # Configuration Tailwind CSS
 ├── 📄 vite.config.ts           # Configuration Vite

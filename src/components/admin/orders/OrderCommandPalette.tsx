@@ -30,7 +30,12 @@ import {
   Download,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchOrderItemsProductQtyForOrder,
+  fetchOrderPaymentSummary,
+  fetchOrderUserIdOnly,
+  fetchProductsIdNamePriceByIds,
+} from '@/services/adminOrderCommandApi';
 import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import type { OrderStatus } from '@/types/order.types';
 import { useUpdateOrderStatus } from '@/hooks/useOrderManagement';
@@ -232,20 +237,12 @@ export function OrderCommandPalette({
         icon: <Package className="h-4 w-4" />,
         category: 'logistics',
         action: async () => {
-          const { data, error } = await supabase
-            .from('order_items')
-            .select('product_id, quantity')
-            .eq('order_id', orderId);
-
-          if (error) throw error;
+          const data = await fetchOrderItemsProductQtyForOrder(orderId);
 
           const productIds = (data || [])
             .map((i) => i.product_id)
             .filter(Boolean) as number[];
-          const { data: products } = await supabase
-            .from('products')
-            .select('id, name, price')
-            .in('id', productIds);
+          const products = await fetchProductsIdNamePriceByIds(productIds);
 
           const stockInfo = (products || [])
             .map((p) => {
@@ -276,15 +273,12 @@ export function OrderCommandPalette({
         icon: <CreditCard className="h-4 w-4" />,
         category: 'payment',
         action: async () => {
-          const { data } = await supabase
-            .from('orders')
-            .select('payment_method, payment_reference, amount, currency')
-            .eq('id', orderId)
-            .single();
+          const data = await fetchOrderPaymentSummary(orderId);
 
           if (data) {
+            const amt = data.amount != null ? data.amount / 100 : 0;
             toast.info(
-              `${data.payment_method || 'N/A'}\nMontant: ${(data.amount / 100).toFixed(2)} ${data.currency?.toUpperCase()}\nRef: ${data.payment_reference?.slice(0, 20) || 'N/A'}`,
+              `${data.payment_method || 'N/A'}\nMontant: ${amt.toFixed(2)} ${data.currency?.toUpperCase()}\nRef: ${data.payment_reference?.slice(0, 20) || 'N/A'}`,
               { duration: 5000 }
             );
           }
@@ -347,11 +341,7 @@ export function OrderCommandPalette({
         icon: <User className="h-4 w-4" />,
         category: 'admin',
         action: async () => {
-          const { data } = await supabase
-            .from('orders')
-            .select('user_id')
-            .eq('id', orderId)
-            .single();
+          const data = await fetchOrderUserIdOnly(orderId);
 
           if (data?.user_id) {
             window.open(`/admin/customers?id=${data.user_id}`, '_blank');
