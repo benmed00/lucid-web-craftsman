@@ -28,7 +28,8 @@ Cypress.Commands.add('addProductToCart', (options?: { productId?: number }) => {
 
 /** Supabase stubs so checkout page loads quickly (shared by checkout_flow_spec + enterprise smoke). */
 Cypress.Commands.add('stubCheckoutIntercepts', () => {
-  cy.intercept('GET', '**/rest/v1/checkout_sessions*', {
+  // Match PostgREST URLs with ?select=... (query string after base path)
+  cy.intercept('GET', '**/rest/v1/checkout_sessions**', {
     statusCode: 200,
     body: [],
   }).as('checkoutSessionsGet');
@@ -123,7 +124,12 @@ Cypress.Commands.add(
             body: { message: 'Server Error (mocked)' },
           };
         case 'latency':
-          return { statusCode: 200, body, delay: 1500 };
+          // Empty `body` breaks PostgREST JSON; use fixture so Products page can render cards after delay
+          return {
+            statusCode: 200,
+            delay: 2000,
+            fixture: 'supabase/products-latency.json',
+          };
         case 'errorTimeout':
           return { forceNetworkError: true as const };
       }

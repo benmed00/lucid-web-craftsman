@@ -71,9 +71,9 @@ describe('Checkout Flow @smoke @regression', () => {
     cy.get('#postalCode').type('75001');
     cy.get('#city').type('Paris');
 
-    cy.get('button')
-      .contains(/paiement|payment/i)
-      .first()
+    // Avoid matching hidden mobile bar ("Procéder au Paiement") or sidebar copy
+    cy.get('[data-testid="checkout-continue-to-payment"]')
+      .filter(':visible')
       .click();
 
     // Payment step: card option (#card) or payment title/options text
@@ -172,9 +172,8 @@ describe('Checkout Flow @smoke @regression', () => {
     cy.get('#address').type('12 Rue de la Paix');
     cy.get('#postalCode').type('123'); // too short for FR
     cy.get('#city').type('Paris');
-    cy.get('button')
-      .contains(/paiement|payment/i)
-      .first()
+    cy.get('[data-testid="checkout-continue-to-payment"]')
+      .filter(':visible')
       .click();
 
     cy.get('.text-destructive, [role="alert"]', { timeout: 10000 }).should(
@@ -186,7 +185,8 @@ describe('Checkout Flow @smoke @regression', () => {
     cy.get('[id^="add-to-cart-btn-"]').first().click();
     cy.visit('/cart');
     const qtyLabel = '[aria-label^="Quantité:"], [aria-label^="Quantity:"]';
-    cy.get('[id^="cart-item-"]')
+    // cart-item-* id is on the product title <h3>, not the line card — use article
+    cy.get('[role="article"]')
       .first()
       .within(() => {
         cy.get(qtyLabel).first().should('have.text', '1');
