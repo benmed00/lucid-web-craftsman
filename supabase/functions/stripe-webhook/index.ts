@@ -461,7 +461,9 @@ async function handleCheckoutCompleted(
           .select('id, name, images, price')
           .in('id', productIds);
 
-        const productMap = new Map<number, any>((products || []).map((p: any) => [p.id, p]));
+        const productMap = new Map<number, any>(
+          (products || []).map((p: any) => [p.id, p])
+        );
 
         const emailItems = (order.order_items || []).map((item: any) => {
           const product = productMap.get(item.product_id) as any;

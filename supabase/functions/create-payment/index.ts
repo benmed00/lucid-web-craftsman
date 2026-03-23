@@ -203,13 +203,14 @@ serve(async (req) => {
     // ========================================================================
     // DISCOUNT VERIFICATION — server-side coupon validation
     // ========================================================================
-    let { discountAmountCents, hasFreeShipping, verifiedDiscountCode } =
-      await resolveServerDiscount(
-        supabaseService,
-        verifiedItems,
-        discount,
-        logStep
-      );
+    const discountResult = await resolveServerDiscount(
+      supabaseService,
+      verifiedItems,
+      discount,
+      logStep
+    );
+    let discountAmountCents = discountResult.discountAmountCents;
+    const { hasFreeShipping, verifiedDiscountCode } = discountResult;
 
     // ========================================================================
     // AMOUNT CALCULATION (all amounts in CENTS for Stripe)

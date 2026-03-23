@@ -34,7 +34,8 @@ const NewsletterExitIntent = () => {
     // Suppress on checkout and payment pages
     try {
       const path = window.location.pathname;
-      if (path.startsWith('/checkout') || path.startsWith('/payment')) return true;
+      if (path.startsWith('/checkout') || path.startsWith('/payment'))
+        return true;
     } catch {
       /* ignore */
     }

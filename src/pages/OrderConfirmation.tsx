@@ -169,13 +169,13 @@ const OrderConfirmation = () => {
           return;
         }
 
-        const nextResult = {
+        const pageVariant: ConfirmationResult['pageVariant'] =
+          data.page_variant === 'payment_failed' ? 'payment_failed' : 'success';
+
+        const nextResult: ConfirmationResult = {
           orderId: data.order_id,
           orderReference: data.order_reference,
-          pageVariant:
-            data.page_variant === 'payment_failed'
-              ? 'payment_failed'
-              : 'success',
+          pageVariant,
           amount: typeof data.amount === 'number' ? data.amount : undefined,
           currency:
             typeof data.currency === 'string'

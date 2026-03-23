@@ -882,7 +882,8 @@ const PaymentSuccess = () => {
                     'Votre paiement est en cours de vérification. Si vous avez été débité, votre commande sera traitée automatiquement.'}
                 </p>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Vérifiez votre boîte email pour la confirmation. Si vous ne recevez rien dans 15 minutes, contactez notre support.
+                  Vérifiez votre boîte email pour la confirmation. Si vous ne
+                  recevez rien dans 15 minutes, contactez notre support.
                 </p>
               </>
             )}
