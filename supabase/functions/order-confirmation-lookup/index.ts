@@ -205,10 +205,18 @@ serve(async (req) => {
       };
     });
 
-    const itemsSubtotal = items.reduce((sum, item) => sum + item.total_price, 0);
-    const amountTotal = normalizeAmount(Number(order.amount || 0), itemsSubtotal);
+    const itemsSubtotal = items.reduce(
+      (sum, item) => sum + item.total_price,
+      0
+    );
+    const amountTotal = normalizeAmount(
+      Number(order.amount || 0),
+      itemsSubtotal
+    );
     const normalizedStatus = String(order.status || '').toLowerCase();
-    const normalizedOrderStatus = String(order.order_status || '').toLowerCase();
+    const normalizedOrderStatus = String(
+      order.order_status || ''
+    ).toLowerCase();
     const isPaid =
       normalizedStatus === 'paid' ||
       normalizedStatus === 'completed' ||

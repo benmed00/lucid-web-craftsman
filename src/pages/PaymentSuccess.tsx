@@ -120,9 +120,8 @@ const PaymentSuccess = () => {
     orderId?: string;
     transactionId?: string;
   } | null>(null);
-  const [stripeSummary, setStripeSummary] = useState<StripeSessionSummary | null>(
-    null
-  );
+  const [stripeSummary, setStripeSummary] =
+    useState<StripeSessionSummary | null>(null);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(
@@ -246,9 +245,9 @@ const PaymentSuccess = () => {
     };
 
     const readResultCache = () => {
-      const navigationEntry = performance.getEntriesByType(
-        'navigation'
-      )[0] as PerformanceNavigationTiming | undefined;
+      const navigationEntry = performance.getEntriesByType('navigation')[0] as
+        | PerformanceNavigationTiming
+        | undefined;
       const isReload = navigationEntry?.type === 'reload';
       if (!isReload) {
         return null;
@@ -513,16 +512,17 @@ const PaymentSuccess = () => {
           });
           const cust = getCustomerInfo();
           setCustomerInfo(cust);
-        persistResultCache(
-          {
-            state: 'success',
-            message: data.message || t('pages:paymentSuccess.success.verified'),
-            orderId: finalOrderId || undefined,
-            transactionId: data.transaction_id,
-          },
-          null,
-          cust
-        );
+          persistResultCache(
+            {
+              state: 'success',
+              message:
+                data.message || t('pages:paymentSuccess.success.verified'),
+              orderId: finalOrderId || undefined,
+              transactionId: data.transaction_id,
+            },
+            null,
+            cust
+          );
           if (data.invoiceData)
             buildInvoiceFromResponse(data.invoiceData, finalOrderId!, cust);
           clearCart();
@@ -988,19 +988,17 @@ const PaymentSuccess = () => {
           {!isVerifying && (
             <div className="space-y-4">
               {/* Auto-redirect notice */}
-              {user &&
-                isSuccessState &&
-                redirectCountdown !== null && (
-                  <p className="text-sm text-muted-foreground">
-                    Redirection vers vos commandes dans {redirectCountdown}s…{' '}
-                    <button
-                      onClick={() => setRedirectCountdown(null)}
-                      className="underline text-primary hover:text-primary/80"
-                    >
-                      Annuler
-                    </button>
-                  </p>
-                )}
+              {user && isSuccessState && redirectCountdown !== null && (
+                <p className="text-sm text-muted-foreground">
+                  Redirection vers vos commandes dans {redirectCountdown}s…{' '}
+                  <button
+                    onClick={() => setRedirectCountdown(null)}
+                    className="underline text-primary hover:text-primary/80"
+                  >
+                    Annuler
+                  </button>
+                </p>
+              )}
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
                 {user && isSuccessState && (

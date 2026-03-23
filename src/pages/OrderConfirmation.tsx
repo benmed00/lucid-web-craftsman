@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 import {
   AlertTriangle,
   CheckCircle,
@@ -100,7 +105,8 @@ const OrderConfirmation = () => {
             message?: string;
             result?: ConfirmationResult;
           };
-          if (!parsed?.createdAt || !parsed?.state || !parsed?.message) return null;
+          if (!parsed?.createdAt || !parsed?.state || !parsed?.message)
+            return null;
           if (Date.now() - parsed.createdAt > ORDER_CONFIRMATION_CACHE_TTL_MS) {
             localStorage.removeItem(cacheKey);
             return null;
@@ -156,7 +162,7 @@ const OrderConfirmation = () => {
 
         if (error || !data?.found) {
           const nextMessage =
-            "Nous ne pouvons pas valider cette commande pour le moment. Contactez le support avec votre reference d'email."
+            "Nous ne pouvons pas valider cette commande pour le moment. Contactez le support avec votre reference d'email.";
           setState('technical_issue');
           setMessage(nextMessage);
           persistCache('technical_issue', nextMessage, {});
@@ -192,23 +198,27 @@ const OrderConfirmation = () => {
           setMessage(nextMessage);
           persistCache('payment_failed', nextMessage, nextResult);
         } else {
-          const nextMessage = 'Votre paiement a bien ete recu et votre commande est en cours de traitement.';
+          const nextMessage =
+            'Votre paiement a bien ete recu et votre commande est en cours de traitement.';
           setState('success');
           setMessage(nextMessage);
           persistCache('success', nextMessage, nextResult);
         }
       } catch {
         const nextMessage =
-          "Un probleme technique empeche la verification instantanee. Notre equipe vous aide a resoudre cela.";
+          'Un probleme technique empeche la verification instantanee. Notre equipe vous aide a resoudre cela.';
         setState('technical_issue');
         setMessage(nextMessage);
         persistCache('technical_issue', nextMessage, {});
       } finally {
         // Remove token from URL while keeping a unique public reference route.
         if (effectiveReference) {
-          navigate(`/order-confirmation/${encodeURIComponent(effectiveReference)}`, {
-            replace: true,
-          });
+          navigate(
+            `/order-confirmation/${encodeURIComponent(effectiveReference)}`,
+            {
+              replace: true,
+            }
+          );
         } else {
           navigate('/order-confirmation', { replace: true });
         }
@@ -221,7 +231,8 @@ const OrderConfirmation = () => {
   const orderLabel = useMemo(() => {
     if (result.orderReference) return result.orderReference;
     if (routeReference) return routeReference;
-    if (result.orderId) return `CMD-${result.orderId.replace(/-/g, '').toUpperCase()}`;
+    if (result.orderId)
+      return `CMD-${result.orderId.replace(/-/g, '').toUpperCase()}`;
     return null;
   }, [result.orderId, result.orderReference, routeReference]);
 
@@ -292,12 +303,16 @@ const OrderConfirmation = () => {
                   <div className="text-lg font-semibold">
                     Commande #{orderLabel || '---'}
                   </div>
-                  <div className="text-sm text-muted-foreground">Date: {dateLabel}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Date: {dateLabel}
+                  </div>
                 </div>
               </div>
 
               <div className="px-6 py-4 border-b">
-                <p className="font-medium">{result.customerName || 'Client inconnu'}</p>
+                <p className="font-medium">
+                  {result.customerName || 'Client inconnu'}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {result.customerEmail || 'Email inconnu'}
                 </p>
@@ -329,7 +344,10 @@ const OrderConfirmation = () => {
                         </div>
                       </div>
                       <div className="font-medium">
-                        {formatMoney(item.total_price, result.currency || 'EUR')}
+                        {formatMoney(
+                          item.total_price,
+                          result.currency || 'EUR'
+                        )}
                       </div>
                     </div>
                   ))}
@@ -373,7 +391,13 @@ const OrderConfirmation = () => {
                 Voir le suivi (bientot)
               </Button>
               <Button asChild className="gap-2">
-                <Link to={orderLabel ? `/contact?orderRef=${encodeURIComponent(orderLabel)}` : '/contact'}>
+                <Link
+                  to={
+                    orderLabel
+                      ? `/contact?orderRef=${encodeURIComponent(orderLabel)}`
+                      : '/contact'
+                  }
+                >
                   <Mail className="w-4 h-4" />
                   Contact Support
                 </Link>
@@ -402,7 +426,13 @@ const OrderConfirmation = () => {
                 </Link>
               </Button>
               <Button asChild variant="secondary" className="gap-2">
-                <Link to={orderLabel ? `/contact?orderRef=${encodeURIComponent(orderLabel)}` : '/contact'}>
+                <Link
+                  to={
+                    orderLabel
+                      ? `/contact?orderRef=${encodeURIComponent(orderLabel)}`
+                      : '/contact'
+                  }
+                >
                   <Mail className="w-4 h-4" />
                   Contact Support
                 </Link>
@@ -425,7 +455,13 @@ const OrderConfirmation = () => {
                 </Link>
               </Button>
               <Button asChild variant="secondary" className="gap-2">
-                <Link to={orderLabel ? `/contact?orderRef=${encodeURIComponent(orderLabel)}` : '/contact'}>
+                <Link
+                  to={
+                    orderLabel
+                      ? `/contact?orderRef=${encodeURIComponent(orderLabel)}`
+                      : '/contact'
+                  }
+                >
                   <Mail className="w-4 h-4" />
                   Contact Support
                 </Link>

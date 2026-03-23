@@ -112,7 +112,9 @@ export const disableServiceWorkerForCriticalFlow = async (): Promise<void> => {
 
   try {
     const registrations = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(registrations.map((registration) => registration.unregister()));
+    await Promise.all(
+      registrations.map((registration) => registration.unregister())
+    );
   } catch {
     // ignore
   }

@@ -25,7 +25,9 @@ export interface ShippingInfoData {
  * Validates personal info has meaningful content.
  * Returns false for empty/placeholder data that should NOT be displayed.
  */
-export function isValidPersonalInfo(data: PersonalInfoData | null | undefined): boolean {
+export function isValidPersonalInfo(
+  data: PersonalInfoData | null | undefined
+): boolean {
   if (!data) return false;
 
   const email = data.email || '';
@@ -47,7 +49,9 @@ export function isValidPersonalInfo(data: PersonalInfoData | null | undefined): 
  * Validates shipping info has meaningful content.
  * Returns false for empty/placeholder data that should NOT be displayed.
  */
-export function isValidShippingInfo(data: ShippingInfoData | null | undefined): boolean {
+export function isValidShippingInfo(
+  data: ShippingInfoData | null | undefined
+): boolean {
   if (!data) return false;
 
   const address = data.address || data.address_line1 || '';

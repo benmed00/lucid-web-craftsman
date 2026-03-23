@@ -178,28 +178,29 @@ async function handleCheckoutCompleted(
         ? session.payment_intent
         : session.payment_intent?.id;
 
-    const { data: createdRecoveryOrder, error: createRecoveryError } = await supabase
-      .from('orders')
-      .insert({
-        amount: session.amount_total || 0,
-        currency: session.currency || 'eur',
-        status: 'paid',
-        order_status: 'paid',
-        stripe_session_id: session.id,
-        payment_reference: paymentIntentId,
-        payment_method: session.payment_method_types?.[0] || 'card',
-        metadata: {
-          webhook_processed: true,
-          webhook_processed_at: new Date().toISOString(),
+    const { data: createdRecoveryOrder, error: createRecoveryError } =
+      await supabase
+        .from('orders')
+        .insert({
+          amount: session.amount_total || 0,
+          currency: session.currency || 'eur',
+          status: 'paid',
+          order_status: 'paid',
           stripe_session_id: session.id,
-          payment_intent_id: paymentIntentId,
-          source: 'stripe_webhook_recovery',
-          customer_email: session.customer_details?.email || null,
-          correlation_id: correlationId || null,
-        },
-      })
-      .select('id')
-      .single();
+          payment_reference: paymentIntentId,
+          payment_method: session.payment_method_types?.[0] || 'card',
+          metadata: {
+            webhook_processed: true,
+            webhook_processed_at: new Date().toISOString(),
+            stripe_session_id: session.id,
+            payment_intent_id: paymentIntentId,
+            source: 'stripe_webhook_recovery',
+            customer_email: session.customer_details?.email || null,
+            correlation_id: correlationId || null,
+          },
+        })
+        .select('id')
+        .single();
 
     if (createRecoveryError || !createdRecoveryOrder?.id) {
       await logPaymentEvent(supabase, {

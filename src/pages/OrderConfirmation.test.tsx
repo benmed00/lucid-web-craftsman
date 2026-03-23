@@ -26,7 +26,10 @@ const renderAt = (url: string) =>
   render(
     <MemoryRouter initialEntries={[url]}>
       <Routes>
-        <Route path="/order-confirmation/:orderReference" element={<OrderConfirmation />} />
+        <Route
+          path="/order-confirmation/:orderReference"
+          element={<OrderConfirmation />}
+        />
         <Route path="/order-confirmation" element={<OrderConfirmation />} />
       </Routes>
     </MemoryRouter>
@@ -57,7 +60,9 @@ describe('OrderConfirmation 3-page outcomes', () => {
       },
     });
 
-    renderAt('/order-confirmation/CMD-A2F4D777E4F24541A948C6F9FD2AF9AA?token=test-token');
+    renderAt(
+      '/order-confirmation/CMD-A2F4D777E4F24541A948C6F9FD2AF9AA?token=test-token'
+    );
 
     await waitFor(() =>
       expect(screen.getByText('Paiement confirme')).toBeInTheDocument()
@@ -86,7 +91,9 @@ describe('OrderConfirmation 3-page outcomes', () => {
       },
     });
 
-    renderAt('/order-confirmation/CMD-A2F4D777E4F24541A948C6F9FD2AF9AA?token=test-token');
+    renderAt(
+      '/order-confirmation/CMD-A2F4D777E4F24541A948C6F9FD2AF9AA?token=test-token'
+    );
 
     await waitFor(() =>
       expect(
