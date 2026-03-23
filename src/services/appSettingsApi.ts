@@ -1,4 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type AppSettingInsert = Database['public']['Tables']['app_settings']['Insert'];
+type AppSettingUpdate = Database['public']['Tables']['app_settings']['Update'];
 
 export async function fetchAppSettingValueByKey(
   settingKey: string
@@ -10,6 +14,33 @@ export async function fetchAppSettingValueByKey(
     .maybeSingle();
   if (error && error.code !== 'PGRST116') throw error;
   return data?.setting_value ?? null;
+}
+
+/** `id` + `setting_value` when a row exists (admin upserts). */
+export async function fetchAppSettingIdValueMaybe(settingKey: string) {
+  const { data, error } = await supabase
+    .from('app_settings')
+    .select('id, setting_value')
+    .eq('setting_key', settingKey)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateAppSettingByKey(
+  settingKey: string,
+  patch: AppSettingUpdate
+) {
+  const { error } = await supabase
+    .from('app_settings')
+    .update(patch)
+    .eq('setting_key', settingKey);
+  if (error) throw error;
+}
+
+export async function insertAppSettingRows(rows: AppSettingInsert[]) {
+  const { error } = await supabase.from('app_settings').insert(rows);
+  if (error) throw error;
 }
 
 export function subscribeAppSettingByKey(

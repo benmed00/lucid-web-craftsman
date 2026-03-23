@@ -66,12 +66,13 @@ Regenerate and commit when Edge Function contracts change:
 | Postman collection       | `npm run postman:collection` — `postman/Lucid-Web-Craftsman.postman_collection.json`; drift check: `postman:collection:check` |
 | Both                     | `npm run api:artifacts`                                                                                                       |
 
-Per-function fragments: `supabase/functions/<name>/openapi.fragment.json`.
+Per-function fragments: `supabase/functions/<name>/openapi.fragment.json`. Generated bundle lives under [`openapi/`](../openapi/) — see [`openapi/README.md`](../openapi/README.md). Postman layout: [`postman/README.md`](../postman/README.md).
 
 ## Edge function reference (in repo)
 
 | Topic | Where |
 | ----- | ----- |
+| All functions (index) | [`supabase/functions/README.md`](../supabase/functions/README.md) |
 | create-payment payload → Stripe session | [`supabase/functions/create-payment/DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md), [`REFACTOR_PLAN.md`](../supabase/functions/create-payment/REFACTOR_PLAN.md) |
 | verify-payment role vs SPA | [`supabase/functions/verify-payment/README.md`](../supabase/functions/verify-payment/README.md) |
 | SPA after redirect (order-lookup, webhooks, isolation) | [PLATFORM.md](./PLATFORM.md) |

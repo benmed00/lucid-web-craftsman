@@ -16,7 +16,15 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchAppSettingIdValueMaybe,
+  fetchAppSettingValueByKey,
+  insertAppSettingRows,
+  updateAppSettingByKey,
+} from '@/services/appSettingsApi';
+import { insertAuditLogRow } from '@/services/auditLogsApi';
+import { fetchAuthUserOrNull } from '@/services/profileApi';
+import type { Json } from '@/integrations/supabase/types';
 import {
   ShoppingCart,
   Heart,

@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { XCircle, Send, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
 import { useCurrency } from '@/stores/currencyStore';
 
@@ -68,22 +68,20 @@ export const SendCancellationEmailButton = ({
         price: item.total_price,
       }));
 
-      const { data, error } = await supabase.functions.invoke(
+      const { data, error } = await invokeSupabaseEdgeFunction(
         'send-cancellation-email',
         {
-          body: {
-            orderId,
-            customerEmail: formData.customerEmail,
-            customerName: formData.customerName,
-            isRefund: formData.isRefund,
-            reason: formData.reason || undefined,
-            refundAmount: formData.isRefund ? orderAmount / 100 : undefined,
-            currency: 'EUR',
-            items,
-            refundMethod: formData.isRefund ? formData.refundMethod : undefined,
-            refundDelay: formData.isRefund ? formData.refundDelay : undefined,
-          },
-        }
+          orderId,
+          customerEmail: formData.customerEmail,
+          customerName: formData.customerName,
+          isRefund: formData.isRefund,
+          reason: formData.reason || undefined,
+          refundAmount: formData.isRefund ? orderAmount / 100 : undefined,
+          currency: 'EUR',
+          items,
+          refundMethod: formData.isRefund ? formData.refundMethod : undefined,
+          refundDelay: formData.isRefund ? formData.refundDelay : undefined,
+        } as Record<string, unknown>
       );
 
       if (error) throw error;

@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { XCircle, Send, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
 
 export const TestCancellationEmailButton = () => {
@@ -41,11 +41,9 @@ export const TestCancellationEmailButton = () => {
         ],
       };
 
-      const { data, error } = await supabase.functions.invoke(
+      const { data, error } = await invokeSupabaseEdgeFunction(
         'send-cancellation-email',
-        {
-          body: testData,
-        }
+        testData as Record<string, unknown>
       );
 
       if (error) throw error;

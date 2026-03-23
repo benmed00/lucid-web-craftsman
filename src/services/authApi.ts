@@ -6,3 +6,7 @@ export async function signInWithPasswordForReauth(
 ) {
   return supabase.auth.signInWithPassword({ email, password });
 }
+
+export function getAuthSession() {
+  return supabase.auth.getSession();
+}

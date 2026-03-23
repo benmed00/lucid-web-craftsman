@@ -47,7 +47,13 @@ import {
   XCircle,
   AlertTriangle,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  cancelScheduledEmailById,
+  fetchScheduledEmailsOrdered,
+  insertScheduledEmailRow,
+} from '@/services/adminScheduledEmailsApi';
+import type { Json } from '@/integrations/supabase/types';
+import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
 import { format, addHours, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -88,13 +94,7 @@ const EmailScheduler: React.FC = () => {
   const fetchScheduledEmails = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('scheduled_emails')
-        .select('*')
-        .order('scheduled_for', { ascending: true })
-        .limit(50);
-
-      if (error) throw error;
+      const data = await fetchScheduledEmailsOrdered();
       setScheduledEmails(data || []);
     } catch (error: any) {
       console.error('Error fetching scheduled emails:', error);
@@ -116,7 +116,7 @@ const EmailScheduler: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('scheduled_emails').insert({
+      await insertScheduledEmailRow({
         template_name: formTemplate,
         recipient_email: formEmail,
         recipient_name: formName || null,
@@ -124,10 +124,8 @@ const EmailScheduler: React.FC = () => {
         email_data: {
           orderId: `SCHED-${Date.now().toString().slice(-8)}`,
           customerName: formName || 'Client',
-        },
+        } as Json,
       });
-
-      if (error) throw error;
 
       toast.success('Email programmé avec succès');
       setDialogOpen(false);
@@ -146,12 +144,7 @@ const EmailScheduler: React.FC = () => {
 
   const cancelScheduledEmail = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('scheduled_emails')
-        .update({ status: 'cancelled' })
-        .eq('id', id);
-
-      if (error) throw error;
+      await cancelScheduledEmailById(id);
       toast.success('Email annulé');
       fetchScheduledEmails();
     } catch (error: any) {
@@ -162,7 +155,7 @@ const EmailScheduler: React.FC = () => {
   const processScheduledEmails = async () => {
     setProcessing(true);
     try {
-      const { data, error } = await supabase.functions.invoke(
+      const { data, error } = await invokeSupabaseEdgeFunction(
         'process-scheduled-emails'
       );
 

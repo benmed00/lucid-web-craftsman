@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import type { OrderStatus } from '@/types/order.types';
 import { useUpdateOrderStatus } from '@/hooks/useOrderManagement';
 
@@ -178,11 +179,9 @@ export function OrderCommandPalette({
         icon: <Mail className="h-4 w-4 text-blue-500" />,
         category: 'communication',
         action: async () => {
-          const { error } = await supabase.functions.invoke(
+          const { error } = await invokeSupabaseEdgeFunction(
             'send-order-confirmation',
-            {
-              body: { orderId, resend: true },
-            }
+            { orderId, resend: true }
           );
           if (error) throw error;
         },
@@ -194,11 +193,9 @@ export function OrderCommandPalette({
         category: 'communication',
         disabled: !['shipped', 'in_transit'].includes(currentStatus),
         action: async () => {
-          const { error } = await supabase.functions.invoke(
+          const { error } = await invokeSupabaseEdgeFunction(
             'send-shipping-notification',
-            {
-              body: { orderId },
-            }
+            { orderId }
           );
           if (error) throw error;
         },
@@ -210,11 +207,9 @@ export function OrderCommandPalette({
         category: 'communication',
         disabled: currentStatus !== 'delivered',
         action: async () => {
-          const { error } = await supabase.functions.invoke(
+          const { error } = await invokeSupabaseEdgeFunction(
             'send-delivery-confirmation',
-            {
-              body: { orderId },
-            }
+            { orderId }
           );
           if (error) throw error;
         },
