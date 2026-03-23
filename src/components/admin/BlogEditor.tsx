@@ -37,15 +37,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import {
-  Globe,
   Upload,
   Image as ImageIcon,
   X,
   Check,
   Loader2,
-  Tag,
   Languages,
-  Eye,
   FileText,
   AlertCircle,
 } from 'lucide-react';

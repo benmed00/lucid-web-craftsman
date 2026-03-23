@@ -483,9 +483,15 @@ const PaymentSuccess = () => {
         return;
       }
 
-      setIssue(
+      // No order found yet — payment may still be finalizing; avoid error UX.
+      console.warn(
+        '[PaymentSuccess] No order found yet — showing processing state (not error)'
+      );
+      setProcessing(
         fallbackData?.message ||
-          'Un probleme technique ralentit la verification. Si vous avez ete debite, votre commande sera traitee automatiquement.'
+          'Votre paiement a été reçu par Stripe. Votre commande est en cours de traitement et vous recevrez un email de confirmation sous quelques minutes.',
+        undefined,
+        null
       );
       setIsVerifying(false);
     };
@@ -833,7 +839,7 @@ const PaymentSuccess = () => {
               </>
             ) : isSuccessState ? (
               <>
-                <CheckCircle className="w-20 h-20 text-green-600 dark:text-green-400 mx-auto mb-4" />
+                <CheckCircle className="w-20 h-20 text-primary mx-auto mb-4" />
                 <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
                   {t('pages:paymentSuccess.success.title')}
                 </h1>
@@ -867,27 +873,16 @@ const PaymentSuccess = () => {
               </>
             ) : (
               <>
-                <div className="w-20 h-20 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg
-                    className="w-10 h-10"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </div>
+                <Loader2 className="w-20 h-20 text-primary mx-auto mb-4 animate-spin" />
                 <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-                  Verification technique necessaire
+                  Traitement en cours
                 </h1>
-                <p className="text-lg text-muted-foreground mb-6">
+                <p className="text-lg text-muted-foreground mb-2">
                   {verificationResult?.message ||
-                    t('pages:paymentSuccess.error.description')}
+                    'Votre paiement est en cours de vérification. Si vous avez été débité, votre commande sera traitée automatiquement.'}
+                </p>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Vérifiez votre boîte email pour la confirmation. Si vous ne recevez rien dans 15 minutes, contactez notre support.
                 </p>
               </>
             )}

@@ -136,11 +136,26 @@ describe('AuthProvider', () => {
   });
 
   it('should throw error when useAuth is used outside provider', () => {
+    // Expected render error: suppress React/jsdom "Uncaught" noise (still asserts throw below)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => {
-      renderHook(() => useAuth());
-    }).toThrow('useAuth must be used within an AuthProvider');
-    consoleSpy.mockRestore();
+    const onError = (event: ErrorEvent) => {
+      const msg =
+        event.message ||
+        (event.error instanceof Error ? event.error.message : '');
+      if (msg.includes('useAuth must be used within an AuthProvider')) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    };
+    window.addEventListener('error', onError);
+    try {
+      expect(() => {
+        renderHook(() => useAuth());
+      }).toThrow('useAuth must be used within an AuthProvider');
+    } finally {
+      window.removeEventListener('error', onError);
+      consoleSpy.mockRestore();
+    }
   });
 });
 

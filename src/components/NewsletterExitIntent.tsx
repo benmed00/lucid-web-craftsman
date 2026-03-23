@@ -31,6 +31,14 @@ const NewsletterExitIntent = () => {
     // Suppress for logged-in users
     if (user) return true;
 
+    // Suppress on checkout and payment pages
+    try {
+      const path = window.location.pathname;
+      if (path.startsWith('/checkout') || path.startsWith('/payment')) return true;
+    } catch {
+      /* ignore */
+    }
+
     // Suppress if already subscribed
     try {
       if (localStorage.getItem(SUBSCRIBED_KEY) === 'true') return true;

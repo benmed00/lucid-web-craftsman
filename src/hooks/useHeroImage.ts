@@ -45,7 +45,7 @@ export const useHeroImage = () => {
     useState<HeroImageData>(getInitialHeroImage);
   // Start as NOT loading — we show the cached/default image immediately.
   // The Supabase fetch is deferred to avoid competing with product queries.
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, _setIsLoading] = useState(false);
 
   // Defer the Supabase fetch so product queries get priority.
   // Hero image is non-critical because we always have a localStorage
@@ -66,22 +66,6 @@ export const useHeroImage = () => {
           setHeroImageData(data);
         }
         persistHeroImage(data);
-
-        // Add dynamic preload for LCP optimization
-        if (data.imageUrl.includes('supabase.co/storage')) {
-          const preloadLink = document.createElement('link');
-          preloadLink.rel = 'preload';
-          preloadLink.as = 'image';
-          preloadLink.href = data.imageUrl;
-          preloadLink.setAttribute('fetchpriority', 'high');
-
-          const existingPreload = document.querySelector(
-            `link[href="${data.imageUrl}"]`
-          );
-          if (!existingPreload) {
-            document.head.appendChild(preloadLink);
-          }
-        }
       } catch (error) {
         console.error('Error loading hero image:', error);
         // Keep cached or default image on error
@@ -92,7 +76,7 @@ export const useHeroImage = () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const updateHeroImage = async (data: HeroImageData): Promise<void> => {
     try {

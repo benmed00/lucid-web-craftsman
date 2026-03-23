@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { CreditCard, Smartphone, Check, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
 
 interface MobilePaymentButtonsProps {
   amount: number;
@@ -81,12 +80,12 @@ export const MobilePaymentButtons = ({
 
       const session = new ApplePaySession(3, paymentRequest);
 
-      session.onvalidatemerchant = async (event) => {
+      session.onvalidatemerchant = async (_event) => {
         // In production, validate merchant with your server
         // Merchant validation handled silently
       };
 
-      session.onpaymentauthorized = (event) => {
+      session.onpaymentauthorized = (_event) => {
         // Process payment with your backend
         // Payment processing handled silently
 
@@ -146,8 +145,7 @@ export const MobilePaymentButtons = ({
         },
       };
 
-      const paymentData =
-        await paymentsClient.loadPaymentData(paymentDataRequest);
+      await paymentsClient.loadPaymentData(paymentDataRequest);
 
       // Process payment data with your backend
       // Payment data processing handled silently

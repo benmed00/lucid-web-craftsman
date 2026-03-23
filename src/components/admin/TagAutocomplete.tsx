@@ -13,15 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  X,
-  Plus,
-  Tag,
-  Sparkles,
-  Loader2,
-  Check,
-  Languages,
-} from 'lucide-react';
+import { X, Tag, Sparkles, Loader2, Check, Languages } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTagTranslations } from '@/hooks/useTagTranslations';
 import { toast } from 'sonner';

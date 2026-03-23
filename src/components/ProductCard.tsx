@@ -19,7 +19,7 @@ import { FallbackDot } from '@/components/ui/TranslationFallbackIndicator';
 import { useStock } from '@/hooks/useStock';
 import { StockInfo } from '@/services/stockService';
 import { SupportedLocale } from '@/services/translationService';
-import { useEffect, useState, useContext, createContext } from 'react';
+import { useState, useContext, createContext } from 'react';
 import { useCurrency } from '@/stores';
 import { hapticFeedback } from '@/utils/haptics';
 import { useCompareStore } from '@/stores/compareStore';

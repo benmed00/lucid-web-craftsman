@@ -176,7 +176,7 @@ export async function getOrderCouponUsage(
 export async function validateCouponForOrder(
   code: string,
   orderAmount: number,
-  userId?: string
+  _userId?: string
 ): Promise<{ valid: boolean; discount: number; message: string }> {
   try {
     const { data: coupon, error } = await supabase

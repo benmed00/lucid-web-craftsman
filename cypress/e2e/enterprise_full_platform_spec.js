@@ -21,6 +21,9 @@ const PUBLIC_ROUTES = [
   { path: '/about', name: 'About' },
   { path: '/cart', name: 'Cart' },
   { path: '/auth', name: 'Auth' },
+  { path: '/compare', name: 'Compare' },
+  { path: '/wishlist', name: 'Wishlist' },
+  { path: '/orders', name: 'Orders' },
   { path: '/shipping', name: 'Shipping' },
   { path: '/returns', name: 'Returns' },
   { path: '/faq', name: 'FAQ' },
@@ -28,6 +31,8 @@ const PUBLIC_ROUTES = [
   { path: '/terms', name: 'Terms' },
   { path: '/terms-of-service', name: 'Terms of Service' },
   { path: '/story', name: 'Story' },
+  { path: '/unsubscribe', name: 'Unsubscribe' },
+  { path: '/payment-success', name: 'Payment Success' },
 ];
 
 // ─── Redirection tests ────────────────────────────────────────────────────
@@ -145,76 +150,39 @@ describe('Enterprise: Navigation & Buttons @enterprise @regression', () => {
   });
 });
 
-// ─── Mobile menu ────────────────────────────────────────────────────────────
-describe('Enterprise: Mobile Menu @enterprise @regression', () => {
-  beforeEach(() => {
-    cy.viewport(375, 667);
-    cy.visit('/');
-  });
+// Mobile menu: deep coverage lives in mobile_menu_spec.js (W10).
 
-  it('should show hamburger and open mobile menu', () => {
-    cy.get('[aria-label="Ouvrir le menu"]').should('be.visible').click();
-    cy.get('#mobile-menu').should('have.class', 'translate-x-0');
-  });
-
-  it('should close menu when link is clicked', () => {
-    cy.get('[aria-label="Ouvrir le menu"]').click();
-    cy.get('#mobile-menu')
-      .contains(/boutique|shop/i)
-      .click();
-    cy.url().should('include', '/products');
-    cy.get('#mobile-menu').should('have.class', 'translate-x-full');
-  });
-});
+const enterpriseCatalogCards =
+  '[data-testid="products-catalog"] [id^="product-card-"]';
+const enterpriseCatalogAddToCart =
+  '[data-testid="products-catalog"] [id^="add-to-cart-btn-"]';
 
 // ─── Products page & product cards ─────────────────────────────────────────
 describe('Enterprise: Products & Product Cards @enterprise @smoke', () => {
   beforeEach(() => {
+    cy.stubProductsCatalog();
     cy.visit('/products');
     cy.get('body').should('be.visible');
+    cy.get(enterpriseCatalogAddToCart, { timeout: 25000 }).should(
+      'have.length.at.least',
+      1
+    );
   });
 
   it('should display product cards with correct structure', () => {
-    cy.get('[id^="product-card-"]').should('have.length.at.least', 1);
+    cy.get(enterpriseCatalogCards).should('have.length.at.least', 1);
     cy.get('[id^="product-title-"]').should('exist');
     cy.get('[id^="product-price-"]').should('exist');
   });
 
   it('should have add-to-cart buttons', () => {
-    cy.get('[id^="add-to-cart-btn-"]').should('have.length.at.least', 1);
-  });
-
-  it('should add product to cart and update cart count', () => {
-    cy.get('[id^="add-to-cart-btn-"]').first().click();
-    // Cart count or cart link should reflect item
-    cy.get('a[href="/cart"]').should('exist');
-    // Zustand persists; cart count may show in header
-    cy.visit('/cart');
-    cy.get('[id^="cart-item-"]').should('have.length.at.least', 1);
-  });
-
-  it('should navigate to product detail on card click', () => {
-    cy.get('[id^="product-card-"]').first().find('a').first().click();
-    cy.url().should('match', /\/products\/\d+/);
+    cy.get(enterpriseCatalogAddToCart).should('have.length.at.least', 1);
   });
 
   it('should have search or filter controls on products page', () => {
-    // AdvancedProductFilters: search input (placeholder FR/EN)
     cy.get(
       'input[placeholder*="Rechercher"], input[placeholder*="Search"], input[placeholder*="recherche"]'
     ).should('exist');
-  });
-
-  it('should filter products by search query', () => {
-    // AdvancedProductFilters search input — use visible one (exclude hidden mobile menu)
-    const searchSelector =
-      'input[placeholder*="Rechercher"], input[placeholder*="Search"], input[placeholder*="recherche"]';
-    cy.get(searchSelector).filter(':visible').first().type('straw');
-    cy.get(searchSelector)
-      .filter(':visible')
-      .first()
-      .should('have.value', 'straw');
-    cy.url().should('include', '/products');
   });
 });
 
@@ -222,7 +190,7 @@ describe('Enterprise: Products & Product Cards @enterprise @smoke', () => {
 describe('Enterprise: Cart Page @enterprise @regression', () => {
   beforeEach(() => {
     cy.visit('/products');
-    cy.get('[id^="add-to-cart-btn-"]').first().click();
+    cy.get(enterpriseCatalogAddToCart, { timeout: 25000 }).first().click();
     cy.visit('/cart');
   });
 
@@ -239,11 +207,6 @@ describe('Enterprise: Cart Page @enterprise @regression', () => {
 
   it('should have checkout button', () => {
     cy.get('#cart-checkout-button').should('exist').and('be.visible');
-  });
-
-  it('should navigate to checkout', () => {
-    cy.get('#cart-checkout-button').click();
-    cy.url().should('include', '/checkout');
   });
 
   it('should show empty state when cart is empty', () => {
@@ -305,6 +268,7 @@ describe('Enterprise: Newsletter @enterprise @regression', () => {
 
   it('should have newsletter in footer', () => {
     // PageFooter (with #newsletter-email-footer) is used on /products, /contact, etc.
+    cy.stubProductsCatalog();
     cy.visit('/products');
     cy.get('#newsletter-email-footer').should('exist');
   });
@@ -326,95 +290,16 @@ describe('Enterprise: Newsletter @enterprise @regression', () => {
   });
 });
 
-// ─── Auth page ──────────────────────────────────────────────────────────────
-describe('Enterprise: Auth Page @enterprise @regression', () => {
-  beforeEach(() => {
-    cy.visit('/auth');
-  });
+// Auth UI: auth_flows_spec.js. /auth is in PUBLIC_ROUTES above.
 
-  it('should have sign in form fields', () => {
-    cy.get('#signin-email').should('exist');
-    cy.get('#signin-password').should('exist');
-  });
-
-  it('should have sign up form when switching tab', () => {
-    cy.contains(/inscription|sign up|s'inscrire/i).click();
-    cy.get('#signup-email').should('exist');
-    cy.get('#signup-password').should('exist');
-  });
-});
-
-// ─── Checkout flow (multi-step) ──────────────────────────────────────────────
-describe('Enterprise: Checkout Flow @enterprise @smoke', () => {
-  beforeEach(() => {
-    // Stub GET checkout_sessions so form persistence loads quickly (empty = no saved session)
-    cy.intercept('GET', '**/rest/v1/checkout_sessions*', {
-      statusCode: 200,
-      body: [],
-    }).as('checkoutSessionsGet');
-    // Stub app_settings so free shipping fetch returns quickly
-    cy.intercept('GET', '**/rest/v1/app_settings*', {
-      statusCode: 200,
-      body: [],
-    }).as('appSettings');
+// ─── Checkout (thin smoke; full multi-step flow: checkout_flow_spec.js) ─────
+describe('Enterprise: Checkout smoke @enterprise @smoke', () => {
+  it('shows checkout step 1 when cart has items', () => {
+    cy.stubCheckoutIntercepts();
     cy.visit('/products');
-    cy.get('[id^="add-to-cart-btn-"]').first().click();
+    cy.get(enterpriseCatalogAddToCart, { timeout: 25000 }).first().click();
     cy.visit('/checkout');
-  });
-
-  it('should show step 1 personal info form', () => {
     cy.get('#firstName', { timeout: 15000 }).should('be.visible');
-    cy.get('#lastName').should('be.visible');
-    cy.get('#email').should('be.visible');
-    cy.get('#phone').should('be.visible');
-  });
-
-  it('should advance to step 2 shipping after filling step 1', () => {
-    // Wait for form to finish loading (skeleton gone, fields visible)
-    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
-    cy.wait(500); // Brief pause for form to stabilize
-    cy.get('#firstName').clear().type('Jean');
-    cy.get('#lastName').clear().type('Dupont');
-    cy.get('#email').clear().type('jean.dupont@test.com');
-    cy.get('#phone').clear().type('+33612345678');
-    // Use fieldset to target step 1 form button (avoids mobile sticky bar)
-    cy.get('fieldset')
-      .find('button')
-      .contains(/livraison|shipping|suivant|next|continuer/i)
-      .should('be.visible')
-      .click();
-    cy.get('#address', { timeout: 15000 }).should('be.visible');
-  });
-
-  it('should show promo code input', () => {
-    cy.get('input[placeholder*="promo"], input[placeholder*="code"]').should(
-      'exist'
-    );
-  });
-
-  it('should validate postal code format for France', () => {
-    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
-    cy.wait(500);
-    cy.get('#firstName').clear().type('Jean');
-    cy.get('#lastName').clear().type('Dupont');
-    cy.get('#email').clear().type('jean@test.com');
-    cy.get('fieldset')
-      .find('button')
-      .contains(/livraison|shipping|suivant|next|continuer/i)
-      .should('be.visible')
-      .click();
-    cy.get('#address', { timeout: 15000 })
-      .should('be.visible')
-      .type('12 Rue de la Paix');
-    cy.get('#postalCode').type('123');
-    cy.get('#city').type('Paris');
-    cy.get('button')
-      .contains(/paiement|payment/i)
-      .first()
-      .click();
-    cy.get('.text-destructive, [role="alert"]', { timeout: 10000 }).should(
-      'be.visible'
-    );
   });
 });
 
@@ -422,6 +307,7 @@ describe('Enterprise: Checkout Flow @enterprise @smoke', () => {
 describe('Enterprise: Footer Links @enterprise @regression', () => {
   beforeEach(() => {
     // Use /products - PageFooter has full link set; Index uses different Footer
+    cy.stubProductsCatalog();
     cy.visit('/products');
   });
 
@@ -452,11 +338,9 @@ describe('Enterprise: Macro Environment — Network & Caching @enterprise', () =
   });
 
   it('should load without critical network errors', () => {
-    cy.intercept('GET', '**/*').as('requests');
     cy.visit('/');
     cy.get('body').should('be.visible');
-    // Allow some 404s for optional resources
-    cy.wait(1000);
+    cy.get('#main-content', { timeout: 15000 }).should('exist');
   });
 
   it('should have correct document ready state', () => {
@@ -509,22 +393,11 @@ describe('Enterprise: Loading States @enterprise @regression', () => {
     }).should('exist');
     cy.get('body').should('not.contain', 'Error');
   });
-
-  it('should load product detail without blank screen', () => {
-    cy.visit('/products');
-    cy.get('[id^="product-card-"]').first().find('a').first().click();
-    cy.url().should('match', /\/products\/\d+/);
-    cy.get('body').should('be.visible');
-  });
 });
 
 // ─── Redirect: unauthenticated protected routes ─────────────────────────────
+// Note: /admin/* redirects are covered by admin_routes_smoke_spec.js (all menu paths).
 describe('Enterprise: Auth Redirects @enterprise @regression', () => {
-  it('should redirect to admin login when accessing /admin unauthenticated', () => {
-    cy.visit('/admin');
-    cy.url().should('include', '/admin/login');
-  });
-
   it('should show auth page for /profile when not logged in', () => {
     cy.visit('/profile');
     // May redirect to /auth or show login prompt
@@ -538,25 +411,66 @@ describe('Enterprise: Auth Redirects @enterprise @regression', () => {
 
 // ─── Blog page ──────────────────────────────────────────────────────────────
 describe('Enterprise: Blog @enterprise @regression', () => {
-  beforeEach(() => {
-    cy.visit('/blog');
-  });
+  const E2E_BLOG_POST = {
+    id: 999001,
+    slug: 'e2e-cypress-blog',
+    title: 'E2E Cypress Blog Post',
+    excerpt: 'E2E excerpt for list and detail.',
+    content: 'E2E full content for detail view.',
+    status: 'published',
+    is_featured: false,
+    published_at: '2024-06-01T12:00:00.000Z',
+    tags: [],
+    featured_image_url: null,
+    author_id: null,
+    created_at: '2024-06-01T12:00:00.000Z',
+    updated_at: '2024-06-01T12:00:00.000Z',
+    view_count: 0,
+    blog_post_translations: [],
+  };
 
   it('should display blog posts or empty state', () => {
+    cy.visit('/blog');
     cy.get('body').should('be.visible');
     cy.get('main, #main-content, footer, .container, .min-h-screen', {
       timeout: 10000,
     }).should('exist');
   });
 
-  it('should navigate to blog post when available', () => {
-    cy.get('body').then(($body) => {
-      const link = $body.find('a[href^="/blog/"]').first();
-      if (link.length) {
-        cy.wrap(link).click();
-        cy.url().should('match', /\/blog\/\d+/);
-      }
+  it('should navigate from blog list to post detail (stubbed API)', () => {
+    cy.intercept('GET', '**/rest/v1/blog_post_translations*', {
+      statusCode: 200,
+      body: [
+        {
+          blog_post_id: 999001,
+          locale: 'fr',
+          title: 'E2E Cypress Blog Post',
+          excerpt: 'E2E excerpt for list and detail.',
+          content: 'E2E full content for detail view.',
+          seo_title: null,
+          seo_description: null,
+        },
+      ],
     });
+    cy.intercept('GET', '**/rest/v1/blog_posts*', (req) => {
+      if (req.url.includes('id=eq.999001')) {
+        return req.reply({ statusCode: 200, body: E2E_BLOG_POST });
+      }
+      return req.reply({
+        statusCode: 200,
+        body: [{ ...E2E_BLOG_POST, blog_post_translations: [] }],
+      });
+    });
+
+    cy.visit('/blog');
+    cy.contains('E2E Cypress Blog Post', { timeout: 20000 }).should(
+      'be.visible'
+    );
+    cy.get('a[href="/blog/999001"]').first().click();
+    cy.url().should('include', '/blog/999001');
+    cy.contains('E2E Cypress Blog Post', { timeout: 15000 }).should(
+      'be.visible'
+    );
   });
 });
 

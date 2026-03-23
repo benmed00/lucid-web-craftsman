@@ -20,9 +20,9 @@ const validateName = (name: string): boolean => {
 
 const validatePhone = (phone: string): boolean => {
   // Allow phones starting with 0 (common in France/Europe) or with country code
-  const cleanPhone = phone.replace(/[\s\-\(\)\.]/g, '');
+  const cleanPhone = phone.replace(/[\s().-]/g, '');
   if (cleanPhone.length === 0) return true; // Empty is valid (optional field)
-  const phoneRegex = /^[\+]?[0-9]{6,17}$/;
+  const phoneRegex = /^[+]?[0-9]{6,17}$/;
   return phoneRegex.test(cleanPhone);
 };
 
@@ -57,6 +57,7 @@ const sanitizeInput = (input: string, maxLength: number = 1000): string => {
   let sanitized = input.trim();
 
   // Step 2: Remove null bytes and control characters (except newlines/tabs)
+  // eslint-disable-next-line no-control-regex -- intentional strip of disallowed ASCII controls
   sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
   // Step 3: Remove all HTML tags (including malformed ones)
@@ -89,6 +90,7 @@ const sanitizeForPlainText = (
   let sanitized = input.trim();
 
   // Remove control characters except newlines
+  // eslint-disable-next-line no-control-regex -- intentional strip of disallowed ASCII controls
   sanitized = sanitized.replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
   // Limit length

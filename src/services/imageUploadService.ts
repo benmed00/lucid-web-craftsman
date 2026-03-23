@@ -154,7 +154,7 @@ export class ImageUploadService {
    */
   getOptimizedImageUrl(
     originalUrl: string,
-    options?: {
+    _options?: {
       width?: number;
       height?: number;
       quality?: number;

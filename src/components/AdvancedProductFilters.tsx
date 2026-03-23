@@ -1,19 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Search,
   Filter,
   X,
   SlidersHorizontal,
   Star,
-  Palette,
   User,
   Package,
   TrendingUp,
   Clock,
-  ChevronDown,
   Sparkles,
   Target,
-  Trash2,
   Database,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,25 +26,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from '@/components/ui/command';
+
 import { AdvancedFilterOptions } from '@/hooks/useAdvancedProductFilters';
 import { useTranslation } from 'react-i18next';
 
@@ -159,6 +140,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
             />
             <Input
               ref={searchInputRef}
+              data-testid="products-page-search"
               type="text"
               placeholder={t('advancedFilters.searchPlaceholder')}
               value={filters.searchQuery}

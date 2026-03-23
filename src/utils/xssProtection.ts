@@ -63,7 +63,7 @@ export const validatePhoneNumber = (phone: string): string => {
   const sanitized = sanitizeUserInput(phone.trim());
 
   // Remove formatting and validate basic phone number pattern
-  const cleanPhone = sanitized.replace(/[\s\-\(\)\.]/g, '');
+  const cleanPhone = sanitized.replace(/[\s().-]/g, '');
 
   // Basic phone validation (international format)
   const phoneRegex = /^\+?[1-9]\d{1,14}$/;
@@ -89,7 +89,7 @@ export const validateAndSanitizeName = (name: string): string => {
   }
 
   // Enhanced regex to prevent code injection
-  const nameRegex = /^[a-zA-ZÀ-ÿ\s\-'\.]+$/;
+  const nameRegex = /^[a-zA-ZÀ-ÿ\s\-'.]+$/;
   if (!nameRegex.test(sanitized)) {
     throw new Error('Le nom contient des caractères non autorisés');
   }
@@ -162,7 +162,7 @@ export const generateNonce = (): string => {
 export const sanitizeFileName = (fileName: string): string => {
   // Remove path traversal attempts and dangerous characters
   return fileName
-    .replace(/[\/\\\?\%\*\:\|"<>]/g, '_')
+    .replace(/[/\\?%*:|"<>]/g, '_')
     .replace(/\.\./g, '_')
     .replace(/^\./, '_')
     .trim()

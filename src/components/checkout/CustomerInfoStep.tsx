@@ -72,7 +72,7 @@ const CustomerInfoStep = ({
           maxLength={50}
           validate={(value) => {
             if (value.length < 2) return t('errors.requiredField');
-            if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value))
+            if (!/^[a-zA-ZÀ-ÿ\s\-'.]+$/.test(value))
               return t('errors.requiredField');
             return null;
           }}
@@ -93,7 +93,7 @@ const CustomerInfoStep = ({
           maxLength={50}
           validate={(value) => {
             if (value.length < 2) return t('errors.requiredField');
-            if (!/^[a-zA-ZÀ-ÿ\s\-'\.]+$/.test(value))
+            if (!/^[a-zA-ZÀ-ÿ\s\-'.]+$/.test(value))
               return t('errors.requiredField');
             return null;
           }}
@@ -139,7 +139,7 @@ const CustomerInfoStep = ({
         showSuccessState={false}
         validate={(value) => {
           if (!value) return null;
-          if (!/^[\+]?[(]?[0-9]{1,4}[)]?[-\s\./0-9]*$/.test(value)) {
+          if (!/^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/.test(value)) {
             return t('errors.invalidPhone');
           }
           return null;
@@ -147,6 +147,7 @@ const CustomerInfoStep = ({
       />
 
       <Button
+        data-testid="checkout-continue-to-shipping"
         className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground gap-2 min-h-[48px] text-base font-medium shadow-sm"
         onClick={onNext}
         aria-describedby="step1-instructions"

@@ -97,7 +97,7 @@ export function PersonalInfo({
           : null,
       };
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .update(sanitizedData)
         .eq('id', user.id)
@@ -136,7 +136,7 @@ export function PersonalInfo({
           : null,
       };
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .update(sanitizedData)
         .eq('id', user.id)

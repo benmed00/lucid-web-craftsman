@@ -1,7 +1,6 @@
-// cypress/integration/mobile_menu_spec.js
 /**
- * Mobile Menu Comprehensive Test Suite
- * Tests menu behavior across different screen sizes and breakpoints
+ * Mobile menu — canonical E2E for hamburger, sheet, viewports (W10).
+ * enterprise_full_platform_spec does not duplicate this; extend tests here.
  */
 
 // Common viewport sizes for testing

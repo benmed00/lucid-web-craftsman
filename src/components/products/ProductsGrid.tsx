@@ -32,7 +32,7 @@ export const ProductsGrid = ({
   hasMore,
   isLoadingMore,
   sentinelRef,
-  filters,
+  filters: _filters,
   onAddToCart,
   onQuickView,
   onResetFilters,
@@ -41,7 +41,7 @@ export const ProductsGrid = ({
 
   if (filteredProducts.length === 0) {
     return (
-      <div className="text-center py-16">
+      <div data-testid="products-catalog" className="text-center py-16">
         <div className="mb-8">
           <div className="text-6xl mb-4">🔍</div>
           <h2 className="font-serif text-2xl text-foreground mb-4">
@@ -59,7 +59,7 @@ export const ProductsGrid = ({
   }
 
   return (
-    <div className="space-y-8">
+    <div data-testid="products-catalog" className="space-y-8">
       {isSearchStale ? (
         <div className="space-y-4">
           <div className="flex items-center justify-center gap-2 text-muted-foreground py-2">

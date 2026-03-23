@@ -6,7 +6,9 @@ declare global {
     interface Chainable {
       tab(): Chainable<unknown>;
       addProductToCart(options?: { productId?: number }): Chainable<void>;
+      stubCheckoutIntercepts(): Chainable<void>;
       resetDatabase(): Chainable<void>;
+      loginAs(role?: 'customer' | 'admin'): Chainable<void>;
       mockSupabaseResponse(
         method: import('cypress/types/net-stubbing').Method,
         path: string,

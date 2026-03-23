@@ -8,7 +8,6 @@ import { Product } from '@/shared/interfaces/Iproduct.interface';
 import {
   safeGetItem,
   safeSetItem,
-  safeRemoveItem,
   StorageKeys,
   StorageTTL,
 } from '@/lib/storage/safeStorage';
@@ -28,12 +27,6 @@ export interface QueueOperation {
   productId?: number;
   quantity?: number;
   timestamp: number;
-}
-
-interface SyncState {
-  isOnline: boolean;
-  isSyncing: boolean;
-  offlineQueue: QueueOperation[];
 }
 
 // Helper functions
@@ -205,7 +198,6 @@ export async function saveToSupabase(
 }
 
 // ============= Offline Queue Constants =============
-const MAX_QUEUE_SIZE = 50;
 const MAX_RETRIES_PER_OP = 3;
 
 /**

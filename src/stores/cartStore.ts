@@ -6,7 +6,6 @@ import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import {
-  safeGetItem,
   safeSetItem,
   safeRemoveItem,
   StorageKeys,

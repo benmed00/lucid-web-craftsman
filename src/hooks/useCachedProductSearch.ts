@@ -9,7 +9,10 @@ const searchAndScoreProducts = (
 ): Product[] => {
   if (!searchQuery.trim()) return products;
 
-  const searchTerms = searchQuery.toLowerCase().split(' ').filter(Boolean);
+  const searchTerms = searchQuery
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((t) => t.length >= 2);
 
   return products
     .map((product) => {
@@ -33,9 +36,11 @@ const searchAndScoreProducts = (
         if (searchableText.includes(term)) {
           score += 10;
         }
-        const words = searchableText.split(' ');
+        const words = searchableText.split(/\s+/);
         words.forEach((word) => {
-          if (word.includes(term) || term.includes(word)) {
+          // Token must appear as a substring of a word (not query⊃word: "…art…" ⊃ "art" caused false hits)
+          if (word.length < 3 || term.length < 3) return;
+          if (word.includes(term)) {
             score += 5;
           }
         });

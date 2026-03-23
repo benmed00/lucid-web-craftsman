@@ -107,8 +107,8 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
     null
   );
   // NON-BLOCKING: start as false so checkout form renders immediately
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, _setIsLoading] = useState(false);
+  const [error, _setError] = useState<string | null>(null);
 
   const initRef = useRef(false);
   const initInFlight = useRef(false);

@@ -109,7 +109,7 @@ const CodeSplittingWrapper: React.FC<CodeSplittingWrapperProps> = ({
   return (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
-      onError={(error, errorInfo) => {
+      onError={(_error, _errorInfo) => {
         // Silent error handling for production
         // You could send this to an error reporting service
       }}
@@ -133,7 +133,7 @@ export const createLazyComponent = <T extends Record<string, any>>(
 
       // Return a fallback component
       return {
-        default: (props: T) => (
+        default: (_props: T) => (
           <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-amber-800">
               Impossible de charger le composant {componentName}.

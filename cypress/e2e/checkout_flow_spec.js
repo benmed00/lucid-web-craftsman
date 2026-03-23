@@ -3,31 +3,31 @@
  * Covers: add to cart → personal info → shipping → payment → promo codes
  */
 
+const catalogAddToCart =
+  '[data-testid="products-catalog"] [id^="add-to-cart-btn-"]';
+
 describe('Checkout Flow @smoke @regression', () => {
   beforeEach(() => {
-    // Stub Supabase so checkout form loads quickly (matches enterprise spec)
-    cy.intercept('GET', '**/rest/v1/checkout_sessions*', {
-      statusCode: 200,
-      body: [],
-    }).as('checkoutSessionsGet');
-    cy.intercept('GET', '**/rest/v1/app_settings*', {
-      statusCode: 200,
-      body: [],
-    }).as('appSettings');
+    cy.stubCheckoutIntercepts();
     cy.visit('/products');
     cy.get('body').should('be.visible');
+    // Products load from Supabase; wait for real cards (not search-stale skeleton)
+    cy.get(catalogAddToCart, { timeout: 25000 }).should(
+      'have.length.at.least',
+      1
+    );
   });
 
   it('should add a product to the cart', () => {
     // Use stable ID selector (matches enterprise spec and product cards)
-    cy.get('[id^="add-to-cart-btn-"]').first().should('be.visible').click();
+    cy.get(catalogAddToCart).first().should('be.visible').click();
     // Cart link should exist (header shows cart)
     cy.get('a[href="/cart"]').should('exist');
   });
 
   it('should navigate to checkout with items in cart', () => {
     // Add a product
-    cy.get('[id^="add-to-cart-btn-"]').first().click();
+    cy.get(catalogAddToCart).first().click();
     // Go to cart
     cy.visit('/cart');
     cy.get('body').should('be.visible');
@@ -40,7 +40,7 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should fill personal info and advance to shipping', () => {
-    cy.get('[id^="add-to-cart-btn-"]').first().click();
+    cy.get(catalogAddToCart).first().click();
     cy.visit('/checkout');
 
     // Wait for form to load (skeleton gone, persistence ready)
@@ -61,7 +61,7 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should fill shipping info and advance to payment', () => {
-    cy.get('[id^="add-to-cart-btn-"]').first().click();
+    cy.get(catalogAddToCart).first().click();
     cy.visit('/checkout');
 
     cy.get('#firstName', { timeout: 15000 }).should('be.visible');
@@ -79,9 +79,9 @@ describe('Checkout Flow @smoke @regression', () => {
     cy.get('#postalCode').type('75001');
     cy.get('#city').type('Paris');
 
-    cy.get('button')
-      .contains(/paiement|payment/i)
-      .first()
+    // Avoid matching hidden mobile bar ("Procéder au Paiement") or sidebar copy
+    cy.get('[data-testid="checkout-continue-to-payment"]')
+      .filter(':visible')
       .click();
 
     // Payment step: card option (#card) or payment title/options text
@@ -91,7 +91,7 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should show error for invalid promo code', () => {
-    cy.get('[id^="add-to-cart-btn-"]').first().click();
+    cy.get(catalogAddToCart).first().click();
     cy.visit('/checkout');
 
     // Wait for checkout to load, then find promo input (FR: "Entrez votre code", EN: "Enter your code")
@@ -112,7 +112,7 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should clear promo error when user types new code', () => {
-    cy.get('[id^="add-to-cart-btn-"]').first().click();
+    cy.get(catalogAddToCart).first().click();
     cy.visit('/checkout');
 
     cy.get('#firstName', { timeout: 15000 }).should('be.visible');
@@ -142,7 +142,7 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should show postal code format hint based on country', () => {
-    cy.get('[id^="add-to-cart-btn-"]').first().click();
+    cy.get(catalogAddToCart).first().click();
     cy.visit('/checkout');
 
     cy.get('#firstName', { timeout: 15000 }).should('be.visible');
@@ -163,7 +163,7 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should validate postal code format per country', () => {
-    cy.get('[id^="add-to-cart-btn-"]').first().click();
+    cy.get(catalogAddToCart).first().click();
     cy.visit('/checkout');
 
     cy.get('#firstName', { timeout: 15000 }).should('be.visible');
@@ -180,13 +180,28 @@ describe('Checkout Flow @smoke @regression', () => {
     cy.get('#address').type('12 Rue de la Paix');
     cy.get('#postalCode').type('123'); // too short for FR
     cy.get('#city').type('Paris');
-    cy.get('button')
-      .contains(/paiement|payment/i)
-      .first()
+    cy.get('[data-testid="checkout-continue-to-payment"]')
+      .filter(':visible')
       .click();
 
     cy.get('.text-destructive, [role="alert"]', { timeout: 10000 }).should(
       'be.visible'
     );
+  });
+
+  it('should increase and decrease line-item quantity on cart page', () => {
+    cy.get(catalogAddToCart).first().click();
+    cy.visit('/cart');
+    const qtyLabel = '[aria-label^="Quantité:"], [aria-label^="Quantity:"]';
+    // cart-item-* id is on the product title <h3>, not the line card — use article
+    cy.get('[role="article"]')
+      .first()
+      .within(() => {
+        cy.get(qtyLabel).first().should('have.text', '1');
+        cy.get('[id^="cart-qty-plus-"]').click();
+        cy.get(qtyLabel).first().should('have.text', '2');
+        cy.get('[id^="cart-qty-minus-"]').click();
+        cy.get(qtyLabel).first().should('have.text', '1');
+      });
   });
 });
