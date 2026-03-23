@@ -4,6 +4,10 @@
  * Uses @cypress/grep for tagged specs: @smoke (critical path), @regression (full suite).
  * All specs live under cypress/e2e/ (TypeScript or JavaScript).
  *
+ * Port contract: baseUrl defaults to http://localhost:8080 — same as Vite (vite.config.ts
+ * server.port + strictPort). npm scripts e2e:ci, e2e:checkout, e2e:ci:smoke wait on that URL.
+ * Set CYPRESS_BASE_URL if the dev server runs elsewhere.
+ *
  * @see https://docs.cypress.io/guides/references/configuration
  * @see https://github.com/cypress-io/cypress-grep
  */
@@ -22,7 +26,7 @@ export default defineConfig({
 
     supportFile: 'cypress/support/index.ts',
 
-    // App URL (dev server default; override with CYPRESS_BASE_URL)
+    // App origin — must match Vite dev server (8080 + strictPort); see file header
     baseUrl: process.env.CYPRESS_BASE_URL ?? 'http://localhost:8080',
 
     viewportWidth: 1280,

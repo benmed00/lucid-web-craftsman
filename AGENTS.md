@@ -6,19 +6,21 @@
 
 | Service                        | Port | Command             | Notes                                                                                      |
 | ------------------------------ | ---- | ------------------- | ------------------------------------------------------------------------------------------ |
-| **Vite dev server** (frontend) | 8080 | `npm run dev`       | React SPA; proxies `/api` and `/health` to the mock API                                    |
+| **Vite dev server** (frontend) | 8080 | `npm run dev`       | React SPA; proxies `/api` and `/health` to the mock API; **`strictPort`** (no silent port drift vs Cypress) |
 | **Mock API** (backend)         | 3001 | `npm run start:api` | Express + json-server; serves products, posts, cart, orders from `backend/db.json`         |
 | **Supabase**                   | —    | hosted cloud        | Hardcoded fallback URL/key in `src/integrations/supabase/client.ts`; no local setup needed |
 
 ### Running the app
 
-Start the mock API first (`npm run start:api &`), then start the frontend (`npm run dev`). The Vite dev server runs on port 8080 and proxies `/api` requests to port 3001.
+Start the mock API first (`npm run start:api &`), then start the frontend (`npm run dev`). The Vite dev server runs on port **8080** and proxies `/api` to the mock API.
+
+**Dev port & Cypress (single contract):** `cypress.config.ts` uses **`http://localhost:8080`** as `baseUrl` unless you set **`CYPRESS_BASE_URL`**. `vite.config.ts` sets **`strictPort: true`** so Vite **fails** if 8080 is busy instead of moving to 8081/8082 — that keeps `npm run dev` aligned with `e2e:ci`, **`e2e:checkout`**, and `start-server-and-test … http-get://localhost:8080`. Free 8080 before E2E, or point Cypress at the real origin via `CYPRESS_BASE_URL`. Details: [`cypress/README.md`](cypress/README.md) (Dev port contract).
 
 ### Key commands
 
 See `package.json` scripts. Highlights:
 
-- **E2E (CI-style):** `npm run e2e:ci` — full suite; **`npm run e2e:ci:smoke`** — only `@smoke`; **`npm run e2e:ci:shard`** — same as `e2e:ci` but runs a slice of spec files (`CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL`, see [`scripts/cypress-e2e-shard.mjs`](scripts/cypress-e2e-shard.mjs)). Smoke/full workflows start mock API (3001) + Vite (8080) then Cypress. GitHub **E2E**: **smoke** on PR/push to `main`; **full** uses **two parallel shard jobs** on schedule/`workflow_dispatch` (see [`docs/E2E-COVERAGE.md`](docs/E2E-COVERAGE.md)).
+- **E2E (CI-style):** `npm run e2e:ci` — full suite; **`npm run e2e:ci:smoke`** — only `@smoke`; **`npm run e2e:checkout`** — checkout flow + persistence specs only; **`npm run e2e:ci:shard`** — same as `e2e:ci` but runs a slice of spec files (`CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL`, see [`scripts/cypress-e2e-shard.mjs`](scripts/cypress-e2e-shard.mjs)). Smoke/full workflows start mock API (3001) + Vite (8080) then Cypress. GitHub **E2E**: **smoke** on PR/push to `main`; **full** uses **two parallel shard jobs** on schedule/`workflow_dispatch` (see [`docs/E2E-COVERAGE.md`](docs/E2E-COVERAGE.md)).
 - **Typecheck:** `npm run type:check` — `tsc --noEmit` for `tsconfig.app.json`, `tsconfig.node.json`, and `cypress/tsconfig.json` (also runs in `npm run validate`).
 - **Lint:** `npm run lint -- --max-warnings 9999` (0 errors expected; many pre-existing warnings)
 - **Format check:** `npm run format:check`

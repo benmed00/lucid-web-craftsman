@@ -6,6 +6,11 @@
  * - Dev server: port 8080, proxies /api and /health to json-server (3001)
  * - Test: jsdom, globals, setupTests.ts
  *
+ * E2E port contract (keep in sync with cypress.config.ts baseUrl + package.json e2e:*):
+ * Cypress and start-server-and-test wait on http://localhost:8080. The dev server uses
+ * strictPort so we never silently bind to 8081/8082 when 8080 is taken (that mismatch
+ * caused cy.visit ECONNREFUSED). Override the app origin with CYPRESS_BASE_URL if needed.
+ *
  * @see https://vitejs.dev/config/
  */
 
@@ -33,11 +38,13 @@ export default defineConfig(({ mode }) => ({
   base: '/',
 
   // ==========================================================================
-  // Dev server
+  // Dev server — must stay on 8080 for Cypress (see file header: E2E port contract)
   // ==========================================================================
   server: {
     host: '::',
     port: 8080,
+     // Fail if 8080 is taken (don’t silently use 8082 — Cypress baseUrl stays :8080)
+    strictPort: true,
     proxy: {
       '/api': { target: 'http://localhost:3001', changeOrigin: true },
       '/health': { target: 'http://localhost:3001', changeOrigin: true },
