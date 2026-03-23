@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: '::',
     port: 8080,
-     // Fail if 8080 is taken (don’t silently use 8082 — Cypress baseUrl stays :8080)
+    // Fail if 8080 is taken (don’t silently use 8082 — Cypress baseUrl stays :8080)
     strictPort: true,
     proxy: {
       '/api': { target: 'http://localhost:3001', changeOrigin: true },

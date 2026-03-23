@@ -4,11 +4,11 @@
 
 ### Services overview
 
-| Service                        | Port | Command             | Notes                                                                                      |
-| ------------------------------ | ---- | ------------------- | ------------------------------------------------------------------------------------------ |
+| Service                        | Port | Command             | Notes                                                                                                       |
+| ------------------------------ | ---- | ------------------- | ----------------------------------------------------------------------------------------------------------- |
 | **Vite dev server** (frontend) | 8080 | `npm run dev`       | React SPA; proxies `/api` and `/health` to the mock API; **`strictPort`** (no silent port drift vs Cypress) |
-| **Mock API** (backend)         | 3001 | `npm run start:api` | Express + json-server; serves products, posts, cart, orders from `backend/db.json`         |
-| **Supabase**                   | —    | hosted cloud        | Hardcoded fallback URL/key in `src/integrations/supabase/client.ts`; no local setup needed |
+| **Mock API** (backend)         | 3001 | `npm run start:api` | Express + json-server; serves products, posts, cart, orders from `backend/db.json`                          |
+| **Supabase**                   | —    | hosted cloud        | Hardcoded fallback URL/key in `src/integrations/supabase/client.ts`; no local setup needed                  |
 
 ### Running the app
 

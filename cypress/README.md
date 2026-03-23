@@ -10,7 +10,7 @@ Ce dossier regroupe les **tests E2E navigateur** (Cypress). La **couverture fonc
 
 | Thème             | Contenu                                                                                                                                                                                                                                                                                                                               |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Stack locale**  | Mock API **3001** → Vite **8080** (`strictPort` : pas de bascule silencieuse vers 8082 — aligné avec `baseUrl` Cypress ; voir [Contrat de port](#dev-port-contract-vite--cypress)).                                                                                                                                                    |
+| **Stack locale**  | Mock API **3001** → Vite **8080** (`strictPort` : pas de bascule silencieuse vers 8082 — aligné avec `baseUrl` Cypress ; voir [Contrat de port](#dev-port-contract-vite--cypress)).                                                                                                                                                   |
 | **Configuration** | [`../cypress.config.ts`](../cypress.config.ts), [`../cypress.env.example.json`](../cypress.env.example.json) → `cypress.env.json` (non versionné).                                                                                                                                                                                    |
 | **Tags**          | `@smoke` (CI rapide sur PR), `@regression` (suite élargie), via `@cypress/grep`.                                                                                                                                                                                                                                                      |
 | **CI GitHub**     | **`ci.yml`** : lint, tests unitaires, build (sans Cypress). **`e2e.yml`** : Cypress — **smoke** sur push/PR ou dispatch `suite: smoke` ; **full** sur `schedule` ou dispatch `suite: full` (défaut) en **2 jobs parallèles** (`e2e:ci:shard`). Les deux workflows : **concurrence** et **permissions** restreintes (voir runbook EN). |
@@ -49,12 +49,12 @@ Functional coverage, scripts, and explicitly **out-of-scope** scenarios (e.g. re
 
 ## Architecture
 
-| Component                  | Role                                                                                                        |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Component                  | Role                                                                                                                 |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | **Application under test** | Vite dev server on **8080** with **`strictPort: true`** (see [Dev port contract](#dev-port-contract-vite--cypress)). |
-| **Mock API**               | Express + json-server on port **3001**; Vite proxies `/api` and `/health` to it.                            |
-| **Supabase**               | Hosted project; the app may use env-based URL/keys. Some tests stub or intercept network calls.             |
-| **Cypress**                | Drives the browser against `baseUrl` (default `http://localhost:8080`, overridable via `CYPRESS_BASE_URL`). |
+| **Mock API**               | Express + json-server on port **3001**; Vite proxies `/api` and `/health` to it.                                     |
+| **Supabase**               | Hosted project; the app may use env-based URL/keys. Some tests stub or intercept network calls.                      |
+| **Cypress**                | Drives the browser against `baseUrl` (default `http://localhost:8080`, overridable via `CYPRESS_BASE_URL`).          |
 
 Configuration is centralized in [`../cypress.config.ts`](../cypress.config.ts) (including `@cypress/grep` for tags). Support code and custom commands live under [`support/`](support/).
 
