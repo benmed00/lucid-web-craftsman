@@ -8,7 +8,7 @@
  * that unauthorized access is properly blocked.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // Test configuration - use environment variables instead of hardcoded credentials
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';

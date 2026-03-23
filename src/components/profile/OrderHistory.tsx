@@ -251,7 +251,6 @@ function OrderTimeline({ history }: { history: StatusHistoryEntry[] }) {
         {/* Vertical line */}
         <div className="absolute left-[9px] top-1 bottom-1 w-px bg-border" />
         {sorted.map((entry, idx) => {
-          const config = getStatusConfig(entry.new_status);
           const isLatest = idx === 0;
           return (
             <div key={entry.id} className="relative flex items-start gap-3">

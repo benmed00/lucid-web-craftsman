@@ -1,11 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,13 +22,9 @@ import {
 } from '@/components/ui/select';
 import {
   Package,
-  Plus,
   Edit,
-  Trash2,
   Search,
   Filter,
-  Eye,
-  EyeOff,
   ImageIcon,
   RefreshCw,
 } from 'lucide-react';
@@ -128,24 +118,6 @@ const AdminProducts = () => {
       slug: product.slug,
     });
     setIsNewProduct(false);
-    setIsDialogOpen(true);
-  };
-
-  const handleNewProduct = () => {
-    setEditingProduct(null);
-    setFormData({
-      name: '',
-      price: 0,
-      images: [],
-      category: 'Sacs',
-      description: '',
-      details: '',
-      care: '',
-      is_new: false,
-      artisan: '',
-      artisan_story: '',
-    });
-    setIsNewProduct(true);
     setIsDialogOpen(true);
   };
 

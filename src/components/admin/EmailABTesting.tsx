@@ -36,7 +36,6 @@ import {
   Play,
   Pause,
   Trophy,
-  BarChart3,
   Mail,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';

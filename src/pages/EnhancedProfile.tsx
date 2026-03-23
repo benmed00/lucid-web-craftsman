@@ -2,10 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,16 +22,13 @@ import {
   UserCog,
   Home,
   Trash2,
-  Shield,
   Crown,
 } from 'lucide-react';
-import { ProfileOverview } from '@/components/profile/ProfileOverview';
 import { PersonalInfo } from '@/components/profile/PersonalInfo';
 import { PreferencesSettings } from '@/components/profile/PreferencesSettings';
 import { OrderHistory } from '@/components/profile/OrderHistory';
 import { LoyaltyProgram } from '@/components/profile/LoyaltyProgram';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
-import type { Profile } from '@/context/AuthContext';
 import { EnhancedProfileManager } from '@/components/profile/EnhancedProfileManager';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';

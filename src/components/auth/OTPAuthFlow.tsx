@@ -91,7 +91,7 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
         }
       } else {
         // SMS OTP implementation would go here
-        const sanitizedPhone = validatePhoneNumber(contact);
+        void validatePhoneNumber(contact);
         toast.info('Fonctionnalité SMS à venir');
         return;
       }

@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { OrderStatusBadge } from './OrderStatusBadge';
 import { OrderStatusSelect } from './OrderStatusSelect';
 import { OrderHistoryTimeline } from './OrderHistoryTimeline';
 import { OrderAnomaliesList } from './OrderAnomaliesList';
@@ -43,8 +42,6 @@ import {
   Smartphone,
   Tablet,
   Globe,
-  Chrome,
-  Receipt,
   Eye,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -69,7 +66,7 @@ const getDeviceIcon = (deviceType: string) => {
 
 export function OrderDetailsPanel({
   orderId,
-  onClose,
+  onClose: _onClose,
 }: OrderDetailsPanelProps) {
   const { data: order, isLoading, refetch } = useOrder(orderId);
   const [isEditingTracking, setIsEditingTracking] = useState(false);
@@ -184,10 +181,6 @@ export function OrderDetailsPanel({
   const browserVersion = (metadata?.browser_version as string) || '';
   const os = (metadata?.os as string) || 'Unknown';
   const clientIp = (metadata?.client_ip as string) || 'Unknown';
-  const orderCountry =
-    (metadata?.order_country as string) ||
-    shippingAddress?.country ||
-    'Unknown';
   const guestId = (metadata?.guest_id as string) || null;
   const discountCode = (metadata?.discount_code as string) || null;
   const discountAmount = (metadata?.discount_amount as number) || 0;

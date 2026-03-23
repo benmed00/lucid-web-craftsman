@@ -205,7 +205,7 @@ const ScrollRestoration = () => {
 
 // Wrapper component to handle maintenance mode check inside Router context
 const MaintenanceWrapper = ({ children }: { children: React.ReactNode }) => {
-  const { isMaintenanceMode, isLoading } = useMaintenanceMode();
+  const { isMaintenanceMode } = useMaintenanceMode();
   const location = useLocation();
 
   // Allow admin routes even in maintenance mode
@@ -691,13 +691,5 @@ const App = () => {
     </ErrorBoundary>
   );
 };
-
-// Composant de fallback pour les erreurs
-const ErrorFallback = () => (
-  <div className="p-4 bg-red-50 text-red-700">
-    <h2>Une erreur critique est survenue</h2>
-    <p>Veuillez recharger la page ou contacter le support</p>
-  </div>
-);
 
 export default App;

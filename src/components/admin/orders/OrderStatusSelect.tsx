@@ -23,7 +23,6 @@ import {
   useUpdateOrderStatus,
 } from '@/hooks/useOrderManagement';
 import type { OrderStatus, OrderStateTransition } from '@/types/order.types';
-import { ORDER_STATUS_CONFIG } from '@/types/order.types';
 import { Loader2, AlertTriangle } from 'lucide-react';
 
 interface OrderStatusSelectProps {
@@ -119,7 +118,6 @@ export function OrderStatusSelect({
 
           {/* Available transitions */}
           {transitions.map((transition) => {
-            const config = ORDER_STATUS_CONFIG[transition.to_status];
             return (
               <SelectItem
                 key={transition.to_status}

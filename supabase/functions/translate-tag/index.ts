@@ -68,7 +68,7 @@ serve(async (req) => {
 
     const {
       tag,
-      targetLanguages = ['en', 'ar', 'es', 'de'],
+      targetLanguages: _targetLanguages = ['en', 'ar', 'es', 'de'],
     }: TranslationRequest = await req.json();
 
     if (!tag) {

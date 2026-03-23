@@ -7,7 +7,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -366,8 +365,6 @@ const AdminAnalytics = () => {
         ],
       ];
 
-      const productHeaders = ['', '', '', ''];
-      const productTitleRow = ['', '', '', ''];
       const topProductsHeaders = ['Produit', 'Ventes', 'Revenu', ''];
       const topProductsRows = analytics.topProducts.map((p) => [
         p.name,

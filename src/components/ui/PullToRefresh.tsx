@@ -28,11 +28,12 @@ export const PullToRefresh = ({
     <div ref={containerRef} className={`relative ${className}`}>
       {/* Pull to refresh indicator */}
       <div
-        className="absolute top-0 left-0 right-0 z-50 flex justify-center transition-all duration-200"
+        className="absolute top-0 left-0 right-0 z-50 flex justify-center transition-all duration-200 pointer-events-none"
         style={{
           transform: `translateY(${Math.max(-60 + pullDistance * 0.5, -60)}px)`,
           opacity: isPulling ? 1 : 0,
         }}
+        aria-hidden="true"
       >
         <div className="bg-background/95 backdrop-blur-sm rounded-full shadow-lg p-3 flex items-center justify-center min-w-[60px] min-h-[60px] border border-border">
           {isRefreshing ? (

@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # Git ignore list
 # =============================================================================
 # Do not commit build artifacts, secrets, editor files, or generated outputs.
@@ -23,6 +23,7 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+cypress.env.json
 
 # Cypress E2E artifacts (generated on test failure)
 cypress/screenshots/
@@ -61,3 +62,4 @@ docs/commit-msg-*.txt
 # Local lint / analysis dumps (do not commit)
 lint-current.txt
 lint-output.json
+

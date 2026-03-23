@@ -11,7 +11,7 @@ export interface AdminUser {
 }
 
 export const useAdminAuth = () => {
-  const { user, session, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);

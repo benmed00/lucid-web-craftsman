@@ -493,7 +493,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const verifyOtp = useCallback(
-    async (email: string, token: string, type: 'email' | 'sms' = 'email') => {
+    async (email: string, token: string, _type: 'email' | 'sms' = 'email') => {
       const { data, error } = await supabase.auth.verifyOtp({
         email,
         token,

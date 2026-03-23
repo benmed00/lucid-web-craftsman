@@ -5,6 +5,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-green.svg)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.0+-06B6D4.svg)](https://tailwindcss.com/)
 [![Vite](https://img.shields.io/badge/Vite-5.0+-646CFF.svg)](https://vitejs.dev/)
+[![CI](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/ci.yml/badge.svg)](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/ci.yml)
+[![E2E](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/e2e.yml/badge.svg)](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/e2e.yml)
 
 ## 📖 Vue d'ensemble
 
@@ -130,6 +132,7 @@ _Page de contact et informations institutionnelles_
 - **Prettier** - Formatage automatique
 - **Husky** - Hooks Git pour CI/CD
 - **Vitest** - Framework de tests unitaires
+- **Cypress** - Tests end-to-end navigateur ([`cypress/README.md`](cypress/README.md))
 
 ## 🛠️ Installation & Configuration
 
@@ -206,6 +209,9 @@ rif-raw-straw/
 │   ├── 📁 data/                # Données statiques et mock
 │   ├── 📁 config/              # Configuration de l'application
 │   └── 📄 main.tsx             # Point d'entrée de l'application
+├── 📁 cypress/                 # Tests E2E (specs, support) — voir cypress/README.md
+├── 📁 docs/                    # Documentation (ex. E2E-COVERAGE.md)
+├── 📄 cypress.config.ts        # Configuration Cypress
 ├── 📄 tailwind.config.ts       # Configuration Tailwind CSS
 ├── 📄 vite.config.ts           # Configuration Vite
 ├── 📄 tsconfig.json            # Configuration TypeScript
@@ -266,13 +272,34 @@ npm run test:edge-functions
 # Tests avec couverture
 npm run coverage
 
-# Tests e2e
+# Tests e2e (Cypress — serveur déjà démarré : API mock 3001 + Vite 8080)
 npm run e2e:run
 # ou en mode interactif
 npm run e2e:open
+# smoke / régression (tags @cypress/grep)
+npm run e2e:smoke
+npm run e2e:regression
+
+# Même chose qu’en CI : démarre l’API mock + Vite puis lance Cypress
+npm run e2e:ci
+npm run e2e:ci:smoke
 ```
 
+**Documentation E2E :**
+
+- **[`cypress/README.md`](cypress/README.md)** — runbook (commandes, CI GitHub, secrets, dépannage ; résumé FR en tête).
+- **[`docs/E2E-COVERAGE.md`](docs/E2E-COVERAGE.md)** — couverture, limites, jobs CI.
+
+Pour les scénarios avec authentification réelle, copier `cypress.env.example.json` vers `cypress.env.json` (voir runbook). En CI, des secrets dépôt `CYPRESS_*` peuvent être configurés (voir `cypress.config.ts`).
+
 **Tests Edge Functions :** Les tests d'intégration des Edge Functions nécessitent `VITE_SUPABASE_URL` et `VITE_SUPABASE_PUBLISHABLE_KEY` dans `.env`. Pour les tests admin (preview email, etc.), ajoutez `SUPABASE_SERVICE_ROLE_KEY`. Les tests sans clé service role sont ignorés.
+
+### Vérification TypeScript (monorepo)
+
+```bash
+npm run type:check   # App + Vite config + Cypress
+npm run validate     # lint + format + typecheck + tests unitaires
+```
 
 ### Linting & Formatage
 

@@ -56,11 +56,6 @@ const EMPTY_FORM: CheckoutFormData = {
   country: 'FR',
 };
 
-interface CheckoutState {
-  step: number;
-  completedSteps: number[];
-}
-
 interface UseCheckoutFormPersistenceReturn {
   formData: CheckoutFormData;
   setFormData: React.Dispatch<React.SetStateAction<CheckoutFormData>>;

@@ -37,7 +37,7 @@ export const DesktopActions = ({
   itemCount,
   wishlistCount,
   currentPath,
-  showSearch,
+  showSearch: _showSearch,
   onToggleSearch,
   onSignOut,
 }: DesktopActionsProps) => {
@@ -105,7 +105,12 @@ export const DesktopActions = ({
       <ThemeToggle className="hidden xl:flex" />
 
       {/* Cart Button */}
-      <Link to="/cart" className="hidden md:block">
+      <Link
+        to="/cart"
+        className="hidden md:block"
+        data-testid="nav-cart-link"
+        aria-label={`${t('nav.cart')} (${itemCount})`}
+      >
         <Button
           variant="outline"
           size="sm"
@@ -124,7 +129,9 @@ export const DesktopActions = ({
                 : 'text-foreground group-hover:text-primary'
             )}
           />
-          <span className="hidden lg:inline">({itemCount})</span>
+          <span className="hidden lg:inline" data-testid="nav-cart-count">
+            ({itemCount})
+          </span>
         </Button>
       </Link>
 

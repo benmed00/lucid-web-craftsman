@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Wifi, WifiOff, RefreshCw, X } from 'lucide-react';
+import { WifiOff, RefreshCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
@@ -11,7 +11,7 @@ interface OfflineManagerProps {
 export const OfflineManager = ({ children }: OfflineManagerProps) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
-  const [offlineActions, setOfflineActions] = useState<any[]>([]);
+  const [_offlineActions, setOfflineActions] = useState<any[]>([]);
 
   useEffect(() => {
     const handleOnline = () => {
@@ -75,15 +75,6 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
     } catch (error) {
       console.error('Sync failed:', error);
     }
-  };
-
-  const addOfflineAction = (action: any) => {
-    const newActions = [
-      ...offlineActions,
-      { ...action, timestamp: Date.now() },
-    ];
-    setOfflineActions(newActions);
-    localStorage.setItem('offline-cart-actions', JSON.stringify(newActions));
   };
 
   const retryConnection = () => {

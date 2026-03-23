@@ -203,6 +203,7 @@ const Checkout = () => {
 
           {c.step < 3 ? (
             <Button
+              data-testid="checkout-mobile-next"
               className="flex-[1.3] min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs px-2"
               onClick={c.goToNextStep}
             >

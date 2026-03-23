@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next';
+import type { TFunction, i18n as I18nApi } from 'i18next';
+import type { Dispatch, SetStateAction } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -10,22 +12,96 @@ import {
   RefreshCw,
   Loader2,
 } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  QueryClient,
+  useQuery,
+  useQueryClient,
+  type UseQueryResult,
+} from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
-import { useState, useCallback } from 'react';
+import {
+  useSafetyTimeout,
+  type SafetyTimeoutReturn,
+} from '@/hooks/useSafetyTimeout';
+import { useState } from 'react';
 
-interface Artisan {
-  id: string;
-  name: string;
-  specialty: string | null;
-  photo_url: string | null;
-  region: string | null;
-  experience_years: number | null;
-  bio_short: string | null;
-  quote: string | null;
+// --- i18n -------------------------------------------------------------------
+
+const I18N_NAMESPACES: string[] = ['pages', 'common'];
+// --- Supabase row shapes (single source: generated Database) ---------------
+
+/** Columns selected from `artisans` for this section */
+type ArtisanRowPick = Pick<
+  Database['public']['Tables']['artisans']['Row'],
+  | 'id'
+  | 'name'
+  | 'specialty'
+  | 'photo_url'
+  | 'region'
+  | 'experience_years'
+  | 'bio_short'
+  | 'quote'
+>;
+
+/** Nested join payload from PostgREST (must match `.select()` projection) */
+type ArtisanTranslationJoined = Pick<
+  Database['public']['Tables']['artisan_translations']['Row'],
+  'locale' | 'specialty' | 'quote' | 'bio_short'
+>;
+
+/** Raw row shape returned by the join query before normalization */
+type ArtisanJoinRow = ArtisanRowPick & {
+  artisan_translations: ArtisanTranslationJoined[] | null;
+};
+
+/**
+ * Flat view model for the UI: translation fields merged for `locale`,
+ * join array stripped (not rendered).
+ */
+type ArtisanPublic = ArtisanRowPick;
+
+// --- Query / UX constants ---------------------------------------------------
+
+const ARTISANS_QUERY_ROOT: string = 'artisans';
+type ArtisansQueryKey = readonly [typeof ARTISANS_QUERY_ROOT, string];
+
+const DEFAULT_LOCALE: string = 'fr';
+const STALE_TIME_MS: number = 5 * 60 * 1000;
+const RETRY_COUNT: number = 1;
+const RETRY_DELAY_MS: number = 2000;
+const SAFETY_TIMEOUT_MS: number = 12000;
+const SAFETY_SLOW_MS: number = 6000;
+const RETRY_UI_RESET_MS: number = 500;
+
+const SKELETON_PLACEHOLDERS: readonly [1, 2, 3, 4] = [1, 2, 3, 4];
+
+// --- Data transfer: join row → public DTO -----------------------------------
+
+function pickTranslationForLocale(
+  rows: ArtisanTranslationJoined[] | null | undefined,
+  locale: string
+): ArtisanTranslationJoined | undefined {
+  return rows?.find((row: ArtisanTranslationJoined) => row.locale === locale);
+}
+
+function joinRowToPublic(row: ArtisanJoinRow, locale: string): ArtisanPublic {
+  const tr: ArtisanTranslationJoined | undefined = pickTranslationForLocale(
+    row.artisan_translations,
+    locale
+  );
+  return {
+    id: row.id,
+    name: row.name,
+    photo_url: row.photo_url,
+    region: row.region,
+    experience_years: row.experience_years,
+    specialty: tr?.specialty || row.specialty,
+    quote: tr?.quote || row.quote,
+    bio_short: tr?.bio_short || row.bio_short,
+  };
 }
 
 interface ArtisansSectionProps {
@@ -34,24 +110,38 @@ interface ArtisansSectionProps {
 }
 
 const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
-  // v2
-  const { t, i18n } = useTranslation(['pages', 'common']);
-  const currentLocale = i18n.language?.split('-')[0] || 'fr';
-  const queryClient = useQueryClient();
-  const [isRetrying, setIsRetrying] = useState(false);
-
-  // Fetch artisans — deferred when `enabled` is false (Phase 2 loading)
   const {
-    data: artisans = [],
-    isLoading,
-    error: fetchError,
-    refetch,
-  } = useQuery({
-    queryKey: ['artisans', currentLocale],
+    t,
+    i18n,
+  }: {
+    t: TFunction<typeof I18N_NAMESPACES>;
+    i18n: I18nApi;
+  } = useTranslation(I18N_NAMESPACES);
+
+  const currentLocale: string = i18n.language?.split('-')[0] ?? DEFAULT_LOCALE;
+
+  const queryClient: QueryClient = useQueryClient();
+
+  const [isRetrying, setIsRetrying]: readonly [
+    boolean,
+    Dispatch<SetStateAction<boolean>>,
+  ] = useState<boolean>(false);
+
+  const queryKey: ArtisansQueryKey = [ARTISANS_QUERY_ROOT, currentLocale];
+
+  const artisansQuery: UseQueryResult<ArtisanPublic[], Error> = useQuery<
+    ArtisanPublic[],
+    Error
+  >({
+    queryKey,
     enabled,
-    queryFn: async () => {
+    queryFn: async (): Promise<ArtisanPublic[]> => {
       console.info('[ArtisansSection] queryFn CALLED, locale:', currentLocale);
-      const { data, error } = await supabase
+
+      const supabaseResult: {
+        data: ArtisanJoinRow[] | null;
+        error: Error | null;
+      } = await supabase
         .from('artisans')
         .select(
           `
@@ -75,35 +165,42 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
         .order('created_at', { ascending: true })
         .limit(4);
 
+      const { data, error }: { data: ArtisanJoinRow[] | null; error: unknown } =
+        supabaseResult;
+
       if (error) {
         console.error('Error fetching artisans:', error);
         throw error;
       }
 
-      // Map with translation fallback
-      return (data || []).map((artisan: any) => {
-        const translation = artisan.artisan_translations?.find(
-          (t: any) => t.locale === currentLocale
-        );
-        return {
-          ...artisan,
-          specialty: translation?.specialty || artisan.specialty,
-          quote: translation?.quote || artisan.quote,
-          bio_short: translation?.bio_short || artisan.bio_short,
-        };
-      }) as Artisan[];
+      const rows: ArtisanJoinRow[] = data ?? [];
+      return rows.map((row: ArtisanJoinRow) =>
+        joinRowToPublic(row, currentLocale)
+      );
     },
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
-    retryDelay: 2000,
+    staleTime: STALE_TIME_MS,
+    retry: RETRY_COUNT,
+    retryDelay: RETRY_DELAY_MS,
     networkMode: 'always',
   });
 
-  // Safety timeout — escape skeleton after 12s
-  const { hasTimedOut: forceRender } = useSafetyTimeout(isLoading, {
-    timeout: 12000,
-    slowThreshold: 6000,
-  });
+  const artisans: ArtisanPublic[] = artisansQuery.data ?? [];
+  const isLoading: boolean = artisansQuery.isLoading;
+  const fetchError: Error | null = artisansQuery.error;
+
+  const safetyTimeoutOptions: {
+    timeout: number;
+    slowThreshold: number;
+  } = {
+    timeout: SAFETY_TIMEOUT_MS,
+    slowThreshold: SAFETY_SLOW_MS,
+  };
+
+  const safetyTimeout: SafetyTimeoutReturn = useSafetyTimeout(
+    isLoading,
+    safetyTimeoutOptions
+  );
+  const forceRender: boolean = safetyTimeout.hasTimedOut;
 
   if (isLoading && !forceRender) {
     return (
@@ -115,7 +212,7 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
             <Skeleton className="h-20 w-full max-w-xl mx-auto" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {[1, 2, 3, 4].map((i) => (
+            {SKELETON_PLACEHOLDERS.map((i: 1 | 2 | 3 | 4) => (
               <Skeleton key={i} className="h-64 rounded-2xl" />
             ))}
           </div>
@@ -124,9 +221,9 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
     );
   }
 
-  // Error or timeout-with-no-data state
-  const showError =
-    (fetchError || (forceRender && isLoading)) && artisans.length === 0;
+  const showError: boolean =
+    Boolean(fetchError || (forceRender && isLoading)) && artisans.length === 0;
+
   if (showError) {
     return (
       <section className="py-16 md:py-24 bg-gradient-to-b from-background to-secondary/30">
@@ -140,15 +237,18 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
           </p>
           <Button
             variant="outline"
-            onClick={async () => {
+            onClick={async (): Promise<void> => {
               setIsRetrying(true);
               try {
-                // resetQueries forces isLoading back to true → shows skeleton → refetches
-                await queryClient.resetQueries({ queryKey: ['artisans'] });
+                await queryClient.resetQueries({
+                  queryKey: [ARTISANS_QUERY_ROOT],
+                });
               } catch {
                 /* handled by RQ */
               } finally {
-                setTimeout(() => setIsRetrying(false), 500);
+                setTimeout((): void => {
+                  setIsRetrying(false);
+                }, RETRY_UI_RESET_MS);
               }
             }}
             disabled={isRetrying}
@@ -194,7 +294,7 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
 
         {/* Artisans Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
-          {artisans.map((artisan, index) => (
+          {artisans.map((artisan: ArtisanPublic, index: number) => (
             <Card
               key={artisan.id}
               className="group bg-card border-none shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden rounded-2xl hover-lift"
@@ -212,7 +312,7 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
                       decoding="async"
                       width={400}
                       height={400}
-                      fetchPriority="low"
+                      {...{ fetchpriority: 'low' as const }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent sm:bg-gradient-to-r" />
 

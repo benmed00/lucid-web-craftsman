@@ -5,7 +5,7 @@ const SITE_URL =
   Deno.env.get('SITE_URL')?.replace(/\/+$/, '') ||
   'https://www.rif-elegance.com';
 
-serve(async (req: Request): Promise<Response> => {
+serve(async (_req: Request): Promise<Response> => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;

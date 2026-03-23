@@ -3,13 +3,6 @@
  * Handles data processing, image optimization, and complex calculations
  */
 
-// Types for worker messages
-interface WorkerMessage {
-  type: string;
-  payload: any;
-  id: string;
-}
-
 interface WorkerResponse {
   type: string;
   result: any;
@@ -22,7 +15,7 @@ class MainThreadOptimizer {
   private workerInitialized = false;
   private pendingTasks = new Map<
     string,
-    { resolve: Function; reject: Function }
+    { resolve: (value: unknown) => void; reject: (reason?: unknown) => void }
   >();
   private taskCounter = 0;
 

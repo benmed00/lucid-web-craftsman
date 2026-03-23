@@ -3,7 +3,7 @@
  * Displays abandoned and in-progress checkout sessions with full form data visibility
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Table,
   TableBody,
@@ -42,7 +41,6 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  CreditCard,
   Monitor,
   Smartphone,
   Tablet,
@@ -50,7 +48,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 // Types
 interface CheckoutSession {
@@ -164,7 +162,6 @@ export function CheckoutSessionsTab() {
   const [selectedSession, setSelectedSession] =
     useState<CheckoutSession | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const queryClient = useQueryClient();
 
   // Fetch checkout sessions
   const {

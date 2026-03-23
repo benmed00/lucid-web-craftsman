@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Search, X, Mic, MicOff, Loader2 } from 'lucide-react';
+import { Search, X, Mic, MicOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';

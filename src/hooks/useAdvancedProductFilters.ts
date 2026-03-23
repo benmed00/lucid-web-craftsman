@@ -40,11 +40,11 @@ interface FilterAnalytics {
 export const useAdvancedProductFilters = ({
   products,
   enableAnalytics = true,
-  debounceMs = 300,
+  debounceMs: _debounceMs = 300,
 }: UseAdvancedProductFiltersOptions) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
-  const [popularFilters, setPopularFilters] = useState<string[]>([]);
+  const [popularFilters, _setPopularFilters] = useState<string[]>([]);
 
   // Initialize filters from URL parameters
   const getInitialFilters = (): AdvancedFilterOptions => ({
@@ -67,19 +67,10 @@ export const useAdvancedProductFilters = ({
   const [filters, setFilters] =
     useState<AdvancedFilterOptions>(getInitialFilters);
 
-  // Use deferred value for search query to avoid blocking UI during typing
+  // Deferred query is only used for stale UI (spinner); filtering uses live searchQuery
+  // so results never briefly show "all products" while deferred lags behind (empty string).
   const deferredSearchQuery = useDeferredValue(filters.searchQuery);
 
-  // Create deferred filters for cached search
-  const deferredFilters = useMemo(
-    () => ({
-      ...filters,
-      searchQuery: deferredSearchQuery,
-    }),
-    [filters, deferredSearchQuery]
-  );
-
-  // Use cached product search with React Query
   const {
     filteredProducts,
     isLoading: isCacheLoading,
@@ -90,7 +81,7 @@ export const useAdvancedProductFilters = ({
     invalidateCache,
   } = useCachedProductSearch({
     products,
-    filters: deferredFilters,
+    filters,
     staleTime: 5 * 60 * 1000, // 5 minutes cache
     cacheTime: 10 * 60 * 1000, // 10 minutes before garbage collection
   });
@@ -330,6 +321,15 @@ export const useAdvancedProductFilters = ({
     return count;
   }, [filters, availableOptions.priceRange]);
 
+  // Only show "stale search" skeleton when the user has a non-empty query and the
+  // deferred value has not caught up yet. If we use `deferred !== search` for empty
+  // strings too, React concurrent scheduling can keep them out of sync briefly and
+  // the grid stays on skeleton forever in CI — Cypress never sees add-to-cart ids.
+  const isSearchStale =
+    (filters.searchQuery.trim().length > 0 &&
+      deferredSearchQuery !== filters.searchQuery) ||
+    isStale;
+
   return {
     filters,
     filteredProducts,
@@ -338,7 +338,7 @@ export const useAdvancedProductFilters = ({
     popularFilters,
     isLoading: isCacheLoading,
     isFetching,
-    isSearchStale: deferredSearchQuery !== filters.searchQuery || isStale,
+    isSearchStale,
     activeFiltersCount,
     updateFilters,
     resetFilters,

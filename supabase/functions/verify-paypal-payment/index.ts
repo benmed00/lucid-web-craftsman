@@ -71,7 +71,7 @@ serve(async (req) => {
   try {
     // --- AUTH CHECK: require either internal secret or authenticated user ---
     const authHeader = req.headers.get('Authorization');
-    const internalSecret = Deno.env.get('INTERNAL_NOTIFY_SECRET');
+    const _internalSecret = Deno.env.get('INTERNAL_NOTIFY_SECRET');
     const isInternalCall =
       authHeader === `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`;
 

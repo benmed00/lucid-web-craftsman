@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -20,21 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Megaphone,
-  Mail,
-  Gift,
-  Percent,
-  Calendar,
-  Users,
-  Eye,
-  Plus,
-  Edit,
-  Trash2,
-  Send,
-  Target,
-  TrendingUp,
-} from 'lucide-react';
+import { Mail, Percent, Trash2, Send, Target, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 

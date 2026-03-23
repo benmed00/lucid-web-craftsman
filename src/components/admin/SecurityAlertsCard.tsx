@@ -21,7 +21,6 @@ import {
   Bell,
   RefreshCw,
   Eye,
-  X,
 } from 'lucide-react';
 import {
   Dialog,

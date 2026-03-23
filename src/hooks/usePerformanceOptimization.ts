@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 // Enhanced debounce and throttle with cancel functionality
-const debounce = (fn: Function, ms: number) => {
+const debounce = (fn: (...args: unknown[]) => void, ms: number) => {
   let timer: NodeJS.Timeout;
-  const debouncedFn = (...args: any[]) => {
+  const debouncedFn = (...args: unknown[]) => {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), ms);
   };
@@ -11,9 +11,9 @@ const debounce = (fn: Function, ms: number) => {
   return debouncedFn;
 };
 
-const throttle = (fn: Function, ms: number) => {
+const throttle = (fn: (...args: unknown[]) => void, ms: number) => {
   let timer: NodeJS.Timeout | null = null;
-  const throttledFn = (...args: any[]) => {
+  const throttledFn = (...args: unknown[]) => {
     if (!timer) {
       timer = setTimeout(() => {
         timer = null;

@@ -1,23 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -36,20 +23,14 @@ import {
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import {
-  Package2,
   Search,
   Eye,
   RefreshCw,
-  DollarSign,
-  ShoppingCart,
   Clock,
   Truck,
   CheckCircle,
   Package,
   Filter,
-  Mail,
-  Phone,
-  MapPin,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -401,11 +382,6 @@ const AdminOrders = () => {
         order.status === 'delivered'
     )
     .reduce((sum, order) => sum + (order.amount || 0), 0);
-
-  const totalOrders = orders.length;
-  const pendingOrders = orders.filter(
-    (order) => order.status === 'pending'
-  ).length;
 
   if (loading) {
     return (

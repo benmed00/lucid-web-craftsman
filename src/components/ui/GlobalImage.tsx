@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useImageLoader } from '@/hooks/useImageLoader';
-import { ImageConfig, ImageCategory } from '@/types/image.types';
+import { ImageCategory } from '@/types/image.types';
 
 /**
  * UNIVERSAL GLOBAL IMAGE COMPONENT

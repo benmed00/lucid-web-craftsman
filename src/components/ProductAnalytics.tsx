@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -6,12 +6,9 @@ import {
   TrendingUp,
   Search,
   Filter,
-  Eye,
   ShoppingCart,
-  Users,
   Target,
   Clock,
-  Star,
   Database,
 } from 'lucide-react';
 import { useOptimizedData } from '@/hooks/useOptimizedData';
@@ -20,15 +17,6 @@ import { supabase } from '@/integrations/supabase/client';
 interface CacheStats {
   cachedQueries: number;
   totalCacheSize: number;
-}
-
-interface SearchAnalytics {
-  totalSearches: number;
-  popularSearchTerms: Array<{ term: string; count: number }>;
-  averageResultsPerSearch: number;
-  searchToCartConversion: number;
-  popularFilters: Array<{ filter: string; count: number }>;
-  peakSearchHours: Array<{ hour: number; count: number }>;
 }
 
 interface ProductAnalyticsProps {
@@ -362,7 +350,7 @@ export const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {searchAnalytics.popularFilters.map((filter, index) => (
+              {searchAnalytics.popularFilters.map((filter) => (
                 <div
                   key={filter.filter}
                   className="flex justify-between items-center"
@@ -392,7 +380,7 @@ export const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-4">
-              {searchAnalytics.peakSearchHours.map((peak, index) => (
+              {searchAnalytics.peakSearchHours.map((peak) => (
                 <div key={peak.hour} className="text-center">
                   <div className="text-lg font-semibold">{peak.hour}h</div>
                   <div className="text-sm text-muted-foreground">

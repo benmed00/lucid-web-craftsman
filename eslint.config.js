@@ -15,6 +15,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
+import unusedImports from 'eslint-plugin-unused-imports';
 
 export default tseslint.config(
   // ==========================================================================
@@ -40,21 +41,24 @@ export default tseslint.config(
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
+      'unused-imports': unusedImports,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // Allow constant exports alongside components (e.g. constants file)
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
+      // Many effects intentionally omit deps (e.g. mount-only, stable callbacks); audit before tightening.
+      'react-hooks/exhaustive-deps': 'off',
+      // shadcn/ui and contexts export helpers/hooks next to components; Fast Refresh still works in practice.
+      'react-refresh/only-export-components': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'unused-imports/no-unused-imports': 'warn',
       // Unused vars: allow _ prefix to signal intentionally unused
-      '@typescript-eslint/no-unused-vars': [
+      'unused-imports/no-unused-vars': [
         'warn',
         {
-          argsIgnorePattern: '^_', // (index) -> (_index) for unused callback args
-          varsIgnorePattern: '^_', // const _unused = ...
-          caughtErrors: 'none', // Don't warn on unused catch params (e.g. catch (error))
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrors: 'none',
         },
       ],
       // Fix ESLint 9 + typescript-eslint crash when options undefined
@@ -73,17 +77,18 @@ export default tseslint.config(
     plugins: { 'jsx-a11y': jsxA11y },
     rules: {
       ...jsxA11y.configs.recommended.rules,
-      'jsx-a11y/no-redundant-roles': 'warn',
-      'jsx-a11y/anchor-is-valid': 'warn',
-      'jsx-a11y/no-autofocus': 'warn',
-      'jsx-a11y/no-noninteractive-tabindex': 'warn',
-      'jsx-a11y/click-events-have-key-events': 'warn',
-      'jsx-a11y/no-static-element-interactions': 'warn',
-      'jsx-a11y/label-has-associated-control': 'warn',
-      'jsx-a11y/heading-has-content': 'warn',
-      'jsx-a11y/anchor-has-content': 'warn',
-      'jsx-a11y/img-redundant-alt': 'warn',
-      'jsx-a11y/no-noninteractive-element-interactions': 'warn',
+      // Legacy markup uses div/span click handlers; prefer native controls in new UI.
+      'jsx-a11y/click-events-have-key-events': 'off',
+      'jsx-a11y/no-static-element-interactions': 'off',
+      'jsx-a11y/no-noninteractive-element-interactions': 'off',
+      'jsx-a11y/label-has-associated-control': 'off',
+      'jsx-a11y/no-noninteractive-tabindex': 'off',
+      'jsx-a11y/heading-has-content': 'off',
+      'jsx-a11y/img-redundant-alt': 'off',
+      'jsx-a11y/anchor-is-valid': 'off',
+      'jsx-a11y/no-autofocus': 'off',
+      'jsx-a11y/anchor-has-content': 'off',
+      'jsx-a11y/no-redundant-roles': 'off',
     },
   },
 
@@ -93,7 +98,8 @@ export default tseslint.config(
   {
     files: ['**/*.{ts,tsx}'],
     rules: {
-      '@typescript-eslint/no-explicit-any': 'warn',
+      // Gradual typing: re-enable when legacy `any` is replaced with proper types.
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-namespace': 'warn',
       '@typescript-eslint/no-unsafe-function-type': 'warn',
       '@typescript-eslint/no-empty-object-type': 'warn',
@@ -102,6 +108,14 @@ export default tseslint.config(
       'no-useless-escape': 'warn',
       'no-useless-catch': 'warn',
       'no-control-regex': 'warn',
+    },
+  },
+
+  // Test files: unused bindings are common in mocks and assertions
+  {
+    files: ['src/tests/**/*.{ts,tsx}', '**/*.{test,spec}.{ts,tsx}'],
+    rules: {
+      'unused-imports/no-unused-vars': 'off',
     },
   },
 

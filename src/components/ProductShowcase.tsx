@@ -34,7 +34,6 @@ const ProductShowcase = () => {
     data: translatedProducts = [],
     isLoading: loading,
     error: fetchError,
-    refetch,
   } = useProductsWithTranslations();
 
   // Unified retry: reset query state completely → forces loading state → refetch

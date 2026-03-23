@@ -16,17 +16,7 @@ export const useWebVitals = () => {
       )[0] as PerformanceNavigationTiming;
 
       if (navigationTiming) {
-        const metrics = {
-          fcp: performance.getEntriesByName('first-contentful-paint')[0]
-            ?.startTime,
-          domLoad:
-            navigationTiming.domContentLoadedEventEnd -
-            navigationTiming.fetchStart,
-          loadComplete:
-            navigationTiming.loadEventEnd - navigationTiming.fetchStart,
-        };
-
-        // Silent performance tracking for production
+        // Reserved for future Web Vitals reporting (navigation timing available above)
       }
     };
 
