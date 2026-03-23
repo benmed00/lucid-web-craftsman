@@ -25,6 +25,7 @@ See `package.json` scripts. Highlights:
 - **Lint:** `npm run lint -- --max-warnings 9999` (0 errors expected; many pre-existing warnings)
 - **Format check:** `npm run format:check`
 - **Unit tests:** `npm run test:unit` (Vitest; excludes RLS tests)
+- **Create-payment (Deno):** `npm run test:create-payment` (quick); **`npm run verify:create-payment`** matches CI (`deno check` + `deno lint` + `deno test` with **frozen** `supabase/functions/deno.lock`). Requires [Deno](https://deno.land/) v2 on `PATH`. GitHub Actions: workflow **Deno create-payment** on the same branches as root **CI** (`main`, `feat/backend-migration-and-cypress`, `yakov/git-state-cleanup`).
 - **Build:** `npm run build`
 - **CI validation:** `npm run validate` (does **not** run Cypress; use `e2e:ci` / `e2e:ci:smoke` separately).
 
@@ -50,5 +51,7 @@ See `package.json` scripts. Highlights:
 - The `.env` file needs `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`, but the Supabase client has hardcoded fallback values so the app works without them.
 - ESLint uses flat config (ESLint 9); the config file is `eslint.config.js` (ESM).
 - Vitest config is embedded in `vite.config.ts` (not a separate file).
+- Prettier uses `"endOfLine": "lf"` (see `.prettierrc.json`) to match Linux CI; on Windows, prefer `git config core.autocrlf input` or let your editor save LF for tracked sources.
 - Edge function tests (`src/tests/edge-functions.test.ts`) skip tests requiring `SUPABASE_SERVICE_ROLE_KEY` if not set.
 - **`npm run test:ui`:** Vitest UI is bound to `127.0.0.1:24678` (not the default `51204`) because Windows can reserve port ranges that cause `EACCES` on the default port. Override with e.g. `npx vitest --ui --api.host 127.0.0.1 --api.port <port>` if needed.
+- The `create-payment` edge function is split across `index.ts`, `types.ts`, `constants.ts`, and `lib/` (`verified-cart`, `discount`, `amounts`, `stripe-session`, `stripe-customer`, `orders`, `auth-user`, `checkout-schema`, `payment-events`, `stripe-client`, `errors`, `security`, `rate-limit`, `log`); data flow and audit notes live in `supabase/functions/create-payment/DATA_FLOW.md`; roadmap in `REFACTOR_PLAN.md`. From repo root: `npm run verify:create-payment` (or individual `deno:*:create-payment` scripts in `package.json`).
