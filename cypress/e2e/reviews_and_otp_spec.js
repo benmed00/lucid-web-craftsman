@@ -48,11 +48,14 @@ describe('Auth OTP mode UI @regression', () => {
     cy.visit('/auth');
     // Tabs: [0] traditional, [1] OTP / « code sécurisé »
     cy.get('[role="tab"]').eq(1).click();
-    cy.contains('button', /connexion|sign in/i, { timeout: 8000 }).should(
+    cy.contains(/code sécurisé|secure code/i, { timeout: 8000 }).should(
       'be.visible'
     );
-    cy.contains('button', /inscription|sign up/i, { timeout: 8000 }).should(
-      'be.visible'
-    );
+    cy.contains('button', /Se connecter par code|sign in by code/i, {
+      timeout: 8000,
+    }).should('be.visible');
+    cy.contains('button', /inscrire par code|sign up by code/i, {
+      timeout: 8000,
+    }).should('be.visible');
   });
 });

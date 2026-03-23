@@ -25,11 +25,14 @@ function requireCredentials() {
 // ── Profile Page: Unauthenticated ─────────────────────────────────────────────
 
 describe('Profile: Unauthenticated Guard @profile @regression', () => {
-  it('redirects to /auth when visiting /profile without a session', () => {
+  it('shows login required on /profile when visiting without a session', () => {
     cy.clearCookies();
     cy.clearLocalStorage();
     cy.visit(PROFILE_URL);
-    cy.url({ timeout: 6000 }).should('include', '/auth');
+    cy.url({ timeout: 6000 }).should('include', '/profile');
+    cy.contains(/connexion requise|login required|sign in/i, {
+      timeout: 8000,
+    }).should('be.visible');
   });
 });
 

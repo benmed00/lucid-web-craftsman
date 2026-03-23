@@ -47,9 +47,14 @@ describe('Product Detail: Page Layout @product @smoke', () => {
   });
 
   it('shows product price', () => {
-    cy.contains(/\d+[.,]\d{2}\s*€|\€\s*\d+/, { timeout: 8000 }).should(
-      'be.visible'
-    );
+    cy.get('[data-testid="product-price"]', { timeout: 15000 })
+      .should('be.visible')
+      .invoke('text')
+      .then((t) => {
+        expect(t.trim().length).to.be.greaterThan(0);
+        expect(t).to.match(/\d/);
+        expect(t).to.match(/€|EUR|MAD|\$|DH|\bDHS?\b/i);
+      });
   });
 
   it('shows at least one product image', () => {
@@ -65,19 +70,9 @@ describe('Product Detail: Page Layout @product @smoke', () => {
   });
 
   it('shows artisan name or category', () => {
-    cy.get(
-      '[data-testid*="artisan"], [class*="artisan"], [class*="category"]',
-      { timeout: 6000 }
-    ).then(($el) => {
-      if ($el.length === 0) {
-        // Try text content fallback
-        cy.get('body')
-          .contains(/artisan|catégorie|category/i)
-          .should('exist');
-      } else {
-        cy.wrap($el).first().should('be.visible');
-      }
-    });
+    cy.get('[data-testid="product-category-badge"]', { timeout: 8000 })
+      .should('be.visible')
+      .and('not.be.empty');
   });
 
   it('breadcrumb contains a link back to the shop', () => {
@@ -111,18 +106,15 @@ describe('Product Detail: Stock Display @product @regression', () => {
   });
 
   it('add-to-cart button is disabled when product is out of stock', () => {
-    cy.contains(/rupture de stock|out of stock/i, { timeout: 6000 }).then(
-      ($el) => {
-        if ($el.length) {
-          cy.get(
-            'button[disabled]:contains("Ajouter"), button[aria-disabled="true"]:contains("panier")',
-            { timeout: 4000 }
-          ).should('exist');
-        } else {
-          cy.log('Product is in stock; skipping disabled state check');
-        }
+    cy.get('body', { timeout: 8000 }).then(($body) => {
+      if (/rupture|out of stock|indisponible/i.test($body.text())) {
+        cy.get('[data-testid="product-add-to-cart"]', { timeout: 4000 }).should(
+          'be.disabled'
+        );
+      } else {
+        cy.log('Product is in stock; skipping OOS disabled-button check');
       }
-    );
+    });
   });
 
   it('quantity selector is visible for in-stock products', () => {
@@ -141,24 +133,11 @@ describe('Product Detail: Stock Display @product @regression', () => {
   });
 
   it('quantity cannot go below 1', () => {
-    // Find decrease button and verify it doesn't go negative
-    cy.get(
-      '[aria-label*="diminuer" i], [aria-label*="decrease" i], button:has([aria-label*="diminuer" i])',
-      { timeout: 6000 }
-    ).then(($btn) => {
-      if ($btn.length) {
-        cy.wrap($btn).first().click();
-        cy.get('input[type="number"], [data-testid*="quantity"]', {
-          timeout: 2000,
-        })
-          .invoke('val')
-          .then((val) => {
-            expect(parseInt(val) || 1).to.be.gte(1);
-          });
-      } else {
-        cy.log('No quantity decrease button found; skipping');
-      }
-    });
+    cy.get('[aria-label*="diminuer" i], [aria-label*="decrease" i]', {
+      timeout: 6000,
+    })
+      .first()
+      .should('be.disabled');
   });
 });
 
@@ -171,7 +150,7 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
   });
 
   it('has an "add to cart" button', () => {
-    cy.contains(/ajouter au panier|add to cart/i, { timeout: 8000 }).should(
+    cy.get('[data-testid="product-add-to-cart"]', { timeout: 8000 }).should(
       'be.visible'
     );
   });
@@ -184,11 +163,11 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
           return;
         }
 
-        cy.contains(/ajouter au panier|add to cart/i, { timeout: 6000 })
+        cy.get('[data-testid="product-add-to-cart"]', { timeout: 6000 })
           .should('not.be.disabled')
           .click();
 
-        cy.contains(/ajouté au panier|added to cart|panier|cart/i, {
+        cy.contains(/ajouté au panier|added to cart|ajouté/i, {
           timeout: 8000,
         }).should('be.visible');
       }
@@ -203,27 +182,25 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
           return;
         }
 
-        // Get initial cart count
-        cy.get(
-          '[data-testid*="cart-count"], [aria-label*="panier" i] [data-count], .cart-badge, nav [aria-label*="panier" i]',
-          { timeout: 4000 }
-        ).then(($badge) => {
-          const initialCount = $badge.length ? parseInt($badge.text()) || 0 : 0;
+        cy.get('[data-testid="nav-cart-count"]', { timeout: 6000 }).then(
+          ($badge) => {
+            const initialCount = $badge.length
+              ? parseInt($badge.text().replace(/\D/g, ''), 10) || 0
+              : 0;
 
-          cy.contains(/ajouter au panier|add to cart/i).click();
-          cy.contains(/ajouté au panier|added to cart|panier|cart/i, {
-            timeout: 8000,
-          }).should('be.visible');
+            cy.get('[data-testid="product-add-to-cart"]').click();
+            cy.contains(/ajouté au panier|added to cart|ajouté/i, {
+              timeout: 8000,
+            }).should('be.visible');
 
-          cy.get(
-            '[data-testid*="cart-count"], [aria-label*="panier" i] [data-count], .cart-badge',
-            { timeout: 4000 }
-          )
-            .invoke('text')
-            .then((text) => {
-              expect(parseInt(text) || 0).to.be.gte(initialCount);
-            });
-        });
+            cy.get('[data-testid="nav-cart-count"]', { timeout: 4000 })
+              .invoke('text')
+              .then((text) => {
+                const n = parseInt(text.replace(/\D/g, ''), 10) || 0;
+                expect(n).to.be.gte(initialCount + 1);
+              });
+          }
+        );
       }
     );
   });
@@ -236,17 +213,27 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
           return;
         }
 
-        cy.contains(/ajouter au panier|add to cart/i).click();
-        cy.contains(/ajouté au panier|added to cart|panier|cart/i, {
+        cy.get('[data-testid="product-add-to-cart"]').click();
+        cy.contains(/ajouté au panier|added to cart|ajouté/i, {
           timeout: 8000,
         }).should('be.visible');
 
         cy.visit('/');
         cy.get('body').should('be.visible');
 
-        // Cart should still have items (localStorage persistence)
         cy.visit('/cart');
-        cy.contains(/article|item/i, { timeout: 8000 }).should('exist');
+        cy.get('main#main-content', { timeout: 12000 }).within(() => {
+          cy.get('h1')
+            .should('be.visible')
+            .invoke('text')
+            .should('match', /panier|cart/i);
+        });
+        cy.get('[data-testid="nav-cart-count"]', { timeout: 8000 })
+          .should('be.visible')
+          .invoke('text')
+          .then((t) => {
+            expect(parseInt(t.replace(/\D/g, ''), 10) || 0).to.be.gte(1);
+          });
       }
     );
   });
@@ -319,7 +306,7 @@ describe('Product Detail: Accessibility @product @regression', () => {
   });
 
   it('add-to-cart button has accessible label', () => {
-    cy.contains(/ajouter au panier|add to cart/i, { timeout: 6000 }).should(
+    cy.get('[data-testid="product-add-to-cart"]', { timeout: 6000 }).should(
       ($btn) => {
         const text = $btn.text().trim();
         const ariaLabel = $btn.attr('aria-label');

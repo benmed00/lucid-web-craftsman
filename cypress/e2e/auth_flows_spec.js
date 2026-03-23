@@ -17,15 +17,16 @@ function fillSignInForm(email, password) {
 }
 
 function fillSignUpForm(email, password, fullName) {
-  cy.get('#signup-fullname, [name="fullName"], [placeholder*="nom" i]')
+  // Auth.tsx: full name is #signup-name (name="name"), not #signup-fullname
+  cy.get('#signup-name, [name="name"][id*="signup"]')
     .first()
     .clear()
     .type(fullName);
-  cy.get('#signup-email, [name="email"][id*="sign" i]')
+  cy.get('#signup-email, [name="email"][id*="signup"]')
     .first()
     .clear()
     .type(email);
-  cy.get('#signup-password, [name="password"][id*="sign" i]')
+  cy.get('#signup-password, [id="signup-password"]')
     .first()
     .clear()
     .type(password, { log: false });
@@ -107,12 +108,17 @@ describe('Auth: Sign In @auth @smoke', () => {
 describe('Auth: Sign Up @auth @regression', () => {
   beforeEach(() => {
     cy.visit(AUTH_URL);
-    // Switch to sign-up tab/section
-    cy.contains(/créer un compte|s'inscrire|register|sign up/i).click();
+    // Outer tablist: Classique | Code sécurisé — inner tablist: Se connecter | S'inscrire
+    cy.get('[role="tablist"]', { timeout: 10000 })
+      .eq(1)
+      .find('[role="tab"]')
+      .eq(1)
+      .click();
   });
 
   it('renders the sign-up form', () => {
-    cy.contains(/créer un compte|s'inscrire|register/i).should('be.visible');
+    cy.get('#signup-name', { timeout: 10000 }).should('be.visible');
+    cy.get('#signup-email').should('be.visible');
   });
 
   it('shows validation error for mismatched passwords', () => {
@@ -124,15 +130,13 @@ describe('Auth: Sign Up @auth @regression', () => {
     );
 
     // If there's a password-confirm field, fill it with a different value
-    cy.get(
-      '#signup-confirm, [name="confirmPassword"], [placeholder*="confirmer" i]'
-    )
+    cy.get('#confirm-password, [name="confirm-password"]')
       .first()
       .then(($el) => {
         if ($el.length) {
           cy.wrap($el).clear().type('DifferentPass456!', { log: false });
           cy.get('button[type="submit"]')
-            .contains(/s'inscrire|créer|create|register/i)
+            .contains(/inscrire|register|create/i)
             .click();
           cy.contains(
             /mot de passe|password|ne correspondent pas|mismatch/i
@@ -146,7 +150,7 @@ describe('Auth: Sign Up @auth @regression', () => {
   it('shows validation error for invalid email format', () => {
     fillSignUpForm('not-an-email', 'ValidPass123!', 'Test User');
     cy.get('button[type="submit"]')
-      .contains(/s'inscrire|créer|create|register/i)
+      .contains(/inscrire|register|create/i)
       .click();
     cy.get(
       '[id*="email"]:invalid, [data-testid="email-error"], [role="alert"]'
@@ -162,7 +166,7 @@ describe('Auth: Sign Up @auth @regression', () => {
 
     fillSignUpForm(email, 'ValidPass123!', 'Test User');
     cy.get('button[type="submit"]')
-      .contains(/s'inscrire|créer|create|register/i)
+      .contains(/inscrire|register|create/i)
       .click();
 
     cy.contains(/déjà utilisé|already|exists|email exist|utilisé/i, {
@@ -171,9 +175,10 @@ describe('Auth: Sign Up @auth @regression', () => {
   });
 
   it('page title or heading indicates the sign-up section', () => {
-    cy.contains(
-      /créer un compte|créer votre compte|inscription|register/i
-    ).should('be.visible');
+    cy.get('#signup-name').should('be.visible');
+    cy.get('[role="tab"][aria-selected="true"]')
+      .invoke('text')
+      .should('match', /inscrire|register|sign up/i);
   });
 });
 
@@ -182,38 +187,43 @@ describe('Auth: Sign Up @auth @regression', () => {
 describe('Auth: Password Reset @auth @regression', () => {
   beforeEach(() => {
     cy.visit(AUTH_URL);
-    cy.contains(/mot de passe oublié|forgot|réinitialiser/i).click();
+    // Opens OTPAuthFlow (reset) — primary action is "Envoyer le code" (type=button, not form submit)
+    cy.contains(/mot de passe oublié|forgot/i).click();
+    cy.contains(/réinitialiser|reset password/i, { timeout: 10000 }).should(
+      'be.visible'
+    );
   });
 
   it('shows a reset password form with an email field', () => {
-    cy.get(
-      'input[type="email"], input[id*="reset"], input[id*="email"]'
-    ).should('be.visible');
+    cy.get('#contact, input[type="email"]', { timeout: 10000 })
+      .first()
+      .should('be.visible');
   });
 
   it('shows success feedback after submitting a valid email', () => {
     const email = Cypress.env('CUSTOMER_EMAIL') || 'test@example.com';
 
-    cy.get('input[type="email"]').first().clear().type(email);
-    cy.get('button[type="submit"]')
-      .contains(/envoyer|send|réinitialiser|reset/i)
+    cy.get('#contact').clear().type(email);
+    cy.contains('button', /envoyer le code|envoyer|send/i, { timeout: 10000 })
+      .should('be.visible')
       .click();
 
     cy.contains(
-      /email envoyé|lien envoyé|check your email|vérifiez votre|sent/i,
-      { timeout: 8000 }
+      /réinitialisation envoyé|email envoyé|lien envoyé|check your email|vérifiez votre|sent|OTP/i,
+      { timeout: 12000 }
     ).should('be.visible');
   });
 
   it('shows error for invalid email format', () => {
-    cy.get('input[type="email"]').first().clear().type('not-valid');
-    cy.get('button[type="submit"]')
-      .contains(/envoyer|send|réinitialiser|reset/i)
-      .click();
+    cy.get('#contact').clear().type('not-valid');
+    cy.contains('button', /envoyer le code|envoyer|send/i, {
+      timeout: 10000,
+    }).click();
 
-    cy.get(
-      'input[type="email"]:invalid, [role="alert"], [data-testid*="error"]'
-    ).should('exist');
+    // Controlled input: validation runs in handleSendOTP → toast.error("Format d'email invalide")
+    cy.contains(/format d'email invalide|invalid email|invalid format/i, {
+      timeout: 8000,
+    }).should('be.visible');
   });
 
   it('has a link to go back to sign-in', () => {
@@ -224,11 +234,14 @@ describe('Auth: Password Reset @auth @regression', () => {
 // ── Protected Route Redirect ──────────────────────────────────────────────────
 
 describe('Auth: Protected Routes @auth @smoke', () => {
-  it('redirects unauthenticated users from /profile to /auth', () => {
+  it('shows login required on /profile when unauthenticated (stays on /profile)', () => {
     cy.clearCookies();
     cy.clearLocalStorage();
     cy.visit('/profile');
-    cy.url({ timeout: 6000 }).should('include', '/auth');
+    cy.url({ timeout: 6000 }).should('include', '/profile');
+    cy.contains(/connexion requise|login required|sign in/i, {
+      timeout: 8000,
+    }).should('be.visible');
   });
 
   it('shows login required on /orders when unauthenticated (stays on /orders)', () => {

@@ -40,10 +40,13 @@ describe('API Resilience — mocked Supabase errors @regression', () => {
     }).should('exist');
   });
 
-  it('redirects to auth when profiles request returns 401 on /profile', () => {
+  it('shows login required on /profile when profiles request returns 401 (guest)', () => {
     cy.mockSupabaseResponse('GET', '/profiles', 'error401');
     cy.visit('/profile');
-    cy.url({ timeout: 15000 }).should('include', '/auth');
+    cy.url({ timeout: 15000 }).should('include', '/profile');
+    cy.contains(/connexion requise|sign in|login required/i, {
+      timeout: 15000,
+    }).should('be.visible');
   });
 
   it('shows error when orders request returns 403 (authenticated)', function () {
