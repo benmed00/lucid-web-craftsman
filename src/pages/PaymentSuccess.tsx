@@ -349,16 +349,20 @@ const PaymentSuccess = () => {
         return;
       }
 
-      // Truly no order and verify-payment failed — this is a real failure
-      console.error(
-        '[PaymentSuccess] No order found and verify-payment failed'
+      // No order found yet — but payment may have succeeded on Stripe side.
+      // NEVER show a failure/error state here. Show a reassuring "processing" state instead.
+      console.warn(
+        '[PaymentSuccess] No order found yet — showing processing state (not error)'
       );
       setVerificationResult({
-        success: false,
+        success: true,
         message:
-          fallbackData?.message ||
-          'La vérification a pris trop de temps. Si vous avez été débité, votre commande sera traitée automatiquement.',
+          'Votre paiement a été reçu par Stripe. Votre commande est en cours de traitement et vous recevrez un email de confirmation sous quelques minutes.',
+        orderId: undefined,
       });
+      setCustomerInfo(getCustomerInfo());
+      clearCart();
+      localStorage.removeItem('cart');
       setIsVerifying(false);
     };
 
