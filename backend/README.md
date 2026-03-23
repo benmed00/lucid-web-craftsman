@@ -1,5 +1,7 @@
 # Lucid Mock API
 
+Project documentation index: [`../docs/README.md`](../docs/README.md).
+
 Enterprise-grade mock API server for development and staging. Provides products, posts, cart, orders, newsletter, and contact endpoints with security, rate limiting, health checks, and structured logging.
 
 ## Quick Start

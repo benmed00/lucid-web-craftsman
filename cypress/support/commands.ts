@@ -46,6 +46,14 @@ const productsCatalogSmoke: CatalogRow[] = require('../fixtures/supabase/product
  * Call before `cy.visit('/products')`. Overrides are still possible if a spec registers
  * a later `cy.intercept` for the same route (Cypress matches last registered).
  */
+/** Force storefront “elevated” policy (admin-on-shop) for stable E2E without depending on DB role timing. */
+Cypress.Commands.add('stubElevatedStorefrontRpcs', () => {
+  cy.intercept('POST', '**/rest/v1/rpc/is_admin_user', {
+    statusCode: 200,
+    body: true,
+  }).as('isAdminUserRpc');
+});
+
 Cypress.Commands.add('stubProductsCatalog', () => {
   cy.intercept('GET', '**/rest/v1/products*', (req) => {
     const url = req.url;
@@ -193,6 +201,7 @@ declare global {
       addProductToCart(options?: { productId?: number }): Chainable<void>;
       stubCheckoutIntercepts(): Chainable<void>;
       stubProductsCatalog(): Chainable<void>;
+      stubElevatedStorefrontRpcs(): Chainable<void>;
       resetDatabase(): Chainable<void>;
       loginAs(role?: 'customer' | 'admin'): Chainable<void>;
       mockSupabaseResponse(

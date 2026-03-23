@@ -4,7 +4,7 @@ import { Bell, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { supabase } from '@/integrations/supabase/client';
+import { insertBackInStockNotification } from '@/services/backInStockApi';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -27,14 +27,12 @@ export const BackInStockNotification: React.FC<
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('back_in_stock_notifications' as any)
-        .insert({
-          product_id: productId,
-          email,
-          user_id: user?.id || null,
-          status: 'active',
-        } as any);
+      const { error } = await insertBackInStockNotification({
+        product_id: productId,
+        email,
+        user_id: user?.id || null,
+        status: 'active',
+      });
 
       if (error) {
         if (error.code === '23505') {

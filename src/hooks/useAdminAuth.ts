@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchAdminIdLastLoginRow,
+  fetchAdminUserFullRow,
+  rpcVerifyAdminSession,
+  touchAdminLastLogin,
+  updateAdminUsersByUserId,
+} from '@/services/adminAuthApi';
 import { useAuth } from '@/hooks/useAuth';
 
 export interface AdminUser {
@@ -47,9 +53,8 @@ export const useAdminAuth = () => {
         console.log('[useAdminAuth] Checking admin status for user:', user.id);
 
         // Use server-side verification function (cannot be spoofed via DevTools)
-        const { data: verifyResult, error: verifyError } = await supabase.rpc(
-          'verify_admin_session'
-        );
+        const { data: verifyResult, error: verifyError } =
+          await rpcVerifyAdminSession();
 
         console.log('[useAdminAuth] RPC result:', {
           verifyResult,
@@ -62,11 +67,9 @@ export const useAdminAuth = () => {
             verifyError
           );
           // Fallback to direct query if RPC fails
-          const { data: adminProfile, error } = await supabase
-            .from('admin_users')
-            .select('*')
-            .eq('user_id', user.id)
-            .single();
+          const { data: adminProfile, error } = await fetchAdminUserFullRow(
+            user.id
+          );
 
           console.log('[useAdminAuth] Fallback query result:', {
             adminProfile,
@@ -97,11 +100,9 @@ export const useAdminAuth = () => {
           console.log('[useAdminAuth] Admin verified:', result);
 
           // Fetch full admin profile for additional details
-          const { data: adminProfile } = await supabase
-            .from('admin_users')
-            .select('id, last_login')
-            .eq('user_id', user.id)
-            .single();
+          const { data: adminProfile } = await fetchAdminIdLastLoginRow(
+            user.id
+          );
 
           const admin: AdminUser = {
             id: adminProfile?.id || user.id,
@@ -114,10 +115,7 @@ export const useAdminAuth = () => {
           setIsAuthenticated(true);
 
           // Update last login silently (don't wait for it)
-          supabase
-            .from('admin_users')
-            .update({ last_login: new Date().toISOString() })
-            .eq('user_id', user.id);
+          touchAdminLastLogin(user.id);
         } else {
           // Server verified: not an admin
           console.log('[useAdminAuth] User is not an admin');
@@ -143,13 +141,10 @@ export const useAdminAuth = () => {
     if (!user || !adminUser) throw new Error('No admin user logged in');
 
     try {
-      const { error } = await supabase
-        .from('admin_users')
-        .update({
-          name: updates.name || adminUser.name,
-          role: updates.role || adminUser.role,
-        })
-        .eq('user_id', user.id);
+      const { error } = await updateAdminUsersByUserId(user.id, {
+        name: updates.name || adminUser.name,
+        role: updates.role || adminUser.role,
+      });
 
       if (error) throw error;
 
@@ -165,9 +160,7 @@ export const useAdminAuth = () => {
   // Re-verify admin status on demand (for sensitive operations)
   const reverifyAdmin = async (): Promise<boolean> => {
     try {
-      const { data: verifyResult, error } = await supabase.rpc(
-        'verify_admin_session'
-      );
+      const { data: verifyResult, error } = await rpcVerifyAdminSession();
       if (error || !verifyResult || verifyResult.length === 0) {
         setIsAuthenticated(false);
         setAdminUser(null);

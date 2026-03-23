@@ -67,6 +67,12 @@ export const STORAGE_PREFIX = 'rif_';
  */
 export const APP_STORAGE_KEYS = [
   'cart-storage',
+  'cart-storage-elevated',
+  'checkout_form_data_elevated',
+  'checkout_current_step_elevated',
+  'checkout_completed_steps_elevated',
+  'checkout_timestamp_elevated',
+  'checkout_applied_coupon_elevated',
   'currency-storage',
   'rif-raw-straw-theme',
   'language-storage',

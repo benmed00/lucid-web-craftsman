@@ -1,0 +1,33 @@
+{
+  "summary": "Read-only Stripe session + order snapshot after checkout",
+  "requestBody": {
+    "required": true,
+    "content": {
+      "application/json": {
+        "schema": {
+          "type": "object",
+          "required": ["session_id"],
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Stripe Checkout Session id"
+            }
+          }
+        }
+      }
+    }
+  },
+  "responses": {
+    "200": {
+      "description": "Verification or processing payload",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    }
+  }
+}

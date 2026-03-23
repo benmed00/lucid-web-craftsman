@@ -63,6 +63,7 @@ describe('Edge Functions - Config Check', () => {
 describe.each([
   'create-payment',
   'verify-payment',
+  'stripe-session-display',
   'create-paypal-payment',
   'verify-paypal-payment',
   'stripe-webhook',
@@ -142,6 +143,28 @@ describe('create-payment', () => {
     expect(
       data?.error || (error as { message?: string })?.message
     ).toBeTruthy();
+  }, 15000);
+});
+
+describe('stripe-session-display', () => {
+  it('should reject missing session_id', async () => {
+    if (!isRealSupabase) return;
+    const { data, error } = await anonClient.functions.invoke(
+      'stripe-session-display',
+      { body: {} }
+    );
+    expect(error).toBeNull();
+    expect(data?.ok === false).toBe(true);
+  }, 15000);
+
+  it('should return ok:false for invalid session id without 500', async () => {
+    if (!isRealSupabase) return;
+    const { data, error } = await anonClient.functions.invoke(
+      'stripe-session-display',
+      { body: { session_id: 'cs_invalid_test_123' } }
+    );
+    expect(error).toBeNull();
+    expect(data?.ok === false).toBe(true);
   }, 15000);
 });
 

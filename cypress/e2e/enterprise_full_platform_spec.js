@@ -32,7 +32,7 @@ const PUBLIC_ROUTES = [
   { path: '/terms-of-service', name: 'Terms of Service' },
   { path: '/story', name: 'Story' },
   { path: '/unsubscribe', name: 'Unsubscribe' },
-  { path: '/payment-success', name: 'Payment Success' },
+  { path: '/order-confirmation', name: 'Order confirmation' },
 ];
 
 // ─── Redirection tests ────────────────────────────────────────────────────

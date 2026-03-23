@@ -71,6 +71,54 @@ export interface OrderQuickAction {
 
 // ==================== Customer Service ====================
 
+/** Storefront order history: orders with items and status timeline. */
+export async function fetchCustomerOrdersDetailed(userId: string) {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(
+      `
+          *,
+          order_items (
+            id,
+            product_id,
+            quantity,
+            unit_price,
+            total_price,
+            product_snapshot
+          ),
+          order_status_history (
+            id,
+            new_status,
+            previous_status,
+            created_at,
+            reason_message,
+            changed_by
+          )
+        `
+    )
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Orders with shipments + items for `useOptimizedOrders` / UnifiedCache. */
+export async function fetchUserOrdersWithShipmentsAndItems(userId: string) {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(
+      `
+        *,
+        shipments(*),
+        order_items(*)
+      `
+    )
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function getOrderCustomerInfo(
   userId: string
 ): Promise<OrderCustomerInfo | null> {

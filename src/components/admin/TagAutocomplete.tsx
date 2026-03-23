@@ -7,7 +7,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeTranslateTag } from '@/services/supabaseFunctionsApi';
+import { insertTagTranslation } from '@/services/tagTranslationsApi';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -61,11 +62,12 @@ export default function TagAutocomplete({
   // Mutation to get AI translation suggestions
   const translateMutation = useMutation({
     mutationFn: async (tag: string) => {
-      const { data, error } = await supabase.functions.invoke('translate-tag', {
-        body: { tag, targetLanguages: ['en', 'ar', 'es', 'de'] },
+      const { data, error } = await invokeTranslateTag({
+        tag,
+        targetLanguages: ['en', 'ar', 'es', 'de'],
       });
       if (error) throw error;
-      return data.translations as TranslationSuggestion;
+      return (data as { translations: TranslationSuggestion }).translations;
     },
     onSuccess: (translations) => {
       setTranslationSuggestion(translations);
@@ -92,7 +94,7 @@ export default function TagAutocomplete({
   // Mutation to save the new tag with translations
   const saveTagMutation = useMutation({
     mutationFn: async (translations: TranslationSuggestion) => {
-      const { error } = await supabase.from('tag_translations').insert({
+      await insertTagTranslation({
         tag_key: translations.fr,
         fr: translations.fr,
         en: translations.en || null,
@@ -100,7 +102,6 @@ export default function TagAutocomplete({
         es: translations.es || null,
         de: translations.de || null,
       });
-      if (error) throw error;
       return translations.fr;
     },
     onSuccess: (tagKey) => {

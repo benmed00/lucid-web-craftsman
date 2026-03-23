@@ -1,5 +1,7 @@
 # RLS E2E Test Setup Guide
 
+**Project docs:** [Documentation index](../../docs/README.md) · [Engineering standards](../../docs/STANDARDS.md) (security, quality gates).
+
 ## Overview
 
 This guide explains how to set up and run the RLS (Row Level Security) E2E tests for the Rif Straw application.

@@ -2,7 +2,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchFreeShippingThresholdSetting,
+  validateCouponCodeRpc,
+} from '@/services/checkoutApi';
+import { createPaymentSessionWithRetry } from '@/services/checkoutService';
 import { stockService } from '@/services/stockService';
 import { useLazyStripe } from '@/components/performance/LazyStripe';
 import { useCart } from '@/stores';
@@ -18,7 +22,6 @@ import {
   validatePromoCode,
 } from '@/utils/checkoutValidation';
 import { sanitizeUserInput } from '@/utils/xssProtection';
-import { retryWithBackoff } from '@/lib/retryWithBackoff';
 import {
   useCheckoutSession,
   type CartItemSnapshot,
@@ -123,15 +126,9 @@ export function useCheckoutPage() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const { data, error } = await supabase
-          .from('app_settings')
-          .select('setting_value')
-          .eq('setting_key', 'free_shipping_threshold')
-          .maybeSingle();
-        if (!error && data?.setting_value) {
-          setFreeShippingSettings(
-            data.setting_value as unknown as FreeShippingSettings
-          );
+        const raw = await fetchFreeShippingThresholdSetting();
+        if (raw) {
+          setFreeShippingSettings(raw as unknown as FreeShippingSettings);
         }
       } catch (e) {
         console.error('Error fetching free shipping settings:', e);
@@ -239,41 +236,47 @@ export function useCheckoutPage() {
     setPromoError('');
 
     try {
-      const { data, error } = await supabase
-        .rpc('validate_coupon_code', { p_code: sanitizedCode })
-        .maybeSingle();
-
-      if (error || !data) {
+      let data: unknown;
+      try {
+        data = await validateCouponCodeRpc(sanitizedCode);
+      } catch {
         setPromoError(t('promo.invalid'));
         return;
       }
 
+      if (!data) {
+        setPromoError(t('promo.invalid'));
+        return;
+      }
+
+      const row = data as Record<string, unknown>;
       const now = new Date();
-      if (data.valid_from && new Date(data.valid_from) > now) {
+      if (row.valid_from && new Date(String(row.valid_from)) > now) {
         setPromoError(t('promo.invalid'));
         return;
       }
-      if (data.valid_until && new Date(data.valid_until) < now) {
+      if (row.valid_until && new Date(String(row.valid_until)) < now) {
         setPromoError(t('promo.expired'));
         return;
       }
-      if (data.usage_limit && data.usage_count >= data.usage_limit) {
+      if (
+        row.usage_limit &&
+        Number(row.usage_count) >= Number(row.usage_limit)
+      ) {
         setPromoError(t('promo.limitReached'));
         return;
       }
-      if (data.minimum_order_amount && subtotal < data.minimum_order_amount) {
+      const minOrd = row.minimum_order_amount;
+      if (typeof minOrd === 'number' && subtotal < minOrd) {
         setPromoError(
           t('promo.minOrder', {
-            amount: formatPrice(data.minimum_order_amount),
+            amount: formatPrice(minOrd),
           })
         );
         return;
       }
 
-      const coupon: DiscountCoupon = {
-        ...data,
-        type: data.type as 'percentage' | 'fixed',
-      };
+      const coupon = row as unknown as DiscountCoupon;
       setAppliedCoupon(coupon);
       saveCoupon(coupon as any);
       setPromoCode('');
@@ -502,42 +505,27 @@ export function useCheckoutPage() {
       const functionName =
         paymentMethod === 'paypal' ? 'create-paypal-payment' : 'create-payment';
 
-      const { data, error } = await retryWithBackoff(
-        async () => {
-          const result = await supabase.functions.invoke(functionName, {
-            body: {
-              items: cartItems,
-              customerInfo: sanitizedFormData,
-              guestSession,
-              discount: appliedCoupon
-                ? {
-                    couponId: appliedCoupon.id,
-                    code: sanitizeUserInput(appliedCoupon.code),
-                    amount: discount,
-                    includesFreeShipping:
-                      appliedCoupon.includes_free_shipping || false,
-                  }
-                : null,
-            },
-            headers: {
-              ...csrfHeaders,
-              ...(checkoutSessionId
-                ? { 'x-checkout-session-id': checkoutSessionId }
-                : {}),
-            },
-          });
-          if (result.error) {
-            const msg = result.error.message || '';
-            if (
-              msg.includes('fetch') ||
-              msg.includes('network') ||
-              msg.includes('503') ||
-              msg.includes('502') ||
-              msg.includes('timeout')
-            )
-              throw result.error;
-          }
-          return result;
+      const { data, error } = await createPaymentSessionWithRetry(
+        functionName,
+        {
+          items: cartItems,
+          customerInfo: sanitizedFormData,
+          guestSession,
+          discount: appliedCoupon
+            ? {
+                couponId: appliedCoupon.id,
+                code: sanitizeUserInput(appliedCoupon.code),
+                amount: discount,
+                includesFreeShipping:
+                  appliedCoupon.includes_free_shipping || false,
+              }
+            : null,
+        },
+        {
+          ...csrfHeaders,
+          ...(checkoutSessionId
+            ? { 'x-checkout-session-id': checkoutSessionId }
+            : {}),
         },
         {
           maxAttempts: 2,

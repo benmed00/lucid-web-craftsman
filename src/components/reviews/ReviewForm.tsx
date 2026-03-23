@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useReviews } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
+import { uploadReviewPhoto } from '@/services/reviewsApi';
 import { toast } from 'sonner';
 import { hapticFeedback } from '@/utils/haptics';
 
@@ -76,16 +76,8 @@ export const ReviewForm = ({
     const urls: string[] = [];
 
     for (const file of photos) {
-      const ext = file.name.split('.').pop();
-      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage
-        .from('review-photos')
-        .upload(path, file);
-      if (error) throw error;
-      const { data } = supabase.storage
-        .from('review-photos')
-        .getPublicUrl(path);
-      urls.push(data.publicUrl);
+      const url = await uploadReviewPhoto(user.id, file);
+      urls.push(url);
     }
 
     return urls;

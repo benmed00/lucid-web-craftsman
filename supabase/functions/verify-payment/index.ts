@@ -72,6 +72,24 @@ serve(async (req) => {
 
     logStep('Verifying session', { sessionId: session_id });
 
+    const isAuthorizedOrder = (order: any, sid: string): boolean => {
+      if (isInternalServiceCall) return true;
+      if (!sid) return false;
+      if (order?.stripe_session_id === sid) return true;
+      const meta = (order?.metadata || {}) as Record<string, unknown>;
+      if (meta.stripe_session_id === sid) return true;
+      if (
+        authenticatedUserId &&
+        order?.user_id &&
+        authenticatedUserId === order.user_id
+      ) {
+        return true;
+      }
+      const orderGuestId =
+        typeof meta.guest_id === 'string' ? meta.guest_id : null;
+      return !!(guestId && orderGuestId && guestId === orderGuestId);
+    };
+
     const selectOrderFields =
       'id, status, order_status, amount, currency, shipping_address, metadata, created_at, user_id';
 
@@ -126,7 +144,7 @@ serve(async (req) => {
     // DB-first path: if webhook already confirmed the order, don't block UX on Stripe API lookup.
     const preConfirmedOrder = await findOrderBySession(session_id);
     if (preConfirmedOrder) {
-      if (!isAuthorizedOrder(preConfirmedOrder)) {
+      if (!isAuthorizedOrder(preConfirmedOrder, session_id)) {
         logStep('Order access denied by ownership rules');
         return new Response(
           JSON.stringify({
@@ -175,7 +193,7 @@ serve(async (req) => {
 
       const recoveredOrder = await findOrderBySession(session_id);
       if (recoveredOrder) {
-        if (!isAuthorizedOrder(recoveredOrder)) {
+        if (!isAuthorizedOrder(recoveredOrder, session_id)) {
           logStep('Recovered order denied by ownership rules');
           return new Response(
             JSON.stringify({
@@ -288,7 +306,7 @@ serve(async (req) => {
       );
     }
 
-    if (!isAuthorizedOrder(orderData)) {
+    if (!isAuthorizedOrder(orderData, session_id)) {
       logStep('Order access denied by ownership rules');
       return new Response(
         JSON.stringify({
@@ -452,24 +470,5 @@ serve(async (req) => {
         status: 500,
       }
     );
-  }
-
-  function isAuthorizedOrder(order: any): boolean {
-    if (isInternalServiceCall) return true;
-    if (
-      authenticatedUserId &&
-      order?.user_id &&
-      authenticatedUserId === order.user_id
-    ) {
-      return true;
-    }
-    if (authenticatedUserId && !order?.user_id) {
-      // Resilience path for legacy orders created without user_id.
-      return true;
-    }
-    const metadata = (order?.metadata || {}) as Record<string, unknown>;
-    const orderGuestId =
-      typeof metadata.guest_id === 'string' ? metadata.guest_id : null;
-    return !!(guestId && orderGuestId && guestId === orderGuestId);
   }
 });

@@ -4,8 +4,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { handleError, DatabaseError } from '@/lib/errors/AppError';
+import { fetchAppSettingValueByKey } from '@/services/appSettingsApi';
+import { handleError } from '@/lib/errors/AppError';
 import { APP_CONFIG } from '@/config';
 
 export interface CompanyAddress {
@@ -96,23 +96,12 @@ export function useCompanySettings() {
       }
 
       try {
-        const { data, error: fetchError } = await supabase
-          .from('app_settings')
-          .select('setting_value')
-          .eq('setting_key', SETTINGS_KEY)
-          .maybeSingle();
+        const settingValue = await fetchAppSettingValueByKey(SETTINGS_KEY);
 
         if (!isMounted) return;
 
-        if (fetchError && fetchError.code !== 'PGRST116') {
-          throw new DatabaseError(
-            `Failed to fetch company settings: ${fetchError.message}`,
-            fetchError.code
-          );
-        }
-
-        const mergedSettings = data?.setting_value
-          ? parseSettings(data.setting_value)
+        const mergedSettings = settingValue
+          ? parseSettings(settingValue)
           : DEFAULT_COMPANY_SETTINGS;
 
         cachedSettings = mergedSettings;

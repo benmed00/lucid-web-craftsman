@@ -22,7 +22,7 @@ import {
   ExternalLink,
   CircleDot,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchCustomerOrdersDetailed } from '@/services/orderService';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { formatPrice } from '@/lib/stripe';
@@ -89,20 +89,8 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 async function fetchOrders(userId: string): Promise<Order[]> {
-  const { data, error } = await supabase
-    .from('orders')
-    .select(
-      `id, amount, currency, status, order_status, created_at, updated_at,
-       tracking_number, tracking_url, carrier, estimated_delivery, actual_delivery,
-       shipping_address, payment_method,
-       order_items (id, quantity, unit_price, total_price, product_snapshot),
-       order_status_history (id, new_status, previous_status, created_at, reason_message, changed_by)`
-    )
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return (data as Order[]) || [];
+  const rows = await fetchCustomerOrdersDetailed(userId);
+  return (rows as Order[]) || [];
 }
 
 function getStatusConfig(status: string) {

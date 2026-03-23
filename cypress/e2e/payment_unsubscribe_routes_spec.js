@@ -5,7 +5,7 @@
 
 describe('Payment success route @regression', () => {
   it('shows missing-session message without Stripe session_id', () => {
-    cy.visit('/payment-success');
+    cy.visit('/order-confirmation');
     cy.contains(/Session de paiement manquante|Missing payment session/i, {
       timeout: 15000,
     }).should('be.visible');

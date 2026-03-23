@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { MapPin, Globe, Instagram, Facebook, Twitter } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { updateProfileFields } from '@/services/profileApi';
 import { toast } from 'sonner';
 import { sanitizeUserInput } from '@/utils/xssProtection';
 
@@ -97,14 +97,7 @@ export function PersonalInfo({
           : null,
       };
 
-      const { error } = await supabase
-        .from('profiles')
-        .update(sanitizedData)
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      await updateProfileFields(user.id, sanitizedData);
 
       onProfileUpdate();
       toast.success('Adresse mise à jour avec succès');
@@ -136,14 +129,7 @@ export function PersonalInfo({
           : null,
       };
 
-      const { error } = await supabase
-        .from('profiles')
-        .update(sanitizedData)
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      await updateProfileFields(user.id, sanitizedData);
 
       onProfileUpdate();
       toast.success('Liens sociaux mis à jour avec succès');

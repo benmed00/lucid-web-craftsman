@@ -18,7 +18,7 @@ import {
 
 import { Button } from '@/components/ui/button';
 import PageFooter from '@/components/PageFooter';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeOrderConfirmationLookup } from '@/services/checkoutApi';
 import { disableServiceWorkerForCriticalFlow } from '@/utils/cacheOptimization';
 
 type ConfirmationState =
@@ -153,14 +153,27 @@ const OrderConfirmation = () => {
       }
 
       try {
-        const { data, error } = await supabase.functions.invoke(
-          'order-confirmation-lookup',
-          {
-            body: { token, order_reference: routeReference || null },
-          }
-        );
+        const { data, error } = await invokeOrderConfirmationLookup({
+          token,
+          order_reference: routeReference || null,
+        });
 
-        if (error || !data?.found) {
+        const payload = data as {
+          found?: boolean;
+          page_variant?: string;
+          order_id?: string;
+          order_reference?: string;
+          amount?: number;
+          currency?: string;
+          created_at?: string;
+          customer_name?: string;
+          customer_email?: string | null;
+          status_label?: string;
+          status_message?: string;
+          items?: unknown;
+        };
+
+        if (error || !payload?.found) {
           const nextMessage =
             "Nous ne pouvons pas valider cette commande pour le moment. Contactez le support avec votre reference d'email.";
           setState('technical_issue');
@@ -170,23 +183,26 @@ const OrderConfirmation = () => {
         }
 
         const pageVariant: ConfirmationResult['pageVariant'] =
-          data.page_variant === 'payment_failed' ? 'payment_failed' : 'success';
+          payload.page_variant === 'payment_failed'
+            ? 'payment_failed'
+            : 'success';
 
         const nextResult: ConfirmationResult = {
-          orderId: data.order_id,
-          orderReference: data.order_reference,
+          orderId: payload.order_id,
+          orderReference: payload.order_reference,
           pageVariant,
-          amount: typeof data.amount === 'number' ? data.amount : undefined,
+          amount:
+            typeof payload.amount === 'number' ? payload.amount : undefined,
           currency:
-            typeof data.currency === 'string'
-              ? data.currency.toUpperCase()
+            typeof payload.currency === 'string'
+              ? payload.currency.toUpperCase()
               : undefined,
-          createdAt: data.created_at,
-          customerName: data.customer_name || 'Client inconnu',
-          customerEmail: data.customer_email || null,
-          statusLabel: data.status_label,
-          statusMessage: data.status_message,
-          items: Array.isArray(data.items) ? data.items : [],
+          createdAt: payload.created_at,
+          customerName: payload.customer_name || 'Client inconnu',
+          customerEmail: payload.customer_email || null,
+          statusLabel: payload.status_label,
+          statusMessage: payload.status_message,
+          items: Array.isArray(payload.items) ? payload.items : [],
         };
         setResult(nextResult);
         effectiveReference = nextResult.orderReference || effectiveReference;

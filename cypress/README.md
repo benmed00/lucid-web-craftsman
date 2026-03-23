@@ -6,7 +6,7 @@
 
 _Contenu ci-dessous en français — English sections follow._
 
-Ce dossier regroupe les **tests E2E navigateur** (Cypress). La **couverture fonctionnelle**, les limites métier et les scénarios hors périmètre sont décrits dans [`../docs/E2E-COVERAGE.md`](../docs/E2E-COVERAGE.md). Ce README décrit l’**exploitation** : commandes, configuration, CI et bonnes pratiques de sécurité. La **propriété des parcours** (checkout, menu mobile, filtres produits, etc. vs `enterprise_full_platform_spec`) est documentée dans [E2E-COVERAGE — Propriété des parcours](../docs/E2E-COVERAGE.md).
+Ce dossier regroupe les **tests E2E navigateur** (Cypress). Index documentation produit / stack : [`../docs/README.md`](../docs/README.md). La **couverture fonctionnelle**, les limites métier et les scénarios hors périmètre sont dans [`../docs/E2E-COVERAGE.md`](../docs/E2E-COVERAGE.md). Ce README décrit l’**exploitation** : commandes, configuration, CI et bonnes pratiques de sécurité. La **propriété des parcours** (checkout, menu mobile, filtres produits, etc. vs `enterprise_full_platform_spec`) est documentée dans [E2E-COVERAGE — Propriété des parcours](../docs/E2E-COVERAGE.md).
 
 | Thème             | Contenu                                                                                                                                                                                                                                                                                                                               |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -22,7 +22,7 @@ Ce dossier regroupe les **tests E2E navigateur** (Cypress). La **couverture fonc
 | `npm run e2e:ci`       | Lance API mock + Vite + **toute** la suite Cypress.                                                                          |
 | `npm run e2e:ci:shard` | Comme `e2e:ci`, mais **un sous-ensemble de fichiers** specs (`CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL`) — job **e2e-full** CI. |
 | `npm run e2e:ci:smoke` | Idem, filtré **`@smoke`** (aligné sur la CI PR).                                                                             |
-| `npm run e2e:checkout` | Idem, uniquement **checkout** (`checkout_flow_spec` + `checkout_persistence_spec`).                                          |
+| `npm run e2e:checkout` | Idem, uniquement **checkout** (`checkout_flow_spec`, `checkout_persistence_spec`, `checkout_db_hydration_spec`).             |
 | `npm run e2e:open`     | Mode interactif (serveurs déjà démarrés).                                                                                    |
 
 **Secrets dépôt (optionnels)** pour limiter les tests ignorés en CI : `CYPRESS_CUSTOMER_EMAIL`, `CYPRESS_CUSTOMER_PASSWORD`, `CYPRESS_ADMIN_EMAIL`, `CYPRESS_ADMIN_PASSWORD` — fusionnés vers `CUSTOMER_*` / `ADMIN_*` dans `Cypress.env()` par `setupNodeEvents` dans `cypress.config.ts`.
@@ -45,7 +45,7 @@ The sections below are maintained in **English**. This directory contains the br
 
 ## Scope and boundaries
 
-Functional coverage, scripts, and explicitly **out-of-scope** scenarios (e.g. real card payments, certain timing-dependent UI) are documented in [`../docs/E2E-COVERAGE.md`](../docs/E2E-COVERAGE.md). That doc also lists **spec ownership** (W10): which file is canonical for checkout, mobile menu, product filters, etc., versus the thin `enterprise_full_platform_spec.js` macro suite. This README focuses on how to run and maintain the Cypress suite, not on product requirements.
+Platform routes and behavior (for mapping specs to URLs) live in [`../docs/PLATFORM.md`](../docs/PLATFORM.md) and the doc index [`../docs/README.md`](../docs/README.md). Functional coverage, scripts, and explicitly **out-of-scope** scenarios (e.g. real card payments, certain timing-dependent UI) are documented in [`../docs/E2E-COVERAGE.md`](../docs/E2E-COVERAGE.md). That doc also lists **spec ownership** (W10): which file is canonical for checkout, mobile menu, product filters, etc., versus the thin `enterprise_full_platform_spec.js` macro suite. This README focuses on how to run and maintain the Cypress suite, not on product requirements.
 
 ## Architecture
 
@@ -128,7 +128,7 @@ Commands are defined in the root [`../package.json`](../package.json). Common en
 | `npm run e2e:smoke`      | Headless; only `@smoke` (requires servers running).                                                                                                           |
 | `npm run e2e:regression` | Headless; `@regression` subset.                                                                                                                               |
 | `npm run e2e:ci`         | Starts mock API + Vite, then full `cypress run` (CI-style).                                                                                                   |
-| `npm run e2e:checkout`   | Same stack; runs **checkout** specs only (`checkout_flow_spec.js`, `checkout_persistence_spec.js`).                                                           |
+| `npm run e2e:checkout`   | Same stack; runs **checkout** specs only (`checkout_flow_spec.js`, `checkout_persistence_spec.js`, `checkout_db_hydration_spec.ts`).                          |
 | `npm run e2e:ci:shard`   | Same stack; runs a **slice of spec files** via `CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL` (see `scripts/cypress-e2e-shard.mjs`). Used by **e2e-full** CI matrix. |
 | `npm run e2e:ci:smoke`   | Same as `e2e:ci` but filtered to `@smoke`.                                                                                                                    |
 

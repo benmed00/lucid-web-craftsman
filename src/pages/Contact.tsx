@@ -29,7 +29,7 @@ import {
   sanitizeUserInput,
 } from '@/utils/xssProtection';
 import { createRateLimiter } from '@/utils/validation';
-import { supabase } from '@/integrations/supabase/client';
+import { getAuthSession } from '@/services/cartApi';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   useCompanySettings,
@@ -140,7 +140,7 @@ const Contact = () => {
       setIsSubmitting(true);
 
       // Use centralized API client for consistent error handling
-      const session = await supabase.auth.getSession();
+      const session = await getAuthSession();
       const headers: Record<string, string> = {};
       if (session.data.session?.access_token) {
         headers['Authorization'] =

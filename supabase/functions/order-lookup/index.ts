@@ -5,8 +5,21 @@
  * Used by PaymentSuccess page to avoid calling verify-payment unnecessarily.
  * Also serves as admin debug endpoint when called with service role key.
  */
-import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.2';
+import { serve } from '@std/http/server';
+import { createClient } from '@supabase/supabase-js';
+
+/** Subset of `orders` row returned by this function’s select. */
+type OrderLookupRow = {
+  id: string;
+  status?: string | null;
+  order_status?: string | null;
+  amount?: number | null;
+  currency?: string | null;
+  created_at?: string | null;
+  stripe_session_id?: string | null;
+  metadata?: Record<string, unknown> | null;
+  user_id?: string | null;
+};
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -77,7 +90,7 @@ serve(async (req) => {
       .maybeSingle();
 
     if (byColumn) {
-      if (!isAuthorized(byColumn)) {
+      if (!isAuthorized(byColumn, session_id)) {
         logStep('Order access denied by ownership rules');
         return new Response(JSON.stringify({ found: false }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -92,14 +105,14 @@ serve(async (req) => {
     }
 
     // Strategy 2: metadata contains stripe_session_id
-    const { data: byMetadata } = await supabaseService
+    const { data: byMetadata, error: byMetadataError } = await supabaseService
       .from('orders')
       .select(selectFields)
       .contains('metadata', { stripe_session_id: session_id })
       .maybeSingle();
 
-    if (byMetadata) {
-      if (!isAuthorized(byMetadata)) {
+    if (byMetadata && !byMetadataError) {
+      if (!isAuthorized(byMetadata, session_id)) {
         logStep('Order access denied by ownership rules');
         return new Response(JSON.stringify({ found: false }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -127,7 +140,7 @@ serve(async (req) => {
     });
   }
 
-  function buildResponse(order: any) {
+  function buildResponse(order: OrderLookupRow) {
     const status = String(order.status || '').toLowerCase();
     const orderStatus = String(order.order_status || '').toLowerCase();
     const metadata = (order.metadata || {}) as Record<string, unknown>;
@@ -160,8 +173,21 @@ serve(async (req) => {
     );
   }
 
-  function isAuthorized(order: any): boolean {
+  /**
+   * Read-only lookup: the caller must present the same Stripe Checkout session id
+   * that is stored on the order (column or metadata). This matches the browser
+   * success redirect and avoids false denials when another Supabase session
+   * (e.g. admin) is active in the same profile.
+   */
+  function isAuthorized(
+    order: OrderLookupRow,
+    requestedSessionId: string
+  ): boolean {
     if (isInternalServiceCall) return true;
+    if (!requestedSessionId) return false;
+    if (order?.stripe_session_id === requestedSessionId) return true;
+    const metadata = (order?.metadata || {}) as Record<string, unknown>;
+    if (metadata.stripe_session_id === requestedSessionId) return true;
     if (
       requesterUserId &&
       order?.user_id &&
@@ -169,12 +195,6 @@ serve(async (req) => {
     ) {
       return true;
     }
-    if (requesterUserId && !order?.user_id) {
-      // Resilience: some legacy orders were created without user_id.
-      // session_id entropy keeps this path safe enough for lookup UX.
-      return true;
-    }
-    const metadata = (order?.metadata || {}) as Record<string, unknown>;
     const orderGuestId =
       typeof metadata.guest_id === 'string' ? metadata.guest_id : null;
     return !!(guestId && orderGuestId && guestId === orderGuestId);

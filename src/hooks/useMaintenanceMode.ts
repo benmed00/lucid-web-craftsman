@@ -4,8 +4,11 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { handleError, DatabaseError } from '@/lib/errors/AppError';
+import {
+  fetchAppSettingValueByKey,
+  subscribeAppSettingByKey,
+} from '@/services/appSettingsApi';
+import { handleError } from '@/lib/errors/AppError';
 
 interface DisplaySettings {
   maintenanceMode?: boolean;
@@ -49,23 +52,12 @@ export const useMaintenanceMode = (): MaintenanceModeState => {
     // product queries for Chrome's 6-connection-per-host limit.
     const deferTimer = setTimeout(async () => {
       try {
-        const { data, error } = await supabase
-          .from('app_settings')
-          .select('setting_value')
-          .eq('setting_key', SETTINGS_KEY)
-          .maybeSingle();
+        const settingValue = await fetchAppSettingValueByKey(SETTINGS_KEY);
 
         if (!isMounted) return;
 
-        if (error && error.code !== 'PGRST116') {
-          throw new DatabaseError(
-            `Failed to check maintenance mode: ${error.message}`,
-            error.code
-          );
-        }
-
-        if (data?.setting_value) {
-          const settings = data.setting_value as unknown as DisplaySettings;
+        if (settingValue) {
+          const settings = settingValue as unknown as DisplaySettings;
           updateFromSettings(settings);
         }
       } catch (error) {
@@ -77,36 +69,20 @@ export const useMaintenanceMode = (): MaintenanceModeState => {
       }
     }, 2000);
 
-    // Subscribe to realtime changes (deferred — non-critical)
-    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let unsubscribeRealtime: (() => void) | null = null;
     const realtimeTimer = setTimeout(() => {
       if (!isMounted) return;
-      channel = supabase
-        .channel('maintenance-mode')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'app_settings',
-            filter: `setting_key=eq.${SETTINGS_KEY}`,
-          },
-          (payload) => {
-            if (payload.new && 'setting_value' in payload.new) {
-              const settings = payload.new
-                .setting_value as unknown as DisplaySettings;
-              updateFromSettings(settings);
-            }
-          }
-        )
-        .subscribe();
+      unsubscribeRealtime = subscribeAppSettingByKey(SETTINGS_KEY, (value) => {
+        if (!isMounted || value == null) return;
+        updateFromSettings(value as unknown as DisplaySettings);
+      });
     }, 5000);
 
     return () => {
       isMounted = false;
       clearTimeout(deferTimer);
       clearTimeout(realtimeTimer);
-      if (channel) supabase.removeChannel(channel);
+      unsubscribeRealtime?.();
     };
   }, [updateFromSettings]);
 

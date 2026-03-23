@@ -12,7 +12,8 @@ import {
   Database,
 } from 'lucide-react';
 import { useOptimizedData } from '@/hooks/useOptimizedData';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchAuditLogsProductSearchSince } from '@/services/activityApi';
+import { fetchAuthUserOrNull } from '@/services/profileApi';
 
 interface CacheStats {
   cachedQueries: number;
@@ -43,20 +44,12 @@ export const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({
   const { data: searchAnalytics, isLoading: searchLoading } = useOptimizedData(
     `search_analytics_${timeRange}`,
     async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await fetchAuthUserOrNull();
       if (!user) return null;
 
-      // Get search activity from audit logs
-      const { data: searchLogs, error } = await supabase
-        .from('audit_logs')
-        .select('*')
-        .eq('action', 'PRODUCT_SEARCH')
-        .gte('created_at', getDateRange(timeRange))
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const searchLogs = await fetchAuditLogsProductSearchSince(
+        getDateRange(timeRange)
+      );
 
       // Process analytics
       const searchTerms = new Map<string, number>();

@@ -18,8 +18,12 @@ import {
   useQueryClient,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
+import {
+  fetchActiveArtisansWithTranslations,
+  type ArtisanJoinRow,
+  type ArtisanRowPick,
+  type ArtisanTranslationJoined,
+} from '@/services/artisansApi';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,32 +35,6 @@ import { useState } from 'react';
 // --- i18n -------------------------------------------------------------------
 
 const I18N_NAMESPACES: string[] = ['pages', 'common'];
-// --- Supabase row shapes (single source: generated Database) ---------------
-
-/** Columns selected from `artisans` for this section */
-type ArtisanRowPick = Pick<
-  Database['public']['Tables']['artisans']['Row'],
-  | 'id'
-  | 'name'
-  | 'specialty'
-  | 'photo_url'
-  | 'region'
-  | 'experience_years'
-  | 'bio_short'
-  | 'quote'
->;
-
-/** Nested join payload from PostgREST (must match `.select()` projection) */
-type ArtisanTranslationJoined = Pick<
-  Database['public']['Tables']['artisan_translations']['Row'],
-  'locale' | 'specialty' | 'quote' | 'bio_short'
->;
-
-/** Raw row shape returned by the join query before normalization */
-type ArtisanJoinRow = ArtisanRowPick & {
-  artisan_translations: ArtisanTranslationJoined[] | null;
-};
-
 /**
  * Flat view model for the UI: translation fields merged for `locale`,
  * join array stripped (not rendered).
@@ -138,42 +116,7 @@ const ArtisansSection = ({ enabled = true }: ArtisansSectionProps) => {
     queryFn: async (): Promise<ArtisanPublic[]> => {
       console.info('[ArtisansSection] queryFn CALLED, locale:', currentLocale);
 
-      const supabaseResult: {
-        data: ArtisanJoinRow[] | null;
-        error: Error | null;
-      } = await supabase
-        .from('artisans')
-        .select(
-          `
-          id,
-          name,
-          specialty,
-          photo_url,
-          region,
-          experience_years,
-          bio_short,
-          quote,
-          artisan_translations!left (
-            locale,
-            specialty,
-            quote,
-            bio_short
-          )
-        `
-        )
-        .eq('is_active', true)
-        .order('created_at', { ascending: true })
-        .limit(4);
-
-      const { data, error }: { data: ArtisanJoinRow[] | null; error: unknown } =
-        supabaseResult;
-
-      if (error) {
-        console.error('Error fetching artisans:', error);
-        throw error;
-      }
-
-      const rows: ArtisanJoinRow[] = data ?? [];
+      const rows = await fetchActiveArtisansWithTranslations();
       return rows.map((row: ArtisanJoinRow) =>
         joinRowToPublic(row, currentLocale)
       );

@@ -29,6 +29,4 @@ db.json
 # Example assets (no need to format)
 public/vite.svg
 
-# Long-form docs with intentional layout (tables, lists)
-docs/TEST-LOG-ANALYSIS.md
-PRODUCTION_READINESS_PLAN.md
+# Long-form docs with intentional layout (tables, lists) — add paths here if Prettier hurts readability

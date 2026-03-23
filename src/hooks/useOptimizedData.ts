@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchActiveProductsRaw,
+  type OptimizedProductsFilters,
+} from '@/services/productService';
+import { fetchUserOrdersWithShipmentsAndItems } from '@/services/orderService';
 import cache, {
   CacheTTL,
   CacheTags,
@@ -188,32 +192,9 @@ export function useOptimizedProducts(filters?: {
   const queryKey = createCacheKey('products', JSON.stringify(filters || {}));
 
   const queryFn = useCallback(async () => {
-    let query = supabase.from('products').select('*').eq('is_active', true);
-
-    if (filters?.category) {
-      query = query.eq('category', filters.category);
-    }
-
-    if (filters?.featured) {
-      query = query.eq('is_featured', true);
-    }
-
-    if (filters?.search) {
-      query = query.or(
-        `name.ilike.%${filters.search}%, description.ilike.%${filters.search}%`
-      );
-    }
-
-    if (filters?.limit) {
-      query = query.limit(filters.limit);
-    }
-
-    query = query.order('created_at', { ascending: false });
-
-    const { data, error } = await query;
-    if (error) throw error;
-
-    return data;
+    return fetchActiveProductsRaw(
+      filters as OptimizedProductsFilters | undefined
+    );
   }, [filters]);
 
   return useOptimizedQuery(queryKey, queryFn, {
@@ -231,20 +212,7 @@ export function useOptimizedOrders(userId?: string) {
   const queryFn = useCallback(async () => {
     if (!userId) return [];
 
-    const { data, error } = await supabase
-      .from('orders')
-      .select(
-        `
-        *,
-        shipments(*),
-        order_items(*)
-      `
-      )
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data;
+    return fetchUserOrdersWithShipmentsAndItems(userId);
   }, [userId]);
 
   return useOptimizedQuery(queryKey, queryFn, {
@@ -252,64 +220,6 @@ export function useOptimizedOrders(userId?: string) {
     cacheTime: CacheTTL.SHORT,
     tags: [CacheTags.ORDERS],
   });
-}
-
-// Optimized cart hook with real-time updates
-export function useOptimizedCart(userId?: string) {
-  const queryKey = createCacheKey('cart', userId);
-
-  const queryFn = useCallback(async () => {
-    if (!userId) return [];
-
-    const { data, error } = await supabase
-      .from('cart_items')
-      .select(
-        `
-        *,
-        products(*)
-      `
-      )
-      .eq('user_id', userId);
-
-    if (error) throw error;
-    return data;
-  }, [userId]);
-
-  const result = useOptimizedQuery(queryKey, queryFn, {
-    enableCache: !!userId,
-    cacheTime: CacheTTL.SHORT,
-    refetchOnWindowFocus: true,
-    tags: [CacheTags.CART],
-  });
-
-  // Set up real-time subscription for cart changes
-  useEffect(() => {
-    if (!userId) return;
-
-    const subscription = supabase
-      .channel(`cart_${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'cart_items',
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          // Invalidate cache and refetch
-          cache.invalidate(queryKey);
-          result.refetch();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [userId, queryKey, result]);
-
-  return result;
 }
 
 // Prefetch utility for performance
@@ -322,14 +232,11 @@ export const prefetchData = {
     if (cached.data) return;
 
     try {
-      let query = supabase.from('products').select('*').eq('is_active', true);
-
-      if (filters?.category) {
-        query = query.eq('category', filters.category as string);
-      }
-
-      const { data } = await query.limit(20);
-      if (data) {
+      const data = await fetchActiveProductsRaw({
+        category: filters?.category as string | undefined,
+        limit: 20,
+      });
+      if (data.length) {
         cache.set(queryKey, data, {
           ttl: CacheTTL.LONG,
           tags: [CacheTags.PRODUCTS],

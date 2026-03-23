@@ -6,8 +6,14 @@ import {
   Mail,
   Download,
   Package,
+  AlertTriangle,
 } from 'lucide-react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import {
+  Link,
+  useSearchParams,
+  useNavigate,
+  useLocation,
+} from 'react-router-dom';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -15,10 +21,15 @@ import { Button } from '@/components/ui/button';
 
 import PageFooter from '@/components/PageFooter';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  invokeOrderLookup,
+  invokeStripeSessionDisplay,
+  invokeVerifyPaypalPayment,
+} from '@/services/checkoutApi';
 import { useCart } from '@/stores';
 import { useAuth } from '@/context/AuthContext';
 import { disableServiceWorkerForCriticalFlow } from '@/utils/cacheOptimization';
+import { getPaymentSuccessPollDelays } from '@/lib/checkout/paymentPollingConfig';
 
 interface CustomerInfo {
   firstName: string;
@@ -78,7 +89,7 @@ interface StripeSessionSummary {
   }>;
 }
 
-type VerificationState = 'success' | 'processing' | 'issue';
+type VerificationState = 'success' | 'processing' | 'delayed' | 'issue';
 
 const PAYMENT_RESULT_CACHE_KEY = 'payment_success_cached_result';
 const PAYMENT_RESULT_CACHE_TTL_MS = 30 * 60 * 1000;
@@ -108,6 +119,7 @@ const PaymentSuccess = () => {
   const { t } = useTranslation(['pages', 'common']);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { pathname: paymentReturnPath } = useLocation();
   const sessionId = searchParams.get('session_id');
   const isPayPal = searchParams.get('paypal') === 'true';
   const paypalOrderId = searchParams.get('token');
@@ -132,7 +144,7 @@ const PaymentSuccess = () => {
   const { user, profile } = useAuth();
   const verificationRunRef = useRef(false);
 
-  // Build invoice data from verify-payment response
+  // Build invoice data from verify-paypal-payment (or similar) invoice payload
   const buildInvoiceFromResponse = useCallback(
     (responseInvoice: any, fetchedOrderId: string, customer: CustomerInfo) => {
       if (!responseInvoice?.items) return;
@@ -203,7 +215,7 @@ const PaymentSuccess = () => {
       const nextSearch = nextParams.toString();
       navigate(
         {
-          pathname: '/payment-success',
+          pathname: paymentReturnPath || '/order-confirmation',
           search: nextSearch ? `?${nextSearch}` : '',
         },
         { replace: true }
@@ -320,6 +332,26 @@ const PaymentSuccess = () => {
       clearCheckoutStateAfterPayment();
     };
 
+    /** Long tail: webhook / DB slower than polls — never imply payment failure. */
+    const setDelayed = (
+      message: string,
+      orderIdValue?: string,
+      summary: StripeSessionSummary | null = null
+    ) => {
+      const resolved = {
+        state: 'delayed',
+        message,
+        orderId: orderIdValue,
+        transactionId: sessionId
+          ? sessionId.slice(-8).toUpperCase()
+          : undefined,
+      } as const;
+      setVerificationResult(resolved);
+      setStripeSummary(summary);
+      persistResultCache(resolved, summary, getCustomerInfo());
+      clearCheckoutStateAfterPayment();
+    };
+
     const setIssue = (message: string) => {
       setStripeSummary(null);
       const resolved = {
@@ -336,12 +368,7 @@ const PaymentSuccess = () => {
     // ================================================================
     const lookupOrder = async (sid: string): Promise<OrderLookupResult> => {
       try {
-        const { data, error } = await supabase.functions.invoke(
-          'order-lookup',
-          {
-            body: { session_id: sid },
-          }
-        );
+        const { data, error } = await invokeOrderLookup(sid);
         if (error || !data) return { found: false };
         return data as OrderLookupResult;
       } catch {
@@ -350,34 +377,40 @@ const PaymentSuccess = () => {
     };
 
     // ================================================================
-    // STEP 2: Poll for pending order becoming paid (max ~10s)
+    // STEP 2: Poll for pending order becoming paid (see paymentPollingConfig)
     // ================================================================
-    const pollUntilPaid = async (sid: string): Promise<OrderLookupResult> => {
-      const maxPolls = 5;
-      const pollInterval = 2000;
-      for (let i = 0; i < maxPolls; i++) {
-        setProcessingMessage(`Traitement en cours… (${i + 1}/${maxPolls})`);
-        await sleep(pollInterval);
+    const pollUntilPaid = async (
+      sid: string,
+      delays: number[]
+    ): Promise<OrderLookupResult> => {
+      const n = delays.length;
+      for (let i = 0; i < n; i++) {
+        setProcessingMessage(`Traitement en cours… (${i + 1}/${n})`);
+        await sleep(delays[i]!);
         const result = await lookupOrder(sid);
         if (result.found && result.is_paid) return result;
       }
-      // Final check
       return lookupOrder(sid);
     };
 
     // ================================================================
-    // Stripe fallback snapshot (never source of truth for order status)
+    // Stripe display-only snapshot (no DB / no order status inference)
     // ================================================================
-    const fetchStripeFallback = async (sid: string) => {
+    const fetchStripeSessionDisplay = async (
+      sid: string
+    ): Promise<StripeSessionSummary | null> => {
       try {
-        const { data, error } = await supabase.functions.invoke(
-          'verify-payment',
-          {
-            body: { session_id: sid },
-          }
-        );
-        if (error) return null;
-        return data;
+        const { data, error } = await invokeStripeSessionDisplay(sid);
+        const row = data as Record<string, unknown>;
+        if (error || !data || row.ok !== true) return null;
+        return {
+          customer_email:
+            (row.customer_email as string | null | undefined) ?? null,
+          amount_total: row.amount_total as number | undefined,
+          currency: row.currency as string | undefined,
+          payment_status: row.payment_status as string | undefined,
+          items: Array.isArray(row.items) ? row.items : [],
+        };
       } catch {
         return null;
       }
@@ -387,9 +420,16 @@ const PaymentSuccess = () => {
     // MAIN FLOW: Deterministic order confirmation
     // ================================================================
     const verifyStripePayment = async (sid: string) => {
-      console.log('[PaymentSuccess] Starting deterministic verification', {
-        session_id: sid,
-      });
+      const pollDelays = getPaymentSuccessPollDelays();
+      const pollWaitBudgetMs = pollDelays.reduce((a, b) => a + b, 0);
+      console.log(
+        '[PaymentSuccess] stripe_return',
+        JSON.stringify({
+          session_id: sid,
+          poll_steps: pollDelays.length,
+          poll_wait_budget_ms: pollWaitBudgetMs,
+        })
+      );
 
       // Step 1: Immediate DB lookup
       const initial = await lookupOrder(sid);
@@ -410,7 +450,7 @@ const PaymentSuccess = () => {
           order_id: initial.order_id,
         });
         setProcessingMessage('Votre paiement est en cours de validation…');
-        const polled = await pollUntilPaid(sid);
+        const polled = await pollUntilPaid(sid, pollDelays);
 
         if (polled.found && polled.is_paid) {
           console.log('[PaymentSuccess] Order confirmed after polling');
@@ -429,37 +469,23 @@ const PaymentSuccess = () => {
 
       // Step 3: No order found yet — wait a bit more for webhook propagation
       setProcessingMessage('Synchronisation de votre commande…');
-      const delayedCheck = await pollUntilPaid(sid);
+      const delayedCheck = await pollUntilPaid(sid, pollDelays);
       if (delayedCheck.found && delayedCheck.is_paid) {
         setSuccess(delayedCheck.order_id!);
         setIsVerifying(false);
         return;
       }
 
-      // Step 4: Stripe summary fallback (display-only)
-      const fallbackData = await fetchStripeFallback(sid);
-      if (fallbackData?.success && fallbackData.orderId) {
-        setSuccess(fallbackData.orderId);
-        if (fallbackData.invoiceData) {
-          const cust = fallbackData.customerInfo || getCustomerInfo();
-          setCustomerInfo(cust);
-          buildInvoiceFromResponse(
-            fallbackData.invoiceData,
-            fallbackData.orderId,
-            cust
-          );
-        }
-        setIsVerifying(false);
-        return;
-      }
-      if (fallbackData?.processing) {
-        const summary =
-          (fallbackData.stripe_session_summary as StripeSessionSummary) || null;
+      // Step 4: Stripe display-only (paid session → reassuring processing + receipt hints)
+      const stripeDisplay = await fetchStripeSessionDisplay(sid);
+      if (stripeDisplay?.payment_status === 'paid') {
         setProcessing(
-          fallbackData.message ||
-            'Paiement recu. Nous finalisons encore votre confirmation de commande.',
+          t(
+            'pages:paymentSuccess.processing.stripePaidSync',
+            'Votre paiement a bien été reçu. Nous finalisons l’enregistrement de votre commande — vous recevrez un email de confirmation sous peu.'
+          ),
           undefined,
-          summary
+          stripeDisplay
         );
         setIsVerifying(false);
         return;
@@ -487,11 +513,15 @@ const PaymentSuccess = () => {
       console.warn(
         '[PaymentSuccess] No order found yet — showing processing state (not error)'
       );
-      setProcessing(
-        fallbackData?.message ||
-          'Votre paiement a été reçu par Stripe. Votre commande est en cours de traitement et vous recevrez un email de confirmation sous quelques minutes.',
+      const displayAgain =
+        stripeDisplay || (await fetchStripeSessionDisplay(sid));
+      setDelayed(
+        t(
+          'pages:paymentSuccess.delayed.lead',
+          'Votre commande est bien enregistrée, mais prend un peu plus de temps à apparaître. Vous recevrez un email de confirmation — aucun nouveau débit ne sera effectué.'
+        ),
         undefined,
-        null
+        displayAgain
       );
       setIsVerifying(false);
     };
@@ -501,20 +531,35 @@ const PaymentSuccess = () => {
     // ================================================================
     const verifyPayPalPayment = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke(
-          'verify-paypal-payment',
-          { body: { paypal_order_id: paypalOrderId, order_id: orderId } }
-        );
+        const { data, error } = await invokeVerifyPaypalPayment({
+          paypal_order_id: paypalOrderId,
+          order_id: orderId,
+        });
 
         if (error) {
-          setIssue(t('pages:paymentSuccess.errors.verificationError'));
-        } else if (data?.success) {
-          const finalOrderId = data.order_id || orderId;
+          setProcessing(
+            t(
+              'pages:paymentSuccess.processing.paypalNetwork',
+              'Connexion temporairement indisponible. Si PayPal a confirmé le paiement, votre commande sera enregistrée — vérifiez vos emails ou contactez le support si besoin.'
+            ),
+            orderId || undefined,
+            null
+          );
+        } else if ((data as { success?: boolean })?.success) {
+          const paypalData = data as {
+            success?: boolean;
+            order_id?: string;
+            message?: string;
+            transaction_id?: string;
+            invoiceData?: unknown;
+          };
+          const finalOrderId = paypalData.order_id || orderId;
           setVerificationResult({
             state: 'success',
-            message: data.message || t('pages:paymentSuccess.success.verified'),
+            message:
+              paypalData.message || t('pages:paymentSuccess.success.verified'),
             orderId: finalOrderId,
-            transactionId: data.transaction_id,
+            transactionId: paypalData.transaction_id,
           });
           const cust = getCustomerInfo();
           setCustomerInfo(cust);
@@ -522,26 +567,44 @@ const PaymentSuccess = () => {
             {
               state: 'success',
               message:
-                data.message || t('pages:paymentSuccess.success.verified'),
+                paypalData.message ||
+                t('pages:paymentSuccess.success.verified'),
               orderId: finalOrderId || undefined,
-              transactionId: data.transaction_id,
+              transactionId: paypalData.transaction_id,
             },
             null,
             cust
           );
-          if (data.invoiceData)
-            buildInvoiceFromResponse(data.invoiceData, finalOrderId!, cust);
+          if (paypalData.invoiceData)
+            buildInvoiceFromResponse(
+              paypalData.invoiceData,
+              finalOrderId!,
+              cust
+            );
           clearCart();
           localStorage.removeItem('cart');
           stripSensitiveParams();
           toast.success(t('pages:paymentSuccess.success.confirmed'));
         } else {
-          setIssue(
-            data?.message || t('pages:paymentSuccess.errors.verificationFailed')
+          setProcessing(
+            (data as { message?: string } | null)?.message ||
+              t(
+                'pages:paymentSuccess.processing.paypalPending',
+                'Nous finalisons la confirmation avec PayPal. Si vous avez été débité, aucune action supplémentaire n’est requise.'
+              ),
+            orderId || undefined,
+            null
           );
         }
       } catch {
-        setIssue(t('pages:paymentSuccess.errors.unexpectedError'));
+        setProcessing(
+          t(
+            'pages:paymentSuccess.processing.paypalUnexpected',
+            'Une interruption est survenue. Si le paiement PayPal a réussi, votre commande sera traitée — vérifiez votre boîte mail ou contactez le support.'
+          ),
+          orderId || undefined,
+          null
+        );
       } finally {
         setIsVerifying(false);
       }
@@ -567,7 +630,12 @@ const PaymentSuccess = () => {
     } else if (sessionId) {
       verifyStripePayment(sessionId);
     } else {
-      setIssue(t('pages:paymentSuccess.errors.missingSession'));
+      setIssue(
+        t(
+          'pages:paymentSuccess.errors.missingSessionSoft',
+          'Lien de retour incomplet. Si vous avez payé, consultez votre email de confirmation ou vos commandes. Sinon, retournez au panier.'
+        )
+      );
       setIsVerifying(false);
     }
   }, [
@@ -582,6 +650,7 @@ const PaymentSuccess = () => {
     buildInvoiceFromResponse,
     navigate,
     searchParams,
+    paymentReturnPath,
   ]);
 
   // Generate and download invoice as printable HTML
@@ -819,7 +888,9 @@ const PaymentSuccess = () => {
 
   const isSuccessState = verificationResult?.state === 'success';
   const isProcessingState = verificationResult?.state === 'processing';
+  const isDelayedState = verificationResult?.state === 'delayed';
   const isIssueState = verificationResult?.state === 'issue';
+  const isReassuranceState = isProcessingState || isDelayedState;
 
   return (
     <div className="min-h-screen bg-background">
@@ -860,33 +931,58 @@ const PaymentSuccess = () => {
                   </p>
                 )}
               </>
-            ) : isProcessingState ? (
+            ) : isReassuranceState ? (
               <>
-                <Loader2 className="w-20 h-20 text-blue-600 mx-auto mb-4 animate-spin" />
+                <Loader2
+                  className={`w-20 h-20 mx-auto mb-4 animate-spin ${
+                    isDelayedState ? 'text-amber-600' : 'text-blue-600'
+                  }`}
+                />
                 <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-                  Confirmation en cours
+                  {isDelayedState
+                    ? t(
+                        'pages:paymentSuccess.delayed.title',
+                        'Synchronisation en cours'
+                      )
+                    : 'Confirmation en cours'}
                 </h1>
                 <p className="text-lg text-muted-foreground mb-6">
                   {verificationResult?.message ||
                     'Nous finalisons votre commande. Aucun paiement supplementaire nest necessaire.'}
                 </p>
+                {isDelayedState && (
+                  <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+                    {t(
+                      'pages:paymentSuccess.delayed.hint',
+                      'Ceci est normal si le serveur est sollicité. Conservez l’email de Stripe comme preuve de paiement.'
+                    )}
+                  </p>
+                )}
               </>
-            ) : (
+            ) : isIssueState ? (
               <>
-                <Loader2 className="w-20 h-20 text-primary mx-auto mb-4 animate-spin" />
+                <AlertTriangle
+                  className="w-20 h-20 text-amber-600 mx-auto mb-4"
+                  aria-hidden
+                />
                 <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-                  Traitement en cours
+                  {t('pages:paymentSuccess.issue.title', 'Problème technique')}
                 </h1>
                 <p className="text-lg text-muted-foreground mb-2">
                   {verificationResult?.message ||
-                    'Votre paiement est en cours de vérification. Si vous avez été débité, votre commande sera traitée automatiquement.'}
+                    t(
+                      'pages:paymentSuccess.issue.lead',
+                      'Nous ne pouvons pas afficher cette page correctement, mais cela ne signifie pas que votre paiement a échoué.'
+                    )}
                 </p>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Vérifiez votre boîte email pour la confirmation. Si vous ne
-                  recevez rien dans 15 minutes, contactez notre support.
+                  {t(
+                    'pages:paymentSuccess.issue.hint',
+                    'Vérifiez votre email de confirmation ou contactez le support avec le numéro de commande si vous en avez un.'
+                  )}
                 </p>
               </>
-            )}
+            ) : null}
           </div>
 
           {isSuccessState && (
@@ -938,10 +1034,21 @@ const PaymentSuccess = () => {
             </div>
           )}
 
-          {!isVerifying && isProcessingState && (
-            <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-8 mb-8 text-left">
+          {!isVerifying && isReassuranceState && (
+            <div
+              className={`rounded-lg p-8 mb-8 text-left ${
+                isDelayedState
+                  ? 'bg-amber-50 dark:bg-amber-950/20'
+                  : 'bg-blue-50 dark:bg-blue-950/20'
+              }`}
+            >
               <h2 className="text-xl font-medium text-foreground mb-4">
-                Paiement recu, confirmation en cours
+                {isDelayedState
+                  ? t(
+                      'pages:paymentSuccess.delayed.panelTitle',
+                      'Paiement reçu — finalisation en arrière-plan'
+                    )
+                  : 'Paiement recu, confirmation en cours'}
               </h2>
               <p className="text-muted-foreground text-sm mb-3">
                 Votre banque ne sera pas re-debitee. Nous finalisons la liaison
@@ -957,6 +1064,16 @@ const PaymentSuccess = () => {
                   Montant Stripe: {stripeSummary.amount_total.toFixed(2)}{' '}
                   {(stripeSummary.currency || 'EUR').toUpperCase()}
                 </p>
+              )}
+              {stripeSummary?.items && stripeSummary.items.length > 0 && (
+                <ul className="mt-4 text-sm text-muted-foreground list-disc pl-5 space-y-1">
+                  {stripeSummary.items.map((it, idx) => (
+                    <li key={`${it.name}-${idx}`}>
+                      {it.name} × {it.quantity} — {it.total.toFixed(2)}{' '}
+                      {(stripeSummary.currency || 'EUR').toUpperCase()}
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           )}

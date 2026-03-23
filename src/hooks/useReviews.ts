@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchApprovedReviewsForProduct,
+  fetchReviewHelpfulCount,
+  fetchUserReviewForProduct,
+  incrementReviewHelpfulCount,
+  insertProductReview,
+} from '@/services/reviewsApi';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 
@@ -45,17 +51,10 @@ export const useReviews = (productId?: number) => {
   const fetchReviews = async (productId: number) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('product_reviews')
-        .select('*')
-        .eq('product_id', productId)
-        .eq('is_approved', true)
-        .order('created_at', { ascending: false });
+      const data = await fetchApprovedReviewsForProduct(productId);
 
-      if (error) throw error;
-
-      setReviews(data || []);
-      calculateStats(data || []);
+      setReviews(data as Review[]);
+      calculateStats(data as Review[]);
     } catch (error) {
       console.error('Error fetching reviews:', error);
       toast.error('Erreur lors du chargement des avis');
@@ -111,13 +110,11 @@ export const useReviews = (productId?: number) => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('product_reviews').insert({
+      await insertProductReview({
         ...reviewData,
         user_id: user.id,
-        is_approved: false, // Reviews need approval
+        is_approved: false,
       });
-
-      if (error) throw error;
 
       toast.success('Votre avis a été soumis et sera publié après modération');
       return true;
@@ -138,21 +135,12 @@ export const useReviews = (productId?: number) => {
 
     try {
       // First get the current helpful count
-      const { data: currentReview, error: fetchError } = await supabase
-        .from('product_reviews')
-        .select('helpful_count')
-        .eq('id', reviewId)
-        .single();
+      const currentReview = await fetchReviewHelpfulCount(reviewId);
 
-      if (fetchError) throw fetchError;
-
-      // Increment helpful count
-      const { error } = await supabase
-        .from('product_reviews')
-        .update({ helpful_count: (currentReview.helpful_count || 0) + 1 })
-        .eq('id', reviewId);
-
-      if (error) throw error;
+      await incrementReviewHelpfulCount(
+        reviewId,
+        (currentReview.helpful_count || 0) + 1
+      );
 
       // Update local state
       setReviews((prevReviews) =>
@@ -174,16 +162,7 @@ export const useReviews = (productId?: number) => {
     if (!user) return null;
 
     try {
-      const { data, error } = await supabase
-        .from('product_reviews')
-        .select('*')
-        .eq('product_id', productId)
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      return data;
+      return await fetchUserReviewForProduct(productId, user.id);
     } catch (error) {
       console.error('Error fetching user review:', error);
       return null;

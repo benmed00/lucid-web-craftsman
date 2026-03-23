@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchAllTagTranslations } from '@/services/tagTranslationsApi';
 
 export interface TagTranslation {
   id: string;
@@ -19,12 +19,7 @@ export const useTagTranslations = () => {
   return useQuery({
     queryKey: ['tag-translations'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('tag_translations')
-        .select('*')
-        .order('tag_key');
-
-      if (error) throw error;
+      const data = await fetchAllTagTranslations();
       return data as TagTranslation[];
     },
     staleTime: 1000 * 60 * 10, // Cache for 10 minutes

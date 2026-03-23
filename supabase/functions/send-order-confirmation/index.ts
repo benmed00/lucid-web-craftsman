@@ -268,6 +268,7 @@ const handler = async (req: Request): Promise<Response> => {
       estimatedDelivery,
       orderId: data!.orderId,
       confirmationUrl,
+      siteUrl: SITE_URL,
     });
 
     if (data!.previewOnly) {

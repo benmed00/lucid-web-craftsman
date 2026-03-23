@@ -1,16 +1,61 @@
 /**
- * Checkout Session Hook
- * Persists checkout progress to database for tracking abandoned checkouts
- * and enabling admin visibility into incomplete orders.
+ * Checkout session hook: tracks in-progress checkout for analytics and recovery.
  *
- * NON-BLOCKING: Session tracking failures never prevent the user from checking out.
+ * **Standard customers / guests:** reads existing `checkout_sessions` on load; **creates a DB row
+ * only on the first persist** (step submit / snapshot) to avoid ghost sessions from bounces.
+ *
+ * **Elevated storefront (admin browsing the shop):** after `resolveCartSyncPolicy`,
+ * `isElevatedStorefrontUser()` is true — we keep session state **in memory only** (no DB
+ * rows) so admin checkout drafts never collide with real customer sessions.
+ *
+ * NON-BLOCKING: session tracking failures never block checkout.
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import { useGuestSession } from '@/hooks/useGuestSession';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { retryWithBackoffSilent } from '@/lib/retryWithBackoff';
+import {
+  resolveCartSyncPolicy,
+  isElevatedStorefrontUser,
+} from '@/lib/cart/cartSyncPolicy';
+import { checkoutQueryKeys } from '@/lib/checkout/queryKeys';
+import {
+  fetchActiveCheckoutSessionByGuestId,
+  fetchActiveCheckoutSessionByUserId,
+  insertCheckoutSession,
+  updateCheckoutSessionRow,
+  signOutLocalScope,
+} from '@/services/checkoutApi';
+
+/** In-memory-only session for admin users on the storefront (no checkout_sessions rows). */
+function buildInitialSessionData(
+  guestId: string | null,
+  userId: string | null
+): CheckoutSessionData {
+  return {
+    id: null,
+    guest_id: guestId,
+    user_id: userId,
+    current_step: 1,
+    last_completed_step: 0,
+    status: 'in_progress',
+    personal_info: null,
+    shipping_info: null,
+    promo_code: null,
+    promo_code_valid: null,
+    promo_discount_type: null,
+    promo_discount_value: null,
+    promo_discount_applied: null,
+    promo_free_shipping: false,
+    cart_items: null,
+    subtotal: 0,
+    shipping_cost: 0,
+    total: 0,
+    order_id: null,
+  };
+}
 
 // Session status types
 export type CheckoutSessionStatus =
@@ -98,6 +143,7 @@ interface UseCheckoutSessionReturn {
 }
 
 export function useCheckoutSession(): UseCheckoutSessionReturn {
+  const queryClient = useQueryClient();
   const { user } = useOptimizedAuth();
   const { getSessionData: getGuestData, isInitialized: isGuestReady } =
     useGuestSession();
@@ -113,6 +159,12 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
   const initRef = useRef(false);
   const initInFlight = useRef(false);
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
+  const sessionIdRef = useRef<string | null>(null);
+  const ensureSessionPromiseRef = useRef<Promise<string | null> | null>(null);
+
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
 
   // Initialize or retrieve existing session — runs in background, never blocks checkout
   useEffect(() => {
@@ -134,32 +186,25 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
         const guestId = guestData?.guest_id || null;
         const userId = user?.id || null;
 
+        await resolveCartSyncPolicy(userId);
+        if (isElevatedStorefrontUser()) {
+          sessionIdRef.current = null;
+          setSessionData(buildInitialSessionData(guestId, userId));
+          setSessionId(null);
+          return;
+        }
+
         // Try to find existing active session
         let existingSession = null;
 
         if (userId) {
-          const { data } = await supabase
-            .from('checkout_sessions')
-            .select('*')
-            .eq('user_id', userId)
-            .eq('status', 'in_progress')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          existingSession = data;
+          existingSession = await fetchActiveCheckoutSessionByUserId(userId);
         } else if (guestId) {
-          const { data } = await supabase
-            .from('checkout_sessions')
-            .select('*')
-            .eq('guest_id', guestId)
-            .eq('status', 'in_progress')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          existingSession = data;
+          existingSession = await fetchActiveCheckoutSessionByGuestId(guestId);
         }
 
         if (existingSession) {
+          sessionIdRef.current = existingSession.id;
           setSessionId(existingSession.id);
           setSessionData({
             id: existingSession.id,
@@ -183,85 +228,10 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
             order_id: existingSession.order_id,
           });
         } else {
-          // Create new session with retry logic
-          const newSession = {
-            guest_id: guestId,
-            user_id: userId,
-            current_step: 1,
-            last_completed_step: 0,
-            status: 'in_progress',
-            device_type: guestData?.device_type || null,
-            browser: guestData?.browser || null,
-            os: guestData?.os || null,
-          };
-
-          const result = await retryWithBackoffSilent(
-            async () => {
-              const { data, error: insertError } = await supabase
-                .from('checkout_sessions')
-                .insert(newSession)
-                .select('id')
-                .single();
-              if (insertError) {
-                // If 401/403 due to stale JWT, clear it so next retry uses anon key
-                const msg = insertError.message || '';
-                if (
-                  msg.includes('401') ||
-                  msg.includes('JWT') ||
-                  msg.includes('row-level security')
-                ) {
-                  console.warn(
-                    '[useCheckoutSession] Stale JWT detected, cleaning auth state'
-                  );
-                  const { cleanupAuthState } = await import(
-                    '@/context/AuthContext'
-                  );
-                  cleanupAuthState();
-                  await supabase.auth
-                    .signOut({ scope: 'local' })
-                    .catch(() => {});
-                }
-                throw insertError;
-              }
-              return data;
-            },
-            null,
-            {
-              maxAttempts: 3,
-              baseDelayMs: 1000,
-              onRetry: (attempt, err) => {
-                console.warn(
-                  `[useCheckoutSession] Session creation retry #${attempt}:`,
-                  err
-                );
-              },
-            }
-          );
-
-          if (result) {
-            setSessionId(result.id);
-            setSessionData({
-              id: result.id,
-              guest_id: guestId,
-              user_id: userId,
-              current_step: 1,
-              last_completed_step: 0,
-              status: 'in_progress',
-              personal_info: null,
-              shipping_info: null,
-              promo_code: null,
-              promo_code_valid: null,
-              promo_discount_type: null,
-              promo_discount_value: null,
-              promo_discount_applied: null,
-              promo_free_shipping: false,
-              cart_items: null,
-              subtotal: 0,
-              shipping_cost: 0,
-              total: 0,
-              order_id: null,
-            });
-          }
+          // Defer DB insert until first save — in-memory session only (reduces ghost rows).
+          sessionIdRef.current = null;
+          setSessionData(buildInitialSessionData(guestId, userId));
+          setSessionId(null);
         }
       } catch (err) {
         // Non-blocking: checkout works even if session tracking fails
@@ -282,31 +252,129 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
     return saveQueue.current;
   }, []);
 
+  /** Creates `checkout_sessions` row on first write (lazy init). */
+  const ensureCheckoutSessionId = useCallback(async (): Promise<
+    string | null
+  > => {
+    if (isElevatedStorefrontUser()) return null;
+    const existing = sessionIdRef.current;
+    if (existing) return existing;
+    if (ensureSessionPromiseRef.current) {
+      return ensureSessionPromiseRef.current;
+    }
+
+    const pending = (async (): Promise<string | null> => {
+      try {
+        const guestData = getGuestData();
+        const guestId = guestData?.guest_id ?? null;
+        const userId = user?.id ?? null;
+        if (!guestId && !userId) return null;
+
+        const newSession = {
+          guest_id: guestId,
+          user_id: userId,
+          current_step: 1,
+          last_completed_step: 0,
+          status: 'in_progress',
+          device_type: guestData?.device_type || null,
+          browser: guestData?.browser || null,
+          os: guestData?.os || null,
+        };
+
+        const result = await retryWithBackoffSilent(
+          async () => {
+            try {
+              return await insertCheckoutSession(newSession);
+            } catch (insertError: unknown) {
+              const msg =
+                insertError instanceof Error
+                  ? insertError.message
+                  : String(insertError);
+              if (
+                msg.includes('401') ||
+                msg.includes('JWT') ||
+                msg.includes('row-level security')
+              ) {
+                console.warn(
+                  '[useCheckoutSession] Stale JWT detected, cleaning auth state'
+                );
+                const { cleanupAuthState } = await import(
+                  '@/context/AuthContext'
+                );
+                cleanupAuthState();
+                await signOutLocalScope();
+              }
+              throw insertError;
+            }
+          },
+          null,
+          {
+            maxAttempts: 3,
+            baseDelayMs: 1000,
+            onRetry: (attempt, err) => {
+              console.warn(
+                `[useCheckoutSession] Session creation retry #${attempt}:`,
+                err
+              );
+            },
+          }
+        );
+
+        if (result?.id) {
+          sessionIdRef.current = result.id;
+          setSessionId(result.id);
+          setSessionData((prev) => {
+            const base = prev ?? buildInitialSessionData(guestId, userId);
+            return { ...base, id: result.id };
+          });
+          void queryClient.invalidateQueries({
+            queryKey: checkoutQueryKeys.activeSession(userId, guestId),
+          });
+          return result.id;
+        }
+        return null;
+      } finally {
+        ensureSessionPromiseRef.current = null;
+      }
+    })();
+
+    ensureSessionPromiseRef.current = pending;
+    return pending;
+  }, [getGuestData, user?.id, queryClient]);
+
   // Update session in database
   const updateSession = useCallback(
     async (updates: Record<string, unknown>) => {
-      if (!sessionId) return;
+      if (isElevatedStorefrontUser()) {
+        setSessionData((prev) => {
+          const guestData = getGuestData();
+          const gid = guestData?.guest_id ?? null;
+          const base = prev ?? buildInitialSessionData(gid, user?.id ?? null);
+          return { ...base, ...updates } as CheckoutSessionData;
+        });
+        return;
+      }
+
+      const sid = await ensureCheckoutSessionId();
+      if (!sid) return;
 
       try {
-        const { error: updateError } = await supabase
-          .from('checkout_sessions')
-          .update({
-            ...updates,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', sessionId);
-
-        if (updateError) {
-          console.warn(
-            '[useCheckoutSession] Update failed (non-blocking):',
-            updateError.message
-          );
-        }
-      } catch (err) {
-        // Non-blocking
+        await updateCheckoutSessionRow(sid, updates);
+        void queryClient.invalidateQueries({
+          queryKey: checkoutQueryKeys.activeSession(
+            user?.id ?? null,
+            getGuestData()?.guest_id ?? null
+          ),
+        });
+        void queryClient.invalidateQueries({
+          queryKey: checkoutQueryKeys.sessionById(sid),
+        });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.warn('[useCheckoutSession] Update failed (non-blocking):', msg);
       }
     },
-    [sessionId]
+    [ensureCheckoutSessionId, getGuestData, user?.id, queryClient]
   );
 
   // Save personal info (step 1 complete)
