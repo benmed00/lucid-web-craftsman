@@ -23,11 +23,54 @@ Cypress.Commands.add('addProductToCart', (options?: { productId?: number }) => {
     cy.get(`#add-to-cart-btn-${id}`).should('be.visible').click();
     return;
   }
-  cy.get('[id^="add-to-cart-btn-"]').first().should('be.visible').click();
+  cy.get('[data-testid="products-catalog"] [id^="add-to-cart-btn-"]', {
+    timeout: 25000,
+  })
+    .first()
+    .should('be.visible')
+    .click();
+});
+
+type CatalogRow = {
+  id: number;
+  product_translations?: unknown;
+  [key: string]: unknown;
+};
+
+// Loaded once — used to answer both list (join) and single-product PostgREST URLs.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const productsCatalogSmoke: CatalogRow[] = require('../fixtures/supabase/products-catalog-smoke.json');
+
+/**
+ * Stub catalog products (PostgREST). CI often cannot rely on live Supabase for smoke E2E.
+ * Call before `cy.visit('/products')`. Overrides are still possible if a spec registers
+ * a later `cy.intercept` for the same route (Cypress matches last registered).
+ */
+Cypress.Commands.add('stubProductsCatalog', () => {
+  cy.intercept('GET', '**/rest/v1/products*', (req) => {
+    const url = req.url;
+    // List query from getProductsWithTranslations — embeds product_translations in select=
+    if (url.includes('product_translations')) {
+      req.reply({ statusCode: 200, body: productsCatalogSmoke });
+      return;
+    }
+    // Single row: getProductWithTranslation uses .select('*').eq('id', id).single()
+    const idMatch = /[?&]id=eq\.(\d+)/.exec(url);
+    if (idMatch) {
+      const id = Number(idMatch[1]);
+      const row =
+        productsCatalogSmoke.find((r) => r.id === id) ?? productsCatalogSmoke[0];
+      const { product_translations: _t, ...flat } = row;
+      req.reply({ statusCode: 200, body: flat });
+      return;
+    }
+    req.reply({ statusCode: 200, body: productsCatalogSmoke });
+  }).as('productsCatalog');
 });
 
 /** Supabase stubs so checkout page loads quickly (shared by checkout_flow_spec + enterprise smoke). */
 Cypress.Commands.add('stubCheckoutIntercepts', () => {
+  cy.stubProductsCatalog();
   // Match PostgREST URLs with ?select=... (query string after base path)
   cy.intercept('GET', '**/rest/v1/checkout_sessions**', {
     statusCode: 200,
@@ -148,6 +191,7 @@ declare global {
       tab(): Chainable<unknown>;
       addProductToCart(options?: { productId?: number }): Chainable<void>;
       stubCheckoutIntercepts(): Chainable<void>;
+      stubProductsCatalog(): Chainable<void>;
       resetDatabase(): Chainable<void>;
       loginAs(role?: 'customer' | 'admin'): Chainable<void>;
       mockSupabaseResponse(

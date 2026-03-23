@@ -95,8 +95,8 @@ describe('Header nav underline – visual stability @smoke @regression', () => {
 
   it('should have proper touch targets on mobile', () => {
     cy.viewport(375, 667);
-    // Desktop nav is hidden on mobile; test mobile menu links
-    cy.get('[aria-label="Ouvrir le menu"]').click();
+    // Desktop nav is hidden on mobile; test mobile menu links (FR/EN aria-labels differ)
+    cy.get('button[aria-controls="mobile-menu"]').should('be.visible').click();
     cy.get('#mobile-menu').should('have.class', 'translate-x-0');
     cy.get('#mobile-menu a').each(($link) => {
       const rect = $link[0].getBoundingClientRect();
@@ -142,7 +142,8 @@ describe('Header nav underline – visual stability @smoke @regression', () => {
     cy.get('nav[role="navigation"]').should('exist');
     cy.get('.header-nav ul').should('exist');
     cy.get('.header-nav li').should('have.length.greaterThan', 0);
-    cy.get('nav[aria-label*="Navigation"]').should('exist');
+    // EN uses "Main navigation" (lowercase 'navigation'); FR "Navigation principale" — avoid case-sensitive *="Navigation"
+    cy.get('nav.header-nav[role="navigation"]').should('exist');
   });
 
   it('should not use global will-change', () => {

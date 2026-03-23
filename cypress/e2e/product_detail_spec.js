@@ -12,6 +12,7 @@ const PRODUCTS_PAGE = '/products';
 
 // ── Navigate to First Product ─────────────────────────────────────────────────
 function visitFirstProduct() {
+  cy.stubProductsCatalog();
   cy.visit(PRODUCTS_PAGE);
   cy.get(
     'a[href*="/products/"], [data-testid*="product-link"], .product-card a',

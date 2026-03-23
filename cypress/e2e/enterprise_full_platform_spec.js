@@ -152,21 +152,31 @@ describe('Enterprise: Navigation & Buttons @enterprise @regression', () => {
 
 // Mobile menu: deep coverage lives in mobile_menu_spec.js (W10).
 
+const enterpriseCatalogCards =
+  '[data-testid="products-catalog"] [id^="product-card-"]';
+const enterpriseCatalogAddToCart =
+  '[data-testid="products-catalog"] [id^="add-to-cart-btn-"]';
+
 // ─── Products page & product cards ─────────────────────────────────────────
 describe('Enterprise: Products & Product Cards @enterprise @smoke', () => {
   beforeEach(() => {
+    cy.stubProductsCatalog();
     cy.visit('/products');
     cy.get('body').should('be.visible');
+    cy.get(enterpriseCatalogAddToCart, { timeout: 25000 }).should(
+      'have.length.at.least',
+      1
+    );
   });
 
   it('should display product cards with correct structure', () => {
-    cy.get('[id^="product-card-"]').should('have.length.at.least', 1);
+    cy.get(enterpriseCatalogCards).should('have.length.at.least', 1);
     cy.get('[id^="product-title-"]').should('exist');
     cy.get('[id^="product-price-"]').should('exist');
   });
 
   it('should have add-to-cart buttons', () => {
-    cy.get('[id^="add-to-cart-btn-"]').should('have.length.at.least', 1);
+    cy.get(enterpriseCatalogAddToCart).should('have.length.at.least', 1);
   });
 
   it('should have search or filter controls on products page', () => {
@@ -180,7 +190,9 @@ describe('Enterprise: Products & Product Cards @enterprise @smoke', () => {
 describe('Enterprise: Cart Page @enterprise @regression', () => {
   beforeEach(() => {
     cy.visit('/products');
-    cy.get('[id^="add-to-cart-btn-"]').first().click();
+    cy.get(enterpriseCatalogAddToCart, { timeout: 25000 })
+      .first()
+      .click();
     cy.visit('/cart');
   });
 
@@ -258,6 +270,7 @@ describe('Enterprise: Newsletter @enterprise @regression', () => {
 
   it('should have newsletter in footer', () => {
     // PageFooter (with #newsletter-email-footer) is used on /products, /contact, etc.
+    cy.stubProductsCatalog();
     cy.visit('/products');
     cy.get('#newsletter-email-footer').should('exist');
   });
@@ -286,7 +299,9 @@ describe('Enterprise: Checkout smoke @enterprise @smoke', () => {
   it('shows checkout step 1 when cart has items', () => {
     cy.stubCheckoutIntercepts();
     cy.visit('/products');
-    cy.get('[id^="add-to-cart-btn-"]').first().click();
+    cy.get(enterpriseCatalogAddToCart, { timeout: 25000 })
+      .first()
+      .click();
     cy.visit('/checkout');
     cy.get('#firstName', { timeout: 15000 }).should('be.visible');
   });
@@ -296,6 +311,7 @@ describe('Enterprise: Checkout smoke @enterprise @smoke', () => {
 describe('Enterprise: Footer Links @enterprise @regression', () => {
   beforeEach(() => {
     // Use /products - PageFooter has full link set; Index uses different Footer
+    cy.stubProductsCatalog();
     cy.visit('/products');
   });
 

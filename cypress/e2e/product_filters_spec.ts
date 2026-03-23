@@ -9,6 +9,7 @@ const catalogProductCards =
 
 describe('Products page — category filters @smoke @regression', () => {
   beforeEach(() => {
+    cy.stubProductsCatalog();
     cy.visit('/products');
     cy.get(catalogProductCards, { timeout: 25000 }).should(
       'have.length.at.least',
@@ -32,6 +33,7 @@ describe('Products page — category filters @smoke @regression', () => {
 
 describe('Products page — search filter @smoke @regression', () => {
   it('shows no product cards when search matches nothing', () => {
+    cy.stubProductsCatalog();
     cy.visit('/products');
     cy.get(catalogProductCards, { timeout: 25000 }).should(
       'have.length.at.least',

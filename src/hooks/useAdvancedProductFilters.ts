@@ -321,6 +321,15 @@ export const useAdvancedProductFilters = ({
     return count;
   }, [filters, availableOptions.priceRange]);
 
+  // Only show "stale search" skeleton when the user has a non-empty query and the
+  // deferred value has not caught up yet. If we use `deferred !== search` for empty
+  // strings too, React concurrent scheduling can keep them out of sync briefly and
+  // the grid stays on skeleton forever in CI — Cypress never sees add-to-cart ids.
+  const isSearchStale =
+    (filters.searchQuery.trim().length > 0 &&
+      deferredSearchQuery !== filters.searchQuery) ||
+    isStale;
+
   return {
     filters,
     filteredProducts,
@@ -329,7 +338,7 @@ export const useAdvancedProductFilters = ({
     popularFilters,
     isLoading: isCacheLoading,
     isFetching,
-    isSearchStale: deferredSearchQuery !== filters.searchQuery || isStale,
+    isSearchStale,
     activeFiltersCount,
     updateFilters,
     resetFilters,
