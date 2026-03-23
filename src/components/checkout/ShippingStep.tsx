@@ -202,6 +202,7 @@ const ShippingStep = ({
       </div>
 
       <Button
+        data-testid="checkout-continue-to-payment"
         className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground gap-2 min-h-[48px] text-base font-medium shadow-sm"
         onClick={onNext}
       >

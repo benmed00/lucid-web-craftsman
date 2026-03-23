@@ -140,6 +140,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
             />
             <Input
               ref={searchInputRef}
+              data-testid="products-page-search"
               type="text"
               placeholder={t('advancedFilters.searchPlaceholder')}
               value={filters.searchQuery}

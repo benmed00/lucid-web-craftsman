@@ -400,7 +400,7 @@ const ProductDetail: React.FC = () => {
       />
 
       <div className="min-h-screen bg-background">
-        <main className="container mx-auto px-4 py-8">
+        <main id="main-content" className="container mx-auto px-4 py-8">
           {/* Breadcrumbs */}
           <nav className="mb-8" aria-label="Breadcrumb">
             <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -558,6 +558,7 @@ const ProductDetail: React.FC = () => {
                   <Badge
                     variant="outline"
                     className="text-primary border-primary/20"
+                    data-testid="product-category-badge"
                   >
                     {product.category}
                   </Badge>
@@ -617,7 +618,10 @@ const ProductDetail: React.FC = () => {
 
                 {/* Price */}
                 <div className="mb-6">
-                  <div className="text-3xl font-bold text-primary">
+                  <div
+                    className="text-3xl font-bold text-primary"
+                    data-testid="product-price"
+                  >
                     {formatPrice(product.price)}
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">
@@ -680,6 +684,7 @@ const ProductDetail: React.FC = () => {
                     onClick={handleAddToCart}
                     className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                     disabled={singleStockInfo?.isOutOfStock}
+                    data-testid="product-add-to-cart"
                   >
                     <ShoppingBag className="h-4 w-4 mr-2" />
                     {!singleStockInfo?.isOutOfStock

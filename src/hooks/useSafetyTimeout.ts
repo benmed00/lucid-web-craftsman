@@ -21,7 +21,7 @@ interface SafetyTimeoutOptions {
   onSlowLoading?: () => void;
 }
 
-interface SafetyTimeoutReturn {
+export interface SafetyTimeoutReturn {
   hasTimedOut: boolean;
   isSlowLoading: boolean;
 }

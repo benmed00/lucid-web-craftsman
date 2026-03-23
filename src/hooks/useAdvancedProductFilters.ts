@@ -67,19 +67,10 @@ export const useAdvancedProductFilters = ({
   const [filters, setFilters] =
     useState<AdvancedFilterOptions>(getInitialFilters);
 
-  // Use deferred value for search query to avoid blocking UI during typing
+  // Deferred query is only used for stale UI (spinner); filtering uses live searchQuery
+  // so results never briefly show "all products" while deferred lags behind (empty string).
   const deferredSearchQuery = useDeferredValue(filters.searchQuery);
 
-  // Create deferred filters for cached search
-  const deferredFilters = useMemo(
-    () => ({
-      ...filters,
-      searchQuery: deferredSearchQuery,
-    }),
-    [filters, deferredSearchQuery]
-  );
-
-  // Use cached product search with React Query
   const {
     filteredProducts,
     isLoading: isCacheLoading,
@@ -90,7 +81,7 @@ export const useAdvancedProductFilters = ({
     invalidateCache,
   } = useCachedProductSearch({
     products,
-    filters: deferredFilters,
+    filters,
     staleTime: 5 * 60 * 1000, // 5 minutes cache
     cacheTime: 10 * 60 * 1000, // 10 minutes before garbage collection
   });
