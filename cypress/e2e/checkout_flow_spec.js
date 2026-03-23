@@ -3,7 +3,8 @@
  * Covers: add to cart → personal info → shipping → payment → promo codes
  */
 
-const catalogAddToCart = '[data-testid="products-catalog"] [id^="add-to-cart-btn-"]';
+const catalogAddToCart =
+  '[data-testid="products-catalog"] [id^="add-to-cart-btn-"]';
 
 describe('Checkout Flow @smoke @regression', () => {
   beforeEach(() => {
@@ -11,7 +12,10 @@ describe('Checkout Flow @smoke @regression', () => {
     cy.visit('/products');
     cy.get('body').should('be.visible');
     // Products load from Supabase; wait for real cards (not search-stale skeleton)
-    cy.get(catalogAddToCart, { timeout: 25000 }).should('have.length.at.least', 1);
+    cy.get(catalogAddToCart, { timeout: 25000 }).should(
+      'have.length.at.least',
+      1
+    );
   });
 
   it('should add a product to the cart', () => {

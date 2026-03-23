@@ -59,7 +59,8 @@ Cypress.Commands.add('stubProductsCatalog', () => {
     if (idMatch) {
       const id = Number(idMatch[1]);
       const row =
-        productsCatalogSmoke.find((r) => r.id === id) ?? productsCatalogSmoke[0];
+        productsCatalogSmoke.find((r) => r.id === id) ??
+        productsCatalogSmoke[0];
       const { product_translations: _t, ...flat } = row;
       req.reply({ statusCode: 200, body: flat });
       return;

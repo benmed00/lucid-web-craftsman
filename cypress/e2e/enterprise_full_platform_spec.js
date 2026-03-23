@@ -190,9 +190,7 @@ describe('Enterprise: Products & Product Cards @enterprise @smoke', () => {
 describe('Enterprise: Cart Page @enterprise @regression', () => {
   beforeEach(() => {
     cy.visit('/products');
-    cy.get(enterpriseCatalogAddToCart, { timeout: 25000 })
-      .first()
-      .click();
+    cy.get(enterpriseCatalogAddToCart, { timeout: 25000 }).first().click();
     cy.visit('/cart');
   });
 
@@ -299,9 +297,7 @@ describe('Enterprise: Checkout smoke @enterprise @smoke', () => {
   it('shows checkout step 1 when cart has items', () => {
     cy.stubCheckoutIntercepts();
     cy.visit('/products');
-    cy.get(enterpriseCatalogAddToCart, { timeout: 25000 })
-      .first()
-      .click();
+    cy.get(enterpriseCatalogAddToCart, { timeout: 25000 }).first().click();
     cy.visit('/checkout');
     cy.get('#firstName', { timeout: 15000 }).should('be.visible');
   });
