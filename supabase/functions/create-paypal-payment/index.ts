@@ -304,7 +304,7 @@ serve(async (req) => {
         brand_name: 'Rif Raw Straw',
         landing_page: 'BILLING',
         user_action: 'PAY_NOW',
-        return_url: `${origin}/payment-success?paypal=true&order_id=${orderData.id}`,
+        return_url: `${origin}/order-confirmation?paypal=true&order_id=${orderData.id}`,
         cancel_url: `${origin}/checkout?cancelled=true`,
       },
       payer: customerInfo?.email
