@@ -345,6 +345,15 @@ const App = () => {
                         }
                       />
                       <Route
+                        path="/order-confirmation"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <OrderConfirmation />
+                          </Suspense>
+                        }
+                      />
+                      {/* Legacy route: redirect old links to new route */}
+                      <Route
                         path="/payment-success"
                         element={
                           <Suspense fallback={<PageLoadingFallback />}>
