@@ -76,6 +76,8 @@ User pays (Stripe Checkout)
 
 - **order-lookup** authorizes reads using the Stripe **`session_id`** where relevant, so a mismatched “current Supabase user” after redirect does not block legitimate buyers.
 - **verify-payment** Edge Function may remain deployed for compatibility or tests; the SPA does not rely on it for the primary Stripe success path. See `supabase/functions/verify-payment/README.md`.
+- **Checkout UI (step 1):** [`src/components/checkout/CustomerInfoStep.tsx`](../src/components/checkout/CustomerInfoStep.tsx) — customer form; file header links back to this doc and E2E notes.
+- **create-payment (Edge) config:** [`supabase/functions/create-payment/constants.ts`](../supabase/functions/create-payment/constants.ts) — CORS, limits, Stripe return URLs; links to [`DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md) and repo doc index in its header.
 
 ### Polling and UX
 

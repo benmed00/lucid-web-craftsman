@@ -20,7 +20,8 @@ This folder holds **maintained** technical documentation for the Rif Raw Straw s
 **Supabase / payments (deep dives)** remain with the code:
 
 - [`supabase/functions/README.md`](../supabase/functions/README.md) — Edge Functions index (links to DATA_FLOW, verify-payment, OpenAPI, Postman)
-- `supabase/functions/create-payment/DATA_FLOW.md` — create-payment data path
+- [`supabase/functions/create-payment/DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md) — create-payment data path
+- [`supabase/functions/create-payment/constants.ts`](../supabase/functions/create-payment/constants.ts) — CORS, rate limits, cart caps, Stripe URL origins (cross-links to docs in file header)
 - `supabase/functions/verify-payment/README.md` — legacy compatibility notes
 - `docs/security/` — production checklist and baseline audit
 
@@ -41,7 +42,7 @@ This folder holds **maintained** technical documentation for the Rif Raw Straw s
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | New or renamed **React routes**                  | [`src/App.tsx`](../src/App.tsx) first, then the **Route inventory** in [PLATFORM.md](./PLATFORM.md).                                                                                             |
 | New **Supabase / Edge / mock HTTP** from the SPA | Extend [`src/services/`](../src/services/) per [PLATFORM.md — Client API layer](./PLATFORM.md#client-api-layer).                                                                                 |
-| **Checkout / payment / isolation** behavior      | [PLATFORM.md](./PLATFORM.md) (SPA); Edge payload flow in [`supabase/functions/create-payment/DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md).                                  |
+| **Checkout / payment / isolation** behavior      | [PLATFORM.md](./PLATFORM.md) (SPA); Edge payload flow in [`DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md); CORS/limits/origins in [`constants.ts`](../supabase/functions/create-payment/constants.ts). |
 | New **npm script** or CI gate                    | [AGENTS.md](../AGENTS.md), [scripts/README.md](../scripts/README.md) (if you add a `scripts/*.mjs` helper), and [STANDARDS.md](./STANDARDS.md) when it is a required gate.                       |
 | **Edge Function** HTTP contract or Postman       | `openapi.fragment.json` / handler changes, then `npm run api:artifacts` (or individual generators); see [openapi/README.md](../openapi/README.md) and [postman/README.md](../postman/README.md). |
 | New **Cypress spec** or CI job                   | [E2E-COVERAGE.md](./E2E-COVERAGE.md) and [cypress/README.md](../cypress/README.md).                                                                                                              |

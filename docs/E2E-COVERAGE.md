@@ -18,6 +18,10 @@ Inventaire des **routes** SPA (pour aligner les specs avec `App.tsx`) : **[`docs
 
 Variables optionnelles : copier `cypress.env.example.json` → `cypress.env.json` pour `CUSTOMER_*`, `ADMIN_*`, `DB_RESET_*`.
 
+### Checkout UI ↔ specs
+
+- Étape 1 (infos client) : [`src/components/checkout/CustomerInfoStep.tsx`](../src/components/checkout/CustomerInfoStep.tsx) — notamment `data-testid="checkout-continue-to-shipping"` ; l’en-tête du fichier renvoie vers ce guide et [`PLATFORM.md`](./PLATFORM.md).
+
 ### CI GitHub Actions (`.github/workflows/e2e.yml`)
 
 Le workflow **[`ci.yml`](../.github/workflows/ci.yml)** (lint, format, `type:check`, tests unitaires, build) **ne lance pas Cypress** ; les E2E sont dans **`e2e.yml`** uniquement.

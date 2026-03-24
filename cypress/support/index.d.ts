@@ -6,6 +6,12 @@ declare global {
     interface Chainable {
       tab(): Chainable<unknown>;
       addProductToCart(options?: { productId?: number }): Chainable<void>;
+      waitForCartPageWithItems(options?: { timeout?: number }): Chainable<void>;
+      waitForCheckoutCustomerStep(options?: {
+        timeout?: number;
+      }): Chainable<void>;
+      addCatalogLineAndOpenCartSpa(): Chainable<void>;
+      addCatalogLineAndOpenCheckoutStep1(): Chainable<void>;
       stubCheckoutIntercepts(): Chainable<void>;
       stubProductsCatalog(): Chainable<void>;
       stubElevatedStorefrontRpcs(): Chainable<void>;

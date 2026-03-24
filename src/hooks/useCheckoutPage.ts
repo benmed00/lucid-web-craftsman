@@ -27,6 +27,68 @@ import {
   type CartItemSnapshot,
 } from '@/hooks/useCheckoutSession';
 import { useCheckoutFormPersistence } from '@/hooks/useCheckoutFormPersistence';
+import { type TFunction } from 'i18next';
+
+// =============================================================================
+// Hook return types — always `ReturnType<typeof hook>` so signatures stay in sync
+// with implementations (single source of truth).
+// =============================================================================
+
+type UseTranslationHookReturn = ReturnType<typeof useTranslation>;
+type LazyStripeHookReturn = ReturnType<typeof useLazyStripe>;
+type CartHookReturn = ReturnType<typeof useCart>;
+type CurrencyHookReturn = ReturnType<typeof useCurrency>;
+type CsrfTokenHookReturn = ReturnType<typeof useCsrfToken>;
+type BusinessRulesHookReturn = ReturnType<typeof useBusinessRules>;
+type GuestSessionHookReturn = ReturnType<typeof useGuestSession>;
+type OptimizedAuthHookReturn = ReturnType<typeof useOptimizedAuth>;
+type CheckoutSessionHookReturn = ReturnType<typeof useCheckoutSession>;
+type CheckoutFormPersistenceHookReturn = ReturnType<
+  typeof useCheckoutFormPersistence
+>;
+
+/**
+ * Subset of each hook return that this file reads. Built from the HookReturn
+ * aliases above so Pick keys are checked against the real return shape.
+ */
+type CheckoutPageTranslationSlice = Pick<UseTranslationHookReturn, 't'> & {
+  /** Namespace is fixed at the call site: `useTranslation('checkout')`. */
+  t: TFunction<'checkout'>;
+};
+type CheckoutPageStripeSlice = Pick<LazyStripeHookReturn, 'loadStripe'>;
+type CheckoutPageCartSlice = Pick<
+  CartHookReturn,
+  'cart' | 'hasPendingProductResolution'
+>;
+type CheckoutPageCurrencySlice = Pick<CurrencyHookReturn, 'formatPrice'>;
+type CheckoutPageCsrfSlice = Pick<CsrfTokenHookReturn, 'getCsrfHeaders'>;
+type CheckoutPageBusinessRulesSlice = Pick<BusinessRulesHookReturn, 'rules'>;
+type CheckoutPageGuestSessionSlice = Pick<
+  GuestSessionHookReturn,
+  'getSessionData'
+>;
+type CheckoutPageAuthSlice = Pick<OptimizedAuthHookReturn, 'user'>;
+type CheckoutPageSessionSlice = Pick<
+  CheckoutSessionHookReturn,
+  | 'sessionId'
+  | 'savePersonalInfo'
+  | 'saveShippingInfo'
+  | 'savePromoCode'
+  | 'saveCartSnapshot'
+  | 'updateStep'
+  | 'isLoading'
+>;
+type CheckoutPageFormPersistenceSlice = Pick<
+  CheckoutFormPersistenceHookReturn,
+  | 'formData'
+  | 'setFormData'
+  | 'isLoading'
+  | 'savedStep'
+  | 'savedCompletedSteps'
+  | 'saveStepState'
+  | 'savedCoupon'
+  | 'saveCoupon'
+>;
 
 export interface DiscountCoupon {
   id: string;
@@ -44,14 +106,17 @@ export interface FreeShippingSettings {
 }
 
 export function useCheckoutPage() {
-  const { t } = useTranslation('checkout');
-  const { loadStripe: _loadStripe } = useLazyStripe();
-  const { cart } = useCart();
-  const { formatPrice } = useCurrency();
-  const { getCsrfHeaders } = useCsrfToken();
-  const { rules: businessRules } = useBusinessRules();
-  const { getSessionData: getGuestSessionData } = useGuestSession();
-  const { user } = useOptimizedAuth();
+  const { t }: CheckoutPageTranslationSlice = useTranslation('checkout');
+  const { loadStripe: _loadStripe }: CheckoutPageStripeSlice = useLazyStripe();
+  const { cart, hasPendingProductResolution }: CheckoutPageCartSlice =
+    useCart();
+  const { formatPrice }: CheckoutPageCurrencySlice = useCurrency();
+  const { getCsrfHeaders }: CheckoutPageCsrfSlice = useCsrfToken();
+  const { rules: businessRules }: CheckoutPageBusinessRulesSlice =
+    useBusinessRules();
+  const { getSessionData: getGuestSessionData }: CheckoutPageGuestSessionSlice =
+    useGuestSession();
+  const { user }: CheckoutPageAuthSlice = useOptimizedAuth();
 
   const {
     sessionId: checkoutSessionId,
@@ -61,7 +126,7 @@ export function useCheckoutPage() {
     saveCartSnapshot,
     updateStep,
     isLoading: _isSessionLoading,
-  } = useCheckoutSession();
+  }: CheckoutPageSessionSlice = useCheckoutSession();
 
   const {
     formData,
@@ -72,7 +137,7 @@ export function useCheckoutPage() {
     saveStepState,
     savedCoupon,
     saveCoupon,
-  } = useCheckoutFormPersistence();
+  }: CheckoutPageFormPersistenceSlice = useCheckoutFormPersistence();
 
   const [step, setStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -601,6 +666,7 @@ export function useCheckoutPage() {
 
   return {
     // State
+    hasPendingProductResolution,
     step,
     completedSteps,
     formData,

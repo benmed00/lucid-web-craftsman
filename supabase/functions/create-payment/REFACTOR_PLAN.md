@@ -1,6 +1,6 @@
 # Create-payment edge function — iterative improvement plan
 
-**Related:** wire-level flow in [`DATA_FLOW.md`](./DATA_FLOW.md); storefront checkout/payment **after** Stripe redirect in [`docs/PLATFORM.md`](../../../docs/PLATFORM.md).
+**Related:** wire-level flow in [`DATA_FLOW.md`](./DATA_FLOW.md); tunables and CORS/origins in [`constants.ts`](./constants.ts); storefront checkout/payment **after** Stripe redirect in [`docs/PLATFORM.md`](../../../docs/PLATFORM.md).
 
 This plan is designed to be **testable**, **reversible**, **stable**, and **documented**, with **short feedback loops** (retros) after each slice. Each phase should ship in its own commit (or small PR stack) so `git revert` restores the previous behaviour.
 

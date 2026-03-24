@@ -4,9 +4,11 @@
  */
 
 describe('Payment success route @regression', () => {
-  it('shows missing-session message without Stripe session_id', () => {
+  it('shows incomplete-link message on /order-confirmation without payment params', () => {
+    // No session_id / PayPal return → OrderConfirmation (not PaymentSuccess).
+    // OrderConfirmation uses a fixed FR copy when ?token is absent.
     cy.visit('/order-confirmation');
-    cy.contains(/Session de paiement manquante|Missing payment session/i, {
+    cy.contains(/Le lien est incomplet|lien recu dans votre email/i, {
       timeout: 15000,
     }).should('be.visible');
   });

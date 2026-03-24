@@ -677,10 +677,13 @@ const App = () => {
                   <TTIOptimizer />
                 </Suspense>
 
-                {/* Devtools React Query (en développement seulement) */}
-                {import.meta.env.DEV && (
-                  <ReactQueryDevtools initialIsOpen={false} />
-                )}
+                {/* Devtools: omit in E2E (VITE_E2E) and when Cypress runs the app — avoids floating control vs. selectors */}
+                {import.meta.env.DEV &&
+                  import.meta.env.VITE_E2E !== '1' &&
+                  typeof window !== 'undefined' &&
+                  !(window as unknown as { Cypress?: unknown }).Cypress && (
+                    <ReactQueryDevtools initialIsOpen={false} />
+                  )}
               </TooltipProvider>
             </AuthProvider>
           </OfflineManager>

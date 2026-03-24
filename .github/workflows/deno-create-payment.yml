@@ -1,4 +1,5 @@
-# Typecheck, lint, and test the create-payment edge function with a frozen lockfile.
+# Typecheck, lint, and test the create-payment edge function (no frozen lockfile:
+# Supabase CLI Docker bundler uses an older Deno that cannot read Deno 2 lockfile v5).
 # Branch filters: keep in sync with `.github/workflows/ci.yml`.
 name: Deno create-payment
 
@@ -26,11 +27,11 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Deno check (frozen lockfile)
-        run: deno check create-payment/index.ts --config deno.json --lock deno.lock --frozen
+      - name: Deno check
+        run: deno check create-payment/index.ts --config deno.json
 
       - name: Deno lint
         run: deno lint create-payment/ --config deno.json
 
-      - name: Deno test (frozen lockfile)
-        run: deno test create-payment/ --config deno.json --lock deno.lock --frozen
+      - name: Deno test
+        run: deno test create-payment/ --config deno.json

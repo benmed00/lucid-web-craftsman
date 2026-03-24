@@ -2,6 +2,157 @@
 
 This document describes how payloads move through the edge function, how types line up, and known operational tradeoffs. The entrypoint is `index.ts`; tests live in `lib/*_test.ts`.
 
+**Configuration & HTTP surface constants** (CORS allow-headers, rate limits, max cart items, Stripe min/shipping cents, origin allowlist, `CHECKOUT_VALIDATION_ERROR_PREFIX`): [`constants.ts`](./constants.ts).
+
+## Visual reference (graphs)
+
+Short atlas of **needs**, **behaviour**, **functional stages**, **module ties**, and **shape evolution**. Diagrams are [Mermaid](https://mermaid.js.org/); they render on GitHub and in many IDEs.
+
+### 1. Needs & stakeholders (mindmap)
+
+What the function must satisfy and for whom.
+
+```mermaid
+mindmap
+  root((create-payment))
+    Buyer
+      Valid Stripe Checkout URL
+      Totals match server prices
+      Shipping/discount rules applied fairly
+    Store / ops
+      Pending order row before redirect
+      order_items snapshots for fulfilment
+      payment_events for audits
+    Security
+      CSRF on state-changing POST
+      Rate limit payment spam
+      No trusting client unit prices
+    Platform
+      Service role DB access only here
+      Correlation ids in metadata
+      CORS allowlist for browser invoke
+```
+
+### 2. Behaviour — guard rails then work (flowchart)
+
+Order of checks and main success path (simplified; see sequence diagram below for IO detail).
+
+```mermaid
+flowchart TB
+  START([POST /create-payment]) --> OPT{OPTIONS preflight?}
+  OPT -->|yes| CORS[CORS headers from constants]
+  OPT -->|no| RL{Rate limit OK?}
+  RL -->|no| E429[429 French message]
+  RL -->|yes| CSRF{CSRF headers valid?}
+  CSRF -->|no| E403[403]
+  CSRF -->|yes| BODY[Parse JSON + Zod schema]
+  BODY -->|invalid| E422a[422 client-facing validation]
+  BODY -->|ok| VERIFY[Fetch products verify cart lines]
+  VERIFY -->|stock/product issue| E422b[422 French business rules]
+  VERIFY -->|ok| COUPON[Resolve coupon from DB if code]
+  COUPON --> AMOUNTS[Compute cents line_items discount cap]
+  AMOUNTS --> INSERT[Insert orders + order_items]
+  INSERT -->|failure| E500a[500 internal]
+  INSERT -->|ok| STRIPE[checkout.sessions.create]
+  STRIPE -->|failure| E500b[500 + payment_initiation_failed log]
+  STRIPE -->|ok| PATCH[Update order stripe_session_id]
+  PATCH --> OK[200 JSON with session url]
+```
+
+### 3. Functionalities by layer (block view)
+
+```mermaid
+flowchart LR
+  subgraph ingress["Ingress"]
+    A1[CORS]
+    A2[Rate limit]
+    A3[CSRF / security]
+  end
+  subgraph domain["Domain"]
+    B1[Zod parse]
+    B2[Verified cart]
+    B3[Discount + amounts]
+    B4[Stripe session build]
+  end
+  subgraph persistence["Persistence"]
+    C1[orders]
+    C2[order_items]
+    C3[payment_events log]
+  end
+  subgraph external["External"]
+    D1[Stripe API]
+  end
+  ingress --> domain
+  domain --> persistence
+  domain --> D1
+  persistence --> D1
+```
+
+### 4. Data flow — type / shape handoffs
+
+Mirrors the **Data transfer: wire → domain → persistence** table below; shows **trust boundary**: prices become authoritative only after product rows load.
+
+```mermaid
+flowchart LR
+  HTTP["HTTP body unknown"] --> ZOD["ParsedCheckoutRequest"]
+  ZOD --> VC["VerifiedCartItem[]"]
+  VC --> LI["Stripe line_items cents"]
+  VC --> OR["orders insert"]
+  VC --> OI["order_items + product_snapshot JSON"]
+  LI --> SESS["Stripe Checkout Session"]
+  SESS --> URL["url returned to client"]
+```
+
+### 5. Ties — orchestrator imports (`index.ts` → modules)
+
+Direct imports from the Edge entrypoint (runtime order is inside `serve()`, not this star).
+
+```mermaid
+flowchart TB
+  IDX["index.ts serve"]
+  IDX --> CST["constants.ts"]
+  IDX --> TYP["types.ts"]
+  IDX --> SCH["lib/checkout-schema.ts"]
+  IDX --> RL["lib/rate-limit.ts"]
+  IDX --> SEC["lib/security.ts"]
+  IDX --> VC["lib/verified-cart.ts"]
+  IDX --> DIS["lib/discount.ts"]
+  IDX --> AMT["lib/amounts.ts"]
+  IDX --> SS["lib/stripe-session.ts"]
+  IDX --> ORD["lib/orders.ts"]
+  IDX --> PE["lib/payment-events.ts"]
+  IDX --> SC["lib/stripe-client.ts"]
+  IDX --> STRCUS["lib/stripe-customer.ts"]
+  IDX --> AU["lib/auth-user.ts"]
+  IDX --> ERR["lib/errors.ts"]
+```
+
+**Typical runtime chain inside the handler** (simplified): `parseCheckoutRequestBody` → `fetchProductsForCart` / `buildVerifiedCartItems` → `resolveServerDiscount` → `buildStripeCheckoutLineItems` / caps → `insertPaymentPendingOrder` + line items → `buildCheckoutSessionCreateParams` → Stripe `checkout.sessions.create` → order patch + logging.
+
+### 6. Errors → HTTP surface
+
+Maps to the **Error management** table below; central logic in `lib/errors.ts`.
+
+```mermaid
+flowchart LR
+  subgraph out["Response"]
+    R429[429]
+    R403[403]
+    R422[422]
+    R500[500]
+  end
+  subgraph cause["Typical cause"]
+    C429["checkRateLimit"]
+    C403["CSRF mismatch"]
+    C422["Zod / email / stock / product"]
+    C500["Postgres Stripe uncaught"]
+  end
+  C429 --> R429
+  C403 --> R403
+  C422 --> R422
+  C500 --> R500
+```
+
 ## End-to-end flow (happy path)
 
 ```mermaid

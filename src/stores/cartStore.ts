@@ -615,7 +615,7 @@ export function initializeCartStore() {
         useCartStore.setState({ isSyncing: false });
       }
     } else {
-      const localItems = await loadLocalCart();
+      const localItems: CartItem[] = await loadLocalCart();
       if (localItems.length > 0) {
         useCartStore.setState({ items: localItems });
       }
@@ -625,41 +625,117 @@ export function initializeCartStore() {
   })();
 }
 
-// Compatibility hook
-export function useCart() {
-  const rawItems = useCartStore((state) => state.items);
-  const isOnline = useCartStore((state) => state.isOnline);
-  const isAuthenticated = useCartStore((state) => state.isAuthenticated);
-  const isSyncing = useCartStore((state) => state.isSyncing);
-  const offlineQueue = useCartStore((state) => state.offlineQueue);
+/**
+ * Public return type of {@link useCart}: only {@link CartState} field picks + {@link CartItem}
+ * view-models — no parallel cart domain interface.
+ *
+ * - **Actions** — same signatures as on {@link CartState} (`updateItemQuantity` is an alias name
+ *   for `updateQuantity` for historical API compatibility).
+ * - **`cart` / `items` / `totalPrice`** — derived like {@link selectCartItems} /
+ *   {@link selectTotalPrice}: only lines with a resolved `product` count toward totals.
+ * - **`hasPendingProductResolution`** — `true` when persist rehydrated `{ id, quantity }` rows
+ *   and batch `loadProductsForCartItems` has not yet attached `product` (UI should wait, not show
+ *   “empty cart”).
+ * - **`pendingOperations`** — `offlineQueue.length` from {@link CartState.offlineQueue}.
+ */
+export type UseCartReturn = Pick<
+  CartState,
+  | 'isOnline'
+  | 'isAuthenticated'
+  | 'isSyncing'
+  | 'addItem'
+  | 'removeItem'
+  | 'clearCart'
+  | 'syncNow'
+> & {
+  /** Subtotal view for header/checkout: valid lines only (mirrors selector logic below). */
+  cart: { items: CartItem[]; totalPrice: number };
+  /** Convenience alias of `cart.items` for list renderers. */
+  items: CartItem[];
+  hasPendingProductResolution: boolean;
+  itemCount: number;
+  totalPrice: number;
+  pendingOperations: number;
+  /** Same function as {@link CartState.updateQuantity}; legacy name on the hook surface. */
+  updateItemQuantity: CartState['updateQuantity'];
+  dispatch: () => void;
+};
 
-  const addItem = useCartStore((state) => state.addItem);
-  const removeItem = useCartStore((state) => state.removeItem);
-  const updateQuantity = useCartStore((state) => state.updateQuantity);
-  const clearCart = useCartStore((state) => state.clearCart);
-  const syncNow = useCartStore((state) => state.syncNow);
+/**
+ * React-facing facade over {@link useCartStore}: subscribes to raw `items` and exposes **valid**
+ * cart lines (hydrated `product`), derived totals/flags, and store actions.
+ *
+ * Prefer this in components; use {@link useCartStore} only when you need internal fields
+ * (`isInitialized`, `offlineQueue` payloads, `triggerSave`, etc.).
+ */
+export function useCart(): UseCartReturn {
+  const rawItems: CartItem[] = useCartStore((state: CartState) => state.items);
+  const isOnline: boolean = useCartStore((state: CartState) => state.isOnline);
+  const isAuthenticated: boolean = useCartStore(
+    (state: CartState) => state.isAuthenticated
+  );
+  const isSyncing: boolean = useCartStore(
+    (state: CartState) => state.isSyncing
+  );
+  const offlineQueue: QueueOperation[] = useCartStore(
+    (state: CartState) => state.offlineQueue
+  );
 
-  const validItems = rawItems.filter((item) => item?.product?.id != null);
-  const itemCount = validItems.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = validItems.reduce(
-    (sum, item) => sum + (item.product.price ?? 0) * item.quantity,
+  const addItem: CartState['addItem'] = useCartStore(
+    (state: CartState) => state.addItem
+  );
+  const removeItem: CartState['removeItem'] = useCartStore(
+    (state: CartState) => state.removeItem
+  );
+  const updateQuantity: CartState['updateQuantity'] = useCartStore(
+    (state: CartState) => state.updateQuantity
+  );
+  const clearCart: CartState['clearCart'] = useCartStore(
+    (state: CartState) => state.clearCart
+  );
+  const syncNow: CartState['syncNow'] = useCartStore(
+    (state: CartState) => state.syncNow
+  );
+
+  const validItems: CartItem[] = rawItems.filter(
+    (item: CartItem) => item?.product?.id != null
+  );
+  const hasPendingProductResolution: boolean = rawItems.some(
+    (item: CartItem) =>
+      item.quantity > 0 && (item.product == null || item.product.id == null)
+  );
+  const itemCount: number = validItems.reduce(
+    (sum: number, item: CartItem) => sum + item.quantity,
+    0
+  );
+  const totalPrice: number = validItems.reduce(
+    (sum: number, item: CartItem) =>
+      sum + (item.product.price ?? 0) * item.quantity,
     0
   );
 
-  return {
+  const pendingOperations: number = offlineQueue.length;
+
+  const dispatch: () => void = () =>
+    console.warn('dispatch is deprecated, use direct actions');
+
+  const cartReturn: UseCartReturn = {
     cart: { items: validItems, totalPrice },
     items: validItems,
+    hasPendingProductResolution,
     itemCount,
     totalPrice,
     isOnline,
     isAuthenticated,
     isSyncing,
-    pendingOperations: offlineQueue.length,
+    pendingOperations,
     addItem,
     removeItem,
     updateItemQuantity: updateQuantity,
     clearCart,
     syncNow,
-    dispatch: () => console.warn('dispatch is deprecated, use direct actions'),
+    dispatch,
   };
+
+  return cartReturn;
 }

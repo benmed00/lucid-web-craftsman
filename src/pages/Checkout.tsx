@@ -23,6 +23,32 @@ const Checkout = () => {
     });
   }, []);
 
+  // Rehydrated line items without product rows yet (batch fetch in flight)
+  if (c.hasPendingProductResolution && c.cartItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SEOHelmet
+          title={c.t('payment.title') + ' - Rif Raw Straw'}
+          description={c.t('payment.securePayment')}
+          keywords={['paiement', 'checkout', 'commande sécurisée']}
+          url="/checkout"
+          type="website"
+        />
+        <div
+          className="container mx-auto px-4 py-16"
+          data-testid="checkout-page-resolving"
+        >
+          <div className="max-w-xl mx-auto space-y-4 animate-pulse">
+            <Skeleton className="h-10 w-3/4 mx-auto" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </div>
+        <PageFooter />
+      </div>
+    );
+  }
+
   // Empty cart
   if (c.cartItems.length === 0) {
     return (
@@ -34,7 +60,10 @@ const Checkout = () => {
           url="/checkout"
           type="website"
         />
-        <div className="container mx-auto px-4 py-16">
+        <div
+          className="container mx-auto px-4 py-16"
+          data-testid="checkout-page-empty-cart"
+        >
           <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-8 text-center">
             {c.t('payment.title')}
           </h1>

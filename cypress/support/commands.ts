@@ -31,6 +31,58 @@ Cypress.Commands.add('addProductToCart', (options?: { productId?: number }) => {
     .click();
 });
 
+/**
+ * After `cy.visit('/cart')`, the cart can briefly show `cart-page-resolving` while persisted
+ * `{ id, quantity }` rows batch-fetch products. Wait until the real line-item layout is mounted.
+ * Align timeout with catalog stub wait (25s) so CI / slow disks do not flake.
+ */
+Cypress.Commands.add(
+  'waitForCartPageWithItems',
+  (options?: { timeout?: number }) => {
+    cy.get('[data-testid="cart-page-with-items"]', {
+      timeout: options?.timeout ?? 25000,
+    }).should('be.visible');
+  }
+);
+
+/** Checkout step 1: cart resolved + form persistence settled (`#firstName` visible). */
+Cypress.Commands.add(
+  'waitForCheckoutCustomerStep',
+  (options?: { timeout?: number }) => {
+    cy.get('#firstName', {
+      timeout: options?.timeout ?? 25000,
+    }).should('be.visible');
+  }
+);
+
+/**
+ * After adding from the products catalog, open the cart via **in-app navigation** (not
+ * `cy.visit('/cart')`). A hard reload rehydrates persist `{ id, quantity }` only and depends on a
+ * second products batch fetch — flaky under Cypress. SPA navigation keeps Zustand lines with full
+ * `product` in memory.
+ */
+Cypress.Commands.add('addCatalogLineAndOpenCartSpa', () => {
+  cy.get('[data-testid="products-catalog"] [id^="add-to-cart-btn-"]', {
+    timeout: 25000,
+  })
+    .first()
+    .should('be.visible')
+    .click();
+  cy.get('a[href="/cart"]')
+    .filter(':visible')
+    .first()
+    .should('be.visible')
+    .click();
+  cy.waitForCartPageWithItems();
+});
+
+/** Catalog → cart (SPA) → checkout step 1 (`#firstName`). */
+Cypress.Commands.add('addCatalogLineAndOpenCheckoutStep1', () => {
+  cy.addCatalogLineAndOpenCartSpa();
+  cy.get('#main-content #cart-checkout-button').should('be.visible').click();
+  cy.waitForCheckoutCustomerStep();
+});
+
 type CatalogRow = {
   id: number;
   product_translations?: unknown;
@@ -199,6 +251,12 @@ declare global {
     interface Chainable {
       tab(): Chainable<unknown>;
       addProductToCart(options?: { productId?: number }): Chainable<void>;
+      waitForCartPageWithItems(options?: { timeout?: number }): Chainable<void>;
+      waitForCheckoutCustomerStep(options?: {
+        timeout?: number;
+      }): Chainable<void>;
+      addCatalogLineAndOpenCartSpa(): Chainable<void>;
+      addCatalogLineAndOpenCheckoutStep1(): Chainable<void>;
       stubCheckoutIntercepts(): Chainable<void>;
       stubProductsCatalog(): Chainable<void>;
       stubElevatedStorefrontRpcs(): Chainable<void>;

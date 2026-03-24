@@ -19,6 +19,7 @@ export {
   MAX_CART_QUANTITY,
   HIGH_VALUE_ORDER_THRESHOLD,
   type CartItem,
+  type UseCartReturn,
 } from './cartStore';
 
 export { initializeWishlistStore } from '@/hooks/useWishlist';
