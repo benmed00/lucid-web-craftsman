@@ -203,7 +203,7 @@ rif-raw-straw/
 │   │   └── 📄 *.tsx            # Pages principales
 │   ├── 📁 hooks/               # Hooks React personnalisés
 │   ├── 📁 context/             # Contexts React (état global)
-│   ├── 📁 services/            # Services API et logique métier
+│   ├── 📁 services/            # API Supabase / Edge / mock — services/README.md
 │   ├── 📁 shared/              # Types et interfaces partagés
 │   ├── 📁 utils/               # Fonctions utilitaires
 │   ├── 📁 data/                # Données statiques et mock

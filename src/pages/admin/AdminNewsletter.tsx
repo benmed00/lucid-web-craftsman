@@ -30,7 +30,12 @@ import {
   CheckCircle2,
   BarChart3,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  countStaleAbandonedCheckoutSessions,
+  fetchEmailLogsSince,
+  fetchNewsletterSubscriptionsAdmin,
+} from '@/services/newsletterApi';
+import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -93,16 +98,7 @@ const AdminNewsletter = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch subscribers
-      const { data: subs, error } = await supabase
-        .from('newsletter_subscriptions')
-        .select('id, email, status, source, created_at, unsubscribed_at')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
-
-      const allSubs = subs || [];
+      const allSubs = await fetchNewsletterSubscriptionsAdmin(100);
       const now = new Date();
       const monthStart = new Date(
         now.getFullYear(),
@@ -120,32 +116,14 @@ const AdminNewsletter = () => {
 
       // Fetch abandoned cart count
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-      const { count } = await supabase
-        .from('checkout_sessions')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'in_progress')
-        .lt('updated_at', oneHourAgo)
-        .not('personal_info', 'is', null)
-        .gte('last_completed_step', 1);
-
-      setAbandonedCartCount(count || 0);
+      const count = await countStaleAbandonedCheckoutSessions(oneHourAgo);
+      setAbandonedCartCount(count);
 
       // Fetch email logs (last 30 days)
       const thirtyDaysAgo = new Date(
         Date.now() - 30 * 24 * 60 * 60 * 1000
       ).toISOString();
-      const { data: logs, error: logsError } = await supabase
-        .from('email_logs')
-        .select(
-          'id, template_name, recipient_email, status, sent_at, created_at, error_message'
-        )
-        .gte('created_at', thirtyDaysAgo)
-        .order('created_at', { ascending: false })
-        .limit(200);
-
-      if (logsError) throw logsError;
-
-      const allLogs = logs || [];
+      const allLogs = await fetchEmailLogsSince(thirtyDaysAgo, 200);
       setEmailLogs(allLogs);
 
       // Calculate email stats
@@ -191,7 +169,7 @@ const AdminNewsletter = () => {
   const handleSendAbandonedCartEmails = async () => {
     setSendingAbandonedEmails(true);
     try {
-      const { data, error } = await supabase.functions.invoke(
+      const { data, error } = await invokeSupabaseEdgeFunction(
         'send-abandoned-cart-email'
       );
       if (error) throw error;

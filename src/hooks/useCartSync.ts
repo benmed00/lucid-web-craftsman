@@ -9,9 +9,12 @@ import {
   fetchCartItemRowsForUser,
   getAuthUser,
   onAuthStateChange,
-  syncCartViaRpc,
   upsertCartItemRow,
 } from '@/services/cartApi';
+import {
+  invalidateCartServerLinesQuery,
+  persistUserCartLinesViaRpc,
+} from '@/services/cartSyncService';
 import { isSupabaseCartSyncAllowed } from '@/lib/cart/cartSyncPolicy';
 import { ProductService } from '@/services/productService';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
@@ -23,9 +26,6 @@ import {
 } from '@/lib/storage/safeStorage';
 import { toast } from 'sonner';
 import { getBusinessRules } from '@/hooks/useBusinessRules';
-import { cartServerQueryKeys } from '@/lib/checkout/queryKeys';
-import { queryClient } from '@/lib/queryClient';
-
 // Types
 export interface CartItem {
   id: number;
@@ -200,10 +200,7 @@ export async function saveToSupabase(
       .filter((item) => item.quantity > 0);
 
     // Single atomic RPC call — no race conditions (JSON array → jsonb)
-    await syncCartViaRpc(userId, sanitizedItems as unknown as Json);
-    void queryClient.invalidateQueries({
-      queryKey: cartServerQueryKeys.lines(userId),
-    });
+    await persistUserCartLinesViaRpc(userId, sanitizedItems as unknown as Json);
     return true;
   } catch (error) {
     console.error('Failed to save to Supabase:', error);
@@ -330,9 +327,7 @@ export async function processOfflineQueue(
   }
 
   if (successCount > 0) {
-    void queryClient.invalidateQueries({
-      queryKey: cartServerQueryKeys.lines(userId),
-    });
+    invalidateCartServerLinesQuery(userId);
   }
 
   return { success: successCount, failed: failedOps };

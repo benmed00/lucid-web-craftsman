@@ -4,6 +4,38 @@ import type { Database } from '@/integrations/supabase/types';
 type AppSettingInsert = Database['public']['Tables']['app_settings']['Insert'];
 type AppSettingUpdate = Database['public']['Tables']['app_settings']['Update'];
 
+export async function fetchAppSettingsKeyValuePairs(): Promise<
+  { setting_key: string; setting_value: unknown }[]
+> {
+  const { data, error } = await supabase
+    .from('app_settings')
+    .select('setting_key, setting_value');
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Upsert JSON blob by `setting_key` (admin settings tabs). */
+export async function upsertAppSettingJsonByKey(key: string, value: unknown) {
+  const jsonValue = JSON.parse(JSON.stringify(value)) as NonNullable<
+    AppSettingInsert['setting_value']
+  >;
+  const existing = await fetchAppSettingIdValueMaybe(key);
+  if (existing) {
+    await updateAppSettingByKey(key, {
+      setting_value: jsonValue,
+      updated_at: new Date().toISOString(),
+    });
+  } else {
+    await insertAppSettingRows([
+      {
+        setting_key: key,
+        setting_value: jsonValue,
+        description: `${key} configuration`,
+      },
+    ]);
+  }
+}
+
 export async function fetchAppSettingValueByKey(
   settingKey: string
 ): Promise<unknown | null> {

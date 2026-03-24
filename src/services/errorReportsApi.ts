@@ -1,5 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
-import type { Json } from '@/integrations/supabase/types';
+import type { Database, Json } from '@/integrations/supabase/types';
+
+type SupportErrorReportUpdate =
+  Database['public']['Tables']['support_tickets_error_reports']['Update'];
 
 export async function uploadErrorReportScreenshot(
   file: File,
@@ -43,5 +46,25 @@ export async function insertSupportErrorReport(row: {
   const { error } = await supabase
     .from('support_tickets_error_reports')
     .insert([row]);
+  if (error) throw error;
+}
+
+export async function fetchSupportErrorReportsAll() {
+  const { data, error } = await supabase
+    .from('support_tickets_error_reports')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function updateSupportErrorReport(
+  reportId: string,
+  patch: SupportErrorReportUpdate
+) {
+  const { error } = await supabase
+    .from('support_tickets_error_reports')
+    .update(patch)
+    .eq('id', reportId);
   if (error) throw error;
 }

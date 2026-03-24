@@ -32,7 +32,10 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchAppSettingsKeyValuePairs,
+  upsertAppSettingJsonByKey,
+} from '@/services/appSettingsApi';
 import { z } from 'zod';
 
 // Validation schemas
@@ -168,14 +171,10 @@ const AdminSettings = () => {
   const loadAllSettings = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('app_settings')
-        .select('setting_key, setting_value');
+      const rows = await fetchAppSettingsKeyValuePairs();
 
-      if (error) throw error;
-
-      if (data) {
-        data.forEach((setting) => {
+      if (rows.length) {
+        rows.forEach((setting) => {
           const value = setting.setting_value as Record<string, unknown>;
 
           switch (setting.setting_key) {
@@ -215,38 +214,7 @@ const AdminSettings = () => {
   };
 
   const saveSetting = async (key: string, value: unknown) => {
-    // Check if setting exists
-    const { data: existing } = await supabase
-      .from('app_settings')
-      .select('id')
-      .eq('setting_key', key)
-      .single();
-
-    const jsonValue = JSON.parse(JSON.stringify(value));
-
-    if (existing) {
-      // Update existing
-      const { error } = await supabase
-        .from('app_settings')
-        .update({
-          setting_value: jsonValue,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('setting_key', key);
-
-      if (error) throw error;
-    } else {
-      // Insert new
-      const { error } = await supabase.from('app_settings').insert([
-        {
-          setting_key: key,
-          setting_value: jsonValue,
-          description: `${key} configuration`,
-        },
-      ]);
-
-      if (error) throw error;
-    }
+    await upsertAppSettingJsonByKey(key, value);
   };
 
   const validateSiteSettings = (): boolean => {

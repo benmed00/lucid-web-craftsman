@@ -145,7 +145,16 @@ export function useWishlist() {
     },
     onSuccess: (data, productId) => {
       if (!userId || !cloudAllowed || !data) return;
-      void qc.invalidateQueries({ queryKey: wishlistQueryKeys.list(userId) });
+      qc.setQueryData(
+        wishlistQueryKeys.list(userId),
+        (old: WishlistItem[] | undefined) => {
+          const prev = old ?? [];
+          const withoutDup = prev.filter(
+            (r) => r.product_id !== data.product_id
+          );
+          return [data, ...withoutDup];
+        }
+      );
       if ('vibrate' in navigator) navigator.vibrate(50);
       toast.success('Produit ajouté aux favoris', {
         action: {
@@ -158,9 +167,11 @@ export function useWishlist() {
           label: 'Annuler',
           onClick: async () => {
             await wishlistApi.deleteWishlistItem(userId, productId);
-            void qc.invalidateQueries({
-              queryKey: wishlistQueryKeys.list(userId),
-            });
+            qc.setQueryData(
+              wishlistQueryKeys.list(userId),
+              (old: WishlistItem[] | undefined) =>
+                (old ?? []).filter((r) => r.product_id !== productId)
+            );
             toast.success('Ajout annulé');
           },
         },
@@ -191,9 +202,13 @@ export function useWishlist() {
       }
       await wishlistApi.deleteWishlistItem(userId, productId);
     },
-    onSuccess: () => {
+    onSuccess: (_void, productId) => {
       if (userId && cloudAllowed) {
-        void qc.invalidateQueries({ queryKey: wishlistQueryKeys.list(userId) });
+        qc.setQueryData(
+          wishlistQueryKeys.list(userId),
+          (old: WishlistItem[] | undefined) =>
+            (old ?? []).filter((r) => r.product_id !== productId)
+        );
       }
       toast.success('Produit retiré des favoris');
     },

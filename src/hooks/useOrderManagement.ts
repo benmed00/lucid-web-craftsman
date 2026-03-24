@@ -17,9 +17,6 @@ import { fetchAuthUserOrNull } from '@/services/profileApi';
 import { toast } from 'sonner';
 import type {
   OrderStatus,
-  OrderStatusHistory,
-  OrderAnomaly,
-  OrderStateTransition,
   OrderFilters,
   OrderStats,
   CustomerOrderView,

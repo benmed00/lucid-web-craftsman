@@ -1,4 +1,38 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+export type ProductReviewRow =
+  Database['public']['Tables']['product_reviews']['Row'];
+
+export async function fetchAllProductReviewsForAdmin(): Promise<
+  ProductReviewRow[]
+> {
+  const { data, error } = await supabase
+    .from('product_reviews')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function updateProductReviewApproval(
+  reviewId: string,
+  isApproved: boolean
+) {
+  const { error } = await supabase
+    .from('product_reviews')
+    .update({ is_approved: isApproved })
+    .eq('id', reviewId);
+  if (error) throw error;
+}
+
+export async function deleteProductReviewById(reviewId: string) {
+  const { error } = await supabase
+    .from('product_reviews')
+    .delete()
+    .eq('id', reviewId);
+  if (error) throw error;
+}
 
 export async function fetchApprovedReviewsForProduct(productId: number) {
   const { data, error } = await supabase

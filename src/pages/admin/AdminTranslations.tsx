@@ -6,7 +6,18 @@
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchBlogPostTranslationById,
+  fetchBlogPostTranslationSummaries,
+  fetchBlogPostsForTranslationList,
+  fetchProductTranslationById,
+  fetchProductTranslationSummaries,
+  fetchProductsForTranslationList,
+  insertBlogPostTranslationRow,
+  insertProductTranslationRow,
+  updateBlogPostTranslationById,
+  updateProductTranslationById,
+} from '@/services/adminTranslationsApi';
 import {
   Card,
   CardContent,
@@ -89,18 +100,8 @@ export default function AdminTranslations() {
   const { data: products = [], isLoading: productsLoading } = useQuery({
     queryKey: ['admin-products-translations'],
     queryFn: async () => {
-      const { data: products, error: productsError } = await supabase
-        .from('products')
-        .select('id, name, category')
-        .order('id');
-
-      if (productsError) throw productsError;
-
-      const { data: translations, error: transError } = await supabase
-        .from('product_translations')
-        .select('id, product_id, locale, name');
-
-      if (transError) throw transError;
+      const products = await fetchProductsForTranslationList();
+      const translations = await fetchProductTranslationSummaries();
 
       return products.map((p) => ({
         id: p.id,
@@ -121,18 +122,8 @@ export default function AdminTranslations() {
   const { data: blogPosts = [], isLoading: blogPostsLoading } = useQuery({
     queryKey: ['admin-blog-translations'],
     queryFn: async () => {
-      const { data: posts, error: postsError } = await supabase
-        .from('blog_posts')
-        .select('id, title, slug')
-        .order('created_at', { ascending: false });
-
-      if (postsError) throw postsError;
-
-      const { data: translations, error: transError } = await supabase
-        .from('blog_post_translations')
-        .select('id, blog_post_id, locale, title');
-
-      if (transError) throw transError;
+      const posts = await fetchBlogPostsForTranslationList();
+      const translations = await fetchBlogPostTranslationSummaries();
 
       return posts.map((p) => ({
         id: p.id,
@@ -464,11 +455,7 @@ function ProductTranslationDialog({
       return;
     }
 
-    const { data } = await supabase
-      .from('product_translations')
-      .select('*')
-      .eq('id', existingTranslation.id)
-      .single();
+    const data = await fetchProductTranslationById(existingTranslation.id);
 
     if (data) {
       setFormData({
@@ -488,26 +475,17 @@ function ProductTranslationDialog({
     setIsLoading(true);
     try {
       if (existingTranslation) {
-        // Update existing
-        const { error } = await supabase
-          .from('product_translations')
-          .update({
-            ...formData,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingTranslation.id);
-
-        if (error) throw error;
+        await updateProductTranslationById(existingTranslation.id, {
+          ...formData,
+          updated_at: new Date().toISOString(),
+        });
         toast.success('Traduction mise à jour');
       } else {
-        // Insert new
-        const { error } = await supabase.from('product_translations').insert({
+        await insertProductTranslationRow({
           product_id: product.id,
           locale: selectedLocale,
           ...formData,
         });
-
-        if (error) throw error;
         toast.success('Traduction ajoutée');
       }
 
@@ -723,11 +701,7 @@ function BlogTranslationDialog({
       return;
     }
 
-    const { data } = await supabase
-      .from('blog_post_translations')
-      .select('*')
-      .eq('id', existingTranslation.id)
-      .single();
+    const data = await fetchBlogPostTranslationById(existingTranslation.id);
 
     if (data) {
       setFormData({
@@ -744,24 +718,17 @@ function BlogTranslationDialog({
     setIsLoading(true);
     try {
       if (existingTranslation) {
-        const { error } = await supabase
-          .from('blog_post_translations')
-          .update({
-            ...formData,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingTranslation.id);
-
-        if (error) throw error;
+        await updateBlogPostTranslationById(existingTranslation.id, {
+          ...formData,
+          updated_at: new Date().toISOString(),
+        });
         toast.success('Traduction mise à jour');
       } else {
-        const { error } = await supabase.from('blog_post_translations').insert({
+        await insertBlogPostTranslationRow({
           blog_post_id: blogPost.id,
           locale: selectedLocale,
           ...formData,
         });
-
-        if (error) throw error;
         toast.success('Traduction ajoutée');
       }
 

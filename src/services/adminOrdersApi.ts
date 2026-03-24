@@ -14,6 +14,95 @@ const ORDERS_LIST_SELECT = `
           )
         `;
 
+/** Admin list/detail including payment rows (legacy AdminOrders page). */
+const ORDERS_ADMIN_WITH_PAYMENTS_SELECT = `
+          *,
+          order_items (
+            id,
+            product_id,
+            quantity,
+            unit_price,
+            total_price,
+            product_snapshot
+          ),
+          payments (
+            id,
+            status,
+            amount,
+            processed_at
+          )
+        `;
+
+export async function fetchAdminOrdersListWithPayments() {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(ORDERS_ADMIN_WITH_PAYMENTS_SELECT)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchAdminOrderByIdWithPayments(orderId: string) {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(ORDERS_ADMIN_WITH_PAYMENTS_SELECT)
+    .eq('id', orderId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/** Updates the legacy string `status` column used by the macro admin orders UI. */
+export async function updateOrderLegacyStatusField(
+  orderId: string,
+  newStatus: string
+) {
+  const { error } = await supabase
+    .from('orders')
+    .update({
+      status: newStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', orderId);
+  if (error) throw error;
+}
+
+/** Test / notification hook: only `status` (no `updated_at`). */
+export async function updateOrderLegacyStatusColumnOnly(
+  orderId: string,
+  newStatus: string
+) {
+  const { error } = await supabase
+    .from('orders')
+    .update({ status: newStatus })
+    .eq('id', orderId);
+  if (error) throw error;
+}
+
+export type OrdersTableRealtimeAnyPayload = {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new: Record<string, unknown> & { id: string };
+  old: Record<string, unknown> & { id: string };
+};
+
+export function subscribeOrdersTableAllEvents(
+  onPayload: (payload: OrdersTableRealtimeAnyPayload) => void
+): () => void {
+  const channel = supabase
+    .channel('orders-realtime-admin-list')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'orders' },
+      (payload) =>
+        onPayload(payload as unknown as OrdersTableRealtimeAnyPayload)
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
+
 export async function fetchAdminOrdersFiltered(filters?: OrderFilters) {
   let query = supabase
     .from('orders')

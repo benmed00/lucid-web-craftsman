@@ -15,6 +15,19 @@ How we keep the codebase consistent, testable, and safe to ship. Command details
 | E2E                    | `npm run e2e:ci` / `e2e:ci:smoke`         | Starts mock API + Vite; see [E2E-COVERAGE.md](./E2E-COVERAGE.md) |
 | create-payment (Deno)  | `npm run verify:create-payment`           | Matches CI: `deno check`, lint, test, frozen lockfile            |
 
+## Verifications (local, before PR)
+
+Run these when you change code; CI runs the check-only variants inside `npm run validate` where applicable.
+
+| Step                | Command                               | Role                                                                                                              |
+| ------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Format (apply)**  | **`npm run format`**                  | Writes Prettier fixes project-wide. Run after substantive edits so diffs match CI (`format:check` in `validate`). |
+| Format (check only) | `npm run format:check`                | Fails if any file would change; same gate as CI without modifying files.                                          |
+| Lint                | `npm run lint -- --max-warnings 9999` | ESLint.                                                                                                           |
+| Types               | `npm run type:check`                  | TypeScript, all app configs.                                                                                      |
+| Unit tests          | `npm run test:unit`                   | Vitest.                                                                                                           |
+| Full gate (no E2E)  | `npm run validate`                    | Lint + **format:check** + typecheck + unit.                                                                       |
+
 **Windows note:** Vitest UI uses `127.0.0.1:24678` by default to avoid reserved port ranges; see AGENTS.md.
 
 ## Prettier (`.prettierrc.json`)
@@ -31,10 +44,14 @@ How we keep the codebase consistent, testable, and safe to ship. Command details
 
 Ignored paths: `.prettierignore`.
 
+## Frontend API layer
+
+Reusable **Supabase, Edge Functions, and mock `/api`** calls belong in **`src/services/`** (not inline in components). Entry point: [`src/services/README.md`](../src/services/README.md). Full conventions: [PLATFORM.md — Client API layer](./PLATFORM.md#client-api-layer). **State:** checkout and cart server writes use shared services (`checkoutApi` / `checkoutService`, `cartSyncService`) plus TanStack Query keys in `src/lib/checkout/queryKeys.ts` — details under [PLATFORM.md — State and data](./PLATFORM.md#state-and-data).
+
 ## Testing expectations
 
 - **Unit / component:** Vitest + Testing Library; mock Supabase and network at boundaries; use `waitFor` for async UI.
-- **Edge functions:** `src/tests/edge-functions.test.ts` — skips tests that need `SUPABASE_SERVICE_ROLE_KEY` when unset.
+- **Edge functions:** `src/tests/edge-functions.test.ts` — skips tests that need `SUPABASE_SERVICE_ROLE_KEY` when unset. Set it in **`.env`** at the repo root (no `VITE_` prefix; never expose in client code). See `.env.example`.
 - **E2E:** Cypress with `@smoke` / `@regression` (and friends); avoid duplicating journeys already owned by focused specs — see E2E-COVERAGE “Propriété des parcours”.
 - **RLS:** Optional deeper tests; setup notes in `src/tests/rls-test-setup.md`.
 
@@ -70,12 +87,12 @@ Per-function fragments: `supabase/functions/<name>/openapi.fragment.json`. Gener
 
 ## Edge function reference (in repo)
 
-| Topic | Where |
-| ----- | ----- |
-| All functions (index) | [`supabase/functions/README.md`](../supabase/functions/README.md) |
-| create-payment payload → Stripe session | [`supabase/functions/create-payment/DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md), [`REFACTOR_PLAN.md`](../supabase/functions/create-payment/REFACTOR_PLAN.md) |
-| verify-payment role vs SPA | [`supabase/functions/verify-payment/README.md`](../supabase/functions/verify-payment/README.md) |
-| SPA after redirect (order-lookup, webhooks, isolation) | [PLATFORM.md](./PLATFORM.md) |
+| Topic                                                  | Where                                                                                                                                                                              |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| All functions (index)                                  | [`supabase/functions/README.md`](../supabase/functions/README.md)                                                                                                                  |
+| create-payment payload → Stripe session                | [`supabase/functions/create-payment/DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md), [`REFACTOR_PLAN.md`](../supabase/functions/create-payment/REFACTOR_PLAN.md) |
+| verify-payment role vs SPA                             | [`supabase/functions/verify-payment/README.md`](../supabase/functions/verify-payment/README.md)                                                                                    |
+| SPA after redirect (order-lookup, webhooks, isolation) | [PLATFORM.md](./PLATFORM.md)                                                                                                                                                       |
 
 Verify locally: `npm run verify:create-payment` (Deno; frozen lockfile in CI).
 

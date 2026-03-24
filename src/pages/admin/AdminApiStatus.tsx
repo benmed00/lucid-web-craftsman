@@ -18,7 +18,13 @@ import {
   Wifi,
   WifiOff,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { getAuthSession } from '@/services/authApi';
+import {
+  fetchRecentEmailLogsForHealth,
+  listSupabaseStorageBuckets,
+  pingProductsTableIds,
+} from '@/services/platformHealthApi';
+import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
 
 interface ServiceStatus {
@@ -93,7 +99,7 @@ const AdminApiStatus = () => {
   const checkSupabaseDatabase = async (): Promise<ServiceStatus> => {
     const start = performance.now();
     try {
-      const { error } = await supabase.from('products').select('id').limit(1);
+      const { error } = await pingProductsTableIds();
       const responseTime = Math.round(performance.now() - start);
 
       if (error) throw error;
@@ -122,7 +128,7 @@ const AdminApiStatus = () => {
   const checkSupabaseAuth = async (): Promise<ServiceStatus> => {
     const start = performance.now();
     try {
-      const { error } = await supabase.auth.getSession();
+      const { error } = await getAuthSession();
       const responseTime = Math.round(performance.now() - start);
 
       if (error) throw error;
@@ -151,7 +157,7 @@ const AdminApiStatus = () => {
   const checkSupabaseStorage = async (): Promise<ServiceStatus> => {
     const start = performance.now();
     try {
-      const { error } = await supabase.storage.listBuckets();
+      const { error } = await listSupabaseStorageBuckets();
       const responseTime = Math.round(performance.now() - start);
 
       return {
@@ -212,11 +218,7 @@ const AdminApiStatus = () => {
     // Check if email logs show recent successful sends
     const start = performance.now();
     try {
-      const { data, error } = await supabase
-        .from('email_logs')
-        .select('status, sent_at')
-        .order('sent_at', { ascending: false })
-        .limit(5);
+      const { data, error } = await fetchRecentEmailLogsForHealth(5);
 
       const responseTime = Math.round(performance.now() - start);
 
@@ -254,8 +256,8 @@ const AdminApiStatus = () => {
     const start = performance.now();
     try {
       // Test a simple edge function call
-      const { error } = await supabase.functions.invoke('check-promo-alerts', {
-        body: { test: true },
+      const { error } = await invokeSupabaseEdgeFunction('check-promo-alerts', {
+        test: true,
       });
 
       const responseTime = Math.round(performance.now() - start);

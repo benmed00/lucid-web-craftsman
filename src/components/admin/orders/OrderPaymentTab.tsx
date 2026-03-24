@@ -39,7 +39,7 @@ import {
   processRefund,
   type OrderPaymentDetails,
 } from '@/services/orderService';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchOrderStripePaymentFields } from '@/services/adminOrderUiApi';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface OrderPaymentTabProps {
@@ -166,15 +166,8 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
       setPayment(data);
 
       // Get order metadata for Stripe info
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .select(
-          'metadata, payment_method, payment_reference, stripe_session_id'
-        )
-        .eq('id', orderId)
-        .single();
-
-      if (!orderError && order) {
+      try {
+        const order = await fetchOrderStripePaymentFields(orderId);
         const metadata = (order.metadata || {}) as OrderMetadata;
 
         setStripeInfo({
@@ -192,6 +185,8 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
           stripe_customer_id: metadata.stripe_customer_id || null,
           receipt_url: null, // Would need Stripe API call
         });
+      } catch {
+        /* order row missing */
       }
     } catch (error) {
       console.error('Error fetching payment:', error);

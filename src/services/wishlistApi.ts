@@ -50,7 +50,7 @@ export function subscribeWishlistChanges(
   onEvent: () => void
 ): RealtimeChannel {
   return supabase
-    .channel(`wishlist-${userId}`)
+    .channel(`lwc-wishlist-${userId}`)
     .on(
       'postgres_changes',
       {

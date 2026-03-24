@@ -2,6 +2,8 @@
 
 **Project docs:** [Documentation index](../../docs/README.md) · [Engineering standards](../../docs/STANDARDS.md) (security, quality gates).
 
+**Note:** RLS suites here sign in as real users (anon key + passwords). The optional **`SUPABASE_SERVICE_ROLE_KEY`** in `.env` is for [`edge-functions.test.ts`](./edge-functions.test.ts) (Edge Function integration), not for these RLS tests — see `.env.example`.
+
 ## Overview
 
 This guide explains how to set up and run the RLS (Row Level Security) E2E tests for the Rif Straw application.

@@ -10,7 +10,9 @@ export async function fetchRateLimitEntries(limit = 100) {
   return data ?? [];
 }
 
-export async function deleteRateLimitEntriesBeforeWindowStart(cutoffIso: string) {
+export async function deleteRateLimitEntriesBeforeWindowStart(
+  cutoffIso: string
+) {
   const { error } = await supabase
     .from('rate_limits')
     .delete()

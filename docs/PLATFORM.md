@@ -29,8 +29,9 @@ src/
 
 ### State and data
 
-- **Cart:** `src/stores/cartStore.ts` + `useCartSync` — persisted; sync with Supabase depends on policy (below).
-- **Wishlist:** `src/hooks/useWishlist.ts` (cloud + local paths; elevated users stay local-only).
+- **Cart:** `src/stores/cartStore.ts` + `useCartSync` — persisted; sync with Supabase depends on policy (below). Authenticated line sync to Postgres goes through **`cartSyncService.persistUserCartLinesViaRpc`** (single invalidate path for server cart query keys).
+- **Wishlist:** `src/hooks/useWishlist.ts` (cloud + local paths; elevated users stay local-only). Cloud list uses TanStack Query; mutations update cache via **`setQueryData`**; Realtime still invalidates on server events.
+- **Checkout / payment return:** `checkoutApi.ts`, `checkoutService.ts`, and hooks such as `useCheckoutSession` — no duplicate elevated `checkout_sessions` behavior; see **Storefront vs admin isolation** below.
 - **Remote data:** Prefer TanStack Query with keys from `src/lib/checkout/queryKeys.ts` and shared `queryClient` where applicable.
 - **Errors:** Typed helpers under `src/lib/errors/`; async code can use `trySafe`-style patterns documented in code.
 
@@ -38,6 +39,25 @@ src/
 
 - Browser calls **Supabase client** (PostgREST, auth, realtime) and **invokes Edge Functions** for payment and order lookup flows.
 - **Do not** put service role keys in the SPA; frontend uses `VITE_SUPABASE_PUBLISHABLE_KEY` only.
+
+### Client API layer
+
+All reusable **backend access** from the SPA should go through **`src/services/`** so pages and components stay thin.
+
+| Pattern                                                         | Role                                                                         |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| **`admin*Api.ts`, `authApi.ts`, `*Api.ts`**                     | Supabase queries/RPC/storage/Edge `invoke` for a feature or admin area.      |
+| **`supabaseFunctionsApi.ts`**                                   | Shared `functions.invoke` helper and named wrappers (e.g. `translate-tag`).  |
+| **`api.ts`**, **`apiClient`**                                   | Mock **`/api/*`**: Vite proxies to json-server (dev catalog/blog, etc.).     |
+| **`checkoutApi.ts` / `checkoutService.ts` / `orderService.ts`** | Checkout and orders: Edge Functions, session display, and related PostgREST. |
+
+**Admin dashboard:** Modules such as `adminOrdersApi.ts` run with the **logged-in user’s JWT**; access is enforced by **RLS** plus **`ProtectedAdminRoute`**. Never add a service-role key in this folder. Prefer **`admin*Api.ts`** for new dashboard data access; pair with `useQuery` / `useMutation` in hooks under `src/hooks/` or colocated admin hooks.
+
+**Realtime:** Channel topic strings are client-scoped identifiers; use a stable **`lwc-`** prefix per feature (e.g. `lwc-wishlist-<userId>` in `wishlistApi.ts`) so names stay unique and grep-friendly. Always remove channels in hook cleanup (`removeChannel` / API helper).
+
+**Adding a feature:** Prefer a new or extended module under `src/services/` and call it from hooks or TanStack Query, rather than scattering `supabase.from(...)` in UI files. ESLint **`no-restricted-imports`** blocks `@/integrations/supabase/client` under `src/pages/**` and `src/components/**` (tests excluded).
+
+Folder readme: [`src/services/README.md`](../src/services/README.md).
 
 ### Configuration and security headers
 

@@ -18,7 +18,10 @@ import {
 } from 'lucide-react';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { ProductService } from '@/services/productService';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchProfilesExactCount,
+  fetchRecentOrdersWithProfilesForDashboard,
+} from '@/services/adminDashboardApi';
 import { toast } from 'sonner';
 import { useCurrency } from '@/stores/currencyStore';
 
@@ -69,55 +72,10 @@ const AdminDashboard = () => {
         const productData = await ProductService.getAllProducts();
         setProducts(productData);
 
-        // Load orders
-        const { data: ordersData, error: ordersError } = await supabase
-          .from('orders')
-          .select(
-            `
-            id,
-            user_id,
-            amount,
-            status,
-            currency,
-            created_at
-          `
-          )
-          .order('created_at', { ascending: false })
-          .limit(10);
+        const ordersData = await fetchRecentOrdersWithProfilesForDashboard(10);
+        setOrders(ordersData);
 
-        if (ordersError) throw ordersError;
-
-        // Load user profiles for orders (skip if user_id is null - guest orders)
-        const ordersWithProfiles = await Promise.all(
-          (ordersData || []).map(async (order) => {
-            if (!order.user_id) {
-              return {
-                ...order,
-                profiles: null,
-              };
-            }
-
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('id', order.user_id)
-              .single();
-
-            return {
-              ...order,
-              profiles: profile,
-            };
-          })
-        );
-
-        setOrders(ordersWithProfiles);
-
-        // Load customer count
-        const { count: customerCount, error: customerError } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true });
-
-        if (customerError) throw customerError;
+        const customerCount = await fetchProfilesExactCount();
 
         // Calculate statistics
         const totalProducts = productData.length;
@@ -127,11 +85,14 @@ const AdminDashboard = () => {
         const lowStockProducts = productData.filter(
           (p) => (p.stock_quantity || 0) <= (p.min_stock_level || 5)
         ).length;
-        const totalOrders = ordersData?.length || 0;
-        const pendingOrders =
-          ordersData?.filter((o) => o.status === 'pending').length || 0;
-        const totalRevenue =
-          ordersData?.reduce((sum, order) => sum + order.amount / 100, 0) || 0;
+        const totalOrders = ordersData.length;
+        const pendingOrders = ordersData.filter(
+          (o) => o.status === 'pending'
+        ).length;
+        const totalRevenue = ordersData.reduce(
+          (sum, order) => sum + (order.amount ?? 0) / 100,
+          0
+        );
         const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
         setStats({
@@ -149,10 +110,10 @@ const AdminDashboard = () => {
         const activities = [];
 
         // Recent orders
-        ordersData?.slice(0, 3).forEach((order) => {
+        ordersData.slice(0, 3).forEach((order) => {
           activities.push({
             type: 'order',
-            message: `Nouvelle commande #${order.id.slice(-8)} de ${formatPrice(order.amount / 100)}`,
+            message: `Nouvelle commande #${order.id.slice(-8)} de ${formatPrice((order.amount ?? 0) / 100)}`,
             time: formatTimeAgo(order.created_at),
           });
         });
@@ -212,8 +173,8 @@ const AdminDashboard = () => {
     }
   };
 
-  const getStatusText = (status: string): string => {
-    switch (status) {
+  const getStatusText = (status: string | null | undefined): string => {
+    switch (status ?? '') {
       case 'pending':
         return 'En attente';
       case 'processing':
@@ -225,7 +186,7 @@ const AdminDashboard = () => {
       case 'cancelled':
         return 'Annulée';
       default:
-        return status;
+        return status ?? '—';
     }
   };
 
@@ -384,7 +345,7 @@ const AdminDashboard = () => {
                           {getStatusText(order.status)}
                         </Badge>
                         <p className="font-semibold text-foreground">
-                          {formatPrice(order.amount / 100)}
+                          {formatPrice((order.amount ?? 0) / 100)}
                         </p>
                       </div>
                     </div>

@@ -36,3 +36,43 @@ export async function unsubscribeNewsletterByEmail(
     .eq('email', normalized);
   if (error) throw error;
 }
+
+export async function fetchNewsletterSubscriptionsAdmin(limit = 100) {
+  const { data, error } = await supabase
+    .from('newsletter_subscriptions')
+    .select('id, email, status, source, created_at, unsubscribed_at')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function countStaleAbandonedCheckoutSessions(
+  oneHourAgoIso: string
+) {
+  const { count, error } = await supabase
+    .from('checkout_sessions')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'in_progress')
+    .lt('updated_at', oneHourAgoIso)
+    .not('personal_info', 'is', null)
+    .gte('last_completed_step', 1);
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export async function fetchEmailLogsSince(
+  createdAfterIso: string,
+  limit = 200
+) {
+  const { data, error } = await supabase
+    .from('email_logs')
+    .select(
+      'id, template_name, recipient_email, status, sent_at, created_at, error_message'
+    )
+    .gte('created_at', createdAfterIso)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}

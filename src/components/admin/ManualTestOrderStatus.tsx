@@ -18,7 +18,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { TestTube } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { updateOrderLegacyStatusColumnOnly } from '@/services/adminOrdersApi';
 import { toast } from 'sonner';
 
 export const ManualTestOrderStatus = () => {
@@ -37,12 +37,7 @@ export const ManualTestOrderStatus = () => {
 
     try {
       // Update the order status to trigger the notification
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('id', orderId);
-
-      if (error) throw error;
+      await updateOrderLegacyStatusColumnOnly(orderId, newStatus);
 
       toast.success(
         `Statut de la commande mis à jour vers "${newStatus}". Un email de notification a été envoyé.`

@@ -127,3 +127,8 @@ export async function fetchDefaultShippingAddress(userId: string) {
   if (error) throw error;
   return data;
 }
+
+export async function deleteProfileByUserId(userId: string): Promise<void> {
+  const { error } = await supabase.from('profiles').delete().eq('id', userId);
+  if (error) throw error;
+}

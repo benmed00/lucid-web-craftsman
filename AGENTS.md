@@ -2,6 +2,8 @@
 
 **Maintained narrative docs:** [docs/README.md](docs/README.md) (platform behavior, standards, E2E matrix).
 
+**SPA API modules:** [`src/services/README.md`](src/services/README.md) · full conventions: [docs/PLATFORM.md — Client API layer](docs/PLATFORM.md#client-api-layer).
+
 ## Cursor Cloud specific instructions
 
 ### Services overview
@@ -25,7 +27,7 @@ See `package.json` scripts. Script implementations live under [`scripts/`](scrip
 - **E2E (CI-style):** `npm run e2e:ci` — full suite; **`npm run e2e:ci:smoke`** — only `@smoke`; **`npm run e2e:checkout`** — checkout flow + persistence + DB hydration specs; **`npm run e2e:ci:shard`** — same as `e2e:ci` but runs a slice of spec files (`CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL`, see [`scripts/cypress-e2e-shard.mjs`](scripts/cypress-e2e-shard.mjs)). Smoke/full workflows start mock API (3001) + Vite (8080) then Cypress. GitHub **E2E**: **smoke** on PR/push to `main`; **full** uses **two parallel shard jobs** on schedule/`workflow_dispatch` (see [`docs/E2E-COVERAGE.md`](docs/E2E-COVERAGE.md)).
 - **Typecheck:** `npm run type:check` — `tsc --noEmit` for `tsconfig.app.json`, `tsconfig.node.json`, and `cypress/tsconfig.json` (also runs in `npm run validate`).
 - **Lint:** `npm run lint -- --max-warnings 9999` (0 errors expected; many pre-existing warnings)
-- **Format check:** `npm run format:check`
+- **Format:** **`npm run format`** — apply Prettier (writes files); run before commit when you want the tree aligned with CI. **`npm run format:check`** — verify only (also part of `npm run validate`). See [docs/STANDARDS.md — Verifications](docs/STANDARDS.md#verifications-local-before-pr).
 - **Unit tests:** `npm run test:unit` (Vitest; excludes RLS tests)
 - **Create-payment (Deno):** `npm run test:create-payment` (quick); **`npm run verify:create-payment`** matches CI (`deno check` + `deno lint` + `deno test` with **frozen** `supabase/functions/deno.lock`). Requires [Deno](https://deno.land/) v2 on `PATH`. GitHub Actions: workflow **Deno create-payment** on the same branches as root **CI** (`main`, `feat/backend-migration-and-cypress`, `yakov/git-state-cleanup`).
 - **Build:** `npm run build`
