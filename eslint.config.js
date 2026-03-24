@@ -119,6 +119,26 @@ export default tseslint.config(
     },
   },
 
+  // Leaf UI: Supabase client only via src/services (and AuthContext).
+  {
+    files: ['src/pages/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}'],
+    ignores: ['**/*.{test,spec}.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@/integrations/supabase/client',
+              message:
+                'Import Supabase through src/services/* or shared hooks; keep pages/components free of the raw client.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // Prettier must be last to override conflicting rules
   eslintConfigPrettier
 );

@@ -13,7 +13,11 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Bell, Globe, Shield, Palette, Settings } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchUserPreferencesRow,
+  updateUserPreferencesByRowId,
+  upsertDefaultUserPreferences,
+} from '@/services/userPreferencesApi';
 import { toast } from 'sonner';
 
 interface UserPreferences {
@@ -50,13 +54,10 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
 
   const loadPreferences = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
+      let data: Awaited<ReturnType<typeof fetchUserPreferencesRow>> = null;
+      try {
+        data = await fetchUserPreferencesRow(user.id);
+      } catch (error) {
         console.error('Error loading preferences:', error);
         setLoadError(true);
         return;
@@ -65,7 +66,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
       if (!data) {
         await createDefaultPreferences();
       } else {
-        setPreferences(data);
+        setPreferences(data as UserPreferences);
       }
     } catch (error: any) {
       console.error('Error loading preferences:', error);
@@ -75,27 +76,8 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
 
   const createDefaultPreferences = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .upsert(
-          {
-            user_id: user.id,
-            email_notifications: true,
-            marketing_emails: false,
-            order_updates: true,
-            language: 'fr',
-            currency: 'EUR',
-            privacy_profile_public: false,
-            privacy_show_email: false,
-            privacy_show_phone: false,
-          },
-          { onConflict: 'user_id', ignoreDuplicates: true }
-        )
-        .select()
-        .single();
-
-      if (error) throw error;
-      setPreferences(data);
+      const data = await upsertDefaultUserPreferences(user.id);
+      setPreferences(data as UserPreferences);
     } catch (error: any) {
       console.error('Error creating default preferences:', error);
       toast.error('Erreur lors de la création des préférences par défaut');
@@ -107,16 +89,12 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .update(updates)
-        .eq('id', preferences.id)
-        .select()
-        .single();
+      const data = await updateUserPreferencesByRowId(
+        preferences.id,
+        updates as Record<string, unknown>
+      );
 
-      if (error) throw error;
-
-      setPreferences(data);
+      setPreferences(data as UserPreferences);
       toast.success('Préférences mises à jour');
     } catch (error: any) {
       console.error('Error updating preferences:', error);

@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Truck, Send, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
 
 interface SendShippingEmailButtonProps {
@@ -65,26 +65,24 @@ export const SendShippingEmailButton = ({
         image: item.product_snapshot?.images?.[0],
       }));
 
-      const { data, error } = await supabase.functions.invoke(
+      const { data, error } = await invokeSupabaseEdgeFunction(
         'send-shipping-notification',
         {
-          body: {
-            orderId,
-            customerEmail: formData.customerEmail,
-            customerName: formData.customerName,
-            trackingNumber: formData.trackingNumber || undefined,
-            carrier: formData.carrier || undefined,
-            trackingUrl: formData.trackingUrl || undefined,
-            estimatedDelivery: formData.estimatedDelivery || undefined,
-            shippingAddress: {
-              address: formData.address,
-              city: formData.city,
-              postalCode: formData.postalCode,
-              country: formData.country,
-            },
-            items,
+          orderId,
+          customerEmail: formData.customerEmail,
+          customerName: formData.customerName,
+          trackingNumber: formData.trackingNumber || undefined,
+          carrier: formData.carrier || undefined,
+          trackingUrl: formData.trackingUrl || undefined,
+          estimatedDelivery: formData.estimatedDelivery || undefined,
+          shippingAddress: {
+            address: formData.address,
+            city: formData.city,
+            postalCode: formData.postalCode,
+            country: formData.country,
           },
-        }
+          items,
+        } as Record<string, unknown>
       );
 
       if (error) throw error;

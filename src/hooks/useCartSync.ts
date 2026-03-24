@@ -2,7 +2,20 @@
 // Dedicated hook for cart synchronization logic - extracted from cartStore
 
 import { useCallback, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
+import {
+  deleteAllCartItemsForUser,
+  deleteCartItemRow,
+  fetchCartItemRowsForUser,
+  getAuthUser,
+  onAuthStateChange,
+  upsertCartItemRow,
+} from '@/services/cartApi';
+import {
+  invalidateCartServerLinesQuery,
+  persistUserCartLinesViaRpc,
+} from '@/services/cartSyncService';
+import { isSupabaseCartSyncAllowed } from '@/lib/cart/cartSyncPolicy';
 import { ProductService } from '@/services/productService';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import {
@@ -13,7 +26,6 @@ import {
 } from '@/lib/storage/safeStorage';
 import { toast } from 'sonner';
 import { getBusinessRules } from '@/hooks/useBusinessRules';
-
 // Types
 export interface CartItem {
   id: number;
@@ -112,18 +124,15 @@ export async function loadAndMergeSupabaseCart(
   userId: string,
   localItems: CartItem[]
 ): Promise<CartItem[]> {
+  if (!userId) return localItems;
+
   const { maxQuantityPerItem } = getCartLimits();
 
-  const { data, error } = await supabase
-    .from('cart_items')
-    .select('product_id, quantity')
-    .eq('user_id', userId);
+  const rows = await fetchCartItemRowsForUser(userId);
 
-  if (error) throw error;
-
-  const supabaseItems = data
+  const supabaseItems = rows
     ? await loadProductsForCartItems(
-        data.map((item) => ({
+        rows.map((item) => ({
           id: item.product_id as number,
           quantity: item.quantity,
         }))
@@ -155,29 +164,43 @@ export async function loadAndMergeSupabaseCart(
 }
 
 // Save cart to Supabase using atomic RPC
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export async function saveToSupabase(
   userId: string,
   items: CartItem[],
   isOnline: boolean
 ): Promise<boolean> {
+  if (!userId || !UUID_RE.test(userId)) {
+    console.warn(
+      '[CartSync] Skipping Supabase sync: invalid or missing userId'
+    );
+    safeSetItem(StorageKeys.CART, { items }, { ttl: StorageTTL.WEEK });
+    return false;
+  }
+
   if (!isOnline) {
     safeSetItem(StorageKeys.CART, { items }, { ttl: StorageTTL.WEEK });
     return false;
   }
 
-  try {
-    // Single atomic RPC call — no race conditions
-    const { error } = await supabase.rpc('sync_cart', {
-      p_user_id: userId,
-      p_items: JSON.stringify(
-        items.map((item) => ({
-          product_id: item.id,
-          quantity: item.quantity,
-        }))
-      ),
-    });
+  if (!isSupabaseCartSyncAllowed()) {
+    safeSetItem(StorageKeys.CART, { items }, { ttl: StorageTTL.WEEK });
+    return false;
+  }
 
-    if (error) throw error;
+  try {
+    const sanitizedItems = items
+      .filter((item) => Number.isFinite(item.id) && item.id > 0)
+      .map((item) => ({
+        product_id: Math.floor(item.id),
+        quantity: Math.max(0, Math.floor(item.quantity)),
+      }))
+      .filter((item) => item.quantity > 0);
+
+    // Single atomic RPC call — no race conditions (JSON array → jsonb)
+    await persistUserCartLinesViaRpc(userId, sanitizedItems as unknown as Json);
     return true;
   } catch (error) {
     console.error('Failed to save to Supabase:', error);
@@ -251,25 +274,18 @@ export async function processOfflineQueue(
         switch (op.type) {
           case 'ADD':
             if (op.productId && op.quantity) {
-              await supabase.from('cart_items').upsert(
-                {
-                  user_id: userId,
-                  product_id: op.productId,
-                  quantity: op.quantity,
-                },
-                { onConflict: 'user_id,product_id' }
-              );
+              await upsertCartItemRow({
+                user_id: userId,
+                product_id: op.productId,
+                quantity: op.quantity,
+              });
               succeeded = true;
             }
             break;
 
           case 'REMOVE':
             if (op.productId) {
-              await supabase
-                .from('cart_items')
-                .delete()
-                .eq('user_id', userId)
-                .eq('product_id', op.productId);
+              await deleteCartItemRow(userId, op.productId);
               succeeded = true;
             }
             break;
@@ -277,27 +293,20 @@ export async function processOfflineQueue(
           case 'UPDATE':
             if (op.productId && op.quantity !== undefined) {
               if (op.quantity <= 0) {
-                await supabase
-                  .from('cart_items')
-                  .delete()
-                  .eq('user_id', userId)
-                  .eq('product_id', op.productId);
+                await deleteCartItemRow(userId, op.productId);
               } else {
-                await supabase.from('cart_items').upsert(
-                  {
-                    user_id: userId,
-                    product_id: op.productId,
-                    quantity: op.quantity,
-                  },
-                  { onConflict: 'user_id,product_id' }
-                );
+                await upsertCartItemRow({
+                  user_id: userId,
+                  product_id: op.productId,
+                  quantity: op.quantity,
+                });
               }
               succeeded = true;
             }
             break;
 
           case 'CLEAR':
-            await supabase.from('cart_items').delete().eq('user_id', userId);
+            await deleteAllCartItemsForUser(userId);
             succeeded = true;
             break;
         }
@@ -315,6 +324,10 @@ export async function processOfflineQueue(
     } else {
       failedOps.push(op);
     }
+  }
+
+  if (successCount > 0) {
+    invalidateCartServerLinesQuery(userId);
   }
 
   return { success: successCount, failed: failedOps };
@@ -356,7 +369,7 @@ export function useCartSyncListeners(
     // Auth state listener
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         onAuthChange(session.user.id);
       } else if (event === 'SIGNED_OUT') {
@@ -391,9 +404,7 @@ export function useDebouncedCartSave(
     timeoutRef.current = setTimeout(async () => {
       if (!isInitialized) return;
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await getAuthUser();
 
       if (user && isOnline) {
         await saveToSupabase(user.id, itemsRef.current, isOnline);

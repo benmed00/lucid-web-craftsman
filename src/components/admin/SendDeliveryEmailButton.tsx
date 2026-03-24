@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CheckCircle, Send, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
 
 interface SendDeliveryEmailButtonProps {
@@ -60,18 +60,16 @@ export const SendDeliveryEmailButton = ({
         quantity: item.quantity,
       }));
 
-      const { data, error } = await supabase.functions.invoke(
+      const { data, error } = await invokeSupabaseEdgeFunction(
         'send-delivery-confirmation',
         {
-          body: {
-            orderId,
-            customerEmail: formData.customerEmail,
-            customerName: formData.customerName,
-            deliveryDate: formData.deliveryDate,
-            items,
-            reviewUrl: `https://rifrawstraw.com/products`,
-          },
-        }
+          orderId,
+          customerEmail: formData.customerEmail,
+          customerName: formData.customerName,
+          deliveryDate: formData.deliveryDate,
+          items,
+          reviewUrl: `https://rifrawstraw.com/products`,
+        } as Record<string, unknown>
       );
 
       if (error) throw error;

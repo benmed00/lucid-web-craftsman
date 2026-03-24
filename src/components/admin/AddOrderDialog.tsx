@@ -18,7 +18,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { ShoppingCart, Plus, Trash2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
+import {
+  fetchActiveProductsForManualOrder,
+  fetchProfilesIdFullNameOrdered,
+  insertManualAdminOrder,
+  insertOrderItemsRows,
+} from '@/services/adminOrderUiApi';
 import { toast } from 'sonner';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { useCurrency } from '@/stores/currencyStore';
@@ -57,12 +63,7 @@ export const AddOrderDialog = ({ onOrderAdded }: AddOrderDialogProps) => {
 
   const fetchCustomers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .order('full_name');
-
-      if (error) throw error;
+      const data = await fetchProfilesIdFullNameOrdered();
       setCustomers(data || []);
     } catch (error) {
       console.error('Error fetching customers:', error);
@@ -72,13 +73,7 @@ export const AddOrderDialog = ({ onOrderAdded }: AddOrderDialogProps) => {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
+      const data = await fetchActiveProductsForManualOrder();
       setProducts(data || []);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -159,20 +154,13 @@ export const AddOrderDialog = ({ onOrderAdded }: AddOrderDialogProps) => {
       const totalAmount = Math.round(calculateTotal() * 100); // Convert to cents
 
       // Create order
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: formData.customer_id,
-          amount: totalAmount,
-          status: formData.status,
-          currency: formData.currency.toLowerCase(),
-        })
-        .select()
-        .single();
+      const orderData = await insertManualAdminOrder({
+        user_id: formData.customer_id,
+        amount: totalAmount,
+        status: formData.status,
+        currency: formData.currency.toLowerCase(),
+      });
 
-      if (orderError) throw orderError;
-
-      // Create order items
       const orderItemsToInsert = orderItems.map((item) => ({
         order_id: orderData.id,
         product_id: item.product_id,
@@ -182,14 +170,10 @@ export const AddOrderDialog = ({ onOrderAdded }: AddOrderDialogProps) => {
         product_snapshot: {
           name: item.product_name,
           price: item.unit_price,
-        },
+        } as Json,
       }));
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItemsToInsert);
-
-      if (itemsError) throw itemsError;
+      await insertOrderItemsRows(orderItemsToInsert);
 
       toast.success('Commande créée avec succès');
 

@@ -92,9 +92,8 @@ export default defineConfig(({ mode }) => ({
     environment: 'jsdom',
     setupFiles: './src/tests/setupTests.ts',
     css: true,
-    // Vitest UI API defaults to port 51204 / IPv6 — Windows often reserves ranges that
-    // include 51204 (EACCES). Use loopback + a high port outside typical exclusions.
-    api: { host: '127.0.0.1', port: 24678 },
+    // Do not set `test.api` here: a fixed port makes `vitest run` fail when 24678 is
+    // taken (e.g. `npm run test:ui`). UI uses loopback + 24678 via `test:ui` in package.json.
   },
 
   // ==========================================================================

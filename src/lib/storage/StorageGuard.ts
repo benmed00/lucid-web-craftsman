@@ -96,6 +96,16 @@ const STORE_SCHEMAS: StoreSchema[] = [
     },
   },
   {
+    key: 'cart-storage-elevated',
+    version: 2,
+    defaultState: { items: [], offlineQueue: [] },
+    validate: (state: unknown) => {
+      if (!state || typeof state !== 'object') return false;
+      const s = state as Record<string, unknown>;
+      return Array.isArray(s.items);
+    },
+  },
+  {
     key: 'currency-storage',
     version: 1,
     defaultState: { currency: 'EUR' },

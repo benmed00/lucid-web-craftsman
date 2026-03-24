@@ -37,7 +37,10 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchAdminInventoryProducts,
+  updateAdminProductInventory,
+} from '@/services/adminInventoryApi';
 import { useCurrency } from '@/stores/currencyStore';
 
 interface Product {
@@ -71,14 +74,7 @@ const AdminInventory = () => {
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['admin-inventory'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select(
-          'id, name, category, stock_quantity, min_stock_level, is_available, price, images'
-        )
-        .order('name');
-
-      if (error) throw error;
+      const data = await fetchAdminInventoryProducts();
       return data as Product[];
     },
   });
@@ -129,16 +125,12 @@ const AdminInventory = () => {
 
   const handleUpdateStock = async (updates: StockUpdate) => {
     try {
-      const { error } = await supabase
-        .from('products')
-        .update({
-          stock_quantity: updates.newQuantity,
-          min_stock_level: updates.minLevel,
-          is_available: updates.isAvailable,
-        })
-        .eq('id', updates.productId);
-
-      if (error) throw error;
+      await updateAdminProductInventory({
+        productId: updates.productId,
+        stock_quantity: updates.newQuantity,
+        min_stock_level: updates.minLevel,
+        is_available: updates.isAvailable,
+      });
 
       queryClient.invalidateQueries({ queryKey: ['admin-inventory'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });

@@ -17,7 +17,13 @@ import {
   Clock,
   User,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchAuditLogsRecent,
+  fetchSecurityEventsRecent,
+  resolveSecurityEventById,
+  subscribeAuditLogsAll,
+  subscribeSecurityEventsAll,
+} from '@/services/adminSecurityMonitoringApi';
 import { useToast } from '@/hooks/use-toast';
 
 interface SecurityEvent {
@@ -57,13 +63,7 @@ export const SecurityMonitoringCard = () => {
 
   const fetchSecurityEvents = async () => {
     try {
-      const { data, error } = await supabase
-        .from('security_events')
-        .select('*')
-        .order('detected_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
+      const data = await fetchSecurityEventsRecent(50);
 
       setSecurityEvents((data || []) as SecurityEvent[]);
 
@@ -91,13 +91,7 @@ export const SecurityMonitoringCard = () => {
 
   const fetchAuditLogs = async () => {
     try {
-      const { data, error } = await supabase
-        .from('audit_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
+      const data = await fetchAuditLogsRecent(100);
       setAuditLogs((data || []) as AuditLog[]);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
@@ -111,15 +105,7 @@ export const SecurityMonitoringCard = () => {
 
   const resolveSecurityEvent = async (eventId: string) => {
     try {
-      const { error } = await supabase
-        .from('security_events')
-        .update({
-          resolved_at: new Date().toISOString(),
-          resolution_notes: "Résolu par l'administrateur",
-        })
-        .eq('id', eventId);
-
-      if (error) throw error;
+      await resolveSecurityEventById(eventId);
 
       toast({
         title: 'Événement résolu',
@@ -146,28 +132,16 @@ export const SecurityMonitoringCard = () => {
 
     loadData();
 
-    // Set up real-time subscriptions
-    const securityEventsSubscription = supabase
-      .channel('security_events_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'security_events' },
-        () => fetchSecurityEvents()
-      )
-      .subscribe();
-
-    const auditLogsSubscription = supabase
-      .channel('audit_logs_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'audit_logs' },
-        () => fetchAuditLogs()
-      )
-      .subscribe();
+    const unsubSec = subscribeSecurityEventsAll(() => {
+      void fetchSecurityEvents();
+    });
+    const unsubAudit = subscribeAuditLogsAll(() => {
+      void fetchAuditLogs();
+    });
 
     return () => {
-      securityEventsSubscription.unsubscribe();
-      auditLogsSubscription.unsubscribe();
+      unsubSec();
+      unsubAudit();
     };
   }, []);
 

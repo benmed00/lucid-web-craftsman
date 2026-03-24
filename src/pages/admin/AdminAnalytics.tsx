@@ -28,7 +28,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchOrdersAnalyticsCurrentPeriod,
+  fetchOrdersAnalyticsPreviousPeriod,
+} from '@/services/adminAnalyticsApi';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -105,27 +108,15 @@ const AdminAnalytics = () => {
       }
 
       // Fetch current period data
-      const { data: currentOrders, error: currentError } = await supabase
-        .from('orders')
-        .select(
-          `
-          id, amount, status, created_at, user_id,
-          order_items(id, product_id, quantity, unit_price, total_price, product_snapshot)
-        `
-        )
-        .gte('created_at', startDate.toISOString())
-        .lte('created_at', endDate.toISOString());
+      const currentOrders = await fetchOrdersAnalyticsCurrentPeriod(
+        startDate.toISOString(),
+        endDate.toISOString()
+      );
 
-      if (currentError) throw currentError;
-
-      // Fetch previous period data
-      const { data: previousOrders, error: previousError } = await supabase
-        .from('orders')
-        .select('id, amount, status, created_at, user_id')
-        .gte('created_at', previousStartDate.toISOString())
-        .lte('created_at', previousEndDate.toISOString());
-
-      if (previousError) throw previousError;
+      const previousOrders = await fetchOrdersAnalyticsPreviousPeriod(
+        previousStartDate.toISOString(),
+        previousEndDate.toISOString()
+      );
 
       // Calculate metrics
       const paidStatuses = ['paid', 'processing', 'shipped', 'delivered'];

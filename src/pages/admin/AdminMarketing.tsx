@@ -20,7 +20,15 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Mail, Percent, Trash2, Send, Target, TrendingUp } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchActiveNewsletterSubscriptions,
+  rpcGetCustomerSegments,
+} from '@/services/adminMarketingApi';
+import {
+  deleteDiscountCouponById,
+  fetchDiscountCouponsOrdered,
+  insertDiscountCouponReturning,
+} from '@/services/adminPromoCodesApi';
 import { toast } from 'sonner';
 
 interface NewsletterSubscription {
@@ -93,27 +101,11 @@ const AdminMarketing = () => {
     try {
       setLoading(true);
 
-      // Fetch newsletter subscriptions
-      const { data: newsletters, error: newsletterError } = await supabase
-        .from('newsletter_subscriptions')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
+      const newsletters = await fetchActiveNewsletterSubscriptions();
+      const coupons = await fetchDiscountCouponsOrdered();
 
-      if (newsletterError) throw newsletterError;
-
-      // Fetch discount coupons
-      const { data: coupons, error: couponsError } = await supabase
-        .from('discount_coupons')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (couponsError) throw couponsError;
-
-      // Get customer segments using the database function
-      const { data: segmentsData, error: segmentsError } = await supabase.rpc(
-        'get_customer_segments'
-      );
+      const { data: segmentsData, error: segmentsError } =
+        await rpcGetCustomerSegments();
 
       let customerSegments: CustomerSegment[] = [];
 
@@ -205,24 +197,16 @@ const AdminMarketing = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('discount_coupons')
-        .insert({
-          code: newCoupon.code.toUpperCase(),
-          type: newCoupon.type,
-          value: newCoupon.value,
-          minimum_order_amount: newCoupon.minimumAmount || null,
-          valid_from: newCoupon.validFrom || new Date().toISOString(),
-          valid_until: newCoupon.validUntil || null,
-          usage_limit: newCoupon.usageLimit
-            ? Number(newCoupon.usageLimit)
-            : null,
-          is_active: true,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
+      const data = await insertDiscountCouponReturning({
+        code: newCoupon.code.toUpperCase(),
+        type: newCoupon.type,
+        value: newCoupon.value,
+        minimum_order_amount: newCoupon.minimumAmount || null,
+        valid_from: newCoupon.validFrom || new Date().toISOString(),
+        valid_until: newCoupon.validUntil || null,
+        usage_limit: newCoupon.usageLimit ? Number(newCoupon.usageLimit) : null,
+        is_active: true,
+      });
 
       setMarketingData((prev) => ({
         ...prev,
@@ -273,12 +257,7 @@ const AdminMarketing = () => {
       return;
 
     try {
-      const { error } = await supabase
-        .from('discount_coupons')
-        .delete()
-        .eq('id', couponId);
-
-      if (error) throw error;
+      await deleteDiscountCouponById(couponId);
 
       setMarketingData((prev) => ({
         ...prev,

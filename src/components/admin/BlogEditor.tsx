@@ -9,7 +9,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchBlogPostTranslationsByPostId,
+  insertBlogPostTranslationRow,
+  updateBlogPostTranslationRow,
+} from '@/services/adminBlogApi';
 import MDEditor from '@uiw/react-md-editor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -194,11 +198,7 @@ export default function BlogEditor({
     queryKey: ['blog-post-translations', editingPostId],
     queryFn: async () => {
       if (!editingPostId) return [];
-      const { data, error } = await supabase
-        .from('blog_post_translations')
-        .select('*')
-        .eq('blog_post_id', editingPostId);
-      if (error) throw error;
+      const data = await fetchBlogPostTranslationsByPostId(editingPostId);
       return data as BlogTranslationRow[];
     },
     enabled: mode === 'edit' && !!editingPostId,
@@ -249,18 +249,9 @@ export default function BlogEditor({
       };
 
       if (translation.id) {
-        // Update existing
-        const { error } = await supabase
-          .from('blog_post_translations')
-          .update(translationData)
-          .eq('id', translation.id);
-        if (error) throw error;
+        await updateBlogPostTranslationRow(translation.id, translationData);
       } else {
-        // Insert new
-        const { error } = await supabase
-          .from('blog_post_translations')
-          .insert(translationData);
-        if (error) throw error;
+        await insertBlogPostTranslationRow(translationData);
       }
     },
     onSuccess: (_, { locale }) => {

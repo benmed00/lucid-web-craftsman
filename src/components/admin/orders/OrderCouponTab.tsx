@@ -19,7 +19,13 @@ import {
   validateCouponForOrder,
   type OrderCouponUsage,
 } from '@/services/orderService';
-import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
+import {
+  bumpDiscountCouponUsageCountByCode,
+  fetchOrderAmountAndOrderStatus,
+  fetchOrderMetadataOnly,
+  updateOrderMetadataAmountAndTimestamp,
+} from '@/services/adminOrderUiApi';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface OrderCouponTabProps {
@@ -40,11 +46,7 @@ export function OrderCouponTab({ orderId }: OrderCouponTabProps) {
       setIsLoading(true);
       try {
         // Get order info
-        const { data: order } = await supabase
-          .from('orders')
-          .select('amount, order_status')
-          .eq('id', orderId)
-          .single();
+        const order = await fetchOrderAmountAndOrderStatus(orderId);
 
         if (order) {
           setOrderAmount(order.amount || 0);
@@ -82,14 +84,7 @@ export function OrderCouponTab({ orderId }: OrderCouponTabProps) {
         return;
       }
 
-      // Update order metadata with coupon info
-      const { data: order, error: fetchError } = await supabase
-        .from('orders')
-        .select('metadata')
-        .eq('id', orderId)
-        .single();
-
-      if (fetchError) throw fetchError;
+      const order = await fetchOrderMetadataOnly(orderId);
 
       const currentMetadata = (order?.metadata || {}) as Record<
         string,
@@ -102,32 +97,14 @@ export function OrderCouponTab({ orderId }: OrderCouponTabProps) {
         coupon_used_at: new Date().toISOString(),
       };
 
-      const { error: updateError } = await supabase
-        .from('orders')
-        .update({
-          metadata: newMetadata,
-          amount: orderAmount - Math.round(validation.discount * 100),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', orderId);
+      await updateOrderMetadataAmountAndTimestamp({
+        orderId,
+        metadata: newMetadata as Json,
+        amount: orderAmount - Math.round(validation.discount * 100),
+      });
 
-      if (updateError) throw updateError;
-
-      // Increment coupon usage count - update directly
       try {
-        await supabase
-          .from('discount_coupons')
-          .update({
-            usage_count:
-              (
-                await supabase
-                  .from('discount_coupons')
-                  .select('usage_count')
-                  .eq('code', newCouponCode.toUpperCase())
-                  .single()
-              ).data?.usage_count || 0 + 1,
-          })
-          .eq('code', newCouponCode.toUpperCase());
+        await bumpDiscountCouponUsageCountByCode(newCouponCode);
       } catch {
         // Ignore if update fails
       }
@@ -152,13 +129,7 @@ export function OrderCouponTab({ orderId }: OrderCouponTabProps) {
 
   const handleRemoveCoupon = async () => {
     try {
-      const { data: order, error: fetchError } = await supabase
-        .from('orders')
-        .select('metadata')
-        .eq('id', orderId)
-        .single();
-
-      if (fetchError) throw fetchError;
+      const order = await fetchOrderMetadataOnly(orderId);
 
       const currentMetadata = (order?.metadata || {}) as Record<
         string,
@@ -176,16 +147,11 @@ export function OrderCouponTab({ orderId }: OrderCouponTabProps) {
         }
       });
 
-      const { error: updateError } = await supabase
-        .from('orders')
-        .update({
-          metadata: cleanMetadata as unknown as null, // Cast for Supabase JSON type
-          amount: orderAmount + discountAmount,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', orderId);
-
-      if (updateError) throw updateError;
+      await updateOrderMetadataAmountAndTimestamp({
+        orderId,
+        metadata: cleanMetadata as Json,
+        amount: orderAmount + discountAmount,
+      });
 
       toast.success('Code promo retiré');
       setCouponUsage(null);

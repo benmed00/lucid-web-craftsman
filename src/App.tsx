@@ -9,7 +9,8 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { setNavigate } from '@/lib/navigation';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import { useWebVitals } from '@/hooks/useWebVitals';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { lazy, Suspense, useEffect } from 'react';
@@ -56,7 +57,17 @@ const CGV = lazyWithRetry(() => import('./pages/CGV'));
 const Cart = lazyWithRetry(() => import('./pages/Cart'));
 const Checkout = lazyWithRetry(() => import('./pages/Checkout'));
 const Contact = lazyWithRetry(() => import('./pages/Contact'));
-const PaymentSuccess = lazyWithRetry(() => import('./pages/PaymentSuccess'));
+const OrderConfirmationEntry = lazyWithRetry(
+  () => import('./pages/OrderConfirmationEntry')
+);
+const OrderConfirmation = lazyWithRetry(
+  () => import('./pages/OrderConfirmation')
+);
+
+function LegacyPaymentSuccessRedirect() {
+  const { search } = useLocation();
+  return <Navigate to={`/order-confirmation${search}`} replace />;
+}
 const Wishlist = lazyWithRetry(() => import('./pages/Wishlist'));
 const FAQ = lazyWithRetry(() => import('./pages/FAQ'));
 const Auth = lazyWithRetry(() => import('./pages/Auth'));
@@ -157,31 +168,6 @@ const PageLoadingFallback = () => (
     </div>
   </div>
 );
-
-// Optimized React Query configuration
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 10, // 10 minutes cache retention
-      retry: 2,
-      retryDelay: (attempt: number) =>
-        Math.min(1000 * Math.pow(2, attempt), 8000),
-      refetchOnWindowFocus: false,
-      refetchOnMount: true,
-      refetchOnReconnect: true,
-      // IMPORTANT: 'always' ensures queries fire even when navigator.onLine
-      // is false (common in iframe/preview environments like Lovable).
-      // Without this, React Query pauses all queries and the UI shows
-      // infinite skeletons / SafetyTimeout errors.
-      networkMode: 'always',
-    },
-    mutations: {
-      retry: 0,
-      networkMode: 'always',
-    },
-  },
-});
 
 const basePath: string = '/';
 
@@ -344,9 +330,21 @@ const App = () => {
                       />
                       <Route
                         path="/payment-success"
+                        element={<LegacyPaymentSuccessRedirect />}
+                      />
+                      <Route
+                        path="/order-confirmation"
                         element={
                           <Suspense fallback={<PageLoadingFallback />}>
-                            <PaymentSuccess />
+                            <OrderConfirmationEntry />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/order-confirmation/:orderReference"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <OrderConfirmation />
                           </Suspense>
                         }
                       />

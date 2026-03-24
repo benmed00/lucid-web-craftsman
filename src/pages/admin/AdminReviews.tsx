@@ -5,41 +5,26 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  deleteProductReviewById,
+  fetchAllProductReviewsForAdmin,
+  updateProductReviewApproval,
+  type ProductReviewRow,
+} from '@/services/reviewsApi';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-interface ReviewWithProduct {
-  id: string;
-  product_id: number;
-  user_id: string;
-  rating: number;
-  title?: string;
-  comment?: string;
-  helpful_count: number;
-  is_verified_purchase: boolean;
-  is_approved: boolean;
-  created_at: string;
-  updated_at: string;
-  reported_count: number;
-}
-
 export const AdminReviews = () => {
-  const [reviews, setReviews] = useState<ReviewWithProduct[]>([]);
+  const [reviews, setReviews] = useState<ProductReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
 
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('product_reviews')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setReviews(data || []);
+      const data = await fetchAllProductReviewsForAdmin();
+      setReviews(data);
     } catch (error) {
       console.error('Error fetching reviews:', error);
       toast.error('Erreur lors du chargement des avis');
@@ -50,12 +35,7 @@ export const AdminReviews = () => {
 
   const updateReviewStatus = async (reviewId: string, isApproved: boolean) => {
     try {
-      const { error } = await supabase
-        .from('product_reviews')
-        .update({ is_approved: isApproved })
-        .eq('id', reviewId);
-
-      if (error) throw error;
+      await updateProductReviewApproval(reviewId, isApproved);
 
       setReviews((prevReviews) =>
         prevReviews.map((review) =>
@@ -78,12 +58,7 @@ export const AdminReviews = () => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cet avis ?')) return;
 
     try {
-      const { error } = await supabase
-        .from('product_reviews')
-        .delete()
-        .eq('id', reviewId);
-
-      if (error) throw error;
+      await deleteProductReviewById(reviewId);
 
       setReviews((prevReviews) =>
         prevReviews.filter((review) => review.id !== reviewId)
@@ -115,11 +90,14 @@ export const AdminReviews = () => {
     </div>
   );
 
-  const ReviewCard = ({ review }: { review: ReviewWithProduct }) => {
-    const timeAgo = formatDistanceToNow(new Date(review.created_at), {
-      addSuffix: true,
-      locale: fr,
-    });
+  const ReviewCard = ({ review }: { review: ProductReviewRow }) => {
+    const timeAgo = formatDistanceToNow(
+      new Date(review.created_at ?? review.updated_at ?? 0),
+      {
+        addSuffix: true,
+        locale: fr,
+      }
+    );
 
     return (
       <Card>
@@ -134,9 +112,9 @@ export const AdminReviews = () => {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">
-                      Produit #{review.product_id}
+                      Produit #{review.product_id ?? '—'}
                     </span>
-                    {review.is_verified_purchase && (
+                    {review.is_verified_purchase === true && (
                       <Badge variant="secondary" className="text-xs">
                         Achat vérifié
                       </Badge>
@@ -151,10 +129,14 @@ export const AdminReviews = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant={review.is_approved ? 'default' : 'secondary'}>
-                  {review.is_approved ? 'Approuvé' : 'En attente'}
+                <Badge
+                  variant={
+                    review.is_approved === true ? 'default' : 'secondary'
+                  }
+                >
+                  {review.is_approved === true ? 'Approuvé' : 'En attente'}
                 </Badge>
-                {review.reported_count > 0 && (
+                {(review.reported_count ?? 0) > 0 && (
                   <Badge
                     variant="destructive"
                     className="flex items-center gap-1"
@@ -178,12 +160,12 @@ export const AdminReviews = () => {
 
             {/* Stats */}
             <div className="text-sm text-muted-foreground">
-              {review.helpful_count} personnes ont trouvé cet avis utile
+              {review.helpful_count ?? 0} personnes ont trouvé cet avis utile
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-2 pt-4 border-t">
-              {!review.is_approved ? (
+              {review.is_approved !== true ? (
                 <Button
                   size="sm"
                   onClick={() => updateReviewStatus(review.id, true)}
@@ -216,8 +198,8 @@ export const AdminReviews = () => {
     );
   };
 
-  const pendingReviews = reviews.filter((r) => !r.is_approved);
-  const approvedReviews = reviews.filter((r) => r.is_approved);
+  const pendingReviews = reviews.filter((r) => r.is_approved !== true);
+  const approvedReviews = reviews.filter((r) => r.is_approved === true);
   const reportedReviews = reviews.filter((r) => r.reported_count > 0);
 
   if (loading) {

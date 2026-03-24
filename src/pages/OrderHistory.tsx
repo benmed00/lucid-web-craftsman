@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchCustomerOrdersDetailed } from '@/services/orderService';
 
 import PageFooter from '@/components/PageFooter';
 import { Card, CardContent } from '@/components/ui/card';
@@ -92,33 +92,7 @@ const OrderHistory = () => {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from('orders')
-        .select(
-          `
-          *,
-          order_items (
-            id,
-            product_id,
-            quantity,
-            unit_price,
-            total_price,
-            product_snapshot
-          ),
-          order_status_history (
-            id,
-            new_status,
-            previous_status,
-            created_at,
-            reason_message,
-            changed_by
-          )
-        `
-        )
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchCustomerOrdersDetailed(user.id);
 
       setOrders((data as Order[]) || []);
     } catch (error) {

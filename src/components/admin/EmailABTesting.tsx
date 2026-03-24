@@ -38,7 +38,11 @@ import {
   Trophy,
   Mail,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchEmailAbTestsRecent,
+  insertEmailAbTestRow,
+  updateEmailAbTestById,
+} from '@/services/adminEmailAbTestsApi';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -83,13 +87,7 @@ const EmailABTesting: React.FC = () => {
   const fetchABTests = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('email_ab_tests')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
+      const data = await fetchEmailAbTestsRecent(20);
       setAbTests(data || []);
     } catch (error: any) {
       console.error('Error fetching A/B tests:', error);
@@ -111,7 +109,7 @@ const EmailABTesting: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('email_ab_tests').insert({
+      await insertEmailAbTestRow({
         name: formName,
         template_name: formTemplate,
         variant_a_subject: formSubjectA,
@@ -119,8 +117,6 @@ const EmailABTesting: React.FC = () => {
         split_percentage: formSplit[0],
         status: 'draft',
       });
-
-      if (error) throw error;
 
       toast.success('Test A/B créé avec succès');
       setDialogOpen(false);
@@ -149,12 +145,7 @@ const EmailABTesting: React.FC = () => {
         updateData.completed_at = new Date().toISOString();
       }
 
-      const { error } = await supabase
-        .from('email_ab_tests')
-        .update(updateData)
-        .eq('id', id);
-
-      if (error) throw error;
+      await updateEmailAbTestById(id, updateData);
       toast.success(`Test ${status === 'active' ? 'activé' : 'terminé'}`);
       fetchABTests();
     } catch (error: any) {
@@ -164,16 +155,11 @@ const EmailABTesting: React.FC = () => {
 
   const declareWinner = async (id: string, winner: 'a' | 'b') => {
     try {
-      const { error } = await supabase
-        .from('email_ab_tests')
-        .update({
-          winner,
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-        })
-        .eq('id', id);
-
-      if (error) throw error;
+      await updateEmailAbTestById(id, {
+        winner,
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+      });
       toast.success(`Variante ${winner.toUpperCase()} déclarée gagnante`);
       fetchABTests();
     } catch (error: any) {

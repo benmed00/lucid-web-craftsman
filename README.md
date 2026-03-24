@@ -203,14 +203,18 @@ rif-raw-straw/
 │   │   └── 📄 *.tsx            # Pages principales
 │   ├── 📁 hooks/               # Hooks React personnalisés
 │   ├── 📁 context/             # Contexts React (état global)
-│   ├── 📁 services/            # Services API et logique métier
+│   ├── 📁 services/            # API Supabase / Edge / mock — services/README.md
 │   ├── 📁 shared/              # Types et interfaces partagés
 │   ├── 📁 utils/               # Fonctions utilitaires
 │   ├── 📁 data/                # Données statiques et mock
 │   ├── 📁 config/              # Configuration de l'application
 │   └── 📄 main.tsx             # Point d'entrée de l'application
 ├── 📁 cypress/                 # Tests E2E (specs, support) — voir cypress/README.md
-├── 📁 docs/                    # Documentation (ex. E2E-COVERAGE.md)
+├── 📁 docs/                    # Index: docs/README.md (platform, standards, E2E matrix)
+├── 📁 scripts/                 # Scripts npm (OpenAPI, Postman, Cypress shard…) — scripts/README.md
+├── 📁 openapi/                 # OpenAPI généré (Edge Functions) — openapi/README.md
+├── 📁 postman/                 # Collection Postman générée — postman/README.md
+├── 📁 supabase/                # Migrations, config, Edge Functions — supabase/README.md
 ├── 📄 cypress.config.ts        # Configuration Cypress
 ├── 📄 tailwind.config.ts       # Configuration Tailwind CSS
 ├── 📄 vite.config.ts           # Configuration Vite
@@ -285,10 +289,13 @@ npm run e2e:ci
 npm run e2e:ci:smoke
 ```
 
-**Documentation E2E :**
+**Documentation technique :**
 
-- **[`cypress/README.md`](cypress/README.md)** — runbook (commandes, CI GitHub, secrets, dépannage ; résumé FR en tête).
-- **[`docs/E2E-COVERAGE.md`](docs/E2E-COVERAGE.md)** — couverture, limites, jobs CI.
+- **[`docs/README.md`](docs/README.md)** — index (liens vers tout le reste).
+- **[`docs/PLATFORM.md`](docs/PLATFORM.md)** — architecture, checkout / paiement, isolation vendeur vs admin, **inventaire des routes**.
+- **[`docs/STANDARDS.md`](docs/STANDARDS.md)** — qualité (lint, tests, accessibilité, sécurité, OpenAPI / Postman).
+- **[`cypress/README.md`](cypress/README.md)** — runbook E2E (commandes, CI, secrets, dépannage ; résumé FR en tête).
+- **[`docs/E2E-COVERAGE.md`](docs/E2E-COVERAGE.md)** — couverture Cypress, limites, jobs CI.
 
 Pour les scénarios avec authentification réelle, copier `cypress.env.example.json` vers `cypress.env.json` (voir runbook). En CI, des secrets dépôt `CYPRESS_*` peuvent être configurés (voir `cypress.config.ts`).
 

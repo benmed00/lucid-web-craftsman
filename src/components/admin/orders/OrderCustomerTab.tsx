@@ -24,7 +24,10 @@ import {
   getOrderCustomerInfo,
   type OrderCustomerInfo,
 } from '@/services/orderService';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchOrderCustomerAddressFields,
+  fetchRecentOrdersForUser,
+} from '@/services/adminOrderUiApi';
 
 interface OrderCustomerTabProps {
   orderId: string;
@@ -101,19 +104,15 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
     async function fetchData() {
       setIsLoading(true);
       try {
-        // Get order data including shipping_address and metadata
-        const { data: order, error: orderError } = await supabase
-          .from('orders')
-          .select('user_id, shipping_address, billing_address, metadata')
-          .eq('id', orderId)
-          .single();
-
-        if (orderError) {
+        let orderData: OrderData;
+        try {
+          orderData = (await fetchOrderCustomerAddressFields(
+            orderId
+          )) as OrderData;
+        } catch (orderError) {
           console.error('Error fetching order:', orderError);
           return;
         }
-
-        const orderData = order as OrderData;
 
         // If no user_id, this is a guest order
         if (!orderData?.user_id) {
@@ -150,13 +149,7 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
         setCustomer(customerInfo);
 
         // Get recent orders
-        const { data: orders } = await supabase
-          .from('orders')
-          .select('id, created_at, amount, order_status')
-          .eq('user_id', orderData.user_id)
-          .order('created_at', { ascending: false })
-          .limit(5);
-
+        const orders = await fetchRecentOrdersForUser(orderData.user_id, 5);
         setRecentOrders(orders || []);
       } catch (error) {
         console.error('Error fetching customer data:', error);

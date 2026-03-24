@@ -32,6 +32,30 @@ export const cleanupAuthState = () => {
   });
 };
 
+const clearCheckoutContextState = () => {
+  const keys = [
+    'checkout_form_data',
+    'checkout_form_data_elevated',
+    'checkout_current_step',
+    'checkout_current_step_elevated',
+    'checkout_completed_steps',
+    'checkout_completed_steps_elevated',
+    'checkout_timestamp',
+    'checkout_timestamp_elevated',
+    'checkout_applied_coupon',
+    'checkout_applied_coupon_elevated',
+    'checkout_payment_pending',
+  ];
+
+  [localStorage, sessionStorage].forEach((storage) => {
+    try {
+      keys.forEach((key) => storage.removeItem(key));
+    } catch {
+      // ignore storage errors
+    }
+  });
+};
+
 // ============= Types =============
 import type { Json } from '@/integrations/supabase/types';
 
@@ -199,6 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isInitialized: true,
         });
         initializeWishlistStore(null);
+        clearCheckoutContextState();
         return;
       }
 
@@ -224,6 +249,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (event === 'SIGNED_OUT') {
         // Clear wishlist store
         initializeWishlistStore(null);
+        clearCheckoutContextState();
 
         profileCache.invalidate();
         setAuthState((prev) => ({ ...prev, profile: null }));
@@ -235,6 +261,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .then((names) => names.forEach((name) => caches.delete(name)));
         }
       } else if (event === 'SIGNED_IN') {
+        clearCheckoutContextState();
         // Invalidate any cached HTML by purging SW caches (images will re-cache on demand)
         if ('caches' in self) {
           caches.keys().then((names) => {

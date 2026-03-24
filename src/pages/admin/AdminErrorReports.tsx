@@ -39,7 +39,10 @@ import {
   ZoomIn,
   ExternalLink,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchSupportErrorReportsAll,
+  updateSupportErrorReport,
+} from '@/services/errorReportsApi';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from 'sonner';
 
@@ -122,13 +125,7 @@ const AdminErrorReports: React.FC = () => {
   const fetchErrorReports = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('support_tickets_error_reports')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
+      const data = await fetchSupportErrorReportsAll();
       setReports(data || []);
       calculateStats(data || []);
       extractAvailableTags(data || []);
@@ -219,12 +216,7 @@ const AdminErrorReports: React.FC = () => {
 
   const updateReportStatus = async (reportId: string, status: string) => {
     try {
-      const { error } = await supabase
-        .from('support_tickets_error_reports')
-        .update({ status })
-        .eq('id', reportId);
-
-      if (error) throw error;
+      await updateSupportErrorReport(reportId, { status });
 
       // Update local state
       setReports((prev) =>
@@ -242,12 +234,7 @@ const AdminErrorReports: React.FC = () => {
 
   const updateReportTags = async (reportId: string, tags: string[]) => {
     try {
-      const { error } = await supabase
-        .from('support_tickets_error_reports')
-        .update({ tags })
-        .eq('id', reportId);
-
-      if (error) throw error;
+      await updateSupportErrorReport(reportId, { tags });
 
       // Update local state
       setReports((prev) =>
@@ -869,12 +856,9 @@ const AdminErrorReports: React.FC = () => {
                     defaultValue={selectedReport.resolution_notes || ''}
                     onBlur={async (e) => {
                       try {
-                        const { error } = await supabase
-                          .from('support_tickets_error_reports')
-                          .update({ resolution_notes: e.target.value })
-                          .eq('id', selectedReport.id);
-
-                        if (error) throw error;
+                        await updateSupportErrorReport(selectedReport.id, {
+                          resolution_notes: e.target.value,
+                        });
                         toast.success('Resolution notes updated');
                       } catch (error) {
                         toast.error('Failed to update notes');

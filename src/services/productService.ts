@@ -258,3 +258,59 @@ export class ProductService {
     }
   }
 }
+
+/** Raw DB rows for `useOptimizedData` / UnifiedCache (not normalized `Product`). */
+export type OptimizedProductsFilters = {
+  category?: string;
+  featured?: boolean;
+  search?: string;
+  limit?: number;
+};
+
+export async function fetchActiveProductsRaw(
+  filters?: OptimizedProductsFilters
+): Promise<Record<string, unknown>[]> {
+  let built = supabase.from('products').select('*').eq('is_active', true);
+
+  if (filters?.category) {
+    built = built.eq('category', filters.category);
+  }
+  if (filters?.featured) {
+    built = built.eq('is_featured', true);
+  }
+  if (filters?.search) {
+    built = built.or(
+      `name.ilike.%${filters.search}%, description.ilike.%${filters.search}%`
+    );
+  }
+  if (filters?.limit) {
+    built = built.limit(filters.limit);
+  }
+  built = built.order('created_at', { ascending: false });
+
+  const { data, error } = await built;
+  if (error) throw error;
+  return (data ?? []) as Record<string, unknown>[];
+}
+
+/** Legacy mock API (`mockApiService`): all rows, newest first (no `is_active` filter). */
+export async function fetchAllProductsByCreatedAtDescRaw(): Promise<unknown[]> {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchProductRowByIdAnyStatus(
+  id: number
+): Promise<unknown | null> {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if (error) return null;
+  return data;
+}

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { signInWithPasswordForReauth } from '@/services/authApi';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
@@ -21,10 +21,10 @@ export const useReauthentication = () => {
       setIsReauthenticating(true);
 
       try {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: user.email,
-          password,
-        });
+        const { error } = await signInWithPasswordForReauth(
+          user.email,
+          password
+        );
 
         if (error) {
           return { success: false, error: 'Mot de passe incorrect' };

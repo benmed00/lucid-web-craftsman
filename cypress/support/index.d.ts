@@ -7,6 +7,8 @@ declare global {
       tab(): Chainable<unknown>;
       addProductToCart(options?: { productId?: number }): Chainable<void>;
       stubCheckoutIntercepts(): Chainable<void>;
+      stubProductsCatalog(): Chainable<void>;
+      stubElevatedStorefrontRpcs(): Chainable<void>;
       resetDatabase(): Chainable<void>;
       loginAs(role?: 'customer' | 'admin'): Chainable<void>;
       mockSupabaseResponse(

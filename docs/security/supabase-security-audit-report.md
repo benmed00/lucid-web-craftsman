@@ -1,5 +1,7 @@
 # Supabase Security Audit Report (Production Baseline)
 
+**Doc hub:** [Documentation index](../README.md) · [Pre-deploy checklist](./supabase-production-security-checklist.md).
+
 Date: 2026-03-12  
 Scope: Supabase database schema/policies/migrations, storage policies, edge functions, frontend key handling, and deployment headers.
 

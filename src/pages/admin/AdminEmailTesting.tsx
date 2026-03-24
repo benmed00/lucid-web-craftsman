@@ -48,7 +48,8 @@ import {
   FlaskConical,
   Calendar,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchEmailLogsAdmin } from '@/services/adminEmailLogsApi';
+import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
 import { format, subDays, startOfDay, eachDayOfInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -339,13 +340,7 @@ const AdminEmailTesting = () => {
   const fetchEmailLogs = async () => {
     setLoadingLogs(true);
     try {
-      const { data, error } = await supabase
-        .from('email_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
+      const data = await fetchEmailLogsAdmin(100);
       setEmailLogs(data || []);
     } catch (error: any) {
       console.error('Error fetching email logs:', error);
@@ -375,11 +370,9 @@ const AdminEmailTesting = () => {
         previewOnly: true,
       };
 
-      const { data, error } = await supabase.functions.invoke(
+      const { data, error } = await invokeSupabaseEdgeFunction(
         template.functionName,
-        {
-          body: testData,
-        }
+        testData as Record<string, unknown>
       );
 
       if (error) throw error;
@@ -414,11 +407,9 @@ const AdminEmailTesting = () => {
         customerEmail: testEmail,
       };
 
-      const { data, error } = await supabase.functions.invoke(
+      const { data, error } = await invokeSupabaseEdgeFunction(
         template.functionName,
-        {
-          body: testData,
-        }
+        testData as Record<string, unknown>
       );
 
       if (error) throw error;
@@ -470,11 +461,9 @@ const AdminEmailTesting = () => {
                 log.order_id || `RETRY-${Date.now().toString().slice(-8)}`,
             };
 
-      const { data, error } = await supabase.functions.invoke(
+      const { data, error } = await invokeSupabaseEdgeFunction(
         template.functionName,
-        {
-          body: retryData,
-        }
+        retryData as Record<string, unknown>
       );
 
       if (error) throw error;

@@ -35,7 +35,7 @@ import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { useAuditLog } from '@/hooks/useAuditLog';
-import { supabase } from '@/integrations/supabase/client';
+import { updateAdminProductReturnRow } from '@/services/adminProductsApi';
 import { usePagination } from '@/hooks/usePagination';
 import TablePagination from '@/components/admin/TablePagination';
 
@@ -141,14 +141,10 @@ const AdminProducts = () => {
         return;
       } else {
         // Update existing product
-        const { data, error } = await supabase
-          .from('products')
-          .update(productData)
-          .eq('id', editingProduct?.id)
-          .select()
-          .single();
-
-        if (error) throw error;
+        const data = await updateAdminProductReturnRow(
+          editingProduct!.id,
+          productData as Record<string, unknown>
+        );
 
         // Update local state
         setProducts((prev) =>

@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { validateCouponCodeRpc } from '@/services/checkoutApi';
 import { validatePromoCode } from '@/utils/checkoutValidation';
 import { toast } from 'sonner';
 import {
@@ -137,15 +137,17 @@ export function usePromoCode({
     setError('');
 
     try {
-      const { data, error: fetchError } = await supabase
-        .rpc('validate_coupon_code', { p_code: sanitizedCode })
-        .maybeSingle();
-
-      if (fetchError) {
-        throw new DatabaseError(
-          `Failed to validate promo code: ${fetchError.message}`,
-          fetchError.code
-        );
+      let data: unknown;
+      try {
+        data = await validateCouponCodeRpc(sanitizedCode);
+      } catch (fetchError: unknown) {
+        const msg =
+          fetchError instanceof Error ? fetchError.message : String(fetchError);
+        const code =
+          fetchError && typeof fetchError === 'object' && 'code' in fetchError
+            ? String((fetchError as { code?: string }).code)
+            : undefined;
+        throw new DatabaseError(`Failed to validate promo code: ${msg}`, code);
       }
 
       if (!data) {
@@ -159,15 +161,22 @@ export function usePromoCode({
         return;
       }
 
-      // Apply coupon
+      const row = data as Record<string, unknown>;
       const coupon: DiscountCoupon = {
-        id: data.id,
-        code: data.code,
-        type: data.type as 'percentage' | 'fixed',
-        value: data.value,
-        minimum_order_amount: data.minimum_order_amount,
-        maximum_discount_amount: data.maximum_discount_amount,
-        includes_free_shipping: data.includes_free_shipping ?? undefined,
+        id: String(row.id),
+        code: String(row.code),
+        type: row.type as 'percentage' | 'fixed',
+        value: Number(row.value),
+        minimum_order_amount:
+          row.minimum_order_amount != null
+            ? Number(row.minimum_order_amount)
+            : null,
+        maximum_discount_amount:
+          row.maximum_discount_amount != null
+            ? Number(row.maximum_discount_amount)
+            : null,
+        includes_free_shipping:
+          (row.includes_free_shipping as boolean | undefined) ?? undefined,
       };
 
       setAppliedCoupon(coupon);

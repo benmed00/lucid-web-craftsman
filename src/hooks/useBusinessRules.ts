@@ -2,7 +2,7 @@
 // Hook to load and cache business rules from app_settings
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchAppSettingValueByKey } from '@/services/appSettingsApi';
 
 // Default values (fallback if DB fetch fails)
 export const DEFAULT_BUSINESS_RULES: BusinessRules = {
@@ -62,22 +62,11 @@ let fetchPromise: Promise<BusinessRules> | null = null;
 
 async function fetchBusinessRules(): Promise<BusinessRules> {
   try {
-    const { data, error } = await supabase
-      .from('app_settings')
-      .select('setting_value')
-      .eq('setting_key', 'business_rules')
-      .maybeSingle();
-
-    if (error) {
-      console.warn(
-        'Failed to fetch business rules, using defaults:',
-        error.message
-      );
-      return DEFAULT_BUSINESS_RULES;
-    }
+    const settingValue = await fetchAppSettingValueByKey('business_rules');
 
     // Merge with defaults to ensure all keys exist
-    const fetchedRules = (data?.setting_value as Partial<BusinessRules>) || {};
+    const fetchedRules =
+      (settingValue as Partial<BusinessRules> | null | undefined) || {};
 
     return {
       cart: { ...DEFAULT_BUSINESS_RULES.cart, ...fetchedRules.cart },

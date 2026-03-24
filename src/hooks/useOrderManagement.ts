@@ -1,12 +1,22 @@
 import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchAdminOrderById,
+  fetchAdminOrdersFiltered,
+  fetchCustomerOrdersSummaryList,
+  fetchOrderAnomaliesRows,
+  fetchOrderStatsProjectionRows,
+  fetchOrderStatusHistoryRows,
+  fetchValidTransitionsFromStatus,
+  rpcGetOrderCustomerView,
+  rpcResolveOrderAnomaly,
+  rpcUpdateOrderStatus,
+  subscribeOrdersTableUpdates,
+} from '@/services/adminOrdersApi';
+import { fetchAuthUserOrNull } from '@/services/profileApi';
 import { toast } from 'sonner';
 import type {
   OrderStatus,
-  OrderStatusHistory,
-  OrderAnomaly,
-  OrderStateTransition,
   OrderFilters,
   OrderStats,
   CustomerOrderView,
@@ -58,45 +68,7 @@ export function useOrders(filters?: OrderFilters) {
   return useQuery({
     queryKey: ['orders', filters],
     queryFn: async () => {
-      let query = supabase
-        .from('orders')
-        .select(
-          `
-          *,
-          order_items (
-            id, product_id, quantity, unit_price, total_price, product_snapshot
-          )
-        `
-        )
-        .order('created_at', { ascending: false });
-
-      // Apply filters
-      if (filters?.status?.length) {
-        query = query.in('order_status', filters.status);
-      }
-      if (filters?.hasAnomaly !== undefined) {
-        query = query.eq('has_anomaly', filters.hasAnomaly);
-      }
-      if (filters?.requiresAttention !== undefined) {
-        query = query.eq('requires_attention', filters.requiresAttention);
-      }
-      if (filters?.dateFrom) {
-        query = query.gte('created_at', filters.dateFrom);
-      }
-      if (filters?.dateTo) {
-        query = query.lte('created_at', filters.dateTo);
-      }
-      if (filters?.carrier) {
-        query = query.eq('carrier', filters.carrier);
-      }
-      if (filters?.search) {
-        query = query.or(
-          `id.ilike.%${filters.search}%,tracking_number.ilike.%${filters.search}%`
-        );
-      }
-
-      const { data, error } = await query.limit(100);
-      if (error) throw error;
+      const data = await fetchAdminOrdersFiltered(filters);
       return data as DbOrder[];
     },
     staleTime: 30 * 1000, // 30 seconds
@@ -110,20 +82,7 @@ export function useOrder(orderId: string | null) {
     queryFn: async () => {
       if (!orderId) return null;
 
-      const { data, error } = await supabase
-        .from('orders')
-        .select(
-          `
-          *,
-          order_items (
-            id, product_id, quantity, unit_price, total_price, product_snapshot
-          )
-        `
-        )
-        .eq('id', orderId)
-        .single();
-
-      if (error) throw error;
+      const data = await fetchAdminOrderById(orderId);
       return data as DbOrder;
     },
     enabled: !!orderId,
@@ -137,14 +96,7 @@ export function useOrderHistory(orderId: string | null) {
     queryFn: async () => {
       if (!orderId) return [];
 
-      const { data, error } = await supabase
-        .from('order_status_history')
-        .select('*')
-        .eq('order_id', orderId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as OrderStatusHistory[];
+      return fetchOrderStatusHistoryRows(orderId);
     },
     enabled: !!orderId,
   });
@@ -158,21 +110,7 @@ export function useOrderAnomalies(
   return useQuery({
     queryKey: ['order-anomalies', orderId, unresolvedOnly],
     queryFn: async () => {
-      let query = supabase
-        .from('order_anomalies')
-        .select('*')
-        .order('detected_at', { ascending: false });
-
-      if (orderId) {
-        query = query.eq('order_id', orderId);
-      }
-      if (unresolvedOnly) {
-        query = query.is('resolved_at', null);
-      }
-
-      const { data, error } = await query.limit(100);
-      if (error) throw error;
-      return data as OrderAnomaly[];
+      return fetchOrderAnomaliesRows(orderId, unresolvedOnly);
     },
     enabled: orderId !== '',
   });
@@ -185,13 +123,7 @@ export function useValidTransitions(currentStatus: OrderStatus | null) {
     queryFn: async () => {
       if (!currentStatus) return [];
 
-      const { data, error } = await supabase
-        .from('order_state_transitions')
-        .select('*')
-        .eq('from_status', currentStatus);
-
-      if (error) throw error;
-      return data as OrderStateTransition[];
+      return fetchValidTransitionsFromStatus(currentStatus);
     },
     enabled: !!currentStatus,
   });
@@ -202,11 +134,7 @@ export function useOrderStats() {
   return useQuery({
     queryKey: ['order-stats'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('order_status, has_anomaly, requires_attention');
-
-      if (error) throw error;
+      const data = await fetchOrderStatsProjectionRows();
 
       const stats: OrderStats = {
         total: data.length,
@@ -248,15 +176,13 @@ export function useUpdateOrderStatus() {
       reasonCode?: string;
       reasonMessage?: string;
     }) => {
-      // Call the database function for validated transitions
-      const { data, error } = await supabase.rpc('update_order_status', {
-        p_order_id: orderId,
-        p_new_status: newStatus,
-        p_actor: 'admin',
-        p_actor_user_id: (await supabase.auth.getUser()).data.user?.id,
-        p_reason_code: reasonCode || null,
-        p_reason_message: reasonMessage || null,
-        p_metadata: {},
+      const actor = await fetchAuthUserOrNull();
+      const { data, error } = await rpcUpdateOrderStatus({
+        orderId,
+        newStatus,
+        actorUserId: actor?.id,
+        reasonCode,
+        reasonMessage,
       });
 
       if (error) throw error;
@@ -310,13 +236,12 @@ export function useResolveAnomaly() {
       resolutionNotes: string;
       resolutionAction?: string;
     }) => {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-
-      const { data, error } = await supabase.rpc('resolve_order_anomaly', {
-        p_anomaly_id: anomalyId,
-        p_resolved_by: userId,
-        p_resolution_notes: resolutionNotes,
-        p_resolution_action: resolutionAction || null,
+      const user = await fetchAuthUserOrNull();
+      const { data, error } = await rpcResolveOrderAnomaly({
+        anomalyId,
+        resolvedBy: user?.id,
+        resolutionNotes,
+        resolutionAction: resolutionAction || null,
       });
 
       if (error) throw error;
@@ -341,13 +266,13 @@ export function useCustomerOrder(orderId: string | null, locale = 'fr') {
     queryFn: async () => {
       if (!orderId) return null;
 
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (!userId) throw new Error('Not authenticated');
+      const user = await fetchAuthUserOrNull();
+      if (!user?.id) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase.rpc('get_order_customer_view', {
-        p_order_id: orderId,
-        p_user_id: userId,
-        p_locale: locale,
+      const { data, error } = await rpcGetOrderCustomerView({
+        orderId,
+        userId: user.id,
+        locale,
       });
 
       if (error) throw error;
@@ -366,31 +291,10 @@ export function useCustomerOrders() {
   return useQuery({
     queryKey: ['customer-orders'],
     queryFn: async () => {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (!userId) throw new Error('Not authenticated');
+      const user = await fetchAuthUserOrNull();
+      if (!user?.id) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
-        .from('orders')
-        .select(
-          `
-          id,
-          order_status,
-          amount,
-          currency,
-          tracking_number,
-          carrier,
-          estimated_delivery,
-          created_at,
-          order_items (
-            id, quantity, product_snapshot
-          )
-        `
-        )
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
+      return fetchCustomerOrdersSummaryList(user.id);
     },
   });
 }
@@ -400,35 +304,17 @@ export function useOrderRealtimeUpdates(orderId?: string) {
   const queryClient = useQueryClient();
 
   const subscribe = useCallback(() => {
-    const channel = supabase
-      .channel('order-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'orders',
-          filter: orderId ? `id=eq.${orderId}` : undefined,
-        },
-        (payload) => {
-          // Invalidate relevant queries
-          queryClient.invalidateQueries({ queryKey: ['orders'] });
-          queryClient.invalidateQueries({
-            queryKey: ['order', payload.new.id],
-          });
-          queryClient.invalidateQueries({ queryKey: ['order-stats'] });
+    return subscribeOrdersTableUpdates(orderId, (payload) => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({
+        queryKey: ['order', payload.new.id],
+      });
+      queryClient.invalidateQueries({ queryKey: ['order-stats'] });
 
-          // Show toast for important status changes
-          if (payload.old.order_status !== payload.new.order_status) {
-            toast.info(`Commande ${payload.new.id.slice(0, 8)} mise à jour`);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      if (payload.old.order_status !== payload.new.order_status) {
+        toast.info(`Commande ${payload.new.id.slice(0, 8)} mise à jour`);
+      }
+    });
   }, [orderId, queryClient]);
 
   return { subscribe };

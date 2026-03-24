@@ -1,0 +1,52 @@
+{
+  "summary": "Create Stripe Checkout Session (server-verified cart)",
+  "description": "Requires valid CSRF headers from the storefront. Prices are verified server-side; see create-payment/lib/checkout-schema.ts.",
+  "requestBody": {
+    "required": true,
+    "content": {
+      "application/json": {
+        "schema": {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": {
+              "type": "array",
+              "maxItems": 100,
+              "items": {
+                "type": "object",
+                "required": ["product", "quantity"],
+                "properties": {
+                  "product": {
+                    "type": "object",
+                    "required": ["id"],
+                    "properties": {
+                      "id": { "type": "number" },
+                      "price": { "type": "number" }
+                    }
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            },
+            "customerInfo": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "discount": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": true
+            },
+            "guestSession": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

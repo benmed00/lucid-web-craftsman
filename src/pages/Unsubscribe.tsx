@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Mail, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
+import { unsubscribeNewsletterByEmail } from '@/services/newsletterApi';
 import { useTranslation } from 'react-i18next';
 import Navigation from '@/components/Navigation';
 import PageFooter from '@/components/PageFooter';
@@ -24,16 +24,7 @@ const Unsubscribe = () => {
 
     setStatus('loading');
     try {
-      const { error } = await supabase
-        .from('newsletter_subscriptions')
-        .update({
-          status: 'unsubscribed',
-          unsubscribed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('email', email.toLowerCase().trim());
-
-      if (error) throw error;
+      await unsubscribeNewsletterByEmail(email);
       setStatus('success');
     } catch (err) {
       console.error('Unsubscribe error:', err);

@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Truck, Send, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
 
 export const TestShippingEmailButton = () => {
@@ -57,11 +57,9 @@ export const TestShippingEmailButton = () => {
         ],
       };
 
-      const { data, error } = await supabase.functions.invoke(
+      const { data, error } = await invokeSupabaseEdgeFunction(
         'send-shipping-notification',
-        {
-          body: testData,
-        }
+        testData as Record<string, unknown>
       );
 
       if (error) throw error;

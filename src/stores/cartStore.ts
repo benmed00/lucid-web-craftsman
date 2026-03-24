@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
-import { supabase } from '@/integrations/supabase/client';
+import { getAuthUser, onAuthStateChange } from '@/services/cartApi';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import {
   safeSetItem,
@@ -23,6 +23,12 @@ import {
   processOfflineQueue,
   createQueueOperation,
 } from '@/hooks/useCartSync';
+import {
+  resolveCartSyncPolicy,
+  invalidateCartSyncPolicyCache,
+  isSupabaseCartSyncAllowed,
+  getCartPersistStorageName,
+} from '@/lib/cart/cartSyncPolicy';
 
 // Re-export types
 export type { CartItem, QueueOperation };
@@ -223,9 +229,15 @@ export const useCartStore = create<CartState>()(
               return;
             }
 
-            const {
-              data: { user },
-            } = await supabase.auth.getUser();
+            if (!isSupabaseCartSyncAllowed()) {
+              toast.info('Panier local', {
+                description:
+                  'La synchronisation cloud est désactivée pour les comptes administrateur sur la boutique.',
+              });
+              return;
+            }
+
+            const user = await getAuthUser();
             if (!user) return;
 
             set({ isSyncing: true });
@@ -287,6 +299,7 @@ export const useCartStore = create<CartState>()(
         }),
         {
           name: 'cart-storage',
+          skipHydration: true,
           version: 2,
           partialize: (state) => ({
             items: state.items.map((item) => ({
@@ -487,11 +500,9 @@ export function initializeCartStore() {
       const { isOnline, items, isInitialized } = useCartStore.getState();
       if (!isInitialized) return;
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await getAuthUser();
 
-      if (user && isOnline) {
+      if (user && isOnline && isSupabaseCartSyncAllowed()) {
         await saveToSupabase(user.id, items, isOnline);
       } else {
         safeSetItem(StorageKeys.CART, { items }, { ttl: StorageTTL.WEEK });
@@ -508,8 +519,12 @@ export function initializeCartStore() {
     toast.success('Connexion rétablie');
 
     const { isAuthenticated, offlineQueue } = useCartStore.getState();
-    if (isAuthenticated && offlineQueue.length > 0) {
-      supabase.auth.getUser().then(({ data: { user } }) => {
+    if (
+      isAuthenticated &&
+      offlineQueue.length > 0 &&
+      isSupabaseCartSyncAllowed()
+    ) {
+      void getAuthUser().then((user) => {
         if (user) {
           processOfflineQueue(user.id, offlineQueue).then(({ failed }) => {
             if (failed.length === 0) {
@@ -528,52 +543,73 @@ export function initializeCartStore() {
   });
 
   // Auth state listener
-  supabase.auth.onAuthStateChange(async (event, session) => {
+  onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
+      await resolveCartSyncPolicy(session.user.id);
+      useCartStore.persist.setOptions({
+        name: getCartPersistStorageName(),
+      });
+      await useCartStore.persist.rehydrate();
+
       useCartStore.setState({ isAuthenticated: true, isSyncing: true });
 
       try {
-        const localItems = useCartStore.getState().items;
-        const mergedItems = await loadAndMergeSupabaseCart(
-          session.user.id,
-          localItems
-        );
-        useCartStore.setState({ items: mergedItems });
+        if (isSupabaseCartSyncAllowed()) {
+          const localItems = useCartStore.getState().items;
+          const mergedItems = await loadAndMergeSupabaseCart(
+            session.user.id,
+            localItems
+          );
+          useCartStore.setState({ items: mergedItems });
 
-        if (mergedItems.length > 0) {
-          await saveToSupabase(session.user.id, mergedItems, true);
-          safeRemoveItem(StorageKeys.CART);
+          if (mergedItems.length > 0) {
+            await saveToSupabase(session.user.id, mergedItems, true);
+            safeRemoveItem(StorageKeys.CART);
+          }
         }
       } finally {
         useCartStore.setState({ isSyncing: false });
       }
     } else if (event === 'SIGNED_OUT') {
+      invalidateCartSyncPolicyCache();
+      await resolveCartSyncPolicy(null);
+      useCartStore.persist.setOptions({ name: 'cart-storage' });
       useCartStore.setState({
         isAuthenticated: false,
         items: [],
-        isInitialized: false,
+        offlineQueue: [],
+        isInitialized: true,
       });
       safeRemoveItem(StorageKeys.CART);
       useCartStore.getState()._clearQueue();
     }
   });
 
-  // Initial load
+  // Initial load — resolve admin vs customer cart bucket before rehydrating persist
   (async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getAuthUser();
+
+    await resolveCartSyncPolicy(user?.id ?? null);
+    useCartStore.persist.setOptions({
+      name: getCartPersistStorageName(),
+    });
+    await useCartStore.persist.rehydrate();
 
     if (user) {
       useCartStore.setState({ isAuthenticated: true, isSyncing: true });
       try {
-        const localItems = await loadLocalCart();
-        const mergedItems = await loadAndMergeSupabaseCart(user.id, localItems);
-        useCartStore.setState({ items: mergedItems });
+        if (isSupabaseCartSyncAllowed()) {
+          const localItems = await loadLocalCart();
+          const mergedItems = await loadAndMergeSupabaseCart(
+            user.id,
+            localItems
+          );
+          useCartStore.setState({ items: mergedItems });
 
-        if (mergedItems.length > 0) {
-          await saveToSupabase(user.id, mergedItems, true);
-          safeRemoveItem(StorageKeys.CART);
+          if (mergedItems.length > 0) {
+            await saveToSupabase(user.id, mergedItems, true);
+            safeRemoveItem(StorageKeys.CART);
+          }
         }
       } finally {
         useCartStore.setState({ isSyncing: false });

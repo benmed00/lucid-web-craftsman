@@ -1,0 +1,36 @@
+{
+  "summary": "Look up order by Stripe Checkout session id",
+  "requestBody": {
+    "required": true,
+    "content": {
+      "application/json": {
+        "schema": {
+          "type": "object",
+          "required": ["session_id"],
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Stripe Checkout Session id (cs_...)"
+            }
+          }
+        }
+      }
+    }
+  },
+  "responses": {
+    "200": {
+      "description": "found=false hides unauthorized rows; otherwise order subset",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "found": { "type": "boolean" }
+            },
+            "additionalProperties": true
+          }
+        }
+      }
+    }
+  }
+}

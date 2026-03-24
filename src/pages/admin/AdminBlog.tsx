@@ -6,7 +6,12 @@
 
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  deleteBlogPostById,
+  fetchAllBlogPostsAdminOrdered,
+  insertBlogPostRow,
+  updateBlogPostRow,
+} from '@/services/adminBlogApi';
 import {
   Card,
   CardContent,
@@ -111,12 +116,7 @@ export default function AdminBlog() {
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['admin-blog-posts'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchAllBlogPostsAdminOrdered();
       return data as BlogPost[];
     },
   });
@@ -136,12 +136,11 @@ export default function AdminBlog() {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: BlogPostFormData) => {
-      const { error } = await supabase.from('blog_posts').insert({
+      await insertBlogPostRow({
         ...data,
         published_at:
           data.status === 'published' ? new Date().toISOString() : null,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
@@ -177,11 +176,7 @@ export default function AdminBlog() {
         updateData.published_at = new Date().toISOString();
       }
 
-      const { error } = await supabase
-        .from('blog_posts')
-        .update(updateData)
-        .eq('id', id);
-      if (error) throw error;
+      await updateBlogPostRow(id, updateData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
@@ -198,8 +193,7 @@ export default function AdminBlog() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('blog_posts').delete().eq('id', id);
-      if (error) throw error;
+      await deleteBlogPostById(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });

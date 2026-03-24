@@ -134,21 +134,3 @@ export const initializeStripePayment = async (
     };
   }
 };
-
-// Verify payment status
-export const verifyPaymentStatus = async (
-  sessionId: string
-): Promise<{ status: 'success' | 'pending' | 'failed'; orderId?: string }> => {
-  try {
-    const data = await apiClient.get<{
-      status: 'success' | 'pending' | 'failed';
-      orderId?: string;
-    }>(`/api/verify-payment?session_id=${encodeURIComponent(sessionId)}`);
-
-    return data;
-  } catch (error) {
-    const appError = handleError(error);
-    console.error('Payment verification failed:', appError.message);
-    return { status: 'failed' };
-  }
-};

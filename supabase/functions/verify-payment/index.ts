@@ -7,8 +7,8 @@
  *
  * This function is called from PaymentSuccess.tsx when the user returns from Stripe.
  * If the webhook already processed the order, it returns the current status.
- * If the webhook hasn't fired yet, it performs a one-time idempotent confirmation
- * as a fallback (e.g., user returns before webhook arrives).
+ * If the webhook hasn't fired yet, it returns a processing payload so the UI
+ * can reassure the customer without mutating order state client-side.
  */
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@18.5.0';
@@ -72,6 +72,24 @@ serve(async (req) => {
 
     logStep('Verifying session', { sessionId: session_id });
 
+    const isAuthorizedOrder = (order: any, sid: string): boolean => {
+      if (isInternalServiceCall) return true;
+      if (!sid) return false;
+      if (order?.stripe_session_id === sid) return true;
+      const meta = (order?.metadata || {}) as Record<string, unknown>;
+      if (meta.stripe_session_id === sid) return true;
+      if (
+        authenticatedUserId &&
+        order?.user_id &&
+        authenticatedUserId === order.user_id
+      ) {
+        return true;
+      }
+      const orderGuestId =
+        typeof meta.guest_id === 'string' ? meta.guest_id : null;
+      return !!(guestId && orderGuestId && guestId === orderGuestId);
+    };
+
     const selectOrderFields =
       'id, status, order_status, amount, currency, shipping_address, metadata, created_at, user_id';
 
@@ -126,7 +144,7 @@ serve(async (req) => {
     // DB-first path: if webhook already confirmed the order, don't block UX on Stripe API lookup.
     const preConfirmedOrder = await findOrderBySession(session_id);
     if (preConfirmedOrder) {
-      if (!isAuthorizedOrder(preConfirmedOrder)) {
+      if (!isAuthorizedOrder(preConfirmedOrder, session_id)) {
         logStep('Order access denied by ownership rules');
         return new Response(
           JSON.stringify({
@@ -175,7 +193,7 @@ serve(async (req) => {
 
       const recoveredOrder = await findOrderBySession(session_id);
       if (recoveredOrder) {
-        if (!isAuthorizedOrder(recoveredOrder)) {
+        if (!isAuthorizedOrder(recoveredOrder, session_id)) {
           logStep('Recovered order denied by ownership rules');
           return new Response(
             JSON.stringify({
@@ -229,6 +247,39 @@ serve(async (req) => {
       );
     }
 
+    const buildStripeSessionSummary = async (checkoutSessionId: string) => {
+      let items: Array<{
+        name: string;
+        quantity: number;
+        total: number;
+      }> = [];
+
+      try {
+        const lineItems = await stripe.checkout.sessions.listLineItems(
+          checkoutSessionId,
+          { limit: 20 }
+        );
+        items = (lineItems.data || []).map((item) => ({
+          name: item.description || 'Produit',
+          quantity: item.quantity || 1,
+          total: (item.amount_total || 0) / 100,
+        }));
+      } catch (lineItemErr) {
+        logStep('Could not fetch Stripe line items (non-fatal)', {
+          message: (lineItemErr as Error).message,
+        });
+      }
+
+      return {
+        session_id: checkoutSessionId,
+        customer_email: session.customer_details?.email || null,
+        amount_total: (session.amount_total || 0) / 100,
+        currency: (session.currency || 'eur').toUpperCase(),
+        payment_status: session.payment_status,
+        items,
+      };
+    };
+
     // Find order by stripe_session_id, metadata.stripe_session_id, then Stripe metadata order_id.
     const orderData = await findOrderBySession(
       session_id,
@@ -240,10 +291,22 @@ serve(async (req) => {
         sessionId: session_id,
         fallbackOrderId: session.metadata?.order_id,
       });
-      throw new Error('Order not found');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          processing: true,
+          message:
+            'Paiement reçu. La commande est en cours de synchronisation avec notre système.',
+          stripe_session_summary: await buildStripeSessionSummary(session_id),
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
     }
 
-    if (!isAuthorizedOrder(orderData)) {
+    if (!isAuthorizedOrder(orderData, session_id)) {
       logStep('Order access denied by ownership rules');
       return new Response(
         JSON.stringify({
@@ -337,7 +400,7 @@ serve(async (req) => {
     // ========================================================================
     // CASE 1: Already processed (by webhook or previous verify call)
     // ========================================================================
-    if (orderData.status === 'paid' || orderData.status === 'completed') {
+    if (isOrderConfirmed(orderData)) {
       logStep('Order already processed — returning current status', {
         orderId: orderData.id,
       });
@@ -371,313 +434,23 @@ serve(async (req) => {
     }
 
     // ========================================================================
-    // CASE 2: Webhook hasn't fired yet — perform fallback confirmation
-    // Uses the same idempotent optimistic lock as the webhook
+    // CASE 2: Order exists but webhook hasn't finalized status yet.
+    // verify-payment is now READ-ONLY: webhook remains the source of truth.
     // ========================================================================
-    logStep("Webhook hasn't processed yet — performing fallback confirmation");
-
-    const paymentIntentId =
-      typeof session.payment_intent === 'string'
-        ? session.payment_intent
-        : session.payment_intent?.id;
-
-    const correlationId =
-      session.metadata?.correlation_id || orderData.metadata?.correlation_id;
-
-    // Optimistic lock: only update if still 'pending'
-    const { data: updatedOrder, error: updateError } = await supabaseService
-      .from('orders')
-      .update({
-        status: 'paid',
-        order_status: 'paid',
-        stripe_session_id: session_id,
-        payment_reference: paymentIntentId,
-        payment_method: session.payment_method_types?.[0] || 'card',
-        metadata: {
-          ...(orderData.metadata || {}),
-          verified_by: 'client_redirect',
-          verified_at: new Date().toISOString(),
-          correlation_id: correlationId,
-          payment_intent_id: paymentIntentId,
-          stripe_session_id: session_id,
-        },
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', orderData.id)
-      .eq('status', 'pending') // OPTIMISTIC LOCK
-      .select('id')
-      .maybeSingle();
-
-    if (updateError) {
-      logStep('Update error', { error: updateError });
-      throw new Error(`Failed to update order: ${updateError.message}`);
-    }
-
-    if (!updatedOrder) {
-      // Lost the race to the webhook — that's fine, order is processed
-      logStep('Lost optimistic lock — webhook likely processed first');
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: 'Commande confirmée',
-          orderId: orderData.id,
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      );
-    }
-
-    // We won the lock — need to do the critical mutations
-    logStep('Won optimistic lock — processing order', {
+    logStep('Order found but not yet finalized by webhook', {
       orderId: orderData.id,
+      status: orderData.status,
+      orderStatus: orderData.order_status,
     });
-
-    // Log status change
-    await supabaseService.from('order_status_history').insert({
-      order_id: orderData.id,
-      previous_status: 'payment_pending',
-      new_status: 'paid',
-      changed_by: 'system',
-      reason_code: 'PAYMENT_CONFIRMED',
-      reason_message: 'Payment verified via client redirect (webhook fallback)',
-      metadata: {
-        stripe_session_id: session_id,
-        correlation_id: correlationId,
-        payment_intent: paymentIntentId,
-        source: 'verify-payment',
-      },
-    });
-
-    // Stock decrement
-    const { data: orderItems } = await supabaseService
-      .from('order_items')
-      .select('product_id, quantity')
-      .eq('order_id', orderData.id);
-
-    if (orderItems) {
-      for (const item of orderItems) {
-        try {
-          const { data: product } = await supabaseService
-            .from('products')
-            .select('stock_quantity')
-            .eq('id', item.product_id)
-            .single();
-
-          if (product) {
-            const newStock = Math.max(
-              0,
-              (product.stock_quantity || 0) - item.quantity
-            );
-            await supabaseService
-              .from('products')
-              .update({
-                stock_quantity: newStock,
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', item.product_id);
-            logStep('Stock decremented', {
-              productId: item.product_id,
-              sold: item.quantity,
-              newStock,
-            });
-          }
-        } catch (err) {
-          logStep('Stock update error (non-fatal)', {
-            productId: item.product_id,
-            error: (err as Error).message,
-          });
-        }
-      }
-    }
-
-    // Create payment record
-    await supabaseService.from('payments').insert({
-      order_id: orderData.id,
-      stripe_payment_intent_id: paymentIntentId,
-      amount: orderData.amount,
-      currency: orderData.currency,
-      status: 'completed',
-      processed_at: new Date().toISOString(),
-      metadata: {
-        stripe_session_id: session_id,
-        correlation_id: correlationId,
-        customer_email: session.customer_details?.email,
-        payment_method: session.payment_method_types?.[0],
-        source: 'client_redirect_fallback',
-      },
-    });
-
-    // Increment coupon usage
-    const discountCode = session.metadata?.discount_code;
-    if (discountCode) {
-      try {
-        const { data: coupon } = await supabaseService
-          .from('discount_coupons')
-          .select('usage_count')
-          .eq('code', discountCode)
-          .single();
-        if (coupon) {
-          await supabaseService
-            .from('discount_coupons')
-            .update({ usage_count: (coupon.usage_count || 0) + 1 })
-            .eq('code', discountCode);
-        }
-      } catch (err) {
-        logStep('Coupon increment error (non-fatal)', {
-          error: (err as Error).message,
-        });
-      }
-    }
-
-    // Log payment event
-    try {
-      await supabaseService.from('payment_events').insert({
-        order_id: orderData.id,
-        correlation_id: correlationId,
-        event_type: 'payment_confirmed',
-        status: 'success',
-        actor: 'verify_payment_fallback',
-        details: {
-          payment_intent: paymentIntentId,
-          amount: orderData.amount,
-          source: 'client_redirect_fallback',
-        },
-      });
-    } catch (err) {
-      logStep('Event logging error (non-fatal)', {
-        error: (err as Error).message,
-      });
-    }
-
-    // Send confirmation email (non-blocking)
-    try {
-      const customerEmail = session.customer_details?.email;
-      const customerName =
-        session.customer_details?.name ||
-        session.metadata?.customer_name ||
-        'Client';
-
-      if (customerEmail && orderItems) {
-        const productIds = orderItems.map((item) => item.product_id);
-        const { data: products } = await supabaseService
-          .from('products')
-          .select('id, name, images, price')
-          .in('id', productIds);
-
-        const productMap = new Map((products || []).map((p) => [p.id, p]));
-
-        const emailItems = orderItems.map((item) => {
-          const product = productMap.get(item.product_id);
-          return {
-            name: product?.name || `Product #${item.product_id}`,
-            quantity: item.quantity,
-            price: product?.price || 0,
-            image: product?.images?.[0] || undefined,
-          };
-        });
-
-        const emailSubtotal = emailItems.reduce(
-          (sum, item) => sum + item.price * item.quantity,
-          0
-        );
-        const total = orderData.amount / 100;
-        const shipping = total - emailSubtotal > 0 ? total - emailSubtotal : 0;
-
-        const shippingAddr = orderData.shipping_address as any;
-
-        await fetch(
-          `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-order-confirmation`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-            },
-            body: JSON.stringify({
-              orderId: orderData.id,
-              customerEmail,
-              customerName,
-              items: emailItems,
-              subtotal: emailSubtotal,
-              shipping,
-              total,
-              currency: orderData.currency?.toUpperCase() || 'EUR',
-              shippingAddress: shippingAddr
-                ? {
-                    address: shippingAddr.address_line1 || '',
-                    city: shippingAddr.city || '',
-                    postalCode: shippingAddr.postal_code || '',
-                    country:
-                      shippingAddr.country === 'FR'
-                        ? 'France'
-                        : shippingAddr.country || 'France',
-                  }
-                : undefined,
-            }),
-          }
-        );
-        logStep('Confirmation email sent');
-      }
-    } catch (emailErr) {
-      logStep('Email error (non-fatal)', {
-        error: (emailErr as Error).message,
-      });
-    }
-
-    // Fraud detection (non-blocking)
-    try {
-      let isFirstOrder = true;
-      if (orderData.metadata?.user_id) {
-        const { count } = await supabaseService
-          .from('orders')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', orderData.metadata.user_id as string)
-          .neq('id', orderData.id)
-          .eq('status', 'paid');
-        isFirstOrder = (count || 0) === 0;
-      }
-
-      await supabaseService.rpc('calculate_fraud_score', {
-        p_order_id: orderData.id,
-        p_customer_email: session.customer_details?.email || '',
-        p_shipping_address: orderData.shipping_address,
-        p_billing_address: orderData.shipping_address,
-        p_ip_address: null,
-        p_user_agent: null,
-        p_checkout_duration_seconds: null,
-        p_is_first_order: isFirstOrder,
-        p_order_amount: orderData.amount / 100,
-      });
-    } catch (fraudErr) {
-      logStep('Fraud detection error (non-fatal)', {
-        error: (fraudErr as Error).message,
-      });
-    }
-
-    logStep('Verification completed', { orderId: orderData.id });
-
-    const invoice = await buildInvoiceData(orderData.id);
 
     return new Response(
       JSON.stringify({
-        success: true,
-        message: 'Commande confirmée',
+        success: false,
+        processing: true,
+        message:
+          'Paiement recu. Nous finalisons votre commande et vous enverrons la confirmation rapidement.',
         orderId: orderData.id,
-        customerInfo: session.customer_details
-          ? {
-              firstName: session.customer_details.name?.split(' ')[0] || '',
-              lastName:
-                session.customer_details.name?.split(' ').slice(1).join(' ') ||
-                '',
-              email: session.customer_details.email || '',
-            }
-          : null,
-        invoiceData: {
-          ...invoice,
-          date: orderData.created_at || new Date().toISOString(),
-        },
+        stripe_session_summary: await buildStripeSessionSummary(session_id),
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -697,20 +470,5 @@ serve(async (req) => {
         status: 500,
       }
     );
-  }
-
-  function isAuthorizedOrder(order: any): boolean {
-    if (isInternalServiceCall) return true;
-    if (
-      authenticatedUserId &&
-      order?.user_id &&
-      authenticatedUserId === order.user_id
-    ) {
-      return true;
-    }
-    const metadata = (order?.metadata || {}) as Record<string, unknown>;
-    const orderGuestId =
-      typeof metadata.guest_id === 'string' ? metadata.guest_id : null;
-    return !!(guestId && orderGuestId && guestId === orderGuestId);
   }
 });

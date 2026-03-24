@@ -86,3 +86,8 @@ Central mapping: `lib/errors.ts` (`messageFromUnknownError`, `isClientFacingVali
 - When changing Zod rules, update `lib/checkout-schema_test.ts` and this table.
 - When adding new client fields, prefer `.passthrough()` on nested objects unless you need strict validation.
 - Quick tests from repo root: `npm run test:create-payment`. Stricter pre-PR gate: `npm run verify:create-payment`.
+
+## See also
+
+- SPA behavior after redirect (polling, elevated storefront, service worker): [`docs/PLATFORM.md`](../../../docs/PLATFORM.md).
+- Doc index: [`docs/README.md`](../../../docs/README.md).

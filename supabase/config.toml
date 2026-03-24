@@ -57,3 +57,6 @@ verify_jwt = false
 
 [functions.order-lookup]
 verify_jwt = false
+
+[functions.stripe-session-display]
+verify_jwt = false

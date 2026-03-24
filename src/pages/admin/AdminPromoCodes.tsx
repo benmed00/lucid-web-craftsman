@@ -44,7 +44,16 @@ import {
   Check,
   List,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  deleteDiscountCouponById,
+  fetchDiscountCouponsOrdered,
+  insertDiscountCouponRow,
+  updateDiscountCouponById,
+} from '@/services/adminPromoCodesApi';
+import {
+  fetchAppSettingValueByKey,
+  upsertAppSettingJsonByKey,
+} from '@/services/appSettingsApi';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -115,12 +124,7 @@ const AdminPromoCodes = () => {
 
   const fetchCoupons = async () => {
     try {
-      const { data, error } = await supabase
-        .from('discount_coupons')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchDiscountCouponsOrdered();
       setCoupons(data || []);
     } catch (error) {
       console.error('Error fetching coupons:', error);
@@ -132,17 +136,9 @@ const AdminPromoCodes = () => {
 
   const fetchFreeShippingSettings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'free_shipping_threshold')
-        .maybeSingle();
-
-      if (error) throw error;
-      if (data?.setting_value) {
-        const settingValue =
-          data.setting_value as unknown as FreeShippingSettings;
-        setFreeShippingSettings(settingValue);
+      const raw = await fetchAppSettingValueByKey('free_shipping_threshold');
+      if (raw && typeof raw === 'object') {
+        setFreeShippingSettings(raw as unknown as FreeShippingSettings);
       }
     } catch (error) {
       console.error('Error fetching free shipping settings:', error);
@@ -152,38 +148,10 @@ const AdminPromoCodes = () => {
   const saveFreeShippingSettings = async () => {
     setIsSavingSettings(true);
     try {
-      // First check if setting exists
-      const { data: existing } = await supabase
-        .from('app_settings')
-        .select('id')
-        .eq('setting_key', 'free_shipping_threshold')
-        .maybeSingle();
-
-      const settingValueJson = JSON.parse(JSON.stringify(freeShippingSettings));
-
-      if (existing) {
-        // Update existing
-        const { error } = await supabase
-          .from('app_settings')
-          .update({
-            setting_value: settingValueJson,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('setting_key', 'free_shipping_threshold');
-
-        if (error) throw error;
-      } else {
-        // Insert new
-        const { error } = await supabase.from('app_settings').insert([
-          {
-            setting_key: 'free_shipping_threshold',
-            setting_value: settingValueJson,
-            description: 'Seuil pour la livraison gratuite automatique',
-          },
-        ]);
-
-        if (error) throw error;
-      }
+      await upsertAppSettingJsonByKey(
+        'free_shipping_threshold',
+        freeShippingSettings
+      );
 
       toast.success('Paramètres de livraison gratuite enregistrés');
     } catch (error) {
@@ -267,19 +235,10 @@ const AdminPromoCodes = () => {
       };
 
       if (editingCoupon) {
-        const { error } = await supabase
-          .from('discount_coupons')
-          .update(couponData)
-          .eq('id', editingCoupon.id);
-
-        if (error) throw error;
+        await updateDiscountCouponById(editingCoupon.id, couponData);
         toast.success('Code promo mis à jour');
       } else {
-        const { error } = await supabase
-          .from('discount_coupons')
-          .insert(couponData);
-
-        if (error) throw error;
+        await insertDiscountCouponRow(couponData);
         toast.success('Code promo créé');
       }
 
@@ -300,12 +259,9 @@ const AdminPromoCodes = () => {
 
   const toggleCouponStatus = async (coupon: DiscountCoupon) => {
     try {
-      const { error } = await supabase
-        .from('discount_coupons')
-        .update({ is_active: !coupon.is_active })
-        .eq('id', coupon.id);
-
-      if (error) throw error;
+      await updateDiscountCouponById(coupon.id, {
+        is_active: !coupon.is_active,
+      });
 
       setCoupons(
         coupons.map((c) =>
@@ -324,12 +280,7 @@ const AdminPromoCodes = () => {
     if (!confirm(`Supprimer le code "${coupon.code}" ?`)) return;
 
     try {
-      const { error } = await supabase
-        .from('discount_coupons')
-        .delete()
-        .eq('id', coupon.id);
-
-      if (error) throw error;
+      await deleteDiscountCouponById(coupon.id);
 
       setCoupons(coupons.filter((c) => c.id !== coupon.id));
       toast.success('Code promo supprimé');

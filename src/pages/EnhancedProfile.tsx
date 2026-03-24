@@ -33,6 +33,7 @@ import { EnhancedProfileManager } from '@/components/profile/EnhancedProfileMana
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import Footer from '@/components/Footer';
+import { deleteProfileByUserId } from '@/services/profileApi';
 
 const VALID_TABS = [
   'overview',
@@ -92,13 +93,7 @@ export default function EnhancedProfile() {
     if (!user) return;
 
     try {
-      const { supabase } = await import('@/integrations/supabase/client');
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', user.id);
-
-      if (error) throw error;
+      await deleteProfileByUserId(user.id);
 
       await signOut();
       navigate('/auth');
