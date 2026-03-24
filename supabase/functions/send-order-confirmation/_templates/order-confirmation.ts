@@ -113,7 +113,7 @@ export function buildOrderConfirmationHtml(
     <div style="color:#4f5f31;font-size:24px;font-weight:bold;margin:0 0 12px;">Merci pour votre commande !</div>
     <div style="color:#555;font-size:16px;line-height:24px;">Bonjour ${esc(customerName)}, nous avons bien reçu votre commande et nous la préparons avec soin.</div>
     <div style="margin-top:20px;">
-      <a href="${SITE_URL}/payment-success?session_id=${orderId || orderNumber}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Voir ma commande</a>
+      <a href="${SITE_URL}/order-confirmation?order_id=${orderId || orderNumber}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Voir ma commande</a>
     </div>
   </td></tr>
 
