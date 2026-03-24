@@ -58,7 +58,7 @@ export function buildOrderConfirmationHtml(
     orderId,
   } = props;
 
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${SITE_URL}/payment-success?session_id=${orderId || orderNumber}`)}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${SITE_URL}/order-confirmation?order_id=${orderId || orderNumber}`)}`;
 
   const itemsHtml = items
     .map(
@@ -113,7 +113,7 @@ export function buildOrderConfirmationHtml(
     <div style="color:#4f5f31;font-size:24px;font-weight:bold;margin:0 0 12px;">Merci pour votre commande !</div>
     <div style="color:#555;font-size:16px;line-height:24px;">Bonjour ${esc(customerName)}, nous avons bien reçu votre commande et nous la préparons avec soin.</div>
     <div style="margin-top:20px;">
-      <a href="${SITE_URL}/payment-success?session_id=${orderId || orderNumber}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Voir ma commande</a>
+      <a href="${SITE_URL}/order-confirmation?order_id=${orderId || orderNumber}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Voir ma commande</a>
     </div>
   </td></tr>
 
@@ -217,7 +217,7 @@ export function buildOrderConfirmationHtml(
     <div style="color:#666;font-size:13px;margin:0 0 16px;line-height:20px;">Scannez ce QR code pour accéder à votre facture en ligne et la télécharger en PDF.</div>
     <img src="${qrCodeUrl}" alt="QR Code facture" width="120" height="120" style="border-radius:8px;border:4px solid #ffffff;" />
     <div style="margin-top:12px;">
-      <a href="${SITE_URL}/payment-success?session_id=${orderId || orderNumber}" style="color:#4f5f31;font-size:13px;text-decoration:underline;">Accéder à ma facture en ligne</a>
+      <a href="${SITE_URL}/order-confirmation?order_id=${orderId || orderNumber}" style="color:#4f5f31;font-size:13px;text-decoration:underline;">Accéder à ma facture en ligne</a>
     </div>
   </td></tr>
 

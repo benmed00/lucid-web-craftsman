@@ -106,6 +106,7 @@ self.addEventListener('fetch', (event) => {
     url.pathname.startsWith('/auth/') ||
     url.pathname.startsWith('/functions/') ||
     url.pathname.startsWith('/payment-success') ||
+    url.pathname.startsWith('/order-confirmation') ||
     url.pathname.startsWith('/checkout')
   ) {
     return;

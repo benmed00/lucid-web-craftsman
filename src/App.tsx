@@ -56,6 +56,8 @@ const CGV = lazyWithRetry(() => import('./pages/CGV'));
 const Cart = lazyWithRetry(() => import('./pages/Cart'));
 const Checkout = lazyWithRetry(() => import('./pages/Checkout'));
 const Contact = lazyWithRetry(() => import('./pages/Contact'));
+const OrderConfirmation = lazyWithRetry(() => import('./pages/OrderConfirmation'));
+// Legacy route — kept for backward-compatible redirect
 const PaymentSuccess = lazyWithRetry(() => import('./pages/PaymentSuccess'));
 const Wishlist = lazyWithRetry(() => import('./pages/Wishlist'));
 const FAQ = lazyWithRetry(() => import('./pages/FAQ'));
@@ -342,6 +344,15 @@ const App = () => {
                           </Suspense>
                         }
                       />
+                      <Route
+                        path="/order-confirmation"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <OrderConfirmation />
+                          </Suspense>
+                        }
+                      />
+                      {/* Legacy route: redirect old links to new route */}
                       <Route
                         path="/payment-success"
                         element={
