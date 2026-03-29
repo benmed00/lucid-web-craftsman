@@ -156,7 +156,28 @@ serve(async (req) => {
       customerInfo,
       discount,
       guestSession,
+      paymentMethod,
     } = checkoutPayload;
+
+    // ========================================================================
+    // 🔒 COD BACKEND VALIDATION — NEVER trust frontend eligibility
+    // ========================================================================
+    if (paymentMethod === 'cod') {
+      const postalCode = customerInfo?.postalCode?.trim() ?? '';
+      if (!/^44\d{3}$/.test(postalCode)) {
+        logStep('COD rejected — ineligible postal code', { postalCode });
+        return new Response(
+          JSON.stringify({
+            error: 'Le paiement à la livraison n\'est disponible que pour la Loire-Atlantique (44).',
+            error_type: 'validation',
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 422,
+          }
+        );
+      }
+    }
 
     const guestMetadata: GuestMetadata | null = guestSession
       ? {
