@@ -177,6 +177,10 @@ export function useCheckoutPage() {
         return n;
       });
       setFormData((prev) => ({ ...prev, [id]: value }));
+      // Auto-reset COD if country changes (only FR 44xxx is eligible)
+      if (id === 'country' && value !== 'FR') {
+        setPaymentMethod((prev) => (prev === 'cod' ? 'card' : prev));
+      }
     },
     []
   );
