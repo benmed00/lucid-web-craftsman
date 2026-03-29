@@ -156,7 +156,28 @@ serve(async (req) => {
       customerInfo,
       discount,
       guestSession,
+      paymentMethod,
     } = checkoutPayload;
+
+    // ========================================================================
+    // 🔒 COD BACKEND VALIDATION — NEVER trust frontend eligibility
+    // ========================================================================
+    if (paymentMethod === 'cod') {
+      const postalCode = customerInfo?.postalCode?.trim() ?? '';
+      if (!/^44\d{3}$/.test(postalCode)) {
+        logStep('COD rejected — ineligible postal code', { postalCode });
+        return new Response(
+          JSON.stringify({
+            error: 'Le paiement à la livraison n\'est disponible que pour la Loire-Atlantique (44).',
+            error_type: 'validation',
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 422,
+          }
+        );
+      }
+    }
 
     const guestMetadata: GuestMetadata | null = guestSession
       ? {
@@ -328,6 +349,55 @@ serve(async (req) => {
       vipThresholdCents,
       log: logStep,
     });
+
+    // ========================================================================
+    // COD PATH — skip Stripe, confirm order directly
+    // ========================================================================
+    if (paymentMethod === 'cod') {
+      const checkoutSessionId: string | null =
+        req.headers.get('x-checkout-session-id') || null;
+      await supabaseService
+        .from('orders')
+        .update({
+          status: 'confirmed',
+          order_status: 'confirmed',
+          payment_method: 'cod',
+          ...(checkoutSessionId
+            ? { checkout_session_id: checkoutSessionId }
+            : {}),
+        })
+        .eq('id', orderData.id);
+
+      logStep('COD order confirmed', { orderId: orderData.id, correlationId });
+
+      await logPaymentEvent({
+        order_id: orderData.id,
+        event_type: 'cod_order_confirmed',
+        status: 'success',
+        actor: 'edge_function',
+        correlation_id: correlationId,
+        ip_address: clientIP,
+        duration_ms: Date.now() - startTime,
+        details: {
+          payment_method: 'cod',
+          item_count: verifiedItems.length,
+          total_cents: totalAmountCents,
+        },
+      });
+
+      const siteBaseUrl: string = getValidOrigin(req);
+      return new Response(
+        JSON.stringify({
+          url: `${siteBaseUrl}/order-confirmation?order_id=${orderData.id}`,
+          orderId: orderData.id,
+          paymentMethod: 'cod',
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
+    }
 
     // ========================================================================
     // CREATE STRIPE CHECKOUT SESSION

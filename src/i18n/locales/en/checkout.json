@@ -127,6 +127,10 @@
     "pay": "Pay {{amount}}",
     "processing": "Processing...",
     "redirecting": "Redirecting to payment...",
+    "cod": "Cash on Delivery",
+    "codDescription": "Pay cash upon receipt — Loire-Atlantique (44) only",
+    "codInfo": "Payment will be collected by the delivery driver",
+    "codNotAvailable": "Cash on delivery is not available for this address",
     "ssl": "SSL 256-bit",
     "secureLabel": "Secure payment"
   },

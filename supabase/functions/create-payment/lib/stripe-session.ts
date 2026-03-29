@@ -66,7 +66,7 @@ export function buildCheckoutSessionCreateParams(
     line_items: lineItems,
     mode: 'payment',
     payment_method_types: ['card'],
-    success_url: `${siteBaseUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${siteBaseUrl}/order-confirmation?order_id=${encodeURIComponent(orderId)}&payment_complete=1`,
     cancel_url: `${siteBaseUrl}/checkout`,
     shipping_address_collection: shippingAddress
       ? undefined

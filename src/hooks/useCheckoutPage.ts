@@ -28,6 +28,7 @@ import {
 } from '@/hooks/useCheckoutSession';
 import { useCheckoutFormPersistence } from '@/hooks/useCheckoutFormPersistence';
 import { type TFunction } from 'i18next';
+import { isEligibleForCOD } from '@/utils/shipping';
 
 // =============================================================================
 // Hook return types — always `ReturnType<typeof hook>` so signatures stay in sync
@@ -240,13 +241,24 @@ export function useCheckoutPage() {
         return n;
       });
       setFormData((prev) => ({ ...prev, [id]: value }));
+      // Auto-reset COD if country changes (only FR 44xxx is eligible)
+      if (id === 'country' && value !== 'FR') {
+        setPaymentMethod((prev) => (prev === 'cod' ? 'card' : prev));
+      }
     },
     []
   );
 
   const handleFieldChange = useCallback(
-    (field: string, value: string) =>
-      setFormData((prev) => ({ ...prev, [field]: value })),
+    (field: string, value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      // Auto-reset COD if postal code changes to non-eligible
+      if (field === 'postalCode') {
+        setPaymentMethod((prev) =>
+          prev === 'cod' && !isEligibleForCOD(value) ? 'card' : prev
+        );
+      }
+    },
     []
   );
 
@@ -567,8 +579,26 @@ export function useCheckoutPage() {
         setIsProcessing(false);
         return;
       }
+      if (paymentMethod === 'cod') {
+        if (!isEligibleForCOD(formData.postalCode)) {
+          toast.error(
+            "Le paiement à la livraison n'est pas disponible pour cette adresse."
+          );
+          setPaymentMethod('card');
+          setIsProcessing(false);
+          return;
+        }
+      }
+
       const functionName =
         paymentMethod === 'paypal' ? 'create-paypal-payment' : 'create-payment';
+
+      const headerRecord: Record<string, string> = {
+        ...csrfHeaders,
+        ...(checkoutSessionId
+          ? { 'x-checkout-session-id': checkoutSessionId }
+          : {}),
+      };
 
       const { data, error } = await createPaymentSessionWithRetry(
         functionName,
@@ -576,6 +606,7 @@ export function useCheckoutPage() {
           items: cartItems,
           customerInfo: sanitizedFormData,
           guestSession,
+          paymentMethod,
           discount: appliedCoupon
             ? {
                 couponId: appliedCoupon.id,
@@ -586,12 +617,7 @@ export function useCheckoutPage() {
               }
             : null,
         },
-        {
-          ...csrfHeaders,
-          ...(checkoutSessionId
-            ? { 'x-checkout-session-id': checkoutSessionId }
-            : {}),
-        },
+        headerRecord,
         {
           maxAttempts: 2,
           baseDelayMs: 1000,

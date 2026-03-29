@@ -1,9 +1,10 @@
-import { ArrowLeft, CreditCard, Shield } from 'lucide-react';
+import { ArrowLeft, CreditCard, Shield, Banknote } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import StepSummary from '@/components/checkout/StepSummary';
 import PaymentButton from '@/components/checkout/PaymentButton';
+import { isEligibleForCOD } from '@/utils/shipping';
 
 interface PaymentStepProps {
   formData: {
@@ -129,6 +130,37 @@ const PaymentStep = ({
             </Label>
           </div>
         </div>
+        {isEligibleForCOD(formData.postalCode) && (
+          <div
+            className={`border-2 rounded-xl p-5 transition-all cursor-pointer ${
+              paymentMethod === 'cod'
+                ? 'border-primary bg-primary/5 shadow-sm'
+                : 'border-border hover:border-primary/40 hover:bg-muted/30'
+            }`}
+            onClick={() => onPaymentMethodChange('cod')}
+          >
+            <div className="flex items-start">
+              <RadioGroupItem value="cod" id="cod" className="mt-1" />
+              <div className="ml-3 flex-1">
+                <Label
+                  htmlFor="cod"
+                  className="text-base font-medium flex items-center cursor-pointer"
+                >
+                  <Banknote className="mr-2 h-5 w-5 text-primary" />{' '}
+                  {t('payment.cod')}
+                </Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {t('payment.codDescription')}
+                </p>
+                {paymentMethod === 'cod' && (
+                  <p className="text-xs text-primary/70 mt-2 animate-fade-in">
+                    {t('payment.codInfo')}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </RadioGroup>
 
       <PaymentButton

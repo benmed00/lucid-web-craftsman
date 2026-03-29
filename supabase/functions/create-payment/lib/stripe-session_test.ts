@@ -50,7 +50,7 @@ Deno.test('buildCheckoutSessionCreateParams: metadata and URLs', () => {
   assertEquals(params.mode, 'payment');
   assertEquals(
     params.success_url,
-    'https://shop.example/order-confirmation?session_id={CHECKOUT_SESSION_ID}'
+    'https://shop.example/order-confirmation?order_id=11111111-2222-3333-4444-555555555555&payment_complete=1'
   );
   assertEquals(
     params.metadata?.order_id,
