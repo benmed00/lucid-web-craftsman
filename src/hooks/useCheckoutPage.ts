@@ -23,6 +23,7 @@ import {
   type CartItemSnapshot,
 } from '@/hooks/useCheckoutSession';
 import { useCheckoutFormPersistence } from '@/hooks/useCheckoutFormPersistence';
+import { isEligibleForCOD } from '@/utils/shipping';
 
 export interface DiscountCoupon {
   id: string;
@@ -176,13 +177,24 @@ export function useCheckoutPage() {
         return n;
       });
       setFormData((prev) => ({ ...prev, [id]: value }));
+      // Auto-reset COD if country changes (only FR 44xxx is eligible)
+      if (id === 'country' && value !== 'FR') {
+        setPaymentMethod((prev) => (prev === 'cod' ? 'card' : prev));
+      }
     },
     []
   );
 
-  const handleFieldChange = useCallback(
-    (field: string, value: string) =>
-      setFormData((prev) => ({ ...prev, [field]: value })),
+    const handleFieldChange = useCallback(
+    (field: string, value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      // Auto-reset COD if postal code changes to non-eligible
+      if (field === 'postalCode') {
+        setPaymentMethod((prev) =>
+          prev === 'cod' && !isEligibleForCOD(value) ? 'card' : prev
+        );
+      }
+    },
     []
   );
 
@@ -487,6 +499,16 @@ export function useCheckoutPage() {
 
       const csrfHeaders = await getCsrfHeaders();
       const guestSession = getGuestSessionData();
+      // COD: validate eligibility and skip Stripe
+      if (paymentMethod === 'cod') {
+        if (!isEligibleForCOD(formData.postalCode)) {
+          toast.error('Le paiement à la livraison n\'est pas disponible pour cette adresse.');
+          setPaymentMethod('card');
+          setIsProcessing(false);
+          return;
+        }
+      }
+
       const functionName =
         paymentMethod === 'paypal' ? 'create-paypal-payment' : 'create-payment';
 
@@ -497,6 +519,7 @@ export function useCheckoutPage() {
               items: cartItems,
               customerInfo: sanitizedFormData,
               guestSession,
+              paymentMethod,
               discount: appliedCoupon
                 ? {
                     couponId: appliedCoupon.id,

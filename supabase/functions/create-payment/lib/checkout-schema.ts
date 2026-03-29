@@ -51,6 +51,7 @@ export const checkoutRequestSchema = z
     customerInfo: customerInfoSchema.optional(),
     discount: discountSchema.optional(),
     guestSession: guestSessionSchema.optional(),
+    paymentMethod: z.enum(['card', 'paypal', 'cod']).optional().default('card'),
   })
   .strip();
 
