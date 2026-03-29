@@ -519,6 +519,7 @@ export function useCheckoutPage() {
               items: cartItems,
               customerInfo: sanitizedFormData,
               guestSession,
+              paymentMethod,
               discount: appliedCoupon
                 ? {
                     couponId: appliedCoupon.id,
