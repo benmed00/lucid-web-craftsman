@@ -147,14 +147,14 @@ const PaymentStep = ({
                   className="text-base font-medium flex items-center cursor-pointer"
                 >
                   <Banknote className="mr-2 h-5 w-5 text-primary" />{' '}
-                  Paiement à la livraison
+                  {t('payment.cod')}
                 </Label>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Payez en espèces à la réception — Loire-Atlantique (44) uniquement
+                  {t('payment.codDescription')}
                 </p>
                 {paymentMethod === 'cod' && (
                   <p className="text-xs text-primary/70 mt-2 animate-fade-in">
-                    Le paiement sera collecté par le livreur
+                    {t('payment.codInfo')}
                   </p>
                 )}
               </div>
