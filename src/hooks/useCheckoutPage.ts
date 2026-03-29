@@ -495,6 +495,16 @@ export function useCheckoutPage() {
 
       const csrfHeaders = await getCsrfHeaders();
       const guestSession = getGuestSessionData();
+      // COD: validate eligibility and skip Stripe
+      if (paymentMethod === 'cod') {
+        if (!isEligibleForCOD(formData.postalCode)) {
+          toast.error('Le paiement à la livraison n\'est pas disponible pour cette adresse.');
+          setPaymentMethod('card');
+          setIsProcessing(false);
+          return;
+        }
+      }
+
       const functionName =
         paymentMethod === 'paypal' ? 'create-paypal-payment' : 'create-payment';
 
