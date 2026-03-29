@@ -350,6 +350,55 @@ serve(async (req) => {
     });
 
     // ========================================================================
+    // COD PATH — skip Stripe, confirm order directly
+    // ========================================================================
+    if (paymentMethod === 'cod') {
+      const checkoutSessionId: string | null =
+        req.headers.get('x-checkout-session-id') || null;
+      await supabaseService
+        .from('orders')
+        .update({
+          status: 'confirmed',
+          order_status: 'confirmed',
+          payment_method: 'cod',
+          ...(checkoutSessionId
+            ? { checkout_session_id: checkoutSessionId }
+            : {}),
+        })
+        .eq('id', orderData.id);
+
+      logStep('COD order confirmed', { orderId: orderData.id, correlationId });
+
+      await logPaymentEvent({
+        order_id: orderData.id,
+        event_type: 'cod_order_confirmed',
+        status: 'success',
+        actor: 'edge_function',
+        correlation_id: correlationId,
+        ip_address: clientIP,
+        duration_ms: Date.now() - startTime,
+        details: {
+          payment_method: 'cod',
+          item_count: verifiedItems.length,
+          total_cents: totalAmountCents,
+        },
+      });
+
+      const siteBaseUrl: string = getValidOrigin(req);
+      return new Response(
+        JSON.stringify({
+          url: `${siteBaseUrl}/order-confirmation?order_id=${orderData.id}`,
+          orderId: orderData.id,
+          paymentMethod: 'cod',
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
+    }
+
+    // ========================================================================
     // CREATE STRIPE CHECKOUT SESSION
     // ========================================================================
     const siteBaseUrl: string = getValidOrigin(req);
