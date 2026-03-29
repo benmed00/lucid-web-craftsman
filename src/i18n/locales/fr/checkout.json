@@ -127,6 +127,10 @@
     "pay": "Payer {{amount}}",
     "processing": "Traitement en cours...",
     "redirecting": "Redirection vers le paiement...",
+    "cod": "Paiement à la livraison",
+    "codDescription": "Payez en espèces à la réception — Loire-Atlantique (44) uniquement",
+    "codInfo": "Le paiement sera collecté par le livreur",
+    "codNotAvailable": "Le paiement à la livraison n'est pas disponible pour cette adresse",
     "ssl": "SSL 256-bit",
     "secureLabel": "Paiement sécurisé"
   },
