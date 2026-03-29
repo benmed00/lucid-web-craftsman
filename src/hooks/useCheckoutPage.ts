@@ -23,6 +23,7 @@ import {
   type CartItemSnapshot,
 } from '@/hooks/useCheckoutSession';
 import { useCheckoutFormPersistence } from '@/hooks/useCheckoutFormPersistence';
+import { isEligibleForCOD } from '@/utils/shipping';
 
 export interface DiscountCoupon {
   id: string;
@@ -180,9 +181,16 @@ export function useCheckoutPage() {
     []
   );
 
-  const handleFieldChange = useCallback(
-    (field: string, value: string) =>
-      setFormData((prev) => ({ ...prev, [field]: value })),
+    const handleFieldChange = useCallback(
+    (field: string, value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      // Auto-reset COD if postal code changes to non-eligible
+      if (field === 'postalCode') {
+        setPaymentMethod((prev) =>
+          prev === 'cod' && !isEligibleForCOD(value) ? 'card' : prev
+        );
+      }
+    },
     []
   );
 
