@@ -24,8 +24,9 @@ import { useCurrency } from '@/stores';
 import { hapticFeedback } from '@/utils/haptics';
 import { useCompareStore } from '@/stores/compareStore';
 
-// Create context for stock sharing - this will be provided by ProductShowcase
-const StockContext = createContext<Record<number, StockInfo>>({});
+// Sentinel to distinguish "no provider" from "provider with empty data"
+const NO_PROVIDER = Symbol('no-stock-provider');
+const StockContext = createContext<Record<number, StockInfo> | typeof NO_PROVIDER>(NO_PROVIDER);
 const useStockContext = () => useContext(StockContext);
 
 interface ProductCardProps {
@@ -48,18 +49,19 @@ const ProductCard = ({
   const { t } = useTranslation('products');
   const { addItem: addToCompare, isInCompare } = useCompareStore();
 
-  // Try to get stock info from context first (for ProductShowcase)
+  // Try to get stock info from context first (batch provider)
   const stockContext = useStockContext();
-  const contextStockInfo = stockContext[product.id];
+  const hasProvider = stockContext !== NO_PROVIDER;
+  const contextStockInfo = hasProvider ? (stockContext as Record<number, StockInfo>)[product.id] : undefined;
 
-  // Fallback to individual hook if not in context (for other components)
+  // Only fire individual query if NO provider exists (standalone usage)
   const { stockInfo: individualStockInfo } = useStock({
     productId: product.id,
-    enabled: !contextStockInfo,
+    enabled: !hasProvider,
   });
 
-  // Use context stock info if available, otherwise use individual
-  const stockInfo = contextStockInfo || individualStockInfo;
+  // Use context stock info if provider exists, otherwise use individual
+  const stockInfo = hasProvider ? contextStockInfo : individualStockInfo;
 
   const [showShareDialog, setShowShareDialog] = useState(false);
   const { formatPrice } = useCurrency();
