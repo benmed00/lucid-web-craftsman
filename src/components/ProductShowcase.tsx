@@ -92,9 +92,8 @@ const ProductShowcase = () => {
   }, [translatedProducts]);
 
   // Batch stock loading — deferred until products have rendered
-  // to avoid competing with product queries for connection slots
   const productIds = featuredProducts.map((p) => p.id);
-  const { stockInfo } = useStock({
+  const { stockMap } = useBatchStock({
     productIds,
     enabled: productIds.length > 0 && !loading,
   });
