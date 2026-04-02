@@ -1,7 +1,7 @@
 /**
  * Batch Stock Hook
  * Fetches stock info for multiple products in a single query to avoid N+1 pattern.
- * Used by Products page to provide stock context to all ProductCards.
+ * Used by Products page, ProductShowcase, Recommendations, and RecentlyViewed.
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -26,39 +26,11 @@ export function useBatchStock({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Memoize the product IDs string to prevent unnecessary re-fetches
+  // Stable key to prevent unnecessary re-fetches
   const productIdsKey = useMemo(
-    () => productIds.sort().join(','),
+    () => [...productIds].sort((a, b) => a - b).join(','),
     [productIds]
   );
-
-  // Refetch on window focus for fresh stock data
-  useEffect(() => {
-    const handleFocus = () => {
-      if (enabled && productIds.length > 0) {
-        fetchBatchStock();
-      }
-    };
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [productIdsKey, enabled]);
-
-  const fetchBatchStock = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await stockService.getMultipleStockInfo(productIds);
-      setStockMap(result);
-    } catch (err) {
-      console.error('[useBatchStock] Error fetching batch stock:', err);
-      setError(
-        err instanceof Error ? err.message : 'Failed to fetch stock info'
-      );
-      setStockMap({});
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (!enabled || productIds.length === 0) {
@@ -87,6 +59,7 @@ export function useBatchStock({
       }
     };
 
+    // Small debounce to batch rapid ID changes
     const timeoutId = setTimeout(doFetch, 100);
     return () => {
       cancelled = true;

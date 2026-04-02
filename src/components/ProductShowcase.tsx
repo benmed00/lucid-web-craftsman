@@ -6,7 +6,7 @@ import { useMemo, useState, useCallback, useEffect } from 'react';
 import ProductCard, { StockContext } from './ProductCard';
 import { ProductQuickView } from './ProductQuickView';
 import { Card, CardContent } from '@/components/ui/card';
-import { useStock } from '@/hooks/useStock';
+import { useBatchStock } from '@/hooks/useBatchStock';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';

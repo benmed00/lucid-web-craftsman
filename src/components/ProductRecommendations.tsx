@@ -1,13 +1,15 @@
+import { useMemo } from 'react';
 import { useProductRecommendations } from '@/hooks/useProductRecommendations';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { useCart } from '@/stores';
 import { toast } from 'sonner';
 import { appNavigate } from '@/lib/navigation';
-import ProductCard from './ProductCard';
+import ProductCard, { StockContext } from './ProductCard';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Sparkles } from 'lucide-react';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { useTranslation } from 'react-i18next';
+import { useBatchStock } from '@/hooks/useBatchStock';
 
 interface ProductRecommendationsProps {
   currentProduct?: Product;
@@ -35,6 +37,16 @@ export const ProductRecommendations = ({
     maxRecommendations,
   });
 
+  // Batch stock query for all recommendations
+  const productIds = useMemo(
+    () => recommendations.map((p) => p.id),
+    [recommendations]
+  );
+  const { stockMap } = useBatchStock({
+    productIds,
+    enabled: productIds.length > 0,
+  });
+
   const displayTitle = title || t('recommendations.title');
 
   const handleAddToCart = async (product: Product) => {
@@ -57,7 +69,6 @@ export const ProductRecommendations = ({
         toast.error(t('recommendations.addError'));
       }
     } catch (error) {
-      // Silent error handling for production
       toast.error(t('recommendations.addError'));
     }
   };
@@ -67,32 +78,34 @@ export const ProductRecommendations = ({
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-serif flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-primary" />
-          {displayTitle}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-          {recommendations.map((product, index) => (
-            <div
-              key={product.id}
-              className="animate-fade-in"
-              style={{
-                animationDelay: `${index * 100}ms`,
-              }}
-            >
-              <ProductCard
-                product={product}
-                onAddToCart={handleAddToCart}
-                onQuickView={onQuickView}
-              />
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <StockContext.Provider value={stockMap}>
+      <Card className="w-full">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-serif flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            {displayTitle}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+            {recommendations.map((product, index) => (
+              <div
+                key={product.id}
+                className="animate-fade-in"
+                style={{
+                  animationDelay: `${index * 100}ms`,
+                }}
+              >
+                <ProductCard
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                  onQuickView={onQuickView}
+                />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </StockContext.Provider>
   );
 };
