@@ -24,8 +24,9 @@ import { useCurrency } from '@/stores';
 import { hapticFeedback } from '@/utils/haptics';
 import { useCompareStore } from '@/stores/compareStore';
 
-// Create context for stock sharing - this will be provided by ProductShowcase
-const StockContext = createContext<Record<number, StockInfo>>({});
+// Sentinel to distinguish "no provider" from "provider with empty data"
+const NO_PROVIDER = Symbol('no-stock-provider');
+const StockContext = createContext<Record<number, StockInfo> | typeof NO_PROVIDER>(NO_PROVIDER);
 const useStockContext = () => useContext(StockContext);
 
 interface ProductCardProps {
