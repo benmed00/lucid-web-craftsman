@@ -265,7 +265,7 @@ const ProductShowcase = () => {
   }
 
   return (
-    <StockContext.Provider value={stockInfo || {}}>
+    <StockContext.Provider value={stockMap}>
       <section
         className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6"
         aria-label={t('showcase.ariaLabel')}
