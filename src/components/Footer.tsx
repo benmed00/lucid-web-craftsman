@@ -1,5 +1,6 @@
-import { Leaf } from 'lucide-react';
+import { Leaf, Shield, Truck, RotateCcw } from 'lucide-react';
 import { ErrorReportButton } from './ui/ErrorReportButton';
+import { PaymentIcons } from './conversion/TrustBadges';
 import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
