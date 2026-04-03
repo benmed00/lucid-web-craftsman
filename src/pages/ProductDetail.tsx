@@ -67,6 +67,9 @@ import { StockInfo } from '@/services/stockService';
 import { sanitizeHtmlContent } from '@/utils/xssProtection';
 import { appNavigate } from '@/lib/navigation';
 import { hapticFeedback } from '@/utils/haptics';
+import { TrustBadges } from '@/components/conversion/TrustBadges';
+import { ScarcityIndicator } from '@/components/conversion/ScarcityIndicator';
+import { ProductFAQ } from '@/components/conversion/ProductFAQ';
 
 const ProductDetail: React.FC = () => {
   const { t } = useTranslation('pages');
