@@ -33,6 +33,7 @@ const PaymentStep = ({
   paymentMethod,
   total,
   isProcessing,
+  paymentError,
   onPaymentMethodChange,
   onPayment,
   onEditStep,
