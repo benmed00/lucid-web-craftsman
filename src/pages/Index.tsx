@@ -131,6 +131,9 @@ const Index = () => {
           </div>
         </section>
 
+        {/* Trust Bar — below hero */}
+        <TrustBar />
+
         {/* Features Section - Mobile Responsive */}
         <section id="about" className="bg-secondary py-12 md:py-20 lg:py-28">
           <div className="container mx-auto px-4">
