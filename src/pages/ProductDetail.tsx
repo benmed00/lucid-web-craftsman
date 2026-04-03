@@ -957,6 +957,11 @@ const ProductDetail: React.FC = () => {
             </Tabs>
           </div>
 
+          {/* FAQ Section */}
+          <div className="mb-16">
+            <ProductFAQ />
+          </div>
+
           {/* Reviews Section */}
           <div className="mb-16">
             <ProductReviews productId={product.id} productName={product.name} />
