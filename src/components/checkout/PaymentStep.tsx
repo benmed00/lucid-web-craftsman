@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import StepSummary from '@/components/checkout/StepSummary';
 import PaymentButton from '@/components/checkout/PaymentButton';
 import { isEligibleForCOD } from '@/utils/shipping';
+import { TrustBadges } from '@/components/conversion/TrustBadges';
 
 interface PaymentStepProps {
   formData: {
