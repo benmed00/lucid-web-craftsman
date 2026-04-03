@@ -446,6 +446,7 @@ export function useCheckoutPage() {
   const handlePayment = async () => {
     try {
       setIsProcessing(true);
+      setPaymentError(null);
       if (honeypot) {
         toast.error(t('errors.genericError'));
         setIsProcessing(false);
