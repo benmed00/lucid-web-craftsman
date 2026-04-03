@@ -5,10 +5,10 @@
 2. **Trust elements**: Secure payment icons, shipping info, return policy, FAQ section
 3. **Social proof**: Reviews section with seeded reviews
 
-### Phase 2 — Checkout Hardening (Critical bugs)
-4. **Checkout flow audit**: Verify redirect URLs, order confirmation consistency
-5. **Loading states & error handling**: Proper UX for payment failures
-6. **State consistency**: Ensure cart ↔ backend ↔ Stripe alignment
+### Phase 2 — Checkout Hardening ✅
+4. **Origin-aware redirects**: `getValidOrigin` now uses request Origin/Referer with allowlist — dev/preview URLs work correctly
+5. **SEPA payment support**: Added `sepa_debit` to Stripe Checkout payment methods for French market
+6. **Payment error recovery UX**: Visible error banner with reassurance ("no charge") + retry capability
 
 ### Phase 3 — UI Premium Polish
 7. **Typography & spacing overhaul**: Premium minimalist feel

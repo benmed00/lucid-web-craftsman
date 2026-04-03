@@ -114,6 +114,7 @@ export function useCheckoutPage() {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [honeypot, setHoneypot] = useState('');
   const [_paymentInitiated, setPaymentInitiated] = useState(false);
   const [paymentOpenedInTab, setPaymentOpenedInTab] = useState(false);
@@ -445,6 +446,7 @@ export function useCheckoutPage() {
   const handlePayment = async () => {
     try {
       setIsProcessing(true);
+      setPaymentError(null);
       if (honeypot) {
         toast.error(t('errors.genericError'));
         setIsProcessing(false);
@@ -591,33 +593,32 @@ export function useCheckoutPage() {
       console.error('Payment error:', error);
       const errorMessage =
         error instanceof Error ? error.message : String(error);
+      let userMessage: string;
       if (
         errorMessage.includes('introuvable') ||
         errorMessage.includes('indisponible') ||
         errorMessage.includes('insuffisant')
       ) {
-        toast.error(errorMessage);
+        userMessage = errorMessage;
       } else if (
         errorMessage.includes('Invalid email') ||
         errorMessage.includes('invalide')
       ) {
-        toast.error(
-          t('errors.invalidEmail', 'Veuillez vérifier vos informations.')
-        );
+        userMessage = t('errors.invalidEmail', 'Veuillez vérifier vos informations.');
       } else if (
         errorMessage.includes('network') ||
         errorMessage.includes('fetch') ||
         errorMessage.includes('Failed to fetch')
       ) {
-        toast.error(
-          t(
-            'errors.networkError',
-            'Erreur réseau. Vérifiez votre connexion et réessayez.'
-          )
+        userMessage = t(
+          'errors.networkError',
+          'Erreur réseau. Vérifiez votre connexion et réessayez.'
         );
       } else {
-        toast.error(t('errors.paymentFailed'));
+        userMessage = t('errors.paymentFailed');
       }
+      setPaymentError(userMessage);
+      toast.error(userMessage);
       setIsProcessing(false);
     }
   };
@@ -628,6 +629,7 @@ export function useCheckoutPage() {
     completedSteps,
     formData,
     formErrors,
+    paymentError,
     honeypot,
     paymentMethod,
     isProcessing,

@@ -36,14 +36,33 @@ export function resolveProductionOrigin(): string {
   return productionOriginCache;
 }
 
-/** Origin allowlist reserved for future strict redirect validation */
-export const _ALLOWED_ORIGINS: string[] = [
+/** Origin allowlist for strict redirect validation */
+export const ALLOWED_ORIGINS: string[] = [
   'https://www.rifelegance.com',
   'https://rifelegance.com',
   'https://rif-raw-straw.lovable.app',
   'https://id-preview--1ed5c182-2490-4180-9969-ca6a7e19e8ca.lovable.app',
 ];
 
-export const getValidOrigin: (_req: Request) => string = (_req) => {
+/**
+ * Returns the best origin for Stripe redirect URLs.
+ * Uses request Origin/Referer if it matches the allowlist,
+ * otherwise falls back to the production SITE_URL.
+ */
+export function getValidOrigin(req: Request): string {
+  const origin = req.headers.get('origin');
+  if (origin) {
+    const normalized = origin.replace(/\/+$/, '');
+    if (ALLOWED_ORIGINS.includes(normalized)) return normalized;
+  }
+
+  const referer = req.headers.get('referer');
+  if (referer) {
+    try {
+      const refOrigin = new URL(referer).origin;
+      if (ALLOWED_ORIGINS.includes(refOrigin)) return refOrigin;
+    } catch { /* ignore malformed referer */ }
+  }
+
   return resolveProductionOrigin();
-};
+}

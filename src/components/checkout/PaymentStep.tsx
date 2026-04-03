@@ -22,6 +22,7 @@ interface PaymentStepProps {
   paymentMethod: string;
   total: number;
   isProcessing: boolean;
+  paymentError?: string | null;
   onPaymentMethodChange: (method: string) => void;
   onPayment: () => void;
   onEditStep: (step: number) => void;
@@ -32,6 +33,7 @@ const PaymentStep = ({
   paymentMethod,
   total,
   isProcessing,
+  paymentError,
   onPaymentMethodChange,
   onPayment,
   onEditStep,
@@ -163,6 +165,19 @@ const PaymentStep = ({
           </div>
         )}
       </RadioGroup>
+
+      {/* Payment error banner */}
+      {paymentError && (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 text-sm text-destructive flex items-start gap-3">
+          <Shield className="h-5 w-5 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium">{paymentError}</p>
+            <p className="text-destructive/70 mt-1">
+              Vous pouvez réessayer en toute sécurité — aucun montant n'a été débité.
+            </p>
+          </div>
+        </div>
+      )}
 
       <PaymentButton
         total={total}
