@@ -133,7 +133,8 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        serif: ['Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
+        serif: ['"Playfair Display"', 'Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       keyframes: {
         'accordion-down': {
@@ -177,6 +178,7 @@ export default {
       boxShadow: {
         elegant: 'var(--shadow-elegant)',
         glow: 'var(--shadow-glow)',
+        premium: 'var(--shadow-premium)',
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',

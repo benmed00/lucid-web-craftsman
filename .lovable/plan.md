@@ -10,10 +10,11 @@
 5. **SEPA payment support**: Added `sepa_debit` to Stripe Checkout payment methods for French market
 6. **Payment error recovery UX**: Visible error banner with reassurance ("no charge") + retry capability
 
-### Phase 3 — UI Premium Polish
-7. **Typography & spacing overhaul**: Premium minimalist feel
-8. **Homepage hero**: Conversion-optimized landing section
-9. **Navigation & footer**: Trust signals throughout
+### Phase 3 — UI Premium Polish ✅
+7. **Typography upgrade**: Playfair Display (headings) + Inter (body) with antialiasing, `font-sans` base
+8. **Homepage hero**: Tighter tracking, bolder CTAs, refined badge styling, better spacing hierarchy
+9. **Navigation**: Frosted glass effect (`backdrop-blur-md`, `bg-background/95`), softer border
+10. **Premium shadow token**: Added `--shadow-premium` for elevated card effects
 
 ### Phase 4 — Performance & Tracking
 10. **Image optimization**: Lazy loading, WebP
