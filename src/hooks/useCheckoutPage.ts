@@ -629,6 +629,7 @@ export function useCheckoutPage() {
     completedSteps,
     formData,
     formErrors,
+    paymentError,
     honeypot,
     paymentMethod,
     isProcessing,
