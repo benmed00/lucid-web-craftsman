@@ -85,7 +85,7 @@ const Navigation = () => {
         {t('common:accessibility.skipToContent')}
       </a>
 
-      <header className="header-nav-root sticky top-0 z-header w-full bg-background border-b border-border shadow-sm">
+      <header className="header-nav-root sticky top-0 z-header w-full bg-background/95 backdrop-blur-md border-b border-border/60 shadow-sm">
         <div className="w-full max-w-none px-4 sm:px-4 md:px-6 lg:px-8 xl:px-12">
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-16 lg:h-16 w-full gap-2 md:gap-4">
             {/* Logo */}

@@ -91,6 +91,7 @@
     /* Shadows with brand colors */
     --shadow-elegant: 0 10px 25px -5px hsl(var(--olive-700) / 0.1);
     --shadow-glow: 0 0 20px hsl(var(--olive-500) / 0.15);
+    --shadow-premium: 0 20px 60px -15px hsl(var(--olive-700) / 0.15), 0 0 0 1px hsl(var(--olive-100) / 0.5);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
