@@ -22,6 +22,7 @@ interface PaymentStepProps {
   paymentMethod: string;
   total: number;
   isProcessing: boolean;
+  paymentError?: string | null;
   onPaymentMethodChange: (method: string) => void;
   onPayment: () => void;
   onEditStep: (step: number) => void;
