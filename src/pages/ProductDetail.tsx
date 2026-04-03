@@ -799,6 +799,9 @@ const ProductDetail: React.FC = () => {
                   </AlertDescription>
                 </Alert>
               </div>
+
+              {/* Trust Badges */}
+              <TrustBadges variant="vertical" showPaymentIcons />
             </section>
           </div>
 
