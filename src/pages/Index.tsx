@@ -12,6 +12,7 @@ import FloatingCartButton from '@/components/ui/FloatingCartButton';
 import { lazy, Suspense } from 'react';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TrustBar } from '@/components/conversion/TrustBar';
 
 // Lazy load below-fold sections to improve Speed Index
 const Footer = lazy(() => import('@/components/Footer'));
@@ -129,6 +130,9 @@ const Index = () => {
             </div>
           </div>
         </section>
+
+        {/* Trust Bar — below hero */}
+        <TrustBar />
 
         {/* Features Section - Mobile Responsive */}
         <section id="about" className="bg-secondary py-12 md:py-20 lg:py-28">

@@ -67,6 +67,9 @@ import { StockInfo } from '@/services/stockService';
 import { sanitizeHtmlContent } from '@/utils/xssProtection';
 import { appNavigate } from '@/lib/navigation';
 import { hapticFeedback } from '@/utils/haptics';
+import { TrustBadges } from '@/components/conversion/TrustBadges';
+import { ScarcityIndicator } from '@/components/conversion/ScarcityIndicator';
+import { ProductFAQ } from '@/components/conversion/ProductFAQ';
 
 const ProductDetail: React.FC = () => {
   const { t } = useTranslation('pages');
@@ -746,17 +749,25 @@ const ProductDetail: React.FC = () => {
                 </div>
               </div>
 
-              {/* Stock & Shipping Info */}
+              {/* Scarcity + Stock & Shipping Info */}
               <div className="space-y-3">
-                {singleStockInfo && (
+                <ScarcityIndicator stockInfo={singleStockInfo} productName={product.name} />
+
+                {singleStockInfo && !singleStockInfo.isOutOfStock && (
                   <Alert>
                     <AlertDescription className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-primary" />
                       <span className="text-sm">
-                        {!singleStockInfo.isOutOfStock
-                          ? `${t('productDetail.stock.inStock')} • ${singleStockInfo.available} ${t('productDetail.stock.available')}`
-                          : t('productDetail.stock.outOfStock')}
+                        {`${t('productDetail.stock.inStock')} • ${singleStockInfo.available} ${t('productDetail.stock.available')}`}
                       </span>
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {singleStockInfo?.isOutOfStock && (
+                  <Alert>
+                    <AlertDescription className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                      <span className="text-sm">{t('productDetail.stock.outOfStock')}</span>
                     </AlertDescription>
                   </Alert>
                 )}
@@ -788,6 +799,9 @@ const ProductDetail: React.FC = () => {
                   </AlertDescription>
                 </Alert>
               </div>
+
+              {/* Trust Badges */}
+              <TrustBadges variant="vertical" showPaymentIcons />
             </section>
           </div>
 
@@ -941,6 +955,11 @@ const ProductDetail: React.FC = () => {
                 </Card>
               </TabsContent>
             </Tabs>
+          </div>
+
+          {/* FAQ Section */}
+          <div className="mb-16">
+            <ProductFAQ />
           </div>
 
           {/* Reviews Section */}
