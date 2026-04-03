@@ -178,6 +178,7 @@ export default {
       boxShadow: {
         elegant: 'var(--shadow-elegant)',
         glow: 'var(--shadow-glow)',
+        premium: 'var(--shadow-premium)',
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
