@@ -169,6 +169,9 @@ const PaymentStep = ({
         isProcessing={isProcessing}
         onClick={onPayment}
       />
+
+      {/* Trust reassurance below payment button */}
+      <TrustBadges variant="compact" />
     </div>
   );
 };
