@@ -145,7 +145,28 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-border mt-8 sm:mt-12 pt-4 sm:pt-6 text-center sm:text-left sm:flex sm:justify-between sm:items-center">
+        {/* Trust + Payment row */}
+        <div className="border-t border-border mt-8 sm:mt-12 pt-6 sm:pt-8">
+          <div className="flex flex-wrap justify-center gap-6 mb-6 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <Shield className="h-4 w-4 text-primary" />
+              <span>{t('trust.securePayment', 'Paiement sécurisé')}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Truck className="h-4 w-4 text-primary" />
+              <span>{t('trust.freeShipping', 'Livraison offerte dès 50€')}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <RotateCcw className="h-4 w-4 text-primary" />
+              <span>{t('trust.returns', 'Retours gratuits 14j')}</span>
+            </div>
+          </div>
+          <div className="flex justify-center mb-6">
+            <PaymentIcons />
+          </div>
+        </div>
+
+        <div className="border-t border-border pt-4 sm:pt-6 text-center sm:text-left sm:flex sm:justify-between sm:items-center">
           <p className="text-muted-foreground text-sm sm:text-base">
             {t('footer.copyright', { year: currentYear })}
           </p>
