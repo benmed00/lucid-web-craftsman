@@ -749,17 +749,25 @@ const ProductDetail: React.FC = () => {
                 </div>
               </div>
 
-              {/* Stock & Shipping Info */}
+              {/* Scarcity + Stock & Shipping Info */}
               <div className="space-y-3">
-                {singleStockInfo && (
+                <ScarcityIndicator stockInfo={singleStockInfo} productName={product.name} />
+
+                {singleStockInfo && !singleStockInfo.isOutOfStock && (
                   <Alert>
                     <AlertDescription className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-primary" />
                       <span className="text-sm">
-                        {!singleStockInfo.isOutOfStock
-                          ? `${t('productDetail.stock.inStock')} • ${singleStockInfo.available} ${t('productDetail.stock.available')}`
-                          : t('productDetail.stock.outOfStock')}
+                        {`${t('productDetail.stock.inStock')} • ${singleStockInfo.available} ${t('productDetail.stock.available')}`}
                       </span>
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {singleStockInfo?.isOutOfStock && (
+                  <Alert>
+                    <AlertDescription className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                      <span className="text-sm">{t('productDetail.stock.outOfStock')}</span>
                     </AlertDescription>
                   </Alert>
                 )}
