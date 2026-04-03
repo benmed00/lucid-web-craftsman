@@ -114,6 +114,7 @@ export function useCheckoutPage() {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [honeypot, setHoneypot] = useState('');
   const [_paymentInitiated, setPaymentInitiated] = useState(false);
   const [paymentOpenedInTab, setPaymentOpenedInTab] = useState(false);
