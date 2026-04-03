@@ -32,8 +32,8 @@ export const ScarcityIndicator = ({ stockInfo }: ScarcityIndicatorProps) => {
   // Medium stock (< 15) — subtle urgency
   if (available > 5 && available <= 15) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 text-sm">
-        <Clock className="h-4 w-4" />
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary text-foreground text-sm">
+        <Clock className="h-4 w-4 text-primary" />
         <span>{t('scarcity.sellingFast', 'Article populaire — commandez vite')}</span>
       </div>
     );
