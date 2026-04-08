@@ -87,7 +87,9 @@ export function buildStripeCheckoutLineItems(params: {
               : item.product.description || item.product.name,
           images:
             item.product.images.length > 0
-              ? [`${imageOriginPrefix}${item.product.images[0]}`]
+              ? [item.product.images[0].startsWith('http') 
+                  ? item.product.images[0] 
+                  : `${imageOriginPrefix}${item.product.images[0]}`]
               : [],
         },
         unit_amount: discountedPriceCents,
