@@ -84,7 +84,7 @@ const Index = () => {
               <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2 animate-pulse"></span>
               {t('pages:home.hero.badge')}
             </Badge>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-serif font-medium text-foreground animate-fade-in-up leading-[1.05] tracking-[-0.02em]">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-serif font-semibold text-foreground animate-fade-in-up leading-[1.1] tracking-tight">
               {t('pages:home.hero.title')}{' '}
               <span className="text-primary">
                 {t('pages:home.hero.titleHighlight')}
