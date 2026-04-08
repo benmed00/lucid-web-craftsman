@@ -133,7 +133,7 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        serif: ['Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
+        serif: ['"Cormorant Garamond"', 'Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
         sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
       },
       keyframes: {
