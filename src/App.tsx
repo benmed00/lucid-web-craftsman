@@ -15,6 +15,8 @@ import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { lazy, Suspense, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { resolveHydrationWatchdog } from '@/lib/storage/StorageGuard';
+import { initPixels } from '@/lib/tracking/pixels';
+import { usePageTracking } from '@/lib/tracking/usePageTracking';
 
 // Critical page loaded immediately (landing page only)
 import Index from './pages/Index';
@@ -187,12 +189,13 @@ const queryClient = new QueryClient({
 
 const basePath: string = '/';
 
-// Register global navigate function for use in toast callbacks etc.
+// Register global navigate function + tracking pixels
 const NavigateRegistrar = () => {
   const nav = useNavigate();
   useEffect(() => {
     setNavigate(nav);
   }, [nav]);
+  usePageTracking();
   return null;
 };
 
@@ -242,6 +245,7 @@ const App = () => {
   // Resolve hydration watchdog — app rendered successfully
   useEffect(() => {
     resolveHydrationWatchdog();
+    initPixels();
   }, []);
 
   // Product prefetch removed — the Index page's useProductsWithTranslations()
