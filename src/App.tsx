@@ -75,6 +75,7 @@ const Terms = lazyWithRetry(() => import('./pages/Terms'));
 const TermsOfService = lazyWithRetry(() => import('./pages/TermsOfService'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
 const Unsubscribe = lazyWithRetry(() => import('./pages/Unsubscribe'));
+const Logout = lazyWithRetry(() => import('./pages/Logout'));
 const NewsletterExitIntent = lazyWithRetry(
   () => import('./components/NewsletterExitIntent')
 );
