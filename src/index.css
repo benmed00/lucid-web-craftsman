@@ -226,7 +226,24 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  * {
+  /* ============= UI Style Themes (admin switcher) ============= */
+  [data-ui-style="legacy"] {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --primary: 0 0% 15%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 20%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 15%;
+  }
+
     @apply border-border;
     /* Prevent flickering by disabling smooth scroll during page transitions */
     scroll-behavior: auto !important;
