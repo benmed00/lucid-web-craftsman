@@ -98,6 +98,25 @@
     --shadow-glow: 0 0 20px hsl(var(--sand-500) / 0.12);
     --shadow-premium: 0 20px 60px -15px hsl(var(--sand-700) / 0.12), 0 0 0 1px hsl(var(--sand-100) / 0.5);
 
+    /* Backward-compatible aliases (olive → sand, stone → earth) */
+    --olive-50: var(--sand-50);
+    --olive-100: var(--sand-100);
+    --olive-200: var(--sand-200);
+    --olive-300: var(--sand-300);
+    --olive-500: var(--sand-400);
+    --olive-700: var(--sand-700);
+    --olive-800: var(--sand-800);
+    --olive-900: var(--sand-900);
+    --stone-50: var(--earth-50);
+    --stone-100: var(--earth-100);
+    --stone-200: var(--earth-200);
+    --stone-300: var(--earth-300);
+    --stone-400: var(--earth-400);
+    --stone-500: var(--sand-500);
+    --stone-600: var(--sand-600);
+    --stone-700: var(--sand-700);
+    --stone-800: var(--sand-800);
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
