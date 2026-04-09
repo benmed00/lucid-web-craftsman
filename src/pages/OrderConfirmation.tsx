@@ -343,6 +343,7 @@ const OrderConfirmation = () => {
   const [snapshot] = useState<CheckoutSnapshot | null>(() => loadSnapshot());
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [processingElapsed, setProcessingElapsed] = useState(0);
   const { clearCart } = useCart();
   const { user, profile } = useAuth();
   const initRef = useRef(false);
