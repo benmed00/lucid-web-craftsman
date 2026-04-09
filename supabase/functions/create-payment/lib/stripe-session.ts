@@ -65,7 +65,7 @@ export function buildCheckoutSessionCreateParams(
     customer_creation: customerId ? undefined : 'always',
     line_items: lineItems,
     mode: 'payment',
-    payment_method_types: ['card', 'sepa_debit'],
+    payment_method_types: ['card'],
     success_url: `${siteBaseUrl}/order-confirmation?order_id=${orderId}`,
     cancel_url: `${siteBaseUrl}/checkout`,
     shipping_address_collection: shippingAddress
