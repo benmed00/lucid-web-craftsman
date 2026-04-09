@@ -70,6 +70,7 @@ import { hapticFeedback } from '@/utils/haptics';
 import { TrustBadges } from '@/components/conversion/TrustBadges';
 import { ScarcityIndicator } from '@/components/conversion/ScarcityIndicator';
 import { ProductFAQ } from '@/components/conversion/ProductFAQ';
+import MobileStickyAddToCart from '@/components/ui/MobileStickyAddToCart';
 
 const ProductDetail: React.FC = () => {
   const { t } = useTranslation('pages');
@@ -579,7 +580,7 @@ const ProductDetail: React.FC = () => {
 
                 <div className="flex items-center gap-3 flex-wrap mb-4">
                   <h1
-                    className="text-3xl lg:text-4xl font-serif text-foreground"
+                    className="text-[28px] sm:text-3xl lg:text-4xl font-serif font-bold text-foreground"
                     id="product-title"
                   >
                     {product.name}
@@ -622,7 +623,7 @@ const ProductDetail: React.FC = () => {
                 {/* Price */}
                 <div className="mb-6">
                   <div
-                    className="text-3xl font-bold text-primary"
+                    className="text-2xl sm:text-3xl font-bold text-primary"
                     data-testid="product-price"
                   >
                     {formatPrice(product.price)}
@@ -685,7 +686,7 @@ const ProductDetail: React.FC = () => {
                 <div className="flex gap-3">
                   <Button
                     onClick={handleAddToCart}
-                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold min-h-[52px] rounded-full text-sm sm:text-base"
                     disabled={singleStockInfo?.isOutOfStock}
                     data-testid="product-add-to-cart"
                   >
@@ -986,6 +987,13 @@ const ProductDetail: React.FC = () => {
         </main>
 
         <PageFooter />
+
+        {/* Mobile Sticky Add to Cart */}
+        <MobileStickyAddToCart
+          price={product.price}
+          onAddToCart={handleAddToCart}
+          disabled={singleStockInfo?.isOutOfStock}
+        />
       </div>
     </>
   );
