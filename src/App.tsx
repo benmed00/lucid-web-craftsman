@@ -474,6 +474,14 @@ const App = () => {
                         }
                       />
                       <Route
+                        path="/logout"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Logout />
+                          </Suspense>
+                        }
+                      />
+                      <Route
                         path="/story"
                         element={
                           <Suspense fallback={<PageLoadingFallback />}>
