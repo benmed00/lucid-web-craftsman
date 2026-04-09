@@ -244,6 +244,7 @@
     --accent-foreground: 0 0% 15%;
   }
 
+  * {
     @apply border-border;
     /* Prevent flickering by disabling smooth scroll during page transitions */
     scroll-behavior: auto !important;
