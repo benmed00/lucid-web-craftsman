@@ -8,6 +8,7 @@ import {
   Package,
   Clock,
   AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -20,6 +21,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/stores';
 import { useAuth } from '@/context/AuthContext';
 
+// ================================================================
+// Types
+// ================================================================
 interface OrderItem {
   product_name: string;
   quantity: number;
@@ -41,7 +45,19 @@ interface OrderData {
   customer_name?: string;
 }
 
-type ConfirmationState = 'loading' | 'success' | 'processing' | 'error';
+interface CheckoutSnapshot {
+  email: string;
+  customerName: string;
+  items: { name: string; quantity: number; price: number; image?: string }[];
+  subtotal: number;
+  shipping: number;
+  discount: number;
+  total: number;
+  currency: string;
+  timestamp: number;
+}
+
+type ConfirmationState = 'loading' | 'success' | 'processing' | 'fallback' | 'error';
 
 const COUNTRY_NAMES: Record<string, string> = {
   FR: 'France', DE: 'Allemagne', BE: 'Belgique', CH: 'Suisse',
@@ -49,11 +65,255 @@ const COUNTRY_NAMES: Record<string, string> = {
   US: 'États-Unis', CA: 'Canada', MA: 'Maroc',
 };
 
-const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  card: 'Carte bancaire', paypal: 'PayPal',
-  sepa_debit: 'Prélèvement SEPA', bank_transfer: 'Virement bancaire',
-};
+// ================================================================
+// Helpers
+// ================================================================
+function loadSnapshot(): CheckoutSnapshot | null {
+  try {
+    const raw = localStorage.getItem('checkout_snapshot');
+    if (!raw) return null;
+    const data = JSON.parse(raw) as CheckoutSnapshot;
+    // Expire after 1 hour
+    if (Date.now() - data.timestamp > 3600_000) {
+      localStorage.removeItem('checkout_snapshot');
+      return null;
+    }
+    return data;
+  } catch {
+    return null;
+  }
+}
 
+// ================================================================
+// Sub-components
+// ================================================================
+
+/** STATE 1: Processing — shows immediately with snapshot data */
+function OrderProcessing({ snapshot, orderId }: { snapshot: CheckoutSnapshot | null; orderId: string | null }) {
+  return (
+    <div className="text-center py-8">
+      <div className="relative w-16 h-16 mx-auto mb-6">
+        <CheckCircle className="w-16 h-16 text-primary" />
+        <Loader2 className="w-6 h-6 text-primary absolute -bottom-1 -right-1 animate-spin" />
+      </div>
+      <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
+        Paiement reçu ✓
+      </h1>
+      <p className="text-muted-foreground mb-6">
+        Nous finalisons votre commande, veuillez patienter quelques instants…
+      </p>
+
+      {snapshot && (
+        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden max-w-md mx-auto text-left mb-6">
+          <div className="bg-muted/50 px-6 py-3">
+            <p className="text-sm font-medium text-foreground">Récapitulatif</p>
+          </div>
+          {snapshot.email && (
+            <div className="px-6 py-3 border-t border-border">
+              <p className="text-xs text-muted-foreground">Email de confirmation</p>
+              <p className="text-sm font-medium text-foreground">{snapshot.email}</p>
+            </div>
+          )}
+          {snapshot.items.length > 0 && (
+            <div className="px-6 py-3 border-t border-border space-y-2">
+              {snapshot.items.map((item, idx) => (
+                <div key={idx} className="flex justify-between text-sm">
+                  <span className="text-foreground">{item.name} × {item.quantity}</span>
+                  <span className="text-foreground font-medium">{(item.price * item.quantity).toFixed(2)} €</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="px-6 py-3 border-t border-border flex justify-between">
+            <span className="font-semibold text-foreground">Total</span>
+            <span className="font-semibold text-foreground">{snapshot.total.toFixed(2)} €</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** STATE 2: Success — full order data from DB */
+function OrderSuccess({
+  order, orderItems, customerName, customerEmail, formatPrice, onDownloadInvoice,
+}: {
+  order: OrderData;
+  orderItems: OrderItem[];
+  customerName: string;
+  customerEmail: string;
+  formatPrice: (cents: number) => string;
+  onDownloadInvoice: () => void;
+}) {
+  const orderNumber = order.id.slice(-8).toUpperCase();
+  const orderDate = new Date(order.created_at).toLocaleDateString('fr-FR', {
+    day: 'numeric', month: 'long', year: 'numeric',
+  });
+
+  return (
+    <>
+      <div className="text-center mb-8">
+        <CheckCircle className="w-16 h-16 text-primary mx-auto mb-4" />
+        <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
+          Paiement confirmé
+        </h1>
+        <p className="text-lg text-foreground font-medium mb-1">
+          Merci pour votre commande !
+        </p>
+        <p className="text-muted-foreground">
+          Votre paiement a bien été reçu et votre commande est en cours de traitement.
+          Un email de confirmation vous a été envoyé.
+        </p>
+      </div>
+
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden mb-6">
+        <div className="bg-muted/50 px-6 py-4 flex justify-between items-center">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Commande #{orderNumber}</p>
+            <p className="text-xs text-muted-foreground">Date : {orderDate}</p>
+          </div>
+        </div>
+
+        {(customerName || customerEmail) && (
+          <div className="px-6 py-4 border-t border-border">
+            <div className="flex items-center gap-2 text-sm">
+              <Package className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium text-foreground">
+                {customerName ? `Client, ${customerName}` : 'Client'}
+              </span>
+            </div>
+            {customerEmail && (
+              <p className="text-xs text-muted-foreground ml-6">{customerEmail}</p>
+            )}
+          </div>
+        )}
+
+        {orderItems.length > 0 && (
+          <div className="px-6 py-4 border-t border-border">
+            <p className="text-sm font-semibold text-foreground mb-3">Détails</p>
+            <div className="space-y-3">
+              {orderItems.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {item.image_url && (
+                      <img
+                        src={item.image_url}
+                        alt={item.product_name}
+                        className="w-12 h-12 rounded-lg object-cover border border-border"
+                      />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{item.product_name}</p>
+                      <p className="text-xs text-muted-foreground">Quantité : {item.quantity}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm font-medium text-foreground">{formatPrice(item.total_price)}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 pt-3 border-t border-border flex justify-between">
+              <span className="font-semibold text-foreground">Total</span>
+              <span className="font-semibold text-foreground">{formatPrice(order.amount)}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="bg-muted/50 rounded-xl p-6 mb-8 text-center">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Clock className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm font-semibold text-foreground">
+            Statut : En cours de traitement
+          </span>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Votre commande est en cours de préparation.
+          Nous vous enverrons un email avec les informations de suivi dès qu'elle sera expédiée.
+        </p>
+      </div>
+
+      {orderItems.length > 0 && (
+        <div className="flex justify-center mb-4">
+          <Button onClick={onDownloadInvoice} variant="outline" className="gap-2">
+            <Download className="w-4 h-4" />
+            Télécharger la facture
+          </Button>
+        </div>
+      )}
+    </>
+  );
+}
+
+/** STATE 3: Fallback — order not found after retries */
+function OrderFallback({ snapshot, onRetry, isRetrying }: {
+  snapshot: CheckoutSnapshot | null;
+  onRetry: () => void;
+  isRetrying: boolean;
+}) {
+  return (
+    <div className="text-center py-8">
+      <CheckCircle className="w-16 h-16 text-primary mx-auto mb-4" />
+      <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
+        Votre commande est en cours de traitement
+      </h1>
+      <p className="text-muted-foreground mb-6">
+        Votre paiement a bien été reçu. Le traitement de votre commande peut prendre
+        quelques minutes. Vous recevrez un email de confirmation très prochainement.
+      </p>
+
+      {snapshot && (
+        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden max-w-md mx-auto text-left mb-6">
+          <div className="bg-primary/10 px-6 py-3">
+            <p className="text-sm font-medium text-foreground">✓ Paiement enregistré</p>
+          </div>
+          {snapshot.email && (
+            <div className="px-6 py-3 border-t border-border">
+              <p className="text-xs text-muted-foreground">Confirmation envoyée à</p>
+              <p className="text-sm font-medium text-foreground">{snapshot.email}</p>
+            </div>
+          )}
+          {snapshot.items.length > 0 && (
+            <div className="px-6 py-3 border-t border-border space-y-2">
+              {snapshot.items.map((item, idx) => (
+                <div key={idx} className="flex justify-between text-sm">
+                  <span className="text-foreground">{item.name} × {item.quantity}</span>
+                  <span className="text-foreground font-medium">{(item.price * item.quantity).toFixed(2)} €</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="px-6 py-3 border-t border-border flex justify-between">
+            <span className="font-semibold text-foreground">Total payé</span>
+            <span className="font-semibold text-foreground">{snapshot.total.toFixed(2)} €</span>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-muted/50 rounded-xl p-6 max-w-md mx-auto mb-6">
+        <p className="text-sm text-muted-foreground">
+          Si vous ne recevez pas d'email dans 15 minutes, n'hésitez pas à contacter notre support.
+        </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <Button onClick={onRetry} disabled={isRetrying} variant="outline" className="gap-2">
+          <RefreshCw className={`w-4 h-4 ${isRetrying ? 'animate-spin' : ''}`} />
+          {isRetrying ? 'Vérification…' : 'Vérifier à nouveau'}
+        </Button>
+        <Button asChild variant="secondary" className="gap-2">
+          <Link to="/contact">
+            <Mail className="w-4 h-4" />
+            Contacter le support
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
+// Main page
+// ================================================================
 const OrderConfirmation = () => {
   const { t } = useTranslation(['pages', 'common']);
   const [searchParams] = useSearchParams();
@@ -64,13 +324,22 @@ const OrderConfirmation = () => {
   const [state, setState] = useState<ConfirmationState>('loading');
   const [order, setOrder] = useState<OrderData | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [snapshot] = useState<CheckoutSnapshot | null>(() => loadSnapshot());
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
   const { clearCart } = useCart();
   const { user, profile } = useAuth();
   const initRef = useRef(false);
 
+  // Clean up cart on mount
+  useEffect(() => {
+    localStorage.removeItem('checkout_payment_pending');
+    clearCart();
+    localStorage.removeItem('cart');
+  }, [clearCart]);
+
   // ================================================================
-  // Fetch order by ID — single source of truth
+  // Fetch helpers
   // ================================================================
   const fetchOrder = useCallback(async (oid: string): Promise<OrderData | null> => {
     try {
@@ -79,7 +348,6 @@ const OrderConfirmation = () => {
         .select('id, status, order_status, amount, currency, created_at, shipping_address, metadata, payment_method, user_id')
         .eq('id', oid)
         .maybeSingle();
-
       if (error || !data) return null;
       return data as OrderData;
     } catch {
@@ -93,15 +361,14 @@ const OrderConfirmation = () => {
         .from('order_items')
         .select('quantity, unit_price, total_price, product_snapshot')
         .eq('order_id', oid);
-
       return (data || []).map((item: any) => {
-        const snapshot = item.product_snapshot as any;
+        const snap = item.product_snapshot as any;
         return {
-          product_name: snapshot?.name || 'Produit',
+          product_name: snap?.name || 'Produit',
           quantity: item.quantity,
           unit_price: item.unit_price,
           total_price: item.total_price,
-          image_url: snapshot?.images?.[0] || undefined,
+          image_url: snap?.images?.[0] || undefined,
         };
       });
     } catch {
@@ -109,7 +376,127 @@ const OrderConfirmation = () => {
     }
   }, []);
 
-  // Auto-redirect for authenticated users
+  // ================================================================
+  // Polling with exponential backoff
+  // ================================================================
+  const pollForOrder = useCallback(async (oid: string): Promise<{ order: OrderData | null; items: OrderItem[] }> => {
+    const delays = [1000, 1500, 2000, 2500, 3000, 3000, 3000, 3000, 3000, 3000]; // 10 retries
+
+    for (let i = 0; i < delays.length; i++) {
+      const orderData = await fetchOrder(oid);
+
+      if (orderData) {
+        const isPaid = orderData.status === 'paid' || orderData.status === 'completed';
+
+        if (isPaid) {
+          const items = await fetchOrderItems(oid);
+          return { order: orderData, items };
+        }
+
+        // Order exists but not yet paid — keep polling for webhook
+        if (i < delays.length - 1) {
+          await new Promise((r) => setTimeout(r, delays[i]));
+          continue;
+        }
+
+        // Last attempt — return what we have
+        const items = await fetchOrderItems(oid);
+        return { order: orderData, items };
+      }
+
+      // Order not found yet — wait and retry
+      if (i < delays.length - 1) {
+        await new Promise((r) => setTimeout(r, delays[i]));
+      }
+    }
+
+    return { order: null, items: [] };
+  }, [fetchOrder, fetchOrderItems]);
+
+  // ================================================================
+  // Main verification
+  // ================================================================
+  const runVerification = useCallback(async () => {
+    if (!orderId) {
+      setState('error');
+      return;
+    }
+
+    console.log('[OrderConfirmation] Looking up order', { order_id: orderId });
+
+    // Show processing state immediately (with snapshot data)
+    if (state === 'loading') {
+      setState('processing');
+    }
+
+    const { order: orderData, items } = await pollForOrder(orderId);
+
+    if (!orderData) {
+      console.warn('[OrderConfirmation] Order not found after polling');
+      setState('fallback');
+      return;
+    }
+
+    setOrder(orderData);
+    setOrderItems(items);
+
+    const isPaid = orderData.status === 'paid' || orderData.status === 'completed';
+    if (isPaid) {
+      setState('success');
+      toast.success(t('pages:paymentSuccess.success.confirmed'));
+    } else {
+      // Order exists but still pending — show fallback with reassurance
+      setState('fallback');
+    }
+  }, [orderId, pollForOrder, state, t]);
+
+  // Initial verification
+  useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
+
+    if (isPayPal) {
+      const verifyPayPal = async () => {
+        const paypalToken = searchParams.get('token');
+        if (!paypalToken || !orderId) {
+          setState('error');
+          return;
+        }
+        setState('processing');
+        try {
+          const { data, error } = await supabase.functions.invoke('verify-paypal-payment', {
+            body: { paypal_order_id: paypalToken, order_id: orderId },
+          });
+          if (error || !data?.success) {
+            setState('fallback');
+            return;
+          }
+          const orderData = await fetchOrder(orderId);
+          if (orderData) {
+            setOrder(orderData);
+            const items = await fetchOrderItems(orderId);
+            setOrderItems(items);
+          }
+          setState('success');
+          toast.success(t('pages:paymentSuccess.success.confirmed'));
+        } catch {
+          setState('fallback');
+        }
+      };
+      verifyPayPal();
+    } else {
+      runVerification();
+    }
+  }, [orderId, isPayPal, searchParams, fetchOrder, fetchOrderItems, runVerification, t]);
+
+  // Retry handler for fallback state
+  const handleRetry = useCallback(async () => {
+    setIsRetrying(true);
+    await runVerification();
+    setIsRetrying(false);
+  }, [runVerification]);
+
+  // Auto-redirect for authenticated users on success
   useEffect(() => {
     if (!user || state !== 'success') return;
     setRedirectCountdown(8);
@@ -126,140 +513,33 @@ const OrderConfirmation = () => {
     return () => clearInterval(interval);
   }, [user, state, navigate]);
 
-  // ================================================================
-  // Main verification flow
-  // ================================================================
+  // Clean up snapshot after successful confirmation
   useEffect(() => {
-    localStorage.removeItem('checkout_payment_pending');
-    if (initRef.current) return;
-    initRef.current = true;
-
-    if (!orderId) {
-      setState('error');
-      return;
+    if (state === 'success') {
+      try { localStorage.removeItem('checkout_snapshot'); } catch { /* */ }
     }
-
-    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-    const verify = async () => {
-      console.log('[OrderConfirmation] Looking up order', { order_id: orderId });
-
-      // Step 1: Immediate lookup
-      let orderData = await fetchOrder(orderId);
-
-      if (!orderData) {
-        // Order might not be visible yet — poll briefly
-        for (let i = 0; i < 5; i++) {
-          await sleep(2000);
-          orderData = await fetchOrder(orderId);
-          if (orderData) break;
-        }
-      }
-
-      if (!orderData) {
-        console.warn('[OrderConfirmation] Order not found after polling');
-        setState('processing');
-        clearCart();
-        localStorage.removeItem('cart');
-        return;
-      }
-
-      setOrder(orderData);
-
-      // Fetch order items
-      const items = await fetchOrderItems(orderId);
-      setOrderItems(items);
-
-      const isPaid = orderData.status === 'paid' || orderData.status === 'completed';
-
-      if (isPaid) {
-        console.log('[OrderConfirmation] Order confirmed', { order_id: orderId });
-        setState('success');
-        clearCart();
-        localStorage.removeItem('cart');
-        toast.success(t('pages:paymentSuccess.success.confirmed'));
-        return;
-      }
-
-      // Order exists but not yet paid — poll for webhook
-      for (let i = 0; i < 5; i++) {
-        await sleep(2000);
-        const updated = await fetchOrder(orderId);
-        if (updated && (updated.status === 'paid' || updated.status === 'completed')) {
-          setOrder(updated);
-          setState('success');
-          clearCart();
-          localStorage.removeItem('cart');
-          toast.success(t('pages:paymentSuccess.success.confirmed'));
-          return;
-        }
-      }
-
-      // Still pending — show reassuring processing state (never show error)
-      console.log('[OrderConfirmation] Order still pending, showing processing state');
-      setState('processing');
-      clearCart();
-      localStorage.removeItem('cart');
-    };
-
-    // Handle PayPal verification
-    const verifyPayPal = async () => {
-      const paypalToken = searchParams.get('token');
-      if (!paypalToken || !orderId) {
-        setState('error');
-        return;
-      }
-      try {
-        const { data, error } = await supabase.functions.invoke('verify-paypal-payment', {
-          body: { paypal_order_id: paypalToken, order_id: orderId },
-        });
-        if (error || !data?.success) {
-          setState('error');
-          return;
-        }
-        const orderData = await fetchOrder(orderId);
-        if (orderData) {
-          setOrder(orderData);
-          const items = await fetchOrderItems(orderId);
-          setOrderItems(items);
-        }
-        setState('success');
-        clearCart();
-        localStorage.removeItem('cart');
-        toast.success(t('pages:paymentSuccess.success.confirmed'));
-      } catch {
-        setState('error');
-      }
-    };
-
-    if (isPayPal) {
-      verifyPayPal();
-    } else {
-      verify();
-    }
-  }, [orderId, isPayPal, searchParams, fetchOrder, fetchOrderItems, clearCart, t]);
+  }, [state]);
 
   // ================================================================
   // Invoice download
   // ================================================================
   const handleDownloadInvoice = useCallback(() => {
     if (!order || orderItems.length === 0) return;
-
-    const formatPrice = (value: number) => (value / 100).toFixed(2) + ' €';
+    const fmtPrice = (value: number) => (value / 100).toFixed(2) + ' €';
     const orderNumber = order.id.slice(-8).toUpperCase();
     const invoiceNumber = `${new Date().getFullYear()}-${orderNumber}`;
     const orderDate = new Date(order.created_at).toLocaleDateString('fr-FR');
     const shippingAddr = order.shipping_address;
     const subtotal = orderItems.reduce((sum, i) => sum + i.total_price, 0);
     const total = order.amount;
-    const shipping = Math.max(0, total - subtotal);
+    const shippingCalc = Math.max(0, total - subtotal);
 
     const itemsHtml = orderItems.map((item) => `
       <tr>
         <td style="padding:8px;border-bottom:1px solid #eee;">${item.product_name}</td>
         <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${item.quantity}</td>
-        <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${formatPrice(item.unit_price)}</td>
-        <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${formatPrice(item.total_price)}</td>
+        <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${fmtPrice(item.unit_price)}</td>
+        <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${fmtPrice(item.total_price)}</td>
       </tr>`).join('');
 
     const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Facture ${invoiceNumber}</title>
@@ -275,9 +555,9 @@ ${shippingAddr ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${ship
 <table><thead><tr><th>Produit</th><th style="text-align:right;">Qté</th><th style="text-align:right;">P.U.</th><th style="text-align:right;">Total</th></tr></thead>
 <tbody>${itemsHtml}</tbody></table>
 <div style="text-align:right;margin-top:20px;">
-<p>Sous-total : ${formatPrice(subtotal)}</p>
-<p>Livraison : ${shipping > 0 ? formatPrice(shipping) : 'Offerte'}</p>
-<p class="total">Total : ${formatPrice(total)}</p></div>
+<p>Sous-total : ${fmtPrice(subtotal)}</p>
+<p>Livraison : ${shippingCalc > 0 ? fmtPrice(shippingCalc) : 'Offerte'}</p>
+<p class="total">Total : ${fmtPrice(total)}</p></div>
 <p style="color:#888;font-size:11px;margin-top:40px;">TVA non applicable, art. 293 B du CGI. ID: ${order.id}</p>
 <script>window.onload=function(){window.print();}</script></body></html>`;
 
@@ -294,16 +574,11 @@ ${shippingAddr ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${ship
     new Intl.NumberFormat('fr-FR', { style: 'currency', currency: order?.currency || 'EUR' })
       .format(cents / 100);
 
-  const orderNumber = order?.id.slice(-8).toUpperCase() || '';
-  const orderDate = order ? new Date(order.created_at).toLocaleDateString('fr-FR', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  }) : '';
-
   const shippingAddr = order?.shipping_address;
   const customerName = shippingAddr
     ? `${shippingAddr.first_name || ''} ${shippingAddr.last_name || ''}`.trim()
-    : profile?.full_name || '';
-  const customerEmail = order?.metadata?.customer_email || user?.email || '';
+    : snapshot?.customerName || profile?.full_name || '';
+  const customerEmail = order?.metadata?.customer_email || snapshot?.email || user?.email || '';
 
   // ================================================================
   // RENDER
@@ -313,7 +588,7 @@ ${shippingAddr ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${ship
       <div className="container mx-auto px-4 py-8 md:py-16">
         <div className="max-w-2xl mx-auto">
 
-          {/* === LOADING STATE === */}
+          {/* === LOADING — very brief, transitions to processing instantly === */}
           {state === 'loading' && (
             <div className="text-center py-16">
               <Loader2 className="w-16 h-16 text-primary mx-auto mb-4 animate-spin" />
@@ -326,118 +601,33 @@ ${shippingAddr ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${ship
             </div>
           )}
 
-          {/* === SUCCESS STATE === */}
-          {state === 'success' && order && (
-            <>
-              <div className="text-center mb-8">
-                <CheckCircle className="w-16 h-16 text-primary mx-auto mb-4" />
-                <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
-                  Paiement confirmé
-                </h1>
-                <p className="text-lg text-foreground font-medium mb-1">
-                  Merci pour votre commande !
-                </p>
-                <p className="text-muted-foreground">
-                  Votre paiement a bien été reçu et votre commande est en cours de traitement.
-                  Un email de confirmation vous a été envoyé.
-                </p>
-              </div>
-
-              {/* Order details card */}
-              <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden mb-6">
-                {/* Header */}
-                <div className="bg-muted/50 px-6 py-4 flex justify-between items-center">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Commande #{orderNumber}</p>
-                    <p className="text-xs text-muted-foreground">Date : {orderDate}</p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">{orderDate}</span>
-                </div>
-
-                {/* Customer */}
-                {(customerName || customerEmail) && (
-                  <div className="px-6 py-4 border-t border-border">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Package className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium text-foreground">
-                        {customerName ? `Client, ${customerName}` : 'Client'}
-                      </span>
-                    </div>
-                    {customerEmail && (
-                      <p className="text-xs text-muted-foreground ml-6">{customerEmail}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Items */}
-                {orderItems.length > 0 && (
-                  <div className="px-6 py-4 border-t border-border">
-                    <p className="text-sm font-semibold text-foreground mb-3">Détails</p>
-                    <div className="space-y-3">
-                      {orderItems.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            {item.image_url && (
-                              <img
-                                src={item.image_url}
-                                alt={item.product_name}
-                                className="w-12 h-12 rounded-lg object-cover border border-border"
-                              />
-                            )}
-                            <div>
-                              <p className="text-sm font-medium text-foreground">{item.product_name}</p>
-                              <p className="text-xs text-muted-foreground">Quantité : {item.quantity}</p>
-                            </div>
-                          </div>
-                          <p className="text-sm font-medium text-foreground">{formatPrice(item.total_price)}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-4 pt-3 border-t border-border flex justify-between">
-                      <span className="font-semibold text-foreground">Total</span>
-                      <span className="font-semibold text-foreground">{formatPrice(order.amount)}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Status badge */}
-              <div className="bg-muted/50 rounded-xl p-6 mb-8 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm font-semibold text-foreground">
-                    Statut : En cours de traitement
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Votre commande est en cours de préparation.
-                  Nous vous enverrons un autre email avec toutes les informations de suivi dès qu'elle sera expédiée.
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* === PROCESSING STATE (order not yet visible in DB) === */}
+          {/* === PROCESSING — instant, shows snapshot data === */}
           {state === 'processing' && (
-            <div className="text-center py-16">
-              <Clock className="w-16 h-16 text-primary mx-auto mb-4" />
-              <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
-                Paiement en cours de traitement
-              </h1>
-              <p className="text-muted-foreground mb-4">
-                Votre paiement a été reçu. Nous rencontrons un léger délai d'affichage,
-                mais soyez assuré que tout est bien enregistré.
-              </p>
-              <div className="bg-muted/50 rounded-xl p-6 max-w-md mx-auto">
-                <p className="text-sm text-muted-foreground">
-                  Vous recevrez un email de confirmation sous quelques minutes.
-                  Si vous ne recevez rien dans 15 minutes, contactez notre support.
-                </p>
-              </div>
-            </div>
+            <OrderProcessing snapshot={snapshot} orderId={orderId} />
           )}
 
-          {/* === ERROR STATE (no order_id at all) === */}
+          {/* === SUCCESS — full DB data === */}
+          {state === 'success' && order && (
+            <OrderSuccess
+              order={order}
+              orderItems={orderItems}
+              customerName={customerName}
+              customerEmail={customerEmail}
+              formatPrice={formatPrice}
+              onDownloadInvoice={handleDownloadInvoice}
+            />
+          )}
+
+          {/* === FALLBACK — order not found after retries === */}
+          {state === 'fallback' && (
+            <OrderFallback
+              snapshot={snapshot}
+              onRetry={handleRetry}
+              isRetrying={isRetrying}
+            />
+          )}
+
+          {/* === ERROR — no order_id at all === */}
           {state === 'error' && (
             <div className="text-center py-16">
               <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
@@ -452,8 +642,8 @@ ${shippingAddr ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${ship
           )}
 
           {/* === ACTION BUTTONS === */}
-          {state !== 'loading' && (
-            <div className="space-y-4">
+          {state !== 'loading' && state !== 'processing' && (
+            <div className="space-y-4 mt-8">
               {user && state === 'success' && redirectCountdown !== null && (
                 <p className="text-sm text-muted-foreground text-center">
                   Redirection vers vos commandes dans {redirectCountdown}s…{' '}
@@ -473,13 +663,6 @@ ${shippingAddr ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${ship
                       <Package className="w-5 h-5" />
                       Voir mes commandes
                     </Link>
-                  </Button>
-                )}
-
-                {state === 'success' && order && orderItems.length > 0 && (
-                  <Button onClick={handleDownloadInvoice} variant="outline" className="gap-2">
-                    <Download className="w-4 h-4" />
-                    Télécharger la facture
                   </Button>
                 )}
 
