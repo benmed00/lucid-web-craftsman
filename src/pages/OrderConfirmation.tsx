@@ -355,7 +355,24 @@ const OrderConfirmation = () => {
     localStorage.removeItem('cart');
   }, [clearCart]);
 
-  // ================================================================
+  // Elapsed timer for processing state
+  useEffect(() => {
+    if (state !== 'processing') {
+      setProcessingElapsed(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setProcessingElapsed((prev) => {
+        if (prev >= 30) {
+          clearInterval(interval);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [state]);
+
   // Fetch helpers
   // ================================================================
   const fetchOrder = useCallback(async (oid: string): Promise<OrderData | null> => {
