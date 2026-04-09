@@ -191,7 +191,7 @@ const ArtisansPage = () => {
 
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           <p className="text-xs md:text-sm tracking-[0.35em] uppercase text-white/60 mb-6 font-light animate-fade-in">
-            {isFr ? 'Artisanat authentique du Rif' : 'Authentic Rif Craftsmanship'}
+            {isFr ? 'Artisanat authentique du Maroc' : 'Authentic Moroccan Craftsmanship'}
           </p>
           <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white font-bold tracking-wide leading-[1.1] mb-8 animate-fade-in">
             {isFr ? 'Façonné à la Main,' : 'Crafted by Hands,'}
@@ -203,8 +203,8 @@ const ArtisansPage = () => {
           <div className="w-16 h-px bg-white/40 mx-auto mb-6" />
           <p className="text-base md:text-lg text-white/70 font-light tracking-wider max-w-xl mx-auto leading-relaxed animate-fade-in">
             {isFr
-              ? 'Découvrez les artisans derrière chaque création Rif Raw Straw'
-              : 'Discover the artisans behind every Rif Raw Straw creation'}
+              ? 'Rencontrez les artisans derrière chaque création Rif Raw Straw'
+              : 'Meet the artisans behind every Rif Raw Straw creation'}
           </p>
         </div>
 
@@ -246,18 +246,18 @@ const ArtisansPage = () => {
                 <div className="space-y-6">
                   <p className="text-muted-foreground text-lg leading-[1.8] font-light">
                     {isFr
-                      ? 'Dans les montagnes du Rif, un artisanat centenaire perdure.'
-                      : 'In the mountains of the Rif, a centuries-old craft lives on.'}
+                      ? 'Du Rif à Essaouira, de Fès à Marrakech — un artisanat ancestral perdure à travers le Maroc.'
+                      : 'From the Rif to Essaouira, from Fès to Marrakech — an ancestral craft lives on across Morocco.'}
                   </p>
                   <p className="text-muted-foreground text-lg leading-[1.8] font-light">
                     {isFr
-                      ? 'Chaque brin de paille est récolté, préparé et tissé selon des techniques transmises de génération en génération par les femmes amazighes.'
-                      : 'Each piece of straw is harvested, prepared, and woven using techniques passed down through generations of Amazigh women.'}
+                      ? 'Chaque matière — paille, doum, raphia, fil de soie — est travaillée à la main selon des techniques transmises de génération en génération.'
+                      : 'Each material — straw, doum palm, raphia, silk thread — is worked by hand using techniques passed down through generations.'}
                   </p>
                   <p className="text-muted-foreground text-lg leading-[1.8] font-light">
                     {isFr
-                      ? 'Nous ne vendons pas seulement des chapeaux — nous perpétuons un patrimoine vivant.'
-                      : 'We don\'t just sell hats — we carry forward a living heritage.'}
+                      ? 'Chez Rif Raw Straw, chaque achat soutient directement ces artisans et aide à préserver un patrimoine vivant.'
+                      : 'At Rif Raw Straw, every purchase directly supports these artisans and helps preserve a living heritage.'}
                   </p>
                 </div>
               </div>
