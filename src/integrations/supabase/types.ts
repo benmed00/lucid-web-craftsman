@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_theme_tests: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          split_percentage: number
+          updated_at: string
+          variant_a: string
+          variant_a_add_to_cart: number
+          variant_a_checkout: number
+          variant_a_views: number
+          variant_b: string
+          variant_b_add_to_cart: number
+          variant_b_checkout: number
+          variant_b_views: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          split_percentage?: number
+          updated_at?: string
+          variant_a?: string
+          variant_a_add_to_cart?: number
+          variant_a_checkout?: number
+          variant_a_views?: number
+          variant_b?: string
+          variant_b_add_to_cart?: number
+          variant_b_checkout?: number
+          variant_b_views?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          split_percentage?: number
+          updated_at?: string
+          variant_a?: string
+          variant_a_add_to_cart?: number
+          variant_a_checkout?: number
+          variant_a_views?: number
+          variant_b?: string
+          variant_b_add_to_cart?: number
+          variant_b_checkout?: number
+          variant_b_views?: number
+        }
+        Relationships: []
+      }
       admin_order_permissions: {
         Row: {
           can_force_status: boolean | null
@@ -3376,6 +3427,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_ab_counter: {
+        Args: { counter_type: string; test_id: string; variant: string }
+        Returns: undefined
       }
       increment_coupon_usage: { Args: { p_code: string }; Returns: undefined }
       init_loyalty_account: { Args: { p_user_id: string }; Returns: undefined }
