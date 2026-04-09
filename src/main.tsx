@@ -99,3 +99,5 @@ createRoot(document.getElementById('root')!).render(
     </HelmetProvider>
   </StrictMode>
 );
+
+} // end of __LOVABLE_LOGOUT guard
