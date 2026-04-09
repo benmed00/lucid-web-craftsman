@@ -83,6 +83,14 @@ const PageFooter = () => {
                   {t('common:footer.story')}
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/artisans"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Artisans
+                </Link>
+              </li>
             </ul>
           </div>
 
