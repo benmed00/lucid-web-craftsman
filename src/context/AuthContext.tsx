@@ -35,6 +35,8 @@ export const cleanupAuthState = () => {
 // ============= Types =============
 import type { Json } from '@/integrations/supabase/types';
 
+export type AppRole = 'anonymous' | 'user' | 'admin' | 'super_admin';
+
 export interface Profile {
   id: string;
   full_name: string | null;
@@ -61,6 +63,7 @@ export interface AuthState {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  role: AppRole;
   isLoading: boolean;
   isInitialized: boolean;
 }
