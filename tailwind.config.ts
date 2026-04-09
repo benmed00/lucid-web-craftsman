@@ -102,18 +102,41 @@ export default {
           ring: 'hsl(var(--sidebar-ring))',
         },
         // Custom colors using semantic tokens from CSS variables
+        sand: {
+          50: 'hsl(var(--sand-50))',
+          100: 'hsl(var(--sand-100))',
+          200: 'hsl(var(--sand-200))',
+          300: 'hsl(var(--sand-300))',
+          400: 'hsl(var(--sand-400))',
+          500: 'hsl(var(--sand-500))',
+          600: 'hsl(var(--sand-600))',
+          700: 'hsl(var(--sand-700))',
+          800: 'hsl(var(--sand-800))',
+          900: 'hsl(var(--sand-900))',
+        },
+        earth: {
+          50: 'hsl(var(--earth-50))',
+          100: 'hsl(var(--earth-100))',
+          200: 'hsl(var(--earth-200))',
+          300: 'hsl(var(--earth-300))',
+          400: 'hsl(var(--earth-400))',
+          500: 'hsl(var(--earth-500))',
+        },
+        beige: {
+          50: 'hsl(var(--beige-50))',
+          100: 'hsl(var(--beige-100))',
+        },
+        // Backward-compatible aliases
         olive: {
           50: 'hsl(var(--olive-50))',
           100: 'hsl(var(--olive-100))',
           200: 'hsl(var(--olive-200))',
           300: 'hsl(var(--olive-300))',
           500: 'hsl(var(--olive-500))',
+          600: 'hsl(var(--sand-600))',
           700: 'hsl(var(--olive-700))',
           800: 'hsl(var(--olive-800))',
           900: 'hsl(var(--olive-900))',
-        },
-        beige: {
-          50: 'hsl(var(--beige-50))',
         },
         stone: {
           50: 'hsl(var(--stone-50))',
@@ -133,8 +156,8 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        serif: ['Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
-        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        serif: ['Cormorant Garamond', 'Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
+        sans: ['"DM Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
       },
       keyframes: {
         'accordion-down': {
