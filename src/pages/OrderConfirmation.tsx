@@ -88,8 +88,11 @@ function loadSnapshot(): CheckoutSnapshot | null {
 // Sub-components
 // ================================================================
 
-/** STATE 1: Processing — shows immediately with snapshot data */
-function OrderProcessing({ snapshot, orderId }: { snapshot: CheckoutSnapshot | null; orderId: string | null }) {
+/** STATE 1: Processing — shows immediately with snapshot data + visible timer */
+function OrderProcessing({ snapshot, orderId, elapsed }: { snapshot: CheckoutSnapshot | null; orderId: string | null; elapsed: number }) {
+  const maxSeconds = 30;
+  const progress = Math.min((elapsed / maxSeconds) * 100, 100);
+
   return (
     <div className="text-center py-8">
       <div className="relative w-16 h-16 mx-auto mb-6">
@@ -99,9 +102,22 @@ function OrderProcessing({ snapshot, orderId }: { snapshot: CheckoutSnapshot | n
       <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
         Paiement reçu ✓
       </h1>
-      <p className="text-muted-foreground mb-6">
+      <p className="text-muted-foreground mb-4">
         Nous finalisons votre commande, veuillez patienter quelques instants…
       </p>
+
+      {/* Progress bar */}
+      <div className="max-w-xs mx-auto mb-6">
+        <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+          <div
+            className="bg-primary h-full rounded-full transition-all duration-1000 ease-linear"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Vérification en cours… {Math.min(elapsed, maxSeconds)}s / {maxSeconds}s
+        </p>
+      </div>
 
       {snapshot && (
         <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden max-w-md mx-auto text-left mb-6">
