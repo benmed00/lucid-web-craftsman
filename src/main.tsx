@@ -86,10 +86,12 @@ if (!window.__PERF_OPTIMIZED__) {
 }
 
 // ============= 4. Render =============
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <HelmetProvider>
-      <App />
-    </HelmetProvider>
-  </StrictMode>
-);
+if (!(window as any).__LOVABLE_LOGOUT) {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <HelmetProvider>
+        <App />
+      </HelmetProvider>
+    </StrictMode>
+  );
+}
