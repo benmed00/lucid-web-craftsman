@@ -60,7 +60,9 @@ const PROCESS_STEPS = [
       'Raw straw is carefully selected and harvested by hand from the Rif mountains during peak season.',
     descriptionFr:
       'La paille brute est soigneusement sélectionnée et récoltée à la main dans les montagnes du Rif.',
-    image: '/assets/images/artisans/weaving-hands.png',
+    image: '/assets/images/artisans/process-harvesting.jpg',
+    alt: 'Hands harvesting golden straw stalks in Morocco\'s Rif mountains',
+    altFr: 'Mains récoltant des tiges de paille dorée dans les montagnes du Rif au Maroc',
   },
   {
     title: 'Weaving',
@@ -69,7 +71,9 @@ const PROCESS_STEPS = [
       'Each strand is braided using techniques passed down through generations of Rifian women.',
     descriptionFr:
       'Chaque brin est tressé selon des techniques transmises de génération en génération.',
-    image: '/assets/images/artisans/straw-texture.png',
+    image: '/assets/images/artisans/process-weaving.jpg',
+    alt: 'Skilled hands braiding natural straw fibers into intricate patterns',
+    altFr: 'Mains habiles tressant des fibres de paille naturelle en motifs complexes',
   },
   {
     title: 'Shaping',
@@ -78,7 +82,9 @@ const PROCESS_STEPS = [
       'Artisans mold every piece by hand, giving each hat its unique silhouette and character.',
     descriptionFr:
       'Les artisans façonnent chaque pièce à la main, lui donnant sa silhouette unique.',
-    image: '/assets/images/artisans/straw-bags-market.png',
+    image: '/assets/images/artisans/process-shaping.jpg',
+    alt: 'Artisan hands shaping a straw hat on a wooden form',
+    altFr: 'Mains d\'artisan façonnant un chapeau de paille sur une forme en bois',
   },
   {
     title: 'Finishing',
@@ -87,7 +93,9 @@ const PROCESS_STEPS = [
       'Final touches — trimming, steaming, and quality checks — ensure every piece meets our standards.',
     descriptionFr:
       'Les touches finales — coupe, vapeur et contrôle qualité — garantissent l\'excellence.',
-    image: '/assets/images/artisans/fibres-naturelles.png',
+    image: '/assets/images/artisans/process-finishing.jpg',
+    alt: 'Final quality inspection of a handmade straw hat with scissors and steam',
+    altFr: 'Inspection finale d\'un chapeau de paille artisanal avec ciseaux et vapeur',
   },
 ];
 
@@ -425,7 +433,7 @@ const ArtisansPage = () => {
                   <div className="relative mb-8 overflow-hidden rounded-sm">
                     <img
                       src={step.image}
-                      alt={isFr ? step.titleFr : step.title}
+                      alt={isFr ? step.altFr : step.alt}
                       className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
                       loading="lazy"
                     />
