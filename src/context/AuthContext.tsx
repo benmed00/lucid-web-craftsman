@@ -35,6 +35,8 @@ export const cleanupAuthState = () => {
 // ============= Types =============
 import type { Json } from '@/integrations/supabase/types';
 
+export type AppRole = 'anonymous' | 'user' | 'admin' | 'super_admin';
+
 export interface Profile {
   id: string;
   full_name: string | null;
@@ -61,6 +63,7 @@ export interface AuthState {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  role: AppRole;
   isLoading: boolean;
   isInitialized: boolean;
 }
@@ -110,6 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: null,
     session: null,
     profile: null,
+    role: 'anonymous',
     isLoading: true,
     isInitialized: false,
   });
@@ -125,6 +129,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authState.user?.id,
     setProfile
   );
+
+  // Role loading from backend RPC
+  const loadUserRole = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_user_role');
+      if (error) {
+        console.warn('[AuthContext] Failed to load role:', error.message);
+        return;
+      }
+      const role = (data as string) as AppRole;
+      console.info('[AuthContext] Role detected:', role);
+      setAuthState((prev) => ({ ...prev, role }));
+    } catch (err) {
+      console.warn('[AuthContext] Role detection error:', err);
+    }
+  }, []);
 
   // Initialize auth state
   useEffect(() => {
@@ -195,6 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           user: null,
           session: null,
           profile: null,
+          role: 'anonymous',
           isLoading: false,
           isInitialized: true,
         });
@@ -219,6 +240,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTimeout(() => {
           if (isMounted) {
             loadUserProfile(session.user.id);
+            loadUserRole();
           }
         }, 0);
       } else if (event === 'SIGNED_OUT') {
@@ -226,7 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         initializeWishlistStore(null);
 
         profileCache.invalidate();
-        setAuthState((prev) => ({ ...prev, profile: null }));
+        setAuthState((prev) => ({ ...prev, profile: null, role: 'anonymous' }));
 
         // Purge Service Worker caches to prevent stale authenticated content
         if ('caches' in self) {
@@ -257,6 +279,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             user: null,
             session: null,
             profile: null,
+            role: 'anonymous',
             isLoading: false,
             isInitialized: true,
           });
@@ -312,6 +335,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 user: null,
                 session: null,
                 profile: null,
+                role: 'anonymous',
                 isLoading: false,
                 isInitialized: true,
               });
@@ -330,6 +354,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }));
             initializeWishlistStore(session.user.id);
             loadUserProfile(session.user.id);
+            loadUserRole();
           }
         } else {
           // No session at all
@@ -338,6 +363,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               ...prev,
               session: null,
               user: null,
+              role: 'anonymous',
               isLoading: false,
               isInitialized: true,
             }));
@@ -367,7 +393,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         /* ignore */
       }
     };
-  }, [loadUserProfile]);
+  }, [loadUserProfile, loadUserRole]);
 
   // ============= Auth Methods =============
   const signIn = useCallback(async (email: string, password: string) => {
@@ -432,6 +458,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: null,
         session: null,
         profile: null,
+        role: 'anonymous',
         isLoading: false,
         isInitialized: true,
       });
@@ -464,6 +491,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: null,
         session: null,
         profile: null,
+        role: 'anonymous',
         isLoading: false,
         isInitialized: true,
       });

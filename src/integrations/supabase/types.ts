@@ -3421,6 +3421,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_user_role: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

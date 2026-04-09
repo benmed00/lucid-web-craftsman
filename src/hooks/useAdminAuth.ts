@@ -44,7 +44,7 @@ export const useAdminAuth = () => {
       currentUserIdRef.current = user.id;
 
       try {
-        console.log('[useAdminAuth] Checking admin status for user:', user.id);
+        console.info('[useAdminAuth] Checking admin status for user:', user.id);
 
         // Use server-side verification function (cannot be spoofed via DevTools)
         const { data: verifyResult, error: verifyError } = await supabase.rpc(
