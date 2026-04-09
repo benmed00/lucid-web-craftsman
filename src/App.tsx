@@ -17,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { resolveHydrationWatchdog } from '@/lib/storage/StorageGuard';
 import { initPixels } from '@/lib/tracking/pixels';
 import { usePageTracking } from '@/lib/tracking/usePageTracking';
+import ABThemeTestRunner from '@/components/ABThemeTestRunner';
 
 // Critical page loaded immediately (landing page only)
 import Index from './pages/Index';
@@ -229,10 +230,11 @@ const MaintenanceWrapper = ({ children }: { children: React.ReactNode }) => {
     return <>{children}</>;
   }
 
-  // Normal operation: show navigation + children
+  // Normal operation: show navigation + A/B test runner + children
   return (
     <>
       <Navigation />
+      <ABThemeTestRunner />
       {children}
     </>
   );

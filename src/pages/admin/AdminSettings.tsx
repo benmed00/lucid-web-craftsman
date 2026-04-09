@@ -18,6 +18,7 @@ import { CompanySettingsForm } from '@/components/admin/CompanySettingsForm';
 import { SecurityAlertsCard } from '@/components/admin/SecurityAlertsCard';
 import { RateLimitsConfig } from '@/components/admin/RateLimitsConfig';
 import { BusinessRulesConfig } from '@/components/admin/BusinessRulesConfig';
+import ABThemeManager from '@/components/admin/ABThemeManager';
 import {
   Settings,
   Save,
@@ -1103,6 +1104,9 @@ const AdminSettings = () => {
 
       {/* Business Rules Configuration */}
       <BusinessRulesConfig />
+
+      {/* A/B Theme Test */}
+      <ABThemeManager />
     </div>
   );
 };
