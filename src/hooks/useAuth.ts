@@ -8,4 +8,4 @@ export {
   cleanupAuthState,
   AuthProvider,
 } from '@/context/AuthContext';
-export type { AuthState, Profile } from '@/context/AuthContext';
+export type { AuthState, Profile, AppRole } from '@/context/AuthContext';
