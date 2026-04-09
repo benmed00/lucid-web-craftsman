@@ -590,6 +590,30 @@ export function useCheckoutPage() {
       if (data?.url) {
         setPaymentInitiated(true);
         localStorage.setItem('checkout_payment_pending', 'true');
+
+        // Save checkout snapshot for instant confirmation page rendering
+        try {
+          const snapshot = {
+            email: sanitizedFormData.email,
+            customerName: `${sanitizedFormData.firstName} ${sanitizedFormData.lastName}`.trim(),
+            items: cartItems.map((item) => ({
+              name: item.product.name,
+              quantity: item.quantity,
+              price: item.product.price,
+              image: item.product.images?.[0] || item.product.image || undefined,
+            })),
+            subtotal,
+            shipping,
+            discount,
+            total,
+            currency: 'EUR',
+            timestamp: Date.now(),
+          };
+          localStorage.setItem('checkout_snapshot', JSON.stringify(snapshot));
+        } catch {
+          // Non-critical — confirmation page will still work without snapshot
+        }
+
         const target = window.top ?? window;
         target.location.href = data.url;
       } else {
