@@ -83,9 +83,13 @@ export const supabase = createClient<Database>(
       // that exhaust the browser's 6-connection-per-host limit.
       fetch: (url: RequestInfo | URL, options?: RequestInit) => {
         const guestId = getGuestId();
+        const guestSig = getGuestSignature();
         const headers = new Headers(options?.headers);
         if (guestId) {
           headers.set('x-guest-id', guestId);
+          if (guestSig) {
+            headers.set('x-guest-signature', guestSig);
+          }
         }
 
         // Abort hanging requests after 15s to free connection slots.
