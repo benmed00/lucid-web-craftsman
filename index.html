@@ -267,6 +267,23 @@
         }, 3000); // Extended delay to minimize main-thread impact
       });
     </script>
+    <script>
+      // Emergency logout — runs BEFORE React to guarantee cleanup
+      if (window.location.pathname === '/logout') {
+        try {
+          Object.keys(localStorage).forEach(function (k) {
+            if (k.startsWith('sb-') || k.startsWith('supabase.auth.') || k === 'guest_session') {
+              localStorage.removeItem(k);
+            }
+          });
+          sessionStorage.clear();
+        } catch (e) { /* private mode */ }
+        document.getElementById('root').innerHTML =
+          '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#faf8f5;font-family:system-ui"><p style="font-size:1.1rem;color:#5c4a37">Déconnexion en cours…</p></div>';
+        // Small delay so the user sees the message, then redirect
+        setTimeout(function () { window.location.href = '/'; }, 400);
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
