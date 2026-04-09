@@ -46,6 +46,7 @@ import {
   initializeThemeStore,
 } from '@/stores';
 import { initializeLanguageStore } from '@/stores/languageStore';
+import { initializeUIStyleStore } from '@/stores/uiStyleStore';
 import { initializeBusinessRules } from '@/hooks/useBusinessRules';
 
 // Declare global flag
@@ -66,6 +67,7 @@ if (!window.__PERF_OPTIMIZED__) {
   window.__PERF_OPTIMIZED__ = true;
 
   initializeThemeStore();
+  initializeUIStyleStore();
   initializeLanguageStore();
   initializeCurrencyStore();
   initializeCartStore();

@@ -31,6 +31,7 @@ import { cn } from '@/lib/utils';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import UIStyleSwitcher from '@/components/admin/UIStyleSwitcher';
 
 const AdminLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -285,6 +286,7 @@ const AdminLayout = () => {
             </div>
 
             <div className="flex items-center space-x-4">
+              <UIStyleSwitcher />
               <Link to="/" target="_blank">
                 <Button variant="outline" size="sm">
                   Voir le site
