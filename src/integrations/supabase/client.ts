@@ -35,10 +35,6 @@ const getGuestId = (): string => {
     const raw = localStorage.getItem(GUEST_SESSION_KEY);
     if (raw) {
       const session = JSON.parse(raw);
-      // Support all storage formats:
-      // - Direct: { guestId: "..." } or { guest_id: "..." }
-      // - safeStorage wrapper: { data: { guestId: "..." }, timestamp: ..., ttl: ... }
-      // - Legacy wrapper: { value: { guestId: "..." } }
       const id =
         session?.guestId ||
         session?.guest_id ||
@@ -47,6 +43,20 @@ const getGuestId = (): string => {
         session?.value?.guestId ||
         session?.value?.guest_id;
       if (id) return id;
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return '';
+};
+
+/** Get the guest signature from storage (if exists) */
+const getGuestSignature = (): string => {
+  try {
+    const raw = localStorage.getItem(GUEST_SESSION_KEY);
+    if (raw) {
+      const session = JSON.parse(raw);
+      return session?.signature || session?.data?.signature || session?.value?.signature || '';
     }
   } catch {
     // Ignore parse errors
