@@ -1,9 +1,3 @@
-// Skip React mount entirely on /logout (handled by inline script in index.html)
-if ((window as any).__LOVABLE_LOGOUT) {
-  // eslint-disable-next-line no-console
-  console.info('[Logout] Skipping React mount');
-} else {
-
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
