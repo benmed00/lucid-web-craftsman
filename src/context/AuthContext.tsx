@@ -240,6 +240,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTimeout(() => {
           if (isMounted) {
             loadUserProfile(session.user.id);
+            loadUserRole();
           }
         }, 0);
       } else if (event === 'SIGNED_OUT') {
@@ -353,6 +354,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }));
             initializeWishlistStore(session.user.id);
             loadUserProfile(session.user.id);
+            loadUserRole();
           }
         } else {
           // No session at all
