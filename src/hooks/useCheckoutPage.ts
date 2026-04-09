@@ -447,6 +447,11 @@ export function useCheckoutPage() {
     try {
       setIsProcessing(true);
       setPaymentError(null);
+
+      // A/B conversion tracking (fire-and-forget)
+      import('@/hooks/useABThemeTest').then(({ trackABConversion }) =>
+        trackABConversion('checkout')
+      ).catch(() => {});
       if (honeypot) {
         toast.error(t('errors.genericError'));
         setIsProcessing(false);
