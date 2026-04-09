@@ -86,6 +86,12 @@ serve(async (req) => {
         break;
       }
 
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        await handlePaymentIntentSucceeded(supabaseService, paymentIntent);
+        break;
+      }
+
       case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         await handlePaymentFailed(supabaseService, paymentIntent);
@@ -522,6 +528,90 @@ async function handleCheckoutCompleted(
   });
 
   logStep('Webhook processing completed', { orderId, correlationId });
+}
+
+// ============================================================
+// Handle payment_intent.succeeded — secondary confirmation
+// If checkout.session.completed already handled this, idempotency skips it.
+// ============================================================
+async function handlePaymentIntentSucceeded(
+  supabase: any,
+  paymentIntent: Stripe.PaymentIntent
+) {
+  const orderId = paymentIntent.metadata?.order_id;
+  const correlationId = paymentIntent.metadata?.correlation_id;
+
+  logStep('Processing payment_intent.succeeded', {
+    paymentIntentId: paymentIntent.id,
+    orderId,
+  });
+
+  if (!orderId) {
+    logStep('No order_id in payment_intent metadata, skipping');
+    return;
+  }
+
+  // Check if already processed
+  const { data: order } = await supabase
+    .from('orders')
+    .select('id, status')
+    .eq('id', orderId)
+    .maybeSingle();
+
+  if (!order) {
+    logStep('Order not found for payment_intent.succeeded', { orderId });
+    return;
+  }
+
+  if (order.status === 'paid' || order.status === 'completed') {
+    logStep('IDEMPOTENT: Order already paid, skipping payment_intent.succeeded', { orderId });
+    return;
+  }
+
+  // Attempt to update — same optimistic lock pattern
+  const { data: updated } = await supabase
+    .from('orders')
+    .update({
+      status: 'paid',
+      order_status: 'paid',
+      payment_reference: paymentIntent.id,
+      metadata: {
+        ...(order.metadata || {}),
+        webhook_processed: true,
+        webhook_processed_at: new Date().toISOString(),
+        payment_intent_succeeded: true,
+        correlation_id: correlationId,
+      },
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', orderId)
+    .eq('status', 'pending')
+    .select('id')
+    .maybeSingle();
+
+  if (updated) {
+    logStep('Order confirmed via payment_intent.succeeded', { orderId });
+    await supabase.from('order_status_history').insert({
+      order_id: orderId,
+      previous_status: 'payment_pending',
+      new_status: 'paid',
+      changed_by: 'webhook',
+      reason_code: 'PAYMENT_INTENT_SUCCEEDED',
+      reason_message: 'Payment confirmed via payment_intent.succeeded webhook',
+      metadata: { payment_intent_id: paymentIntent.id, correlation_id: correlationId },
+    });
+  } else {
+    logStep('IDEMPOTENT: Lost optimistic lock on payment_intent.succeeded', { orderId });
+  }
+
+  await logPaymentEvent(supabase, {
+    order_id: orderId,
+    event_type: 'payment_intent_succeeded',
+    status: updated ? 'success' : 'info',
+    actor: 'stripe_webhook',
+    correlation_id: correlationId,
+    details: { payment_intent_id: paymentIntent.id, was_update: !!updated },
+  });
 }
 
 // ============================================================
