@@ -491,7 +491,7 @@ const OrderConfirmation = () => {
       // Order exists but still pending — show fallback with reassurance
       setState('fallback');
     }
-  }, [orderId, pollForOrder, state, t]);
+  }, [orderId, pollForOrder, reconcileOrder, fetchOrder, fetchOrderItems, state, t]);
 
   // Initial verification
   useEffect(() => {
