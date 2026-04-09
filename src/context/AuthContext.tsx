@@ -113,6 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: null,
     session: null,
     profile: null,
+    role: 'anonymous',
     isLoading: true,
     isInitialized: false,
   });
@@ -198,6 +199,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           user: null,
           session: null,
           profile: null,
+          role: 'anonymous',
           isLoading: false,
           isInitialized: true,
         });
@@ -260,6 +262,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             user: null,
             session: null,
             profile: null,
+            role: 'anonymous',
             isLoading: false,
             isInitialized: true,
           });
@@ -315,6 +318,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 user: null,
                 session: null,
                 profile: null,
+                role: 'anonymous',
                 isLoading: false,
                 isInitialized: true,
               });
@@ -341,6 +345,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               ...prev,
               session: null,
               user: null,
+              role: 'anonymous',
               isLoading: false,
               isInitialized: true,
             }));
@@ -435,6 +440,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: null,
         session: null,
         profile: null,
+        role: 'anonymous',
         isLoading: false,
         isInitialized: true,
       });
@@ -467,6 +473,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: null,
         session: null,
         profile: null,
+        role: 'anonymous',
         isLoading: false,
         isInitialized: true,
       });
