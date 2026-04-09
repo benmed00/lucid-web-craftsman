@@ -433,7 +433,7 @@ const ArtisansPage = () => {
                   <div className="relative mb-8 overflow-hidden rounded-sm">
                     <img
                       src={step.image}
-                      alt={isFr ? step.titleFr : step.title}
+                      alt={isFr ? step.altFr : step.alt}
                       className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
                       loading="lazy"
                     />
