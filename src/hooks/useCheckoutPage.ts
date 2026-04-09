@@ -590,7 +590,8 @@ export function useCheckoutPage() {
       if (data?.url) {
         setPaymentInitiated(true);
         localStorage.setItem('checkout_payment_pending', 'true');
-        window.location.href = data.url;
+        const target = window.top ?? window;
+        target.location.href = data.url;
       } else {
         throw new Error('No checkout URL received');
       }
