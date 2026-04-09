@@ -600,7 +600,7 @@ export function useCheckoutPage() {
               name: item.product.name,
               quantity: item.quantity,
               price: item.product.price,
-              image: item.product.images?.[0] || item.product.image || undefined,
+              image: item.product.images?.[0] || undefined,
             })),
             subtotal,
             shipping,
