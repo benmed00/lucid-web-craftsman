@@ -1,36 +1,31 @@
 import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 import PageFooter from '@/components/PageFooter';
-import Navigation from '@/components/Navigation';
 
 const PROCESS_STEPS = [
   {
     title: 'Harvesting',
     description:
       'Raw straw is carefully selected and harvested by hand from the Rif mountains during peak season.',
-    image:
-      'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=600&q=80',
+    image: '/assets/images/artisans/weaving-hands.png',
   },
   {
     title: 'Weaving',
     description:
       'Each strand is braided using techniques passed down through generations of Rifian women.',
-    image:
-      'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=600&q=80',
+    image: '/assets/images/artisans/straw-texture.png',
   },
   {
     title: 'Shaping',
     description:
       'Artisans mold every piece by hand, giving each hat its unique silhouette and character.',
-    image:
-      'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?auto=format&fit=crop&w=600&q=80',
+    image: '/assets/images/artisans/straw-bags-market.png',
   },
   {
     title: 'Finishing',
     description:
       'Final touches — trimming, steaming, and quality checks — ensure every piece meets our standards.',
-    image:
-      'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?auto=format&fit=crop&w=600&q=80',
+    image: '/assets/images/artisans/fibres-naturelles.png',
   },
 ];
 
@@ -40,24 +35,21 @@ const ARTISANS = [
     region: 'Chefchaouen, Rif',
     description:
       'A master weaver with over 25 years of experience, Fatima learned the craft from her grandmother and now leads a collective of 12 women artisans.',
-    image:
-      'https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?auto=format&fit=crop&w=500&q=80',
+    image: '/assets/images/artisans/artisan-fatima.jpg',
   },
   {
     name: 'Hassan El Amrani',
     region: 'Ouezzane, Rif',
     description:
       'Hassan specializes in structural shaping techniques unique to the northern Rif region, creating bold silhouettes from natural straw.',
-    image:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80',
+    image: '/assets/images/artisans/artisan-hassan.jpg',
   },
   {
     name: 'Aicha Ouazzani',
     region: 'Taounate, Rif',
     description:
       'Known for her intricate braiding patterns, Aicha combines traditional Amazigh motifs with contemporary fashion aesthetics.',
-    image:
-      'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=500&q=80',
+    image: '/assets/images/artisans/artisan-aicha.jpg',
   },
 ];
 
@@ -70,13 +62,11 @@ const ArtisansPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-
       {/* HERO SECTION */}
       <section className="relative h-[85vh] min-h-[600px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1920&q=80"
+            src="/assets/images/artisans/hero-rif-weaving.jpg"
             alt="Artisan hands weaving straw in the Rif mountains"
             className="w-full h-full object-cover"
             loading="eager"
@@ -101,8 +91,8 @@ const ArtisansPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center max-w-6xl mx-auto">
             <div className="overflow-hidden rounded-sm">
               <img
-                src="https://images.unsplash.com/photo-1571115764595-644a1f56a55c?auto=format&fit=crop&w=800&q=80"
-                alt="Close-up of hand-woven straw texture"
+                src="/assets/images/artisans/amazigh-woman.png"
+                alt="Portrait of an Amazigh artisan woman"
                 className="w-full h-[500px] object-cover hover:scale-105 transition-transform duration-700"
                 loading="lazy"
               />
@@ -180,7 +170,7 @@ const ArtisansPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 max-w-6xl mx-auto overflow-hidden rounded-sm shadow-lg">
             <div className="h-[400px] lg:h-auto">
               <img
-                src="https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?auto=format&fit=crop&w=800&q=80"
+                src="/assets/images/artisans/artisan-fatima.jpg"
                 alt="Fatima Benmoussa, master weaver"
                 className="w-full h-full object-cover"
                 loading="lazy"
