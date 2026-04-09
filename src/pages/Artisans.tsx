@@ -68,9 +68,9 @@ const PROCESS_STEPS = [
     title: 'Weaving',
     titleFr: 'Tissage',
     description:
-      'Each strand is braided using techniques passed down through generations of Rifian women.',
+      'Each strand is braided using techniques passed down through generations of Moroccan artisans.',
     descriptionFr:
-      'Chaque brin est tressé selon des techniques transmises de génération en génération.',
+      'Chaque brin est tressé selon des techniques transmises de génération en génération par les artisans marocains.',
     image: '/assets/images/artisans/process-weaving.jpg',
     alt: 'Skilled hands braiding natural straw fibers into intricate patterns',
     altFr: 'Mains habiles tressant des fibres de paille naturelle en motifs complexes',
