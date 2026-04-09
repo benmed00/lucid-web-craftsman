@@ -127,7 +127,7 @@ export function useGuestSession() {
 
   // Initialize or restore guest session on mount
   useEffect(() => {
-    const initSession = () => {
+    const initSession = async () => {
       // Try to restore existing session
       const stored = safeGetItem<GuestSession>(GUEST_SESSION_KEY, {
         storage: 'localStorage',
@@ -150,8 +150,9 @@ export function useGuestSession() {
         // Create new guest session with server-signed token
         try {
           const { data: tokenData } = await supabase.rpc('create_guest_token');
-          const guestId = tokenData?.guest_id || generateUUID();
-          const signature = tokenData?.signature || undefined;
+          const td = tokenData as Record<string, string> | null;
+          const guestId = td?.guest_id || generateUUID();
+          const signature = td?.signature || undefined;
           
           const newSession: GuestSession = {
             guestId,
