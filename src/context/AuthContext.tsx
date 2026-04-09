@@ -393,7 +393,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         /* ignore */
       }
     };
-  }, [loadUserProfile]);
+  }, [loadUserProfile, loadUserRole]);
 
   // ============= Auth Methods =============
   const signIn = useCallback(async (email: string, password: string) => {
