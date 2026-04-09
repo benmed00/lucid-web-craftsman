@@ -57,3 +57,9 @@ verify_jwt = false
 
 [functions.order-lookup]
 verify_jwt = false
+
+[functions.reconcile-payment]
+verify_jwt = false
+
+[functions.cleanup-pending-orders]
+verify_jwt = false

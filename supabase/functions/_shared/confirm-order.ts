@@ -108,17 +108,28 @@ export async function confirmOrderFromStripe(
     metadataUpdate.verified_at = new Date().toISOString();
   }
 
+  const updatePayload: Record<string, unknown> = {
+    status: 'paid',
+    order_status: 'paid',
+    stripe_session_id: stripeSessionId,
+    payment_reference: paymentIntentId,
+    payment_method: paymentMethod,
+    metadata: metadataUpdate,
+    updated_at: new Date().toISOString(),
+  };
+
+  // Phase 4: Always override email from Stripe (single source of truth)
+  if (customerEmail) {
+    updatePayload.metadata = {
+      ...metadataUpdate,
+      customer_email: customerEmail,
+      customer_name: customerName || metadataUpdate.customer_name,
+    };
+  }
+
   const { data: updatedOrder, error: updateError } = await supabase
     .from('orders')
-    .update({
-      status: 'paid',
-      order_status: 'paid',
-      stripe_session_id: stripeSessionId,
-      payment_reference: paymentIntentId,
-      payment_method: paymentMethod,
-      metadata: metadataUpdate,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq('id', orderId)
     .eq('status', 'pending') // OPTIMISTIC LOCK
     .select('id')
