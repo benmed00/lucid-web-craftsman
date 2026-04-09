@@ -3274,6 +3274,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_stale_pending_orders: { Args: never; Returns: number }
       confirm_order_payment: {
         Args: {
           p_amount: number
