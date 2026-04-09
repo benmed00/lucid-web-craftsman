@@ -70,6 +70,7 @@ import { hapticFeedback } from '@/utils/haptics';
 import { TrustBadges } from '@/components/conversion/TrustBadges';
 import { ScarcityIndicator } from '@/components/conversion/ScarcityIndicator';
 import { ProductFAQ } from '@/components/conversion/ProductFAQ';
+import MobileStickyAddToCart from '@/components/ui/MobileStickyAddToCart';
 
 const ProductDetail: React.FC = () => {
   const { t } = useTranslation('pages');
@@ -986,6 +987,13 @@ const ProductDetail: React.FC = () => {
         </main>
 
         <PageFooter />
+
+        {/* Mobile Sticky Add to Cart */}
+        <MobileStickyAddToCart
+          price={product.price}
+          onAddToCart={handleAddToCart}
+          disabled={singleStockInfo?.isOutOfStock}
+        />
       </div>
     </>
   );
