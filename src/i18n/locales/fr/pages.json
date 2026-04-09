@@ -104,7 +104,24 @@
       "description": "Découvrez l'histoire de Rif Raw Straw et notre passion pour l'artisanat berbère."
     },
     "heading": "Notre Histoire",
-    "content": "Née dans les montagnes du Rif, Rif Raw Straw valorise le savoir-faire artisanal transmis de génération en génération."
+    "content": "Née dans les montagnes du Rif, Rif Raw Straw valorise le savoir-faire artisanal transmis de génération en génération. Chaque pièce que nous créons est le fruit d'une rencontre entre tradition ancestrale et design contemporain.",
+    "origins": "C'est au cœur des montagnes du Rif marocain que tout a commencé. Fascinés par la beauté et la richesse de l'artisanat berbère, nous avons décidé de faire connaître ces créations uniques au monde entier, en travaillant directement avec les artisans locaux.",
+    "craft": "Nos artisans utilisent des techniques transmises depuis des siècles : le tressage de la paille de doum, les teintures naturelles et un savoir-faire manuel d'une précision remarquable. Chaque sac, chaque chapeau est une œuvre unique qui raconte une histoire.",
+    "mission": "Notre mission est simple : préserver ce patrimoine vivant tout en offrant des pièces élégantes et durables. En choisissant Rif Raw Straw, vous soutenez directement les communautés artisanales du Rif.",
+    "values": {
+      "authenticity": {
+        "title": "Authenticité",
+        "description": "Un savoir-faire ancestral, des matériaux naturels et une fabrication 100% artisanale."
+      },
+      "sustainability": {
+        "title": "Durabilité",
+        "description": "Des matériaux éco-responsables et des pratiques respectueuses de l'environnement."
+      },
+      "community": {
+        "title": "Communauté",
+        "description": "Un soutien direct aux artisans et aux familles des montagnes du Rif."
+      }
+    }
   },
 
   "shipping": {
