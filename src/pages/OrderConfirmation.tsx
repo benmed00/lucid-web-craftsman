@@ -88,8 +88,11 @@ function loadSnapshot(): CheckoutSnapshot | null {
 // Sub-components
 // ================================================================
 
-/** STATE 1: Processing — shows immediately with snapshot data */
-function OrderProcessing({ snapshot, orderId }: { snapshot: CheckoutSnapshot | null; orderId: string | null }) {
+/** STATE 1: Processing — shows immediately with snapshot data + visible timer */
+function OrderProcessing({ snapshot, orderId, elapsed }: { snapshot: CheckoutSnapshot | null; orderId: string | null; elapsed: number }) {
+  const maxSeconds = 30;
+  const progress = Math.min((elapsed / maxSeconds) * 100, 100);
+
   return (
     <div className="text-center py-8">
       <div className="relative w-16 h-16 mx-auto mb-6">
@@ -99,9 +102,22 @@ function OrderProcessing({ snapshot, orderId }: { snapshot: CheckoutSnapshot | n
       <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
         Paiement reçu ✓
       </h1>
-      <p className="text-muted-foreground mb-6">
+      <p className="text-muted-foreground mb-4">
         Nous finalisons votre commande, veuillez patienter quelques instants…
       </p>
+
+      {/* Progress bar */}
+      <div className="max-w-xs mx-auto mb-6">
+        <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+          <div
+            className="bg-primary h-full rounded-full transition-all duration-1000 ease-linear"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Vérification en cours… {Math.min(elapsed, maxSeconds)}s / {maxSeconds}s
+        </p>
+      </div>
 
       {snapshot && (
         <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden max-w-md mx-auto text-left mb-6">
@@ -327,6 +343,7 @@ const OrderConfirmation = () => {
   const [snapshot] = useState<CheckoutSnapshot | null>(() => loadSnapshot());
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [processingElapsed, setProcessingElapsed] = useState(0);
   const { clearCart } = useCart();
   const { user, profile } = useAuth();
   const initRef = useRef(false);
@@ -338,7 +355,24 @@ const OrderConfirmation = () => {
     localStorage.removeItem('cart');
   }, [clearCart]);
 
-  // ================================================================
+  // Elapsed timer for processing state
+  useEffect(() => {
+    if (state !== 'processing') {
+      setProcessingElapsed(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setProcessingElapsed((prev) => {
+        if (prev >= 30) {
+          clearInterval(interval);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [state]);
+
   // Fetch helpers
   // ================================================================
   const fetchOrder = useCallback(async (oid: string): Promise<OrderData | null> => {
@@ -646,7 +680,7 @@ ${shippingAddr ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${ship
 
           {/* === PROCESSING — instant, shows snapshot data === */}
           {state === 'processing' && (
-            <OrderProcessing snapshot={snapshot} orderId={orderId} />
+            <OrderProcessing snapshot={snapshot} orderId={orderId} elapsed={processingElapsed} />
           )}
 
           {/* === SUCCESS — full DB data === */}
