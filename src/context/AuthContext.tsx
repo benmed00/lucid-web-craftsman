@@ -200,75 +200,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Initialize auth state
   useEffect(() => {
     let isMounted = true;
+    // Guard: ignore onAuthStateChange events until initAuth() completes
+    const initDone = { current: false };
 
-    // Safety timeout
-    let retried = false;
+    // Safety timeout — if init hasn't completed in 4s, force resolve
     const safetyTimeout = setTimeout(async () => {
-      if (!isMounted) return;
-      const alreadyDone = await new Promise<boolean>((resolve) => {
-        setAuthState((prev) => {
-          resolve(!prev.isLoading);
-          return prev;
-        });
-      });
-      if (alreadyDone) return;
-
-      if (!retried) {
-        retried = true;
-        console.warn('[AUTH_SESSION_EVENT] Init slow, retrying getSession...');
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (isMounted && session?.user) {
-            logSessionEvent('RETRY_SESSION_RESTORED', session.user.id);
-            setAuthState((prev) => ({
-              ...prev,
-              session,
-              user: session.user,
-              isLoading: false,
-              isInitialized: true,
-            }));
-            loadUserProfile(session.user.id);
-            loadUserRole();
-            return;
-          }
-        } catch { /* ignore */ }
-      }
-
-      setAuthState((prev) => {
-        if (prev.isLoading) {
-          console.warn('[AUTH_SESSION_EVENT] Init timed out after 4s');
-          return { ...prev, isLoading: false, isInitialized: true };
-        }
-        return prev;
-      });
+      if (!isMounted || initDone.current) return;
+      console.warn('[AUTH_SESSION_EVENT] Init timed out after 4s, forcing ready');
+      initDone.current = true;
+      setAuthState((prev) =>
+        prev.isLoading ? { ...prev, isLoading: false, isInitialized: true } : prev
+      );
     }, 4000);
 
-    // Auth state listener
+    // Auth state listener — guarded by initDone
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return;
 
-      logSessionEvent(event, session?.user?.id);
+      console.info(`[AUTH_EVENT] ${event}, session=${session ? 'exists' : 'null'}, initDone=${initDone.current}, tab=${window.location.pathname}`);
 
-      if (event === 'TOKEN_REFRESHED' && !session) {
-        console.warn('[AUTH_SESSION_EVENT] Token refresh failed');
-        profileCache.invalidate();
-        setAuthState({
-          user: null, session: null, profile: null, role: 'anonymous',
-          isLoading: false, isInitialized: true, isRoleLoading: false,
-        });
-        initializeWishlistStore(null);
+      // Ignore INITIAL_SESSION — we handle it ourselves in initAuth()
+      if (event === 'INITIAL_SESSION') return;
+
+      // Before init completes, only process explicit SIGNED_IN / SIGNED_OUT
+      if (!initDone.current && event !== 'SIGNED_IN' && event !== 'SIGNED_OUT') {
+        console.info('[AUTH_EVENT] Skipped (init not done):', event);
         return;
       }
 
-      setAuthState((prev) => ({
-        ...prev,
-        session,
-        user: session?.user ?? null,
-        isLoading: false,
-        isInitialized: true,
-      }));
+      if (event === 'TOKEN_REFRESHED') {
+        if (!session) {
+          console.warn('[AUTH_SESSION_EVENT] Token refresh failed');
+          profileCache.invalidate();
+          setAuthState({
+            user: null, session: null, profile: null, role: 'anonymous',
+            isLoading: false, isInitialized: true, isRoleLoading: false,
+          });
+          initializeWishlistStore(null);
+        } else {
+          // Token refreshed successfully — update session silently
+          setAuthState((prev) => ({ ...prev, session, user: session.user }));
+        }
+        return;
+      }
 
       if (event === 'SIGNED_IN' && session?.user) {
+        setAuthState((prev) => ({
+          ...prev,
+          session,
+          user: session.user,
+          isLoading: false,
+          isInitialized: true,
+        }));
         initializeWishlistStore(session.user.id);
         setTimeout(() => {
           if (isMounted) {
@@ -280,8 +263,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         initializeWishlistStore(null);
         profileCache.invalidate();
         if (roleIntervalRef.current) clearInterval(roleIntervalRef.current);
-        setAuthState((prev) => ({ ...prev, profile: null, role: 'anonymous', isRoleLoading: false }));
-
+        setAuthState({
+          user: null, session: null, profile: null, role: 'anonymous',
+          isLoading: false, isInitialized: true, isRoleLoading: false,
+        });
         if ('caches' in self) {
           caches.keys().then((names) => names.forEach((name) => caches.delete(name)));
         }
@@ -293,7 +278,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       authChannel = new BroadcastChannel('auth-sync');
       authChannel.onmessage = (event) => {
-        if (event.data?.type === 'SIGNED_OUT' && isMounted) {
+        if (!isMounted) return;
+        if (event.data?.type === 'SIGNED_OUT') {
           logSessionEvent('CROSS_TAB_SIGNOUT');
           profileCache.invalidate();
           if (roleIntervalRef.current) clearInterval(roleIntervalRef.current);
@@ -302,7 +288,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isLoading: false, isInitialized: true, isRoleLoading: false,
           });
           initializeWishlistStore(null);
-        } else if (event.data?.type === 'SIGNED_IN' && isMounted) {
+        } else if (event.data?.type === 'SIGNED_IN') {
           logSessionEvent('CROSS_TAB_SIGNIN');
           supabase.auth.getSession().then(({ data: { session } }) => {
             if (session?.user && isMounted) {
@@ -319,12 +305,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
     } catch { /* BroadcastChannel not supported */ }
 
-    // Initial session check
+    // Initial session check — runs ONCE, sets initDone when complete
     const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
+          // Validate JWT is still valid
           const { error: userError } = await supabase.auth.getUser();
           if (userError) {
             console.warn('[AUTH_SESSION_EVENT] JWT invalid, clearing:', userError.message);
@@ -336,6 +323,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 isLoading: false, isInitialized: true, isRoleLoading: false,
               });
             }
+            initDone.current = true;
             return;
           }
 
@@ -362,6 +350,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (isMounted) {
           setAuthState((prev) => ({ ...prev, isLoading: false, isInitialized: true }));
         }
+      } finally {
+        initDone.current = true;
       }
     };
 
