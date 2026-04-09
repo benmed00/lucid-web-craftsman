@@ -234,6 +234,8 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+    font-weight: 400;
+    font-size: 16px;
     font-feature-settings:
       'rlig' 1,
       'calt' 1;
@@ -241,14 +243,40 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply tracking-tight;
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
     text-rendering: optimizeLegibility;
+  }
+
+  h1 {
+    @apply text-h1;
+    font-weight: 700;
+    letter-spacing: 0.015em;
+  }
+
+  h2 {
+    @apply text-h2;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  h3 {
+    @apply text-h3;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  h4, h5, h6 {
+    font-weight: 600;
+  }
+
+  p, span, li, td, th, label, input, textarea, select {
+    font-weight: 400;
+  }
+
+  button, [role="button"], a.btn {
+    font-weight: 600;
+    letter-spacing: 0.06em;
   }
 
   /* Reduce motion for users who prefer it */
