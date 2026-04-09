@@ -149,12 +149,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile
   );
 
-  // Role loading — single RPC, cached in memory
+  // Role loading — single RPC, cached in memory, with timeout protection
   const loadUserRole = useCallback(async (): Promise<AppRole> => {
     setAuthState((prev) => ({ ...prev, isRoleLoading: true }));
-    const role = await fetchUserRole();
+    
+    // Timeout protection: if RPC takes >5s, fallback to 'user'
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const timeoutPromise = new Promise<AppRole>((resolve) => {
+      timeoutId = setTimeout(() => {
+        console.warn('[AUTH_SESSION_EVENT] Role RPC timed out after 5s, fallback to user');
+        resolve('user');
+      }, 5000);
+    });
+    
+    const role = await Promise.race([fetchUserRole(), timeoutPromise]);
+    if (timeoutId) clearTimeout(timeoutId);
+    
     setAuthState((prev) => {
-      // Only update if role actually changed
       if (prev.role !== role) {
         logRoleResolved(prev.user?.id ?? 'unknown', role, 'get_user_role');
         return { ...prev, role, isRoleLoading: false };
