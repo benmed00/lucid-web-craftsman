@@ -3283,6 +3283,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      create_guest_token: { Args: never; Returns: Json }
       create_order_anomaly: {
         Args: {
           p_anomaly_type: Database["public"]["Enums"]["order_anomaly_type"]
@@ -3561,6 +3562,10 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      validate_guest_token: {
+        Args: { _guest_id: string; _signature: string }
+        Returns: boolean
       }
       validate_order_status_transition: {
         Args: {
