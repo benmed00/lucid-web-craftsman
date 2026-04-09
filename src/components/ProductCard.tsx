@@ -79,14 +79,14 @@ const ProductCard = ({
   return (
     <Card
       id={cardId}
-      className="bg-card border border-border overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-xl sm:rounded-2xl hover:scale-[1.01] sm:hover:scale-[1.02] hover:-translate-y-1 shadow-md hover:shadow-xl hover:border-primary/30 w-full"
+      className="bg-card border border-border/40 overflow-hidden group hover:shadow-elegant transition-all duration-500 relative touch-manipulation rounded-2xl hover:-translate-y-1 shadow-sm w-full"
       role="article"
       aria-labelledby={`product-title-${product.id}`}
       aria-describedby={`product-price-${product.id} ${singleStockInfo?.isOutOfStock ? `product-stock-${product.id}` : ''}`}
     >
       <Link to={`/products/${product.id}`} className="block touch-manipulation">
         <div className="relative group/image">
-          <div className="aspect-square sm:aspect-[4/5] w-full overflow-hidden rounded-t-xl">
+          <div className="aspect-[4/5] w-full overflow-hidden rounded-t-2xl bg-secondary/30">
             <ProductImage
               src={product.images[0]}
               alt={product.name}
@@ -274,7 +274,7 @@ const ProductCard = ({
                 onAddToCart(product);
               }}
               disabled={singleStockInfo?.isOutOfStock}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-3 sm:px-4 py-2.5 sm:py-3 touch-manipulation min-h-[44px] sm:min-h-[48px] font-semibold text-xs sm:text-sm rounded-lg shadow-md hover:shadow-lg disabled:hover:bg-primary disabled:hover:shadow-md group relative overflow-hidden border-0"
+              className="w-full bg-foreground hover:bg-foreground/90 text-background active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-3 sm:px-4 py-2.5 sm:py-3 touch-manipulation min-h-[44px] sm:min-h-[48px] font-medium text-xs sm:text-sm rounded-full shadow-sm hover:shadow-md disabled:hover:bg-foreground disabled:hover:shadow-sm group relative overflow-hidden border-0"
               aria-label={
                 singleStockInfo?.isOutOfStock
                   ? t('details.outOfStock')
