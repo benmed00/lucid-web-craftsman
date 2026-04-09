@@ -156,8 +156,17 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        serif: ['Cormorant Garamond', 'Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
-        sans: ['"DM Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        serif: ['"Playfair Display"', 'Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+      },
+      fontSize: {
+        'display': ['3rem', { lineHeight: '1.15', letterSpacing: '0.02em', fontWeight: '700' }],
+        'h1': ['2.5rem', { lineHeight: '1.2', letterSpacing: '0.015em', fontWeight: '700' }],
+        'h2': ['1.875rem', { lineHeight: '1.25', letterSpacing: '0.01em', fontWeight: '600' }],
+        'h3': ['1.5rem', { lineHeight: '1.3', letterSpacing: '0.01em', fontWeight: '600' }],
+        'body-lg': ['1.125rem', { lineHeight: '1.6', fontWeight: '400' }],
+        'body': ['1rem', { lineHeight: '1.6', fontWeight: '400' }],
+        'cta': ['0.875rem', { lineHeight: '1', letterSpacing: '0.08em', fontWeight: '600' }],
       },
       keyframes: {
         'accordion-down': {
