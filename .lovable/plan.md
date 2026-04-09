@@ -1,27 +1,40 @@
-## E-Commerce Conversion Optimization Plan
 
-### Phase 1 — Trust & Product Page (Highest ROI)
-1. **Product page redesign**: Hero section with benefit-driven headline, price + CTA above fold, trust badges, scarcity indicators
-2. **Trust elements**: Secure payment icons, shipping info, return policy, FAQ section
-3. **Social proof**: Reviews section with seeded reviews
+## 🔍 Audit — État actuel du système Auth & RBAC
 
-### Phase 2 — Checkout Hardening ✅
-4. **Origin-aware redirects**: `getValidOrigin` now uses request Origin/Referer with allowlist — dev/preview URLs work correctly
-5. **SEPA payment support**: Added `sepa_debit` to Stripe Checkout payment methods for French market
-6. **Payment error recovery UX**: Visible error banner with reassurance ("no charge") + retry capability
+### ✅ Ce qui fonctionne bien (ne pas toucher)
 
-### Phase 3 — UI Premium Polish ✅
-7. **Typography upgrade**: Playfair Display (headings) + Inter (body) with antialiasing, `font-sans` base
-8. **Homepage hero**: Tighter tracking, bolder CTAs, refined badge styling, better spacing hierarchy
-9. **Navigation**: Frosted glass effect (`backdrop-blur-md`, `bg-background/95`), softer border
-10. **Premium shadow token**: Added `--shadow-premium` for elevated card effects
+| Composant | Statut | Détail |
+|-----------|--------|--------|
+| **AuthContext** | ✅ Solide | Session init avec timeout 4s, retry, JWT validation, cross-tab sync |
+| **`user_roles` table** | ✅ Correct | Rôles séparés (admin, super_admin), `revoked_at` pour révocation |
+| **`has_role()` / `is_admin_user()`** | ✅ SECURITY DEFINER | Fonctions stables, initplan-optimisées |
+| **RLS policies** | ✅ Complètes | 40+ policies couvrant toutes les tables |
+| **`verify_admin_session()` RPC** | ✅ Server-side | Vérification admin non-spoofable |
+| **`useAdminAuth` hook** | ✅ Sécurisé | Utilise RPC server-side, pas localStorage |
+| **ProtectedAdminRoute** | ✅ Fonctionnel | Guard basé sur `useAdminAuth` |
 
-### Phase 4 — Performance & Tracking ✅
-10. **Image optimization**: `OptimizedImage` component already handles lazy loading, IntersectionObserver, WebP fallback
-11. **Meta Pixel + TikTok Pixel integration**: Environment-driven (`VITE_META_PIXEL_ID`, `VITE_TIKTOK_PIXEL_ID`), e-commerce events (ViewContent, AddToCart, InitiateCheckout, Purchase), deferred loading via `requestIdleCallback`
-12. **A/B test structure**: `ABTestWrapper` component with deterministic, localStorage-persistent variant assignment and configurable traffic split
+### ⚠️ Incohérences identifiées (à corriger)
 
-### Out of scope (already done or low priority)
-- State management (Zustand + React Query already in place)
-- Cart persistence (already implemented)
-- Bundle optimization (defer to after conversion fixes)
+1. **Double source admin** : `verify_admin_session()` lit `admin_users`, mais `is_admin_user()` lit `user_roles`. Si un user est dans l'un mais pas l'autre → comportement incohérent.
+   - **Fix** : Aligner `verify_admin_session()` pour utiliser `user_roles` au lieu de `admin_users`
+
+2. **Pas de rôle dans AuthContext** : Le frontend ne connaît le rôle qu'en appelant `useAdminAuth` séparément. Risque de requêtes dupliquées.
+   - **Fix** : Ajouter `role: 'anonymous' | 'user' | 'admin' | 'super_admin'` dans AuthContext
+
+3. **Logging insuffisant** : Pas de traces pour les changements de rôle ou accès refusés.
+   - **Fix** : Ajouter console.info pour role detection au login
+
+### ❌ Non-problèmes (confirmé sécurisé)
+
+- Pas de rôle stocké en localStorage ✅
+- Pas de check admin client-side ✅
+- RLS utilise `(SELECT auth.uid())` initplan ✅
+- Anon bloqué sur tables sensibles ✅
+
+### 📋 Plan de correction (3 changements ciblés)
+
+1. **Migration SQL** : Mettre à jour `verify_admin_session()` pour lire `user_roles` au lieu de `admin_users`
+2. **AuthContext** : Ajouter `role` dérivé du backend (via une fonction RPC légère)
+3. **Logging** : Ajouter traces role detection dans `useAdminAuth`
+
+Temps estimé : ~15 min. Aucun changement UX.
