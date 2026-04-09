@@ -227,21 +227,35 @@
   }
 
   /* ============= UI Style Themes (admin switcher) ============= */
+  /* Legacy: original olive/green Moroccan artisan palette */
   [data-ui-style="legacy"] {
     --background: 0 0% 100%;
-    --foreground: 0 0% 20%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 20%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --primary: 0 0% 15%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 20%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 15%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --muted: 84 29% 90%;
+    --muted-foreground: 84 29% 25%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --primary: 84 29% 32%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 84 29% 96%;
+    --secondary-foreground: 84 29% 18%;
+    --accent: 84 29% 45%;
+    --accent-foreground: 210 40% 98%;
+    --sand-50: 84 29% 96%;
+    --sand-100: 84 29% 90%;
+    --sand-200: 84 29% 80%;
+    --sand-300: 84 29% 65%;
+    --sand-400: 84 29% 45%;
+    --sand-500: 84 29% 45%;
+    --sand-600: 84 29% 32%;
+    --sand-700: 84 29% 32%;
+    --sand-800: 84 29% 25%;
+    --sand-900: 84 29% 18%;
   }
 
   * {
