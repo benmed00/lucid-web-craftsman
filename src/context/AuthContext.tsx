@@ -248,7 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         initializeWishlistStore(null);
 
         profileCache.invalidate();
-        setAuthState((prev) => ({ ...prev, profile: null }));
+        setAuthState((prev) => ({ ...prev, profile: null, role: 'anonymous' }));
 
         // Purge Service Worker caches to prevent stale authenticated content
         if ('caches' in self) {
