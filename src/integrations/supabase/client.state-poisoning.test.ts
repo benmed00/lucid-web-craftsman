@@ -39,7 +39,7 @@ describe('supabase client auth-state poisoning diagnostics', () => {
     vi.stubGlobal('fetch', fetchMock);
   });
 
-  it('clears only Supabase auth keys after a 401 response', async () => {
+  it('preserves auth keys after a 401 response (no aggressive wipe)', async () => {
     localStorage.setItem(
       'sb-xcvlijchkmhjonhfildm-auth-token',
       JSON.stringify({ access_token: 'poisoned.jwt.token' })
@@ -58,16 +58,18 @@ describe('supabase client auth-state poisoning diagnostics', () => {
       'https://xcvlijchkmhjonhfildm.supabase.co/rest/v1/products'
     );
 
+    // Auth keys should NOT be wiped — a 401 on a restricted table is expected
+    // Only supabase.auth.signOut() should clear auth state
     expect(
       localStorage.getItem('sb-xcvlijchkmhjonhfildm-auth-token')
-    ).toBeNull();
-    expect(localStorage.getItem('supabase.auth.token')).toBeNull();
+    ).not.toBeNull();
+    expect(localStorage.getItem('supabase.auth.token')).not.toBeNull();
     expect(localStorage.getItem('cart-storage')).toBe('{"items":[1,2]}');
     expect(localStorage.getItem('cloud-instance-preview')).toBe('keep');
     expect(localStorage.getItem('editor-store-state')).toBe('keep');
   });
 
-  it('clears Supabase auth keys after a 403 response (bad JWT signature)', async () => {
+  it('preserves auth keys after a 403 response (RLS denial is normal)', async () => {
     localStorage.setItem(
       'sb-xcvlijchkmhjonhfildm-auth-token',
       JSON.stringify({ access_token: 'bad-signature.jwt.token' })
@@ -83,9 +85,10 @@ describe('supabase client auth-state poisoning diagnostics', () => {
 
     await wrappedFetch('https://xcvlijchkmhjonhfildm.supabase.co/auth/v1/user');
 
+    // Auth keys preserved — 403 can be a normal RLS denial
     expect(
       localStorage.getItem('sb-xcvlijchkmhjonhfildm-auth-token')
-    ).toBeNull();
+    ).not.toBeNull();
     expect(localStorage.getItem('cart-storage')).toBe('{"items":[3]}');
   });
 
