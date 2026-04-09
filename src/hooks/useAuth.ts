@@ -1,6 +1,5 @@
 // src/hooks/useAuth.ts
-// DEPRECATED: This file is kept for backward compatibility
-// All auth functionality has been consolidated into src/context/AuthContext.tsx
+// Re-export from AuthContext for backward compatibility
 
 export {
   useAuth,
