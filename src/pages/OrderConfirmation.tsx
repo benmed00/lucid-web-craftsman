@@ -414,6 +414,33 @@ const OrderConfirmation = () => {
   }, [fetchOrder, fetchOrderItems]);
 
   // ================================================================
+  // Reconcile via Edge Function (self-healing fallback)
+  // ================================================================
+  const reconcileOrder = useCallback(async (oid: string): Promise<boolean> => {
+    try {
+      console.log('[OrderConfirmation] Attempting reconciliation', { order_id: oid });
+      const { data, error } = await supabase.functions.invoke('reconcile-payment', {
+        body: { order_id: oid },
+      });
+
+      if (error) {
+        console.warn('[OrderConfirmation] Reconciliation call failed', error);
+        return false;
+      }
+
+      if (data?.success && (data?.reconciled || data?.status === 'paid')) {
+        console.log('[OrderConfirmation] Reconciliation successful', data);
+        return true;
+      }
+
+      return false;
+    } catch (err) {
+      console.warn('[OrderConfirmation] Reconciliation error', err);
+      return false;
+    }
+  }, []);
+
+  // ================================================================
   // Main verification
   // ================================================================
   const runVerification = useCallback(async () => {
@@ -432,7 +459,23 @@ const OrderConfirmation = () => {
     const { order: orderData, items } = await pollForOrder(orderId);
 
     if (!orderData) {
-      console.warn('[OrderConfirmation] Order not found after polling');
+      // Order not found after polling — attempt self-healing reconciliation
+      console.warn('[OrderConfirmation] Order not found after polling, attempting reconciliation');
+      const reconciled = await reconcileOrder(orderId);
+
+      if (reconciled) {
+        // Re-fetch the now-confirmed order
+        const reconciledOrder = await fetchOrder(orderId);
+        if (reconciledOrder) {
+          const reconciledItems = await fetchOrderItems(orderId);
+          setOrder(reconciledOrder);
+          setOrderItems(reconciledItems);
+          setState('success');
+          toast.success(t('pages:paymentSuccess.success.confirmed'));
+          return;
+        }
+      }
+
       setState('fallback');
       return;
     }
