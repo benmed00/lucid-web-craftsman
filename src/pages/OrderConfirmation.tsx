@@ -663,7 +663,7 @@ ${shippingAddr ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${ship
 
           {/* === PROCESSING — instant, shows snapshot data === */}
           {state === 'processing' && (
-            <OrderProcessing snapshot={snapshot} orderId={orderId} />
+            <OrderProcessing snapshot={snapshot} orderId={orderId} elapsed={processingElapsed} />
           )}
 
           {/* === SUCCESS — full DB data === */}
