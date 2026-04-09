@@ -60,16 +60,20 @@ const PROCESS_STEPS = [
       'Raw straw is carefully selected and harvested by hand from the Rif mountains during peak season.',
     descriptionFr:
       'La paille brute est soigneusement sélectionnée et récoltée à la main dans les montagnes du Rif.',
-    image: '/assets/images/artisans/weaving-hands.png',
+    image: '/assets/images/artisans/process-harvesting.jpg',
+    alt: 'Hands harvesting golden straw stalks in Morocco\'s Rif mountains',
+    altFr: 'Mains récoltant des tiges de paille dorée dans les montagnes du Rif au Maroc',
   },
   {
     title: 'Weaving',
     titleFr: 'Tissage',
     description:
-      'Each strand is braided using techniques passed down through generations of Rifian women.',
+      'Each strand is braided using techniques passed down through generations of Moroccan artisans.',
     descriptionFr:
-      'Chaque brin est tressé selon des techniques transmises de génération en génération.',
-    image: '/assets/images/artisans/straw-texture.png',
+      'Chaque brin est tressé selon des techniques transmises de génération en génération par les artisans marocains.',
+    image: '/assets/images/artisans/process-weaving.jpg',
+    alt: 'Skilled hands braiding natural straw fibers into intricate patterns',
+    altFr: 'Mains habiles tressant des fibres de paille naturelle en motifs complexes',
   },
   {
     title: 'Shaping',
@@ -78,7 +82,9 @@ const PROCESS_STEPS = [
       'Artisans mold every piece by hand, giving each hat its unique silhouette and character.',
     descriptionFr:
       'Les artisans façonnent chaque pièce à la main, lui donnant sa silhouette unique.',
-    image: '/assets/images/artisans/straw-bags-market.png',
+    image: '/assets/images/artisans/process-shaping.jpg',
+    alt: 'Artisan hands shaping a straw hat on a wooden form',
+    altFr: 'Mains d\'artisan façonnant un chapeau de paille sur une forme en bois',
   },
   {
     title: 'Finishing',
@@ -87,7 +93,9 @@ const PROCESS_STEPS = [
       'Final touches — trimming, steaming, and quality checks — ensure every piece meets our standards.',
     descriptionFr:
       'Les touches finales — coupe, vapeur et contrôle qualité — garantissent l\'excellence.',
-    image: '/assets/images/artisans/fibres-naturelles.png',
+    image: '/assets/images/artisans/process-finishing.jpg',
+    alt: 'Final quality inspection of a handmade straw hat with scissors and steam',
+    altFr: 'Inspection finale d\'un chapeau de paille artisanal avec ciseaux et vapeur',
   },
 ];
 
@@ -183,7 +191,7 @@ const ArtisansPage = () => {
 
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           <p className="text-xs md:text-sm tracking-[0.35em] uppercase text-white/60 mb-6 font-light animate-fade-in">
-            {isFr ? 'Artisanat authentique du Rif' : 'Authentic Rif Craftsmanship'}
+            {isFr ? 'Artisanat authentique du Maroc' : 'Authentic Moroccan Craftsmanship'}
           </p>
           <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white font-bold tracking-wide leading-[1.1] mb-8 animate-fade-in">
             {isFr ? 'Façonné à la Main,' : 'Crafted by Hands,'}
@@ -195,8 +203,8 @@ const ArtisansPage = () => {
           <div className="w-16 h-px bg-white/40 mx-auto mb-6" />
           <p className="text-base md:text-lg text-white/70 font-light tracking-wider max-w-xl mx-auto leading-relaxed animate-fade-in">
             {isFr
-              ? 'Découvrez les artisans derrière chaque création Rif Raw Straw'
-              : 'Discover the artisans behind every Rif Raw Straw creation'}
+              ? 'Rencontrez les artisans derrière chaque création Rif Raw Straw'
+              : 'Meet the artisans behind every Rif Raw Straw creation'}
           </p>
         </div>
 
@@ -238,18 +246,18 @@ const ArtisansPage = () => {
                 <div className="space-y-6">
                   <p className="text-muted-foreground text-lg leading-[1.8] font-light">
                     {isFr
-                      ? 'Dans les montagnes du Rif, un artisanat centenaire perdure.'
-                      : 'In the mountains of the Rif, a centuries-old craft lives on.'}
+                      ? 'Du Rif à Essaouira, de Fès à Marrakech — un artisanat ancestral perdure à travers le Maroc.'
+                      : 'From the Rif to Essaouira, from Fès to Marrakech — an ancestral craft lives on across Morocco.'}
                   </p>
                   <p className="text-muted-foreground text-lg leading-[1.8] font-light">
                     {isFr
-                      ? 'Chaque brin de paille est récolté, préparé et tissé selon des techniques transmises de génération en génération par les femmes amazighes.'
-                      : 'Each piece of straw is harvested, prepared, and woven using techniques passed down through generations of Amazigh women.'}
+                      ? 'Chaque matière — paille, doum, raphia, fil de soie — est travaillée à la main selon des techniques transmises de génération en génération.'
+                      : 'Each material — straw, doum palm, raphia, silk thread — is worked by hand using techniques passed down through generations.'}
                   </p>
                   <p className="text-muted-foreground text-lg leading-[1.8] font-light">
                     {isFr
-                      ? 'Nous ne vendons pas seulement des chapeaux — nous perpétuons un patrimoine vivant.'
-                      : 'We don\'t just sell hats — we carry forward a living heritage.'}
+                      ? 'Chez Rif Raw Straw, chaque achat soutient directement ces artisans et aide à préserver un patrimoine vivant.'
+                      : 'At Rif Raw Straw, every purchase directly supports these artisans and helps preserve a living heritage.'}
                   </p>
                 </div>
               </div>
@@ -425,7 +433,7 @@ const ArtisansPage = () => {
                   <div className="relative mb-8 overflow-hidden rounded-sm">
                     <img
                       src={step.image}
-                      alt={isFr ? step.titleFr : step.title}
+                      alt={isFr ? step.altFr : step.alt}
                       className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
                       loading="lazy"
                     />
