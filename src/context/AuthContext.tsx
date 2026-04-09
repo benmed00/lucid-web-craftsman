@@ -130,6 +130,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile
   );
 
+  // Role loading from backend RPC
+  const loadUserRole = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_user_role');
+      if (error) {
+        console.warn('[AuthContext] Failed to load role:', error.message);
+        return;
+      }
+      const role = (data as string) as AppRole;
+      console.info('[AuthContext] Role detected:', role);
+      setAuthState((prev) => ({ ...prev, role }));
+    } catch (err) {
+      console.warn('[AuthContext] Role detection error:', err);
+    }
+  }, []);
+
   // Initialize auth state
   useEffect(() => {
     let isMounted = true;
