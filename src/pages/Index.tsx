@@ -78,7 +78,7 @@ const Index = () => {
                   {t('pages:home.hero.badge')}
                 </div>
 
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-serif font-semibold text-foreground animate-fade-in-up leading-[1.05] tracking-tight">
+                <h1 className="text-[30px] sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-serif font-bold text-foreground animate-fade-in-up leading-[1.08] tracking-tight">
                   {t('pages:home.hero.title')}{' '}
                   <span className="text-primary italic">
                     {t('pages:home.hero.titleHighlight')}
@@ -99,7 +99,7 @@ const Index = () => {
                 >
                   <Link to="/products" className="group w-full sm:w-auto">
                     <Button
-                      className="w-full sm:w-auto bg-foreground hover:bg-foreground/90 text-background font-medium px-8 sm:px-10 py-5 sm:py-6 rounded-full transition-all duration-300 hover:shadow-xl text-sm sm:text-base touch-manipulation min-h-[52px] tracking-wide uppercase"
+                      className="w-full sm:w-auto bg-foreground hover:bg-foreground/90 text-background font-semibold px-8 sm:px-10 py-5 sm:py-6 rounded-full transition-all duration-300 hover:shadow-xl text-sm sm:text-base touch-manipulation min-h-[52px] tracking-wide uppercase"
                       id="hero-discover-collection"
                     >
                       {t('pages:home.hero.discoverButton')}

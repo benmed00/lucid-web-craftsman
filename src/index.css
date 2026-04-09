@@ -597,61 +597,82 @@ html {
   padding-top: env(safe-area-inset-top);
 }
 
-/* Mobile-first breakpoints */
-@media (max-width: 768px) {
+/* ═══ MOBILE PREMIUM OPTIMIZATION ═══ */
+
+/* Mobile spacing system */
+@media (max-width: 767px) {
+  /* Global horizontal padding consistency */
+  .container {
+    padding-left: 1.125rem;
+    padding-right: 1.125rem;
+  }
+
+  /* Section vertical rhythm */
+  section {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  /* Typography floor — no thin fonts on mobile */
+  body {
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-overflow-scrolling: touch;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-weight: 700;
+  }
+
+  p, li, span, label {
+    font-weight: 400;
+  }
+
+  /* Product card mobile: image-dominant */
   .mobile-grid-2 {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
   }
 
-  .mobile-text-sm {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
+  /* Buttons: 48px min-height, full-width CTAs */
+  button,
+  [role='button'],
+  .btn,
+  a[class*="Button"],
+  [class*="btn"] {
+    min-height: 48px;
   }
 
-  .mobile-p-3 {
-    padding: 0.75rem;
-  }
-
-  /* Optimize product cards for mobile */
-  .mobile-product-card {
-    padding: 0.75rem;
-  }
-
-  .mobile-product-card h3 {
-    font-size: 1rem;
-    line-height: 1.25rem;
-  }
-}
-
-/* Improve mobile form inputs */
-input,
-textarea,
-select {
-  font-size: 16px; /* Prevents zoom on iOS */
-}
-
-@media (max-width: 768px) {
+  /* Form inputs: prevent iOS zoom */
   input,
   textarea,
   select {
-    min-height: 44px; /* Apple's recommended touch target */
-  }
-
-  /* Larger touch targets for mobile */
-  button,
-  [role='button'],
-  .btn {
-    min-height: 44px;
-    min-width: 44px;
+    font-size: 16px;
+    min-height: 48px;
   }
 }
 
-/* Better mobile scrolling */
-@media (max-width: 768px) {
-  body {
-    -webkit-overflow-scrolling: touch;
-  }
+/* Sticky mobile CTA bar */
+.mobile-sticky-cta {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  padding: 0.75rem 1rem;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  background: hsl(var(--background) / 0.97);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid hsl(var(--border) / 0.5);
+  box-shadow: 0 -4px 20px hsl(var(--foreground) / 0.06);
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+}
+
+.mobile-sticky-cta.hidden-bar {
+  transform: translateY(100%);
 }
 
 /* Note: prefers-reduced-motion is already handled in @layer base */
