@@ -269,6 +269,7 @@
     </script>
     <script>
       // Emergency logout — runs BEFORE React to guarantee cleanup
+      // CRITICAL: must also STOP React from loading to prevent AuthContext deadlock
       if (window.location.pathname === '/logout') {
         try {
           Object.keys(localStorage).forEach(function (k) {
@@ -279,11 +280,15 @@
           sessionStorage.clear();
         } catch (e) { /* private mode */ }
         document.getElementById('root').innerHTML =
-          '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#faf8f5;font-family:system-ui"><p style="font-size:1.1rem;color:#5c4a37">Déconnexion en cours…</p></div>';
-        // Small delay so the user sees the message, then redirect
-        setTimeout(function () { window.location.href = '/'; }, 400);
+          '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#faf8f5;font-family:system-ui"><p style="font-size:1.1rem;color:#5c4a37;animation:pulse 1.5s ease-in-out infinite">Déconnexion en cours…</p></div><style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}</style>';
+        setTimeout(function () { window.location.href = '/'; }, 500);
+      } else {
+        // Only load React app if NOT on /logout
+        var s = document.createElement('script');
+        s.type = 'module';
+        s.src = '/src/main.tsx';
+        document.body.appendChild(s);
       }
     </script>
-    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
