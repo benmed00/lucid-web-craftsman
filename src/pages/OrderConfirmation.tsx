@@ -355,7 +355,7 @@ const OrderConfirmation = () => {
     localStorage.removeItem('cart');
   }, [clearCart]);
 
-  // Elapsed timer for processing state
+  // Elapsed timer for processing state — auto-fallback after 35s safety net
   useEffect(() => {
     if (state !== 'processing') {
       setProcessingElapsed(0);
@@ -363,11 +363,15 @@ const OrderConfirmation = () => {
     }
     const interval = setInterval(() => {
       setProcessingElapsed((prev) => {
-        if (prev >= 30) {
+        const next = prev + 1;
+        // Safety net: if still processing after 35s, force fallback
+        if (next >= 35) {
           clearInterval(interval);
-          return prev;
+          console.warn('[OrderConfirmation] Processing timeout reached, forcing fallback');
+          setState('fallback');
+          return next;
         }
-        return prev + 1;
+        return next;
       });
     }, 1000);
     return () => clearInterval(interval);
