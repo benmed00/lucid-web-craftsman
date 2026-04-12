@@ -38,7 +38,7 @@ const esc = (s: string) =>
 const formatPrice = (price: number, currency: string) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency }).format(price);
 
-const SITE_URL = 'https://www.rifelegance.com';
+const SITE_URL = (Deno.env.get('SITE_URL') || 'https://www.rifelegance.com').replace(/\/+$/, '');
 
 export function buildOrderConfirmationHtml(
   props: OrderConfirmationProps
