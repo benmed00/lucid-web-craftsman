@@ -7,7 +7,7 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@18.5.0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.2';
-import { confirmOrderFromStripe } from '../_shared/confirm-order.ts';
+import { confirmOrderFromStripe, sendConfirmationEmail } from '../_shared/confirm-order.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -172,6 +172,31 @@ serve(async (req) => {
     }
 
     logStep('ORDER RECONCILED SUCCESSFULLY', { orderId });
+
+    // ================================================================
+    // Step 4: Send confirmation email (idempotent, non-blocking)
+    // ================================================================
+    const customerEmail = session.customer_details?.email;
+    if (customerEmail) {
+      const { data: freshOrder } = await supabaseService
+        .from('orders')
+        .select('order_items(id, product_id, quantity, unit_price), amount, currency, shipping_address')
+        .eq('id', orderId)
+        .single();
+
+      if (freshOrder) {
+        await sendConfirmationEmail(supabaseService, {
+          orderId,
+          customerEmail,
+          customerName: session.customer_details?.name || 'Client',
+          orderItems: freshOrder.order_items || [],
+          orderAmount: freshOrder.amount,
+          currency: freshOrder.currency,
+          shippingAddress: freshOrder.shipping_address,
+          source: 'reconcile_payment',
+        });
+      }
+    }
 
     return new Response(
       JSON.stringify({

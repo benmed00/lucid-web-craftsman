@@ -526,7 +526,20 @@ const OrderConfirmation = () => {
       setState('success');
       toast.success(t('pages:paymentSuccess.success.confirmed'));
     } else {
-      // Order exists but still pending — show fallback with reassurance
+      // Order exists but still pending — attempt reconciliation before fallback
+      console.log('[OrderConfirmation] Order still pending, attempting reconciliation');
+      const reconciled = await reconcileOrder(orderId);
+      if (reconciled) {
+        const reconciledOrder = await fetchOrder(orderId);
+        if (reconciledOrder && (reconciledOrder.status === 'paid' || reconciledOrder.status === 'completed')) {
+          const reconciledItems = await fetchOrderItems(orderId);
+          setOrder(reconciledOrder);
+          setOrderItems(reconciledItems);
+          setState('success');
+          toast.success(t('pages:paymentSuccess.success.confirmed'));
+          return;
+        }
+      }
       setState('fallback');
     }
   }, [orderId, pollForOrder, reconcileOrder, fetchOrder, fetchOrderItems, state, t]);
