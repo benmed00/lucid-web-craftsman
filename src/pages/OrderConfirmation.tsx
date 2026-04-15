@@ -534,18 +534,32 @@ const OrderConfirmation = () => {
     return { order: null, items: [] };
   }, [fetchOrder, fetchOrderItems]);
 
-  // Reconcile via Edge Function
-  const reconcileOrder = useCallback(async (oid: string): Promise<boolean> => {
+  // Reconcile via Edge Function — returns response data for immediate use
+  const reconcileOrder = useCallback(async (oid: string): Promise<{ success: boolean; data?: any }> => {
     try {
       const { data, error } = await supabase.functions.invoke('reconcile-payment', {
         body: { order_id: oid },
       });
-      if (error) return false;
-      return !!(data?.success && (data?.reconciled || data?.status === 'paid'));
+      if (error) return { success: false };
+      const isSuccess = !!(data?.success && (data?.reconciled || data?.status === 'paid'));
+      return { success: isSuccess, data };
     } catch {
-      return false;
+      return { success: false };
     }
   }, []);
+
+  // Helper: after reconcile succeeds, fetch DB data and go to success
+  const finalizeFromReconcile = useCallback(async (oid: string): Promise<boolean> => {
+    const ro = await fetchOrder(oid);
+    if (ro) {
+      const ri = await fetchOrderItems(oid);
+      setOrder(ro);
+      setOrderItems(ri);
+      setState('success');
+      return true;
+    }
+    return false;
+  }, [fetchOrder, fetchOrderItems]);
 
   // Main verification
   const runVerification = useCallback(async () => {
@@ -562,16 +576,14 @@ const OrderConfirmation = () => {
     const { order: orderData, items } = await pollForOrder(orderId);
 
     if (!orderData) {
-      const reconciled = await reconcileOrder(orderId);
-      if (reconciled) {
-        const ro = await fetchOrder(orderId);
-        if (ro) {
-          const ri = await fetchOrderItems(orderId);
-          setOrder(ro);
-          setOrderItems(ri);
-          setState('success');
-          return;
-        }
+      const result = await reconcileOrder(orderId);
+      if (result.success) {
+        // Reconcile confirmed paid — trust it, fetch once for display data
+        const fetched = await finalizeFromReconcile(orderId);
+        if (fetched) return;
+        // Even if DB fetch fails, reconcile said paid — show success with snapshot
+        setState('success');
+        return;
       }
       setState('fallback');
       return;
@@ -584,20 +596,19 @@ const OrderConfirmation = () => {
     if (isPaid) {
       setState('success');
     } else {
-      const reconciled = await reconcileOrder(orderId);
-      if (reconciled) {
-        const ro = await fetchOrder(orderId);
-        if (ro && (ro.status === 'paid' || ro.status === 'completed')) {
-          const ri = await fetchOrderItems(orderId);
-          setOrder(ro);
-          setOrderItems(ri);
-          setState('success');
-          return;
-        }
+      const result = await reconcileOrder(orderId);
+      if (result.success || result.data?.status === 'paid') {
+        // Reconcile says paid — immediately transition, one DB fetch for fresh data
+        const fetched = await finalizeFromReconcile(orderId);
+        if (fetched) return;
+        // Fallback: use the order we already have, mark as success
+        setOrder({ ...orderData, status: 'paid' });
+        setState('success');
+        return;
       }
       setState('fallback');
     }
-  }, [orderId, pollForOrder, reconcileOrder, fetchOrder, fetchOrderItems, state]);
+  }, [orderId, pollForOrder, reconcileOrder, finalizeFromReconcile, state]);
 
   // Initial verification
   useEffect(() => {
