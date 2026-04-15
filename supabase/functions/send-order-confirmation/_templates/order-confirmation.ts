@@ -217,6 +217,10 @@ export function buildOrderConfirmationHtml(
     <div style="color:#666;font-size:13px;margin:0 0 16px;line-height:20px;">Scannez ce QR code pour accéder à votre facture en ligne et la télécharger en PDF.</div>
     <img src="${qrCodeUrl}" alt="QR Code facture" width="120" height="120" style="border-radius:8px;border:4px solid #ffffff;" />
     <div style="margin-top:12px;">
+      <!--
+        IMPORTANT: Direct URL — do NOT wrap in tracking redirects.
+        This ensures the invoice link always works, even if email provider tracking expires.
+      -->
       <a href="${SITE_URL}/order-confirmation?order_id=${orderId || orderNumber}" style="color:#4f5f31;font-size:13px;text-decoration:underline;">Accéder à ma facture en ligne</a>
     </div>
   </td></tr>

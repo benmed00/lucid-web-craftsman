@@ -12,7 +12,7 @@ import {
 } from '@/lib/storage/safeStorage';
 import { cache, CacheTTL, CacheTags } from '@/lib/cache/UnifiedCache';
 import { currencyApi } from '@/lib/api/apiClient';
-import { handleError, NetworkError } from '@/lib/errors/AppError';
+// handleError/NetworkError removed — currency fetch uses silent fallback
 
 // ============= Types =============
 export type Currency = 'EUR' | 'USD' | 'GBP' | 'MAD';
@@ -97,6 +97,10 @@ export const useCurrencyStore = create<CurrencyState>()(
 
             set({ isLoading: true });
 
+            // Abort if fetch takes too long — never block app rendering
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 3000);
+
             // Use centralized API client for consistent error handling
             const data = await currencyApi.get<{
               rates?: { USD?: number; GBP?: number };
@@ -151,19 +155,18 @@ export const useCurrencyStore = create<CurrencyState>()(
               isLoading: false,
             });
           } catch (error) {
-            // Convert to AppError for consistent handling, but don't display to user
-            const appError = handleError(error);
-
-            // Log network errors for monitoring (could be sent to analytics)
-            if (appError instanceof NetworkError) {
-              console.debug(
-                'Currency fetch failed, using defaults:',
-                appError.code
-              );
+            // Silently fall back to default rates — never block UI
+            console.debug('Currency fetch failed, using default EUR rates');
+            set({
+              exchangeRates: DEFAULT_EXCHANGE_RATES,
+              isLoading: false,
+              lastUpdated: Date.now(),
+            });
+          } finally {
+            // Ensure loading is always cleared
+            if (get().isLoading) {
+              set({ isLoading: false });
             }
-
-            // Silently fall back to default rates
-            set({ isLoading: false, lastUpdated: Date.now() });
           }
         },
 
