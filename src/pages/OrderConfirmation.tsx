@@ -754,7 +754,7 @@ ${shippingAddr ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${ship
             <OrderProcessing snapshot={snapshot} />
           )}
 
-          {/* SUCCESS — full DB data */}
+          {/* SUCCESS — full DB data or snapshot fallback */}
           {state === 'success' && order && (
             <OrderSuccess
               order={order}
@@ -763,6 +763,27 @@ ${shippingAddr ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${ship
               customerEmail={customerEmail}
               onDownloadInvoice={handleDownloadInvoice}
             />
+          )}
+          {state === 'success' && !order && snapshot && (
+            <div className="text-center py-8">
+              <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
+                <CheckCircle className="w-12 h-12 text-primary" />
+              </div>
+              <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">Paiement confirmé ✓</h1>
+              <p className="text-lg text-foreground font-medium mb-1">Votre commande a bien été enregistrée</p>
+              <p className="text-muted-foreground text-sm mb-6">Un email de confirmation vous sera envoyé sous peu.</p>
+              <div className="max-w-md mx-auto">
+                <OrderSummaryCard
+                  items={snapshot.items}
+                  email={snapshot.email}
+                  customerName={snapshot.customerName}
+                  total={snapshot.total}
+                  subtotal={snapshot.subtotal}
+                  shipping={snapshot.shipping}
+                  discount={snapshot.discount}
+                />
+              </div>
+            </div>
           )}
 
           {/* FALLBACK — reassuring, never blank */}
