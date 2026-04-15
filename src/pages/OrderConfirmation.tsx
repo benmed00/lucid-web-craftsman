@@ -454,6 +454,7 @@ const OrderConfirmation = () => {
   const { clearCart } = useCart();
   const { user, profile } = useAuth();
   const initRef = useRef(false);
+  const verificationActiveRef = useRef(false);
 
   // Clean up cart on mount
   useEffect(() => {
@@ -462,13 +463,16 @@ const OrderConfirmation = () => {
     localStorage.removeItem('cart');
   }, [clearCart]);
 
-  // Safety net: force fallback after 5s in processing state
+  // Safety net: force fallback after 12s in processing state
+  // Only fires if verification is NOT actively running (guards against race)
   useEffect(() => {
     if (state !== 'processing') return;
     const timer = setTimeout(() => {
-      console.warn('[OrderConfirmation] 5s safety timeout, forcing fallback');
-      setState('fallback');
-    }, 5000);
+      if (!verificationActiveRef.current) {
+        console.warn('[OrderConfirmation] Safety timeout — verification idle, forcing fallback');
+        setState('fallback');
+      }
+    }, 12000);
     return () => clearTimeout(timer);
   }, [state]);
 
@@ -568,47 +572,68 @@ const OrderConfirmation = () => {
       return;
     }
 
+    verificationActiveRef.current = true;
+
     // Show processing immediately
     if (state === 'loading') {
       setState('processing');
     }
 
-    const { order: orderData, items } = await pollForOrder(orderId);
+    try {
+      // Step 1: Quick poll — check if order is already paid in DB
+      const { order: orderData, items } = await pollForOrder(orderId);
 
-    if (!orderData) {
-      const result = await reconcileOrder(orderId);
-      if (result.success) {
-        // Reconcile confirmed paid — trust it, fetch once for display data
-        const fetched = await finalizeFromReconcile(orderId);
-        if (fetched) return;
-        // Even if DB fetch fails, reconcile said paid — show success with snapshot
+      if (!orderData) {
+        // Order not found in DB — try reconcile
+        const result = await reconcileOrder(orderId);
+        if (result.success || result.data?.status === 'paid') {
+          // Reconcile confirmed paid — fetch display data
+          const fetched = await finalizeFromReconcile(orderId);
+          if (!fetched) setState('success'); // snapshot fallback
+          return;
+        }
+        setState('fallback');
+        return;
+      }
+
+      // Step 2: Order found — check if already paid
+      const isPaid = orderData.status === 'paid' || orderData.status === 'completed'
+        || orderData.order_status === 'paid' || orderData.order_status === 'completed';
+
+      if (isPaid) {
+        setOrder(orderData);
+        setOrderItems(items);
         setState('success');
         return;
       }
-      setState('fallback');
-      return;
-    }
 
-    setOrder(orderData);
-    setOrderItems(items);
-
-    const isPaid = orderData.status === 'paid' || orderData.status === 'completed';
-    if (isPaid) {
-      setState('success');
-    } else {
+      // Step 3: Order exists but not yet paid — reconcile
       const result = await reconcileOrder(orderId);
       if (result.success || result.data?.status === 'paid') {
-        // Reconcile says paid — immediately transition, one DB fetch for fresh data
-        const fetched = await finalizeFromReconcile(orderId);
-        if (fetched) return;
-        // Fallback: use the order we already have, mark as success
-        setOrder({ ...orderData, status: 'paid' });
+        // Reconcile says paid — trust it immediately
+        // Try one DB fetch for fresh data, but don't block on it
+        const ro = await fetchOrder(orderId);
+        if (ro) {
+          const ri = await fetchOrderItems(orderId);
+          setOrder(ro);
+          setOrderItems(ri);
+        } else {
+          // Use the order we already polled, just mark as paid
+          setOrder({ ...orderData, status: 'paid' });
+          setOrderItems(items);
+        }
         setState('success');
         return;
       }
+
+      // Reconcile didn't confirm paid — show what we have as fallback
+      setOrder(orderData);
+      setOrderItems(items);
       setState('fallback');
+    } finally {
+      verificationActiveRef.current = false;
     }
-  }, [orderId, pollForOrder, reconcileOrder, finalizeFromReconcile, state]);
+  }, [orderId, pollForOrder, reconcileOrder, finalizeFromReconcile, fetchOrder, fetchOrderItems, state]);
 
   // Initial verification
   useEffect(() => {
