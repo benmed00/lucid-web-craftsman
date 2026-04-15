@@ -97,10 +97,6 @@ export const useCurrencyStore = create<CurrencyState>()(
 
             set({ isLoading: true });
 
-            // Abort if fetch takes too long — never block app rendering
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 3000);
-
             // Use centralized API client for consistent error handling
             const data = await currencyApi.get<{
               rates?: { USD?: number; GBP?: number };
