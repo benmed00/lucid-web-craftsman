@@ -12,7 +12,7 @@ import {
 } from '@/lib/storage/safeStorage';
 import { cache, CacheTTL, CacheTags } from '@/lib/cache/UnifiedCache';
 import { currencyApi } from '@/lib/api/apiClient';
-import { handleError, NetworkError } from '@/lib/errors/AppError';
+// handleError/NetworkError removed — currency fetch uses silent fallback
 
 // ============= Types =============
 export type Currency = 'EUR' | 'USD' | 'GBP' | 'MAD';
