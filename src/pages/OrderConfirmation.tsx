@@ -463,18 +463,7 @@ const OrderConfirmation = () => {
     localStorage.removeItem('cart');
   }, [clearCart]);
 
-  // Safety net: force fallback after 12s in processing state
-  // Only fires if verification is NOT actively running (guards against race)
-  useEffect(() => {
-    if (state !== 'processing') return;
-    const timer = setTimeout(() => {
-      if (!verificationActiveRef.current) {
-        console.warn('[OrderConfirmation] Safety timeout — verification idle, forcing fallback');
-        setState('fallback');
-      }
-    }, 12000);
-    return () => clearTimeout(timer);
-  }, [state]);
+  // (safety timeout effect moved below after reconcile/finalize declarations)
 
   // Fetch helpers
   const fetchOrder = useCallback(async (oid: string): Promise<OrderData | null> => {
@@ -545,7 +534,9 @@ const OrderConfirmation = () => {
         body: { order_id: oid },
       });
       if (error) return { success: false };
-      const isSuccess = !!(data?.success && (data?.reconciled || data?.status === 'paid'));
+      // Trust edge function: it returns success:true when paid or already confirmed.
+      // Don't gate on the `reconciled` flag (idempotent path returns reconciled:false).
+      const isSuccess = !!data?.success || data?.status === 'paid';
       return { success: isSuccess, data };
     } catch {
       return { success: false };
@@ -564,6 +555,36 @@ const OrderConfirmation = () => {
     }
     return false;
   }, [fetchOrder, fetchOrderItems]);
+
+  // Safety net: 8s ceiling. If verification still active, trigger one final
+  // reconcile attempt instead of jumping to fallback (no infinite spinner).
+  useEffect(() => {
+    if (state !== 'processing') return;
+    const timer = setTimeout(async () => {
+      if (!verificationActiveRef.current) {
+        console.warn('[OrderConfirmation] Safety timeout — verification idle, forcing fallback');
+        setState('fallback');
+        return;
+      }
+      if (!orderId) {
+        setState('fallback');
+        return;
+      }
+      console.warn('[OrderConfirmation] Safety timeout — last reconcile attempt');
+      try {
+        const result = await reconcileOrder(orderId);
+        if (result.success || result.data?.status === 'paid') {
+          const fetched = await finalizeFromReconcile(orderId);
+          if (!fetched) setState('success');
+        } else {
+          setState('fallback');
+        }
+      } catch {
+        setState('fallback');
+      }
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, [state, orderId, reconcileOrder, finalizeFromReconcile]);
 
   // Main verification
   const runVerification = useCallback(async () => {
@@ -587,9 +608,23 @@ const OrderConfirmation = () => {
         // Order not found in DB — try reconcile
         const result = await reconcileOrder(orderId);
         if (result.success || result.data?.status === 'paid') {
-          // Reconcile confirmed paid — fetch display data
           const fetched = await finalizeFromReconcile(orderId);
-          if (!fetched) setState('success'); // snapshot fallback
+          if (!fetched) {
+            // Build synthetic order so success UI is never blank
+            const synthetic: OrderData = {
+              id: orderId,
+              status: 'paid',
+              order_status: 'paid',
+              amount: snapshot?.total ?? 0,
+              currency: 'EUR',
+              created_at: new Date().toISOString(),
+              shipping_address: null,
+              metadata: { customer_email: snapshot?.email || user?.email || '' },
+            };
+            setOrder(synthetic);
+            setOrderItems([]);
+            setState('success');
+          }
           return;
         }
         setState('fallback');
@@ -810,8 +845,30 @@ ${shippingAddr ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${ship
               </div>
             </div>
           )}
+          {/* SUCCESS — minimal fallback when no order and no snapshot */}
+          {state === 'success' && !order && !snapshot && (
+            <div className="text-center py-8">
+              <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
+                <CheckCircle className="w-12 h-12 text-primary" />
+              </div>
+              <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">Paiement confirmé ✓</h1>
+              <p className="text-lg text-foreground font-medium mb-1">Votre commande a bien été enregistrée</p>
+              <p className="text-muted-foreground text-sm mb-4">
+                Un email de confirmation vous sera envoyé sous peu.
+              </p>
+              {orderId && (
+                <p className="text-sm text-muted-foreground">
+                  N° de commande : <span className="font-mono text-foreground">{orderId.slice(-8).toUpperCase()}</span>
+                </p>
+              )}
+              {(user?.email || customerEmail) && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Email : <span className="text-foreground">{user?.email || customerEmail}</span>
+                </p>
+              )}
+            </div>
+          )}
 
-          {/* FALLBACK — reassuring, never blank */}
           {state === 'fallback' && (
             <OrderFallback
               snapshot={snapshot}
