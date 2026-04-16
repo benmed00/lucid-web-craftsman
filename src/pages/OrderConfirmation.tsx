@@ -620,8 +620,6 @@ const OrderConfirmation = () => {
               created_at: new Date().toISOString(),
               shipping_address: null,
               metadata: { customer_email: snapshot?.email || user?.email || '' },
-              payment_method: 'card',
-              user_id: user?.id || null,
             };
             setOrder(synthetic);
             setOrderItems([]);
