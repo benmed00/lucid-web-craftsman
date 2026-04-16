@@ -1,40 +1,60 @@
 
-## 🔍 Audit — État actuel du système Auth & RBAC
 
-### ✅ Ce qui fonctionne bien (ne pas toucher)
+## Diagnosis
 
-| Composant | Statut | Détail |
-|-----------|--------|--------|
-| **AuthContext** | ✅ Solide | Session init avec timeout 4s, retry, JWT validation, cross-tab sync |
-| **`user_roles` table** | ✅ Correct | Rôles séparés (admin, super_admin), `revoked_at` pour révocation |
-| **`has_role()` / `is_admin_user()`** | ✅ SECURITY DEFINER | Fonctions stables, initplan-optimisées |
-| **RLS policies** | ✅ Complètes | 40+ policies couvrant toutes les tables |
-| **`verify_admin_session()` RPC** | ✅ Server-side | Vérification admin non-spoofable |
-| **`useAdminAuth` hook** | ✅ Sécurisé | Utilise RPC server-side, pas localStorage |
-| **ProtectedAdminRoute** | ✅ Fonctionnel | Guard basé sur `useAdminAuth` |
+After reviewing `OrderConfirmation.tsx` end-to-end, the success-state logic is **already correct**:
+- `pollForOrder` checks `status === 'paid' || 'completed'`
+- `runVerification` (line 600) checks BOTH `status` AND `order_status`
+- `reconcileOrder` (line 548) trusts `data.status === 'paid'` (handles the idempotent "already confirmed" response from reconcile-payment)
 
-### ⚠️ Incohérences identifiées (à corriger)
+So the real issues to address are narrower than the prompt assumes. Concrete bugs/gaps remaining:
 
-1. **Double source admin** : `verify_admin_session()` lit `admin_users`, mais `is_admin_user()` lit `user_roles`. Si un user est dans l'un mais pas l'autre → comportement incohérent.
-   - **Fix** : Aligner `verify_admin_session()` pour utiliser `user_roles` au lieu de `admin_users`
+### Bug A — Reconcile idempotent path can stall (Phase 1/2)
+When reconcile returns `{ success: true, reconciled: false, status: "paid", message: "Order already confirmed" }`, our code goes through `reconcileOrder` → returns `success: true`. Good. But in `runVerification` step 3, after reconcile says paid, we call `fetchOrder` again. If RLS denies the guest read (no `x-guest-id` header on this request, or guest_id mismatch), `ro` is null and we fall to `setOrder({ ...orderData, status: 'paid' })`. That works **only if** orderData was already polled. In the "order not found" branch (line 588), `finalizeFromReconcile` does another DB fetch — if it fails, we call `setState('success')` but `order` is still null → falls through to the `!order && snapshot` branch. OK if snapshot exists, but **if no snapshot, the success block renders nothing** (line 783 requires `order`, line 792 requires snapshot).
 
-2. **Pas de rôle dans AuthContext** : Le frontend ne connaît le rôle qu'en appelant `useAdminAuth` séparément. Risque de requêtes dupliquées.
-   - **Fix** : Ajouter `role: 'anonymous' | 'user' | 'admin' | 'super_admin'` dans AuthContext
+### Bug B — Safety timeout is 12s, not 5s (Phase 5)
+The prompt asks for a hard 5s ceiling. Current 12s was set to avoid racing with verification. We can keep it short by making the timeout **trigger reconcile-and-success** instead of fallback when verification is still running.
 
-3. **Logging insuffisant** : Pas de traces pour les changements de rôle ou accès refusés.
-   - **Fix** : Ajouter console.info pour role detection au login
+### Bug C — Currency store (Phase 4)
+Already wrapped in try/catch with silent fallback. Verified safe — no changes needed.
 
-### ❌ Non-problèmes (confirmé sécurisé)
+### Bug D — Empty success state when no `order` and no `snapshot`
+Need a third success render path that uses the orderId only.
 
-- Pas de rôle stocké en localStorage ✅
-- Pas de check admin client-side ✅
-- RLS utilise `(SELECT auth.uid())` initplan ✅
-- Anon bloqué sur tables sensibles ✅
+### Phase 6 — Email tracking
+Brevo wraps links at the provider level. Code-side fix isn't possible; requires disabling click-tracking in Brevo dashboard settings. Will note this clearly.
 
-### 📋 Plan de correction (3 changements ciblés)
+### Phase 7 — Invoice
+Client-side HTML blob already works without auth. Already implemented.
 
-1. **Migration SQL** : Mettre à jour `verify_admin_session()` pour lire `user_roles` au lieu de `admin_users`
-2. **AuthContext** : Ajouter `role` dérivé du backend (via une fonction RPC légère)
-3. **Logging** : Ajouter traces role detection dans `useAdminAuth`
+---
 
-Temps estimé : ~15 min. Aucun changement UX.
+## Plan
+
+**File: `src/pages/OrderConfirmation.tsx`**
+
+1. **Strengthen `runVerification` "order not found → reconcile success" path** (lines 586-597): when `finalizeFromReconcile` fails, build a synthetic `OrderData` from snapshot + orderId so the success UI always has data.
+
+2. **Add a 3rd success render branch** (after line 812): when `state === 'success'` but neither `order` nor `snapshot` exist, render a minimal but real success card showing the order_id and email from URL/auth — never blank.
+
+3. **Reduce safety timeout to 8s** (line 475) and on timeout, if verification is still active, **trigger one more reconcile attempt** instead of jumping straight to fallback. Keeps "no infinite spinner" guarantee while respecting the in-flight verification.
+
+4. **Trust reconcile `success: true` regardless of `reconciled` flag** in `reconcileOrder` (line 548): change condition to `!!data?.success` (the edge function only returns `success: true` when status is paid or already confirmed). This removes a subtle gate.
+
+**File: `src/stores/currencyStore.ts`** — no changes (already non-blocking).
+
+**Phase 6 — User action required (no code fix possible):** Brevo wraps all links in tracking redirects at send-time. To remove `sendibt2.com` wrappers, the user must disable **Click Tracking** in Brevo dashboard → Senders & IP → Tracking settings, or per-template. I'll note this in the response.
+
+**Phase 7 — Invoice:** already works client-side without auth via blob URL. No change.
+
+### Acceptance mapping
+- Reconcile success → UI renders within 1 polling cycle ✓ (already)
+- No infinite loading → 8s ceiling with reconcile retry ✓
+- Order summary always visible → 3 fallback render branches (DB / snapshot / minimal) ✓
+- Currency failure → already silent ✓
+- Email links → requires Brevo dashboard toggle (out-of-code)
+- Invoice → already direct blob, no auth ✓
+
+### Out of scope (per user instructions)
+- Stripe config, edge function logic, DB schema — untouched.
+
