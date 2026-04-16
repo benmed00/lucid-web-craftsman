@@ -61,11 +61,110 @@ interface CheckoutSnapshot {
 
 type ConfirmationState = 'loading' | 'success' | 'processing' | 'fallback' | 'error';
 
+// Single source of truth — always usable, never null on success
+interface ResolvedOrder {
+  id: string;
+  status: string;
+  items: { name: string; quantity: number; price: number; image?: string }[];
+  subtotal: number;
+  shipping: number;
+  discount: number;
+  total: number;
+  currency: string;
+  email: string;
+  customerName: string;
+  shippingAddress: any | null;
+  createdAt: string;
+  paymentMethod?: string;
+  isFromDB: boolean;
+  isFallback: boolean;
+}
+
 const COUNTRY_NAMES: Record<string, string> = {
   FR: 'France', DE: 'Allemagne', BE: 'Belgique', CH: 'Suisse',
   ES: 'Espagne', IT: 'Italie', NL: 'Pays-Bas', GB: 'Royaume-Uni',
   US: 'États-Unis', CA: 'Canada', MA: 'Maroc',
 };
+
+/** Build a fully-resolved order from DB data, snapshot, or minimal fallback. NEVER returns null. */
+function buildResolvedOrder(
+  order: OrderData | null,
+  orderItems: OrderItem[],
+  snapshot: CheckoutSnapshot | null,
+  orderId: string | null,
+  authEmail: string,
+  profileName: string
+): ResolvedOrder {
+  // Priority 1: DB data
+  if (order) {
+    const items = orderItems.map((it) => ({
+      name: it.product_name,
+      quantity: it.quantity,
+      price: it.unit_price / 100,
+      image: it.image_url,
+    }));
+    const subtotal = orderItems.reduce((s, i) => s + i.total_price, 0) / 100;
+    const totalEuros = (order.amount || 0) / 100;
+    const shippingCalc = Math.max(0, totalEuros - subtotal);
+    const addr = order.shipping_address;
+    const customerName = addr
+      ? `${addr.first_name || ''} ${addr.last_name || ''}`.trim()
+      : snapshot?.customerName || profileName || '';
+    return {
+      id: order.id,
+      status: order.status || order.order_status || 'paid',
+      items: items.length > 0 ? items : (snapshot?.items || []),
+      subtotal: items.length > 0 ? subtotal : (snapshot?.subtotal || 0),
+      shipping: items.length > 0 ? shippingCalc : (snapshot?.shipping || 0),
+      discount: snapshot?.discount || 0,
+      total: totalEuros || snapshot?.total || 0,
+      currency: order.currency || snapshot?.currency || 'EUR',
+      email: order.metadata?.customer_email || snapshot?.email || authEmail || 'N/A',
+      customerName,
+      shippingAddress: addr || null,
+      createdAt: order.created_at,
+      paymentMethod: 'Carte bancaire (Stripe)',
+      isFromDB: true,
+      isFallback: false,
+    };
+  }
+  // Priority 2: Snapshot
+  if (snapshot) {
+    return {
+      id: orderId || 'N/A',
+      status: 'paid',
+      items: snapshot.items || [],
+      subtotal: snapshot.subtotal || 0,
+      shipping: snapshot.shipping || 0,
+      discount: snapshot.discount || 0,
+      total: snapshot.total || 0,
+      currency: snapshot.currency || 'EUR',
+      email: snapshot.email || authEmail || 'N/A',
+      customerName: snapshot.customerName || profileName || '',
+      shippingAddress: null,
+      createdAt: new Date(snapshot.timestamp || Date.now()).toISOString(),
+      isFromDB: false,
+      isFallback: false,
+    };
+  }
+  // Priority 3: Minimal — never blank
+  return {
+    id: orderId || 'N/A',
+    status: 'paid',
+    items: [],
+    subtotal: 0,
+    shipping: 0,
+    discount: 0,
+    total: 0,
+    currency: 'EUR',
+    email: authEmail || 'N/A',
+    customerName: profileName || '',
+    shippingAddress: null,
+    createdAt: new Date().toISOString(),
+    isFromDB: false,
+    isFallback: true,
+  };
+}
 
 // ================================================================
 // Helpers
