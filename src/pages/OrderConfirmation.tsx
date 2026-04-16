@@ -463,35 +463,7 @@ const OrderConfirmation = () => {
     localStorage.removeItem('cart');
   }, [clearCart]);
 
-  // Safety net: 8s ceiling. If verification still active, trigger one final
-  // reconcile attempt instead of jumping to fallback (no infinite spinner).
-  useEffect(() => {
-    if (state !== 'processing') return;
-    const timer = setTimeout(async () => {
-      if (!verificationActiveRef.current) {
-        console.warn('[OrderConfirmation] Safety timeout — verification idle, forcing fallback');
-        setState('fallback');
-        return;
-      }
-      if (!orderId) {
-        setState('fallback');
-        return;
-      }
-      console.warn('[OrderConfirmation] Safety timeout — verification still running, attempting last reconcile');
-      try {
-        const result = await reconcileOrder(orderId);
-        if (result.success || result.data?.status === 'paid') {
-          const fetched = await finalizeFromReconcile(orderId);
-          if (!fetched) setState('success');
-        } else {
-          setState('fallback');
-        }
-      } catch {
-        setState('fallback');
-      }
-    }, 8000);
-    return () => clearTimeout(timer);
-  }, [state, orderId, reconcileOrder, finalizeFromReconcile]);
+  // (safety timeout effect moved below after reconcile/finalize declarations)
 
   // Fetch helpers
   const fetchOrder = useCallback(async (oid: string): Promise<OrderData | null> => {
