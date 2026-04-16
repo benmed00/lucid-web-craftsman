@@ -13,7 +13,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
