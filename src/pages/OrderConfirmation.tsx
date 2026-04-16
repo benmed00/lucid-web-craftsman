@@ -534,7 +534,9 @@ const OrderConfirmation = () => {
         body: { order_id: oid },
       });
       if (error) return { success: false };
-      const isSuccess = !!(data?.success && (data?.reconciled || data?.status === 'paid'));
+      // Trust edge function: it returns success:true when paid or already confirmed.
+      // Don't gate on the `reconciled` flag (idempotent path returns reconciled:false).
+      const isSuccess = !!data?.success || data?.status === 'paid';
       return { success: isSuccess, data };
     } catch {
       return { success: false };
@@ -553,6 +555,36 @@ const OrderConfirmation = () => {
     }
     return false;
   }, [fetchOrder, fetchOrderItems]);
+
+  // Safety net: 8s ceiling. If verification still active, trigger one final
+  // reconcile attempt instead of jumping to fallback (no infinite spinner).
+  useEffect(() => {
+    if (state !== 'processing') return;
+    const timer = setTimeout(async () => {
+      if (!verificationActiveRef.current) {
+        console.warn('[OrderConfirmation] Safety timeout — verification idle, forcing fallback');
+        setState('fallback');
+        return;
+      }
+      if (!orderId) {
+        setState('fallback');
+        return;
+      }
+      console.warn('[OrderConfirmation] Safety timeout — last reconcile attempt');
+      try {
+        const result = await reconcileOrder(orderId);
+        if (result.success || result.data?.status === 'paid') {
+          const fetched = await finalizeFromReconcile(orderId);
+          if (!fetched) setState('success');
+        } else {
+          setState('fallback');
+        }
+      } catch {
+        setState('fallback');
+      }
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, [state, orderId, reconcileOrder, finalizeFromReconcile]);
 
   // Main verification
   const runVerification = useCallback(async () => {
@@ -576,9 +608,25 @@ const OrderConfirmation = () => {
         // Order not found in DB — try reconcile
         const result = await reconcileOrder(orderId);
         if (result.success || result.data?.status === 'paid') {
-          // Reconcile confirmed paid — fetch display data
           const fetched = await finalizeFromReconcile(orderId);
-          if (!fetched) setState('success'); // snapshot fallback
+          if (!fetched) {
+            // Build synthetic order so success UI is never blank
+            const synthetic: OrderData = {
+              id: orderId,
+              status: 'paid',
+              order_status: 'paid',
+              amount: snapshot?.total ?? 0,
+              currency: 'EUR',
+              created_at: new Date().toISOString(),
+              shipping_address: null,
+              metadata: { customer_email: snapshot?.email || user?.email || '' },
+              payment_method: 'card',
+              user_id: user?.id || null,
+            };
+            setOrder(synthetic);
+            setOrderItems([]);
+            setState('success');
+          }
           return;
         }
         setState('fallback');
