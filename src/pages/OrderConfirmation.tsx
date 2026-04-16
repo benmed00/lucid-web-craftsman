@@ -930,59 +930,94 @@ ${ro.shipping >= 0 && ro.subtotal > 0 ? `<p>Livraison : ${ro.shipping > 0 ? fmt(
             <OrderProcessing snapshot={snapshot} />
           )}
 
-          {/* SUCCESS — full DB data or snapshot fallback */}
-          {state === 'success' && order && (
-            <OrderSuccess
-              order={order}
-              orderItems={orderItems}
-              customerName={customerName}
-              customerEmail={customerEmail}
-              onDownloadInvoice={handleDownloadInvoice}
-            />
-          )}
-          {state === 'success' && !order && snapshot && (
-            <div className="text-center py-8">
-              <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
-                <CheckCircle className="w-12 h-12 text-primary" />
+          {/* SUCCESS — ALWAYS renders via resolvedOrder (DB → snapshot → minimal fallback) */}
+          {state === 'success' && (
+            <>
+              <div className="text-center mb-8">
+                <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
+                  <CheckCircle className="w-12 h-12 text-primary" />
+                </div>
+                <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
+                  Paiement confirmé ✓
+                </h1>
+                <p className="text-lg text-foreground font-medium mb-1">
+                  Votre commande a bien été enregistrée
+                </p>
+                <p className="text-muted-foreground text-sm">
+                  Un email de confirmation a été envoyé à{' '}
+                  <span className="font-medium text-foreground">
+                    {resolvedOrder.email !== 'N/A' ? resolvedOrder.email : 'votre adresse'}
+                  </span>
+                </p>
               </div>
-              <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">Paiement confirmé ✓</h1>
-              <p className="text-lg text-foreground font-medium mb-1">Votre commande a bien été enregistrée</p>
-              <p className="text-muted-foreground text-sm mb-6">Un email de confirmation vous sera envoyé sous peu.</p>
-              <div className="max-w-md mx-auto">
+
+              <div className="mb-6">
                 <OrderSummaryCard
-                  items={snapshot.items}
-                  email={snapshot.email}
-                  customerName={snapshot.customerName}
-                  total={snapshot.total}
-                  subtotal={snapshot.subtotal}
-                  shipping={snapshot.shipping}
-                  discount={snapshot.discount}
+                  items={resolvedOrder.items}
+                  email={resolvedOrder.email !== 'N/A' ? resolvedOrder.email : undefined}
+                  customerName={resolvedOrder.customerName || undefined}
+                  total={resolvedOrder.total}
+                  subtotal={resolvedOrder.subtotal > 0 ? resolvedOrder.subtotal : undefined}
+                  shipping={resolvedOrder.subtotal > 0 ? resolvedOrder.shipping : undefined}
+                  discount={resolvedOrder.discount > 0 ? resolvedOrder.discount : undefined}
+                  orderNumber={resolvedOrder.id !== 'N/A' ? resolvedOrder.id.slice(-8).toUpperCase() : undefined}
+                  orderDate={new Date(resolvedOrder.createdAt).toLocaleDateString('fr-FR', {
+                    day: 'numeric', month: 'long', year: 'numeric',
+                  })}
+                  paymentMethod={resolvedOrder.paymentMethod}
+                  isFromDB={resolvedOrder.isFromDB}
                 />
               </div>
-            </div>
-          )}
-          {/* SUCCESS — minimal fallback when no order and no snapshot */}
-          {state === 'success' && !order && !snapshot && (
-            <div className="text-center py-8">
-              <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
-                <CheckCircle className="w-12 h-12 text-primary" />
+
+              {resolvedOrder.shippingAddress && (
+                <div className="bg-card rounded-xl border border-border shadow-sm p-5 mb-6">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
+                    <Truck className="w-4 h-4" />
+                    Adresse de livraison
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {resolvedOrder.shippingAddress.first_name} {resolvedOrder.shippingAddress.last_name}<br />
+                    {resolvedOrder.shippingAddress.address_line1}<br />
+                    {resolvedOrder.shippingAddress.postal_code} {resolvedOrder.shippingAddress.city}<br />
+                    {COUNTRY_NAMES[resolvedOrder.shippingAddress.country] || resolvedOrder.shippingAddress.country}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+                <Button onClick={handleDownloadInvoice} className="gap-2" size="lg">
+                  <FileText className="w-5 h-5" />
+                  📄 Télécharger ma facture
+                </Button>
               </div>
-              <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">Paiement confirmé ✓</h1>
-              <p className="text-lg text-foreground font-medium mb-1">Votre commande a bien été enregistrée</p>
-              <p className="text-muted-foreground text-sm mb-4">
-                Un email de confirmation vous sera envoyé sous peu.
-              </p>
-              {orderId && (
-                <p className="text-sm text-muted-foreground">
-                  N° de commande : <span className="font-mono text-foreground">{orderId.slice(-8).toUpperCase()}</span>
-                </p>
-              )}
-              {(user?.email || customerEmail) && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  Email : <span className="text-foreground">{user?.email || customerEmail}</span>
-                </p>
-              )}
-            </div>
+
+              <div className="bg-primary/5 rounded-xl border border-primary/20 p-6 mb-6">
+                <p className="text-sm font-semibold text-foreground mb-3">Prochaines étapes</p>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 text-sm">
+                    <span className="text-lg leading-none">📦</span>
+                    <div>
+                      <p className="font-medium text-foreground">Préparation</p>
+                      <p className="text-muted-foreground text-xs">Nos artisans préparent votre commande avec soin</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 text-sm">
+                    <span className="text-lg leading-none">🚚</span>
+                    <div>
+                      <p className="font-medium text-foreground">Expédition</p>
+                      <p className="text-muted-foreground text-xs">Vous recevrez un email avec le numéro de suivi</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 text-sm">
+                    <span className="text-lg leading-none">🎁</span>
+                    <div>
+                      <p className="font-medium text-foreground">Livraison</p>
+                      <p className="text-muted-foreground text-xs">Profitez de vos produits artisanaux !</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
           {state === 'fallback' && (
