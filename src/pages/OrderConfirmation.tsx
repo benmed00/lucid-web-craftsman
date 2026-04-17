@@ -964,7 +964,15 @@ ${ro.shipping >= 0 && ro.subtotal > 0 ? `<p>Livraison : ${ro.shipping > 0 ? fmt(
               <div className="text-center mb-8">
                 <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
                   <CheckCircle className="w-12 h-12 text-primary" />
+              </div>
+
+              {resolvedOrder.items.length === 0 && (
+                <div className="bg-muted/50 border border-border rounded-xl p-4 mb-6 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    🔄 Commande confirmée — les détails sont en cours de synchronisation. Le récapitulatif complet est disponible dans votre email.
+                  </p>
                 </div>
+              )}
                 <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
                   Paiement confirmé ✓
                 </h1>
