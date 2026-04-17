@@ -11,6 +11,7 @@ import {
   CreditCard,
   FileText,
   Truck,
+  ShieldCheck,
 } from 'lucide-react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
@@ -22,6 +23,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/stores';
 import { useAuth } from '@/context/AuthContext';
+import { downloadInvoice as downloadInvoiceShared } from '@/lib/invoice/generateInvoice';
 
 // ================================================================
 // Types
@@ -888,49 +890,10 @@ const OrderConfirmation = () => {
     return () => { cancelled = true; clearTimeout(t); };
   }, [state, orderId, orderItems.length, order, fetchOrder, fetchOrderItems]);
 
-  // Invoice download — works from resolvedOrder, never blocked
+  // Invoice download — works from resolvedOrder, never blocked.
+  // Uses shared generator (same code path as /invoice/:orderId).
   const handleDownloadInvoice = useCallback(() => {
-    const ro = resolvedOrder;
-    const orderNumber = ro.id.slice(-8).toUpperCase();
-    const invoiceNumber = `${new Date().getFullYear()}-${orderNumber}`;
-    const orderDate = new Date(ro.createdAt).toLocaleDateString('fr-FR');
-    const addr = ro.shippingAddress;
-    const fmt = (n: number) => n.toFixed(2) + ' €';
-
-    const itemsHtml = ro.items.length > 0
-      ? ro.items.map((item) => `
-        <tr>
-          <td style="padding:8px;border-bottom:1px solid #eee;">${item.name}</td>
-          <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${item.quantity}</td>
-          <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${fmt(item.price)}</td>
-          <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${fmt(item.price * item.quantity)}</td>
-        </tr>`).join('')
-      : `<tr><td colspan="4" style="padding:12px;text-align:center;color:#888;">Détails non disponibles — voir email de confirmation</td></tr>`;
-
-    const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Facture ${invoiceNumber}</title>
-<style>body{font-family:system-ui,sans-serif;color:#1a1a1a;max-width:800px;margin:0 auto;padding:40px;}
-h1{color:#2d5016;font-size:24px;}table{width:100%;border-collapse:collapse;margin:20px 0;}
-th{background:#2d5016;color:#fff;padding:10px;text-align:left;font-size:12px;text-transform:uppercase;}
-.total{font-size:18px;font-weight:bold;color:#2d5016;}
-@media print{body{padding:20px;}}</style></head><body>
-<div style="display:flex;justify-content:space-between;align-items:start;">
-<div><h1>Rif Raw Straw</h1><p style="color:#888;font-size:12px;">Artisanat Berbère Authentique</p></div>
-<div style="text-align:right;"><h2 style="color:#2d5016;">FACTURE</h2><p>${invoiceNumber}</p><p>${orderDate}</p></div></div>
-${addr ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${addr.first_name || ''} ${addr.last_name || ''}<br/>${addr.address_line1 || ''}<br/>${addr.postal_code || ''} ${addr.city || ''}<br/>${COUNTRY_NAMES[addr.country] || addr.country || ''}</div>` : (ro.customerName ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${ro.customerName}<br/>${ro.email}</div>` : `<div style="margin:20px 0;"><strong>Client</strong><br/>${ro.email}</div>`)}
-<table><thead><tr><th>Produit</th><th style="text-align:right;">Qté</th><th style="text-align:right;">P.U.</th><th style="text-align:right;">Total</th></tr></thead>
-<tbody>${itemsHtml}</tbody></table>
-<div style="text-align:right;margin-top:20px;">
-${ro.subtotal > 0 ? `<p>Sous-total : ${fmt(ro.subtotal)}</p>` : ''}
-${ro.discount > 0 ? `<p>Réduction : -${fmt(ro.discount)}</p>` : ''}
-${ro.shipping >= 0 && ro.subtotal > 0 ? `<p>Livraison : ${ro.shipping > 0 ? fmt(ro.shipping) : 'Offerte'}</p>` : ''}
-<p class="total">Total : ${fmt(ro.total)}</p></div>
-<p style="color:#888;font-size:11px;margin-top:40px;">TVA non applicable, art. 293 B du CGI. ID: ${ro.id}</p>
-<script>window.onload=function(){window.print();}</script></body></html>`;
-
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    downloadInvoiceShared(resolvedOrder);
   }, [resolvedOrder]);
 
   // Convenience aliases (used by existing render code)
@@ -961,22 +924,15 @@ ${ro.shipping >= 0 && ro.subtotal > 0 ? `<p>Livraison : ${ro.shipping > 0 ? fmt(
           {/* SUCCESS — ALWAYS renders via resolvedOrder (DB → snapshot → minimal fallback) */}
           {state === 'success' && (
             <>
-              <div className="text-center mb-8">
-                <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
-                  <CheckCircle className="w-12 h-12 text-primary" />
-              </div>
-
-              {resolvedOrder.items.length === 0 && (
-                <div className="bg-muted/50 border border-border rounded-xl p-4 mb-6 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    🔄 Commande confirmée — les détails sont en cours de synchronisation. Le récapitulatif complet est disponible dans votre email.
-                  </p>
+              {/* HERO: high-confidence success block — elevated, soft-green, animated */}
+              <div className="bg-gradient-to-b from-primary/10 to-primary/5 border-2 border-primary/20 rounded-2xl shadow-lg p-8 md:p-10 text-center mb-8 animate-scale-in">
+                <div className="w-24 h-24 mx-auto mb-5 rounded-full bg-primary/20 flex items-center justify-center ring-8 ring-primary/5">
+                  <CheckCircle className="w-14 h-14 text-primary" strokeWidth={2.5} />
                 </div>
-              )}
-                <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
-                  Paiement confirmé ✓
+                <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-3">
+                  Paiement confirmé
                 </h1>
-                <p className="text-lg text-foreground font-medium mb-1">
+                <p className="text-base md:text-lg text-foreground/90 font-medium mb-2">
                   Votre commande a bien été enregistrée
                 </p>
                 <p className="text-muted-foreground text-sm">
@@ -987,7 +943,51 @@ ${ro.shipping >= 0 && ro.subtotal > 0 ? `<p>Livraison : ${ro.shipping > 0 ? fmt(
                 </p>
               </div>
 
-              <div className="mb-6">
+              {/* Late-sync notice */}
+              {resolvedOrder.items.length === 0 && (
+                <div className="bg-muted/50 border border-border rounded-xl p-4 mb-6 text-center animate-fade-in">
+                  <p className="text-sm text-muted-foreground">
+                    🔄 Détails en cours de synchronisation. Le récapitulatif complet est disponible dans votre email.
+                  </p>
+                </div>
+              )}
+
+              {/* CTA ZONE — visible above the fold */}
+              <div className="bg-card rounded-2xl border border-border shadow-md p-6 mb-6 animate-fade-in">
+                <p className="text-sm font-semibold text-foreground mb-4 text-center">
+                  Que souhaitez-vous faire ?
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Button onClick={handleDownloadInvoice} className="gap-2" size="lg">
+                    <FileText className="w-5 h-5" />
+                    Télécharger la facture
+                  </Button>
+                  {user ? (
+                    <Button asChild variant="outline" size="lg" className="gap-2">
+                      <Link to="/orders">
+                        <Package className="w-5 h-5" />
+                        Voir mes commandes
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button asChild variant="outline" size="lg" className="gap-2">
+                      <Link to={`/invoice/${resolvedOrder.id}`}>
+                        <Download className="w-5 h-5" />
+                        Page facture
+                      </Link>
+                    </Button>
+                  )}
+                  <Button asChild variant="secondary" size="lg" className="gap-2">
+                    <Link to="/products">
+                      <ShoppingBag className="w-5 h-5" />
+                      Continuer mes achats
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+
+              {/* ORDER SUMMARY */}
+              <div className="mb-6 animate-fade-in">
                 <OrderSummaryCard
                   items={resolvedOrder.items}
                   email={resolvedOrder.email !== 'N/A' ? resolvedOrder.email : undefined}
@@ -1005,6 +1005,7 @@ ${ro.shipping >= 0 && ro.subtotal > 0 ? `<p>Livraison : ${ro.shipping > 0 ? fmt(
                 />
               </div>
 
+              {/* SHIPPING ADDRESS */}
               {resolvedOrder.shippingAddress && (
                 <div className="bg-card rounded-xl border border-border shadow-sm p-5 mb-6">
                   <div className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
@@ -1020,13 +1021,30 @@ ${ro.shipping >= 0 && ro.subtotal > 0 ? `<p>Livraison : ${ro.shipping > 0 ? fmt(
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-                <Button onClick={handleDownloadInvoice} className="gap-2" size="lg">
-                  <FileText className="w-5 h-5" />
-                  📄 Télécharger ma facture
-                </Button>
+              {/* TRUST ELEMENTS */}
+              <div className="bg-card rounded-xl border border-border shadow-sm p-5 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                  <div className="flex flex-col items-center gap-1.5">
+                    <ShieldCheck className="w-6 h-6 text-primary" />
+                    <p className="text-xs font-medium text-foreground">Paiement sécurisé</p>
+                    <p className="text-[11px] text-muted-foreground">via Stripe</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <Truck className="w-6 h-6 text-primary" />
+                    <p className="text-xs font-medium text-foreground">Suivi à venir</p>
+                    <p className="text-[11px] text-muted-foreground">par email</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <Mail className="w-6 h-6 text-primary" />
+                    <p className="text-xs font-medium text-foreground">Support</p>
+                    <a href="mailto:contact@rifrawstraw.com" className="text-[11px] text-primary underline">
+                      contact@rifrawstraw.com
+                    </a>
+                  </div>
+                </div>
               </div>
 
+              {/* NEXT STEPS */}
               <div className="bg-primary/5 rounded-xl border border-primary/20 p-6 mb-6">
                 <p className="text-sm font-semibold text-foreground mb-3">Prochaines étapes</p>
                 <div className="space-y-3">
@@ -1078,38 +1096,29 @@ ${ro.shipping >= 0 && ro.subtotal > 0 ? `<p>Livraison : ${ro.shipping > 0 ? fmt(
             </div>
           )}
 
-          {/* ACTION BUTTONS */}
-          {(state === 'success' || state === 'fallback' || state === 'error') && (
+          {/* SUCCESS — auto-redirect notice for authenticated users */}
+          {state === 'success' && user && redirectCountdown !== null && (
+            <p className="text-sm text-muted-foreground text-center mt-4">
+              Redirection vers vos commandes dans {redirectCountdown}s…{' '}
+              <button
+                onClick={() => setRedirectCountdown(null)}
+                className="underline text-primary hover:text-primary/80"
+              >
+                Annuler
+              </button>
+            </p>
+          )}
+
+          {/* FALLBACK / ERROR — secondary nav (success has its own CTA zone above) */}
+          {(state === 'fallback' || state === 'error') && (
             <div className="space-y-4 mt-8">
-              {user && state === 'success' && redirectCountdown !== null && (
-                <p className="text-sm text-muted-foreground text-center">
-                  Redirection vers vos commandes dans {redirectCountdown}s…{' '}
-                  <button
-                    onClick={() => setRedirectCountdown(null)}
-                    className="underline text-primary hover:text-primary/80"
-                  >
-                    Annuler
-                  </button>
-                </p>
-              )}
-
               <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
-                {user && state === 'success' && (
-                  <Button asChild size="lg" className="gap-2">
-                    <Link to="/orders">
-                      <Package className="w-5 h-5" />
-                      Voir mes commandes
-                    </Link>
-                  </Button>
-                )}
-
                 <Button asChild variant="secondary" className="gap-2">
                   <Link to="/products">
                     <ShoppingBag className="w-4 h-4" />
                     {t('common:buttons.continueShopping')}
                   </Link>
                 </Button>
-
                 <Button variant="ghost" asChild className="gap-2">
                   <Link to="/">
                     <Home className="w-4 h-4" />
