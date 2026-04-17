@@ -857,8 +857,36 @@ const OrderConfirmation = () => {
         orderId,
       });
     }
+    // Debug visibility for support / QA
+    if (state === 'success') {
+      console.log('[OrderConfirmation] ORDER:', order);
+      console.log('[OrderConfirmation] SNAPSHOT:', snapshot);
+      console.log('[OrderConfirmation] RESOLVED:', ro);
+    }
     return ro;
-  }, [order, orderItems, snapshot, orderId, user?.email, profile?.full_name]);
+  }, [order, orderItems, snapshot, orderId, user?.email, profile?.full_name, state]);
+
+  // Late-arriving items: if success but items array is empty AND we have an orderId,
+  // retry fetching order_items once after a short delay (handles race where order
+  // row commits before order_items rows are visible to the guest RLS policy).
+  useEffect(() => {
+    if (state !== 'success') return;
+    if (!orderId) return;
+    if (orderItems.length > 0) return;
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      const items = await fetchOrderItems(orderId);
+      if (!cancelled && items.length > 0) {
+        setOrderItems(items);
+        // Also try to fill the order row if it's still missing
+        if (!order) {
+          const ro = await fetchOrder(orderId);
+          if (ro && !cancelled) setOrder(ro);
+        }
+      }
+    }, 2000);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [state, orderId, orderItems.length, order, fetchOrder, fetchOrderItems]);
 
   // Invoice download — works from resolvedOrder, never blocked
   const handleDownloadInvoice = useCallback(() => {
@@ -936,7 +964,15 @@ ${ro.shipping >= 0 && ro.subtotal > 0 ? `<p>Livraison : ${ro.shipping > 0 ? fmt(
               <div className="text-center mb-8">
                 <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
                   <CheckCircle className="w-12 h-12 text-primary" />
+              </div>
+
+              {resolvedOrder.items.length === 0 && (
+                <div className="bg-muted/50 border border-border rounded-xl p-4 mb-6 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    🔄 Commande confirmée — les détails sont en cours de synchronisation. Le récapitulatif complet est disponible dans votre email.
+                  </p>
                 </div>
+              )}
                 <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
                   Paiement confirmé ✓
                 </h1>
