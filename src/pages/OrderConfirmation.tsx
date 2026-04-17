@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/stores';
 import { useAuth } from '@/context/AuthContext';
+import { downloadInvoice as downloadInvoiceShared } from '@/lib/invoice/generateInvoice';
 
 // ================================================================
 // Types
@@ -888,49 +889,10 @@ const OrderConfirmation = () => {
     return () => { cancelled = true; clearTimeout(t); };
   }, [state, orderId, orderItems.length, order, fetchOrder, fetchOrderItems]);
 
-  // Invoice download — works from resolvedOrder, never blocked
+  // Invoice download — works from resolvedOrder, never blocked.
+  // Uses shared generator (same code path as /invoice/:orderId).
   const handleDownloadInvoice = useCallback(() => {
-    const ro = resolvedOrder;
-    const orderNumber = ro.id.slice(-8).toUpperCase();
-    const invoiceNumber = `${new Date().getFullYear()}-${orderNumber}`;
-    const orderDate = new Date(ro.createdAt).toLocaleDateString('fr-FR');
-    const addr = ro.shippingAddress;
-    const fmt = (n: number) => n.toFixed(2) + ' €';
-
-    const itemsHtml = ro.items.length > 0
-      ? ro.items.map((item) => `
-        <tr>
-          <td style="padding:8px;border-bottom:1px solid #eee;">${item.name}</td>
-          <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${item.quantity}</td>
-          <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${fmt(item.price)}</td>
-          <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${fmt(item.price * item.quantity)}</td>
-        </tr>`).join('')
-      : `<tr><td colspan="4" style="padding:12px;text-align:center;color:#888;">Détails non disponibles — voir email de confirmation</td></tr>`;
-
-    const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Facture ${invoiceNumber}</title>
-<style>body{font-family:system-ui,sans-serif;color:#1a1a1a;max-width:800px;margin:0 auto;padding:40px;}
-h1{color:#2d5016;font-size:24px;}table{width:100%;border-collapse:collapse;margin:20px 0;}
-th{background:#2d5016;color:#fff;padding:10px;text-align:left;font-size:12px;text-transform:uppercase;}
-.total{font-size:18px;font-weight:bold;color:#2d5016;}
-@media print{body{padding:20px;}}</style></head><body>
-<div style="display:flex;justify-content:space-between;align-items:start;">
-<div><h1>Rif Raw Straw</h1><p style="color:#888;font-size:12px;">Artisanat Berbère Authentique</p></div>
-<div style="text-align:right;"><h2 style="color:#2d5016;">FACTURE</h2><p>${invoiceNumber}</p><p>${orderDate}</p></div></div>
-${addr ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${addr.first_name || ''} ${addr.last_name || ''}<br/>${addr.address_line1 || ''}<br/>${addr.postal_code || ''} ${addr.city || ''}<br/>${COUNTRY_NAMES[addr.country] || addr.country || ''}</div>` : (ro.customerName ? `<div style="margin:20px 0;"><strong>Client</strong><br/>${ro.customerName}<br/>${ro.email}</div>` : `<div style="margin:20px 0;"><strong>Client</strong><br/>${ro.email}</div>`)}
-<table><thead><tr><th>Produit</th><th style="text-align:right;">Qté</th><th style="text-align:right;">P.U.</th><th style="text-align:right;">Total</th></tr></thead>
-<tbody>${itemsHtml}</tbody></table>
-<div style="text-align:right;margin-top:20px;">
-${ro.subtotal > 0 ? `<p>Sous-total : ${fmt(ro.subtotal)}</p>` : ''}
-${ro.discount > 0 ? `<p>Réduction : -${fmt(ro.discount)}</p>` : ''}
-${ro.shipping >= 0 && ro.subtotal > 0 ? `<p>Livraison : ${ro.shipping > 0 ? fmt(ro.shipping) : 'Offerte'}</p>` : ''}
-<p class="total">Total : ${fmt(ro.total)}</p></div>
-<p style="color:#888;font-size:11px;margin-top:40px;">TVA non applicable, art. 293 B du CGI. ID: ${ro.id}</p>
-<script>window.onload=function(){window.print();}</script></body></html>`;
-
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    downloadInvoiceShared(resolvedOrder);
   }, [resolvedOrder]);
 
   // Convenience aliases (used by existing render code)
