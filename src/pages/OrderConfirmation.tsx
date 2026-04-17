@@ -1096,38 +1096,29 @@ const OrderConfirmation = () => {
             </div>
           )}
 
-          {/* ACTION BUTTONS */}
-          {(state === 'success' || state === 'fallback' || state === 'error') && (
+          {/* SUCCESS — auto-redirect notice for authenticated users */}
+          {state === 'success' && user && redirectCountdown !== null && (
+            <p className="text-sm text-muted-foreground text-center mt-4">
+              Redirection vers vos commandes dans {redirectCountdown}s…{' '}
+              <button
+                onClick={() => setRedirectCountdown(null)}
+                className="underline text-primary hover:text-primary/80"
+              >
+                Annuler
+              </button>
+            </p>
+          )}
+
+          {/* FALLBACK / ERROR — secondary nav (success has its own CTA zone above) */}
+          {(state === 'fallback' || state === 'error') && (
             <div className="space-y-4 mt-8">
-              {user && state === 'success' && redirectCountdown !== null && (
-                <p className="text-sm text-muted-foreground text-center">
-                  Redirection vers vos commandes dans {redirectCountdown}s…{' '}
-                  <button
-                    onClick={() => setRedirectCountdown(null)}
-                    className="underline text-primary hover:text-primary/80"
-                  >
-                    Annuler
-                  </button>
-                </p>
-              )}
-
               <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
-                {user && state === 'success' && (
-                  <Button asChild size="lg" className="gap-2">
-                    <Link to="/orders">
-                      <Package className="w-5 h-5" />
-                      Voir mes commandes
-                    </Link>
-                  </Button>
-                )}
-
                 <Button asChild variant="secondary" className="gap-2">
                   <Link to="/products">
                     <ShoppingBag className="w-4 h-4" />
                     {t('common:buttons.continueShopping')}
                   </Link>
                 </Button>
-
                 <Button variant="ghost" asChild className="gap-2">
                   <Link to="/">
                     <Home className="w-4 h-4" />

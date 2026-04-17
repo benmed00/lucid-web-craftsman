@@ -112,9 +112,15 @@ export function buildOrderConfirmationHtml(
   <tr><td style="padding:40px;text-align:center;background-color:#f0f4e8;">
     <div style="color:#4f5f31;font-size:24px;font-weight:bold;margin:0 0 12px;">Merci pour votre commande !</div>
     <div style="color:#555;font-size:16px;line-height:24px;">Bonjour ${esc(customerName)}, nous avons bien reçu votre commande et nous la préparons avec soin.</div>
-    <div style="margin-top:20px;">
-      <a href="${SITE_URL}/order-confirmation?order_id=${orderId || orderNumber}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Voir ma commande</a>
-    </div>
+    <!-- Two distinct CTAs: Order page (status/details) vs Invoice page (download) -->
+    <table cellpadding="0" cellspacing="0" style="margin:24px auto 0;"><tr>
+      <td style="padding:0 6px;">
+        <a href="${SITE_URL}/order-confirmation?order_id=${orderId || orderNumber}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Voir ma commande</a>
+      </td>
+      <td style="padding:0 6px;">
+        <a href="${SITE_URL}/invoice/${orderId || orderNumber}" style="display:inline-block;background-color:#ffffff;color:#4f5f31;padding:11px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;border:1px solid #4f5f31;">📄 Télécharger ma facture</a>
+      </td>
+    </tr></table>
   </td></tr>
 
   <!-- Order Info -->
@@ -214,14 +220,14 @@ export function buildOrderConfirmationHtml(
   <!-- QR Code & Digital Invoice -->
   <tr><td style="padding:32px 40px;text-align:center;background-color:#f0f4e8;">
     <div style="color:#333;font-size:16px;font-weight:600;margin:0 0 12px;">📱 Votre facture digitale</div>
-    <div style="color:#666;font-size:13px;margin:0 0 16px;line-height:20px;">Scannez ce QR code pour accéder à votre facture en ligne et la télécharger en PDF.</div>
+    <div style="color:#666;font-size:13px;margin:0 0 16px;line-height:20px;">Scannez ce QR code pour télécharger votre facture en PDF, ou utilisez le bouton ci-dessous.</div>
     <img src="${qrCodeUrl}" alt="QR Code facture" width="120" height="120" style="border-radius:8px;border:4px solid #ffffff;" />
-    <div style="margin-top:12px;">
+    <div style="margin-top:16px;">
       <!--
         IMPORTANT: Direct URL — do NOT wrap in tracking redirects.
-        This ensures the invoice link always works, even if email provider tracking expires.
+        /invoice/:orderId is the dedicated invoice download route.
       -->
-      <a href="${SITE_URL}/order-confirmation?order_id=${orderId || orderNumber}" style="color:#4f5f31;font-size:13px;text-decoration:underline;">Accéder à ma facture en ligne</a>
+      <a href="${SITE_URL}/invoice/${orderId || orderNumber}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Télécharger ma facture</a>
     </div>
   </td></tr>
 
