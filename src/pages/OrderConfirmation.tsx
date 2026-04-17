@@ -11,6 +11,7 @@ import {
   CreditCard,
   FileText,
   Truck,
+  ShieldCheck,
 } from 'lucide-react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
@@ -923,22 +924,15 @@ const OrderConfirmation = () => {
           {/* SUCCESS — ALWAYS renders via resolvedOrder (DB → snapshot → minimal fallback) */}
           {state === 'success' && (
             <>
-              <div className="text-center mb-8">
-                <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
-                  <CheckCircle className="w-12 h-12 text-primary" />
-              </div>
-
-              {resolvedOrder.items.length === 0 && (
-                <div className="bg-muted/50 border border-border rounded-xl p-4 mb-6 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    🔄 Commande confirmée — les détails sont en cours de synchronisation. Le récapitulatif complet est disponible dans votre email.
-                  </p>
+              {/* HERO: high-confidence success block — elevated, soft-green, animated */}
+              <div className="bg-gradient-to-b from-primary/10 to-primary/5 border-2 border-primary/20 rounded-2xl shadow-lg p-8 md:p-10 text-center mb-8 animate-scale-in">
+                <div className="w-24 h-24 mx-auto mb-5 rounded-full bg-primary/20 flex items-center justify-center ring-8 ring-primary/5">
+                  <CheckCircle className="w-14 h-14 text-primary" strokeWidth={2.5} />
                 </div>
-              )}
-                <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
-                  Paiement confirmé ✓
+                <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-3">
+                  Paiement confirmé
                 </h1>
-                <p className="text-lg text-foreground font-medium mb-1">
+                <p className="text-base md:text-lg text-foreground/90 font-medium mb-2">
                   Votre commande a bien été enregistrée
                 </p>
                 <p className="text-muted-foreground text-sm">
@@ -949,7 +943,51 @@ const OrderConfirmation = () => {
                 </p>
               </div>
 
-              <div className="mb-6">
+              {/* Late-sync notice */}
+              {resolvedOrder.items.length === 0 && (
+                <div className="bg-muted/50 border border-border rounded-xl p-4 mb-6 text-center animate-fade-in">
+                  <p className="text-sm text-muted-foreground">
+                    🔄 Détails en cours de synchronisation. Le récapitulatif complet est disponible dans votre email.
+                  </p>
+                </div>
+              )}
+
+              {/* CTA ZONE — visible above the fold */}
+              <div className="bg-card rounded-2xl border border-border shadow-md p-6 mb-6 animate-fade-in">
+                <p className="text-sm font-semibold text-foreground mb-4 text-center">
+                  Que souhaitez-vous faire ?
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Button onClick={handleDownloadInvoice} className="gap-2" size="lg">
+                    <FileText className="w-5 h-5" />
+                    Télécharger la facture
+                  </Button>
+                  {user ? (
+                    <Button asChild variant="outline" size="lg" className="gap-2">
+                      <Link to="/orders">
+                        <Package className="w-5 h-5" />
+                        Voir mes commandes
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button asChild variant="outline" size="lg" className="gap-2">
+                      <Link to={`/invoice/${resolvedOrder.id}`}>
+                        <Download className="w-5 h-5" />
+                        Page facture
+                      </Link>
+                    </Button>
+                  )}
+                  <Button asChild variant="secondary" size="lg" className="gap-2">
+                    <Link to="/products">
+                      <ShoppingBag className="w-5 h-5" />
+                      Continuer mes achats
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+
+              {/* ORDER SUMMARY */}
+              <div className="mb-6 animate-fade-in">
                 <OrderSummaryCard
                   items={resolvedOrder.items}
                   email={resolvedOrder.email !== 'N/A' ? resolvedOrder.email : undefined}
@@ -967,6 +1005,7 @@ const OrderConfirmation = () => {
                 />
               </div>
 
+              {/* SHIPPING ADDRESS */}
               {resolvedOrder.shippingAddress && (
                 <div className="bg-card rounded-xl border border-border shadow-sm p-5 mb-6">
                   <div className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
@@ -982,13 +1021,30 @@ const OrderConfirmation = () => {
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-                <Button onClick={handleDownloadInvoice} className="gap-2" size="lg">
-                  <FileText className="w-5 h-5" />
-                  📄 Télécharger ma facture
-                </Button>
+              {/* TRUST ELEMENTS */}
+              <div className="bg-card rounded-xl border border-border shadow-sm p-5 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                  <div className="flex flex-col items-center gap-1.5">
+                    <ShieldCheck className="w-6 h-6 text-primary" />
+                    <p className="text-xs font-medium text-foreground">Paiement sécurisé</p>
+                    <p className="text-[11px] text-muted-foreground">via Stripe</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <Truck className="w-6 h-6 text-primary" />
+                    <p className="text-xs font-medium text-foreground">Suivi à venir</p>
+                    <p className="text-[11px] text-muted-foreground">par email</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <Mail className="w-6 h-6 text-primary" />
+                    <p className="text-xs font-medium text-foreground">Support</p>
+                    <a href="mailto:contact@rifrawstraw.com" className="text-[11px] text-primary underline">
+                      contact@rifrawstraw.com
+                    </a>
+                  </div>
+                </div>
               </div>
 
+              {/* NEXT STEPS */}
               <div className="bg-primary/5 rounded-xl border border-primary/20 p-6 mb-6">
                 <p className="text-sm font-semibold text-foreground mb-3">Prochaines étapes</p>
                 <div className="space-y-3">
