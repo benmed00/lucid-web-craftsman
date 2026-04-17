@@ -58,7 +58,7 @@ export function buildOrderConfirmationHtml(
     orderId,
   } = props;
 
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${SITE_URL}/order-confirmation?order_id=${orderId || orderNumber}`)}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${SITE_URL}/invoice/${orderId || orderNumber}`)}`;
 
   const itemsHtml = items
     .map(
