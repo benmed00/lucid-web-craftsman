@@ -1,124 +1,45 @@
 /**
- * /invoice/:orderId — Strict invoice page.
+ * /invoice/:orderId — Backend-driven invoice page.
  *
- * Loads order + items + payment from Supabase. NO fallback. NO snapshot.
- * If data is missing/incomplete or RLS blocks access, shows an explicit error.
+ * Reads optional ?token=... for guest access via signed URL.
+ * Calls the generate-invoice Edge Function — no DB access here.
  */
-import { useEffect, useMemo, useState, useCallback } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Loader2, FileText, Home, ShoppingBag, Mail, ShieldCheck, AlertTriangle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import PageFooter from '@/components/PageFooter';
-import { supabase } from '@/integrations/supabase/client';
-import {
-  downloadInvoice,
-  validateInvoiceOrder,
-  InvoiceValidationError,
-  type InvoiceOrder,
-} from '@/lib/invoice/generateInvoice';
+import { downloadInvoice, InvoiceError } from '@/lib/invoice/generateInvoice';
 
 const InvoicePage = () => {
   const { orderId } = useParams<{ orderId: string }>();
-  const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token') || undefined;
+
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resolvedOrder, setResolvedOrder] = useState<InvoiceOrder | null>(null);
   const [autoTriggered, setAutoTriggered] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      if (!orderId) {
-        setError('Identifiant de commande manquant.');
-        setLoading(false);
-        return;
-      }
-      try {
-        const { data: order, error: orderErr } = await supabase
-          .from('orders')
-          .select('id, status, order_status, amount, currency, created_at, shipping_address, metadata, payment_method, payment_reference')
-          .eq('id', orderId)
-          .maybeSingle();
-
-        if (orderErr) throw new Error('Impossible d\'accéder à la commande.');
-        if (!order) throw new Error('Commande introuvable.');
-
-        const { data: items, error: itemsErr } = await supabase
-          .from('order_items')
-          .select('quantity, unit_price, total_price, product_snapshot')
-          .eq('order_id', orderId);
-
-        if (itemsErr) throw new Error('Impossible de récupérer les articles.');
-        if (!items || items.length === 0) throw new Error('Aucun article dans cette commande.');
-
-        // Optional: payment record for accurate transaction date / method
-        const { data: payment } = await supabase
-          .from('payments')
-          .select('payment_method, processed_at, stripe_payment_intent_id')
-          .eq('order_id', orderId)
-          .maybeSingle();
-
-        const subtotal = items.reduce((s: number, i: any) => s + Number(i.total_price || 0), 0);
-        const totalCents = Number(order.amount || 0);
-        const total = totalCents / 100;
-        const subtotalEur = subtotal / 100;
-        const shipping = Math.max(0, total - subtotalEur);
-        const addr = order.shipping_address as any;
-
-        const built: InvoiceOrder = {
-          id: order.id,
-          items: items.map((it: any) => ({
-            name: it.product_snapshot?.name || 'Produit',
-            quantity: it.quantity,
-            price: Number(it.unit_price) / 100,
-            image: it.product_snapshot?.images?.[0],
-          })),
-          subtotal: subtotalEur,
-          shipping,
-          discount: Number((order.metadata as any)?.discount_amount || 0) / 100 || 0,
-          total,
-          currency: order.currency || 'EUR',
-          email: (order.metadata as any)?.customer_email || addr?.email || '',
-          customerName: addr ? `${addr.first_name || ''} ${addr.last_name || ''}`.trim() : '',
-          shippingAddress: addr || null,
-          createdAt: order.created_at,
-          paymentMethod: payment?.payment_method || order.payment_method || 'Carte bancaire (Stripe)',
-          paymentReference: payment?.stripe_payment_intent_id || order.payment_reference || undefined,
-          paymentDate: payment?.processed_at || order.created_at,
-          status: order.status || order.order_status || 'paid',
-        };
-
-        validateInvoiceOrder(built);
-        if (!cancelled) setResolvedOrder(built);
-      } catch (e) {
-        const msg = e instanceof InvoiceValidationError ? e.message
-                  : e instanceof Error ? e.message
-                  : 'Erreur inconnue.';
-        if (!cancelled) setError(msg);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    load();
-    return () => { cancelled = true; };
-  }, [orderId]);
-
-  const handleDownload = useCallback(() => {
-    if (!resolvedOrder) return;
+  const handleDownload = useCallback(async () => {
+    if (!orderId) return;
+    setBusy(true);
+    setError(null);
     try {
-      downloadInvoice(resolvedOrder);
+      await downloadInvoice(orderId, token);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur lors de la génération.');
+      setError(e instanceof InvoiceError ? e.message : 'Erreur lors de la génération.');
+    } finally {
+      setBusy(false);
     }
-  }, [resolvedOrder]);
+  }, [orderId, token]);
 
-  // Auto-open once when ready
   useEffect(() => {
-    if (loading || autoTriggered || !resolvedOrder) return;
+    if (autoTriggered || !orderId) return;
     setAutoTriggered(true);
     const t = setTimeout(handleDownload, 400);
     return () => clearTimeout(t);
-  }, [loading, autoTriggered, resolvedOrder, handleDownload]);
+  }, [autoTriggered, orderId, handleDownload]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -138,36 +59,33 @@ const InvoicePage = () => {
               </span>
             </p>
 
-            {loading ? (
-              <div className="py-8 flex items-center justify-center gap-2 text-muted-foreground">
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Chargement de la facture…</span>
-              </div>
-            ) : error ? (
+            {error ? (
               <div className="mt-6">
                 <p className="text-sm text-destructive mb-4">{error}</p>
-                <p className="text-xs text-muted-foreground">
-                  Si vous venez de payer, patientez quelques secondes et rechargez la page.
-                  Pour toute aide : <a className="text-primary underline" href="mailto:contact@rifelegance.com">contact@rifelegance.com</a>
+                <Button onClick={handleDownload} variant="outline" size="sm" disabled={busy}>
+                  Réessayer
+                </Button>
+                <p className="text-xs text-muted-foreground mt-4">
+                  Pour toute aide :{' '}
+                  <a className="text-primary underline" href="mailto:contact@rifelegance.com">
+                    contact@rifelegance.com
+                  </a>
                 </p>
               </div>
-            ) : resolvedOrder ? (
+            ) : (
               <>
-                <p className="text-foreground mb-6 mt-4">
-                  Total :{' '}
-                  <span className="font-bold text-lg text-primary">
-                    {resolvedOrder.total.toFixed(2)} €
-                  </span>
+                <p className="text-foreground mb-6 mt-4 text-sm">
+                  Cliquez ci-dessous pour ouvrir votre facture officielle.
                 </p>
-                <Button onClick={handleDownload} size="lg" className="gap-2 w-full sm:w-auto">
-                  <FileText className="w-5 h-5" />
-                  Télécharger / Imprimer la facture
+                <Button onClick={handleDownload} size="lg" disabled={busy} className="gap-2 w-full sm:w-auto">
+                  {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
+                  {busy ? 'Génération…' : 'Télécharger / Imprimer la facture'}
                 </Button>
                 <p className="text-xs text-muted-foreground mt-4">
                   La facture s'ouvre dans un nouvel onglet (format A4, prête à imprimer ou enregistrer en PDF).
                 </p>
               </>
-            ) : null}
+            )}
           </div>
 
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground mt-6">

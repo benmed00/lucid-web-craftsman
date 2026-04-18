@@ -892,16 +892,20 @@ const OrderConfirmation = () => {
 
   // Invoice download — works from resolvedOrder, never blocked.
   // Uses shared generator (same code path as /invoice/:orderId).
-  const handleDownloadInvoice = useCallback(() => {
+  const handleDownloadInvoice = useCallback(async () => {
+    if (!orderId) {
+      toast.error('Identifiant de commande manquant.');
+      return;
+    }
     try {
-      downloadInvoiceShared(resolvedOrder);
+      await downloadInvoiceShared(orderId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Facture indisponible.';
       toast.error(msg, {
         description: 'Vous pouvez aussi y accéder depuis l\'email de confirmation.',
       });
     }
-  }, [resolvedOrder]);
+  }, [orderId]);
 
   // Convenience aliases (used by existing render code)
   const customerName = resolvedOrder.customerName;
