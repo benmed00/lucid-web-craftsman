@@ -1056,6 +1056,47 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          created_at: string
+          currency: string
+          html: string
+          id: string
+          invoice_number: string
+          json_snapshot: Json
+          order_id: string
+          total_amount: number
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          html: string
+          id?: string
+          invoice_number: string
+          json_snapshot: Json
+          order_id: string
+          total_amount: number
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          html?: string
+          id?: string
+          invoice_number?: string
+          json_snapshot?: Json
+          order_id?: string
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loyalty_points: {
         Row: {
           created_at: string
