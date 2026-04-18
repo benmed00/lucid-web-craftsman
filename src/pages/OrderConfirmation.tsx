@@ -893,7 +893,14 @@ const OrderConfirmation = () => {
   // Invoice download — works from resolvedOrder, never blocked.
   // Uses shared generator (same code path as /invoice/:orderId).
   const handleDownloadInvoice = useCallback(() => {
-    downloadInvoiceShared(resolvedOrder);
+    try {
+      downloadInvoiceShared(resolvedOrder);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Facture indisponible.';
+      toast.error(msg, {
+        description: 'Vous pouvez aussi y accéder depuis l\'email de confirmation.',
+      });
+    }
   }, [resolvedOrder]);
 
   // Convenience aliases (used by existing render code)
