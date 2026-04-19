@@ -1049,8 +1049,8 @@ const OrderConfirmation = () => {
             </p>
           )}
 
-          {/* FALLBACK / ERROR — secondary nav (success has its own CTA zone above) */}
-          {(state === 'fallback' || state === 'error') && (
+          {/* ERROR — secondary nav */}
+          {state === 'error' && (
             <div className="space-y-4 mt-8">
               <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
                 <Button asChild variant="secondary" className="gap-2">
