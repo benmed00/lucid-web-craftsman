@@ -87,6 +87,7 @@ const PAID_ORDER_STATUSES = ['paid', 'completed', 'confirmed', 'processing', 'sh
 const PAID_PAYMENT_STATUSES = ['succeeded', 'completed', 'paid'];
 
 async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
+  console.log('[generate-invoice] [step1] fetching order', { orderId });
   // 1) ORDER
   const { data: order, error: orderErr } = await admin
     .from('orders')
@@ -96,7 +97,7 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
 
   if (orderErr) throw new InvoiceValidationError(`Order fetch failed: ${orderErr.message}`);
   if (!order) throw new InvoiceValidationError('Order not found');
-  console.log('[generate-invoice] order ok', { id: order.id, amount: order.amount, status: order.status });
+  console.log('[generate-invoice] [step1] order ok', { id: order.id, amount: order.amount, status: order.status });
 
   // 2) ITEMS — strict
   const { data: items, error: itemsErr } = await admin
