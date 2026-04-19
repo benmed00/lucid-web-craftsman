@@ -26,6 +26,7 @@ interface OrderConfirmationProps {
   };
   estimatedDelivery: string;
   orderId?: string;
+  invoiceToken?: string;
 }
 
 const esc = (s: string) =>
