@@ -232,7 +232,7 @@ export function buildOrderConfirmationHtml(
         IMPORTANT: Direct URL — do NOT wrap in tracking redirects.
         /invoice/:orderId is the dedicated invoice download route.
       -->
-      <a href="${SITE_URL}/invoice/${orderId || orderNumber}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Télécharger ma facture</a>
+      <a href="${invoiceUrl}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Télécharger ma facture</a>
     </div>
   </td></tr>
 
