@@ -792,31 +792,15 @@ const OrderConfirmation = () => {
     }
   }, [state]);
 
-  // Build single source of truth — never null, always renderable
-  const resolvedOrder = useMemo<ResolvedOrder>(() => {
-    const ro = buildResolvedOrder(
-      order,
-      orderItems,
-      snapshot,
-      orderId,
-      user?.email || '',
-      profile?.full_name || ''
-    );
-    if (ro.isFallback) {
-      console.warn('[OrderConfirmation] Using minimal fallback order', {
-        hasOrder: !!order,
-        hasSnapshot: !!snapshot,
-        orderId,
-      });
-    }
-    // Debug visibility for support / QA
+  // Build single source of truth — strict, DB-only, may be null until data loads.
+  const resolvedOrder = useMemo<ResolvedOrder | null>(() => {
+    const ro = buildResolvedOrder(order, orderItems);
     if (state === 'success') {
       console.log('[OrderConfirmation] ORDER:', order);
-      console.log('[OrderConfirmation] SNAPSHOT:', snapshot);
       console.log('[OrderConfirmation] RESOLVED:', ro);
     }
     return ro;
-  }, [order, orderItems, snapshot, orderId, user?.email, profile?.full_name, state]);
+  }, [order, orderItems, state]);
 
   // Late-arriving items: if success but items array is empty AND we have an orderId,
   // retry fetching order_items once after a short delay (handles race where order
@@ -858,8 +842,8 @@ const OrderConfirmation = () => {
   }, [orderId]);
 
   // Convenience aliases (used by existing render code)
-  const customerName = resolvedOrder.customerName;
-  const customerEmail = resolvedOrder.email;
+  const customerName = resolvedOrder?.customerName || '';
+  const customerEmail = resolvedOrder?.email || '';
 
   // ================================================================
   // RENDER
