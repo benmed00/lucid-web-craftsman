@@ -182,7 +182,7 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
   };
 
   validateInvoice(data);
-  console.log('[generate-invoice] built', { invoice_number: data.invoice_number, total, items: items.length, paid: isPaid });
+  console.log('[generate-invoice] [step4] validated', { invoice_number: data.invoice_number, total, items: items.length, paid: isPaid });
   return data;
 }
 
