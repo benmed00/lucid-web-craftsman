@@ -221,7 +221,9 @@ Deno.serve(async (req) => {
     });
 
     if (insertErr && !insertErr.message.includes('duplicate')) {
-      console.error('[generate-invoice] insert failed', insertErr);
+      console.error('[generate-invoice] [step5] insert failed', insertErr);
+    } else {
+      console.log('[generate-invoice] [step5] snapshot saved', { invoice_number: data.invoice_number });
     }
 
     return jsonResponse({ invoice_number: data.invoice_number, html, cached: false });
