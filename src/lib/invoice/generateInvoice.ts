@@ -3,6 +3,7 @@
  *
  * Architecture: invoice generation is deterministic and backend-driven.
  * The frontend NEVER builds an invoice from local state.
+ * The frontend NEVER uses blob: URLs — HTML is rendered in-route via iframe.
  */
 import { supabase } from '@/integrations/supabase/client';
 
@@ -10,13 +11,19 @@ const FUNCTIONS_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supab
 
 export class InvoiceError extends Error {}
 
-interface InvoiceResponse {
+export interface InvoiceResponse {
   invoice_number: string;
   html: string;
   cached?: boolean;
 }
 
-async function callGenerateInvoice(orderId: string, token?: string): Promise<InvoiceResponse> {
+/**
+ * Fetch the invoice HTML from the Edge Function.
+ * Strict: throws on any failure (no fallback rendering).
+ */
+export async function fetchInvoice(orderId: string, token?: string): Promise<InvoiceResponse> {
+  if (!orderId) throw new InvoiceError('Order ID is required');
+
   const { data: { session } } = await supabase.auth.getSession();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -43,27 +50,16 @@ async function callGenerateInvoice(orderId: string, token?: string): Promise<Inv
 }
 
 /**
- * Open invoice in a new tab, ready to print/save as PDF.
- * orderId is the only required input — everything else is fetched server-side.
+ * Open the invoice route in a new tab (clean same-origin URL).
+ * Page itself fetches the HTML and renders it via iframe — no blob URLs.
  */
 export async function downloadInvoice(orderId: string, token?: string): Promise<void> {
   if (!orderId) throw new InvoiceError('Order ID is required');
-
-  // Open the popup synchronously (some browsers block async window.open)
-  const win = window.open('', '_blank');
+  const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+  const url = `/invoice/${orderId}${tokenParam}`;
+  const win = window.open(url, '_blank', 'noopener');
   if (!win) {
-    throw new InvoiceError('Popup bloqué. Autorisez les fenêtres pop-up pour télécharger la facture.');
-  }
-  win.document.write('<!DOCTYPE html><html><head><title>Facture — Chargement…</title><style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;color:#7a7a7a}</style></head><body>Génération de la facture…</body></html>');
-
-  try {
-    const { html } = await callGenerateInvoice(orderId, token);
-    win.document.open();
-    win.document.write(html);
-    win.document.close();
-  } catch (e) {
-    win.document.body.innerHTML = `<div style="font-family:sans-serif;padding:40px;color:#a04040">Erreur : ${e instanceof Error ? e.message : 'Échec de génération'}</div>`;
-    throw e;
+    throw new InvoiceError("Popup bloqué. Autorisez les fenêtres pop-up pour télécharger la facture.");
   }
 }
 
