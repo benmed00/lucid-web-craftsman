@@ -82,70 +82,104 @@ async function authorize(req: Request, body: { order_id?: string; token?: string
   throw new Error('Unauthorized');
 }
 
+/** Statuses that imply the order has been paid (besides explicit payment row). */
+const PAID_ORDER_STATUSES = ['paid', 'completed', 'confirmed', 'processing', 'shipped', 'delivered'];
+const PAID_PAYMENT_STATUSES = ['succeeded', 'completed', 'paid'];
+
 async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
+  // 1) ORDER
   const { data: order, error: orderErr } = await admin
     .from('orders')
     .select('id, status, order_status, amount, currency, created_at, shipping_address, metadata, payment_method, payment_reference')
     .eq('id', orderId)
     .maybeSingle();
 
-  if (orderErr || !order) throw new InvoiceValidationError('Order not found');
+  if (orderErr) throw new InvoiceValidationError(`Order fetch failed: ${orderErr.message}`);
+  if (!order) throw new InvoiceValidationError('Order not found');
+  console.log('[generate-invoice] order ok', { id: order.id, amount: order.amount, status: order.status });
 
+  // 2) ITEMS — strict
   const { data: items, error: itemsErr } = await admin
     .from('order_items')
     .select('quantity, unit_price, total_price, product_snapshot')
     .eq('order_id', orderId);
 
-  if (itemsErr) throw new InvoiceValidationError('Cannot fetch items');
+  if (itemsErr) throw new InvoiceValidationError(`Items fetch failed: ${itemsErr.message}`);
   if (!items || items.length === 0) throw new InvoiceValidationError('Order has no items');
+  console.log('[generate-invoice] items ok', { count: items.length });
 
-  const { data: payment } = await admin
+  // 3) PAYMENT (latest)
+  const { data: payments, error: payErr } = await admin
     .from('payments')
-    .select('payment_method, processed_at, stripe_payment_intent_id, status')
+    .select('payment_method, processed_at, stripe_payment_intent_id, status, amount, created_at')
     .eq('order_id', orderId)
-    .maybeSingle();
+    .order('created_at', { ascending: false })
+    .limit(1);
 
-  const subtotal = items.reduce((s, it) => s + Number(it.total_price || 0), 0) / 100;
-  const total = Number(order.amount || 0) / 100;
-  const shipping = Math.max(0, total - subtotal);
-  const discount = Number((order.metadata as any)?.discount_amount || 0) / 100;
-  const addr = (order.shipping_address as any) || {};
+  if (payErr) throw new InvoiceValidationError(`Payments fetch failed: ${payErr.message}`);
+  const payment = payments?.[0];
+  console.log('[generate-invoice] payment', { found: !!payment, status: payment?.status });
 
+  // 4) AMOUNTS — values are stored in EUROS (not cents). Compute strictly from items.
+  const subtotal = items.reduce((s, it) => s + Number(it.total_price || 0), 0);
+  const orderTotal = Number(order.amount || 0);
+  const discount = Number((order.metadata as any)?.discount_amount || 0);
+  // Shipping = order total - subtotal + discount (clamped). If order.amount missing, fall back to subtotal.
+  const total = orderTotal > 0 ? orderTotal : subtotal;
+  const shipping = Math.max(0, total - subtotal + discount);
+
+  // 5) PAID STATUS — order status OR payment row in a paid state
   const orderStatus = (order.status || order.order_status || '').toLowerCase();
-  const isPaid = ['paid', 'completed', 'confirmed', 'processing', 'shipped', 'delivered']
-    .includes(orderStatus) || payment?.status === 'succeeded';
+  const paymentStatus = (payment?.status || '').toLowerCase();
+  const isPaid = PAID_ORDER_STATUSES.includes(orderStatus) || PAID_PAYMENT_STATUSES.includes(paymentStatus);
+
+  // 6) STRICT: paid orders MUST have a transaction reference
+  const transactionId = payment?.stripe_payment_intent_id || order.payment_reference || null;
+  if (isPaid && !transactionId) {
+    throw new InvoiceValidationError('Paid order has no payment reference');
+  }
+  // 6b) STRICT: total must be > 0
+  if (total <= 0) {
+    throw new InvoiceValidationError(`Invalid invoice total: ${total}`);
+  }
+
+  const addr = (order.shipping_address as any) || {};
+  const fullName = `${addr.first_name || ''} ${addr.last_name || ''}`.trim();
+  const email = (order.metadata as any)?.customer_email || addr.email || '';
+  if (!email) throw new InvoiceValidationError('Order has no customer email');
 
   const data: InvoiceData = {
     invoice_number: buildInvoiceNumber(order.id, order.created_at),
     order_id: order.id,
     order_short: order.id.slice(-8).toUpperCase(),
     issue_date: order.created_at,
-    currency: order.currency || 'EUR',
+    currency: (order.currency || 'EUR').toUpperCase(),
     client: {
-      name: `${addr.first_name || ''} ${addr.last_name || ''}`.trim() || 'Client',
-      email: (order.metadata as any)?.customer_email || addr.email || '',
-      address_line1: addr.address_line1 || '',
+      name: fullName || email.split('@')[0],
+      email,
+      address_line1: addr.address_line1 || addr.address || '',
       address_line2: addr.address_line2 || undefined,
-      postal_code: addr.postal_code || '',
+      postal_code: addr.postal_code || addr.zip || '',
       city: addr.city || '',
       country: addr.country || '',
     },
     items: items.map((it) => ({
-      name: (it.product_snapshot as any)?.name || 'Produit',
-      quantity: it.quantity,
-      unit_price: Number(it.unit_price) / 100,
-      total: Number(it.total_price) / 100,
+      name: (it.product_snapshot as any)?.name || (it.product_snapshot as any)?.title || 'Produit',
+      quantity: Number(it.quantity) || 1,
+      unit_price: Number(it.unit_price) || 0,
+      total: Number(it.total_price) || 0,
     })),
     totals: { subtotal, shipping, discount, total },
     payment: {
       method: payment?.payment_method || order.payment_method || 'Carte bancaire (Stripe)',
       status: isPaid ? 'paid' : 'pending',
-      transaction_id: payment?.stripe_payment_intent_id || order.payment_reference || null,
+      transaction_id: transactionId,
       paid_at: payment?.processed_at || (isPaid ? order.created_at : null),
     },
   };
 
   validateInvoice(data);
+  console.log('[generate-invoice] built', { invoice_number: data.invoice_number, total, items: items.length, paid: isPaid });
   return data;
 }
 
