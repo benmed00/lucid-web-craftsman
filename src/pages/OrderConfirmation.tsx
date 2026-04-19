@@ -620,17 +620,17 @@ const OrderConfirmation = () => {
   }, [fetchOrder, fetchOrderItems]);
 
   // Safety net: 8s ceiling. If verification still active, trigger one final
-  // reconcile attempt instead of jumping to fallback (no infinite spinner).
+  // reconcile attempt instead of jumping to error (no infinite spinner).
   useEffect(() => {
     if (state !== 'processing') return;
     const timer = setTimeout(async () => {
       if (!verificationActiveRef.current) {
-        console.warn('[OrderConfirmation] Safety timeout — verification idle, forcing fallback');
-        setState('fallback');
+        console.warn('[OrderConfirmation] Safety timeout — verification idle, forcing error');
+        setState('error');
         return;
       }
       if (!orderId) {
-        setState('fallback');
+        setState('error');
         return;
       }
       console.warn('[OrderConfirmation] Safety timeout — last reconcile attempt');
@@ -638,12 +638,12 @@ const OrderConfirmation = () => {
         const result = await reconcileOrder(orderId);
         if (result.success || result.data?.status === 'paid') {
           const fetched = await finalizeFromReconcile(orderId);
-          if (!fetched) setState('success');
+          if (!fetched) setState('error');
         } else {
-          setState('fallback');
+          setState('error');
         }
       } catch {
-        setState('fallback');
+        setState('error');
       }
     }, 8000);
     return () => clearTimeout(timer);
@@ -673,24 +673,12 @@ const OrderConfirmation = () => {
         if (result.success || result.data?.status === 'paid') {
           const fetched = await finalizeFromReconcile(orderId);
           if (!fetched) {
-            // Build synthetic order so success UI is never blank
-            const synthetic: OrderData = {
-              id: orderId,
-              status: 'paid',
-              order_status: 'paid',
-              amount: snapshot?.total ?? 0,
-              currency: 'EUR',
-              created_at: new Date().toISOString(),
-              shipping_address: null,
-              metadata: { customer_email: snapshot?.email || user?.email || '' },
-            };
-            setOrder(synthetic);
-            setOrderItems([]);
-            setState('success');
+            // Reconcile said paid but DB still not visible — strict: error, no synthetic data
+            setState('error');
           }
           return;
         }
-        setState('fallback');
+        setState('error');
         return;
       }
 
@@ -724,10 +712,8 @@ const OrderConfirmation = () => {
         return;
       }
 
-      // Reconcile didn't confirm paid — show what we have as fallback
-      setOrder(orderData);
-      setOrderItems(items);
-      setState('fallback');
+      // Reconcile didn't confirm paid — strict: error
+      setState('error');
     } finally {
       verificationActiveRef.current = false;
     }
@@ -751,7 +737,7 @@ const OrderConfirmation = () => {
             body: { paypal_order_id: paypalToken, order_id: orderId },
           });
           if (error || !data?.success) {
-            setState('fallback');
+            setState('error');
             return;
           }
           const orderData = await fetchOrder(orderId);
@@ -759,10 +745,12 @@ const OrderConfirmation = () => {
             setOrder(orderData);
             const items = await fetchOrderItems(orderId);
             setOrderItems(items);
+            setState('success');
+          } else {
+            setState('error');
           }
-          setState('success');
         } catch {
-          setState('fallback');
+          setState('error');
         }
       };
       verifyPayPal();
