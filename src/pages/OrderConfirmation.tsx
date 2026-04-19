@@ -1010,25 +1010,29 @@ const OrderConfirmation = () => {
             </>
           )}
 
-          {state === 'fallback' && (
-            <OrderFallback
-              snapshot={snapshot}
-              onRetry={handleRetry}
-              isRetrying={isRetrying}
-            />
-          )}
-
-          {/* ERROR — no order_id */}
+          {/* ERROR — strict: no synthetic data, real support path */}
           {state === 'error' && (
-            <div className="text-center py-16">
+            <div className="text-center py-16 max-w-md mx-auto">
               <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
               <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
-                Session invalide
+                Commande introuvable
               </h1>
               <p className="text-muted-foreground mb-6">
-                Aucun identifiant de commande n'a été trouvé. Si vous avez effectué un paiement,
-                vérifiez votre email pour la confirmation.
+                Nous n'avons pas pu récupérer les détails de votre commande pour le moment.
+                Si votre paiement a réussi, un email de confirmation vous sera envoyé.
               </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button onClick={handleRetry} disabled={isRetrying} variant="outline" className="gap-2">
+                  <RefreshCw className={`w-4 h-4 ${isRetrying ? 'animate-spin' : ''}`} />
+                  {isRetrying ? 'Vérification…' : 'Réessayer'}
+                </Button>
+                <Button asChild variant="secondary" className="gap-2">
+                  <Link to="/contact">
+                    <Mail className="w-4 h-4" />
+                    Contacter le support
+                  </Link>
+                </Button>
+              </div>
             </div>
           )}
 
