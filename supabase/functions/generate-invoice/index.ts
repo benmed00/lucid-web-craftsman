@@ -87,6 +87,7 @@ const PAID_ORDER_STATUSES = ['paid', 'completed', 'confirmed', 'processing', 'sh
 const PAID_PAYMENT_STATUSES = ['succeeded', 'completed', 'paid'];
 
 async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
+  console.log('[generate-invoice] [step1] fetching order', { orderId });
   // 1) ORDER
   const { data: order, error: orderErr } = await admin
     .from('orders')
@@ -96,9 +97,10 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
 
   if (orderErr) throw new InvoiceValidationError(`Order fetch failed: ${orderErr.message}`);
   if (!order) throw new InvoiceValidationError('Order not found');
-  console.log('[generate-invoice] order ok', { id: order.id, amount: order.amount, status: order.status });
+  console.log('[generate-invoice] [step1] order ok', { id: order.id, amount: order.amount, status: order.status });
 
   // 2) ITEMS — strict
+  console.log('[generate-invoice] [step2] fetching items', { orderId });
   const { data: items, error: itemsErr } = await admin
     .from('order_items')
     .select('quantity, unit_price, total_price, product_snapshot')
@@ -106,9 +108,10 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
 
   if (itemsErr) throw new InvoiceValidationError(`Items fetch failed: ${itemsErr.message}`);
   if (!items || items.length === 0) throw new InvoiceValidationError('Order has no items');
-  console.log('[generate-invoice] items ok', { count: items.length });
+  console.log('[generate-invoice] [step2] items ok', { count: items.length });
 
   // 3) PAYMENT (latest)
+  console.log('[generate-invoice] [step3] fetching payments', { orderId });
   const { data: payments, error: payErr } = await admin
     .from('payments')
     .select('payment_method, processed_at, stripe_payment_intent_id, status, amount, created_at')
@@ -118,7 +121,7 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
 
   if (payErr) throw new InvoiceValidationError(`Payments fetch failed: ${payErr.message}`);
   const payment = payments?.[0];
-  console.log('[generate-invoice] payment', { found: !!payment, status: payment?.status });
+  console.log('[generate-invoice] [step3] payment', { found: !!payment, status: payment?.status });
 
   // 4) AMOUNTS — values are stored in EUROS (not cents). Compute strictly from items.
   const subtotal = items.reduce((s, it) => s + Number(it.total_price || 0), 0);
@@ -179,7 +182,7 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
   };
 
   validateInvoice(data);
-  console.log('[generate-invoice] built', { invoice_number: data.invoice_number, total, items: items.length, paid: isPaid });
+  console.log('[generate-invoice] [step4] validated', { invoice_number: data.invoice_number, total, items: items.length, paid: isPaid });
   return data;
 }
 
@@ -218,7 +221,9 @@ Deno.serve(async (req) => {
     });
 
     if (insertErr && !insertErr.message.includes('duplicate')) {
-      console.error('[generate-invoice] insert failed', insertErr);
+      console.error('[generate-invoice] [step5] insert failed', insertErr);
+    } else {
+      console.log('[generate-invoice] [step5] snapshot saved', { invoice_number: data.invoice_number });
     }
 
     return jsonResponse({ invoice_number: data.invoice_number, html, cached: false });

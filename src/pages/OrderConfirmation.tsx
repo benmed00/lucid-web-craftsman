@@ -61,9 +61,9 @@ interface CheckoutSnapshot {
   timestamp: number;
 }
 
-type ConfirmationState = 'loading' | 'success' | 'processing' | 'fallback' | 'error';
+type ConfirmationState = 'loading' | 'success' | 'processing' | 'error';
 
-// Single source of truth — always usable, never null on success
+// Single source of truth — built strictly from DB. Never invented values.
 interface ResolvedOrder {
   id: string;
   status: string;
@@ -78,8 +78,6 @@ interface ResolvedOrder {
   shippingAddress: any | null;
   createdAt: string;
   paymentMethod?: string;
-  isFromDB: boolean;
-  isFallback: boolean;
 }
 
 const COUNTRY_NAMES: Record<string, string> = {
@@ -88,83 +86,47 @@ const COUNTRY_NAMES: Record<string, string> = {
   US: 'États-Unis', CA: 'Canada', MA: 'Maroc',
 };
 
-/** Build a fully-resolved order from DB data, snapshot, or minimal fallback. NEVER returns null. */
+/**
+ * Build resolved order STRICTLY from DB data. Amounts are stored in EUROS,
+ * not cents. Never falls back to invented values — returns null if the
+ * order is not yet visible.
+ */
 function buildResolvedOrder(
   order: OrderData | null,
   orderItems: OrderItem[],
-  snapshot: CheckoutSnapshot | null,
-  orderId: string | null,
-  authEmail: string,
-  profileName: string
-): ResolvedOrder {
-  // Priority 1: DB data
-  if (order) {
-    const items = orderItems.map((it) => ({
-      name: it.product_name,
-      quantity: it.quantity,
-      price: it.unit_price / 100,
-      image: it.image_url,
-    }));
-    const subtotal = orderItems.reduce((s, i) => s + i.total_price, 0) / 100;
-    const totalEuros = (order.amount || 0) / 100;
-    const shippingCalc = Math.max(0, totalEuros - subtotal);
-    const addr = order.shipping_address;
-    const customerName = addr
-      ? `${addr.first_name || ''} ${addr.last_name || ''}`.trim()
-      : snapshot?.customerName || profileName || '';
-    return {
-      id: order.id,
-      status: order.status || order.order_status || 'paid',
-      items: items.length > 0 ? items : (snapshot?.items || []),
-      subtotal: items.length > 0 ? subtotal : (snapshot?.subtotal || 0),
-      shipping: items.length > 0 ? shippingCalc : (snapshot?.shipping || 0),
-      discount: snapshot?.discount || 0,
-      total: totalEuros || snapshot?.total || 0,
-      currency: order.currency || snapshot?.currency || 'EUR',
-      email: order.metadata?.customer_email || snapshot?.email || authEmail || 'N/A',
-      customerName,
-      shippingAddress: addr || null,
-      createdAt: order.created_at,
-      paymentMethod: 'Carte bancaire (Stripe)',
-      isFromDB: true,
-      isFallback: false,
-    };
-  }
-  // Priority 2: Snapshot
-  if (snapshot) {
-    return {
-      id: orderId || 'N/A',
-      status: 'paid',
-      items: snapshot.items || [],
-      subtotal: snapshot.subtotal || 0,
-      shipping: snapshot.shipping || 0,
-      discount: snapshot.discount || 0,
-      total: snapshot.total || 0,
-      currency: snapshot.currency || 'EUR',
-      email: snapshot.email || authEmail || 'N/A',
-      customerName: snapshot.customerName || profileName || '',
-      shippingAddress: null,
-      createdAt: new Date(snapshot.timestamp || Date.now()).toISOString(),
-      isFromDB: false,
-      isFallback: false,
-    };
-  }
-  // Priority 3: Minimal — never blank
+): ResolvedOrder | null {
+  if (!order) return null;
+
+  const items = orderItems.map((it) => ({
+    name: it.product_name,
+    quantity: it.quantity,
+    price: Number(it.unit_price) || 0,
+    image: it.image_url,
+  }));
+  const subtotal = orderItems.reduce((s, i) => s + (Number(i.total_price) || 0), 0);
+  const total = Number(order.amount) || 0;
+  const discount = Number(order.metadata?.discount_amount) || 0;
+  const shipping = Math.max(0, total - subtotal + discount);
+
+  const addr = order.shipping_address;
+  const customerName = addr
+    ? `${addr.first_name || ''} ${addr.last_name || ''}`.trim()
+    : '';
+
   return {
-    id: orderId || 'N/A',
-    status: 'paid',
-    items: [],
-    subtotal: 0,
-    shipping: 0,
-    discount: 0,
-    total: 0,
-    currency: 'EUR',
-    email: authEmail || 'N/A',
-    customerName: profileName || '',
-    shippingAddress: null,
-    createdAt: new Date().toISOString(),
-    isFromDB: false,
-    isFallback: true,
+    id: order.id,
+    status: order.status || order.order_status || 'paid',
+    items,
+    subtotal,
+    shipping,
+    discount,
+    total,
+    currency: order.currency || 'EUR',
+    email: order.metadata?.customer_email || addr?.email || '',
+    customerName,
+    shippingAddress: addr || null,
+    createdAt: order.created_at,
+    paymentMethod: order.metadata?.payment_method_label || 'Carte bancaire (Stripe)',
   };
 }
 
@@ -658,17 +620,17 @@ const OrderConfirmation = () => {
   }, [fetchOrder, fetchOrderItems]);
 
   // Safety net: 8s ceiling. If verification still active, trigger one final
-  // reconcile attempt instead of jumping to fallback (no infinite spinner).
+  // reconcile attempt instead of jumping to error (no infinite spinner).
   useEffect(() => {
     if (state !== 'processing') return;
     const timer = setTimeout(async () => {
       if (!verificationActiveRef.current) {
-        console.warn('[OrderConfirmation] Safety timeout — verification idle, forcing fallback');
-        setState('fallback');
+        console.warn('[OrderConfirmation] Safety timeout — verification idle, forcing error');
+        setState('error');
         return;
       }
       if (!orderId) {
-        setState('fallback');
+        setState('error');
         return;
       }
       console.warn('[OrderConfirmation] Safety timeout — last reconcile attempt');
@@ -676,12 +638,12 @@ const OrderConfirmation = () => {
         const result = await reconcileOrder(orderId);
         if (result.success || result.data?.status === 'paid') {
           const fetched = await finalizeFromReconcile(orderId);
-          if (!fetched) setState('success');
+          if (!fetched) setState('error');
         } else {
-          setState('fallback');
+          setState('error');
         }
       } catch {
-        setState('fallback');
+        setState('error');
       }
     }, 8000);
     return () => clearTimeout(timer);
@@ -711,24 +673,12 @@ const OrderConfirmation = () => {
         if (result.success || result.data?.status === 'paid') {
           const fetched = await finalizeFromReconcile(orderId);
           if (!fetched) {
-            // Build synthetic order so success UI is never blank
-            const synthetic: OrderData = {
-              id: orderId,
-              status: 'paid',
-              order_status: 'paid',
-              amount: snapshot?.total ?? 0,
-              currency: 'EUR',
-              created_at: new Date().toISOString(),
-              shipping_address: null,
-              metadata: { customer_email: snapshot?.email || user?.email || '' },
-            };
-            setOrder(synthetic);
-            setOrderItems([]);
-            setState('success');
+            // Reconcile said paid but DB still not visible — strict: error, no synthetic data
+            setState('error');
           }
           return;
         }
-        setState('fallback');
+        setState('error');
         return;
       }
 
@@ -762,10 +712,8 @@ const OrderConfirmation = () => {
         return;
       }
 
-      // Reconcile didn't confirm paid — show what we have as fallback
-      setOrder(orderData);
-      setOrderItems(items);
-      setState('fallback');
+      // Reconcile didn't confirm paid — strict: error
+      setState('error');
     } finally {
       verificationActiveRef.current = false;
     }
@@ -789,7 +737,7 @@ const OrderConfirmation = () => {
             body: { paypal_order_id: paypalToken, order_id: orderId },
           });
           if (error || !data?.success) {
-            setState('fallback');
+            setState('error');
             return;
           }
           const orderData = await fetchOrder(orderId);
@@ -797,10 +745,12 @@ const OrderConfirmation = () => {
             setOrder(orderData);
             const items = await fetchOrderItems(orderId);
             setOrderItems(items);
+            setState('success');
+          } else {
+            setState('error');
           }
-          setState('success');
         } catch {
-          setState('fallback');
+          setState('error');
         }
       };
       verifyPayPal();
@@ -842,31 +792,15 @@ const OrderConfirmation = () => {
     }
   }, [state]);
 
-  // Build single source of truth — never null, always renderable
-  const resolvedOrder = useMemo<ResolvedOrder>(() => {
-    const ro = buildResolvedOrder(
-      order,
-      orderItems,
-      snapshot,
-      orderId,
-      user?.email || '',
-      profile?.full_name || ''
-    );
-    if (ro.isFallback) {
-      console.warn('[OrderConfirmation] Using minimal fallback order', {
-        hasOrder: !!order,
-        hasSnapshot: !!snapshot,
-        orderId,
-      });
-    }
-    // Debug visibility for support / QA
+  // Build single source of truth — strict, DB-only, may be null until data loads.
+  const resolvedOrder = useMemo<ResolvedOrder | null>(() => {
+    const ro = buildResolvedOrder(order, orderItems);
     if (state === 'success') {
       console.log('[OrderConfirmation] ORDER:', order);
-      console.log('[OrderConfirmation] SNAPSHOT:', snapshot);
       console.log('[OrderConfirmation] RESOLVED:', ro);
     }
     return ro;
-  }, [order, orderItems, snapshot, orderId, user?.email, profile?.full_name, state]);
+  }, [order, orderItems, state]);
 
   // Late-arriving items: if success but items array is empty AND we have an orderId,
   // retry fetching order_items once after a short delay (handles race where order
@@ -908,8 +842,8 @@ const OrderConfirmation = () => {
   }, [orderId]);
 
   // Convenience aliases (used by existing render code)
-  const customerName = resolvedOrder.customerName;
-  const customerEmail = resolvedOrder.email;
+  const customerName = resolvedOrder?.customerName || '';
+  const customerEmail = resolvedOrder?.email || '';
 
   // ================================================================
   // RENDER
@@ -932,10 +866,10 @@ const OrderConfirmation = () => {
             <OrderProcessing snapshot={snapshot} />
           )}
 
-          {/* SUCCESS — ALWAYS renders via resolvedOrder (DB → snapshot → minimal fallback) */}
-          {state === 'success' && (
+          {/* SUCCESS — strict, only renders when DB data is resolved */}
+          {state === 'success' && resolvedOrder && (
             <>
-              {/* HERO: high-confidence success block — elevated, soft-green, animated */}
+              {/* HERO */}
               <div className="bg-gradient-to-b from-primary/10 to-primary/5 border-2 border-primary/20 rounded-2xl shadow-lg p-8 md:p-10 text-center mb-8 animate-scale-in">
                 <div className="w-24 h-24 mx-auto mb-5 rounded-full bg-primary/20 flex items-center justify-center ring-8 ring-primary/5">
                   <CheckCircle className="w-14 h-14 text-primary" strokeWidth={2.5} />
@@ -949,21 +883,12 @@ const OrderConfirmation = () => {
                 <p className="text-muted-foreground text-sm">
                   Un email de confirmation a été envoyé à{' '}
                   <span className="font-medium text-foreground">
-                    {resolvedOrder.email !== 'N/A' ? resolvedOrder.email : 'votre adresse'}
+                    {resolvedOrder.email || 'votre adresse'}
                   </span>
                 </p>
               </div>
 
-              {/* Late-sync notice */}
-              {resolvedOrder.items.length === 0 && (
-                <div className="bg-muted/50 border border-border rounded-xl p-4 mb-6 text-center animate-fade-in">
-                  <p className="text-sm text-muted-foreground">
-                    🔄 Détails en cours de synchronisation. Le récapitulatif complet est disponible dans votre email.
-                  </p>
-                </div>
-              )}
-
-              {/* CTA ZONE — visible above the fold */}
+              {/* CTA ZONE */}
               <div className="bg-card rounded-2xl border border-border shadow-md p-6 mb-6 animate-fade-in">
                 <p className="text-sm font-semibold text-foreground mb-4 text-center">
                   Que souhaitez-vous faire ?
@@ -997,22 +922,22 @@ const OrderConfirmation = () => {
                 </div>
               </div>
 
-              {/* ORDER SUMMARY */}
+              {/* ORDER SUMMARY — strict, real data only */}
               <div className="mb-6 animate-fade-in">
                 <OrderSummaryCard
                   items={resolvedOrder.items}
-                  email={resolvedOrder.email !== 'N/A' ? resolvedOrder.email : undefined}
+                  email={resolvedOrder.email || undefined}
                   customerName={resolvedOrder.customerName || undefined}
                   total={resolvedOrder.total}
-                  subtotal={resolvedOrder.subtotal > 0 ? resolvedOrder.subtotal : undefined}
-                  shipping={resolvedOrder.subtotal > 0 ? resolvedOrder.shipping : undefined}
+                  subtotal={resolvedOrder.subtotal}
+                  shipping={resolvedOrder.shipping}
                   discount={resolvedOrder.discount > 0 ? resolvedOrder.discount : undefined}
-                  orderNumber={resolvedOrder.id !== 'N/A' ? resolvedOrder.id.slice(-8).toUpperCase() : undefined}
+                  orderNumber={resolvedOrder.id.slice(-8).toUpperCase()}
                   orderDate={new Date(resolvedOrder.createdAt).toLocaleDateString('fr-FR', {
                     day: 'numeric', month: 'long', year: 'numeric',
                   })}
                   paymentMethod={resolvedOrder.paymentMethod}
-                  isFromDB={resolvedOrder.isFromDB}
+                  isFromDB
                 />
               </div>
 
@@ -1085,25 +1010,29 @@ const OrderConfirmation = () => {
             </>
           )}
 
-          {state === 'fallback' && (
-            <OrderFallback
-              snapshot={snapshot}
-              onRetry={handleRetry}
-              isRetrying={isRetrying}
-            />
-          )}
-
-          {/* ERROR — no order_id */}
+          {/* ERROR — strict: no synthetic data, real support path */}
           {state === 'error' && (
-            <div className="text-center py-16">
+            <div className="text-center py-16 max-w-md mx-auto">
               <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
               <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
-                Session invalide
+                Commande introuvable
               </h1>
               <p className="text-muted-foreground mb-6">
-                Aucun identifiant de commande n'a été trouvé. Si vous avez effectué un paiement,
-                vérifiez votre email pour la confirmation.
+                Nous n'avons pas pu récupérer les détails de votre commande pour le moment.
+                Si votre paiement a réussi, un email de confirmation vous sera envoyé.
               </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button onClick={handleRetry} disabled={isRetrying} variant="outline" className="gap-2">
+                  <RefreshCw className={`w-4 h-4 ${isRetrying ? 'animate-spin' : ''}`} />
+                  {isRetrying ? 'Vérification…' : 'Réessayer'}
+                </Button>
+                <Button asChild variant="secondary" className="gap-2">
+                  <Link to="/contact">
+                    <Mail className="w-4 h-4" />
+                    Contacter le support
+                  </Link>
+                </Button>
+              </div>
             </div>
           )}
 
@@ -1120,8 +1049,8 @@ const OrderConfirmation = () => {
             </p>
           )}
 
-          {/* FALLBACK / ERROR — secondary nav (success has its own CTA zone above) */}
-          {(state === 'fallback' || state === 'error') && (
+          {/* ERROR — secondary nav */}
+          {state === 'error' && (
             <div className="space-y-4 mt-8">
               <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
                 <Button asChild variant="secondary" className="gap-2">

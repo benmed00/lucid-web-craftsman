@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 import { buildOrderConfirmationHtml } from './_templates/order-confirmation.ts';
+import { signToken } from '../_shared/invoice/token.ts';
 
 const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
 const FROM_NAME = 'Rif Raw Straw';
@@ -185,6 +186,12 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     logStep('Building email HTML');
+    let invoiceToken: string | undefined;
+    try {
+      invoiceToken = await signToken(data!.orderId);
+    } catch (tokErr) {
+      logStep('Token signing failed (link will require auth)', { error: (tokErr as Error).message });
+    }
     const html = buildOrderConfirmationHtml({
       customerName: data!.customerName,
       orderNumber: data!.orderId.slice(-8).toUpperCase(),
@@ -203,6 +210,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       estimatedDelivery,
       orderId: data!.orderId,
+      invoiceToken,
     });
 
     if (data!.previewOnly) {

@@ -26,6 +26,7 @@ interface OrderConfirmationProps {
   };
   estimatedDelivery: string;
   orderId?: string;
+  invoiceToken?: string;
 }
 
 const esc = (s: string) =>
@@ -56,9 +57,13 @@ export function buildOrderConfirmationHtml(
     shippingAddress,
     estimatedDelivery,
     orderId,
+    invoiceToken,
   } = props;
 
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${SITE_URL}/invoice/${orderId || orderNumber}`)}`;
+  const invoiceId = orderId || orderNumber;
+  const tokenQuery = invoiceToken ? `?token=${encodeURIComponent(invoiceToken)}` : '';
+  const invoiceUrl = `${SITE_URL}/invoice/${invoiceId}${tokenQuery}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(invoiceUrl)}`;
 
   const itemsHtml = items
     .map(
@@ -118,7 +123,7 @@ export function buildOrderConfirmationHtml(
         <a href="${SITE_URL}/order-confirmation?order_id=${orderId || orderNumber}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Voir ma commande</a>
       </td>
       <td style="padding:0 6px;">
-        <a href="${SITE_URL}/invoice/${orderId || orderNumber}" style="display:inline-block;background-color:#ffffff;color:#4f5f31;padding:11px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;border:1px solid #4f5f31;">📄 Télécharger ma facture</a>
+        <a href="${invoiceUrl}" style="display:inline-block;background-color:#ffffff;color:#4f5f31;padding:11px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;border:1px solid #4f5f31;">📄 Télécharger ma facture</a>
       </td>
     </tr></table>
   </td></tr>
@@ -227,7 +232,7 @@ export function buildOrderConfirmationHtml(
         IMPORTANT: Direct URL — do NOT wrap in tracking redirects.
         /invoice/:orderId is the dedicated invoice download route.
       -->
-      <a href="${SITE_URL}/invoice/${orderId || orderNumber}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Télécharger ma facture</a>
+      <a href="${invoiceUrl}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Télécharger ma facture</a>
     </div>
   </td></tr>
 
