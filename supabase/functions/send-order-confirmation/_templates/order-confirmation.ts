@@ -123,7 +123,7 @@ export function buildOrderConfirmationHtml(
         <a href="${SITE_URL}/order-confirmation?order_id=${orderId || orderNumber}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Voir ma commande</a>
       </td>
       <td style="padding:0 6px;">
-        <a href="${SITE_URL}/invoice/${orderId || orderNumber}" style="display:inline-block;background-color:#ffffff;color:#4f5f31;padding:11px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;border:1px solid #4f5f31;">📄 Télécharger ma facture</a>
+        <a href="${invoiceUrl}" style="display:inline-block;background-color:#ffffff;color:#4f5f31;padding:11px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;border:1px solid #4f5f31;">📄 Télécharger ma facture</a>
       </td>
     </tr></table>
   </td></tr>
