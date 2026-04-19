@@ -57,9 +57,13 @@ export function buildOrderConfirmationHtml(
     shippingAddress,
     estimatedDelivery,
     orderId,
+    invoiceToken,
   } = props;
 
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${SITE_URL}/invoice/${orderId || orderNumber}`)}`;
+  const invoiceId = orderId || orderNumber;
+  const tokenQuery = invoiceToken ? `?token=${encodeURIComponent(invoiceToken)}` : '';
+  const invoiceUrl = `${SITE_URL}/invoice/${invoiceId}${tokenQuery}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(invoiceUrl)}`;
 
   const itemsHtml = items
     .map(
