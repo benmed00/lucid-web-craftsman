@@ -866,10 +866,10 @@ const OrderConfirmation = () => {
             <OrderProcessing snapshot={snapshot} />
           )}
 
-          {/* SUCCESS — ALWAYS renders via resolvedOrder (DB → snapshot → minimal fallback) */}
-          {state === 'success' && (
+          {/* SUCCESS — strict, only renders when DB data is resolved */}
+          {state === 'success' && resolvedOrder && (
             <>
-              {/* HERO: high-confidence success block — elevated, soft-green, animated */}
+              {/* HERO */}
               <div className="bg-gradient-to-b from-primary/10 to-primary/5 border-2 border-primary/20 rounded-2xl shadow-lg p-8 md:p-10 text-center mb-8 animate-scale-in">
                 <div className="w-24 h-24 mx-auto mb-5 rounded-full bg-primary/20 flex items-center justify-center ring-8 ring-primary/5">
                   <CheckCircle className="w-14 h-14 text-primary" strokeWidth={2.5} />
@@ -883,21 +883,12 @@ const OrderConfirmation = () => {
                 <p className="text-muted-foreground text-sm">
                   Un email de confirmation a été envoyé à{' '}
                   <span className="font-medium text-foreground">
-                    {resolvedOrder.email !== 'N/A' ? resolvedOrder.email : 'votre adresse'}
+                    {resolvedOrder.email || 'votre adresse'}
                   </span>
                 </p>
               </div>
 
-              {/* Late-sync notice */}
-              {resolvedOrder.items.length === 0 && (
-                <div className="bg-muted/50 border border-border rounded-xl p-4 mb-6 text-center animate-fade-in">
-                  <p className="text-sm text-muted-foreground">
-                    🔄 Détails en cours de synchronisation. Le récapitulatif complet est disponible dans votre email.
-                  </p>
-                </div>
-              )}
-
-              {/* CTA ZONE — visible above the fold */}
+              {/* CTA ZONE */}
               <div className="bg-card rounded-2xl border border-border shadow-md p-6 mb-6 animate-fade-in">
                 <p className="text-sm font-semibold text-foreground mb-4 text-center">
                   Que souhaitez-vous faire ?
@@ -931,22 +922,22 @@ const OrderConfirmation = () => {
                 </div>
               </div>
 
-              {/* ORDER SUMMARY */}
+              {/* ORDER SUMMARY — strict, real data only */}
               <div className="mb-6 animate-fade-in">
                 <OrderSummaryCard
                   items={resolvedOrder.items}
-                  email={resolvedOrder.email !== 'N/A' ? resolvedOrder.email : undefined}
+                  email={resolvedOrder.email || undefined}
                   customerName={resolvedOrder.customerName || undefined}
                   total={resolvedOrder.total}
-                  subtotal={resolvedOrder.subtotal > 0 ? resolvedOrder.subtotal : undefined}
-                  shipping={resolvedOrder.subtotal > 0 ? resolvedOrder.shipping : undefined}
+                  subtotal={resolvedOrder.subtotal}
+                  shipping={resolvedOrder.shipping}
                   discount={resolvedOrder.discount > 0 ? resolvedOrder.discount : undefined}
-                  orderNumber={resolvedOrder.id !== 'N/A' ? resolvedOrder.id.slice(-8).toUpperCase() : undefined}
+                  orderNumber={resolvedOrder.id.slice(-8).toUpperCase()}
                   orderDate={new Date(resolvedOrder.createdAt).toLocaleDateString('fr-FR', {
                     day: 'numeric', month: 'long', year: 'numeric',
                   })}
                   paymentMethod={resolvedOrder.paymentMethod}
-                  isFromDB={resolvedOrder.isFromDB}
+                  isFromDB
                 />
               </div>
 
