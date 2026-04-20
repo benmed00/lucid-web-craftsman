@@ -335,17 +335,30 @@ function OrderSuccess({
   const orderDate = new Date(order.created_at).toLocaleDateString('fr-FR', {
     day: 'numeric', month: 'long', year: 'numeric',
   });
-  const totalEuros = order.amount / 100;
+
+  // Amounts are stored in EUROS (not cents). DO NOT divide by 100.
+  // Use order.amount as the authoritative total — never recompute from items.
+  const totalEuros = Number(order.amount) || 0;
 
   const items = orderItems.map((item) => ({
     name: item.product_name,
     quantity: item.quantity,
-    price: item.unit_price / 100,
+    price: Number(item.unit_price) || 0,
     image: item.image_url,
   }));
 
-  const subtotal = orderItems.reduce((s, i) => s + i.total_price, 0) / 100;
+  const subtotal = orderItems.reduce((s, i) => s + (Number(i.total_price) || 0), 0);
   const shippingCalc = Math.max(0, totalEuros - subtotal);
+
+  // Hard validation — fail loud if data is missing.
+  if (!orderItems || orderItems.length === 0) {
+    console.error('[OrderConfirmation] CRITICAL: order has no items', { order });
+  }
+  if (!totalEuros || totalEuros <= 0) {
+    console.error('[OrderConfirmation] CRITICAL: invalid order amount', { order });
+  }
+  console.log('[OrderConfirmation] ORDER', order);
+  console.log('[OrderConfirmation] ITEMS', orderItems);
 
   return (
     <>
