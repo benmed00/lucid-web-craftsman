@@ -36,15 +36,30 @@ Deno.serve(async (req) => {
 
     const { data: order, error } = await admin
       .from('orders')
-      .select('id')
+      .select('id, status, order_status')
       .eq('id', order_id)
       .maybeSingle();
 
     if (error) {
-      console.error('[sign-order-token] DB error', error);
+      console.error(JSON.stringify({ fn: 'sign-order-token', step: 'db_query', order_id, reason: error.message }));
       return json({ error: 'Database error' }, 500);
     }
-    if (!order) return json({ error: 'Order not found' }, 404);
+    if (!order) {
+      console.warn(JSON.stringify({ fn: 'sign-order-token', step: 'lookup', order_id, reason: 'not_found' }));
+      return json({ error: 'Order not found' }, 404);
+    }
+
+    // Only issue tokens for orders that have actually been paid / progressed.
+    const ALLOWED = new Set(['paid', 'processing', 'completed', 'shipped', 'delivered']);
+    const status = (order.status || '').toLowerCase();
+    const orderStatus = (order.order_status || '').toLowerCase();
+    if (!ALLOWED.has(status) && !ALLOWED.has(orderStatus)) {
+      console.warn(JSON.stringify({
+        fn: 'sign-order-token', step: 'status_gate', order_id,
+        reason: 'order_not_paid', status, order_status: orderStatus,
+      }));
+      return json({ error: 'Order not ready' }, 409);
+    }
 
     const token = await signOrderToken(order_id);
     return json({ token });
