@@ -319,40 +319,59 @@ const OrderConfirmation = () => {
     localStorage.removeItem('cart');
   }, [clearCart]);
 
-  // Strict token-based load
+  // Strict token-based load with bounded retry (handles payment-confirmation lag).
   const loadOrder = useCallback(async (oid: string) => {
     setState('processing');
-    try {
-      const token = await requestOrderToken(oid);
-      const { order: o, items: its } = await fetchOrderByToken(token);
+    const DELAYS = [500, 1000, 2000];
+    const MAX_ATTEMPTS = DELAYS.length + 1; // 4 total attempts
 
-      if (!o) {
-        console.error('[OrderConfirmation] CRITICAL', { reason: 'no order returned' });
-        setErrorReason('Order not returned');
+    const logFail = (step: string, reason: string, extra: Record<string, unknown> = {}) => {
+      console.error('[OrderConfirmation] CRITICAL', { order_id: oid, step, reason, ...extra });
+    };
+
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      try {
+        const token = await requestOrderToken(oid);
+        const { order: o, items: its } = await fetchOrderByToken(token);
+
+        const amount = Number(o?.amount) || 0;
+        const empty = !o || amount <= 0 || !its || its.length === 0;
+
+        if (!empty) {
+          setOrder(o);
+          setItems(its);
+          setState('success');
+          return;
+        }
+
+        // Retryable: data not yet consistent (webhook still landing).
+        if (attempt < MAX_ATTEMPTS - 1) {
+          console.warn('[OrderConfirmation] retry', {
+            order_id: oid, step: 'load', attempt: attempt + 1, amount, items: its?.length ?? 0,
+          });
+          await new Promise((r) => setTimeout(r, DELAYS[attempt]));
+          continue;
+        }
+
+        logFail('validate', 'empty_after_retries', { amount, items: its?.length ?? 0 });
+        setErrorReason(amount <= 0 ? `Invalid amount (${amount})` : 'No items found');
+        setState('error');
+        return;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Unknown error';
+        // 409 from sign-order-token = not yet paid → retry. Other errors also retried (network blips).
+        if (attempt < MAX_ATTEMPTS - 1) {
+          console.warn('[OrderConfirmation] retry', {
+            order_id: oid, step: 'fetch', attempt: attempt + 1, reason: msg,
+          });
+          await new Promise((r) => setTimeout(r, DELAYS[attempt]));
+          continue;
+        }
+        logFail('fetch', msg);
+        setErrorReason(msg);
         setState('error');
         return;
       }
-      const amount = Number(o.amount) || 0;
-      if (amount <= 0) {
-        console.error('[OrderConfirmation] CRITICAL', { reason: 'amount <= 0', amount, o });
-        setErrorReason(`Invalid amount (${amount})`);
-        setState('error');
-        return;
-      }
-      if (!its || its.length === 0) {
-        console.error('[OrderConfirmation] CRITICAL', { reason: 'no items', o });
-        setErrorReason('No items found');
-        setState('error');
-        return;
-      }
-      setOrder(o);
-      setItems(its);
-      setState('success');
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Unknown error';
-      console.error('[OrderConfirmation] CRITICAL', { reason: msg });
-      setErrorReason(msg);
-      setState('error');
     }
   }, []);
 
