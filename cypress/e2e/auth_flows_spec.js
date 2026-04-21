@@ -71,16 +71,15 @@ describe('Auth: Sign In @auth @smoke', () => {
   it('renders the sign-in form with required fields', () => {
     cy.get(SIGNIN_EMAIL_SELECTOR).first().should('be.visible');
     cy.get(SIGNIN_PASSWORD_SELECTOR).first().should('be.visible');
-    cy.get('button[type="submit"]')
-      .contains(/se connecter|sign in/i)
-      .should('be.visible');
+    // Auth.tsx renders the submit CTA via i18n (t('auth:login.submit'));
+    // in CI i18n can resolve to the key itself before the namespace loads,
+    // so assert on the single submit button in the form, not on its text.
+    cy.get('form button[type="submit"]').first().should('be.visible');
   });
 
   it('shows validation error for empty email submission', () => {
     cy.get(SIGNIN_PASSWORD_SELECTOR).first().type('somepassword');
-    cy.get('button[type="submit"]')
-      .contains(/se connecter|sign in/i)
-      .click();
+    cy.get('form button[type="submit"]').first().click();
     // Either HTML5 validation or custom error
     cy.get(
       `${SIGNIN_EMAIL_SELECTOR.split(',')
@@ -91,9 +90,7 @@ describe('Auth: Sign In @auth @smoke', () => {
 
   it('shows error for incorrect credentials', () => {
     fillSignInForm('not-a-real-user@example.com', 'WrongPassword123!');
-    cy.get('button[type="submit"]')
-      .contains(/se connecter|sign in/i)
-      .click();
+    cy.get('form button[type="submit"]').first().click();
     cy.contains(
       /mot de passe incorrect|invalid|identifiants|connexion échouée|email ou mot de passe/i,
       { timeout: 8000 }
@@ -128,9 +125,7 @@ describe('Auth: Sign In @auth @smoke', () => {
     }
 
     fillSignInForm(email, password);
-    cy.get('button[type="submit"]')
-      .contains(/se connecter|sign in/i)
-      .click();
+    cy.get('form button[type="submit"]').first().click();
 
     cy.url({ timeout: 10000 }).should('not.include', '/auth');
   });
