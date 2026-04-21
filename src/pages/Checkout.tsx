@@ -171,6 +171,7 @@ const Checkout = () => {
                     paymentMethod={c.paymentMethod}
                     total={c.total}
                     isProcessing={c.isProcessing}
+                    paymentError={c.paymentError}
                     onPaymentMethodChange={c.setPaymentMethod}
                     onPayment={c.handlePayment}
                     onEditStep={c.handleEditStep}

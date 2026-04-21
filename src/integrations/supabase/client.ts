@@ -35,10 +35,6 @@ const getGuestId = (): string => {
     const raw = localStorage.getItem(GUEST_SESSION_KEY);
     if (raw) {
       const session = JSON.parse(raw);
-      // Support all storage formats:
-      // - Direct: { guestId: "..." } or { guest_id: "..." }
-      // - safeStorage wrapper: { data: { guestId: "..." }, timestamp: ..., ttl: ... }
-      // - Legacy wrapper: { value: { guestId: "..." } }
       const id =
         session?.guestId ||
         session?.guest_id ||
@@ -47,6 +43,20 @@ const getGuestId = (): string => {
         session?.value?.guestId ||
         session?.value?.guest_id;
       if (id) return id;
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return '';
+};
+
+/** Get the guest signature from storage (if exists) */
+const getGuestSignature = (): string => {
+  try {
+    const raw = localStorage.getItem(GUEST_SESSION_KEY);
+    if (raw) {
+      const session = JSON.parse(raw);
+      return session?.signature || session?.data?.signature || session?.value?.signature || '';
     }
   } catch {
     // Ignore parse errors
@@ -73,9 +83,13 @@ export const supabase = createClient<Database>(
       // that exhaust the browser's 6-connection-per-host limit.
       fetch: (url: RequestInfo | URL, options?: RequestInit) => {
         const guestId = getGuestId();
+        const guestSig = getGuestSignature();
         const headers = new Headers(options?.headers);
         if (guestId) {
           headers.set('x-guest-id', guestId);
+          if (guestSig) {
+            headers.set('x-guest-signature', guestSig);
+          }
         }
 
         // Abort hanging requests after 15s to free connection slots.
@@ -112,34 +126,14 @@ export const supabase = createClient<Database>(
             clearTimeout(timeoutId);
             console.info(`[SupabaseFetch] ← ${response.status} ${shortUrl}`);
 
-            // CRITICAL FIX: If we get a 401 (bad JWT), the stored auth token
-            // is poisoning ALL requests — even anonymous ones.
-            // Clear the bad token immediately so subsequent retries use the anon key.
+            // Log 401/403 for debugging but do NOT wipe auth tokens.
+            // A 403 on an admin-only table is EXPECTED for non-admin users
+            // and should not destroy the entire session.
+            // Only supabase.auth.signOut() should clear auth state.
             if (response.status === 401 || response.status === 403) {
               console.warn(
-                `[SupabaseFetch] ${response.status} detected — clearing stale auth tokens`
+                `[SupabaseFetch] ${response.status} on ${shortUrl} — RLS denied (expected for restricted tables)`
               );
-              try {
-                // Remove all Supabase auth keys from storage
-                const keysToRemove: string[] = [];
-                for (let i = 0; i < localStorage.length; i++) {
-                  const key = localStorage.key(i);
-                  if (
-                    key &&
-                    (key.startsWith('sb-') || key.startsWith('supabase.auth.'))
-                  ) {
-                    keysToRemove.push(key);
-                  }
-                }
-                keysToRemove.forEach((key) => localStorage.removeItem(key));
-                if (keysToRemove.length > 0) {
-                  console.warn(
-                    `[SupabaseFetch] Cleared ${keysToRemove.length} stale auth keys`
-                  );
-                }
-              } catch (e) {
-                // Storage access may fail in private mode — ignore
-              }
             }
 
             return response;

@@ -184,6 +184,7 @@ export function useCheckoutPage() {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [honeypot, setHoneypot] = useState('');
   const [_paymentInitiated, setPaymentInitiated] = useState(false);
   const [paymentOpenedInTab, setPaymentOpenedInTab] = useState(false);
@@ -512,6 +513,12 @@ export function useCheckoutPage() {
   const handlePayment = async () => {
     try {
       setIsProcessing(true);
+      setPaymentError(null);
+
+      // A/B conversion tracking (fire-and-forget)
+      import('@/hooks/useABThemeTest').then(({ trackABConversion }) =>
+        trackABConversion('checkout')
+      ).catch(() => {});
       if (honeypot) {
         toast.error(t('errors.genericError'));
         setIsProcessing(false);
@@ -648,7 +655,32 @@ export function useCheckoutPage() {
       if (data?.url) {
         setPaymentInitiated(true);
         localStorage.setItem('checkout_payment_pending', 'true');
-        window.location.href = data.url;
+
+        // Save checkout snapshot for instant confirmation page rendering
+        try {
+          const snapshot = {
+            email: sanitizedFormData.email,
+            customerName: `${sanitizedFormData.firstName} ${sanitizedFormData.lastName}`.trim(),
+            items: cartItems.map((item) => ({
+              name: item.product.name,
+              quantity: item.quantity,
+              price: item.product.price,
+              image: item.product.images?.[0] || undefined,
+            })),
+            subtotal,
+            shipping,
+            discount,
+            total,
+            currency: 'EUR',
+            timestamp: Date.now(),
+          };
+          localStorage.setItem('checkout_snapshot', JSON.stringify(snapshot));
+        } catch {
+          // Non-critical — confirmation page will still work without snapshot
+        }
+
+        const target = window.top ?? window;
+        target.location.href = data.url;
       } else {
         throw new Error('No checkout URL received');
       }
@@ -656,33 +688,32 @@ export function useCheckoutPage() {
       console.error('Payment error:', error);
       const errorMessage =
         error instanceof Error ? error.message : String(error);
+      let userMessage: string;
       if (
         errorMessage.includes('introuvable') ||
         errorMessage.includes('indisponible') ||
         errorMessage.includes('insuffisant')
       ) {
-        toast.error(errorMessage);
+        userMessage = errorMessage;
       } else if (
         errorMessage.includes('Invalid email') ||
         errorMessage.includes('invalide')
       ) {
-        toast.error(
-          t('errors.invalidEmail', 'Veuillez vérifier vos informations.')
-        );
+        userMessage = t('errors.invalidEmail', 'Veuillez vérifier vos informations.');
       } else if (
         errorMessage.includes('network') ||
         errorMessage.includes('fetch') ||
         errorMessage.includes('Failed to fetch')
       ) {
-        toast.error(
-          t(
-            'errors.networkError',
-            'Erreur réseau. Vérifiez votre connexion et réessayez.'
-          )
+        userMessage = t(
+          'errors.networkError',
+          'Erreur réseau. Vérifiez votre connexion et réessayez.'
         );
       } else {
-        toast.error(t('errors.paymentFailed'));
+        userMessage = t('errors.paymentFailed');
       }
+      setPaymentError(userMessage);
+      toast.error(userMessage);
       setIsProcessing(false);
     }
   };
@@ -694,6 +725,7 @@ export function useCheckoutPage() {
     completedSteps,
     formData,
     formErrors,
+    paymentError,
     honeypot,
     paymentMethod,
     isProcessing,

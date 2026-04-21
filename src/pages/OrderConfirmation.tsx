@@ -1,495 +1,514 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Link,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router-dom';
-import {
-  AlertTriangle,
   CheckCircle,
-  Clock3,
+  ShoppingBag,
   Home,
   Loader2,
   Mail,
-  RefreshCcw,
-  ShoppingBag,
+  Download,
+  Package,
+  AlertTriangle,
+  CreditCard,
+  FileText,
+  Truck,
+  ShieldCheck,
 } from 'lucide-react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import PageFooter from '@/components/PageFooter';
-import { invokeOrderConfirmationLookup } from '@/services/checkoutApi';
-import { disableServiceWorkerForCriticalFlow } from '@/utils/cacheOptimization';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useCart } from '@/stores';
+import { useAuth } from '@/context/AuthContext';
+import {
+  downloadInvoice as downloadInvoiceShared,
+  requestOrderToken,
+  fetchOrderByToken,
+  type OrderByTokenResponse,
+} from '@/lib/invoice/generateInvoice';
 
-type ConfirmationState =
-  | 'verifying'
-  | 'success'
-  | 'payment_failed'
-  | 'technical_issue';
+// ================================================================
+// Types
+// ================================================================
+type OrderRow = OrderByTokenResponse['order'];
+type ItemRow = OrderByTokenResponse['items'][number];
+type ConfirmationState = 'loading' | 'processing' | 'success' | 'error';
 
-interface ConfirmationItem {
-  product_id?: number | null;
-  product_name: string;
-  quantity: number;
-  unit_price: number;
-  total_price: number;
-  image?: string | null;
-}
-
-interface ConfirmationResult {
-  orderId?: string;
-  orderReference?: string;
-  pageVariant?: 'success' | 'payment_failed';
-  amount?: number;
-  currency?: string;
-  createdAt?: string;
-  customerName?: string;
-  customerEmail?: string | null;
-  statusLabel?: string;
-  statusMessage?: string;
-  items?: ConfirmationItem[];
-}
-
-const ORDER_CONFIRMATION_CACHE_PREFIX = 'order_confirmation_cache:';
-const ORDER_CONFIRMATION_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-
-const formatMoney = (amount: number, currency: string) =>
-  new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: currency || 'EUR',
-    minimumFractionDigits: 2,
-  }).format(amount);
-
-const normalizeImageUrl = (raw?: string | null): string | null => {
-  if (!raw) return null;
-  if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
-  if (raw.startsWith('/')) return raw;
-  return `/${raw}`;
+const COUNTRY_NAMES: Record<string, string> = {
+  FR: 'France', DE: 'Allemagne', BE: 'Belgique', CH: 'Suisse',
+  ES: 'Espagne', IT: 'Italie', NL: 'Pays-Bas', GB: 'Royaume-Uni',
+  US: 'États-Unis', CA: 'Canada', MA: 'Maroc',
 };
 
+interface NormalizedItem {
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  image?: string;
+}
+
+function normalizeItems(items: ItemRow[]): NormalizedItem[] {
+  return items.map((it) => {
+    const snap = (it.product_snapshot ?? {}) as { name?: string; images?: string[] };
+    return {
+      name: snap.name || 'Produit',
+      quantity: it.quantity,
+      unitPrice: Number(it.unit_price) || 0,
+      totalPrice: Number(it.total_price) || 0,
+      image: snap.images?.[0],
+    };
+  });
+}
+
+// ================================================================
+// Sub-components
+// ================================================================
+
+function OrderSuccess({
+  order,
+  items,
+  onDownloadInvoice,
+}: {
+  order: OrderRow;
+  items: ItemRow[];
+  onDownloadInvoice: () => void;
+}) {
+  const { user } = useAuth();
+  const normalized = normalizeItems(items);
+  const totalEuros = Number(order.amount) || 0;
+  const subtotal = normalized.reduce((s, i) => s + i.totalPrice, 0);
+  const shippingCalc = Math.max(0, totalEuros - subtotal);
+
+  const orderNumber = order.id.slice(-8).toUpperCase();
+  const orderDate = new Date(order.created_at).toLocaleDateString('fr-FR', {
+    day: 'numeric', month: 'long', year: 'numeric',
+  });
+  const customerEmail =
+    (order.metadata as any)?.customer_email ||
+    (order.shipping_address as any)?.email ||
+    '';
+  const addr = order.shipping_address as any;
+  const customerName = addr ? `${addr.first_name || ''} ${addr.last_name || ''}`.trim() : '';
+
+  // Diagnostics — should never log CRITICAL when state === 'success'.
+  console.log('[OrderConfirmation] ORDER', order);
+  console.log('[OrderConfirmation] ITEMS', items);
+
+  return (
+    <>
+      <div className="bg-gradient-to-b from-primary/10 to-primary/5 border-2 border-primary/20 rounded-2xl shadow-lg p-8 md:p-10 text-center mb-8 animate-scale-in">
+        <div className="w-24 h-24 mx-auto mb-5 rounded-full bg-primary/20 flex items-center justify-center ring-8 ring-primary/5">
+          <CheckCircle className="w-14 h-14 text-primary" strokeWidth={2.5} />
+        </div>
+        <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-3">
+          Paiement confirmé
+        </h1>
+        <p className="text-base md:text-lg text-foreground/90 font-medium mb-2">
+          Votre commande a bien été enregistrée
+        </p>
+        <p className="text-muted-foreground text-sm">
+          Un email de confirmation a été envoyé à{' '}
+          <span className="font-medium text-foreground">{customerEmail || 'votre adresse'}</span>
+        </p>
+      </div>
+
+      {/* CTAs */}
+      <div className="bg-card rounded-2xl border border-border shadow-md p-6 mb-6 animate-fade-in">
+        <p className="text-sm font-semibold text-foreground mb-4 text-center">
+          Que souhaitez-vous faire ?
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Button onClick={onDownloadInvoice} className="gap-2" size="lg">
+            <FileText className="w-5 h-5" />
+            Télécharger la facture
+          </Button>
+          {user ? (
+            <Button asChild variant="outline" size="lg" className="gap-2">
+              <Link to="/orders">
+                <Package className="w-5 h-5" />
+                Voir mes commandes
+              </Link>
+            </Button>
+          ) : (
+            <Button asChild variant="outline" size="lg" className="gap-2">
+              <Link to={`/invoice/${order.id}`}>
+                <Download className="w-5 h-5" />
+                Page facture
+              </Link>
+            </Button>
+          )}
+          <Button asChild variant="secondary" size="lg" className="gap-2">
+            <Link to="/products">
+              <ShoppingBag className="w-5 h-5" />
+              Continuer mes achats
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Order summary */}
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden text-left mb-6 animate-fade-in">
+        <div className="bg-muted/50 px-6 py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+          <p className="text-sm font-semibold text-foreground">Commande #{orderNumber}</p>
+          <p className="text-xs text-muted-foreground">{orderDate}</p>
+        </div>
+
+        {(customerName || customerEmail) && (
+          <div className="px-6 py-3 border-t border-border">
+            <div className="flex items-center gap-2 text-sm">
+              <Package className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span className="font-medium text-foreground">{customerName || 'Client'}</span>
+            </div>
+            {customerEmail && (
+              <p className="text-xs text-muted-foreground ml-6">{customerEmail}</p>
+            )}
+          </div>
+        )}
+
+        <div className="px-6 py-4 border-t border-border">
+          <p className="text-sm font-semibold text-foreground mb-3">Articles</p>
+          <div className="space-y-3">
+            {normalized.map((item, idx) => (
+              <div key={idx} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {item.image && (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-12 h-12 rounded-lg object-cover border border-border"
+                    />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{item.name}</p>
+                    <p className="text-xs text-muted-foreground">Quantité : {item.quantity}</p>
+                  </div>
+                </div>
+                <p className="text-sm font-medium text-foreground">
+                  {(item.unitPrice * item.quantity).toFixed(2)} €
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="px-6 py-4 border-t border-border space-y-1">
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Sous-total</span>
+            <span>{subtotal.toFixed(2)} €</span>
+          </div>
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Livraison</span>
+            <span>{shippingCalc === 0 ? 'Offerte' : `${shippingCalc.toFixed(2)} €`}</span>
+          </div>
+          <div className="flex justify-between text-base font-bold text-foreground pt-2 border-t border-border">
+            <span>Total payé</span>
+            <span>{totalEuros.toFixed(2)} €</span>
+          </div>
+        </div>
+
+        <div className="px-6 py-3 border-t border-border">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <CreditCard className="w-3.5 h-3.5" />
+            <span>Payé par {(order.metadata as any)?.payment_method_label || 'Carte bancaire'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Shipping address */}
+      {addr && (
+        <div className="bg-card rounded-xl border border-border shadow-sm p-5 mb-6">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
+            <Truck className="w-4 h-4" />
+            Adresse de livraison
+          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {addr.first_name} {addr.last_name}<br />
+            {addr.address_line1}<br />
+            {addr.postal_code} {addr.city}<br />
+            {COUNTRY_NAMES[addr.country] || addr.country}
+          </p>
+        </div>
+      )}
+
+      {/* Trust */}
+      <div className="bg-card rounded-xl border border-border shadow-sm p-5 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+          <div className="flex flex-col items-center gap-1.5">
+            <ShieldCheck className="w-6 h-6 text-primary" />
+            <p className="text-xs font-medium text-foreground">Paiement sécurisé</p>
+            <p className="text-[11px] text-muted-foreground">via Stripe</p>
+          </div>
+          <div className="flex flex-col items-center gap-1.5">
+            <Truck className="w-6 h-6 text-primary" />
+            <p className="text-xs font-medium text-foreground">Suivi à venir</p>
+            <p className="text-[11px] text-muted-foreground">par email</p>
+          </div>
+          <div className="flex flex-col items-center gap-1.5">
+            <Mail className="w-6 h-6 text-primary" />
+            <p className="text-xs font-medium text-foreground">Support</p>
+            <a href="mailto:contact@rifrawstraw.com" className="text-[11px] text-primary underline">
+              contact@rifrawstraw.com
+            </a>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function OrderError({ reason }: { reason: string }) {
+  return (
+    <div className="text-center py-16 max-w-md mx-auto">
+      <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-destructive/10 flex items-center justify-center">
+        <AlertTriangle className="w-12 h-12 text-destructive" />
+      </div>
+      <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-3">
+        Impossible d'afficher la commande
+      </h1>
+      <p className="text-muted-foreground mb-2">
+        Nous n'avons pas pu charger les détails de cette commande.
+      </p>
+      <p className="text-muted-foreground text-sm mb-6">
+        Si vous avez été débité, contactez le support — votre paiement est protégé.
+      </p>
+      <p className="text-xs text-muted-foreground/70 mb-6 font-mono">{reason}</p>
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <Button asChild className="gap-2">
+          <a href="mailto:contact@rifrawstraw.com">
+            <Mail className="w-4 h-4" />
+            Contacter le support
+          </a>
+        </Button>
+        <Button asChild variant="outline" className="gap-2">
+          <Link to="/">
+            <Home className="w-4 h-4" />
+            Retour à l'accueil
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
+// Main page
+// ================================================================
 const OrderConfirmation = () => {
-  const { orderReference: routeReference } = useParams();
+  const { t } = useTranslation(['pages', 'common']);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const runRef = useRef(false);
+  const orderId = searchParams.get('order_id');
+  const isPayPal = searchParams.get('paypal') === 'true';
 
-  const token = searchParams.get('token');
+  const [state, setState] = useState<ConfirmationState>('loading');
+  const [order, setOrder] = useState<OrderRow | null>(null);
+  const [items, setItems] = useState<ItemRow[]>([]);
+  const [errorReason, setErrorReason] = useState<string>('');
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+  const { clearCart } = useCart();
+  const { user } = useAuth();
+  const initRef = useRef(false);
 
-  const [state, setState] = useState<ConfirmationState>('verifying');
-  const [message, setMessage] = useState('Nous confirmons votre commande…');
-  const [result, setResult] = useState<ConfirmationResult>({});
-
+  // Clean up cart on mount
   useEffect(() => {
-    disableServiceWorkerForCriticalFlow().catch(() => {
-      /* non-blocking */
-    });
-  }, []);
+    localStorage.removeItem('checkout_payment_pending');
+    clearCart();
+    localStorage.removeItem('cart');
+  }, [clearCart]);
 
-  useEffect(() => {
-    if (runRef.current) return;
-    runRef.current = true;
+  // Strict token-based load with bounded retry (handles payment-confirmation lag).
+  const loadOrder = useCallback(async (oid: string) => {
+    setState('processing');
+    const DELAYS = [500, 1000, 2000];
+    const MAX_ATTEMPTS = DELAYS.length + 1; // 4 total attempts
 
-    const verify = async () => {
-      let effectiveReference = routeReference || '';
-      const cacheKey = routeReference
-        ? `${ORDER_CONFIRMATION_CACHE_PREFIX}${routeReference}`
-        : null;
-      const readCache = () => {
-        if (!cacheKey) return null;
-        try {
-          const raw = localStorage.getItem(cacheKey);
-          if (!raw) return null;
-          const parsed = JSON.parse(raw) as {
-            createdAt?: number;
-            state?: ConfirmationState;
-            message?: string;
-            result?: ConfirmationResult;
-          };
-          if (!parsed?.createdAt || !parsed?.state || !parsed?.message)
-            return null;
-          if (Date.now() - parsed.createdAt > ORDER_CONFIRMATION_CACHE_TTL_MS) {
-            localStorage.removeItem(cacheKey);
-            return null;
-          }
-          return parsed;
-        } catch {
-          return null;
-        }
-      };
-      const persistCache = (
-        nextState: ConfirmationState,
-        nextMessage: string,
-        nextResult: ConfirmationResult
-      ) => {
-        if (!cacheKey) return;
-        try {
-          localStorage.setItem(
-            cacheKey,
-            JSON.stringify({
-              createdAt: Date.now(),
-              state: nextState,
-              message: nextMessage,
-              result: nextResult,
-            })
-          );
-        } catch {
-          // ignore storage errors
-        }
-      };
-
-      if (!token) {
-        const cached = readCache();
-        if (cached) {
-          setState(cached.state!);
-          setMessage(cached.message!);
-          setResult(cached.result || {});
-          return;
-        }
-        setState('technical_issue');
-        setMessage(
-          'Le lien est incomplet. Utilisez le lien recu dans votre email de confirmation.'
-        );
-        return;
-      }
-
-      try {
-        const { data, error } = await invokeOrderConfirmationLookup({
-          token,
-          order_reference: routeReference || null,
-        });
-
-        const payload = data as {
-          found?: boolean;
-          page_variant?: string;
-          order_id?: string;
-          order_reference?: string;
-          amount?: number;
-          currency?: string;
-          created_at?: string;
-          customer_name?: string;
-          customer_email?: string | null;
-          status_label?: string;
-          status_message?: string;
-          items?: unknown;
-        };
-
-        if (error || !payload?.found) {
-          const nextMessage =
-            "Nous ne pouvons pas valider cette commande pour le moment. Contactez le support avec votre reference d'email.";
-          setState('technical_issue');
-          setMessage(nextMessage);
-          persistCache('technical_issue', nextMessage, {});
-          return;
-        }
-
-        const pageVariant: ConfirmationResult['pageVariant'] =
-          payload.page_variant === 'payment_failed'
-            ? 'payment_failed'
-            : 'success';
-
-        const nextResult: ConfirmationResult = {
-          orderId: payload.order_id,
-          orderReference: payload.order_reference,
-          pageVariant,
-          amount:
-            typeof payload.amount === 'number' ? payload.amount : undefined,
-          currency:
-            typeof payload.currency === 'string'
-              ? payload.currency.toUpperCase()
-              : undefined,
-          createdAt: payload.created_at,
-          customerName: payload.customer_name || 'Client inconnu',
-          customerEmail: payload.customer_email || null,
-          statusLabel: payload.status_label,
-          statusMessage: payload.status_message,
-          items: Array.isArray(payload.items) ? payload.items : [],
-        };
-        setResult(nextResult);
-        effectiveReference = nextResult.orderReference || effectiveReference;
-
-        if (nextResult.pageVariant === 'payment_failed') {
-          const nextMessage =
-            "Votre paiement n'a pas pu etre finalise. Aucune somme n'a ete prelevee.";
-          setState('payment_failed');
-          setMessage(nextMessage);
-          persistCache('payment_failed', nextMessage, nextResult);
-        } else {
-          const nextMessage =
-            'Votre paiement a bien ete recu et votre commande est en cours de traitement.';
-          setState('success');
-          setMessage(nextMessage);
-          persistCache('success', nextMessage, nextResult);
-        }
-      } catch {
-        const nextMessage =
-          'Un probleme technique empeche la verification instantanee. Notre equipe vous aide a resoudre cela.';
-        setState('technical_issue');
-        setMessage(nextMessage);
-        persistCache('technical_issue', nextMessage, {});
-      } finally {
-        // Remove token from URL while keeping a unique public reference route.
-        if (effectiveReference) {
-          navigate(
-            `/order-confirmation/${encodeURIComponent(effectiveReference)}`,
-            {
-              replace: true,
-            }
-          );
-        } else {
-          navigate('/order-confirmation', { replace: true });
-        }
-      }
+    const logFail = (step: string, reason: string, extra: Record<string, unknown> = {}) => {
+      console.error('[OrderConfirmation] CRITICAL', { order_id: oid, step, reason, ...extra });
     };
 
-    verify();
-  }, [navigate, routeReference, token]);
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      try {
+        const token = await requestOrderToken(oid);
+        const { order: o, items: its } = await fetchOrderByToken(token);
 
-  const orderLabel = useMemo(() => {
-    if (result.orderReference) return result.orderReference;
-    if (routeReference) return routeReference;
-    if (result.orderId)
-      return `CMD-${result.orderId.replace(/-/g, '').toUpperCase()}`;
-    return null;
-  }, [result.orderId, result.orderReference, routeReference]);
+        const amount = Number(o?.amount) || 0;
+        const empty = !o || amount <= 0 || !its || its.length === 0;
 
-  const dateLabel = useMemo(
-    () =>
-      result.createdAt
-        ? new Date(result.createdAt).toLocaleDateString('fr-FR')
-        : '--',
-    [result.createdAt]
-  );
+        if (!empty) {
+          setOrder(o);
+          setItems(its);
+          setState('success');
+          return;
+        }
+
+        // Retryable: data not yet consistent (webhook still landing).
+        if (attempt < MAX_ATTEMPTS - 1) {
+          console.warn('[OrderConfirmation] retry', {
+            order_id: oid, step: 'load', attempt: attempt + 1, amount, items: its?.length ?? 0,
+          });
+          await new Promise((r) => setTimeout(r, DELAYS[attempt]));
+          continue;
+        }
+
+        logFail('validate', 'empty_after_retries', { amount, items: its?.length ?? 0 });
+        setErrorReason(amount <= 0 ? `Invalid amount (${amount})` : 'No items found');
+        setState('error');
+        return;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Unknown error';
+        // 409 from sign-order-token = not yet paid → retry. Other errors also retried (network blips).
+        if (attempt < MAX_ATTEMPTS - 1) {
+          console.warn('[OrderConfirmation] retry', {
+            order_id: oid, step: 'fetch', attempt: attempt + 1, reason: msg,
+          });
+          await new Promise((r) => setTimeout(r, DELAYS[attempt]));
+          continue;
+        }
+        logFail('fetch', msg);
+        setErrorReason(msg);
+        setState('error');
+        return;
+      }
+    }
+  }, []);
+
+  // Initial verification
+  useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
+
+    if (!orderId) {
+      setErrorReason('Missing order_id in URL');
+      setState('error');
+      return;
+    }
+
+    const run = async () => {
+      try {
+        if (isPayPal) {
+          const paypalToken = searchParams.get('token');
+          if (!paypalToken) {
+            setErrorReason('Missing PayPal token');
+            setState('error');
+            return;
+          }
+          setState('processing');
+          await supabase.functions.invoke('verify-paypal-payment', {
+            body: { paypal_order_id: paypalToken, order_id: orderId },
+          });
+        } else {
+          // Stripe path: fire-and-forget reconcile to flip status server-side.
+          setState('processing');
+          await supabase.functions
+            .invoke('reconcile-payment', { body: { order_id: orderId } })
+            .catch(() => { /* ignore — get-order-by-token will surface truth */ });
+        }
+        await loadOrder(orderId);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Verification failed';
+        console.error('[OrderConfirmation] CRITICAL', { reason: msg });
+        setErrorReason(msg);
+        setState('error');
+      }
+    };
+    run();
+  }, [orderId, isPayPal, searchParams, loadOrder]);
+
+  // Auto-redirect for authenticated users after success
+  useEffect(() => {
+    if (!user || state !== 'success') return;
+    setRedirectCountdown(10);
+    const interval = setInterval(() => {
+      setRedirectCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          navigate('/orders');
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [user, state, navigate]);
+
+  // Invoice download
+  const handleDownloadInvoice = useCallback(async () => {
+    if (!orderId) {
+      toast.error('Identifiant de commande manquant.');
+      return;
+    }
+    try {
+      await downloadInvoiceShared(orderId);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Facture indisponible.';
+      toast.error(msg, {
+        description: "Vous pouvez aussi y accéder depuis l'email de confirmation.",
+      });
+    }
+  }, [orderId]);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="mb-8">
-            {state === 'verifying' && (
-              <>
-                <Loader2 className="w-20 h-20 text-primary mx-auto mb-4 animate-spin" />
-                <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-                  Confirmation en cours
-                </h1>
-              </>
-            )}
+      <div className="container mx-auto px-4 py-8 md:py-16">
+        <div className="max-w-2xl mx-auto">
 
-            {state === 'success' && (
-              <>
-                <CheckCircle className="w-20 h-20 text-green-600 dark:text-green-400 mx-auto mb-4" />
-                <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-                  Paiement confirme
-                </h1>
-              </>
-            )}
-
-            {state === 'payment_failed' && (
-              <>
-                <AlertTriangle className="w-20 h-20 text-amber-500 mx-auto mb-4" />
-                <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-                  Oups... le paiement n'a pas abouti
-                </h1>
-              </>
-            )}
-
-            {state === 'technical_issue' && (
-              <>
-                <div className="w-20 h-20 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mx-auto mb-4">
-                  <AlertTriangle className="w-10 h-10" />
-                </div>
-                <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-                  Oups... quelque chose n'a pas fonctionne
-                </h1>
-              </>
-            )}
-
-            <p className="text-lg text-muted-foreground mb-4">{message}</p>
-
-            {state !== 'verifying' && (
-              <p className="text-base text-foreground/80">
-                Notre equipe traite votre commande normalement.
-              </p>
-            )}
-          </div>
-
-          {state !== 'verifying' && (
-            <div className="rounded-lg border bg-card text-left overflow-hidden mb-8">
-              <div className="px-6 py-4 bg-muted/40 border-b">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                  <div className="text-lg font-semibold">
-                    Commande #{orderLabel || '---'}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Date: {dateLabel}
-                  </div>
+          {(state === 'loading' || state === 'processing') && (
+            <div className="text-center py-16">
+              <div className="relative w-20 h-20 mx-auto mb-6">
+                <CheckCircle className="w-20 h-20 text-primary" />
+                <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
                 </div>
               </div>
-
-              <div className="px-6 py-4 border-b">
-                <p className="font-medium">
-                  {result.customerName || 'Client inconnu'}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {result.customerEmail || 'Email inconnu'}
-                </p>
-              </div>
-
-              <div className="px-6 py-4 border-b">
-                <h3 className="font-medium mb-3">Details</h3>
-                <div className="space-y-3">
-                  {(result.items || []).map((item, index) => (
-                    <div
-                      key={`${item.product_name}-${index}`}
-                      className="flex items-center justify-between gap-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        {item.image ? (
-                          <img
-                            src={normalizeImageUrl(item.image) || undefined}
-                            alt={item.product_name}
-                            className="w-12 h-12 rounded object-cover border"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded border bg-muted" />
-                        )}
-                        <div>
-                          <p className="font-medium">{item.product_name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Quantite: {item.quantity}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="font-medium">
-                        {formatMoney(
-                          item.total_price,
-                          result.currency || 'EUR'
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {(result.items || []).length === 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      Les details de commande seront disponibles sous peu.
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold">Total</span>
-                  <span className="text-xl font-semibold">
-                    {formatMoney(result.amount || 0, result.currency || 'EUR')}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {state !== 'verifying' && (
-            <div className="rounded-lg border bg-muted/30 p-6 mb-8">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Clock3 className="w-5 h-5" />
-                <p className="text-xl font-semibold">
-                  Statut: {result.statusLabel || 'Probleme technique'}
-                </p>
-              </div>
+              <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
+                Paiement confirmé ✓
+              </h1>
               <p className="text-muted-foreground">
-                {result.statusMessage || message}
+                Chargement des détails de votre commande…
               </p>
             </div>
           )}
 
-          {state === 'success' && (
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button variant="outline" className="gap-2" disabled>
-                <Clock3 className="w-4 h-4" />
-                Voir le suivi (bientot)
-              </Button>
-              <Button asChild className="gap-2">
-                <Link
-                  to={
-                    orderLabel
-                      ? `/contact?orderRef=${encodeURIComponent(orderLabel)}`
-                      : '/contact'
-                  }
-                >
-                  <Mail className="w-4 h-4" />
-                  Contact Support
-                </Link>
-              </Button>
-              <Button asChild variant="secondary" className="gap-2">
-                <Link to="/products">
-                  <ShoppingBag className="w-4 h-4" />
-                  Continuer vos achats
-                </Link>
-              </Button>
-            </div>
+          {state === 'success' && order && (
+            <OrderSuccess
+              order={order}
+              items={items}
+              onDownloadInvoice={handleDownloadInvoice}
+            />
           )}
 
-          {state === 'payment_failed' && (
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button asChild className="gap-2">
-                <Link to="/checkout">
-                  <RefreshCcw className="w-4 h-4" />
-                  Reessayer le paiement
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="gap-2">
-                <Link to="/checkout">
-                  <ShoppingBag className="w-4 h-4" />
-                  Choisir un autre moyen de paiement
-                </Link>
-              </Button>
-              <Button asChild variant="secondary" className="gap-2">
-                <Link
-                  to={
-                    orderLabel
-                      ? `/contact?orderRef=${encodeURIComponent(orderLabel)}`
-                      : '/contact'
-                  }
-                >
-                  <Mail className="w-4 h-4" />
-                  Contact Support
-                </Link>
-              </Button>
-            </div>
+          {state === 'error' && <OrderError reason={errorReason} />}
+
+          {state === 'success' && user && redirectCountdown !== null && (
+            <p className="text-sm text-muted-foreground text-center mt-4">
+              Redirection vers vos commandes dans {redirectCountdown}s…{' '}
+              <button
+                onClick={() => setRedirectCountdown(null)}
+                className="underline text-primary hover:text-primary/80"
+              >
+                Annuler
+              </button>
+            </p>
           )}
 
-          {state === 'technical_issue' && (
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button asChild className="gap-2">
-                <Link to="/checkout">
-                  <RefreshCcw className="w-4 h-4" />
-                  Reessayer le paiement
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="gap-2">
-                <Link to="/products">
-                  <ShoppingBag className="w-4 h-4" />
-                  Continuer vos achats
-                </Link>
-              </Button>
-              <Button asChild variant="secondary" className="gap-2">
-                <Link
-                  to={
-                    orderLabel
-                      ? `/contact?orderRef=${encodeURIComponent(orderLabel)}`
-                      : '/contact'
-                  }
-                >
-                  <Mail className="w-4 h-4" />
-                  Contact Support
-                </Link>
-              </Button>
-              <Button asChild variant="ghost" className="gap-2">
-                <Link to="/">
-                  <Home className="w-4 h-4" />
-                  Retour a l'accueil
-                </Link>
-              </Button>
-            </div>
-          )}
+          {/* Help section */}
+          <div className="mt-12 p-6 bg-primary/10 rounded-lg text-center">
+            <h3 className="text-lg font-medium text-foreground mb-2">
+              {t('pages:paymentSuccess.help.title')}
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              {t('pages:paymentSuccess.help.description')}
+            </p>
+            <Button variant="outline" asChild>
+              <Link to="/contact" className="flex items-center justify-center">
+                <Mail className="w-4 h-4 mr-2" />
+                {t('common:nav.contact')}
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 

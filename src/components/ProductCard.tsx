@@ -24,8 +24,9 @@ import { useCurrency } from '@/stores';
 import { hapticFeedback } from '@/utils/haptics';
 import { useCompareStore } from '@/stores/compareStore';
 
-// Create context for stock sharing - this will be provided by ProductShowcase
-const StockContext = createContext<Record<number, StockInfo>>({});
+// Sentinel to distinguish "no provider" from "provider with empty data"
+const NO_PROVIDER = Symbol('no-stock-provider');
+const StockContext = createContext<Record<number, StockInfo> | typeof NO_PROVIDER>(NO_PROVIDER);
 const useStockContext = () => useContext(StockContext);
 
 interface ProductCardProps {
@@ -48,18 +49,19 @@ const ProductCard = ({
   const { t } = useTranslation('products');
   const { addItem: addToCompare, isInCompare } = useCompareStore();
 
-  // Try to get stock info from context first (for ProductShowcase)
+  // Try to get stock info from context first (batch provider)
   const stockContext = useStockContext();
-  const contextStockInfo = stockContext[product.id];
+  const hasProvider = stockContext !== NO_PROVIDER;
+  const contextStockInfo = hasProvider ? (stockContext as Record<number, StockInfo>)[product.id] : undefined;
 
-  // Fallback to individual hook if not in context (for other components)
+  // Only fire individual query if NO provider exists (standalone usage)
   const { stockInfo: individualStockInfo } = useStock({
     productId: product.id,
-    enabled: !contextStockInfo,
+    enabled: !hasProvider,
   });
 
-  // Use context stock info if available, otherwise use individual
-  const stockInfo = contextStockInfo || individualStockInfo;
+  // Use context stock info if provider exists, otherwise use individual
+  const stockInfo = hasProvider ? contextStockInfo : individualStockInfo;
 
   const [showShareDialog, setShowShareDialog] = useState(false);
   const { formatPrice } = useCurrency();
@@ -77,14 +79,14 @@ const ProductCard = ({
   return (
     <Card
       id={cardId}
-      className="bg-card border border-border overflow-hidden group hover:shadow-2xl transition-all duration-500 relative touch-manipulation rounded-xl sm:rounded-2xl hover:scale-[1.01] sm:hover:scale-[1.02] hover:-translate-y-1 shadow-md hover:shadow-xl hover:border-primary/30 w-full"
+      className="bg-card border border-border/40 overflow-hidden group hover:shadow-elegant transition-all duration-500 relative touch-manipulation rounded-2xl hover:-translate-y-1 shadow-sm w-full"
       role="article"
       aria-labelledby={`product-title-${product.id}`}
       aria-describedby={`product-price-${product.id} ${singleStockInfo?.isOutOfStock ? `product-stock-${product.id}` : ''}`}
     >
       <Link to={`/products/${product.id}`} className="block touch-manipulation">
         <div className="relative group/image">
-          <div className="aspect-square sm:aspect-[4/5] w-full overflow-hidden rounded-t-xl">
+          <div className="aspect-[4/5] w-full overflow-hidden rounded-t-2xl bg-secondary/30">
             <ProductImage
               src={product.images[0]}
               alt={product.name}
@@ -200,7 +202,7 @@ const ProductCard = ({
         </div>
       </Link>
 
-      <CardContent className="p-3 sm:p-4 md:p-5 relative">
+      <CardContent className="p-3 sm:p-4 md:p-5 relative space-y-1.5 sm:space-y-2">
         {/* Wishlist button - repositioned to top-right of white section */}
         <div
           className="absolute -top-2 right-2 sm:right-3 z-20"
@@ -215,13 +217,13 @@ const ProductCard = ({
           />
         </div>
 
-        <p className="text-[10px] sm:text-xs text-primary font-medium mb-1 sm:mb-2 uppercase tracking-wide">
+        <p className="text-[11px] sm:text-xs text-primary font-semibold mb-0.5 sm:mb-1 uppercase tracking-wider">
           {product.category}
         </p>
         <Link to={`/products/${product.id}`} className="touch-manipulation">
           <h3
             id={`product-title-${product.id}`}
-            className="font-serif text-sm sm:text-base md:text-lg font-medium text-foreground mb-2 sm:mb-3 line-clamp-2 leading-snug hover:text-primary transition-colors duration-200 pr-8 sm:pr-10 flex items-start gap-1"
+            className="font-serif text-[15px] sm:text-base md:text-lg font-semibold text-foreground mb-1.5 sm:mb-2 line-clamp-2 leading-snug hover:text-primary transition-colors duration-200 pr-8 sm:pr-10 flex items-start gap-1"
           >
             <span>{product.name}</span>
             {isFallback && fallbackLocale && (
@@ -237,7 +239,7 @@ const ProductCard = ({
           <div className="relative">
             <p
               id={`product-price-${product.id}`}
-              className="text-foreground font-bold text-base sm:text-lg md:text-xl whitespace-nowrap"
+              className="text-foreground font-bold text-[17px] sm:text-lg md:text-xl whitespace-nowrap"
               aria-label={t('details.priceLabel', {
                 price: formatPrice(product.price),
               })}
@@ -272,7 +274,7 @@ const ProductCard = ({
                 onAddToCart(product);
               }}
               disabled={singleStockInfo?.isOutOfStock}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-3 sm:px-4 py-2.5 sm:py-3 touch-manipulation min-h-[44px] sm:min-h-[48px] font-semibold text-xs sm:text-sm rounded-lg shadow-md hover:shadow-lg disabled:hover:bg-primary disabled:hover:shadow-md group relative overflow-hidden border-0"
+              className="w-full bg-foreground hover:bg-foreground/90 text-background active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-3 sm:px-4 py-3 sm:py-3 touch-manipulation min-h-[48px] sm:min-h-[48px] font-semibold text-sm rounded-full shadow-sm hover:shadow-md disabled:hover:bg-foreground disabled:hover:shadow-sm group relative overflow-hidden border-0"
               aria-label={
                 singleStockInfo?.isOutOfStock
                   ? t('details.outOfStock')

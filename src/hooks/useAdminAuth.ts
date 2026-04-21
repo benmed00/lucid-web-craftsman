@@ -1,12 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
-import {
-  fetchAdminIdLastLoginRow,
-  fetchAdminUserFullRow,
-  rpcVerifyAdminSession,
-  touchAdminLastLogin,
-  updateAdminUsersByUserId,
-} from '@/services/adminAuthApi';
+// src/hooks/useAdminAuth.ts
+// Admin auth hook — derives admin status from AuthContext role (user_roles table)
+// No longer queries admin_users table for authorization
+
+import { useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { canAdmin, logAccessDenied } from '@/lib/rbac';
 
 export interface AdminUser {
   id: string;
@@ -17,156 +15,31 @@ export interface AdminUser {
 }
 
 export const useAdminAuth = () => {
-  const { user, isLoading: authLoading } = useAuth();
-  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const hasCheckedRef = useRef(false);
-  const currentUserIdRef = useRef<string | null>(null);
+  const { user, role, isLoading: authLoading, isRoleLoading, refreshRole } = useAuth();
 
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      // If auth is still loading, keep loading
-      if (authLoading) {
-        return;
-      }
+  const isLoading = authLoading || isRoleLoading;
+  const isAuthenticated = useMemo(() => canAdmin(role), [role]);
 
-      // If no user, clear admin state
-      if (!user) {
-        setAdminUser(null);
-        setIsAuthenticated(false);
-        setIsLoading(false);
-        hasCheckedRef.current = false;
-        currentUserIdRef.current = null;
-        return;
-      }
-
-      // Avoid unnecessary checks for the same user
-      if (hasCheckedRef.current && currentUserIdRef.current === user.id) {
-        return;
-      }
-
-      setIsLoading(true);
-      currentUserIdRef.current = user.id;
-
-      try {
-        console.log('[useAdminAuth] Checking admin status for user:', user.id);
-
-        // Use server-side verification function (cannot be spoofed via DevTools)
-        const { data: verifyResult, error: verifyError } =
-          await rpcVerifyAdminSession();
-
-        console.log('[useAdminAuth] RPC result:', {
-          verifyResult,
-          verifyError,
-        });
-
-        if (verifyError) {
-          console.error(
-            '[useAdminAuth] Error verifying admin session:',
-            verifyError
-          );
-          // Fallback to direct query if RPC fails
-          const { data: adminProfile, error } = await fetchAdminUserFullRow(
-            user.id
-          );
-
-          console.log('[useAdminAuth] Fallback query result:', {
-            adminProfile,
-            error,
-          });
-
-          if (error || !adminProfile) {
-            setAdminUser(null);
-            setIsAuthenticated(false);
-          } else {
-            const admin: AdminUser = {
-              id: adminProfile.id,
-              email: adminProfile.email,
-              name: adminProfile.name,
-              role: adminProfile.role as 'admin' | 'super-admin',
-              lastLogin: adminProfile.last_login || new Date().toISOString(),
-            };
-            setAdminUser(admin);
-            setIsAuthenticated(true);
-          }
-        } else if (
-          verifyResult &&
-          verifyResult.length > 0 &&
-          verifyResult[0].is_admin
-        ) {
-          // Server verified admin status - this is secure
-          const result = verifyResult[0];
-          console.log('[useAdminAuth] Admin verified:', result);
-
-          // Fetch full admin profile for additional details
-          const { data: adminProfile } = await fetchAdminIdLastLoginRow(
-            user.id
-          );
-
-          const admin: AdminUser = {
-            id: adminProfile?.id || user.id,
-            email: result.admin_email || user.email || '',
-            name: result.admin_name || '',
-            role: result.admin_role as 'admin' | 'super-admin',
-            lastLogin: adminProfile?.last_login || new Date().toISOString(),
-          };
-          setAdminUser(admin);
-          setIsAuthenticated(true);
-
-          // Update last login silently (don't wait for it)
-          touchAdminLastLogin(user.id);
-        } else {
-          // Server verified: not an admin
-          console.log('[useAdminAuth] User is not an admin');
-          setAdminUser(null);
-          setIsAuthenticated(false);
-        }
-
-        hasCheckedRef.current = true;
-      } catch (error) {
-        console.error('Error checking admin status:', error);
-        setAdminUser(null);
-        setIsAuthenticated(false);
-        hasCheckedRef.current = true;
-      } finally {
-        setIsLoading(false);
-      }
+  const adminUser: AdminUser | null = useMemo(() => {
+    if (!user || !isAuthenticated) return null;
+    return {
+      id: user.id,
+      email: user.email ?? '',
+      name: user.user_metadata?.full_name ?? user.email ?? '',
+      role: role === 'super_admin' ? 'super-admin' : 'admin',
+      lastLogin: new Date().toISOString(),
     };
+  }, [user, isAuthenticated, role]);
 
-    checkAdminStatus();
-  }, [user?.id, authLoading]); // Only depend on user.id, not the whole user object
-
-  const updateProfile = async (updates: Partial<AdminUser>) => {
-    if (!user || !adminUser) throw new Error('No admin user logged in');
-
-    try {
-      const { error } = await updateAdminUsersByUserId(user.id, {
-        name: updates.name || adminUser.name,
-        role: updates.role || adminUser.role,
-      });
-
-      if (error) throw error;
-
-      const updatedAdmin = { ...adminUser, ...updates };
-      setAdminUser(updatedAdmin);
-      return updatedAdmin;
-    } catch (error) {
-      console.error('Error updating admin profile:', error);
-      throw new Error('Erreur lors de la mise à jour du profil');
-    }
-  };
-
-  // Re-verify admin status on demand (for sensitive operations)
+  // Re-verify by refreshing role from RPC
   const reverifyAdmin = async (): Promise<boolean> => {
     try {
-      const { data: verifyResult, error } = await rpcVerifyAdminSession();
-      if (error || !verifyResult || verifyResult.length === 0) {
-        setIsAuthenticated(false);
-        setAdminUser(null);
-        return false;
+      const freshRole = await refreshRole();
+      const result = canAdmin(freshRole);
+      if (!result) {
+        logAccessDenied(freshRole, 'reverifyAdmin');
       }
-      return verifyResult[0].is_admin === true;
+      return result;
     } catch {
       return false;
     }
@@ -177,12 +50,8 @@ export const useAdminAuth = () => {
     isLoading,
     isAuthenticated,
     reverifyAdmin,
-    login: () => {
-      throw new Error('Use regular auth login instead');
-    },
-    logout: () => {
-      throw new Error('Use regular auth logout instead');
-    },
-    updateProfile,
+    login: () => { throw new Error('Use regular auth login instead'); },
+    logout: () => { throw new Error('Use regular auth logout instead'); },
+    updateProfile: async () => { throw new Error('Use AuthContext updateProfile'); },
   };
 };

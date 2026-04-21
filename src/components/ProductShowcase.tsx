@@ -6,7 +6,7 @@ import { useMemo, useState, useCallback, useEffect } from 'react';
 import ProductCard, { StockContext } from './ProductCard';
 import { ProductQuickView } from './ProductQuickView';
 import { Card, CardContent } from '@/components/ui/card';
-import { useStock } from '@/hooks/useStock';
+import { useBatchStock } from '@/hooks/useBatchStock';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSafetyTimeout } from '@/hooks/useSafetyTimeout';
@@ -92,9 +92,8 @@ const ProductShowcase = () => {
   }, [translatedProducts]);
 
   // Batch stock loading — deferred until products have rendered
-  // to avoid competing with product queries for connection slots
   const productIds = featuredProducts.map((p) => p.id);
-  const { stockInfo } = useStock({
+  const { stockMap } = useBatchStock({
     productIds,
     enabled: productIds.length > 0 && !loading,
   });
@@ -266,7 +265,7 @@ const ProductShowcase = () => {
   }
 
   return (
-    <StockContext.Provider value={stockInfo || {}}>
+    <StockContext.Provider value={stockMap}>
       <section
         className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6"
         aria-label={t('showcase.ariaLabel')}

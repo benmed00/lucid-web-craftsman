@@ -47,7 +47,7 @@ describe('Order confirmation (mocked DB) @regression', () => {
 
     cy.visit(`/order-confirmation?order_id=${orderId}`);
 
-    cy.contains(/Paiement confirmé|Payment confirmed/i, {
+    cy.contains(/Paiement confirmé|Payment confirmed|Paiement reçu/i, {
       timeout: 25000,
     }).should('be.visible');
 

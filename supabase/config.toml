@@ -60,3 +60,18 @@ verify_jwt = false
 
 [functions.stripe-session-display]
 verify_jwt = false
+
+[functions.reconcile-payment]
+verify_jwt = false
+
+[functions.cleanup-pending-orders]
+verify_jwt = false
+
+[functions.sign-order-token]
+verify_jwt = false
+
+[functions.get-order-by-token]
+verify_jwt = false
+
+[functions.order-confirmation-lookup]
+verify_jwt = false

@@ -16,6 +16,9 @@ import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { lazy, Suspense, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { resolveHydrationWatchdog } from '@/lib/storage/StorageGuard';
+import { initPixels } from '@/lib/tracking/pixels';
+import { usePageTracking } from '@/lib/tracking/usePageTracking';
+import ABThemeTestRunner from '@/components/ABThemeTestRunner';
 
 // Critical page loaded immediately (landing page only)
 import Index from './pages/Index';
@@ -63,6 +66,8 @@ const OrderConfirmationEntry = lazyWithRetry(
 const OrderConfirmation = lazyWithRetry(
   () => import('./pages/OrderConfirmation')
 );
+const Invoice = lazyWithRetry(() => import('./pages/Invoice'));
+// Legacy route — kept for backward-compatible redirect
 const PaymentSuccess = lazyWithRetry(() => import('./pages/PaymentSuccess'));
 const Wishlist = lazyWithRetry(() => import('./pages/Wishlist'));
 const FAQ = lazyWithRetry(() => import('./pages/FAQ'));
@@ -72,10 +77,12 @@ const OrderHistory = lazyWithRetry(() => import('./pages/OrderHistory'));
 const Returns = lazyWithRetry(() => import('./pages/Returns'));
 const Shipping = lazyWithRetry(() => import('./pages/Shipping'));
 const Story = lazyWithRetry(() => import('./pages/Story'));
+const Artisans = lazyWithRetry(() => import('./pages/Artisans'));
 const Terms = lazyWithRetry(() => import('./pages/Terms'));
 const TermsOfService = lazyWithRetry(() => import('./pages/TermsOfService'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
 const Unsubscribe = lazyWithRetry(() => import('./pages/Unsubscribe'));
+const Logout = lazyWithRetry(() => import('./pages/Logout'));
 const NewsletterExitIntent = lazyWithRetry(
   () => import('./components/NewsletterExitIntent')
 );
@@ -167,12 +174,13 @@ const PageLoadingFallback = () => (
 
 const basePath: string = '/';
 
-// Register global navigate function for use in toast callbacks etc.
+// Register global navigate function + tracking pixels
 const NavigateRegistrar = () => {
   const nav = useNavigate();
   useEffect(() => {
     setNavigate(nav);
   }, [nav]);
+  usePageTracking();
   return null;
 };
 
@@ -206,10 +214,11 @@ const MaintenanceWrapper = ({ children }: { children: React.ReactNode }) => {
     return <>{children}</>;
   }
 
-  // Normal operation: show navigation + children
+  // Normal operation: show navigation + A/B test runner + children
   return (
     <>
       <Navigation />
+      <ABThemeTestRunner />
       {children}
     </>
   );
@@ -222,6 +231,7 @@ const App = () => {
   // Resolve hydration watchdog — app rendered successfully
   useEffect(() => {
     resolveHydrationWatchdog();
+    initPixels();
   }, []);
 
   // Product prefetch removed — the Index page's useProductsWithTranslations()
@@ -332,6 +342,15 @@ const App = () => {
                           </Suspense>
                         }
                       />
+                      <Route
+                        path="/invoice/:orderId"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Invoice />
+                          </Suspense>
+                        }
+                      />
+                      {/* Legacy route: redirect old links to new route */}
                       <Route
                         path="/payment-success"
                         element={
@@ -453,10 +472,26 @@ const App = () => {
                         }
                       />
                       <Route
+                        path="/logout"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Logout />
+                          </Suspense>
+                        }
+                      />
+                      <Route
                         path="/story"
                         element={
                           <Suspense fallback={<PageLoadingFallback />}>
                             <Story />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/artisans"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Artisans />
                           </Suspense>
                         }
                       />

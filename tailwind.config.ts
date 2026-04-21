@@ -102,18 +102,41 @@ export default {
           ring: 'hsl(var(--sidebar-ring))',
         },
         // Custom colors using semantic tokens from CSS variables
+        sand: {
+          50: 'hsl(var(--sand-50))',
+          100: 'hsl(var(--sand-100))',
+          200: 'hsl(var(--sand-200))',
+          300: 'hsl(var(--sand-300))',
+          400: 'hsl(var(--sand-400))',
+          500: 'hsl(var(--sand-500))',
+          600: 'hsl(var(--sand-600))',
+          700: 'hsl(var(--sand-700))',
+          800: 'hsl(var(--sand-800))',
+          900: 'hsl(var(--sand-900))',
+        },
+        earth: {
+          50: 'hsl(var(--earth-50))',
+          100: 'hsl(var(--earth-100))',
+          200: 'hsl(var(--earth-200))',
+          300: 'hsl(var(--earth-300))',
+          400: 'hsl(var(--earth-400))',
+          500: 'hsl(var(--earth-500))',
+        },
+        beige: {
+          50: 'hsl(var(--beige-50))',
+          100: 'hsl(var(--beige-100))',
+        },
+        // Backward-compatible aliases
         olive: {
           50: 'hsl(var(--olive-50))',
           100: 'hsl(var(--olive-100))',
           200: 'hsl(var(--olive-200))',
           300: 'hsl(var(--olive-300))',
           500: 'hsl(var(--olive-500))',
+          600: 'hsl(var(--sand-600))',
           700: 'hsl(var(--olive-700))',
           800: 'hsl(var(--olive-800))',
           900: 'hsl(var(--olive-900))',
-        },
-        beige: {
-          50: 'hsl(var(--beige-50))',
         },
         stone: {
           50: 'hsl(var(--stone-50))',
@@ -140,6 +163,39 @@ export default {
           '"Times New Roman"',
           'Times',
           'serif',
+        ],
+        sans: [
+          'Inter',
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          'sans-serif',
+        ],
+      },
+      fontSize: {
+        display: [
+          '3rem',
+          { lineHeight: '1.15', letterSpacing: '0.02em', fontWeight: '700' },
+        ],
+        h1: [
+          '2.5rem',
+          { lineHeight: '1.2', letterSpacing: '0.015em', fontWeight: '700' },
+        ],
+        h2: [
+          '1.875rem',
+          { lineHeight: '1.25', letterSpacing: '0.01em', fontWeight: '600' },
+        ],
+        h3: [
+          '1.5rem',
+          { lineHeight: '1.3', letterSpacing: '0.01em', fontWeight: '600' },
+        ],
+        'body-lg': ['1.125rem', { lineHeight: '1.6', fontWeight: '400' }],
+        body: ['1rem', { lineHeight: '1.6', fontWeight: '400' }],
+        cta: [
+          '0.875rem',
+          { lineHeight: '1', letterSpacing: '0.08em', fontWeight: '600' }
         ],
       },
       keyframes: {
@@ -184,6 +240,7 @@ export default {
       boxShadow: {
         elegant: 'var(--shadow-elegant)',
         glow: 'var(--shadow-glow)',
+        premium: 'var(--shadow-premium)',
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',

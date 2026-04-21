@@ -1,5 +1,5 @@
 // src/context/AuthContext.tsx
-// Unified Authentication Context - consolidates useAuth and useOptimizedAuth
+// Unified Authentication Context with RBAC
 
 import React, {
   createContext,
@@ -8,6 +8,7 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
   ReactNode,
 } from 'react';
 import { User, Session, AuthOtpResponse } from '@supabase/supabase-js';
@@ -15,6 +16,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { initializeWishlistStore } from '@/stores';
 import { useQueryClient } from '@tanstack/react-query';
 import { profileCache, useProfileActions } from './useProfileManager';
+import type { AppRole } from '@/lib/rbac';
+import { logRoleResolved, logSessionEvent } from '@/lib/rbac';
+
+// Re-export AppRole for backward compat
+export type { AppRole } from '@/lib/rbac';
 
 // ============= Auth State Cleanup Utility =============
 export const cleanupAuthState = () => {
@@ -32,6 +38,9 @@ export const cleanupAuthState = () => {
   });
 };
 
+// Purge anything the checkout flow staged in storage so a SIGNED_IN /
+// SIGNED_OUT transition cannot leak the previous customer's in-flight
+// checkout or coupon into the next session.
 const clearCheckoutContextState = () => {
   const keys = [
     'checkout_form_data',
@@ -85,13 +94,14 @@ export interface AuthState {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  role: AppRole;
   isLoading: boolean;
   isInitialized: boolean;
+  isRoleLoading: boolean;
 }
 
 interface AuthContextType extends AuthState {
   isAuthenticated: boolean;
-  // Auth methods
   signIn: (
     email: string,
     password: string
@@ -103,7 +113,6 @@ interface AuthContextType extends AuthState {
     phone?: string
   ) => Promise<{ user: User | null; session: Session | null }>;
   signOut: () => Promise<void>;
-  // OTP methods
   signInWithOtp: (
     email: string,
     options?: { shouldCreateUser?: boolean }
@@ -113,34 +122,51 @@ interface AuthContextType extends AuthState {
     token: string,
     type?: 'email' | 'sms'
   ) => Promise<{ user: User | null; session: Session | null }>;
-  // Password methods
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
-  // Profile methods
   updateProfile: (profileData: Partial<Profile>) => Promise<Profile>;
   refreshProfile: () => Promise<Profile | null>;
+  refreshRole: () => Promise<AppRole>;
 }
 
 // ============= Context =============
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// ============= Role Resolution =============
+const ROLE_REFRESH_INTERVAL = 60_000; // 60 seconds
+
+async function fetchUserRole(): Promise<AppRole> {
+  try {
+    const { data, error } = await supabase.rpc('get_user_role');
+    if (error) {
+      console.warn('[AUTH_ROLE_RESOLVED] RPC error, fallback to user:', error.message);
+      return 'user';
+    }
+    return (data as string) as AppRole;
+  } catch (err) {
+    console.warn('[AUTH_ROLE_RESOLVED] Exception, fallback to user:', err);
+    return 'user';
+  }
+}
+
 // ============= Provider =============
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // useQueryClient is safe here because AuthProvider is always rendered
-  // inside QueryClientProvider (see App.tsx). Never wrap hooks in try/catch.
   const queryClient = useQueryClient();
+  const roleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     session: null,
     profile: null,
+    role: 'anonymous',
     isLoading: true,
     isInitialized: false,
+    isRoleLoading: false,
   });
 
   const isAuthenticated = useMemo(() => !!authState.user, [authState.user]);
 
-  // Profile management (extracted to useProfileManager)
+  // Profile management
   const setProfile = useCallback((profile: Profile | null) => {
     setAuthState((prev) => ({ ...prev, profile }));
   }, []);
@@ -150,235 +176,211 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile
   );
 
+  // Role loading — single RPC, cached in memory, with timeout protection
+  const loadUserRole = useCallback(async (): Promise<AppRole> => {
+    setAuthState((prev) => ({ ...prev, isRoleLoading: true }));
+    
+    // Timeout protection: if RPC takes >5s, fallback to 'user'
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const timeoutPromise = new Promise<AppRole>((resolve) => {
+      timeoutId = setTimeout(() => {
+        console.warn('[AUTH_SESSION_EVENT] Role RPC timed out after 5s, fallback to user');
+        resolve('user');
+      }, 5000);
+    });
+    
+    const role = await Promise.race([fetchUserRole(), timeoutPromise]);
+    if (timeoutId) clearTimeout(timeoutId);
+    
+    setAuthState((prev) => {
+      if (prev.role !== role) {
+        logRoleResolved(prev.user?.id ?? 'unknown', role, 'get_user_role');
+        return { ...prev, role, isRoleLoading: false };
+      }
+      return { ...prev, isRoleLoading: false };
+    });
+    return role;
+  }, []);
+
+  // Refresh role — exposed to consumers
+  const refreshRole = useCallback(async (): Promise<AppRole> => {
+    return loadUserRole();
+  }, [loadUserRole]);
+
+  // Live role sync: window focus + interval
+  useEffect(() => {
+    if (!authState.user) return;
+
+    const handleFocus = () => {
+      loadUserRole();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    roleIntervalRef.current = setInterval(loadUserRole, ROLE_REFRESH_INTERVAL);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      if (roleIntervalRef.current) clearInterval(roleIntervalRef.current);
+    };
+  }, [authState.user?.id, loadUserRole]);
+
   // Initialize auth state
   useEffect(() => {
     let isMounted = true;
+    // Guard: ignore onAuthStateChange events until initAuth() completes
+    const initDone = { current: false };
 
-    // Safety timeout: force isLoading to false after 4s, with one retry
-    let retried = false;
+    // Safety timeout — if init hasn't completed in 4s, force resolve
     const safetyTimeout = setTimeout(async () => {
-      if (!isMounted) return;
-
-      // Check current state — skip if already initialized
-      const alreadyDone = await new Promise<boolean>((resolve) => {
-        setAuthState((prev) => {
-          resolve(!prev.isLoading);
-          return prev;
-        });
-      });
-      if (alreadyDone) return;
-
-      // One retry before giving up
-      if (!retried) {
-        retried = true;
-        console.warn(
-          '[AuthContext] Auth initialization slow, retrying getSession...'
-        );
-        try {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
-          if (isMounted && session?.user) {
-            setAuthState((prev) => ({
-              ...prev,
-              session,
-              user: session.user,
-              isLoading: false,
-              isInitialized: true,
-            }));
-            loadUserProfile(session.user.id);
-            return;
-          }
-        } catch {
-          /* ignore retry error */
-        }
-      }
-
-      setAuthState((prev) => {
-        if (prev.isLoading) {
-          console.warn(
-            '[AuthContext] Auth initialization timed out after 4s, forcing ready state'
-          );
-          return { ...prev, isLoading: false, isInitialized: true };
-        }
-        return prev;
-      });
+      if (!isMounted || initDone.current) return;
+      console.warn('[AUTH_SESSION_EVENT] Init timed out after 4s, forcing ready');
+      initDone.current = true;
+      setAuthState((prev) =>
+        prev.isLoading ? { ...prev, isLoading: false, isInitialized: true } : prev
+      );
     }, 4000);
 
-    // Set up auth state listener FIRST (to not miss any events)
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    // Auth state listener — guarded by initDone
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return;
 
-      // Handle token refresh errors — force re-login
-      if (event === 'TOKEN_REFRESHED' && !session) {
-        console.warn('[AuthContext] Token refresh failed, clearing session');
-        profileCache.invalidate();
-        setAuthState({
-          user: null,
-          session: null,
-          profile: null,
-          isLoading: false,
-          isInitialized: true,
-        });
-        initializeWishlistStore(null);
-        clearCheckoutContextState();
+      console.info(`[AUTH_EVENT] ${event}, session=${session ? 'exists' : 'null'}, initDone=${initDone.current}, tab=${window.location.pathname}`);
+
+      // Ignore INITIAL_SESSION — we handle it ourselves in initAuth()
+      if (event === 'INITIAL_SESSION') return;
+
+      // Before init completes, only process explicit SIGNED_IN / SIGNED_OUT
+      if (!initDone.current && event !== 'SIGNED_IN' && event !== 'SIGNED_OUT') {
+        console.info('[AUTH_EVENT] Skipped (init not done):', event);
         return;
       }
 
-      // Synchronous state updates only
-      setAuthState((prev) => ({
-        ...prev,
-        session,
-        user: session?.user ?? null,
-        isLoading: false,
-        isInitialized: true,
-      }));
+      if (event === 'TOKEN_REFRESHED') {
+        if (!session) {
+          console.warn('[AUTH_SESSION_EVENT] Token refresh failed');
+          profileCache.invalidate();
+          setAuthState({
+            user: null, session: null, profile: null, role: 'anonymous',
+            isLoading: false, isInitialized: true, isRoleLoading: false,
+          });
+          initializeWishlistStore(null);
+        } else {
+          // Token refreshed successfully — update session silently
+          setAuthState((prev) => ({ ...prev, session, user: session.user }));
+        }
+        return;
+      }
 
-      // Defer profile loading to prevent deadlocks
       if (event === 'SIGNED_IN' && session?.user) {
-        // Initialize wishlist store with user ID
+        clearCheckoutContextState();
+        setAuthState((prev) => ({
+          ...prev,
+          session,
+          user: session.user,
+          isLoading: false,
+          isInitialized: true,
+        }));
         initializeWishlistStore(session.user.id);
-
         setTimeout(() => {
           if (isMounted) {
             loadUserProfile(session.user.id);
+            loadUserRole();
           }
         }, 0);
       } else if (event === 'SIGNED_OUT') {
-        // Clear wishlist store
         initializeWishlistStore(null);
         clearCheckoutContextState();
-
         profileCache.invalidate();
-        setAuthState((prev) => ({ ...prev, profile: null }));
-
-        // Purge Service Worker caches to prevent stale authenticated content
+        if (roleIntervalRef.current) clearInterval(roleIntervalRef.current);
+        setAuthState({
+          user: null, session: null, profile: null, role: 'anonymous',
+          isLoading: false, isInitialized: true, isRoleLoading: false,
+        });
         if ('caches' in self) {
-          caches
-            .keys()
-            .then((names) => names.forEach((name) => caches.delete(name)));
-        }
-      } else if (event === 'SIGNED_IN') {
-        clearCheckoutContextState();
-        // Invalidate any cached HTML by purging SW caches (images will re-cache on demand)
-        if ('caches' in self) {
-          caches.keys().then((names) => {
-            names.forEach((name) => {
-              if (!name.includes('images')) caches.delete(name);
-            });
-          });
+          caches.keys().then((names) => names.forEach((name) => caches.delete(name)));
         }
       }
     });
 
-    // Cross-tab auth sync via BroadcastChannel
+    // Cross-tab sync
     let authChannel: BroadcastChannel | null = null;
     try {
       authChannel = new BroadcastChannel('auth-sync');
       authChannel.onmessage = (event) => {
-        if (event.data?.type === 'SIGNED_OUT' && isMounted) {
+        if (!isMounted) return;
+        if (event.data?.type === 'SIGNED_OUT') {
+          logSessionEvent('CROSS_TAB_SIGNOUT');
           profileCache.invalidate();
+          if (roleIntervalRef.current) clearInterval(roleIntervalRef.current);
           setAuthState({
-            user: null,
-            session: null,
-            profile: null,
-            isLoading: false,
-            isInitialized: true,
+            user: null, session: null, profile: null, role: 'anonymous',
+            isLoading: false, isInitialized: true, isRoleLoading: false,
           });
           initializeWishlistStore(null);
-        } else if (event.data?.type === 'SIGNED_IN' && isMounted) {
-          // Refresh session from Supabase to pick up new auth state
+        } else if (event.data?.type === 'SIGNED_IN') {
+          logSessionEvent('CROSS_TAB_SIGNIN');
           supabase.auth.getSession().then(({ data: { session } }) => {
             if (session?.user && isMounted) {
               setAuthState((prev) => ({
-                ...prev,
-                session,
-                user: session.user,
-                isLoading: false,
-                isInitialized: true,
+                ...prev, session, user: session.user,
+                isLoading: false, isInitialized: true,
               }));
               initializeWishlistStore(session.user.id);
               loadUserProfile(session.user.id);
+              loadUserRole();
             }
           });
         }
       };
-    } catch {
-      // BroadcastChannel not supported — silent fallback
-    }
+    } catch { /* BroadcastChannel not supported */ }
 
-    // THEN check for existing session
-    // Note: onAuthStateChange fires for existing sessions too, but we also
-    // call getSession() as a fast synchronous read from localStorage to
-    // reduce perceived loading time. getUser() is deferred to background
-    // to avoid blocking init with a network round-trip.
+    // Initial session check — runs ONCE, sets initDone when complete
     const initAuth = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
-          // Validate JWT BEFORE trusting the session — a stale token
-          // poisons ALL Supabase requests (including anonymous ones) with 401.
-          // Do this SYNCHRONOUSLY in init, not deferred to background.
+          // Validate JWT is still valid
           const { error: userError } = await supabase.auth.getUser();
-
           if (userError) {
-            // JWT is invalid — clear it immediately
-            console.warn(
-              '[AuthContext] Session JWT invalid, clearing immediately:',
-              userError.message
-            );
+            console.warn('[AUTH_SESSION_EVENT] JWT invalid, clearing:', userError.message);
             cleanupAuthState();
             await supabase.auth.signOut({ scope: 'local' });
             if (isMounted) {
               setAuthState({
-                user: null,
-                session: null,
-                profile: null,
-                isLoading: false,
-                isInitialized: true,
+                user: null, session: null, profile: null, role: 'anonymous',
+                isLoading: false, isInitialized: true, isRoleLoading: false,
               });
             }
+            initDone.current = true;
             return;
           }
 
-          // JWT is valid — trust the session
           if (isMounted) {
+            logSessionEvent('SESSION_RESTORED', session.user.id);
             setAuthState((prev) => ({
-              ...prev,
-              session,
-              user: session.user,
-              isLoading: false,
-              isInitialized: true,
+              ...prev, session, user: session.user,
+              isLoading: false, isInitialized: true,
             }));
             initializeWishlistStore(session.user.id);
             loadUserProfile(session.user.id);
+            loadUserRole();
           }
         } else {
-          // No session at all
           if (isMounted) {
             setAuthState((prev) => ({
-              ...prev,
-              session: null,
-              user: null,
-              isLoading: false,
-              isInitialized: true,
+              ...prev, session: null, user: null, role: 'anonymous',
+              isLoading: false, isInitialized: true,
             }));
           }
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        console.error('[AUTH_SESSION_EVENT] Init error:', error);
         if (isMounted) {
-          setAuthState((prev) => ({
-            ...prev,
-            isLoading: false,
-            isInitialized: true,
-          }));
+          setAuthState((prev) => ({ ...prev, isLoading: false, isInitialized: true }));
         }
+      } finally {
+        initDone.current = true;
       }
     };
 
@@ -388,196 +390,113 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isMounted = false;
       clearTimeout(safetyTimeout);
       subscription.unsubscribe();
-      try {
-        authChannel?.close();
-      } catch {
-        /* ignore */
-      }
+      if (roleIntervalRef.current) clearInterval(roleIntervalRef.current);
+      try { authChannel?.close(); } catch { /* ignore */ }
     };
-  }, [loadUserProfile]);
+  }, [loadUserProfile, loadUserRole]);
 
   // ============= Auth Methods =============
   const signIn = useCallback(async (email: string, password: string) => {
-    // Only clean up local storage tokens — do NOT call signOut({ scope: 'global' })
-    // as that revokes sessions in ALL tabs/devices, which is destructive and unnecessary.
     cleanupAuthState();
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-
-    // Notify other tabs about the new session
+    logSessionEvent('SIGNED_IN', data.user?.id);
     try {
       const ch = new BroadcastChannel('auth-sync');
       ch.postMessage({ type: 'SIGNED_IN', userId: data.user?.id });
       ch.close();
-    } catch {
-      /* BroadcastChannel not supported */
-    }
-
+    } catch { /* ignore */ }
     return data;
   }, []);
 
-  const signUp = useCallback(
-    async (
-      email: string,
-      password: string,
-      fullName: string,
-      phone?: string
-    ) => {
-      cleanupAuthState();
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: fullName,
-            phone: phone || null,
-          },
-        },
-      });
-
-      if (error) throw error;
-      return data;
-    },
-    []
-  );
+  const signUp = useCallback(async (email: string, password: string, fullName: string, phone?: string) => {
+    cleanupAuthState();
+    const { data, error } = await supabase.auth.signUp({
+      email, password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: { full_name: fullName, phone: phone || null },
+      },
+    });
+    if (error) throw error;
+    return data;
+  }, []);
 
   const signOut = useCallback(async () => {
     try {
-      // 1. Clear auth storage tokens
       cleanupAuthState();
       profileCache.invalidate();
+      if (roleIntervalRef.current) clearInterval(roleIntervalRef.current);
 
-      // 2. Reset React state immediately (don't wait for listener)
       setAuthState({
-        user: null,
-        session: null,
-        profile: null,
-        isLoading: false,
-        isInitialized: true,
+        user: null, session: null, profile: null, role: 'anonymous',
+        isLoading: false, isInitialized: true, isRoleLoading: false,
       });
-
-      // 3. Clear wishlist store
       initializeWishlistStore(null);
 
-      // 4. Clear React Query cache to remove stale data
-      try {
-        queryClient?.clear();
-      } catch {
-        /* ignore if no QueryClient */
-      }
+      try { queryClient?.clear(); } catch { /* ignore */ }
 
-      // 5. Sign out from Supabase (local scope only)
       await supabase.auth.signOut({ scope: 'local' });
+      logSessionEvent('SIGNED_OUT');
 
-      // 6. Notify other tabs
       try {
         const ch = new BroadcastChannel('auth-sync');
         ch.postMessage({ type: 'SIGNED_OUT' });
         ch.close();
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore */ }
     } catch (error) {
-      console.error('Error signing out:', error);
-      // Even if signOut fails, ensure state is cleared
+      console.error('[AUTH_SESSION_EVENT] Sign out error:', error);
       setAuthState({
-        user: null,
-        session: null,
-        profile: null,
-        isLoading: false,
-        isInitialized: true,
+        user: null, session: null, profile: null, role: 'anonymous',
+        isLoading: false, isInitialized: true, isRoleLoading: false,
       });
       throw error;
     }
   }, [queryClient]);
 
-  const signInWithOtp = useCallback(
-    async (
-      email: string,
-      options?: { shouldCreateUser?: boolean }
-    ): Promise<AuthOtpResponse> => {
-      cleanupAuthState();
+  const signInWithOtp = useCallback(async (email: string, options?: { shouldCreateUser?: boolean }): Promise<AuthOtpResponse> => {
+    cleanupAuthState();
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        shouldCreateUser: options?.shouldCreateUser ?? true,
+      },
+    });
+    if (error) throw error;
+    return { data, error };
+  }, []);
 
-      const { data, error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          shouldCreateUser: options?.shouldCreateUser ?? true,
-        },
-      });
-
-      if (error) throw error;
-      return { data, error };
-    },
-    []
-  );
-
-  const verifyOtp = useCallback(
-    async (email: string, token: string, _type: 'email' | 'sms' = 'email') => {
-      const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        token,
-        type: 'email',
-      });
-
-      if (error) throw error;
-      return data;
-    },
-    []
-  );
+  const verifyOtp = useCallback(async (email: string, token: string, _type: 'email' | 'sms' = 'email') => {
+    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+    if (error) throw error;
+    return data;
+  }, []);
 
   const resetPassword = useCallback(async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/reset-password`,
     });
-
     if (error) throw error;
   }, []);
 
   const updatePassword = useCallback(async (newPassword: string) => {
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) throw error;
   }, []);
-
-  // updateProfile and refreshProfile are provided by useProfileActions above
 
   // ============= Context Value =============
   const value = useMemo<AuthContextType>(
     () => ({
       ...authState,
       isAuthenticated,
-      signIn,
-      signUp,
-      signOut,
-      signInWithOtp,
-      verifyOtp,
-      resetPassword,
-      updatePassword,
-      updateProfile,
-      refreshProfile,
+      signIn, signUp, signOut, signInWithOtp, verifyOtp,
+      resetPassword, updatePassword, updateProfile, refreshProfile, refreshRole,
     }),
     [
-      authState,
-      isAuthenticated,
-      signIn,
-      signUp,
-      signOut,
-      signInWithOtp,
-      verifyOtp,
-      resetPassword,
-      updatePassword,
-      updateProfile,
-      refreshProfile,
+      authState, isAuthenticated, signIn, signUp, signOut,
+      signInWithOtp, verifyOtp, resetPassword, updatePassword,
+      updateProfile, refreshProfile, refreshRole,
     ]
   );
 

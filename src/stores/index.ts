@@ -45,6 +45,12 @@ export {
 } from './themeStore';
 
 export {
+  useUIStyleStore,
+  initializeUIStyleStore,
+  type UIStyle,
+} from './uiStyleStore';
+
+export {
   useLanguageStore,
   useLocale,
   useSetLocale,

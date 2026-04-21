@@ -26,11 +26,7 @@ interface OrderConfirmationProps {
   };
   estimatedDelivery: string;
   orderId?: string;
-  confirmationUrl?: string;
-  /** Plain order-UUID link if the signed URL is rewritten or broken (e.g. some inboxes). */
-  orderRecoveryUrl?: string;
-  /** Canonical site origin (no trailing slash). Used for links and QR fallback. */
-  siteUrl?: string;
+  invoiceToken?: string;
 }
 
 const esc = (s: string) =>
@@ -42,6 +38,8 @@ const esc = (s: string) =>
 
 const formatPrice = (price: number, currency: string) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency }).format(price);
+
+const SITE_URL = (Deno.env.get('SITE_URL') || 'https://www.rifelegance.com').replace(/\/+$/, '');
 
 export function buildOrderConfirmationHtml(
   props: OrderConfirmationProps
@@ -59,39 +57,13 @@ export function buildOrderConfirmationHtml(
     shippingAddress,
     estimatedDelivery,
     orderId,
-    confirmationUrl,
-    orderRecoveryUrl,
-    siteUrl = 'https://www.rifelegance.com',
+    invoiceToken,
   } = props;
 
-  const base = siteUrl.replace(/\/+$/, '');
-
-  // Primary path always passes signed confirmationUrl from send-order-confirmation.
-  // Fallback cannot mint a token (HMAC lives server-side); send customers to contact
-  // with orderId so support can help when no recovery URL is provided.
-  const resolvedConfirmationUrl =
-    confirmationUrl ||
-    (orderId
-      ? `${base}/contact?orderId=${encodeURIComponent(orderId)}`
-      : `${base}/orders`);
-
-  const primaryCtaLabel = confirmationUrl
-    ? 'Voir ma commande'
-    : orderId
-      ? 'Aide concernant ma commande'
-      : 'Mes commandes';
-
-  const recoveryHref =
-    orderRecoveryUrl ||
-    (orderId
-      ? `${base}/order-confirmation?order_id=${encodeURIComponent(orderId)}&payment_complete=1`
-      : resolvedConfirmationUrl);
-
-  const digitalInvoiceLinkLabel = confirmationUrl
-    ? 'Accéder à ma facture en ligne'
-    : 'Ouvrir la page (aide commande)';
-
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(resolvedConfirmationUrl)}`;
+  const invoiceId = orderId || orderNumber;
+  const tokenQuery = invoiceToken ? `?token=${encodeURIComponent(invoiceToken)}` : '';
+  const invoiceUrl = `${SITE_URL}/invoice/${invoiceId}${tokenQuery}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(invoiceUrl)}`;
 
   const itemsHtml = items
     .map(
@@ -106,7 +78,7 @@ export function buildOrderConfirmationHtml(
         </td>
         <td style="padding:10px 12px;vertical-align:top;">
           <div style="color:#333;font-size:14px;font-weight:500;">
-            <a href="${base}/products/${item.productId || ''}" style="color:#4f5f31;text-decoration:none;">${esc(item.name)}</a>
+            <a href="${SITE_URL}/products/${item.productId || ''}" style="color:#4f5f31;text-decoration:none;">${esc(item.name)}</a>
           </div>
           <div style="color:#999;font-size:12px;margin-top:2px;">Quantité: ${item.quantity}</div>
         </td>
@@ -135,7 +107,7 @@ export function buildOrderConfirmationHtml(
 
   <!-- Header -->
   <tr><td style="padding:32px 40px;background-color:#4f5f31;text-align:center;">
-    <a href="${base}" style="text-decoration:none;">
+    <a href="${SITE_URL}" style="text-decoration:none;">
       <div style="color:#ffffff;font-size:28px;font-weight:bold;margin:0 0 4px;">🌿 Rif Raw Straw</div>
       <div style="color:#c4d4a5;font-size:14px;">Artisanat Berbère Authentique</div>
     </a>
@@ -145,13 +117,15 @@ export function buildOrderConfirmationHtml(
   <tr><td style="padding:40px;text-align:center;background-color:#f0f4e8;">
     <div style="color:#4f5f31;font-size:24px;font-weight:bold;margin:0 0 12px;">Merci pour votre commande !</div>
     <div style="color:#555;font-size:16px;line-height:24px;">Bonjour ${esc(customerName)}, nous avons bien reçu votre commande et nous la préparons avec soin.</div>
-    <div style="margin-top:20px;">
-      <a href="${resolvedConfirmationUrl}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">${esc(primaryCtaLabel)}</a>
-    </div>
-    <div style="margin-top:16px;font-size:12px;color:#888;line-height:18px;max-width:480px;margin-left:auto;margin-right:auto;">
-      Si le bouton ne s’ouvre pas (messagerie, antivirus), copiez ce lien dans votre navigateur :<br/>
-      <a href="${esc(recoveryHref)}" style="color:#4f5f31;word-break:break-all;">${esc(recoveryHref)}</a>
-    </div>
+    <!-- Two distinct CTAs: Order page (status/details) vs Invoice page (download) -->
+    <table cellpadding="0" cellspacing="0" style="margin:24px auto 0;"><tr>
+      <td style="padding:0 6px;">
+        <a href="${SITE_URL}/order-confirmation?order_id=${orderId || orderNumber}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Voir ma commande</a>
+      </td>
+      <td style="padding:0 6px;">
+        <a href="${invoiceUrl}" style="display:inline-block;background-color:#ffffff;color:#4f5f31;padding:11px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;border:1px solid #4f5f31;">📄 Télécharger ma facture</a>
+      </td>
+    </tr></table>
   </td></tr>
 
   <!-- Order Info -->
@@ -251,10 +225,14 @@ export function buildOrderConfirmationHtml(
   <!-- QR Code & Digital Invoice -->
   <tr><td style="padding:32px 40px;text-align:center;background-color:#f0f4e8;">
     <div style="color:#333;font-size:16px;font-weight:600;margin:0 0 12px;">📱 Votre facture digitale</div>
-    <div style="color:#666;font-size:13px;margin:0 0 16px;line-height:20px;">Scannez ce QR code pour accéder à votre facture en ligne et la télécharger en PDF.</div>
+    <div style="color:#666;font-size:13px;margin:0 0 16px;line-height:20px;">Scannez ce QR code pour télécharger votre facture en PDF, ou utilisez le bouton ci-dessous.</div>
     <img src="${qrCodeUrl}" alt="QR Code facture" width="120" height="120" style="border-radius:8px;border:4px solid #ffffff;" />
-    <div style="margin-top:12px;">
-      <a href="${resolvedConfirmationUrl}" style="color:#4f5f31;font-size:13px;text-decoration:underline;">${esc(digitalInvoiceLinkLabel)}</a>
+    <div style="margin-top:16px;">
+      <!--
+        IMPORTANT: Direct URL — do NOT wrap in tracking redirects.
+        /invoice/:orderId is the dedicated invoice download route.
+      -->
+      <a href="${invoiceUrl}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Télécharger ma facture</a>
     </div>
   </td></tr>
 
@@ -266,13 +244,13 @@ export function buildOrderConfirmationHtml(
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
         <td style="text-align:center;padding:6px 4px;">
-          <a href="${base}/products" style="color:#4f5f31;font-size:13px;text-decoration:none;font-weight:500;">🛍 Boutique</a>
+          <a href="${SITE_URL}/products" style="color:#4f5f31;font-size:13px;text-decoration:none;font-weight:500;">🛍 Boutique</a>
         </td>
         <td style="text-align:center;padding:6px 4px;">
-          <a href="${base}/contact" style="color:#4f5f31;font-size:13px;text-decoration:none;font-weight:500;">📧 Contact</a>
+          <a href="${SITE_URL}/contact" style="color:#4f5f31;font-size:13px;text-decoration:none;font-weight:500;">📧 Contact</a>
         </td>
         <td style="text-align:center;padding:6px 4px;">
-          <a href="${base}/orders" style="color:#4f5f31;font-size:13px;text-decoration:none;font-weight:500;">📋 Mes commandes</a>
+          <a href="${SITE_URL}/orders" style="color:#4f5f31;font-size:13px;text-decoration:none;font-weight:500;">📋 Mes commandes</a>
         </td>
       </tr>
     </table>
@@ -283,21 +261,21 @@ export function buildOrderConfirmationHtml(
   <!-- Legal Links -->
   <tr><td style="padding:20px 40px;text-align:center;background-color:#fafafa;">
     <div style="margin-bottom:8px;">
-      <a href="${base}/cgv" style="color:#888;font-size:12px;text-decoration:none;margin:0 8px;">Conditions Générales de Vente</a>
+      <a href="${SITE_URL}/cgv" style="color:#888;font-size:12px;text-decoration:none;margin:0 8px;">Conditions Générales de Vente</a>
       <span style="color:#ddd;">|</span>
-      <a href="${base}/terms" style="color:#888;font-size:12px;text-decoration:none;margin:0 8px;">Politique de Confidentialité (RGPD)</a>
+      <a href="${SITE_URL}/terms" style="color:#888;font-size:12px;text-decoration:none;margin:0 8px;">Politique de Confidentialité (RGPD)</a>
     </div>
     <div>
-      <a href="${base}/returns" style="color:#888;font-size:12px;text-decoration:none;margin:0 8px;">Retours & Remboursements</a>
+      <a href="${SITE_URL}/returns" style="color:#888;font-size:12px;text-decoration:none;margin:0 8px;">Retours & Remboursements</a>
       <span style="color:#ddd;">|</span>
-      <a href="${base}/shipping" style="color:#888;font-size:12px;text-decoration:none;margin:0 8px;">Politique de Livraison</a>
+      <a href="${SITE_URL}/shipping" style="color:#888;font-size:12px;text-decoration:none;margin:0 8px;">Politique de Livraison</a>
     </div>
   </td></tr>
 
   <!-- Footer -->
   <tr><td style="padding:28px 40px;background-color:#f6f9fc;text-align:center;border-radius:0 0 12px 12px;">
     <div style="color:#999;font-size:13px;margin-bottom:8px;">
-      Une question ? <a href="${base}/contact" style="color:#4f5f31;font-weight:500;">Contactez-nous</a> ou écrivez à <a href="mailto:contact@rifrawstraw.com" style="color:#4f5f31;">contact@rifrawstraw.com</a>
+      Une question ? <a href="${SITE_URL}/contact" style="color:#4f5f31;font-weight:500;">Contactez-nous</a> ou écrivez à <a href="mailto:contact@rifrawstraw.com" style="color:#4f5f31;">contact@rifrawstraw.com</a>
     </div>
     <div style="color:#bbb;font-size:12px;margin-bottom:4px;">© ${new Date().getFullYear()} Rif Raw Straw — Artisanat Berbère Authentique</div>
     <div style="color:#ccc;font-size:11px;">Fabriqué à la main dans les montagnes du Rif</div>

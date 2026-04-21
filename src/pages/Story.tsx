@@ -21,19 +21,46 @@ const Story = () => {
         type="website"
       />
 
-      <main className="flex-1 container mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto bg-card rounded-lg shadow p-8 border border-border">
-          <h1 className="text-3xl font-serif font-bold text-primary mb-6">
+      <main className="flex-1 container mx-auto px-4 py-16">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-center mb-12">
             {t('story.heading')}
           </h1>
-          <p className="text-lg text-foreground mb-6">
-            {t('story.intro').split('<brand>')[0]}
-            <span className="font-semibold text-primary">Rif Raw Straw</span>
-            {t('story.intro').split('</brand>')[1]}
-          </p>
-          <p className="text-muted-foreground mb-4">{t('story.paragraph1')}</p>
-          <p className="text-muted-foreground mb-4">{t('story.paragraph2')}</p>
-          <p className="text-muted-foreground">{t('story.paragraph3')}</p>
+
+          {/* Hero intro */}
+          <div className="bg-card rounded-lg shadow-elegant p-8 md:p-12 border border-border mb-10">
+            <p className="text-body-lg text-foreground leading-relaxed mb-6">
+              {t('story.content')}
+            </p>
+            <p className="text-body-lg text-foreground leading-relaxed mb-6">
+              {t('story.origins')}
+            </p>
+            <p className="text-body-lg text-foreground leading-relaxed mb-6">
+              {t('story.craft')}
+            </p>
+            <p className="text-body-lg text-foreground leading-relaxed">
+              {t('story.mission')}
+            </p>
+          </div>
+
+          {/* Values */}
+          <div className="grid md:grid-cols-3 gap-6">
+            {(['authenticity', 'sustainability', 'community'] as const).map(
+              (value) => (
+                <div
+                  key={value}
+                  className="bg-card rounded-lg border border-border p-6 text-center shadow-elegant"
+                >
+                  <h3 className="text-lg mb-2 text-primary">
+                    {t(`story.values.${value}.title`)}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t(`story.values.${value}.description`)}
+                  </p>
+                </div>
+              )
+            )}
+          </div>
         </div>
       </main>
       <PageFooter />

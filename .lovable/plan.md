@@ -1,111 +1,123 @@
-# State Coherence and Caching Architecture Fix
 
-## Problem Summary
 
-Your application suffers from **state desynchronization** caused by multiple uncoordinated caching and storage layers. This manifests as:
+## Goal
 
-- Content not refreshing after actions
-- Auth appearing lost after Stripe redirects
-- Different behavior between preview and live environments
-- Infinite loading skeletons in profile tabs
+Replace the broken anon-query + fallback path on `/order-confirmation` with a strict, signed token flow. No fallback, no snapshot, no polling. Hard error state if anything is missing.
 
-## Root Causes Identified
-
-1. **Service Worker caches HTML navigation** -- `networkFirst` for `navigate` requests still stores and serves stale HTML shells
-2. **Stripe redirect origin mismatch** -- `req.headers.get("origin")` in the `create-payment` Edge Function returns the preview iframe origin, not the actual domain the user sees
-3. **No SW bypass for Supabase non-storage API** -- the SW skips `supabase.co` unless it includes `/storage/`, but the condition is checked with `includes` which could match unintended URLs
-4. **Auth initialization race** -- 8-second safety timeout in AuthContext fires before Supabase resolves in slow networks, showing "not logged in" state
-5. **IndexedDB/Firebase heartbeat entries** -- leftover Firebase IndexedDB entries from third-party scripts add confusion (cosmetic, not functional)
-
-## Phased Implementation Plan
-
-### Phase 1: Service Worker Hardening (Critical)
-
-**File: `public/sw.js`**
-
-- Remove HTML caching entirely -- the `networkFirst` handler for `navigate` requests caches HTML, which can serve stale shells after deployments or auth changes
-- Add explicit bypass for all API/auth paths (`/auth/`, `/rest/`, `/functions/`)
-- Add a `MAX_CACHE_SIZE` limit per cache bucket to prevent unbounded growth
-- Bump cache version to `v5` to force old cache purge on next deploy
-
-Changes:
-
-- `networkFirst` for navigation will become **network-only** (no cache fallback for HTML)
-- Add `/api/`, `/auth/` path exclusions in the fetch handler
-- Keep cache-first only for fingerprinted static assets and images
-
-### Phase 2: Stripe Redirect Origin Fix (Critical)
-
-**File: `supabase/functions/create-payment/index.ts`**
-
-- Replace `req.headers.get("origin")` with a hardcoded production URL or a validated allowlist
-- This prevents the success URL from pointing to the preview iframe origin, which would cause auth loss on return
-
-Logic:
+## Architecture
 
 ```text
-allowed_origins = [production_url, preview_url]
-origin = request origin header
-if origin in allowed_origins -> use it
-else -> use production_url as default
+Browser (/order-confirmation?order_id=…)
+   │
+   │ 1. POST { order_id }
+   ▼
+sign-order-token (NEW, public)
+   • Verify order exists (service role)
+   • Sign HMAC token: { order_id, type: "order_access", exp: now+15min }
+   ◄─── { token }
+   │
+   │ 2. POST { token }
+   ▼
+get-order-by-token (NEW, public)
+   • verifyToken(token)
+   • assert payload.type === "order_access"
+   • assert payload.exp > now
+   • Service-role fetch orders + order_items
+   ◄─── { order, items }
+   │
+   ▼
+Render OrderSuccess (real data) — or HARD ERROR UI
 ```
 
-**File: `src/pages/Checkout.tsx`**
+Key change vs prior plan: token issuance is **independent** of `reconcile-payment`. Any browser landing on `/order-confirmation?order_id=…` can request a short-lived token by `order_id` alone (the order_id itself is the unguessable UUID; token is short-lived and scoped). No `guest_id` matching, no auth required.
 
-- The `window.top.location.href` escape is correct for Lovable preview
-- No changes needed here, but document that **auth testing must happen on the deployed domain, not in the preview iframe**
+## Backend Changes
 
-### Phase 3: Auth Initialization Resilience (Medium)
+### 1. Update `supabase/functions/_shared/invoice/token.ts`
+- Add typed payload: `{ order_id, type: 'order_access' | 'invoice_access', exp }`.
+- New `signOrderToken(order_id)` → 15-minute TTL, type `order_access`.
+- Keep existing `signToken` (invoice, 30 days, type `invoice_access`) for backward compat.
+- `verifyToken` now returns `{ order_id, type, exp }` (callers assert type).
 
-**File: `src/context/AuthContext.tsx`**
+### 2. NEW `supabase/functions/sign-order-token/index.ts`
+- Public, CORS, `verify_jwt = false`.
+- Body: `{ order_id }`.
+- Service-role verifies order exists (`maybeSingle`); 404 if not.
+- Returns `{ token }` (15-min, type `order_access`).
+- No auth/guest checks — order_id UUID is the secret; token is short-lived.
 
-- Reduce safety timeout from 8s to 4s -- if Supabase hasn't responded in 4s, something is wrong
-- Add a `getSession()` retry on timeout (one retry before giving up)
-- This addresses the console warning: `Auth initialization timed out after 8s`
+### 3. NEW `supabase/functions/get-order-by-token/index.ts`
+- Public, CORS, `verify_jwt = false`.
+- Body: `{ token }`.
+- `verifyToken(token)` → assert `type === 'order_access'` and `exp > now` (verifyToken already checks exp; double-asserted for clarity). 401 on failure.
+- Service-role SELECT:
+  - `orders`: id, status, order_status, amount, currency, created_at, shipping_address, metadata, payment_method, user_id
+  - `order_items`: quantity, unit_price, total_price, product_snapshot, product_id
+- 404 if order missing.
+- Returns `{ order, items }`. No defaults, no synthetic data.
 
-### Phase 4: Cache Cleanup on Auth Events (Medium)
+### 4. `supabase/config.toml`
+```toml
+[functions.sign-order-token]
+verify_jwt = false
 
-**File: `src/context/AuthContext.tsx`**
+[functions.get-order-by-token]
+verify_jwt = false
+```
 
-- On `SIGNED_OUT`: clear Service Worker caches via `caches.keys()` + `caches.delete()` to prevent stale cached pages from showing authenticated content
-- On `SIGNED_IN`: invalidate any cached HTML to force fresh content
+### 5. Tests `supabase/functions/get-order-by-token/index_test.ts`
+Deno tests (using `_shared/invoice/token.ts` directly + mocked service client where feasible):
+1. Valid token → 200 + `{ order, items }`
+2. Malformed/invalid signature → 401
+3. Expired token (exp in past) → 401
+4. Wrong type (`invoice_access`) → 401
+5. Missing order → 404
+6. Order with zero items → 200 (frontend enforces empty-items error; backend returns truth)
 
-### Phase 5: Remove Redundant SW Registration (Low)
+## Frontend Changes
 
-**File: `index.html` and `src/utils/cacheOptimization.ts`**
+### 6. `src/lib/invoice/generateInvoice.ts`
+Add helpers:
+- `requestOrderToken(orderId)` → POST `/sign-order-token`, returns `{ token }`.
+- `fetchOrderByToken(token)` → POST `/get-order-by-token`, returns `{ order, items }`. Throws `InvoiceError` on non-200.
 
-- The service worker is registered in **two places**: `index.html` inline script AND `cacheOptimization.ts` called from `main.tsx`
-- Remove the `index.html` inline registration to have a single registration path
-- This prevents race conditions where two registrations compete
+### 7. `src/pages/OrderConfirmation.tsx` — full refactor
+Remove:
+- `fetchOrder`, `fetchOrderItems` (all anon `supabase.from('orders'/'order_items')` reads)
+- `pollForOrder`, "late items" retry effect
+- `OrderFallback` component path entirely
+- `loadSnapshot` / `CheckoutSnapshot` usage in success/error rendering
+- Any mention of "Détails en cours de synchronisation"
 
-### Phase 6: Documentation (Low)
+New flow on mount (when `order_id` present):
+1. (Stripe branch) call `reconcile-payment` if needed to flip status — ignore its body.
+2. `requestOrderToken(orderId)` → token
+3. `fetchOrderByToken(token)` → `{ order, items }`
+4. Validate strictly:
+   - `order && Number(order.amount) > 0 && items.length > 0` → `setState('success')`
+   - else → `setState('error')` + `console.error('[OrderConfirmation] CRITICAL', { reason })`
+5. Render `<OrderSuccess order={order} items={items} />` using `Number(order.amount)` directly (Euros, no `/100`).
 
-Add a comment block at the top of `sw.js` documenting:
+PayPal branch: same — after `verify-paypal-payment` resolves, follow steps 2–5.
 
-- What is cached and what is bypassed
-- Cache versioning strategy
-- Why HTML is never cached
+### 8. Explicit Error UI
+New `<OrderError />` block (inline in `OrderConfirmation.tsx`):
+- Icon + heading "Impossible d'afficher la commande"
+- Body: "Nous n'avons pas pu charger les détails de cette commande. Si vous avez été débité, contactez le support."
+- CTA: "Contacter le support" (mailto) + "Retour à l'accueil"
+- No retry-with-fallback. No snapshot. Hard stop.
 
-## Files to Modify
+## Out of Scope
+- Invoice page (`/invoice/:id`) — already correct
+- Stripe webhook, payment creation, DB schema — untouched
+- Authenticated `/orders` history page — uses RLS via `user_id`, fine
 
-| File                                         | Change                                                   | Priority |
-| -------------------------------------------- | -------------------------------------------------------- | -------- |
-| `public/sw.js`                               | Harden: no HTML cache, explicit API bypass, version bump | Critical |
-| `supabase/functions/create-payment/index.ts` | Origin allowlist for success/cancel URLs                 | Critical |
-| `src/context/AuthContext.tsx`                | Cache cleanup on auth events, reduce timeout             | Medium   |
-| `index.html`                                 | Remove duplicate SW registration script                  | Low      |
-| `src/utils/cacheOptimization.ts`             | Keep as single SW registration point                     | Low      |
+## Files Touched
+- NEW `supabase/functions/sign-order-token/index.ts`
+- NEW `supabase/functions/get-order-by-token/index.ts`
+- NEW `supabase/functions/get-order-by-token/index_test.ts`
+- EDIT `supabase/functions/_shared/invoice/token.ts` (add typed payload + `signOrderToken`)
+- EDIT `supabase/config.toml` (two new function entries)
+- EDIT `src/lib/invoice/generateInvoice.ts` (add `requestOrderToken`, `fetchOrderByToken`)
+- EDIT `src/pages/OrderConfirmation.tsx` (remove fallback/polling/snapshot; token flow + error UI)
 
-## What This Does NOT Change
-
-- **Auth storage mechanism**: Supabase manages tokens in localStorage, which is the correct approach for SPAs. Moving to httpOnly cookies would require a custom auth proxy server, which is out of scope for this platform.
-- **IndexedDB entries**: These are from third-party scripts and harmless. No action needed.
-- **Preview vs Live isolation**: This is a fundamental browser security feature. The fix ensures the app works correctly on the deployed domain; preview iframe behavior will always have limitations.
-
-## Expected Outcomes
-
-- No more stale HTML served after deploys or auth changes
-- Stripe payment success redirects to the correct origin with valid auth
-- Auth initialization resolves faster and more reliably
-- Sign-out fully purges cached content
-- Single, predictable service worker lifecycle

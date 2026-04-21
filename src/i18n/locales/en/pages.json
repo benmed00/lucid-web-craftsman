@@ -388,7 +388,24 @@
       "description": "The origins and vision of Rif Raw Straw."
     },
     "heading": "Our Story",
-    "content": "Born from a passion for Berber culture, Rif Raw Straw works directly with artisans to preserve ancestral know-how."
+    "content": "Born in the Rif Mountains, Rif Raw Straw celebrates the artisanal know-how passed down through generations. Every piece we create is a blend of ancestral tradition and contemporary design.",
+    "origins": "It all started in the heart of Morocco's Rif Mountains. Captivated by the beauty and richness of Berber craftsmanship, we set out to share these unique creations with the world, working directly with local artisans.",
+    "craft": "Our artisans use techniques handed down for centuries: weaving doum palm straw, natural dyeing, and meticulous handcraft. Every bag, every hat is a unique work of art that tells a story.",
+    "mission": "Our mission is simple: preserve this living heritage while offering elegant and sustainable pieces. By choosing Rif Raw Straw, you directly support the artisan communities of the Rif.",
+    "values": {
+      "authenticity": {
+        "title": "Authenticity",
+        "description": "Ancestral know-how, natural materials, and 100% handcrafted production."
+      },
+      "sustainability": {
+        "title": "Sustainability",
+        "description": "Eco-friendly materials and environmentally responsible practices."
+      },
+      "community": {
+        "title": "Community",
+        "description": "Direct support for artisans and families in the Rif Mountains."
+      }
+    }
   },
 
   "notFound": {

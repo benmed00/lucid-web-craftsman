@@ -1,12 +1,7 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 import { buildOrderConfirmationHtml } from './_templates/order-confirmation.ts';
-import {
-  buildEmailPricingFromSnapshot,
-  isPricingSnapshotV1,
-  shippingAddressFromOrderRow,
-  type DbOrderItemRow,
-} from './_lib/email-pricing-from-db.ts';
+import { signToken } from '../_shared/invoice/token.ts';
 
 const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
 const FROM_NAME = 'Rif Raw Straw';
@@ -26,18 +21,12 @@ const corsHeaders = {
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const SITE_URL = (
-  Deno.env.get('SITE_URL') || 'https://www.rifelegance.com'
-).replace(/\/+$/, '');
-const ORDER_CONFIRMATION_TOKEN_SECRET =
-  Deno.env.get('ORDER_CONFIRMATION_TOKEN_SECRET') || supabaseServiceKey;
 
 interface OrderItem {
   name: string;
   quantity: number;
   price: number;
   image?: string;
-  productId?: number;
 }
 
 interface OrderConfirmationRequest {
@@ -58,57 +47,6 @@ interface OrderConfirmationRequest {
   };
   previewOnly?: boolean;
 }
-
-const buildOrderReference = (orderId: string): string =>
-  `CMD-${orderId.replace(/-/g, '').toUpperCase()}`;
-
-const bytesToBase64Url = (bytes: Uint8Array): string =>
-  btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/g, '');
-
-const toBase64Url = (value: string): string =>
-  bytesToBase64Url(new TextEncoder().encode(value));
-
-const hmacSha256Base64Url = async (
-  value: string,
-  secret: string
-): Promise<string> => {
-  const key = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  const signature = await crypto.subtle.sign(
-    'HMAC',
-    key,
-    new TextEncoder().encode(value)
-  );
-  return bytesToBase64Url(new Uint8Array(signature));
-};
-
-const buildOrderConfirmationToken = async (
-  orderId: string,
-  customerEmail: string,
-  orderReference: string
-): Promise<string> => {
-  const payload = toBase64Url(
-    JSON.stringify({
-      oid: orderId,
-      ref: orderReference,
-      em: customerEmail.toLowerCase().trim(),
-      exp: Date.now() + 1000 * 60 * 60 * 24 * 30, // 30 days
-    })
-  );
-  const signature = await hmacSha256Base64Url(
-    payload,
-    ORDER_CONFIRMATION_TOKEN_SECRET
-  );
-  return `${payload}.${signature}`;
-};
 
 const logStep = (step: string, details?: any) => {
   console.log(
@@ -235,68 +173,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    let emailItems: OrderItem[] = data!.items || [];
-    let emailSubtotal = data!.subtotal || 0;
-    let emailShipping = data!.shipping || 0;
-    let emailDiscount = data!.discount || 0;
-    let emailTotal = data!.total || 0;
-    let emailCurrency = (data!.currency || 'EUR').toUpperCase();
-    let emailShippingAddress = data!.shippingAddress || {
-      address: '',
-      city: '',
-      postalCode: '',
-      country: 'France',
-    };
-
-    if (isInternalCall) {
-      const { data: dbOrder, error: dbOrderError } = await serviceClient
-        .from('orders')
-        .select(
-          'pricing_snapshot, currency, shipping_address, order_items (product_id, quantity, product_snapshot)'
-        )
-        .eq('id', data!.orderId)
-        .maybeSingle();
-
-      if (dbOrderError) {
-        logStep('Could not load order for DB-backed email pricing', {
-          message: dbOrderError.message,
-        });
-      } else if (dbOrder && isPricingSnapshotV1(dbOrder.pricing_snapshot)) {
-        const built = buildEmailPricingFromSnapshot(
-          dbOrder.pricing_snapshot,
-          (dbOrder.order_items as DbOrderItemRow[]) || []
-        );
-        emailItems = built.items;
-        emailSubtotal = built.subtotal;
-        emailShipping = built.shipping;
-        emailDiscount = built.discount;
-        emailTotal = built.total;
-        emailCurrency = built.currency;
-        logStep('Email totals from orders.pricing_snapshot', {
-          orderId: data!.orderId,
-          lines: emailItems.length,
-        });
-      }
-
-      if (dbOrder && !dbOrderError) {
-        const fromDb = shippingAddressFromOrderRow(dbOrder.shipping_address);
-        if (fromDb?.address) {
-          emailShippingAddress = {
-            address: emailShippingAddress.address || fromDb.address,
-            city: emailShippingAddress.city || fromDb.city,
-            postalCode: emailShippingAddress.postalCode || fromDb.postalCode,
-            country: emailShippingAddress.country || fromDb.country,
-          };
-        }
-        if (
-          dbOrder.currency &&
-          !isPricingSnapshotV1(dbOrder.pricing_snapshot)
-        ) {
-          emailCurrency = String(dbOrder.currency).toUpperCase();
-        }
-      }
-    }
-
     const orderDate = new Date().toLocaleDateString('fr-FR', {
       day: 'numeric',
       month: 'long',
@@ -310,31 +186,31 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     logStep('Building email HTML');
-    const orderReference = buildOrderReference(data!.orderId);
-    const confirmationToken = await buildOrderConfirmationToken(
-      data!.orderId,
-      data!.customerEmail,
-      orderReference
-    );
-    const confirmationUrl = `${SITE_URL}/order-confirmation/${encodeURIComponent(orderReference)}?token=${encodeURIComponent(confirmationToken)}`;
-    const orderRecoveryUrl = `${SITE_URL}/order-confirmation?order_id=${encodeURIComponent(data!.orderId)}&payment_complete=1`;
-
+    let invoiceToken: string | undefined;
+    try {
+      invoiceToken = await signToken(data!.orderId);
+    } catch (tokErr) {
+      logStep('Token signing failed (link will require auth)', { error: (tokErr as Error).message });
+    }
     const html = buildOrderConfirmationHtml({
       customerName: data!.customerName,
-      orderNumber: orderReference,
+      orderNumber: data!.orderId.slice(-8).toUpperCase(),
       orderDate,
-      items: emailItems,
-      subtotal: emailSubtotal,
-      shipping: emailShipping,
-      discount: emailDiscount,
-      total: emailTotal,
-      currency: emailCurrency,
-      shippingAddress: emailShippingAddress,
+      items: data!.items || [],
+      subtotal: data!.subtotal || 0,
+      shipping: data!.shipping || 0,
+      discount: data!.discount || 0,
+      total: data!.total || 0,
+      currency: data!.currency || 'EUR',
+      shippingAddress: data!.shippingAddress || {
+        address: '',
+        city: '',
+        postalCode: '',
+        country: 'France',
+      },
       estimatedDelivery,
       orderId: data!.orderId,
-      confirmationUrl,
-      orderRecoveryUrl,
-      siteUrl: SITE_URL,
+      invoiceToken,
     });
 
     if (data!.previewOnly) {
@@ -351,7 +227,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const subject = `Confirmation de commande #${orderReference} - Rif Raw Straw`;
+    const subject = `Confirmation de commande #${data!.orderId.slice(-8).toUpperCase()} - Rif Raw Straw`;
     logStep('Sending email via Brevo', { to: data!.customerEmail });
     const emailResult = await sendBrevoEmail(
       data!.customerEmail,
@@ -370,8 +246,8 @@ const handler = async (req: Request): Promise<Response> => {
       null,
       {
         messageId: emailResult.messageId,
-        itemCount: emailItems.length,
-        total: emailTotal,
+        itemCount: data!.items?.length || 0,
+        total: data!.total,
       }
     );
 

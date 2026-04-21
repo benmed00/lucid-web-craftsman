@@ -1,6 +1,5 @@
 // src/hooks/useAuth.ts
-// DEPRECATED: This file is kept for backward compatibility
-// All auth functionality has been consolidated into src/context/AuthContext.tsx
+// Re-export from AuthContext for backward compatibility
 
 export {
   useAuth,
@@ -8,4 +7,4 @@ export {
   cleanupAuthState,
   AuthProvider,
 } from '@/context/AuthContext';
-export type { AuthState, Profile } from '@/context/AuthContext';
+export type { AuthState, Profile, AppRole } from '@/context/AuthContext';

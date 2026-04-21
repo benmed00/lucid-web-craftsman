@@ -1,5 +1,5 @@
 // src/hooks/useGuestSession.ts
-// GDPR-compliant guest session tracking with minimal data collection
+// GDPR-compliant guest session tracking with server-signed tokens
 
 import { useState, useEffect, useCallback } from 'react';
 import {
@@ -7,6 +7,7 @@ import {
   safeSetItem,
   StorageTTL,
 } from '@/lib/storage/safeStorage';
+import { supabase } from '@/integrations/supabase/client';
 
 // Storage key for guest session
 const GUEST_SESSION_KEY = 'guest_session';
@@ -21,6 +22,7 @@ export interface GuestDeviceMetadata {
 // Guest session interface
 export interface GuestSession {
   guestId: string;
+  signature?: string;
   createdAt: number;
   device: GuestDeviceMetadata;
 }
@@ -125,7 +127,7 @@ export function useGuestSession() {
 
   // Initialize or restore guest session on mount
   useEffect(() => {
-    const initSession = () => {
+    const initSession = async () => {
       // Try to restore existing session
       const stored = safeGetItem<GuestSession>(GUEST_SESSION_KEY, {
         storage: 'localStorage',
@@ -145,19 +147,41 @@ export function useGuestSession() {
 
         setSession(updatedSession);
       } else {
-        // Create new guest session
-        const newSession: GuestSession = {
-          guestId: generateUUID(),
-          createdAt: Date.now(),
-          device: createDeviceMetadata(),
-        };
+        // Create new guest session with server-signed token
+        try {
+          const { data: tokenData } = await supabase.rpc('create_guest_token');
+          const td = tokenData as Record<string, string> | null;
+          const guestId = td?.guest_id || generateUUID();
+          const signature = td?.signature || undefined;
+          
+          const newSession: GuestSession = {
+            guestId,
+            signature,
+            createdAt: Date.now(),
+            device: createDeviceMetadata(),
+          };
 
-        safeSetItem(GUEST_SESSION_KEY, newSession, {
-          storage: 'localStorage',
-          ttl: StorageTTL.MONTH,
-        });
+          safeSetItem(GUEST_SESSION_KEY, newSession, {
+            storage: 'localStorage',
+            ttl: StorageTTL.MONTH,
+          });
 
-        setSession(newSession);
+          setSession(newSession);
+        } catch {
+          // Fallback to unsigned session if RPC fails
+          const newSession: GuestSession = {
+            guestId: generateUUID(),
+            createdAt: Date.now(),
+            device: createDeviceMetadata(),
+          };
+
+          safeSetItem(GUEST_SESSION_KEY, newSession, {
+            storage: 'localStorage',
+            ttl: StorageTTL.MONTH,
+          });
+
+          setSession(newSession);
+        }
       }
 
       setIsInitialized(true);
