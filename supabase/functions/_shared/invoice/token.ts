@@ -83,10 +83,11 @@ export async function verifyTokenPayload(token: string): Promise<TokenPayload> {
   const [payloadB64, sigB64] = parts;
 
   const key = await getKey();
+  const sigBytes = b64urlDecode(sigB64);
   const ok = await crypto.subtle.verify(
     'HMAC',
     key,
-    b64urlDecode(sigB64),
+    sigBytes.buffer.slice(sigBytes.byteOffset, sigBytes.byteOffset + sigBytes.byteLength) as ArrayBuffer,
     enc.encode(payloadB64),
   );
   if (!ok) throw new Error('Invalid token signature');
