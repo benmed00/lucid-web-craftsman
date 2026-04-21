@@ -154,7 +154,9 @@ const Footer = () => {
             </div>
             <div className="flex items-center gap-1.5">
               <Truck className="h-4 w-4 text-primary" />
-              <span>{t('trust.freeShipping', 'Livraison offerte dès 50€')}</span>
+              <span>
+                {t('trust.freeShipping', 'Livraison offerte dès 50€')}
+              </span>
             </div>
             <div className="flex items-center gap-1.5">
               <RotateCcw className="h-4 w-4 text-primary" />

@@ -516,9 +516,9 @@ export function useCheckoutPage() {
       setPaymentError(null);
 
       // A/B conversion tracking (fire-and-forget)
-      import('@/hooks/useABThemeTest').then(({ trackABConversion }) =>
-        trackABConversion('checkout')
-      ).catch(() => {});
+      import('@/hooks/useABThemeTest')
+        .then(({ trackABConversion }) => trackABConversion('checkout'))
+        .catch(() => {});
       if (honeypot) {
         toast.error(t('errors.genericError'));
         setIsProcessing(false);
@@ -660,7 +660,8 @@ export function useCheckoutPage() {
         try {
           const snapshot = {
             email: sanitizedFormData.email,
-            customerName: `${sanitizedFormData.firstName} ${sanitizedFormData.lastName}`.trim(),
+            customerName:
+              `${sanitizedFormData.firstName} ${sanitizedFormData.lastName}`.trim(),
             items: cartItems.map((item) => ({
               name: item.product.name,
               quantity: item.quantity,
@@ -699,7 +700,10 @@ export function useCheckoutPage() {
         errorMessage.includes('Invalid email') ||
         errorMessage.includes('invalide')
       ) {
-        userMessage = t('errors.invalidEmail', 'Veuillez vérifier vos informations.');
+        userMessage = t(
+          'errors.invalidEmail',
+          'Veuillez vérifier vos informations.'
+        );
       } else if (
         errorMessage.includes('network') ||
         errorMessage.includes('fetch') ||

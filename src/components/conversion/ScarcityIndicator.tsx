@@ -34,7 +34,9 @@ export const ScarcityIndicator = ({ stockInfo }: ScarcityIndicatorProps) => {
     return (
       <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary text-foreground text-sm">
         <Clock className="h-4 w-4 text-primary" />
-        <span>{t('scarcity.sellingFast', 'Article populaire — commandez vite')}</span>
+        <span>
+          {t('scarcity.sellingFast', 'Article populaire — commandez vite')}
+        </span>
       </div>
     );
   }

@@ -6,7 +6,10 @@ interface TrustBadgesProps {
   showPaymentIcons?: boolean;
 }
 
-export const TrustBadges = ({ variant = 'horizontal', showPaymentIcons = false }: TrustBadgesProps) => {
+export const TrustBadges = ({
+  variant = 'horizontal',
+  showPaymentIcons = false,
+}: TrustBadgesProps) => {
   const { t } = useTranslation('common');
 
   const badges = [
@@ -18,12 +21,12 @@ export const TrustBadges = ({ variant = 'horizontal', showPaymentIcons = false }
     {
       icon: Truck,
       label: t('trust.freeShipping', 'Livraison offerte'),
-      sublabel: t('trust.freeFrom', 'Dès 50€ d\'achat'),
+      sublabel: t('trust.freeFrom', "Dès 50€ d'achat"),
     },
     {
       icon: RotateCcw,
       label: t('trust.returns', 'Retours gratuits'),
-      sublabel: t('trust.returnDays', '14 jours pour changer d\'avis'),
+      sublabel: t('trust.returnDays', "14 jours pour changer d'avis"),
     },
     {
       icon: Shield,
@@ -67,7 +70,10 @@ export const TrustBadges = ({ variant = 'horizontal', showPaymentIcons = false }
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {badges.map((badge, i) => (
-        <div key={i} className="flex flex-col items-center text-center gap-2 p-4 rounded-xl bg-secondary/50">
+        <div
+          key={i}
+          className="flex flex-col items-center text-center gap-2 p-4 rounded-xl bg-secondary/50"
+        >
           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
             <badge.icon className="h-5 w-5 text-primary" />
           </div>

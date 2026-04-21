@@ -139,10 +139,13 @@ async function fetchUserRole(): Promise<AppRole> {
   try {
     const { data, error } = await supabase.rpc('get_user_role');
     if (error) {
-      console.warn('[AUTH_ROLE_RESOLVED] RPC error, fallback to user:', error.message);
+      console.warn(
+        '[AUTH_ROLE_RESOLVED] RPC error, fallback to user:',
+        error.message
+      );
       return 'user';
     }
-    return (data as string) as AppRole;
+    return data as string as AppRole;
   } catch (err) {
     console.warn('[AUTH_ROLE_RESOLVED] Exception, fallback to user:', err);
     return 'user';
@@ -179,19 +182,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Role loading — single RPC, cached in memory, with timeout protection
   const loadUserRole = useCallback(async (): Promise<AppRole> => {
     setAuthState((prev) => ({ ...prev, isRoleLoading: true }));
-    
+
     // Timeout protection: if RPC takes >5s, fallback to 'user'
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     const timeoutPromise = new Promise<AppRole>((resolve) => {
       timeoutId = setTimeout(() => {
-        console.warn('[AUTH_SESSION_EVENT] Role RPC timed out after 5s, fallback to user');
+        console.warn(
+          '[AUTH_SESSION_EVENT] Role RPC timed out after 5s, fallback to user'
+        );
         resolve('user');
       }, 5000);
     });
-    
+
     const role = await Promise.race([fetchUserRole(), timeoutPromise]);
     if (timeoutId) clearTimeout(timeoutId);
-    
+
     setAuthState((prev) => {
       if (prev.role !== role) {
         logRoleResolved(prev.user?.id ?? 'unknown', role, 'get_user_role');
@@ -233,24 +238,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Safety timeout — if init hasn't completed in 4s, force resolve
     const safetyTimeout = setTimeout(async () => {
       if (!isMounted || initDone.current) return;
-      console.warn('[AUTH_SESSION_EVENT] Init timed out after 4s, forcing ready');
+      console.warn(
+        '[AUTH_SESSION_EVENT] Init timed out after 4s, forcing ready'
+      );
       initDone.current = true;
       setAuthState((prev) =>
-        prev.isLoading ? { ...prev, isLoading: false, isInitialized: true } : prev
+        prev.isLoading
+          ? { ...prev, isLoading: false, isInitialized: true }
+          : prev
       );
     }, 4000);
 
     // Auth state listener — guarded by initDone
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return;
 
-      console.info(`[AUTH_EVENT] ${event}, session=${session ? 'exists' : 'null'}, initDone=${initDone.current}, tab=${window.location.pathname}`);
+      console.info(
+        `[AUTH_EVENT] ${event}, session=${session ? 'exists' : 'null'}, initDone=${initDone.current}, tab=${window.location.pathname}`
+      );
 
       // Ignore INITIAL_SESSION — we handle it ourselves in initAuth()
       if (event === 'INITIAL_SESSION') return;
 
       // Before init completes, only process explicit SIGNED_IN / SIGNED_OUT
-      if (!initDone.current && event !== 'SIGNED_IN' && event !== 'SIGNED_OUT') {
+      if (
+        !initDone.current &&
+        event !== 'SIGNED_IN' &&
+        event !== 'SIGNED_OUT'
+      ) {
         console.info('[AUTH_EVENT] Skipped (init not done):', event);
         return;
       }
@@ -260,8 +277,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.warn('[AUTH_SESSION_EVENT] Token refresh failed');
           profileCache.invalidate();
           setAuthState({
-            user: null, session: null, profile: null, role: 'anonymous',
-            isLoading: false, isInitialized: true, isRoleLoading: false,
+            user: null,
+            session: null,
+            profile: null,
+            role: 'anonymous',
+            isLoading: false,
+            isInitialized: true,
+            isRoleLoading: false,
           });
           initializeWishlistStore(null);
         } else {
@@ -293,11 +315,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profileCache.invalidate();
         if (roleIntervalRef.current) clearInterval(roleIntervalRef.current);
         setAuthState({
-          user: null, session: null, profile: null, role: 'anonymous',
-          isLoading: false, isInitialized: true, isRoleLoading: false,
+          user: null,
+          session: null,
+          profile: null,
+          role: 'anonymous',
+          isLoading: false,
+          isInitialized: true,
+          isRoleLoading: false,
         });
         if ('caches' in self) {
-          caches.keys().then((names) => names.forEach((name) => caches.delete(name)));
+          caches
+            .keys()
+            .then((names) => names.forEach((name) => caches.delete(name)));
         }
       }
     });
@@ -313,8 +342,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           profileCache.invalidate();
           if (roleIntervalRef.current) clearInterval(roleIntervalRef.current);
           setAuthState({
-            user: null, session: null, profile: null, role: 'anonymous',
-            isLoading: false, isInitialized: true, isRoleLoading: false,
+            user: null,
+            session: null,
+            profile: null,
+            role: 'anonymous',
+            isLoading: false,
+            isInitialized: true,
+            isRoleLoading: false,
           });
           initializeWishlistStore(null);
         } else if (event.data?.type === 'SIGNED_IN') {
@@ -322,8 +356,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           supabase.auth.getSession().then(({ data: { session } }) => {
             if (session?.user && isMounted) {
               setAuthState((prev) => ({
-                ...prev, session, user: session.user,
-                isLoading: false, isInitialized: true,
+                ...prev,
+                session,
+                user: session.user,
+                isLoading: false,
+                isInitialized: true,
               }));
               initializeWishlistStore(session.user.id);
               loadUserProfile(session.user.id);
@@ -332,24 +369,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           });
         }
       };
-    } catch { /* BroadcastChannel not supported */ }
+    } catch {
+      /* BroadcastChannel not supported */
+    }
 
     // Initial session check — runs ONCE, sets initDone when complete
     const initAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
         if (session?.user) {
           // Validate JWT is still valid
           const { error: userError } = await supabase.auth.getUser();
           if (userError) {
-            console.warn('[AUTH_SESSION_EVENT] JWT invalid, clearing:', userError.message);
+            console.warn(
+              '[AUTH_SESSION_EVENT] JWT invalid, clearing:',
+              userError.message
+            );
             cleanupAuthState();
             await supabase.auth.signOut({ scope: 'local' });
             if (isMounted) {
               setAuthState({
-                user: null, session: null, profile: null, role: 'anonymous',
-                isLoading: false, isInitialized: true, isRoleLoading: false,
+                user: null,
+                session: null,
+                profile: null,
+                role: 'anonymous',
+                isLoading: false,
+                isInitialized: true,
+                isRoleLoading: false,
               });
             }
             initDone.current = true;
@@ -359,8 +408,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (isMounted) {
             logSessionEvent('SESSION_RESTORED', session.user.id);
             setAuthState((prev) => ({
-              ...prev, session, user: session.user,
-              isLoading: false, isInitialized: true,
+              ...prev,
+              session,
+              user: session.user,
+              isLoading: false,
+              isInitialized: true,
             }));
             initializeWishlistStore(session.user.id);
             loadUserProfile(session.user.id);
@@ -369,15 +421,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           if (isMounted) {
             setAuthState((prev) => ({
-              ...prev, session: null, user: null, role: 'anonymous',
-              isLoading: false, isInitialized: true,
+              ...prev,
+              session: null,
+              user: null,
+              role: 'anonymous',
+              isLoading: false,
+              isInitialized: true,
             }));
           }
         }
       } catch (error) {
         console.error('[AUTH_SESSION_EVENT] Init error:', error);
         if (isMounted) {
-          setAuthState((prev) => ({ ...prev, isLoading: false, isInitialized: true }));
+          setAuthState((prev) => ({
+            ...prev,
+            isLoading: false,
+            isInitialized: true,
+          }));
         }
       } finally {
         initDone.current = true;
@@ -391,36 +451,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearTimeout(safetyTimeout);
       subscription.unsubscribe();
       if (roleIntervalRef.current) clearInterval(roleIntervalRef.current);
-      try { authChannel?.close(); } catch { /* ignore */ }
+      try {
+        authChannel?.close();
+      } catch {
+        /* ignore */
+      }
     };
   }, [loadUserProfile, loadUserRole]);
 
   // ============= Auth Methods =============
   const signIn = useCallback(async (email: string, password: string) => {
     cleanupAuthState();
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     if (error) throw error;
     logSessionEvent('SIGNED_IN', data.user?.id);
     try {
       const ch = new BroadcastChannel('auth-sync');
       ch.postMessage({ type: 'SIGNED_IN', userId: data.user?.id });
       ch.close();
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     return data;
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string, fullName: string, phone?: string) => {
-    cleanupAuthState();
-    const { data, error } = await supabase.auth.signUp({
-      email, password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        data: { full_name: fullName, phone: phone || null },
-      },
-    });
-    if (error) throw error;
-    return data;
-  }, []);
+  const signUp = useCallback(
+    async (
+      email: string,
+      password: string,
+      fullName: string,
+      phone?: string
+    ) => {
+      cleanupAuthState();
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: { full_name: fullName, phone: phone || null },
+        },
+      });
+      if (error) throw error;
+      return data;
+    },
+    []
+  );
 
   const signOut = useCallback(async () => {
     try {
@@ -429,12 +507,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (roleIntervalRef.current) clearInterval(roleIntervalRef.current);
 
       setAuthState({
-        user: null, session: null, profile: null, role: 'anonymous',
-        isLoading: false, isInitialized: true, isRoleLoading: false,
+        user: null,
+        session: null,
+        profile: null,
+        role: 'anonymous',
+        isLoading: false,
+        isInitialized: true,
+        isRoleLoading: false,
       });
       initializeWishlistStore(null);
 
-      try { queryClient?.clear(); } catch { /* ignore */ }
+      try {
+        queryClient?.clear();
+      } catch {
+        /* ignore */
+      }
 
       await supabase.auth.signOut({ scope: 'local' });
       logSessionEvent('SIGNED_OUT');
@@ -443,35 +530,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const ch = new BroadcastChannel('auth-sync');
         ch.postMessage({ type: 'SIGNED_OUT' });
         ch.close();
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     } catch (error) {
       console.error('[AUTH_SESSION_EVENT] Sign out error:', error);
       setAuthState({
-        user: null, session: null, profile: null, role: 'anonymous',
-        isLoading: false, isInitialized: true, isRoleLoading: false,
+        user: null,
+        session: null,
+        profile: null,
+        role: 'anonymous',
+        isLoading: false,
+        isInitialized: true,
+        isRoleLoading: false,
       });
       throw error;
     }
   }, [queryClient]);
 
-  const signInWithOtp = useCallback(async (email: string, options?: { shouldCreateUser?: boolean }): Promise<AuthOtpResponse> => {
-    cleanupAuthState();
-    const { data, error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        shouldCreateUser: options?.shouldCreateUser ?? true,
-      },
-    });
-    if (error) throw error;
-    return { data, error };
-  }, []);
+  const signInWithOtp = useCallback(
+    async (
+      email: string,
+      options?: { shouldCreateUser?: boolean }
+    ): Promise<AuthOtpResponse> => {
+      cleanupAuthState();
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          shouldCreateUser: options?.shouldCreateUser ?? true,
+        },
+      });
+      if (error) throw error;
+      return { data, error };
+    },
+    []
+  );
 
-  const verifyOtp = useCallback(async (email: string, token: string, _type: 'email' | 'sms' = 'email') => {
-    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
-    if (error) throw error;
-    return data;
-  }, []);
+  const verifyOtp = useCallback(
+    async (email: string, token: string, _type: 'email' | 'sms' = 'email') => {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email',
+      });
+      if (error) throw error;
+      return data;
+    },
+    []
+  );
 
   const resetPassword = useCallback(async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -490,13 +597,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       ...authState,
       isAuthenticated,
-      signIn, signUp, signOut, signInWithOtp, verifyOtp,
-      resetPassword, updatePassword, updateProfile, refreshProfile, refreshRole,
+      signIn,
+      signUp,
+      signOut,
+      signInWithOtp,
+      verifyOtp,
+      resetPassword,
+      updatePassword,
+      updateProfile,
+      refreshProfile,
+      refreshRole,
     }),
     [
-      authState, isAuthenticated, signIn, signUp, signOut,
-      signInWithOtp, verifyOtp, resetPassword, updatePassword,
-      updateProfile, refreshProfile, refreshRole,
+      authState,
+      isAuthenticated,
+      signIn,
+      signUp,
+      signOut,
+      signInWithOtp,
+      verifyOtp,
+      resetPassword,
+      updatePassword,
+      updateProfile,
+      refreshProfile,
+      refreshRole,
     ]
   );
 

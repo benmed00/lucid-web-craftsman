@@ -87,16 +87,14 @@
       hsl(var(--background)),
       hsl(var(--sand-50))
     );
-    --gradient-hero: linear-gradient(
-      135deg,
-      hsl(40 33% 96%),
-      hsl(35 25% 92%)
-    );
+    --gradient-hero: linear-gradient(135deg, hsl(40 33% 96%), hsl(35 25% 92%));
 
     /* Shadows with brand colors */
     --shadow-elegant: 0 10px 25px -5px hsl(var(--sand-700) / 0.1);
     --shadow-glow: 0 0 20px hsl(var(--sand-500) / 0.12);
-    --shadow-premium: 0 20px 60px -15px hsl(var(--sand-700) / 0.12), 0 0 0 1px hsl(var(--sand-100) / 0.5);
+    --shadow-premium:
+      0 20px 60px -15px hsl(var(--sand-700) / 0.12),
+      0 0 0 1px hsl(var(--sand-100) / 0.5);
 
     /* Backward-compatible aliases (olive → sand, stone → earth) */
     --olive-50: var(--sand-50);
@@ -228,7 +226,7 @@
 
   /* ============= UI Style Themes (admin switcher) ============= */
   /* Legacy: original olive/green Moroccan artisan palette */
-  [data-ui-style="legacy"] {
+  [data-ui-style='legacy'] {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -275,7 +273,12 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-serif;
     text-rendering: optimizeLegibility;
   }
@@ -298,15 +301,27 @@
     letter-spacing: 0.01em;
   }
 
-  h4, h5, h6 {
+  h4,
+  h5,
+  h6 {
     font-weight: 600;
   }
 
-  p, span, li, td, th, label, input, textarea, select {
+  p,
+  span,
+  li,
+  td,
+  th,
+  label,
+  input,
+  textarea,
+  select {
     font-weight: 400;
   }
 
-  button, [role="button"], a.btn {
+  button,
+  [role='button'],
+  a.btn {
     font-weight: 600;
     letter-spacing: 0.06em;
   }
@@ -621,11 +636,17 @@ html {
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-weight: 700;
   }
 
-  p, li, span, label {
+  p,
+  li,
+  span,
+  label {
     font-weight: 400;
   }
 
@@ -639,8 +660,8 @@ html {
   button,
   [role='button'],
   .btn,
-  a[class*="Button"],
-  [class*="btn"] {
+  a[class*='Button'],
+  [class*='btn'] {
     min-height: 48px;
   }
 

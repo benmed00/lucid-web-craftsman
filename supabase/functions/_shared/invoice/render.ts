@@ -8,24 +8,42 @@ const PRODUCTION_URL = 'https://www.rifelegance.com';
 const SUPPORT_EMAIL = 'contact@rifelegance.com';
 
 const COUNTRY_NAMES: Record<string, string> = {
-  FR: 'France', DE: 'Allemagne', BE: 'Belgique', CH: 'Suisse',
-  ES: 'Espagne', IT: 'Italie', NL: 'Pays-Bas', GB: 'Royaume-Uni',
-  US: 'États-Unis', CA: 'Canada', MA: 'Maroc',
+  FR: 'France',
+  DE: 'Allemagne',
+  BE: 'Belgique',
+  CH: 'Suisse',
+  ES: 'Espagne',
+  IT: 'Italie',
+  NL: 'Pays-Bas',
+  GB: 'Royaume-Uni',
+  US: 'États-Unis',
+  CA: 'Canada',
+  MA: 'Maroc',
 };
 
 function escapeHtml(s: unknown): string {
   if (s == null) return '';
   return String(s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function fmtEUR(n: number): string {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(n);
 }
 
 function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  return new Date(iso).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
 }
 
 export function renderInvoiceHTML(data: InvoiceData): string {
@@ -33,13 +51,17 @@ export function renderInvoiceHTML(data: InvoiceData): string {
   const c = data.client;
   const country = COUNTRY_NAMES[c.country] || c.country || '';
 
-  const itemsRows = data.items.map((it) => `
+  const itemsRows = data.items
+    .map(
+      (it) => `
     <tr>
       <td class="cell">${escapeHtml(it.name)}</td>
       <td class="cell num">${it.quantity}</td>
       <td class="cell num">${fmtEUR(it.unit_price)}</td>
       <td class="cell num">${fmtEUR(it.total)}</td>
-    </tr>`).join('');
+    </tr>`
+    )
+    .join('');
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -132,7 +154,7 @@ export function renderInvoiceHTML(data: InvoiceData): string {
         ${escapeHtml(c.email)}<br/>
         ${c.address_line1 ? `${escapeHtml(c.address_line1)}<br/>` : ''}
         ${c.address_line2 ? `${escapeHtml(c.address_line2)}<br/>` : ''}
-        ${(c.postal_code || c.city) ? `${escapeHtml(`${c.postal_code} ${c.city}`.trim())}<br/>` : ''}
+        ${c.postal_code || c.city ? `${escapeHtml(`${c.postal_code} ${c.city}`.trim())}<br/>` : ''}
         ${escapeHtml(country)}
       </p>
     </div>

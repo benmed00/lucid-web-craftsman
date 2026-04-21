@@ -32,13 +32,26 @@ export function canSuperAdmin(role: AppRole): boolean {
 
 // ============= Structured Auth Logging =============
 export function logRoleResolved(userId: string, role: AppRole, source: string) {
-  console.info('[AUTH_ROLE_RESOLVED]', { userId, role, source, timestamp: new Date().toISOString() });
+  console.info('[AUTH_ROLE_RESOLVED]', {
+    userId,
+    role,
+    source,
+    timestamp: new Date().toISOString(),
+  });
 }
 
 export function logAccessDenied(role: AppRole, action: string) {
-  console.warn('[AUTH_ACCESS_DENIED]', { role, action, timestamp: new Date().toISOString() });
+  console.warn('[AUTH_ACCESS_DENIED]', {
+    role,
+    action,
+    timestamp: new Date().toISOString(),
+  });
 }
 
 export function logSessionEvent(event: string, userId?: string) {
-  console.info('[AUTH_SESSION_EVENT]', { event, userId, timestamp: new Date().toISOString() });
+  console.info('[AUTH_SESSION_EVENT]', {
+    event,
+    userId,
+    timestamp: new Date().toISOString(),
+  });
 }

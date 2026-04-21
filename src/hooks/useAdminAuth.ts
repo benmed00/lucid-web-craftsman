@@ -15,7 +15,13 @@ export interface AdminUser {
 }
 
 export const useAdminAuth = () => {
-  const { user, role, isLoading: authLoading, isRoleLoading, refreshRole } = useAuth();
+  const {
+    user,
+    role,
+    isLoading: authLoading,
+    isRoleLoading,
+    refreshRole,
+  } = useAuth();
 
   const isLoading = authLoading || isRoleLoading;
   const isAuthenticated = useMemo(() => canAdmin(role), [role]);
@@ -50,8 +56,14 @@ export const useAdminAuth = () => {
     isLoading,
     isAuthenticated,
     reverifyAdmin,
-    login: () => { throw new Error('Use regular auth login instead'); },
-    logout: () => { throw new Error('Use regular auth logout instead'); },
-    updateProfile: async () => { throw new Error('Use AuthContext updateProfile'); },
+    login: () => {
+      throw new Error('Use regular auth login instead');
+    },
+    logout: () => {
+      throw new Error('Use regular auth logout instead');
+    },
+    updateProfile: async () => {
+      throw new Error('Use AuthContext updateProfile');
+    },
   };
 };

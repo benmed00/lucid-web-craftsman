@@ -195,7 +195,7 @@ export default {
         body: ['1rem', { lineHeight: '1.6', fontWeight: '400' }],
         cta: [
           '0.875rem',
-          { lineHeight: '1', letterSpacing: '0.08em', fontWeight: '600' }
+          { lineHeight: '1', letterSpacing: '0.08em', fontWeight: '600' },
         ],
       },
       keyframes: {

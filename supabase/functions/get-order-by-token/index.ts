@@ -4,13 +4,13 @@
  * Strict: 401 on bad/expired/wrong-type token, 404 if order missing, 500 on DB error.
  * No fallbacks, no synthetic data.
  */
-// @ts-nocheck
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { verifyTokenPayload } from '../_shared/invoice/token.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
@@ -26,7 +26,8 @@ function json(body: unknown, status = 200) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+  if (req.method === 'OPTIONS')
+    return new Response(null, { headers: corsHeaders });
 
   try {
     const { token } = await req.json();
@@ -53,7 +54,9 @@ Deno.serve(async (req) => {
 
     const { data: order, error: orderErr } = await admin
       .from('orders')
-      .select('id, status, order_status, amount, currency, created_at, shipping_address, metadata, payment_method, user_id')
+      .select(
+        'id, status, order_status, amount, currency, created_at, shipping_address, metadata, payment_method, user_id'
+      )
       .eq('id', orderId)
       .maybeSingle();
 

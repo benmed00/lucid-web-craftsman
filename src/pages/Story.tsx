@@ -23,9 +23,7 @@ const Story = () => {
 
       <main className="flex-1 container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-center mb-12">
-            {t('story.heading')}
-          </h1>
+          <h1 className="text-center mb-12">{t('story.heading')}</h1>
 
           {/* Hero intro */}
           <div className="bg-card rounded-lg shadow-elegant p-8 md:p-12 border border-border mb-10">

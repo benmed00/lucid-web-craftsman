@@ -190,7 +190,9 @@ const handler = async (req: Request): Promise<Response> => {
     try {
       invoiceToken = await signToken(data!.orderId);
     } catch (tokErr) {
-      logStep('Token signing failed (link will require auth)', { error: (tokErr as Error).message });
+      logStep('Token signing failed (link will require auth)', {
+        error: (tokErr as Error).message,
+      });
     }
     const html = buildOrderConfirmationHtml({
       customerName: data!.customerName,

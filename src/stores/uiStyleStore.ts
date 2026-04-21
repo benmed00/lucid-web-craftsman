@@ -47,12 +47,16 @@ export const useUIStyleStore = create<UIStyleState>()(
         setItem: (name, value) => {
           try {
             localStorage.setItem(name, JSON.stringify(value));
-          } catch { /* quota */ }
+          } catch {
+            /* quota */
+          }
         },
         removeItem: (name) => {
           try {
             localStorage.removeItem(name);
-          } catch { /* ignore */ }
+          } catch {
+            /* ignore */
+          }
         },
       },
     }

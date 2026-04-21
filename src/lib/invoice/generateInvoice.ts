@@ -21,18 +21,28 @@ export interface InvoiceResponse {
  * Fetch the invoice HTML from the Edge Function.
  * Strict: throws on any failure (no fallback rendering).
  */
-export async function fetchInvoice(orderId: string, token?: string): Promise<InvoiceResponse> {
+export async function fetchInvoice(
+  orderId: string,
+  token?: string
+): Promise<InvoiceResponse> {
   if (!orderId) throw new InvoiceError('Order ID is required');
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
   };
-  if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+  if (session?.access_token)
+    headers.Authorization = `Bearer ${session.access_token}`;
 
   const guestId = (() => {
-    try { return localStorage.getItem('guest_id') || ''; } catch { return ''; }
+    try {
+      return localStorage.getItem('guest_id') || '';
+    } catch {
+      return '';
+    }
   })();
   if (guestId) headers['x-guest-id'] = guestId;
 
@@ -43,7 +53,9 @@ export async function fetchInvoice(orderId: string, token?: string): Promise<Inv
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Failed to generate invoice' }));
+    const err = await res
+      .json()
+      .catch(() => ({ error: 'Failed to generate invoice' }));
     throw new InvoiceError(err.error || `HTTP ${res.status}`);
   }
   return res.json();
@@ -53,13 +65,18 @@ export async function fetchInvoice(orderId: string, token?: string): Promise<Inv
  * Open the invoice route in a new tab (clean same-origin URL).
  * Page itself fetches the HTML and renders it via iframe — no blob URLs.
  */
-export async function downloadInvoice(orderId: string, token?: string): Promise<void> {
+export async function downloadInvoice(
+  orderId: string,
+  token?: string
+): Promise<void> {
   if (!orderId) throw new InvoiceError('Order ID is required');
   const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
   const url = `/invoice/${orderId}${tokenParam}`;
   const win = window.open(url, '_blank', 'noopener');
   if (!win) {
-    throw new InvoiceError("Popup bloqué. Autorisez les fenêtres pop-up pour télécharger la facture.");
+    throw new InvoiceError(
+      'Popup bloqué. Autorisez les fenêtres pop-up pour télécharger la facture.'
+    );
   }
 }
 
@@ -106,7 +123,9 @@ export interface OrderByTokenResponse {
 }
 
 /** Fetch order + items via signed token. Throws on any failure — no fallback. */
-export async function fetchOrderByToken(token: string): Promise<OrderByTokenResponse> {
+export async function fetchOrderByToken(
+  token: string
+): Promise<OrderByTokenResponse> {
   if (!token) throw new InvoiceError('Token is required');
   const res = await fetch(`${FUNCTIONS_URL}/get-order-by-token`, {
     method: 'POST',
@@ -118,20 +137,31 @@ export async function fetchOrderByToken(token: string): Promise<OrderByTokenResp
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new InvoiceError(err.error || `get-order-by-token HTTP ${res.status}`);
+    throw new InvoiceError(
+      err.error || `get-order-by-token HTTP ${res.status}`
+    );
   }
   return res.json();
 }
 
 /** Request a signed token for sharing/email use (30-day invoice token). */
 export async function requestInvoiceToken(orderId: string): Promise<string> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
   };
-  if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
-  const guestId = (() => { try { return localStorage.getItem('guest_id') || ''; } catch { return ''; } })();
+  if (session?.access_token)
+    headers.Authorization = `Bearer ${session.access_token}`;
+  const guestId = (() => {
+    try {
+      return localStorage.getItem('guest_id') || '';
+    } catch {
+      return '';
+    }
+  })();
   if (guestId) headers['x-guest-id'] = guestId;
 
   const res = await fetch(`${FUNCTIONS_URL}/sign-invoice-token`, {

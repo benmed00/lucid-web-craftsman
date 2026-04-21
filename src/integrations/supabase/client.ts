@@ -56,7 +56,12 @@ const getGuestSignature = (): string => {
     const raw = localStorage.getItem(GUEST_SESSION_KEY);
     if (raw) {
       const session = JSON.parse(raw);
-      return session?.signature || session?.data?.signature || session?.value?.signature || '';
+      return (
+        session?.signature ||
+        session?.data?.signature ||
+        session?.value?.signature ||
+        ''
+      );
     }
   } catch {
     // Ignore parse errors

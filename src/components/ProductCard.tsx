@@ -26,7 +26,9 @@ import { useCompareStore } from '@/stores/compareStore';
 
 // Sentinel to distinguish "no provider" from "provider with empty data"
 const NO_PROVIDER = Symbol('no-stock-provider');
-const StockContext = createContext<Record<number, StockInfo> | typeof NO_PROVIDER>(NO_PROVIDER);
+const StockContext = createContext<
+  Record<number, StockInfo> | typeof NO_PROVIDER
+>(NO_PROVIDER);
 const useStockContext = () => useContext(StockContext);
 
 interface ProductCardProps {
@@ -52,7 +54,9 @@ const ProductCard = ({
   // Try to get stock info from context first (batch provider)
   const stockContext = useStockContext();
   const hasProvider = stockContext !== NO_PROVIDER;
-  const contextStockInfo = hasProvider ? (stockContext as Record<number, StockInfo>)[product.id] : undefined;
+  const contextStockInfo = hasProvider
+    ? (stockContext as Record<number, StockInfo>)[product.id]
+    : undefined;
 
   // Only fire individual query if NO provider exists (standalone usage)
   const { stockInfo: individualStockInfo } = useStock({

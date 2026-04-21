@@ -17,3 +17,14 @@ export function invokeTranslateTag(body: {
 }) {
   return supabase.functions.invoke('translate-tag', { body });
 }
+
+export function invokeVerifyPaypalPayment(body: {
+  paypal_order_id: string;
+  order_id: string;
+}) {
+  return supabase.functions.invoke('verify-paypal-payment', { body });
+}
+
+export function invokeReconcilePayment(body: { order_id: string }) {
+  return supabase.functions.invoke('reconcile-payment', { body });
+}

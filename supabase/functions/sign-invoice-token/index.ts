@@ -4,13 +4,13 @@
  * Caller must own the order (authenticated) OR provide matching x-guest-id.
  * Used by: order-confirmation page (frontend) and email templates (server-side).
  */
-// @ts-nocheck
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { signToken } from '../_shared/invoice/token.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-guest-id',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-guest-id',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
@@ -27,7 +27,8 @@ function json(body: unknown, status = 200) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+  if (req.method === 'OPTIONS')
+    return new Response(null, { headers: corsHeaders });
 
   try {
     const { order_id } = await req.json();
@@ -48,11 +49,15 @@ Deno.serve(async (req) => {
       const userClient = createClient(SUPABASE_URL, ANON_KEY, {
         global: { headers: { Authorization: authHeader } },
       });
-      const { data: { user } } = await userClient.auth.getUser();
+      const {
+        data: { user },
+      } = await userClient.auth.getUser();
       if (user) {
         if (order.user_id === user.id) authorized = true;
         else {
-          const { data: isAdmin } = await admin.rpc('is_admin_user', { _user_id: user.id });
+          const { data: isAdmin } = await admin.rpc('is_admin_user', {
+            _user_id: user.id,
+          });
           if (isAdmin) authorized = true;
         }
       }
@@ -61,7 +66,8 @@ Deno.serve(async (req) => {
     if (!authorized) {
       const guestId = req.headers.get('x-guest-id');
       const orderGuestId = (order.metadata as any)?.guest_id;
-      if (guestId && orderGuestId && guestId === orderGuestId) authorized = true;
+      if (guestId && orderGuestId && guestId === orderGuestId)
+        authorized = true;
     }
 
     if (!authorized) return json({ error: 'Unauthorized' }, 401);

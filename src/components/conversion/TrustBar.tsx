@@ -17,7 +17,10 @@ export const TrustBar = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-wrap justify-center md:justify-between items-center gap-4 md:gap-6 py-3 md:py-4">
           {items.map((item, i) => (
-            <div key={i} className="flex items-center gap-2 text-sm text-foreground">
+            <div
+              key={i}
+              className="flex items-center gap-2 text-sm text-foreground"
+            >
               <item.icon className="h-4 w-4 text-primary flex-shrink-0" />
               <span className="whitespace-nowrap">{item.text}</span>
             </div>

@@ -50,10 +50,16 @@ serve(async (req) => {
   let authenticatedUserId: string | null = null;
   try {
     if (bearerToken && !isInternalServiceCall) {
-      const anonClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '');
-      const { data: { user } } = await anonClient.auth.getUser(bearerToken);
+      const anonClient = createClient(
+        supabaseUrl,
+        Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      );
+      const {
+        data: { user },
+      } = await anonClient.auth.getUser(bearerToken);
       authenticatedUserId = user?.id || null;
-      if (authenticatedUserId) logStep('Authenticated user detected', { userId: authenticatedUserId });
+      if (authenticatedUserId)
+        logStep('Authenticated user detected', { userId: authenticatedUserId });
     }
   } catch {
     logStep('Could not extract user from auth header (non-fatal)');
@@ -61,9 +67,15 @@ serve(async (req) => {
 
   function isAuthorizedOrder(order: any): boolean {
     if (isInternalServiceCall) return true;
-    if (authenticatedUserId && order?.user_id && authenticatedUserId === order.user_id) return true;
+    if (
+      authenticatedUserId &&
+      order?.user_id &&
+      authenticatedUserId === order.user_id
+    )
+      return true;
     const metadata = (order?.metadata || {}) as Record<string, unknown>;
-    const orderGuestId = typeof metadata.guest_id === 'string' ? metadata.guest_id : null;
+    const orderGuestId =
+      typeof metadata.guest_id === 'string' ? metadata.guest_id : null;
     return !!(guestId && orderGuestId && guestId === orderGuestId);
   }
 
@@ -83,27 +95,39 @@ serve(async (req) => {
       const orderStatus = String(order?.order_status || '').toLowerCase();
       const metadata = (order?.metadata || {}) as Record<string, unknown>;
       return (
-        status === 'paid' || status === 'completed' ||
-        orderStatus === 'paid' || orderStatus === 'completed' ||
-        metadata.webhook_processed === true || metadata.webhook_processed === 'true'
+        status === 'paid' ||
+        status === 'completed' ||
+        orderStatus === 'paid' ||
+        orderStatus === 'completed' ||
+        metadata.webhook_processed === true ||
+        metadata.webhook_processed === 'true'
       );
     };
 
-    const findOrderBySession = async (sessionIdValue: string, fallbackOrderId?: string) => {
+    const findOrderBySession = async (
+      sessionIdValue: string,
+      fallbackOrderId?: string
+    ) => {
       const { data: bySession } = await supabaseService
-        .from('orders').select(selectOrderFields)
-        .eq('stripe_session_id', sessionIdValue).maybeSingle();
+        .from('orders')
+        .select(selectOrderFields)
+        .eq('stripe_session_id', sessionIdValue)
+        .maybeSingle();
       if (bySession) return bySession;
 
       const { data: byMetadata } = await supabaseService
-        .from('orders').select(selectOrderFields)
-        .contains('metadata', { stripe_session_id: sessionIdValue }).maybeSingle();
+        .from('orders')
+        .select(selectOrderFields)
+        .contains('metadata', { stripe_session_id: sessionIdValue })
+        .maybeSingle();
       if (byMetadata) return byMetadata;
 
       if (fallbackOrderId) {
         const { data: byOrderId } = await supabaseService
-          .from('orders').select(selectOrderFields)
-          .eq('id', fallbackOrderId).maybeSingle();
+          .from('orders')
+          .select(selectOrderFields)
+          .eq('id', fallbackOrderId)
+          .maybeSingle();
         if (byOrderId) return byOrderId;
       }
       return null;
@@ -116,14 +140,26 @@ serve(async (req) => {
     if (preConfirmedOrder && !isAuthorizedOrder(preConfirmedOrder)) {
       return new Response(
         JSON.stringify({ success: false, message: 'Order not found' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404,
+        }
       );
     }
     if (preConfirmedOrder && isOrderConfirmed(preConfirmedOrder)) {
-      logStep('Order already confirmed in DB', { orderId: preConfirmedOrder.id });
+      logStep('Order already confirmed in DB', {
+        orderId: preConfirmedOrder.id,
+      });
       return new Response(
-        JSON.stringify({ success: true, message: 'Commande confirmée', orderId: preConfirmedOrder.id }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        JSON.stringify({
+          success: true,
+          message: 'Commande confirmée',
+          orderId: preConfirmedOrder.id,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
       );
     }
 
@@ -140,18 +176,30 @@ serve(async (req) => {
         expand: ['customer', 'payment_intent'],
       });
     } catch (stripeErr) {
-      logStep('Stripe lookup failed, trying DB-only', { message: (stripeErr as Error).message });
+      logStep('Stripe lookup failed, trying DB-only', {
+        message: (stripeErr as Error).message,
+      });
       const recovered = await findOrderBySession(session_id);
       if (recovered && !isAuthorizedOrder(recovered)) {
         return new Response(
           JSON.stringify({ success: false, message: 'Order not found' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 404,
+          }
         );
       }
       if (recovered && isOrderConfirmed(recovered)) {
         return new Response(
-          JSON.stringify({ success: true, message: 'Commande confirmée', orderId: recovered.id }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+          JSON.stringify({
+            success: true,
+            message: 'Commande confirmée',
+            orderId: recovered.id,
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
+          }
         );
       }
       throw stripeErr;
@@ -159,17 +207,30 @@ serve(async (req) => {
 
     if (session.payment_status !== 'paid') {
       return new Response(
-        JSON.stringify({ success: false, message: 'Payment not completed', status: session.payment_status }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        JSON.stringify({
+          success: false,
+          message: 'Payment not completed',
+          status: session.payment_status,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
       );
     }
 
-    const orderData = await findOrderBySession(session_id, session.metadata?.order_id);
+    const orderData = await findOrderBySession(
+      session_id,
+      session.metadata?.order_id
+    );
     if (!orderData) throw new Error('Order not found');
     if (!isAuthorizedOrder(orderData)) {
       return new Response(
         JSON.stringify({ success: false, message: 'Order not found' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404,
+        }
       );
     }
 
@@ -177,10 +238,15 @@ serve(async (req) => {
 
     // Associate with authenticated user if needed
     if (!orderData.user_id && authenticatedUserId) {
-      await supabaseService.from('orders')
+      await supabaseService
+        .from('orders')
         .update({ user_id: authenticatedUserId })
-        .eq('id', orderData.id).is('user_id', null);
-      logStep('Order associated with user', { orderId: orderData.id, userId: authenticatedUserId });
+        .eq('id', orderData.id)
+        .is('user_id', null);
+      logStep('Order associated with user', {
+        orderId: orderData.id,
+        userId: authenticatedUserId,
+      });
     }
 
     // Helper: build invoice data
@@ -200,7 +266,10 @@ serve(async (req) => {
         };
       });
 
-      const itemsSubtotal = orderItems.reduce((sum: number, i: any) => sum + i.total_price, 0);
+      const itemsSubtotal = orderItems.reduce(
+        (sum: number, i: any) => sum + i.total_price,
+        0
+      );
       const orderTotal = orderData.amount || itemsSubtotal;
       const shipping = Math.max(0, orderTotal - itemsSubtotal);
       const shippingAddr = orderData.shipping_address as any;
@@ -210,13 +279,16 @@ serve(async (req) => {
         subtotal: itemsSubtotal,
         shipping,
         total: orderTotal,
-        shippingAddress: shippingAddr ? {
-          line1: shippingAddr.address_line1 || shippingAddr.line1 || '',
-          line2: shippingAddr.address_line2 || shippingAddr.line2 || '',
-          city: shippingAddr.city || '',
-          postalCode: shippingAddr.postal_code || shippingAddr.postalCode || '',
-          country: shippingAddr.country || 'FR',
-        } : null,
+        shippingAddress: shippingAddr
+          ? {
+              line1: shippingAddr.address_line1 || shippingAddr.line1 || '',
+              line2: shippingAddr.address_line2 || shippingAddr.line2 || '',
+              city: shippingAddr.city || '',
+              postalCode:
+                shippingAddr.postal_code || shippingAddr.postalCode || '',
+              country: shippingAddr.country || 'FR',
+            }
+          : null,
         paymentMethod: session.payment_method_types?.[0] || 'card',
         currency: orderData.currency?.toUpperCase() || 'EUR',
         stripeSessionId: session_id,
@@ -231,15 +303,29 @@ serve(async (req) => {
       const invoice = await buildInvoiceData(orderData.id);
       return new Response(
         JSON.stringify({
-          success: true, message: 'Commande confirmée', orderId: orderData.id,
-          customerInfo: session.customer_details ? {
-            firstName: session.customer_details.name?.split(' ')[0] || '',
-            lastName: session.customer_details.name?.split(' ').slice(1).join(' ') || '',
-            email: session.customer_details.email || '',
-          } : null,
-          invoiceData: { ...invoice, date: orderData.created_at || new Date().toISOString() },
+          success: true,
+          message: 'Commande confirmée',
+          orderId: orderData.id,
+          customerInfo: session.customer_details
+            ? {
+                firstName: session.customer_details.name?.split(' ')[0] || '',
+                lastName:
+                  session.customer_details.name
+                    ?.split(' ')
+                    .slice(1)
+                    .join(' ') || '',
+                email: session.customer_details.email || '',
+              }
+            : null,
+          invoiceData: {
+            ...invoice,
+            date: orderData.created_at || new Date().toISOString(),
+          },
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
       );
     }
 
@@ -253,7 +339,8 @@ serve(async (req) => {
         ? session.payment_intent
         : session.payment_intent?.id;
 
-    const correlationId = session.metadata?.correlation_id || orderData.metadata?.correlation_id;
+    const correlationId =
+      session.metadata?.correlation_id || orderData.metadata?.correlation_id;
 
     const result = await confirmOrderFromStripe(supabaseService, {
       orderId: orderData.id,
@@ -271,7 +358,10 @@ serve(async (req) => {
       throw new Error(result.error || 'Failed to confirm order');
     }
 
-    logStep('Order confirmed via fallback', { orderId: orderData.id, alreadyProcessed: result.alreadyProcessed });
+    logStep('Order confirmed via fallback', {
+      orderId: orderData.id,
+      alreadyProcessed: result.alreadyProcessed,
+    });
 
     // Send email if we did the confirmation
     if (!result.alreadyProcessed) {
@@ -279,7 +369,9 @@ serve(async (req) => {
       if (customerEmail) {
         const { data: freshOrder } = await supabaseService
           .from('orders')
-          .select('order_items(id, product_id, quantity, unit_price), amount, currency, shipping_address')
+          .select(
+            'order_items(id, product_id, quantity, unit_price), amount, currency, shipping_address'
+          )
           .eq('id', orderData.id)
           .single();
 
@@ -302,9 +394,11 @@ serve(async (req) => {
         let isFirstOrder = true;
         if (orderData.metadata?.user_id) {
           const { count } = await supabaseService
-            .from('orders').select('id', { count: 'exact', head: true })
+            .from('orders')
+            .select('id', { count: 'exact', head: true })
             .eq('user_id', orderData.metadata.user_id as string)
-            .neq('id', orderData.id).eq('status', 'paid');
+            .neq('id', orderData.id)
+            .eq('status', 'paid');
           isFirstOrder = (count || 0) === 0;
         }
         await supabaseService.rpc('calculate_fraud_score', {
@@ -312,13 +406,16 @@ serve(async (req) => {
           p_customer_email: session.customer_details?.email || '',
           p_shipping_address: orderData.shipping_address,
           p_billing_address: orderData.shipping_address,
-          p_ip_address: null, p_user_agent: null,
+          p_ip_address: null,
+          p_user_agent: null,
           p_checkout_duration_seconds: null,
           p_is_first_order: isFirstOrder,
           p_order_amount: orderData.amount / 100,
         });
       } catch (fraudErr) {
-        logStep('Fraud detection error (non-fatal)', { error: (fraudErr as Error).message });
+        logStep('Fraud detection error (non-fatal)', {
+          error: (fraudErr as Error).message,
+        });
       }
     }
 
@@ -326,23 +423,37 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        success: true, message: 'Commande confirmée', orderId: orderData.id,
-        customerInfo: session.customer_details ? {
-          firstName: session.customer_details.name?.split(' ')[0] || '',
-          lastName: session.customer_details.name?.split(' ').slice(1).join(' ') || '',
-          email: session.customer_details.email || '',
-        } : null,
-        invoiceData: { ...invoice, date: orderData.created_at || new Date().toISOString() },
+        success: true,
+        message: 'Commande confirmée',
+        orderId: orderData.id,
+        customerInfo: session.customer_details
+          ? {
+              firstName: session.customer_details.name?.split(' ')[0] || '',
+              lastName:
+                session.customer_details.name?.split(' ').slice(1).join(' ') ||
+                '',
+              email: session.customer_details.email || '',
+            }
+          : null,
+        invoiceData: {
+          ...invoice,
+          date: orderData.created_at || new Date().toISOString(),
+        },
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
     );
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep('ERROR in verify-payment', { message: errorMessage });
     return new Response(
       JSON.stringify({ success: false, error: errorMessage }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      }
     );
   }
 });

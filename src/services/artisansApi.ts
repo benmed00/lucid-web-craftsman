@@ -52,3 +52,35 @@ export async function fetchActiveArtisansWithTranslations(): Promise<
   if (error) throw error;
   return (data ?? []) as ArtisanJoinRow[];
 }
+
+export type ArtisanFullRow = Database['public']['Tables']['artisans']['Row'];
+
+export type ArtisanFullTranslationJoined = Pick<
+  Database['public']['Tables']['artisan_translations']['Row'],
+  'locale' | 'specialty' | 'quote' | 'bio_short' | 'bio'
+>;
+
+export type ArtisanFullJoinRow = ArtisanFullRow & {
+  artisan_translations: ArtisanFullTranslationJoined[] | null;
+};
+
+/** Full artisan rows + translations for the public Artisans page. */
+export async function fetchActiveArtisansFullWithTranslations(): Promise<
+  ArtisanFullJoinRow[]
+> {
+  const { data, error } = await supabase
+    .from('artisans')
+    .select(
+      `
+          *,
+          artisan_translations!left (
+            locale, specialty, quote, bio_short, bio
+          )
+        `
+    )
+    .eq('is_active', true)
+    .order('created_at', { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as ArtisanFullJoinRow[];
+}

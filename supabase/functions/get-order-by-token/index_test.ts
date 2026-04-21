@@ -33,7 +33,11 @@ Deno.test('verifyTokenPayload rejects bad signature', async () => {
   const token = await signOrderToken('order-123');
   const [payloadB64] = token.split('.');
   const tampered = `${payloadB64}.AAAA`;
-  await assertRejects(() => verifyTokenPayload(tampered), Error, 'Invalid token signature');
+  await assertRejects(
+    () => verifyTokenPayload(tampered),
+    Error,
+    'Invalid token signature'
+  );
 });
 
 Deno.test('verifyTokenPayload rejects expired token', async () => {
@@ -44,16 +48,23 @@ Deno.test('verifyTokenPayload rejects expired token', async () => {
     enc.encode('test-secret-for-unit-tests'),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
-    ['sign'],
+    ['sign']
   );
   const payload = { order_id: 'o', type: 'order_access', exp: 1 };
-  const b64 = (s: string) => btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const b64 = (s: string) =>
+    btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const payloadB64 = b64(JSON.stringify(payload));
-  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, enc.encode(payloadB64)));
+  const sig = new Uint8Array(
+    await crypto.subtle.sign('HMAC', key, enc.encode(payloadB64))
+  );
   let bin = '';
   for (const x of sig) bin += String.fromCharCode(x);
   const sigB64 = b64(bin);
-  await assertRejects(() => verifyTokenPayload(`${payloadB64}.${sigB64}`), Error, 'Token expired');
+  await assertRejects(
+    () => verifyTokenPayload(`${payloadB64}.${sigB64}`),
+    Error,
+    'Token expired'
+  );
 });
 
 Deno.test('signToken (invoice) yields invoice_access type', async () => {

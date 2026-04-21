@@ -44,14 +44,16 @@ async function getKey(): Promise<CryptoKey> {
     enc.encode(SECRET),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
-    ['sign', 'verify'],
+    ['sign', 'verify']
   );
 }
 
 async function signWith(payload: TokenPayload): Promise<string> {
   const payloadB64 = b64urlEncode(enc.encode(JSON.stringify(payload)));
   const key = await getKey();
-  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, enc.encode(payloadB64)));
+  const sig = new Uint8Array(
+    await crypto.subtle.sign('HMAC', key, enc.encode(payloadB64))
+  );
   return `${payloadB64}.${b64urlEncode(sig)}`;
 }
 
@@ -87,18 +89,27 @@ export async function verifyTokenPayload(token: string): Promise<TokenPayload> {
   const ok = await crypto.subtle.verify(
     'HMAC',
     key,
-    sigBytes.buffer.slice(sigBytes.byteOffset, sigBytes.byteOffset + sigBytes.byteLength) as ArrayBuffer,
-    enc.encode(payloadB64),
+    sigBytes.buffer.slice(
+      sigBytes.byteOffset,
+      sigBytes.byteOffset + sigBytes.byteLength
+    ) as ArrayBuffer,
+    enc.encode(payloadB64)
   );
   if (!ok) throw new Error('Invalid token signature');
 
-  const payload = JSON.parse(new TextDecoder().decode(b64urlDecode(payloadB64))) as Partial<TokenPayload>;
+  const payload = JSON.parse(
+    new TextDecoder().decode(b64urlDecode(payloadB64))
+  ) as Partial<TokenPayload>;
   if (!payload.order_id) throw new Error('Token missing order_id');
-  if (typeof payload.exp !== 'number' || payload.exp < Math.floor(Date.now() / 1000)) {
+  if (
+    typeof payload.exp !== 'number' ||
+    payload.exp < Math.floor(Date.now() / 1000)
+  ) {
     throw new Error('Token expired');
   }
   // Backward compat: legacy invoice tokens may not have a type — assume invoice_access.
-  const type: TokenType = payload.type === 'order_access' ? 'order_access' : 'invoice_access';
+  const type: TokenType =
+    payload.type === 'order_access' ? 'order_access' : 'invoice_access';
   return { order_id: payload.order_id, type, exp: payload.exp };
 }
 

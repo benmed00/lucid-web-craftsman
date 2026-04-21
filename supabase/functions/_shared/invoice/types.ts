@@ -17,7 +17,7 @@ export interface InvoiceItem {
   name: string;
   quantity: number;
   unit_price: number; // EUR
-  total: number;      // EUR
+  total: number; // EUR
 }
 
 export interface InvoiceTotals {
@@ -38,7 +38,7 @@ export interface InvoiceData {
   invoice_number: string;
   order_id: string;
   order_short: string;
-  issue_date: string;       // ISO
+  issue_date: string; // ISO
   currency: string;
   client: InvoiceClient;
   items: InvoiceItem[];

@@ -1,17 +1,15 @@
 /**
  * Tracking Pixel Infrastructure
- * 
+ *
  * Supports Meta (Facebook) Pixel and TikTok Pixel.
  * Pixel IDs are read from environment variables:
  *   - VITE_META_PIXEL_ID
  *   - VITE_TIKTOK_PIXEL_ID
- * 
+ *
  * If no ID is set, the pixel is silently disabled (no errors).
  */
 
 // ─── Types ───────────────────────────────────────────────────────
-type EventParams = Record<string, string | number | boolean | undefined>;
-
 interface PixelConfig {
   metaPixelId: string | undefined;
   tiktokPixelId: string | undefined;
@@ -68,8 +66,19 @@ export function initTikTokPixel(): void {
     w.TiktokAnalyticsObject = t;
     const ttq = (w[t] = w[t] || []);
     ttq.methods = [
-      'page', 'track', 'identify', 'instances', 'debug', 'on', 'off',
-      'once', 'ready', 'alias', 'group', 'enableCookie', 'disableCookie',
+      'page',
+      'track',
+      'identify',
+      'instances',
+      'debug',
+      'on',
+      'off',
+      'once',
+      'ready',
+      'alias',
+      'group',
+      'enableCookie',
+      'disableCookie',
     ];
     ttq.setAndDefer = function (t: any, e: any) {
       t[e] = function () {
@@ -112,10 +121,13 @@ export function initTikTokPixel(): void {
 export function initPixels(): void {
   // Defer pixel loading to not block main thread
   if (typeof requestIdleCallback !== 'undefined') {
-    requestIdleCallback(() => {
-      initMetaPixel();
-      initTikTokPixel();
-    }, { timeout: 3000 });
+    requestIdleCallback(
+      () => {
+        initMetaPixel();
+        initTikTokPixel();
+      },
+      { timeout: 3000 }
+    );
   } else {
     setTimeout(() => {
       initMetaPixel();
@@ -228,7 +240,7 @@ export function trackPurchase(params: {
   currency?: string;
   numItems: number;
 }): void {
-  const { orderId, value, currency = 'EUR', numItems } = params;
+  const { value, currency = 'EUR', numItems } = params;
 
   if (config.metaPixelId && window.fbq) {
     window.fbq('track', 'Purchase', {
