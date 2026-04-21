@@ -1,0 +1,67 @@
+flowchart TB
+  %% ============ Upstream (browser) ============
+  subgraph UP["Upstream browser flow"]
+    direction LR
+    UI["OrderConfirmation.tsx"]
+    SOT["sign-order-token"]
+    REC["reconcile-payment"]
+    UI -->|"step 1 - awaited, errors swallowed"| REC
+    UI -->|"step 2 - POST order_id"| SOT
+    SOT -->|"200 with 15-min HMAC token<br/>or 409, retry up to 4x"| UI
+  end
+
+  UI ==>|"step 3 - POST apikey + token"| REQ
+
+  %% ============ Entry & gateway ============
+  REQ["POST /functions/v1/get-order-by-token"]
+  REQ --> GW{"Supabase gateway<br/>apikey header valid?"}
+  GW -->|no| EGW["401 gateway<br/>not our response"]
+  GW -->|yes| M{"HTTP method?"}
+
+  %% ============ Handler pipeline ============
+  M -->|OPTIONS| ROPT["200 + CORS headers"]
+  M -->|POST| JSN{"req.json parses?"}
+  JSN -->|throws| E400A["400 Invalid JSON body"]
+  JSN -->|ok| ZOD{"RequestBodySchema<br/>safeParse ok?"}
+  ZOD -->|fail| E400B["400 Missing token"]
+  ZOD -->|pass| VER{"verifyTokenPayload<br/>HMAC signature + shape + exp"}
+  VER -->|throws| E401A["401 Invalid or expired token"]
+  VER -->|ok| TYP{"payload.type = order_access?"}
+  TYP -->|no| E401B["401 Wrong token type"]
+  TYP -->|yes| RL{"checkRateLimit<br/>20 per 60s per order_id"}
+  RL -->|exceeded| E429["429 Too many requests<br/>+ Retry-After header"]
+  RL -->|allowed| Q1[("SELECT orders<br/>maybeSingle by id")]
+
+  Q1 -->|pg error| E500A["500 Database error"]
+  Q1 -->|no row| E404["404 Order not found"]
+  Q1 -->|row| Q2[("SELECT order_items<br/>where order_id")]
+
+  Q2 -->|pg error| E500B["500 Database error"]
+  Q2 -->|rows or null| STR["Response whitelists<br/>metadata: customer_email, payment_method_label<br/>shipping_address: name, email, line1, postal, city, country<br/>drop client_ip, stripe_session_id, phone, address_line2, etc."]
+  STR --> OK200["200 success<br/>body: order + items"]
+
+  %% ============ Catch-all ============
+  REQ -. "any unhandled throw" .-> E500C["500 Internal server error<br/>full detail logged server-side, never echoed"]
+
+  %% ============ Sidecar: DB & secrets ============
+  Q1 -. "service role, bypasses RLS" .-> DB[(Postgres)]
+  Q2 -. "service role" .-> DB
+  REC -. "best-effort UPDATE status paid" .-> DB
+  SOT -. "checks status column" .-> DB
+  VER -. "HMAC secret" .-> SEC["INVOICE_SIGNING_SECRET<br/>must match sign-order-token"]
+  STR -. "populated by _shared/confirm-order.ts<br/>via payment-method-label.ts" .-> LBL["metadata.payment_method_label<br/>card > Carte bancaire, paypal > PayPal, cod > Livraison, ..."]
+
+  %% ============ Styling ============
+  classDef ok    fill:#d4edda,stroke:#155724,color:#000
+  classDef err   fill:#f8d7da,stroke:#721c24,color:#000
+  classDef gw    fill:#e2e3e5,stroke:#6c757d,color:#000
+  classDef dec   fill:#fff3cd,stroke:#856404,color:#000
+  classDef dbn   fill:#d1ecf1,stroke:#0c5460,color:#000
+  classDef note  fill:#f5f5f5,stroke:#999,color:#000
+
+  class ROPT,OK200 ok
+  class EGW,E400A,E400B,E401A,E401B,E404,E429,E500A,E500B,E500C err
+  class GW gw
+  class M,JSN,ZOD,VER,TYP,RL dec
+  class Q1,Q2,DB dbn
+  class STR,SEC,LBL note

@@ -16,6 +16,8 @@
  * Returns: { confirmed: boolean; alreadyProcessed: boolean; orderId: string }
  */
 
+import { paymentMethodLabel } from './payment-method-label.ts';
+
 export interface ConfirmOrderInput {
   orderId: string;
   stripeSessionId: string;
@@ -113,6 +115,9 @@ export async function confirmOrderFromStripe(
     correlation_id: correlationId,
     stripe_session_id: stripeSessionId,
     payment_intent_id: paymentIntentId,
+    // Human-readable label for the confirmation page / emails. Read-side
+    // (get-order-by-token) forwards this via its metadata whitelist.
+    payment_method_label: paymentMethodLabel(paymentMethod),
   };
 
   if (source === 'stripe_webhook') {
@@ -341,7 +346,11 @@ export async function sendConfirmationEmail(
   }
 ): Promise<void> {
   try {
-    // Idempotency: Check if email already sent
+    // Fast-path dedup: skip the downstream call if we already logged a
+    // successful send. The authoritative idempotency barrier lives inside
+    // send-order-confirmation itself, which uses a partial unique index on
+    // email_logs (order_id, template_name) WHERE status='sent' so two
+    // concurrent callers can race and the DB guarantees a single send.
     const { data: existingEmail } = await supabase
       .from('email_logs')
       .select('id')

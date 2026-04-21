@@ -987,8 +987,8 @@
     "/functions/v1/get-order-by-token": {
       "post": {
         "tags": ["get-order-by-token"],
-        "summary": "Supabase Edge Function: get-order-by-token",
-        "description": "Invoked as POST https://<project>.supabase.co/functions/v1/get-order-by-token (unless overridden). See supabase/functions/get-order-by-token/index.ts.",
+        "summary": "Return one order + its items for a valid 15-minute HMAC order_access token",
+        "description": "Token-gated public endpoint for the /order-confirmation page. The HMAC token (minted by sign-order-token) is the sole auth gate; the handler runs with the service role and bypasses RLS. Response metadata is whitelisted to customer_email and payment_method_label; shipping_address is whitelisted to the keys the storefront UI consumes.",
         "parameters": [
           {
             "name": "Authorization",
@@ -1011,23 +1011,134 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Order payload. `order.metadata` is whitelisted (see description). `items` is always an array (null normalized to [])",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "required": ["order", "items"],
+                  "properties": {
+                    "order": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": ["string", "null"]
+                        },
+                        "order_status": {
+                          "type": ["string", "null"]
+                        },
+                        "amount": {
+                          "type": ["number", "null"]
+                        },
+                        "currency": {
+                          "type": ["string", "null"]
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "shipping_address": {
+                          "type": ["object", "null"],
+                          "description": "Whitelisted: first_name, last_name, email, address_line1, postal_code, city, country.",
+                          "additionalProperties": true
+                        },
+                        "metadata": {
+                          "type": ["object", "null"],
+                          "description": "Whitelisted: customer_email, payment_method_label.",
+                          "properties": {
+                            "customer_email": {
+                              "type": "string"
+                            },
+                            "payment_method_label": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "payment_method": {
+                          "type": ["string", "null"]
+                        },
+                        "user_id": {
+                          "type": ["string", "null"]
+                        },
+                        "pricing_snapshot": {
+                          "type": ["object", "null"],
+                          "additionalProperties": true
+                        },
+                        "subtotal_amount": {
+                          "type": ["number", "null"]
+                        },
+                        "discount_amount": {
+                          "type": ["number", "null"]
+                        },
+                        "shipping_amount": {
+                          "type": ["number", "null"]
+                        },
+                        "total_amount": {
+                          "type": ["number", "null"]
+                        }
+                      }
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "quantity": {
+                            "type": "number"
+                          },
+                          "unit_price": {
+                            "type": "number"
+                          },
+                          "total_price": {
+                            "type": "number"
+                          },
+                          "product_snapshot": {
+                            "type": ["object", "null"],
+                            "additionalProperties": true
+                          },
+                          "product_id": {
+                            "type": ["integer", "null"]
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad request",
+            "description": "Invalid JSON body, or body missing a non-empty string token",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token failed HMAC verify / expired / shape invalid, OR token valid but type is not order_access. A 401 with an HTML body means the Supabase gateway rejected the apikey header — not this function.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
@@ -1043,38 +1154,79 @@
               }
             }
           },
-          "429": {
-            "description": "Too many requests",
+          "404": {
+            "description": "Token is valid but the order row does not exist",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit hit (per order_id) — includes Retry-After header",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the rate-limit window resets",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
           },
           "500": {
-            "description": "Server error",
+            "description": "Database error or unexpected throw. Response body is always a generic string — internal error details never leak to the client.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
           }
         },
         "requestBody": {
-          "required": false,
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": true
-              },
-              "description": "JSON body per function implementation; add openapi.fragment.json for detail."
+                "required": ["token"],
+                "additionalProperties": false,
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "HMAC-signed order_access token (15-min TTL). Format: <base64url-payload>.<base64url-signature>. Minted by sign-order-token."
+                  }
+                }
+              }
             }
           }
         }
