@@ -11,25 +11,54 @@ const AUTH_URL = '/auth';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function fillSignInForm(email, password) {
-  cy.get('#signin-email').clear().type(email);
-  cy.get('#signin-password').clear().type(password, { log: false });
-}
+// Auth.tsx uses a unified form with IDs #auth-email / #auth-password /
+// #auth-name / #auth-confirm-password. Selectors below keep legacy
+// #signin-* / #signup-* as fallbacks so the spec tolerates both shapes.
+const SIGNIN_EMAIL_SELECTOR = '#auth-email, #signin-email';
+const SIGNIN_PASSWORD_SELECTOR = '#auth-password, #signin-password';
+const SIGNUP_NAME_SELECTOR =
+  '#auth-name, #signup-name, [name="name"][id*="signup"]';
+const SIGNUP_EMAIL_SELECTOR =
+  '#auth-email, #signup-email, [name="email"][id*="signup"]';
+const SIGNUP_PASSWORD_SELECTOR = '#auth-password, #signup-password';
+const SIGNUP_CONFIRM_SELECTOR =
+  '#auth-confirm-password, #confirm-password, [name="confirm-password"]';
 
-function fillSignUpForm(email, password, fullName) {
-  // Auth.tsx: full name is #signup-name (name="name"), not #signup-fullname
-  cy.get('#signup-name, [name="name"][id*="signup"]')
-    .first()
-    .clear()
-    .type(fullName);
-  cy.get('#signup-email, [name="email"][id*="signup"]')
-    .first()
-    .clear()
-    .type(email);
-  cy.get('#signup-password, [id="signup-password"]')
+function fillSignInForm(email, password) {
+  cy.get(SIGNIN_EMAIL_SELECTOR).first().clear().type(email);
+  cy.get(SIGNIN_PASSWORD_SELECTOR)
     .first()
     .clear()
     .type(password, { log: false });
+}
+
+function fillSignUpForm(email, password, fullName) {
+  cy.get(SIGNUP_NAME_SELECTOR).first().clear().type(fullName);
+  cy.get(SIGNUP_EMAIL_SELECTOR).first().clear().type(email);
+  cy.get(SIGNUP_PASSWORD_SELECTOR)
+    .first()
+    .clear()
+    .type(password, { log: false });
+}
+
+// Open sign-up. New Auth.tsx uses a bottom toggle button ("Créer un compte" /
+// "Sign up"); fall back to the old outer tablist for older revisions.
+function openSignUp() {
+  cy.get('body').then(($body) => {
+    if ($body.find('#auth-name, #signup-name').length) return;
+    const toggle = $body.find(
+      'button:contains("Créer un compte"), button:contains("Sign up")'
+    );
+    if (toggle.length) {
+      cy.wrap(toggle.first()).click();
+      return;
+    }
+    cy.get('[role="tablist"]', { timeout: 10000 })
+      .eq(1)
+      .find('[role="tab"]')
+      .eq(1)
+      .click();
+  });
 }
 
 // ── Sign-In Tests ─────────────────────────────────────────────────────────────
@@ -40,21 +69,23 @@ describe('Auth: Sign In @auth @smoke', () => {
   });
 
   it('renders the sign-in form with required fields', () => {
-    cy.get('#signin-email').should('be.visible');
-    cy.get('#signin-password').should('be.visible');
+    cy.get(SIGNIN_EMAIL_SELECTOR).first().should('be.visible');
+    cy.get(SIGNIN_PASSWORD_SELECTOR).first().should('be.visible');
     cy.get('button[type="submit"]')
       .contains(/se connecter|sign in/i)
       .should('be.visible');
   });
 
   it('shows validation error for empty email submission', () => {
-    cy.get('#signin-password').type('somepassword');
+    cy.get(SIGNIN_PASSWORD_SELECTOR).first().type('somepassword');
     cy.get('button[type="submit"]')
       .contains(/se connecter|sign in/i)
       .click();
     // Either HTML5 validation or custom error
     cy.get(
-      '#signin-email:invalid, [data-testid="email-error"], [role="alert"]'
+      `${SIGNIN_EMAIL_SELECTOR.split(',')
+        .map((s) => `${s.trim()}:invalid`)
+        .join(', ')}, [data-testid="email-error"], [role="alert"]`
     ).should('exist');
   });
 
@@ -70,7 +101,9 @@ describe('Auth: Sign In @auth @smoke', () => {
   });
 
   it('password field masks input', () => {
-    cy.get('#signin-password').should('have.attr', 'type', 'password');
+    cy.get(SIGNIN_PASSWORD_SELECTOR)
+      .first()
+      .should('have.attr', 'type', 'password');
   });
 
   it('has a link to sign-up / create account', () => {
@@ -108,17 +141,14 @@ describe('Auth: Sign In @auth @smoke', () => {
 describe('Auth: Sign Up @auth @regression', () => {
   beforeEach(() => {
     cy.visit(AUTH_URL);
-    // Outer tablist: Classique | Code sécurisé — inner tablist: Se connecter | S'inscrire
-    cy.get('[role="tablist"]', { timeout: 10000 })
-      .eq(1)
-      .find('[role="tab"]')
-      .eq(1)
-      .click();
+    openSignUp();
   });
 
   it('renders the sign-up form', () => {
-    cy.get('#signup-name', { timeout: 10000 }).should('be.visible');
-    cy.get('#signup-email').should('be.visible');
+    cy.get(SIGNUP_NAME_SELECTOR, { timeout: 10000 })
+      .first()
+      .should('be.visible');
+    cy.get(SIGNUP_EMAIL_SELECTOR).first().should('be.visible');
   });
 
   it('shows validation error for mismatched passwords', () => {
@@ -130,7 +160,7 @@ describe('Auth: Sign Up @auth @regression', () => {
     );
 
     // If there's a password-confirm field, fill it with a different value
-    cy.get('#confirm-password, [name="confirm-password"]')
+    cy.get(SIGNUP_CONFIRM_SELECTOR)
       .first()
       .then(($el) => {
         if ($el.length) {
@@ -175,10 +205,23 @@ describe('Auth: Sign Up @auth @regression', () => {
   });
 
   it('page title or heading indicates the sign-up section', () => {
-    cy.get('#signup-name').should('be.visible');
-    cy.get('[role="tab"][aria-selected="true"]')
-      .invoke('text')
-      .should('match', /inscrire|register|sign up/i);
+    cy.get(SIGNUP_NAME_SELECTOR).first().should('be.visible');
+    // New Auth.tsx exposes sign-up via a heading ("Créer un compte" / "Create
+    // account"); legacy Auth used a tab with aria-selected.
+    cy.get('body').then(($body) => {
+      const hasSelectedTab =
+        $body.find('[role="tab"][aria-selected="true"]').length > 0;
+      if (hasSelectedTab) {
+        cy.get('[role="tab"][aria-selected="true"]')
+          .invoke('text')
+          .should('match', /inscrire|register|sign up/i);
+      } else {
+        cy.contains(
+          'h1, h2, h3',
+          /créer un compte|create account|s'inscrire|sign up/i
+        ).should('be.visible');
+      }
+    });
   });
 });
 
