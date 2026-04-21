@@ -661,12 +661,12 @@ const App = () => {
                       />
                     </Routes>
                   </MaintenanceWrapper>
-                </BrowserRouter>
 
-                {/* Newsletter exit-intent popup */}
-                <Suspense fallback={null}>
-                  <NewsletterExitIntent />
-                </Suspense>
+                  {/* Inside Router so exit-intent can follow pathname (suppress on /checkout, etc.) */}
+                  <Suspense fallback={null}>
+                    <NewsletterExitIntent />
+                  </Suspense>
+                </BrowserRouter>
 
                 {/* Système de notifications */}
                 <Toaster />

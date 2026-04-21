@@ -70,18 +70,19 @@ Folder readme: [`src/services/README.md`](../src/services/README.md).
 ```text
 User pays (Stripe Checkout)
   → stripe-webhook (Edge) updates Supabase orders / payments
-  → Browser: order-lookup (+ optional stripe-session-display for display)
-  → PaymentSuccess / order confirmation UI (no legacy browser verify-payment for the main path)
+  → Browser: order-lookup (canonical `order_id` in JSON body; legacy `session_id` = cs_* still supported)
+  → PaymentSuccess on `/order-confirmation` (DB + optional pricing_snapshot; no verify-payment on the main path)
 ```
 
-- **order-lookup** authorizes reads using the Stripe **`session_id`** where relevant, so a mismatched “current Supabase user” after redirect does not block legitimate buyers.
-- **verify-payment** Edge Function may remain deployed for compatibility or tests; the SPA does not rely on it for the primary Stripe success path. See `supabase/functions/verify-payment/README.md`.
+- **Stripe return URL** (from `create-payment`): `/order-confirmation?order_id=<orders.id>&payment_complete=1` — set in `lib/stripe-session.ts` after the pending order row exists. **`getValidOrigin`** / `SITE_URL` choose the storefront origin for that URL.
+- **order-lookup** (primary): body **`{ order_id }`** (UUID). Authorization = **internal service role**, or **same `user_id`**, or **`x-guest-id` matching `orders.metadata.guest_id`**. Legacy body **`{ session_id: "cs_..." }`** still authorizes via stored Stripe session id + same guest/owner rules so a mismatched Supabase session does not block the buyer.
+- **verify-payment** may remain deployed for compatibility or tests; the SPA does not call it for the primary Stripe success path. See `supabase/functions/verify-payment/README.md`.
 - **Checkout UI (step 1):** [`src/components/checkout/CustomerInfoStep.tsx`](../src/components/checkout/CustomerInfoStep.tsx) — customer form; file header links back to this doc and E2E notes.
 - **create-payment (Edge) config:** [`supabase/functions/create-payment/constants.ts`](../supabase/functions/create-payment/constants.ts) — CORS, limits, Stripe return URLs; links to [`DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md) and repo doc index in its header.
 
 ### Polling and UX
 
-- `src/lib/checkout/paymentPollingConfig.ts` drives **exponential backoff** within a max wait (env-tunable). After Stripe success, the UI favors **`success`**, **`processing`**, or **`delayed`** (long tail / reassurance) rather than a hard failure.
+- After return, **`usePaymentOrderLookup`** (React Query) polls **`order-lookup`** until **`is_paid`** or **`found: false`** (stops on denied / missing). Older **`paymentPollingConfig`**-driven loops were removed from the Stripe path when verification moved fully to the edge lookup.
 - **stripe-webhook** retries transient DB/PostgREST failures for critical writes (see function env: `WEBHOOK_DB_RETRY_*`, optional `WEBHOOK_TIMING_LOG`).
 
 ### Service worker
@@ -108,7 +109,7 @@ Hooks involved: `useCartSync`, `useCheckoutFormPersistence`, `useCheckoutResume`
 
 ## Known residual risks (honest)
 
-- Webhook slower than UI poll budget → mitigated by **`delayed`** state and email/support CTAs; Stripe may still show paid in session display when available.
+- Webhook slower than UI poll budget → mitigated by **`processing`** state, React Query refetch, and email/support CTAs (no Stripe session display on the default success path).
 - Full formal proof of cross-tab/session isolation is not automated beyond policy + E2E spot checks.
 - No internal dead-letter queue for webhooks; Stripe retries on 5xx.
 

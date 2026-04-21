@@ -1,18 +1,18 @@
 /**
  * Legacy PaymentSuccess page — redirects to /order-confirmation
- * 
+ *
  * Kept for backward compatibility with old email links that use
  * /payment-success?session_id=... format.
- * 
+ *
  * For session_id-based links, we look up the order by stripe_session_id
  * and redirect to /order-confirmation?order_id=...
- * 
+ *
  * For direct order_id links, we redirect immediately.
  */
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeOrderLookup } from '@/services/checkoutApi';
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -28,6 +28,7 @@ const PaymentSuccess = () => {
     if (orderId) {
       const params = new URLSearchParams();
       params.set('order_id', orderId);
+      params.set('payment_complete', '1');
       if (isPayPal) params.set('paypal', 'true');
       if (paypalToken) params.set('token', paypalToken);
       navigate(`/order-confirmation?${params.toString()}`, { replace: true });
@@ -38,19 +39,25 @@ const PaymentSuccess = () => {
     if (sessionId) {
       const lookupBySession = async () => {
         try {
-          const { data, error: fnError } = await supabase.functions.invoke('order-lookup', {
-            body: { session_id: sessionId },
+          const { data, error: fnError } = await invokeOrderLookup({
+            session_id: sessionId,
           });
+          const row = data as { found?: boolean; order_id?: string } | null;
 
-          if (fnError || !data?.found || !data?.order_id) {
+          if (fnError || !row?.found || !row?.order_id) {
             // Couldn't find order — show a generic processing message
             // The order-confirmation page handles this gracefully
-            console.warn('[PaymentSuccess] Could not resolve session_id to order_id, redirecting anyway');
+            console.warn(
+              '[PaymentSuccess] Could not resolve session_id to order_id, redirecting anyway'
+            );
             setError(true);
             return;
           }
 
-          navigate(`/order-confirmation?order_id=${data.order_id}`, { replace: true });
+          navigate(
+            `/order-confirmation?order_id=${encodeURIComponent(row.order_id)}&payment_complete=1`,
+            { replace: true }
+          );
         } catch {
           setError(true);
         }
@@ -69,10 +76,12 @@ const PaymentSuccess = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <p className="text-muted-foreground mb-4">
-            Nous ne trouvons pas votre commande. Si vous avez effectué un paiement,
-            vérifiez votre email pour la confirmation.
+            Nous ne trouvons pas votre commande. Si vous avez effectué un
+            paiement, vérifiez votre email pour la confirmation.
           </p>
-          <a href="/contact" className="text-primary underline">Contacter le support</a>
+          <a href="/contact" className="text-primary underline">
+            Contacter le support
+          </a>
         </div>
       </div>
     );

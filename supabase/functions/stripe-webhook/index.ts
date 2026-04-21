@@ -2,6 +2,12 @@ import { serve } from '@std/http/server';
 import Stripe from 'stripe';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
+import type { PricingSnapshotV1 } from './lib/pricing-snapshot.ts';
+import {
+  buildPricingSnapshotV1FromStripe,
+  isShippingLineDescription,
+} from './lib/pricing-snapshot.ts';
+
 /** Order row shape used in checkout.session.completed (subset of DB + join). */
 type WebhookOrderItemRow = {
   product_id: number;
@@ -22,6 +28,7 @@ type WebhookOrderRow = {
   billing_address?: unknown;
   user_id?: string | null;
   order_items?: WebhookOrderItemRow[] | null;
+  pricing_snapshot?: unknown | null;
 };
 
 type ProductEmailRow = {
@@ -36,6 +43,7 @@ type EmailLineDisplay = {
   quantity: number;
   price: number;
   image?: string;
+  productId?: number;
 };
 
 type ShippingAddressSnippet = {
@@ -258,7 +266,7 @@ serve(async (req) => {
 // ============================================================
 async function handleCheckoutCompleted(
   supabase: SupabaseClient,
-  _stripe: Stripe,
+  stripe: Stripe,
   session: Stripe.Checkout.Session
 ) {
   const t0 = Date.now();
@@ -300,7 +308,7 @@ async function handleCheckoutCompleted(
     const orderQuery = await supabase
       .from('orders')
       .select(
-        '*, order_items (id, product_id, quantity, unit_price, total_price)'
+        '*, order_items (id, product_id, quantity, unit_price, total_price, product_snapshot), pricing_snapshot'
       )
       .eq('id', orderId)
       .single();
@@ -374,6 +382,26 @@ async function handleCheckoutCompleted(
     return;
   }
 
+  let authoritativePricing: PricingSnapshotV1 | null = null;
+  try {
+    const lineList = await stripe.checkout.sessions.listLineItems(session.id, {
+      limit: 100,
+    });
+    authoritativePricing = buildPricingSnapshotV1FromStripe(
+      session,
+      lineList.data
+    );
+    logStep('Authoritative pricing snapshot from Stripe', {
+      sessionId: session.id,
+      lines: lineList.data.length,
+      total_minor: authoritativePricing.total_minor,
+    });
+  } catch (snapErr) {
+    logStep('Failed to build pricing snapshot from Stripe', {
+      message: (snapErr as Error).message,
+    });
+  }
+
   // ========================================================================
   // IDEMPOTENCY: If order already processed, skip
   // ========================================================================
@@ -384,6 +412,21 @@ async function handleCheckoutCompleted(
         orderId,
       }
     );
+    if (!order.pricing_snapshot && authoritativePricing) {
+      await supabase
+        .from('orders')
+        .update({
+          pricing_snapshot: authoritativePricing,
+          subtotal_amount: authoritativePricing.subtotal_minor,
+          discount_amount: authoritativePricing.discount_minor,
+          shipping_amount: authoritativePricing.shipping_minor,
+          total_amount: authoritativePricing.total_minor,
+          amount: authoritativePricing.total_minor,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', orderId);
+      logStep('Backfilled pricing_snapshot on idempotent skip', { orderId });
+    }
     if (!order.stripe_session_id) {
       await supabase
         .from('orders')
@@ -440,6 +483,16 @@ async function handleCheckoutCompleted(
             stripe_session_id: session.id,
             payment_intent_id: paymentIntentId,
           },
+          ...(authoritativePricing
+            ? {
+                pricing_snapshot: authoritativePricing,
+                subtotal_amount: authoritativePricing.subtotal_minor,
+                discount_amount: authoritativePricing.discount_minor,
+                shipping_amount: authoritativePricing.shipping_minor,
+                total_amount: authoritativePricing.total_minor,
+                amount: authoritativePricing.total_minor,
+              }
+            : {}),
           updated_at: new Date().toISOString(),
         })
         .eq('id', orderId)
@@ -571,10 +624,12 @@ async function handleCheckoutCompleted(
   const { error: paymentInsertError } = await runMutationWithRetries(
     'payments_insert',
     async () => {
+      const paymentAmountMajor: number =
+        (authoritativePricing?.total_minor ?? order.amount) / 100;
       const res = await supabase.from('payments').insert({
         order_id: orderId,
         stripe_payment_intent_id: paymentIntentId,
-        amount: order.amount,
+        amount: paymentAmountMajor,
         currency: order.currency,
         status: 'completed',
         processed_at: new Date().toISOString(),
@@ -635,24 +690,53 @@ async function handleCheckoutCompleted(
           productRows.map((p) => [p.id, p])
         );
 
-        const emailItems: EmailLineDisplay[] = (order.order_items || []).map(
-          (item) => {
+        let emailItems: EmailLineDisplay[];
+        let emailSubtotal: number;
+        let emailShipping: number;
+        let emailDiscount: number;
+        let total: number;
+
+        if (authoritativePricing) {
+          const productLines = authoritativePricing.lines.filter(
+            (l) => !isShippingLineDescription(l.description)
+          );
+          const dbRows = order.order_items || [];
+          emailItems = productLines.map((line, i) => {
+            const oi = dbRows[i];
+            const product = oi ? productMap.get(oi.product_id) : undefined;
+            return {
+              name: line.description,
+              quantity: line.quantity,
+              price: line.unit_minor / 100,
+              image: product?.images?.[0] || undefined,
+              productId: oi?.product_id,
+            };
+          });
+          emailSubtotal = authoritativePricing.subtotal_minor / 100;
+          emailDiscount = authoritativePricing.discount_minor / 100;
+          emailShipping = authoritativePricing.shipping_minor / 100;
+          total = authoritativePricing.total_minor / 100;
+        } else {
+          emailItems = (order.order_items || []).map((item) => {
             const product = productMap.get(item.product_id);
             return {
               name: product?.name || `Product #${item.product_id}`,
               quantity: item.quantity,
-              price: item.unit_price / 100,
+              price: item.unit_price,
               image: product?.images?.[0] || undefined,
+              productId: item.product_id,
             };
-          }
-        );
-
-        const emailSubtotal = emailItems.reduce(
-          (sum, item) => sum + item.price * item.quantity,
-          0
-        );
-        const total = order.amount / 100;
-        const shipping = total - emailSubtotal > 0 ? total - emailSubtotal : 0;
+          });
+          emailSubtotal = emailItems.reduce(
+            (sum, item) => sum + item.price * item.quantity,
+            0
+          );
+          total = (order.amount || 0) / 100;
+          emailShipping = Math.max(0, total - emailSubtotal);
+          emailDiscount = session.metadata?.discount_amount_cents
+            ? parseInt(String(session.metadata.discount_amount_cents), 10) / 100
+            : 0;
+        }
 
         const shippingAddr = order.shipping_address as
           | ShippingAddressSnippet
@@ -673,10 +757,8 @@ async function handleCheckoutCompleted(
               customerName,
               items: emailItems,
               subtotal: emailSubtotal,
-              shipping,
-              discount: session.metadata?.discount_amount_cents
-                ? parseInt(session.metadata.discount_amount_cents) / 100
-                : 0,
+              shipping: emailShipping,
+              discount: emailDiscount,
               total,
               currency: order.currency?.toUpperCase() || 'EUR',
               shippingAddress: shippingAddr
@@ -740,7 +822,8 @@ async function handleCheckoutCompleted(
       p_user_agent: null,
       p_checkout_duration_seconds: null,
       p_is_first_order: isFirstOrder,
-      p_order_amount: (order.amount || 0) / 100,
+      p_order_amount:
+        (authoritativePricing?.total_minor ?? order.amount ?? 0) / 100,
     });
     logStep('Fraud detection completed via webhook');
   } catch (fraudErr) {
@@ -758,7 +841,7 @@ async function handleCheckoutCompleted(
     correlation_id: correlationId,
     details: {
       payment_intent: paymentIntentId,
-      amount: order.amount,
+      amount: authoritativePricing?.total_minor ?? order.amount,
       currency: order.currency,
       discount_code: discountCode || null,
       stock_decremented: true,

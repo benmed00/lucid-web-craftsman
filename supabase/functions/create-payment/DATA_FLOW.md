@@ -145,7 +145,7 @@ flowchart LR
     C429["checkRateLimit"]
     C403["CSRF mismatch"]
     C422["Zod / email / stock / product"]
-    C500["Postgres Stripe uncaught"]
+    C500["Postgres / Stripe / uncaught (e.g. bad session params)"]
   end
   C429 --> R429
   C403 --> R403
@@ -174,16 +174,25 @@ sequenceDiagram
   Edge->>Client: { url }
 ```
 
+### Browser return after Stripe Checkout
+
+After `checkout.sessions.create`, Stripe redirects the customer to **`success_url`** from `lib/stripe-session.ts`:
+
+- **Shape:** `{origin}/order-confirmation?order_id={orders.id}&payment_complete=1` (real UUID embedded at session creation; not a Stripe template variable).
+- **Origin:** from `getValidOrigin(req)` in `index.ts` (request `Origin` / `Referer` when allowlisted or local dev, else `SITE_URL` / production default — see `constants.ts`).
+
+The SPA resolves **`order_id`** (and legacy query keys — see `src/lib/checkout/paymentReturnKeys.ts`) and calls **`order-lookup`** with **`{ order_id }`** plus the usual Supabase headers (**`x-guest-id`** when guest checkout). Email recovery links from **`send-order-confirmation`** use the same query shape with **`SITE_URL`**.
+
 ## Data transfer: wire → domain → persistence
 
-| Stage             | Shape                       | Notes                                                                                  |
-| ----------------- | --------------------------- | -------------------------------------------------------------------------------------- |
-| HTTP body         | `unknown`                   | Parsed immediately; never trusted for prices.                                          |
-| After Zod         | `ParsedCheckoutRequest`     | Top-level unknown keys stripped; `items` strict; nested objects `.passthrough()`.      |
-| Cart verification | `VerifiedCartItem[]`        | Prices/names from `products` table; client `product.price` only logged if mismatched.  |
-| Stripe            | `CheckoutSessionLineItem[]` | `unit_amount` in **cents**; proportional discount per line; shipping line if not free. |
-| Order row         | `orders` insert             | `amount` = **total cents**; `shipping_address` = `ShippingAddressPayload \| null`.     |
-| Line snapshots    | `order_items`               | `OrderItemInsert` includes `product_snapshot` JSON from `VerifiedProductSnapshot`.     |
+| Stage             | Shape                       | Notes                                                                                                                                                                                                                                                                                                          |
+| ----------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HTTP body         | `unknown`                   | Parsed immediately; never trusted for prices.                                                                                                                                                                                                                                                                  |
+| After Zod         | `ParsedCheckoutRequest`     | Top-level unknown keys stripped; `items` strict; nested objects `.passthrough()`.                                                                                                                                                                                                                              |
+| Cart verification | `VerifiedCartItem[]`        | Prices/names from `products` table; client `product.price` only logged if mismatched.                                                                                                                                                                                                                          |
+| Stripe            | `CheckoutSessionLineItem[]` | `unit_amount` in **cents**; proportional discount per line; shipping line if not free. **`product_data.images`** must be absolute URLs Stripe can fetch (see `absoluteUrlForStripeProductImage` in `lib/amounts.ts`: never the browser `Origin` on localhost; use `SITE_URL` / `SUPABASE_URL` as appropriate). |
+| Order row         | `orders` insert             | `amount` = **total cents**; `shipping_address` = `ShippingAddressPayload \| null`.                                                                                                                                                                                                                             |
+| Line snapshots    | `order_items`               | `OrderItemInsert` includes `product_snapshot` JSON from `VerifiedProductSnapshot`.                                                                                                                                                                                                                             |
 
 ## Type synergy
 
@@ -213,7 +222,7 @@ Central mapping: `lib/errors.ts` (`messageFromUnknownError`, `isClientFacingVali
 - CSRF + rate limit before heavy work.
 - Correlation id in order metadata and Stripe metadata.
 - Pure helpers covered by Deno tests (`*_test.ts`).
-- **CI:** `.github/workflows/deno-create-payment.yml` on the same branches as root CI (frozen lockfile on check + test).
+- **CI:** `.github/workflows/deno-create-payment.yml` on the same branches as root CI (`deno check` + `deno test` without a frozen lockfile; see **CI and lockfile** below).
 
 **Gaps / follow-ups**
 
@@ -224,9 +233,9 @@ Central mapping: `lib/errors.ts` (`messageFromUnknownError`, `isClientFacingVali
 
 ## CI and lockfile
 
-- **GitHub Actions:** `.github/workflows/deno-create-payment.yml` runs on **push** and **pull_request** for the same branch allowlist as `.github/workflows/ci.yml`. `deno check` and `deno test` use **`--lock supabase/functions/deno.lock --frozen`** so dependency drift fails the build until the lockfile is updated and committed. `deno lint` does not take `--lock` in Deno 2.x; it still uses `--config deno.json` for import maps.
+- **GitHub Actions:** `.github/workflows/deno-create-payment.yml` runs on **push** and **pull_request** for the same branch allowlist as `.github/workflows/ci.yml`. `deno check` and `deno test` run **without** `--lock --frozen` so CI matches local `npm run verify:create-payment`. (A committed Deno 2 **lockfile v5** broke older Supabase CLI Docker bundlers; import versions stay pinned in `deno.json` / per-function `deno.json`.)
 - **Local parity before a PR:** `npm run verify:create-payment` from the repo root.
-- **After changing `deno.json` imports or versions:** from `supabase/functions`, run `deno test create-payment/ --config deno.json` (or `deno cache create-payment/index.ts --config deno.json`) to refresh `deno.lock`, then commit the lockfile.
+- **After changing `deno.json` imports or versions:** run `deno cache supabase/functions/create-payment/index.ts --config supabase/functions/deno.json` locally to confirm resolution; optional: regenerate a lockfile for your own reproducibility (do not commit v5 if your deploy pipeline uses an older bundler).
 
 ## Manual smoke (not in CI)
 

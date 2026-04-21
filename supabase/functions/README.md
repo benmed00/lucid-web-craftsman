@@ -6,10 +6,11 @@ Source for deployed Edge Functions lives in subdirectories here. Parent folder (
 
 ## Documented functions
 
-| Function           | Notes                                                                                                                                                                                    |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Function           | Notes                                                                                                                                                                                                                                                           |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **create-payment** | [DATA_FLOW.md](./create-payment/DATA_FLOW.md), [REFACTOR_PLAN.md](./create-payment/REFACTOR_PLAN.md), [constants.ts](./create-payment/constants.ts) (CORS, limits, origins). Local verify: `npm run verify:create-payment` (repo root, Deno + frozen lockfile). |
-| **verify-payment** | [README](./verify-payment/README.md) — not used by the SPA for the primary Stripe success path; kept for compatibility and optional tests.                                               |
+| **order-lookup**   | Read-only order status for post-checkout UI. UUID helper tests: `cd supabase/functions && deno test order-lookup/lib/order_uuid_test.ts` (uses root `deno.json` import map).                                                                                    |
+| **verify-payment** | [README](./verify-payment/README.md) — not used by the SPA for the primary Stripe success path; kept for compatibility and optional tests.                                                                                                                      |
 
 Other folders under `supabase/functions/` follow the same deploy layout; optional OpenAPI fragments: `openapi.fragment.json` per function.
 

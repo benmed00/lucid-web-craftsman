@@ -6,6 +6,7 @@ import {
   corsHeaders,
   getValidOrigin,
   RATE_LIMIT_WINDOW_MS,
+  resolveProductionOrigin,
 } from './constants.ts';
 import {
   buildStripeCheckoutLineItems,
@@ -168,7 +169,8 @@ serve(async (req) => {
         logStep('COD rejected — ineligible postal code', { postalCode });
         return new Response(
           JSON.stringify({
-            error: 'Le paiement à la livraison n\'est disponible que pour la Loire-Atlantique (44).',
+            error:
+              "Le paiement à la livraison n'est disponible que pour la Loire-Atlantique (44).",
             error_type: 'validation',
           }),
           {
@@ -261,9 +263,13 @@ serve(async (req) => {
     const lineItems = buildStripeCheckoutLineItems({
       verifiedItems,
       discountRatio,
-      imageOriginPrefix: getValidOrigin(req),
+      storefrontPublicBaseUrl: resolveProductionOrigin(),
+      supabaseProjectUrl: Deno.env.get('SUPABASE_URL') ?? undefined,
       hasFreeShipping,
       subtotalEuros,
+      stripeProductImageFallbackUrl:
+        Deno.env.get('CHECKOUT_FALLBACK_PRODUCT_IMAGE_URL')?.trim() ||
+        undefined,
     });
 
     // ========================================================================

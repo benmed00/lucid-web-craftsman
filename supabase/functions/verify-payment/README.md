@@ -4,8 +4,7 @@
 
 The **storefront SPA does not call this function** for Stripe return handling. After checkout, the client uses:
 
-- **`order-lookup`** — DB lookup by `session_id` (with polling while the webhook finalizes).
-- **`stripe-session-display`** — read-only Stripe session + line items for UX when the order row is not ready yet.
+- **`order-lookup`** — DB lookup by **`order_id`** (canonical) or legacy **`session_id`** (`cs_*`), with React Query polling until **`is_paid`** or **`found: false`**.
 
 `verify-payment` remains deployed for:
 

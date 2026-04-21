@@ -27,6 +27,8 @@ interface OrderConfirmationProps {
   estimatedDelivery: string;
   orderId?: string;
   confirmationUrl?: string;
+  /** Plain order-UUID link if the signed URL is rewritten or broken (e.g. some inboxes). */
+  orderRecoveryUrl?: string;
   /** Canonical site origin (no trailing slash). Used for links and QR fallback. */
   siteUrl?: string;
 }
@@ -58,6 +60,7 @@ export function buildOrderConfirmationHtml(
     estimatedDelivery,
     orderId,
     confirmationUrl,
+    orderRecoveryUrl,
     siteUrl = 'https://www.rifelegance.com',
   } = props;
 
@@ -65,7 +68,7 @@ export function buildOrderConfirmationHtml(
 
   // Primary path always passes signed confirmationUrl from send-order-confirmation.
   // Fallback cannot mint a token (HMAC lives server-side); send customers to contact
-  // with orderId so support can help — never use /order-confirmation?order_id= alone.
+  // with orderId so support can help when no recovery URL is provided.
   const resolvedConfirmationUrl =
     confirmationUrl ||
     (orderId
@@ -77,6 +80,12 @@ export function buildOrderConfirmationHtml(
     : orderId
       ? 'Aide concernant ma commande'
       : 'Mes commandes';
+
+  const recoveryHref =
+    orderRecoveryUrl ||
+    (orderId
+      ? `${base}/order-confirmation?order_id=${encodeURIComponent(orderId)}&payment_complete=1`
+      : resolvedConfirmationUrl);
 
   const digitalInvoiceLinkLabel = confirmationUrl
     ? 'Accéder à ma facture en ligne'
@@ -138,6 +147,10 @@ export function buildOrderConfirmationHtml(
     <div style="color:#555;font-size:16px;line-height:24px;">Bonjour ${esc(customerName)}, nous avons bien reçu votre commande et nous la préparons avec soin.</div>
     <div style="margin-top:20px;">
       <a href="${resolvedConfirmationUrl}" style="display:inline-block;background-color:#4f5f31;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">${esc(primaryCtaLabel)}</a>
+    </div>
+    <div style="margin-top:16px;font-size:12px;color:#888;line-height:18px;max-width:480px;margin-left:auto;margin-right:auto;">
+      Si le bouton ne s’ouvre pas (messagerie, antivirus), copiez ce lien dans votre navigateur :<br/>
+      <a href="${esc(recoveryHref)}" style="color:#4f5f31;word-break:break-all;">${esc(recoveryHref)}</a>
     </div>
   </td></tr>
 

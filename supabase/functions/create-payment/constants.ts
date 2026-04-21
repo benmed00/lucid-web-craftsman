@@ -23,6 +23,14 @@
  *
  * `index.ts`, `lib/security.ts`, `lib/rate-limit.ts`, `lib/stripe-session.ts`, tests under `lib/*_test.ts`.
  *
+ * ## Environment (Stripe / PayPal return URLs)
+ *
+ * | Variable | Purpose |
+ * | --- | --- |
+ * | `SITE_URL` | Production canonical origin when the request has no allowlisted `Origin` / `Referer`. |
+ * | `CHECKOUT_EXTRA_ORIGINS` | Optional comma-separated origins (e.g. `https://abc.ngrok-free.app,http://192.168.1.20:8080`) also allowed for `success_url` / `cancel_url`. |
+ * | `CHECKOUT_FALLBACK_PRODUCT_IMAGE_URL` | Optional default image URL for Stripe line items when `products.images` is empty (set in `index.ts` / `lib/amounts.ts`). |
+ *
  * ## SPA checkout UI (separate stack)
  *
  * Browser step-1 form: [`../../../src/components/checkout/CustomerInfoStep.tsx`](../../../src/components/checkout/CustomerInfoStep.tsx) — documented in file header; calls Edge only via shared services, not from this file.
@@ -91,23 +99,81 @@ function isLocalDevOrigin(origin: string): boolean {
   try {
     const u: URL = new URL(origin);
     if (u.protocol !== 'http:') return false;
-    return u.hostname === 'localhost' || u.hostname === '127.0.0.1';
+    return (
+      u.hostname === 'localhost' ||
+      u.hostname === '127.0.0.1' ||
+      u.hostname === '[::1]'
+    );
   } catch {
     return false;
   }
 }
 
+function ipv4Octets(hostname: string): [number, number, number, number] | null {
+  const m: RegExpExecArray | null =
+    /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(hostname);
+  if (!m) return null;
+  const parts: number[] = m.slice(1, 5).map((s) => Number(s));
+  if (parts.some((n) => !Number.isInteger(n) || n < 0 || n > 255)) return null;
+  return [parts[0]!, parts[1]!, parts[2]!, parts[3]!];
+}
+
+/**
+ * LAN dev: http + RFC1918 IPv4 so Vite on `192.168.x.x:8080` keeps Stripe return on the same host.
+ */
+function isPrivateLanHttpOrigin(origin: string): boolean {
+  try {
+    const u: URL = new URL(origin);
+    if (u.protocol !== 'http:') return false;
+    const o: [number, number, number, number] | null = ipv4Octets(u.hostname);
+    if (!o) return false;
+    const [a, b] = o;
+    if (a === 10) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/** Parses `CHECKOUT_EXTRA_ORIGINS` each call so tests and deploy config can rely on current env. */
+function checkoutExtraOriginsFromEnv(): string[] {
+  const raw: string | undefined = Deno.env
+    .get('CHECKOUT_EXTRA_ORIGINS')
+    ?.trim();
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((s: string) => s.trim())
+    .filter(Boolean)
+    .flatMap((s: string): string[] => {
+      try {
+        const u: URL = new URL(s.includes('://') ? s : `https://${s}`);
+        return [`${u.protocol}//${u.host}`.replace(/\/+$/, '')];
+      } catch {
+        return [];
+      }
+    });
+}
+
+function isAllowedCheckoutOrigin(candidate: string): boolean {
+  return (
+    _ALLOWED_ORIGINS.includes(candidate) ||
+    isLocalDevOrigin(candidate) ||
+    isPrivateLanHttpOrigin(candidate) ||
+    checkoutExtraOriginsFromEnv().includes(candidate)
+  );
+}
+
 /**
  * Base URL for Stripe `success_url` / `cancel_url` and image prefixes.
- * Uses the request Origin (or Referer) when it matches the allowlist or local dev;
- * otherwise falls back to `SITE_URL` / production default.
+ * Uses the request Origin (or Referer) when it matches the allowlist, local/LAN dev, or
+ * `CHECKOUT_EXTRA_ORIGINS`; otherwise falls back to `SITE_URL` / production default.
  */
 export function getValidOrigin(req: Request): string {
   const candidate: string | null = normalizeRequestOrigin(req);
-  if (
-    candidate !== null &&
-    (_ALLOWED_ORIGINS.includes(candidate) || isLocalDevOrigin(candidate))
-  ) {
+  if (candidate !== null && isAllowedCheckoutOrigin(candidate)) {
     return candidate;
   }
   return resolveProductionOrigin();

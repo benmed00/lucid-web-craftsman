@@ -393,6 +393,7 @@
 
   "notFound": {
     "title": "Page not found",
+    "subtitle": "We couldn't find that page",
     "description": "The page you are looking for does not exist.",
     "backHome": "Back to home"
   },
@@ -500,6 +501,43 @@
       "title": "Verifying your payment...",
       "description": "Please wait while we confirm your transaction."
     },
+    "ui": {
+      "confirmedTitle": "Payment confirmed",
+      "paymentReceivedBody": "Your payment was received and your order is being processed. A confirmation email has been sent to you.",
+      "displayDelayNote": "Our team is handling your order as usual. There can be a short display delay — your order is safely recorded.",
+      "processingHeadline": "Confirming your order",
+      "processingDefault": "We are finalising your order. You will not be charged again.",
+      "technicalTitle": "Oops… something went wrong",
+      "clientLabel": "Customer",
+      "detailsHeading": "Details",
+      "redirectOrders": "Redirecting to your orders in {{count}}s…",
+      "cancelRedirect": "Cancel",
+      "trackingSoon": "View tracking (coming soon)",
+      "trackingGuest": "Order help & tracking",
+      "contactSupport": "Contact support",
+      "retryPayment": "Try payment again",
+      "otherPayment": "Choose another payment method",
+      "whatYouCanDo": "What you can do",
+      "tipRetry": "Wait a moment, then try again from your cart or use another payment method.",
+      "tipSupport": "If it keeps happening, contact us with the order reference from your email.",
+      "causesIntro": "This may be due to:",
+      "causeConnection": "An unstable internet connection",
+      "causeServer": "A temporary server interruption",
+      "causeProvider": "A temporary issue with our payment provider"
+    },
+    "status": {
+      "processingTitle": "Status: processing",
+      "processingBody": "Your order is being prepared. We will email you tracking details as soon as it ships.",
+      "syncTitle": "Status: syncing",
+      "delayedTitle": "Status: finalising",
+      "issueTitle": "Status: technical issue",
+      "issueBody": "A technical error interrupted this page. If you were charged, your order is usually still recorded — check your inbox or contact support."
+    },
+    "display": {
+      "unknownClient": "Customer",
+      "emailPending": "—",
+      "orderTotalLine": "Your order"
+    },
     "success": {
       "title": "Payment Successful!",
       "thanks": "Thank you for your order!",
@@ -538,7 +576,9 @@
       "description": "If you have any questions about your order, don't hesitate to contact us."
     },
     "invoice": {
-      "download": "Download Invoice",
+      "download": "Download invoice",
+      "downloadLead": "Printable receipt: in the new tab, use File → Print → Save as PDF.",
+      "downloadPdfHint": "Opens a printable invoice in a new tab: Print → Save as PDF.",
       "title": "Invoice",
       "orderNumber": "Order #",
       "date": "Date",

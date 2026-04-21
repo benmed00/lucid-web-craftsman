@@ -1,6 +1,12 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 import { buildOrderConfirmationHtml } from './_templates/order-confirmation.ts';
+import {
+  buildEmailPricingFromSnapshot,
+  isPricingSnapshotV1,
+  shippingAddressFromOrderRow,
+  type DbOrderItemRow,
+} from './_lib/email-pricing-from-db.ts';
 
 const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
 const FROM_NAME = 'Rif Raw Straw';
@@ -31,6 +37,7 @@ interface OrderItem {
   quantity: number;
   price: number;
   image?: string;
+  productId?: number;
 }
 
 interface OrderConfirmationRequest {
@@ -228,6 +235,68 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    let emailItems: OrderItem[] = data!.items || [];
+    let emailSubtotal = data!.subtotal || 0;
+    let emailShipping = data!.shipping || 0;
+    let emailDiscount = data!.discount || 0;
+    let emailTotal = data!.total || 0;
+    let emailCurrency = (data!.currency || 'EUR').toUpperCase();
+    let emailShippingAddress = data!.shippingAddress || {
+      address: '',
+      city: '',
+      postalCode: '',
+      country: 'France',
+    };
+
+    if (isInternalCall) {
+      const { data: dbOrder, error: dbOrderError } = await serviceClient
+        .from('orders')
+        .select(
+          'pricing_snapshot, currency, shipping_address, order_items (product_id, quantity, product_snapshot)'
+        )
+        .eq('id', data!.orderId)
+        .maybeSingle();
+
+      if (dbOrderError) {
+        logStep('Could not load order for DB-backed email pricing', {
+          message: dbOrderError.message,
+        });
+      } else if (dbOrder && isPricingSnapshotV1(dbOrder.pricing_snapshot)) {
+        const built = buildEmailPricingFromSnapshot(
+          dbOrder.pricing_snapshot,
+          (dbOrder.order_items as DbOrderItemRow[]) || []
+        );
+        emailItems = built.items;
+        emailSubtotal = built.subtotal;
+        emailShipping = built.shipping;
+        emailDiscount = built.discount;
+        emailTotal = built.total;
+        emailCurrency = built.currency;
+        logStep('Email totals from orders.pricing_snapshot', {
+          orderId: data!.orderId,
+          lines: emailItems.length,
+        });
+      }
+
+      if (dbOrder && !dbOrderError) {
+        const fromDb = shippingAddressFromOrderRow(dbOrder.shipping_address);
+        if (fromDb?.address) {
+          emailShippingAddress = {
+            address: emailShippingAddress.address || fromDb.address,
+            city: emailShippingAddress.city || fromDb.city,
+            postalCode: emailShippingAddress.postalCode || fromDb.postalCode,
+            country: emailShippingAddress.country || fromDb.country,
+          };
+        }
+        if (
+          dbOrder.currency &&
+          !isPricingSnapshotV1(dbOrder.pricing_snapshot)
+        ) {
+          emailCurrency = String(dbOrder.currency).toUpperCase();
+        }
+      }
+    }
+
     const orderDate = new Date().toLocaleDateString('fr-FR', {
       day: 'numeric',
       month: 'long',
@@ -248,26 +317,23 @@ const handler = async (req: Request): Promise<Response> => {
       orderReference
     );
     const confirmationUrl = `${SITE_URL}/order-confirmation/${encodeURIComponent(orderReference)}?token=${encodeURIComponent(confirmationToken)}`;
+    const orderRecoveryUrl = `${SITE_URL}/order-confirmation?order_id=${encodeURIComponent(data!.orderId)}&payment_complete=1`;
 
     const html = buildOrderConfirmationHtml({
       customerName: data!.customerName,
       orderNumber: orderReference,
       orderDate,
-      items: data!.items || [],
-      subtotal: data!.subtotal || 0,
-      shipping: data!.shipping || 0,
-      discount: data!.discount || 0,
-      total: data!.total || 0,
-      currency: data!.currency || 'EUR',
-      shippingAddress: data!.shippingAddress || {
-        address: '',
-        city: '',
-        postalCode: '',
-        country: 'France',
-      },
+      items: emailItems,
+      subtotal: emailSubtotal,
+      shipping: emailShipping,
+      discount: emailDiscount,
+      total: emailTotal,
+      currency: emailCurrency,
+      shippingAddress: emailShippingAddress,
       estimatedDelivery,
       orderId: data!.orderId,
       confirmationUrl,
+      orderRecoveryUrl,
       siteUrl: SITE_URL,
     });
 
@@ -304,8 +370,8 @@ const handler = async (req: Request): Promise<Response> => {
       null,
       {
         messageId: emailResult.messageId,
-        itemCount: data!.items?.length || 0,
-        total: data!.total,
+        itemCount: emailItems.length,
+        total: emailTotal,
       }
     );
 

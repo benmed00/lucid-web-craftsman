@@ -87,12 +87,12 @@ Per-function fragments: `supabase/functions/<name>/openapi.fragment.json`. Gener
 
 ## Edge function reference (in repo)
 
-| Topic                                                  | Where                                                                                                                                                                              |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| All functions (index)                                  | [`supabase/functions/README.md`](../supabase/functions/README.md)                                                                                                                  |
+| Topic                                                  | Where                                                                                                                                                                                                                 |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| All functions (index)                                  | [`supabase/functions/README.md`](../supabase/functions/README.md)                                                                                                                                                     |
 | create-payment payload → Stripe session                | [`DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md), [`REFACTOR_PLAN.md`](../supabase/functions/create-payment/REFACTOR_PLAN.md), [`constants.ts`](../supabase/functions/create-payment/constants.ts) |
-| verify-payment role vs SPA                             | [`supabase/functions/verify-payment/README.md`](../supabase/functions/verify-payment/README.md)                                                                                    |
-| SPA after redirect (order-lookup, webhooks, isolation) | [PLATFORM.md](./PLATFORM.md)                                                                                                                                                       |
+| verify-payment role vs SPA                             | [`supabase/functions/verify-payment/README.md`](../supabase/functions/verify-payment/README.md)                                                                                                                       |
+| SPA after redirect (order-lookup, webhooks, isolation) | [PLATFORM.md](./PLATFORM.md)                                                                                                                                                                                          |
 
 Verify locally: `npm run verify:create-payment` (Deno; frozen lockfile in CI).
 

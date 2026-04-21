@@ -872,7 +872,7 @@
     "/functions/v1/order-lookup": {
       "post": {
         "tags": ["order-lookup"],
-        "summary": "Look up order by Stripe Checkout session id",
+        "summary": "Look up order by order_id (canonical) or Stripe session_id (legacy)",
         "description": "Invoked as POST https://<project>.supabase.co/functions/v1/order-lookup (unless overridden). See supabase/functions/order-lookup/index.ts.",
         "parameters": [
           {
@@ -971,13 +971,27 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["session_id"],
-                "properties": {
-                  "session_id": {
-                    "type": "string",
-                    "description": "Stripe Checkout Session id (cs_...)"
+                "description": "Send exactly one identifier: if both order_id and session_id are present, order_id wins.",
+                "oneOf": [
+                  {
+                    "required": ["order_id"],
+                    "properties": {
+                      "order_id": {
+                        "type": "string",
+                        "description": "Postgres orders.id (UUID)"
+                      }
+                    }
+                  },
+                  {
+                    "required": ["session_id"],
+                    "properties": {
+                      "session_id": {
+                        "type": "string",
+                        "description": "Stripe Checkout Session id (cs_...) or mis-encoded order UUID"
+                      }
+                    }
                   }
-                }
+                ]
               }
             }
           }

@@ -271,6 +271,7 @@
 
   "notFound": {
     "title": "Page introuvable",
+    "subtitle": "Nous n'avons pas trouvé cette page",
     "description": "La page demandée n'existe pas.",
     "backHome": "Retour à l'accueil"
   },
@@ -378,6 +379,43 @@
       "title": "Vérification du paiement...",
       "description": "Veuillez patienter pendant que nous confirmons votre transaction."
     },
+    "ui": {
+      "confirmedTitle": "Paiement confirmé",
+      "paymentReceivedBody": "Votre paiement a bien été reçu et votre commande est en cours de traitement. Un email de confirmation vous a été envoyé.",
+      "displayDelayNote": "Notre équipe traite votre commande normalement. Il peut y avoir un léger délai d’affichage : votre commande est bien enregistrée.",
+      "processingHeadline": "Confirmation en cours",
+      "processingDefault": "Nous finalisons votre commande. Aucun nouveau prélèvement ne sera effectué.",
+      "technicalTitle": "Oups… quelque chose n’a pas fonctionné",
+      "clientLabel": "Client",
+      "detailsHeading": "Détails",
+      "redirectOrders": "Redirection vers vos commandes dans {{count}} s…",
+      "cancelRedirect": "Annuler",
+      "trackingSoon": "Voir le suivi (bientôt)",
+      "trackingGuest": "Suivi & aide commande",
+      "contactSupport": "Contact support",
+      "retryPayment": "Réessayer le paiement",
+      "otherPayment": "Choisir un autre moyen de paiement",
+      "whatYouCanDo": "Que pouvez-vous faire ?",
+      "tipRetry": "Attendez quelques instants, puis réessayez depuis votre panier ou utilisez un autre moyen de paiement.",
+      "tipSupport": "Si le problème persiste, contactez notre équipe en indiquant le numéro de commande reçu par email.",
+      "causesIntro": "Cela peut être dû à :",
+      "causeConnection": "Une connexion instable",
+      "causeServer": "Une interruption temporaire du serveur",
+      "causeProvider": "Un incident temporaire chez notre prestataire de paiement"
+    },
+    "status": {
+      "processingTitle": "Statut : en cours de traitement",
+      "processingBody": "Votre commande est en cours de préparation. Nous vous enverrons un email avec les informations de suivi dès qu’elle sera expédiée.",
+      "syncTitle": "Statut : synchronisation",
+      "delayedTitle": "Statut : finalisation en cours",
+      "issueTitle": "Statut : problème technique",
+      "issueBody": "Une erreur technique a interrompu l’affichage de cette page. Si vous avez été débité, votre commande est en général enregistrée — vérifiez votre boîte mail ou contactez le support."
+    },
+    "display": {
+      "unknownClient": "Client invité",
+      "emailPending": "—",
+      "orderTotalLine": "Votre commande"
+    },
     "success": {
       "title": "Paiement Réussi !",
       "thanks": "Merci pour votre commande !",
@@ -417,6 +455,8 @@
     },
     "invoice": {
       "download": "Télécharger la facture",
+      "downloadLead": "Reçu détaillé prêt à imprimer : dans la fenêtre qui s’ouvre, utilisez Fichier → Imprimer → Enregistrer au format PDF.",
+      "downloadPdfHint": "Ouvre une facture imprimable dans un nouvel onglet : menu Imprimer → Enregistrer au format PDF.",
       "title": "Facture",
       "orderNumber": "N° de commande",
       "date": "Date",

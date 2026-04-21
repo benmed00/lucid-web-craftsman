@@ -249,18 +249,15 @@ export function useCheckoutPage() {
     []
   );
 
-  const handleFieldChange = useCallback(
-    (field: string, value: string) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-      // Auto-reset COD if postal code changes to non-eligible
-      if (field === 'postalCode') {
-        setPaymentMethod((prev) =>
-          prev === 'cod' && !isEligibleForCOD(value) ? 'card' : prev
-        );
-      }
-    },
-    []
-  );
+  const handleFieldChange = useCallback((field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Auto-reset COD if postal code changes to non-eligible
+    if (field === 'postalCode') {
+      setPaymentMethod((prev) =>
+        prev === 'cod' && !isEligibleForCOD(value) ? 'card' : prev
+      );
+    }
+  }, []);
 
   const handleClearError = useCallback(
     (field: string) =>

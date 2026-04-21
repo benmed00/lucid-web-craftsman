@@ -73,3 +73,8 @@ postman/postman/
 # Supabase CLI local cache
 supabase/.temp/
 
+# Edge bundler uses an older Deno and rejects lockfile version 5 (Deno 2).
+# Regenerate locally with `deno cache` if needed; do not commit these.
+supabase/functions/deno.lock
+supabase/functions/*/deno.lock
+

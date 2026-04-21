@@ -155,11 +155,15 @@ export async function invokeCreatePaymentEdge(
   }) as Promise<EdgeInvokeResult<{ url?: string }>>;
 }
 
+export type OrderLookupInvokeBody =
+  | { order_id: string; session_id?: never }
+  | { session_id: string; order_id?: never };
+
 export async function invokeOrderLookup(
-  sessionId: string
+  body: OrderLookupInvokeBody
 ): Promise<EdgeInvokeResult<unknown>> {
   return supabase.functions.invoke('order-lookup', {
-    body: { session_id: sessionId },
+    body,
   }) as Promise<EdgeInvokeResult<unknown>>;
 }
 

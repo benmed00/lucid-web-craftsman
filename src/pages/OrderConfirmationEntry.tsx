@@ -1,9 +1,20 @@
-import { lazy, Suspense } from 'react';
+import { lazy, LazyExoticComponent, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import type { SetURLSearchParams } from 'react-router-dom';
 
-const PaymentSuccess = lazy(() => import('./PaymentSuccess'));
-const OrderConfirmation = lazy(() => import('./OrderConfirmation'));
+import {
+  legacyStripeCheckoutSessionId,
+  looksLikeOrderUuid,
+  resolvePaymentReturnOrderId,
+} from '@/lib/checkout/paymentReturnKeys';
+
+const PaymentSuccess: LazyExoticComponent<() => JSX.Element> = lazy(
+  () => import('./PaymentSuccess')
+);
+const OrderConfirmation: LazyExoticComponent<() => JSX.Element> = lazy(
+  () => import('./OrderConfirmation')
+);
 
 const EntryFallback = () => (
   <div className="flex min-h-[50vh] items-center justify-center bg-background">
@@ -12,18 +23,30 @@ const EntryFallback = () => (
 );
 
 /**
- * /order-confirmation: Stripe/PayPal return uses PaymentSuccess; email links
- * without payment params use OrderConfirmation (token / order reference).
+ * /order-confirmation: Stripe/PayPal return uses PaymentSuccess; signed email links
+ * use `/order-confirmation/:ref` (OrderConfirmation).
  */
 const OrderConfirmationEntry = () => {
-  const [searchParams] = useSearchParams();
-  const sessionId = searchParams.get('session_id');
-  const isPayPal = searchParams.get('paypal') === 'true';
-  const paypalToken = searchParams.get('token');
-  const paypalOrderId = searchParams.get('order_id');
+  const [searchParams]: [URLSearchParams, SetURLSearchParams] =
+    useSearchParams();
+  const returnOrderId: string | null =
+    resolvePaymentReturnOrderId(searchParams);
+  const legacyStripeSessionId: string | null =
+    legacyStripeCheckoutSessionId(searchParams);
+  /** Set after return when sensitive query params are stripped — keeps PaymentSuccess mounted. */
+  const paymentComplete: boolean = searchParams.get('payment_complete') === '1';
+  const isPayPal: boolean = searchParams.get('paypal') === 'true';
+  const paypalToken: string | null = searchParams.get('token');
+  const paypalDbOrderId: string | null = searchParams.get('order_id');
 
-  const isPaymentReturn =
-    !!sessionId || (isPayPal && !!paypalToken && !!paypalOrderId);
+  const isPaymentReturn: boolean =
+    !!returnOrderId ||
+    !!legacyStripeSessionId ||
+    paymentComplete ||
+    (isPayPal &&
+      !!paypalToken &&
+      !!paypalDbOrderId &&
+      looksLikeOrderUuid(paypalDbOrderId));
 
   return (
     <Suspense fallback={<EntryFallback />}>

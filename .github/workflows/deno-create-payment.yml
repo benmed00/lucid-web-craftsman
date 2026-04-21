@@ -34,4 +34,9 @@ jobs:
         run: deno lint create-payment/ --config deno.json
 
       - name: Deno test
-        run: deno test create-payment/ --config deno.json
+        run: deno test create-payment/ --config deno.json --allow-env
+
+      - name: Deno test checkout pricing helpers
+        run: |
+          deno test stripe-webhook/lib/pricing-snapshot_test.ts
+          deno test send-order-confirmation/_lib/email-pricing-from-db_test.ts

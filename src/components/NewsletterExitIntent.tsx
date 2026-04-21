@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -14,40 +15,35 @@ const STORAGE_KEY = 'newsletter_exit_intent_dismissed';
 const SUBSCRIBED_KEY = 'newsletter_subscribed';
 const DISMISS_DAYS = 7;
 
+/** Paths where exit-intent must never run (purchase funnel, post-pay, ops). */
+function isPurchaseOrSensitivePath(pathname: string): boolean {
+  return (
+    pathname.startsWith('/checkout') ||
+    pathname.startsWith('/cart') ||
+    pathname.startsWith('/payment-success') ||
+    pathname.startsWith('/order-confirmation') ||
+    pathname.startsWith('/payment') ||
+    pathname.startsWith('/admin')
+  );
+}
+
 const NewsletterExitIntent = () => {
   const { t } = useTranslation('common');
   const { user } = useOptimizedAuth();
+  const { pathname } = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
   const shouldSuppress = useCallback(() => {
-    const pathname = window.location.pathname;
-    const isCriticalFlow =
-      pathname.startsWith('/checkout') ||
-      pathname.startsWith('/payment-success') ||
-      pathname.startsWith('/order-confirmation') ||
-      pathname.startsWith('/admin');
-    if (isCriticalFlow) return true;
+    if (isPurchaseOrSensitivePath(pathname)) return true;
 
-    // Suppress for logged-in users
     if (user) return true;
 
-    // Suppress on checkout and payment pages
-    try {
-      const path = window.location.pathname;
-      if (path.startsWith('/checkout') || path.startsWith('/payment'))
-        return true;
-    } catch {
-      /* ignore */
-    }
-
-    // Suppress if already subscribed
     try {
       if (localStorage.getItem(SUBSCRIBED_KEY) === 'true') return true;
     } catch {
       /* ignore */
     }
 
-    // Suppress if recently dismissed
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return false;
@@ -57,7 +53,7 @@ const NewsletterExitIntent = () => {
     } catch {
       return false;
     }
-  }, [user]);
+  }, [user, pathname]);
 
   const dismiss = useCallback(() => {
     setIsOpen(false);
@@ -69,23 +65,34 @@ const NewsletterExitIntent = () => {
   }, []);
 
   useEffect(() => {
-    if (shouldSuppress()) return;
+    if (shouldSuppress()) {
+      setIsOpen(false);
+      return;
+    }
 
     let triggered = false;
-    const delay = setTimeout(() => {
-      const handleMouseLeave = (e: MouseEvent) => {
-        if (e.clientY <= 5 && !triggered) {
-          triggered = true;
-          setIsOpen(true);
-          document.removeEventListener('mouseout', handleMouseLeave);
+    let mouseHandler: ((e: MouseEvent) => void) | null = null;
+
+    const delayId = window.setTimeout(() => {
+      mouseHandler = (e: MouseEvent) => {
+        if (e.clientY > 5 || triggered) return;
+        // Fresh pathname — user may have navigated to checkout during the 5s delay
+        if (isPurchaseOrSensitivePath(window.location.pathname)) return;
+        triggered = true;
+        setIsOpen(true);
+        if (mouseHandler) {
+          document.removeEventListener('mouseout', mouseHandler);
         }
       };
-      document.addEventListener('mouseout', handleMouseLeave);
-
-      return () => document.removeEventListener('mouseout', handleMouseLeave);
+      document.addEventListener('mouseout', mouseHandler);
     }, 5000);
 
-    return () => clearTimeout(delay);
+    return () => {
+      window.clearTimeout(delayId);
+      if (mouseHandler) {
+        document.removeEventListener('mouseout', mouseHandler);
+      }
+    };
   }, [shouldSuppress]);
 
   return (
