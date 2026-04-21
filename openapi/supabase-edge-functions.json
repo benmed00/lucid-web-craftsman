@@ -26,6 +26,10 @@
       "description": "Edge function `check-promo-alerts`"
     },
     {
+      "name": "cleanup-pending-orders",
+      "description": "Edge function `cleanup-pending-orders`"
+    },
+    {
       "name": "create-admin-user",
       "description": "Edge function `create-admin-user`"
     },
@@ -38,8 +42,16 @@
       "description": "Edge function `create-paypal-payment`"
     },
     {
+      "name": "generate-invoice",
+      "description": "Edge function `generate-invoice`"
+    },
+    {
       "name": "generate-sitemap",
       "description": "Edge function `generate-sitemap`"
+    },
+    {
+      "name": "get-order-by-token",
+      "description": "Edge function `get-order-by-token`"
     },
     {
       "name": "order-confirmation-lookup",
@@ -52,6 +64,10 @@
     {
       "name": "process-scheduled-emails",
       "description": "Edge function `process-scheduled-emails`"
+    },
+    {
+      "name": "reconcile-payment",
+      "description": "Edge function `reconcile-payment`"
     },
     {
       "name": "security-alert-notification",
@@ -88,6 +104,14 @@
     {
       "name": "send-vip-order-notification",
       "description": "Edge function `send-vip-order-notification`"
+    },
+    {
+      "name": "sign-invoice-token",
+      "description": "Edge function `sign-invoice-token`"
+    },
+    {
+      "name": "sign-order-token",
+      "description": "Edge function `sign-order-token`"
     },
     {
       "name": "stripe-session-display",
@@ -216,6 +240,102 @@
         "tags": ["check-promo-alerts"],
         "summary": "Supabase Edge Function: check-promo-alerts",
         "description": "Invoked as POST https://<project>.supabase.co/functions/v1/check-promo-alerts (unless overridden). See supabase/functions/check-promo-alerts/index.ts.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Bearer JWT or anon key (Supabase client)."
+          },
+          {
+            "name": "apikey",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Supabase anon (or service) key; required for functions.invoke."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "description": "JSON body per function implementation; add openapi.fragment.json for detail."
+            }
+          }
+        }
+      }
+    },
+    "/functions/v1/cleanup-pending-orders": {
+      "post": {
+        "tags": ["cleanup-pending-orders"],
+        "summary": "Supabase Edge Function: cleanup-pending-orders",
+        "description": "Invoked as POST https://<project>.supabase.co/functions/v1/cleanup-pending-orders (unless overridden). See supabase/functions/cleanup-pending-orders/index.ts.",
         "parameters": [
           {
             "name": "Authorization",
@@ -684,6 +804,111 @@
         }
       }
     },
+    "/functions/v1/generate-invoice": {
+      "post": {
+        "tags": ["generate-invoice"],
+        "summary": "Supabase Edge Function: generate-invoice",
+        "description": "Invoked as POST https://<project>.supabase.co/functions/v1/generate-invoice (unless overridden). See supabase/functions/generate-invoice/index.ts.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Bearer JWT or anon key (Supabase client)."
+          },
+          {
+            "name": "apikey",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Supabase anon (or service) key; required for functions.invoke."
+          },
+          {
+            "name": "x-guest-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Guest session id for order ownership checks."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "description": "JSON body per function implementation; add openapi.fragment.json for detail."
+            }
+          }
+        }
+      }
+    },
     "/functions/v1/generate-sitemap": {
       "get": {
         "tags": ["generate-sitemap"],
@@ -754,6 +979,102 @@
                   "additionalProperties": true
                 }
               }
+            }
+          }
+        }
+      }
+    },
+    "/functions/v1/get-order-by-token": {
+      "post": {
+        "tags": ["get-order-by-token"],
+        "summary": "Supabase Edge Function: get-order-by-token",
+        "description": "Invoked as POST https://<project>.supabase.co/functions/v1/get-order-by-token (unless overridden). See supabase/functions/get-order-by-token/index.ts.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Bearer JWT or anon key (Supabase client)."
+          },
+          {
+            "name": "apikey",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Supabase anon (or service) key; required for functions.invoke."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "description": "JSON body per function implementation; add openapi.fragment.json for detail."
             }
           }
         }
@@ -1021,6 +1342,111 @@
               "type": "string"
             },
             "description": "Supabase anon (or service) key; required for functions.invoke."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "description": "JSON body per function implementation; add openapi.fragment.json for detail."
+            }
+          }
+        }
+      }
+    },
+    "/functions/v1/reconcile-payment": {
+      "post": {
+        "tags": ["reconcile-payment"],
+        "summary": "Supabase Edge Function: reconcile-payment",
+        "description": "Invoked as POST https://<project>.supabase.co/functions/v1/reconcile-payment (unless overridden). See supabase/functions/reconcile-payment/index.ts.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Bearer JWT or anon key (Supabase client)."
+          },
+          {
+            "name": "apikey",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Supabase anon (or service) key; required for functions.invoke."
+          },
+          {
+            "name": "x-guest-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Guest session id for order ownership checks."
           }
         ],
         "responses": {
@@ -1958,6 +2384,207 @@
         }
       }
     },
+    "/functions/v1/sign-invoice-token": {
+      "post": {
+        "tags": ["sign-invoice-token"],
+        "summary": "Supabase Edge Function: sign-invoice-token",
+        "description": "Invoked as POST https://<project>.supabase.co/functions/v1/sign-invoice-token (unless overridden). See supabase/functions/sign-invoice-token/index.ts.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Bearer JWT or anon key (Supabase client)."
+          },
+          {
+            "name": "apikey",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Supabase anon (or service) key; required for functions.invoke."
+          },
+          {
+            "name": "x-guest-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Guest session id for order ownership checks."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "description": "JSON body per function implementation; add openapi.fragment.json for detail."
+            }
+          }
+        }
+      }
+    },
+    "/functions/v1/sign-order-token": {
+      "post": {
+        "tags": ["sign-order-token"],
+        "summary": "Supabase Edge Function: sign-order-token",
+        "description": "Invoked as POST https://<project>.supabase.co/functions/v1/sign-order-token (unless overridden). See supabase/functions/sign-order-token/index.ts.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Bearer JWT or anon key (Supabase client)."
+          },
+          {
+            "name": "apikey",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Supabase anon (or service) key; required for functions.invoke."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "description": "JSON body per function implementation; add openapi.fragment.json for detail."
+            }
+          }
+        }
+      }
+    },
     "/functions/v1/stripe-session-display": {
       "post": {
         "tags": ["stripe-session-display"],
@@ -2082,15 +2709,6 @@
         "summary": "Stripe webhook (signed events)",
         "description": "Raw Stripe event payload; requires Stripe-Signature header. Typically called by Stripe, not the browser.",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Bearer JWT or anon key (Supabase client)."
-          },
           {
             "name": "apikey",
             "in": "header",
