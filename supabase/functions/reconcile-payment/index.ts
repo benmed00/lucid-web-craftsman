@@ -11,6 +11,7 @@ import {
   confirmOrderFromStripe,
   sendConfirmationEmail,
 } from '../_shared/confirm-order.ts';
+import { persistPricingSnapshot } from '../_shared/persist-pricing-snapshot.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -239,6 +240,18 @@ serve(async (req) => {
     }
 
     logStep('ORDER RECONCILED SUCCESSFULLY', { orderId });
+
+    // ================================================================
+    // Step 3b: Persist authoritative pricing snapshot from Stripe so the
+    // email and confirmation page read the same totals whichever path
+    // (webhook / verify / reconcile) confirmed the order.
+    // ================================================================
+    await persistPricingSnapshot(supabaseService, stripe, {
+      orderId,
+      session,
+      source: 'reconcile_payment',
+      correlationId,
+    });
 
     // ================================================================
     // Step 4: Send confirmation email (idempotent, non-blocking)

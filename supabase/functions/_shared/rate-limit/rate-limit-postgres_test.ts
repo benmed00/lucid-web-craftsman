@@ -20,14 +20,6 @@ import type { RateLimitResult, RateLimitStore } from './rate-limit.ts';
 // ---------------------------------------------------------------------------
 // Typed RPC fixture shapes
 // ---------------------------------------------------------------------------
-//
-// Mirrors what `edge_rate_limit_consume` actually returns over the wire:
-// `data` can be a single row or a one-row array depending on SDK version,
-// and bigints arrive as either `number` or `string`.
-//
-// Typing this at the fake-admin boundary catches test-fixture typos (e.g.
-// misspelled `allowed`, missing `reset_ms`) at compile time instead of
-// letting them sail through as `unknown`.
 
 interface RateLimitRpcRow {
   allowed: boolean;
@@ -71,9 +63,7 @@ Deno.test(
         receivedName = name;
         receivedArgs = args;
         return {
-          data: [
-            { allowed: true, remaining: 19, reset_ms: 1_700_000_000_000 },
-          ],
+          data: [{ allowed: true, remaining: 19, reset_ms: 1_700_000_000_000 }],
           error: null,
         };
       })
@@ -148,8 +138,6 @@ Deno.test(
         })
       )
     );
-    // No class filter: the store rethrows the raw Postgrest-shaped object,
-    // not an Error instance. We only care that it rejects.
     await assertRejects(
       (): Promise<RateLimitResult> =>
         store.consume('order:fail', { maxAttempts: 20, windowMs: 60_000 })

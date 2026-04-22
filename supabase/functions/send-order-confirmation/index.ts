@@ -2,6 +2,12 @@ import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 import { buildOrderConfirmationHtml } from './_templates/order-confirmation.ts';
 import { signToken } from '../_shared/invoice/token.ts';
+import {
+  buildEmailPricingFromSnapshot,
+  isPricingSnapshotV1,
+  shippingAddressFromOrderRow,
+  type DbOrderItemRow,
+} from './_lib/email-pricing-from-db.ts';
 
 const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
 const FROM_NAME = 'Rif Raw Straw';
@@ -185,7 +191,82 @@ const handler = async (req: Request): Promise<Response> => {
       month: 'long',
     });
 
-    logStep('Building email HTML');
+    // ================================================================
+    // AUTHORITATIVE PRICING: prefer orders.pricing_snapshot (v1) when
+    // present. The Stripe webhook writes it from the Checkout Session
+    // line items, so the email matches the DB + Stripe + SPA exactly.
+    // Body totals are used only as a legacy/preview fallback.
+    // ================================================================
+    let pricing = {
+      items: (data!.items || []) as Array<{
+        name: string;
+        quantity: number;
+        price: number;
+        image?: string;
+        productId?: number;
+      }>,
+      subtotal: data!.subtotal || 0,
+      shipping: data!.shipping || 0,
+      discount: data!.discount || 0,
+      total: data!.total || 0,
+      currency: (data!.currency || 'EUR').toUpperCase(),
+      shippingAddress: data!.shippingAddress || {
+        address: '',
+        city: '',
+        postalCode: '',
+        country: 'France',
+      },
+      source: 'body' as 'body' | 'snapshot_v1',
+    };
+
+    if (!data!.previewOnly) {
+      try {
+        const { data: orderRow } = await serviceClient
+          .from('orders')
+          .select(
+            'pricing_snapshot, currency, shipping_address, order_items(product_id, quantity, product_snapshot)'
+          )
+          .eq('id', data!.orderId)
+          .maybeSingle();
+
+        if (orderRow && isPricingSnapshotV1(orderRow.pricing_snapshot)) {
+          const orderItems = (orderRow.order_items || []) as DbOrderItemRow[];
+          const fromSnap = buildEmailPricingFromSnapshot(
+            orderRow.pricing_snapshot,
+            orderItems
+          );
+          const shippingFromDb = shippingAddressFromOrderRow(
+            orderRow.shipping_address
+          );
+          pricing = {
+            items: fromSnap.items,
+            subtotal: fromSnap.subtotal,
+            shipping: fromSnap.shipping,
+            discount: fromSnap.discount,
+            total: fromSnap.total,
+            currency: fromSnap.currency,
+            shippingAddress: shippingFromDb || pricing.shippingAddress,
+            source: 'snapshot_v1',
+          };
+          logStep('Using authoritative pricing_snapshot from DB', {
+            orderId: data!.orderId,
+            total: fromSnap.total,
+            currency: fromSnap.currency,
+          });
+        } else {
+          logStep(
+            'No v1 pricing_snapshot on order; falling back to request body',
+            { orderId: data!.orderId }
+          );
+        }
+      } catch (snapErr) {
+        logStep('pricing_snapshot lookup failed (non-fatal)', {
+          error: (snapErr as Error).message,
+        });
+      }
+    }
+
+    logStep('Building email HTML', { pricing_source: pricing.source });
     let invoiceToken: string | undefined;
     try {
       invoiceToken = await signToken(data!.orderId);
@@ -198,18 +279,13 @@ const handler = async (req: Request): Promise<Response> => {
       customerName: data!.customerName,
       orderNumber: data!.orderId.slice(-8).toUpperCase(),
       orderDate,
-      items: data!.items || [],
-      subtotal: data!.subtotal || 0,
-      shipping: data!.shipping || 0,
-      discount: data!.discount || 0,
-      total: data!.total || 0,
-      currency: data!.currency || 'EUR',
-      shippingAddress: data!.shippingAddress || {
-        address: '',
-        city: '',
-        postalCode: '',
-        country: 'France',
-      },
+      items: pricing.items,
+      subtotal: pricing.subtotal,
+      shipping: pricing.shipping,
+      discount: pricing.discount,
+      total: pricing.total,
+      currency: pricing.currency,
+      shippingAddress: pricing.shippingAddress,
       estimatedDelivery,
       orderId: data!.orderId,
       invoiceToken,
@@ -229,29 +305,95 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // ================================================================
+    // ATOMIC SEND — single-writer guarantee.
+    //
+    // Race shape prior to this block:
+    //   stripe-webhook ─┐
+    //                   ├─► both see no 'sent' row ─► both send Brevo email
+    //   verify-payment ─┘
+    //
+    // Fix: claim the dedup slot in email_logs BEFORE calling Brevo. The
+    // partial unique index on (order_id, template_name) WHERE status='sent'
+    // (migration 20260325090000_email_logs_order_template_unique.sql) turns
+    // the second concurrent insert into a unique_violation; that caller
+    // treats the violation as "already delivered" and skips the Brevo call.
+    //
+    // If Brevo fails for the winning caller we DELETE the reserved row so
+    // a subsequent retry can claim the slot again.
+    // ================================================================
+    const claimPayload = {
+      template_name: 'order-confirmation',
+      recipient_email: data!.customerEmail,
+      recipient_name: data!.customerName,
+      order_id: data!.orderId,
+      status: 'sent',
+      error_message: null,
+      metadata: { claim: true, pricing_source: pricing.source },
+      sent_at: new Date().toISOString(),
+    };
+    const { data: claimed, error: claimError } = await serviceClient
+      .from('email_logs')
+      .insert(claimPayload)
+      .select('id')
+      .maybeSingle();
+
+    const isUniqueViolation =
+      claimError &&
+      // Supabase/Postgres exposes code on PostgrestError; 23505 = unique_violation
+      ((claimError as { code?: string }).code === '23505' ||
+        /duplicate key|unique/i.test(claimError.message || ''));
+
+    if (isUniqueViolation) {
+      logStep('Email already claimed by a concurrent caller, skipping Brevo', {
+        orderId: data!.orderId,
+      });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          skipped: true,
+          reason: 'already_sent',
+          message: 'Order confirmation email already sent',
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
+    if (claimError || !claimed) {
+      throw new Error(
+        `Unable to reserve email_logs slot: ${claimError?.message || 'unknown error'}`
+      );
+    }
+
     const subject = `Confirmation de commande #${data!.orderId.slice(-8).toUpperCase()} - Rif Raw Straw`;
     logStep('Sending email via Brevo', { to: data!.customerEmail });
-    const emailResult = await sendBrevoEmail(
-      data!.customerEmail,
-      subject,
-      html
-    );
+    let emailResult: { messageId?: string };
+    try {
+      emailResult = await sendBrevoEmail(data!.customerEmail, subject, html);
+    } catch (sendErr) {
+      // Release the claim so a retry can re-send; otherwise the failed
+      // attempt would permanently lock the slot.
+      await serviceClient.from('email_logs').delete().eq('id', claimed.id);
+      throw sendErr;
+    }
     logStep('Email sent successfully', { messageId: emailResult.messageId });
 
-    await logEmailToDatabase(
-      serviceClient,
-      'order-confirmation',
-      data!.customerEmail,
-      data!.customerName,
-      data!.orderId,
-      'sent',
-      null,
-      {
-        messageId: emailResult.messageId,
-        itemCount: data!.items?.length || 0,
-        total: data!.total,
-      }
-    );
+    await serviceClient
+      .from('email_logs')
+      .update({
+        metadata: {
+          messageId: emailResult.messageId,
+          itemCount: pricing.items.length,
+          total: pricing.total,
+          currency: pricing.currency,
+          pricing_source: pricing.source,
+        },
+        sent_at: new Date().toISOString(),
+      })
+      .eq('id', claimed.id);
 
     return new Response(
       JSON.stringify({

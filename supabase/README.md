@@ -12,6 +12,18 @@ Database migrations, Edge Function configuration, and deploy settings for this a
 | [`config.toml`](./config.toml) | Local CLI / function settings (`verify_jwt`, project id, etc.).                                    |
 | [`functions/`](./functions/)   | Edge Function source — **[functions/README.md](./functions/README.md)** (index, OpenAPI, Postman). |
 
+## CLI helpers (linked project)
+
+From the repo root, with the project [linked](https://supabase.com/docs/guides/cli/managing-environments) (`supabase link`):
+
+- `npm run supabase:migration:list` — compare local `migrations/` files to `schema_migrations` on the linked database (uses pinned CLI 2.90+ for consistent `db query` / listing behavior).
+- `npm run supabase:migration:diff` — same comparison as a JSON summary plus `scripts/.migration-local-only-versions.txt` (gitignored) for batch `migration repair`.
+- `npm run supabase:db:query -- -f supabase/migrations/<file>.sql` — execute a migration or ad-hoc SQL on the linked DB without going through `db push`.
+
+If `migration list` or `db push` fails with **password authentication failed for user `cli_login_postgres`**, run `supabase login` and retry.
+
+**Drift:** `npm run supabase:migration:diff` lists local versions missing from `schema_migrations`. If the database already reflects that SQL, repair history only (does not run SQL), e.g. PowerShell: `supabase migration repair --status applied @(Get-Content scripts/.migration-local-only-versions.txt) --yes`. If real DDL is missing, run `npm run supabase:db:query -- -f …` first, then `migration repair --status applied` for that version. When in sync, `supabase db push` prints **Remote database is up to date.**
+
 ## Related
 
 - SPA env vars: root `.env.example` (`VITE_SUPABASE_*`).

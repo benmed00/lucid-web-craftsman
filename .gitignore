@@ -62,6 +62,7 @@ docs/commit-msg-*.txt
 # Local lint / analysis dumps (do not commit)
 lint-current.txt
 lint-output.json
+scripts/.migration-local-only-versions.txt
 
 # Postman: personal environments with real keys (never commit)
 postman/*.local.postman_environment.json

@@ -75,3 +75,9 @@ verify_jwt = false
 
 [functions.order-confirmation-lookup]
 verify_jwt = false
+
+# Operator-facing monitoring endpoint. Handler enforces service-role or
+# rotating monitor-token auth; verify_jwt=false disables gateway JWT check
+# so schedulers using only the anon apikey + handler token are accepted.
+[functions.monitor-payment-events]
+verify_jwt = false

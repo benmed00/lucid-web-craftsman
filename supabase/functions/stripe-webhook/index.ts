@@ -5,7 +5,7 @@ import {
   confirmOrderFromStripe,
   sendConfirmationEmail,
 } from '../_shared/confirm-order.ts';
-import { buildPricingSnapshotV1FromStripe } from './lib/pricing-snapshot.ts';
+import { persistPricingSnapshot } from '../_shared/persist-pricing-snapshot.ts';
 
 const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -28,6 +28,11 @@ serve(async (req) => {
   );
 
   const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
+  // Explicit escape hatch for local integration testing only. MUST NOT be set
+  // in production — the function is deployed with verify_jwt=false, so any
+  // anonymous caller could otherwise mark an order as paid.
+  const allowUnsigned =
+    Deno.env.get('STRIPE_WEBHOOK_ALLOW_UNSIGNED')?.trim() === 'true';
 
   try {
     const body = await req.text();
@@ -56,11 +61,48 @@ serve(async (req) => {
         });
         return new Response('Invalid signature', { status: 400 });
       }
-    } else {
+    } else if (allowUnsigned) {
+      // Opt-in, dev-only path. Logged loudly and audited so prod misconfig is
+      // visible in payment_events.
       event = JSON.parse(body) as Stripe.Event;
-      logStep('WARNING: Webhook received without signature verification', {
-        type: event.type,
+      logStep(
+        'DEV-ONLY: Webhook accepted without signature (STRIPE_WEBHOOK_ALLOW_UNSIGNED=true)',
+        { type: event.type }
+      );
+      await logPaymentEvent(supabaseService, {
+        event_type: 'webhook_unsigned_accepted',
+        status: 'warning',
+        actor: 'stripe_webhook',
+        error_message:
+          'Processed without signature because STRIPE_WEBHOOK_ALLOW_UNSIGNED=true',
+        details: { stripe_event_type: event.type },
       });
+    } else {
+      // Fail closed. Either STRIPE_WEBHOOK_SECRET is missing (deployment
+      // misconfiguration) or the caller did not supply a stripe-signature
+      // header. In either case we must NOT trust the body.
+      logStep('Rejecting unsigned webhook request', {
+        hasSecret: !!webhookSecret,
+        hasSignature: !!signature,
+      });
+      await logPaymentEvent(supabaseService, {
+        event_type: 'webhook_unsigned_rejected',
+        status: 'error',
+        actor: 'stripe_webhook',
+        error_message: webhookSecret
+          ? 'Missing stripe-signature header'
+          : 'STRIPE_WEBHOOK_SECRET is not configured',
+        details: { hasSecret: !!webhookSecret, hasSignature: !!signature },
+      });
+      return new Response(
+        JSON.stringify({
+          error: 'Webhook signature required',
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
 
     await logPaymentEvent(supabaseService, {
@@ -196,37 +238,15 @@ async function handleCheckoutCompleted(
   // ================================================================
   // PERSIST AUTHORITATIVE PRICING SNAPSHOT (non-blocking)
   // Email + confirmation page must prefer this over recomputation.
+  // Uses the shared helper so verify-payment / reconcile-payment behave
+  // identically.
   // ================================================================
-  try {
-    const lineItemsResp = await stripe.checkout.sessions.listLineItems(
-      session.id,
-      { limit: 100 }
-    );
-    const snapshot = buildPricingSnapshotV1FromStripe(
-      session,
-      lineItemsResp.data
-    );
-    await supabase
-      .from('orders')
-      .update({
-        pricing_snapshot: snapshot,
-        subtotal_amount: snapshot.subtotal_minor,
-        discount_amount: snapshot.discount_minor,
-        shipping_amount: snapshot.shipping_minor,
-        total_amount: snapshot.total_minor,
-        currency: snapshot.currency,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', orderId);
-    logStep('Pricing snapshot persisted', {
-      orderId,
-      total_minor: snapshot.total_minor,
-    });
-  } catch (snapErr) {
-    logStep('Pricing snapshot persistence failed (non-fatal)', {
-      error: (snapErr as Error).message,
-    });
-  }
+  await persistPricingSnapshot(supabase, stripe, {
+    orderId,
+    session,
+    source: 'stripe_webhook',
+    correlationId,
+  });
 
   // ================================================================
   // SEND CONFIRMATION EMAIL (non-blocking)

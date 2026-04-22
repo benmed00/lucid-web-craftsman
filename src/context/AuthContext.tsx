@@ -41,6 +41,12 @@ export const cleanupAuthState = () => {
 // Purge anything the checkout flow staged in storage so a SIGNED_IN /
 // SIGNED_OUT transition cannot leak the previous customer's in-flight
 // checkout or coupon into the next session.
+//
+// IMPORTANT: on SIGNED_IN we only want to clear when the *identity* changes
+// (different user signs in, or a guest became a known user). Calling this on
+// every SIGNED_IN — including the common "guest starts checkout → clicks
+// sign-in → returns to /checkout" journey — wipes the form the user just
+// typed. The caller at the SIGNED_IN site must gate on prior user id.
 const clearCheckoutContextState = () => {
   const keys = [
     'checkout_form_data',
@@ -156,6 +162,10 @@ async function fetchUserRole(): Promise<AppRole> {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const roleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Tracks the last authenticated user id so SIGNED_IN handlers can
+  // distinguish "same user re-authenticating" (keep checkout state) from
+  // "different user" (scrub checkout state to prevent cross-session leaks).
+  const lastUserIdRef = useRef<string | null>(null);
 
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -294,7 +304,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (event === 'SIGNED_IN' && session?.user) {
-        clearCheckoutContextState();
+        // Only scrub checkout state when the identity actually changes.
+        // A guest finishing checkout who signs in to benefit from their
+        // account still sees their cart / form / applied coupon.
+        const previousUserId = lastUserIdRef.current;
+        const nextUserId = session.user.id;
+        if (previousUserId && previousUserId !== nextUserId) {
+          clearCheckoutContextState();
+        }
+        lastUserIdRef.current = nextUserId;
         setAuthState((prev) => ({
           ...prev,
           session,
@@ -312,6 +330,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (event === 'SIGNED_OUT') {
         initializeWishlistStore(null);
         clearCheckoutContextState();
+        lastUserIdRef.current = null;
         profileCache.invalidate();
         if (roleIntervalRef.current) clearInterval(roleIntervalRef.current);
         setAuthState({
@@ -407,6 +426,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           if (isMounted) {
             logSessionEvent('SESSION_RESTORED', session.user.id);
+            lastUserIdRef.current = session.user.id;
             setAuthState((prev) => ({
               ...prev,
               session,

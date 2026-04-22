@@ -112,6 +112,16 @@ export interface OrderByTokenResponse {
     metadata: any;
     payment_method?: string;
     user_id?: string | null;
+    /**
+     * Authoritative pricing written by the Stripe webhook / verify-payment /
+     * reconcile-payment after successful payment. UI should prefer this over
+     * recomputing totals from `amount` (which has mixed units historically).
+     */
+    pricing_snapshot?: unknown | null;
+    subtotal_amount?: number | null;
+    discount_amount?: number | null;
+    shipping_amount?: number | null;
+    total_amount?: number | null;
   };
   items: Array<{
     quantity: number;

@@ -10,9 +10,9 @@ import { handleRequest } from './handler.ts';
 import {
   memoryRateLimitStore,
   type RateLimitStore,
-} from './lib/rate-limit.ts';
-import { createPostgresRateLimitStore } from './lib/rate-limit-postgres.ts';
-import { createCompositeRateLimitStore } from './lib/rate-limit-composite.ts';
+} from '../_shared/rate-limit/rate-limit.ts';
+import { createPostgresRateLimitStore } from '../_shared/rate-limit/rate-limit-postgres.ts';
+import { createCompositeRateLimitStore } from '../_shared/rate-limit/rate-limit-composite.ts';
 
 // Non-null assertions are intentional: missing env at boot should crash loudly
 // at module load rather than fail per-request with an opaque runtime error.

@@ -1,13 +1,17 @@
 /**
- * Rate-limit primitives for `get-order-by-token`.
+ * Cross-function rate-limit primitives.
+ *
+ * Shared by `get-order-by-token` (per `order_id`) and
+ * `order-confirmation-lookup` (per `oid` from the HMAC token payload).
  *
  * This module defines the store interface and ships the **in-memory**
- * implementation. A Postgres-backed store lives in `rate-limit-postgres.ts`;
+ * implementation. A Postgres-backed store lives in `./rate-limit-postgres.ts`;
  * the composite wrapper (DB-primary, memory-fallback) is in
- * `rate-limit-composite.ts`.
+ * `./rate-limit-composite.ts`.
  *
- * Production wiring happens in `index.ts` — tests get the memory store and
- * a `__resetRateLimitStore()` escape hatch so state doesn't leak across runs.
+ * Production wiring happens in each edge function's `index.ts` — tests get
+ * the memory store and a `__resetRateLimitStore()` escape hatch so state
+ * doesn't leak across runs.
  */
 
 export interface RateLimitOptions {
@@ -29,10 +33,7 @@ export interface RateLimitResult {
  * exactly this method. Async so a network-backed impl fits without casts.
  */
 export interface RateLimitStore {
-  consume(
-    identifier: string,
-    opts: RateLimitOptions
-  ): Promise<RateLimitResult>;
+  consume(identifier: string, opts: RateLimitOptions): Promise<RateLimitResult>;
 }
 
 // ---------------------------------------------------------------------------

@@ -29,7 +29,9 @@ const {
   pickPublicOrderMetadata,
   pickPublicShippingAddress,
 } = await import('./handler.ts');
-const { __resetRateLimitStore } = await import('./lib/rate-limit.ts');
+const { __resetRateLimitStore } = await import(
+  '../_shared/rate-limit/rate-limit.ts'
+);
 
 // ---------------------------------------------------------------------------
 // Token layer (pre-existing coverage — kept as-is)

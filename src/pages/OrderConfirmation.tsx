@@ -31,6 +31,10 @@ import {
   fetchOrderByToken,
   type OrderByTokenResponse,
 } from '@/lib/invoice/generateInvoice';
+import {
+  pricingSnapshotV1Schema,
+  type PricingSnapshotV1,
+} from '@/lib/checkout/pricingSnapshot';
 
 // ================================================================
 // Types
@@ -77,6 +81,50 @@ function normalizeItems(items: ItemRow[]): NormalizedItem[] {
   });
 }
 
+interface ResolvedTotals {
+  source: 'snapshot_v1' | 'legacy_amount';
+  currency: string;
+  total: number;
+  subtotal: number;
+  shipping: number;
+  discount: number;
+}
+
+/**
+ * Prefer the authoritative `pricing_snapshot` (Stripe-sourced, minor units).
+ * Fall back to the legacy `order.amount` shape when no snapshot is available,
+ * computing shipping as `total - subtotal` as before. This keeps legacy orders
+ * rendering while guaranteeing that any order confirmed after this PR matches
+ * the email and Stripe exactly.
+ */
+function resolveTotals(
+  order: OrderRow,
+  items: NormalizedItem[]
+): ResolvedTotals {
+  const parsed = pricingSnapshotV1Schema.safeParse(order.pricing_snapshot);
+  if (parsed.success) {
+    const snap: PricingSnapshotV1 = parsed.data;
+    return {
+      source: 'snapshot_v1',
+      currency: snap.currency.toUpperCase(),
+      total: snap.total_minor / 100,
+      subtotal: snap.subtotal_minor / 100,
+      shipping: snap.shipping_minor / 100,
+      discount: snap.discount_minor / 100,
+    };
+  }
+  const total = Number(order.amount) || 0;
+  const subtotal = items.reduce((s, i) => s + i.totalPrice, 0);
+  return {
+    source: 'legacy_amount',
+    currency: (order.currency || 'EUR').toUpperCase(),
+    total,
+    subtotal,
+    shipping: Math.max(0, total - subtotal),
+    discount: 0,
+  };
+}
+
 // ================================================================
 // Sub-components
 // ================================================================
@@ -92,9 +140,12 @@ function OrderSuccess({
 }) {
   const { user } = useAuth();
   const normalized = normalizeItems(items);
-  const totalEuros = Number(order.amount) || 0;
-  const subtotal = normalized.reduce((s, i) => s + i.totalPrice, 0);
-  const shippingCalc = Math.max(0, totalEuros - subtotal);
+  const totals = resolveTotals(order, normalized);
+  const totalEuros = totals.total;
+  const subtotal = totals.subtotal;
+  const shippingCalc = totals.shipping;
+  const discount = totals.discount;
+  const currencySymbol = totals.currency === 'EUR' ? '€' : totals.currency;
 
   const orderNumber = order.id.slice(-8).toUpperCase();
   const orderDate = new Date(order.created_at).toLocaleDateString('fr-FR', {
@@ -227,17 +278,31 @@ function OrderSuccess({
         <div className="px-6 py-4 border-t border-border space-y-1">
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>Sous-total</span>
-            <span>{subtotal.toFixed(2)} €</span>
+            <span>
+              {subtotal.toFixed(2)} {currencySymbol}
+            </span>
           </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-sm text-primary">
+              <span>Réduction</span>
+              <span>
+                -{discount.toFixed(2)} {currencySymbol}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>Livraison</span>
             <span>
-              {shippingCalc === 0 ? 'Offerte' : `${shippingCalc.toFixed(2)} €`}
+              {shippingCalc === 0
+                ? 'Offerte'
+                : `${shippingCalc.toFixed(2)} ${currencySymbol}`}
             </span>
           </div>
           <div className="flex justify-between text-base font-bold text-foreground pt-2 border-t border-border">
             <span>Total payé</span>
-            <span>{totalEuros.toFixed(2)} €</span>
+            <span>
+              {totalEuros.toFixed(2)} {currencySymbol}
+            </span>
           </div>
         </div>
 

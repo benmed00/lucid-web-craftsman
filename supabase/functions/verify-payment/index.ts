@@ -17,6 +17,7 @@ import {
   confirmOrderFromStripe,
   sendConfirmationEmail,
 } from '../_shared/confirm-order.ts';
+import { persistPricingSnapshot } from '../_shared/persist-pricing-snapshot.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -362,6 +363,17 @@ serve(async (req) => {
       orderId: orderData.id,
       alreadyProcessed: result.alreadyProcessed,
     });
+
+    // Persist the authoritative pricing snapshot from the Stripe session so
+    // the email + SPA see the same totals, even if the webhook never fires.
+    if (!result.alreadyProcessed) {
+      await persistPricingSnapshot(supabaseService, stripe, {
+        orderId: orderData.id,
+        session,
+        source: 'verify_payment',
+        correlationId,
+      });
+    }
 
     // Send email if we did the confirmation
     if (!result.alreadyProcessed) {

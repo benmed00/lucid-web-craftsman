@@ -1,5 +1,20 @@
 {
   "version": "5",
+  "specifiers": {
+    "jsr:@std/assert@1": "1.0.19",
+    "jsr:@std/internal@^1.0.12": "1.0.13"
+  },
+  "jsr": {
+    "@std/assert@1.0.19": {
+      "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/internal@1.0.13": {
+      "integrity": "2f9546691d4ac2d32859c82dff284aaeac980ddeca38430d07941e7e288725c0"
+    }
+  },
   "remote": {
     "https://deno.land/std@0.190.0/_util/asserts.ts": "178dfc49a464aee693a7e285567b3d0b555dc805ff490505a8aae34f9cfb1462",
     "https://deno.land/std@0.190.0/async/abortable.ts": "fd682fa46f3b7b16b4606a5ab52a7ce309434b76f820d3221bdfb862719a15d7",
@@ -54,6 +69,7 @@
         "npm:@radix-ui/react-toggle-group@^1.1.0",
         "npm:@radix-ui/react-toggle@^1.1.0",
         "npm:@radix-ui/react-tooltip@^1.1.4",
+        "npm:@radix-ui/react-visually-hidden@^1.2.4",
         "npm:@stripe/stripe-js@^2.3.0",
         "npm:@supabase/supabase-js@^2.53.0",
         "npm:@tailwindcss/typography@~0.5.15",
@@ -116,6 +132,7 @@
         "npm:react-router-dom@^6.26.2",
         "npm:react@^18.3.1",
         "npm:recharts@^2.12.7",
+        "npm:rollup@^4.60.2",
         "npm:sonner@^1.5.0",
         "npm:start-server-and-test@^2.1.5",
         "npm:tailwind-merge@^2.5.2",

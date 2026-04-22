@@ -54,6 +54,10 @@
       "description": "Edge function `get-order-by-token`"
     },
     {
+      "name": "monitor-payment-events",
+      "description": "Edge function `monitor-payment-events`"
+    },
+    {
       "name": "order-confirmation-lookup",
       "description": "Edge function `order-confirmation-lookup`"
     },
@@ -1232,21 +1236,194 @@
         }
       }
     },
+    "/functions/v1/monitor-payment-events": {
+      "post": {
+        "tags": ["monitor-payment-events"],
+        "summary": "Aggregate critical payment_events rows in a lookback window",
+        "description": "Operator-facing read of the payment_events_critical view, aggregated by event_type and severity. Returns a severity-ranked list with occurrence counts and sample error messages so external schedulers (GitHub Actions, Datadog, PagerDuty) can poll for open incidents. Service-role bearer OR rotating x-monitor-token required; not a user surface.",
+        "parameters": [
+          {
+            "name": "apikey",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Supabase anon (or service) key; required for functions.invoke."
+          },
+          {
+            "name": "window_minutes",
+            "in": "query",
+            "required": false,
+            "description": "Lookback window in minutes. Default 15, min 1, max 10080 (7 days). Non-integer or NaN values fall back to the default.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10080,
+              "default": 15
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aggregated events, sorted by severity (critical first) then last_seen DESC. `highest_severity` is the max across the window, `total_count` is the sum of `occurrence_count`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "window_minutes",
+                    "generated_at",
+                    "total_count",
+                    "highest_severity",
+                    "events"
+                  ],
+                  "properties": {
+                    "window_minutes": {
+                      "type": "integer"
+                    },
+                    "generated_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "total_count": {
+                      "type": "integer"
+                    },
+                    "highest_severity": {
+                      "type": "string",
+                      "enum": ["critical", "error", "warning", "info"]
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "event_type",
+                          "severity",
+                          "occurrence_count",
+                          "first_seen",
+                          "last_seen"
+                        ],
+                        "properties": {
+                          "event_type": {
+                            "type": "string"
+                          },
+                          "severity": {
+                            "type": "string",
+                            "enum": ["critical", "error", "warning", "info"]
+                          },
+                          "occurrence_count": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "first_seen": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "last_seen": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "sample_message": {
+                            "type": ["string", "null"]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or wrong Authorization bearer AND missing or wrong x-monitor-token header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method other than GET, POST, or OPTIONS"
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error or unexpected throw. Response body is always a generic string — internal error details never leak to the client.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "description": "JSON body per function implementation; add openapi.fragment.json for detail."
+            }
+          }
+        }
+      }
+    },
     "/functions/v1/order-confirmation-lookup": {
       "post": {
         "tags": ["order-confirmation-lookup"],
         "summary": "Resolve order from signed email token",
         "description": "Invoked as POST https://<project>.supabase.co/functions/v1/order-confirmation-lookup (unless overridden). See supabase/functions/order-confirmation-lookup/index.ts.",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Bearer JWT or anon key (Supabase client)."
-          },
           {
             "name": "apikey",
             "in": "header",

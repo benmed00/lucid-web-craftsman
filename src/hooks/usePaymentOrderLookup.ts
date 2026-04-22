@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { looksLikeOrderUuid } from '@/lib/checkout/orderUuid';
@@ -6,6 +6,17 @@ import {
   invokeOrderLookup,
   type OrderLookupInvokeBody,
 } from '@/services/checkoutApi';
+
+/**
+ * Stop polling only after this many consecutive `found:false` responses.
+ *
+ * The webhook + DB insert race (and read-replica lag) means the first lookup
+ * after returning from Stripe can legitimately miss the order. Giving up
+ * immediately stranded paying customers on a "we can't find your order"
+ * screen; 5 attempts at the 2.5s poll interval ≈ 12.5s of grace, which is
+ * well inside normal webhook latency.
+ */
+const FOUND_FALSE_RETRY_BUDGET = 5;
 
 export type OrderLookupApiRow = {
   found?: boolean;
@@ -51,20 +62,43 @@ export function usePaymentOrderLookup(
     return null;
   }, [keys.orderId, keys.sessionId]);
 
+  // Tracks consecutive `found:false` responses for the current body. Reset
+  // whenever the lookup key changes.
+  const missCountRef = useRef<{ key: string; count: number }>({
+    key: '',
+    count: 0,
+  });
+  const bodyKey = useMemo(() => (body ? JSON.stringify(body) : ''), [body]);
+  if (missCountRef.current.key !== bodyKey) {
+    missCountRef.current = { key: bodyKey, count: 0 };
+  }
+
   return useQuery({
     queryKey: ['order', 'lookup', body],
     queryFn: async (): Promise<OrderLookupApiRow> => {
       if (!body) throw new Error('Missing order lookup key');
       const { data, error } = await invokeOrderLookup(body);
       if (error) throw error;
-      return (data || {}) as OrderLookupApiRow;
+      const row = (data || {}) as OrderLookupApiRow;
+      if (row.found === false) {
+        missCountRef.current.count += 1;
+      } else if (row.found === true) {
+        missCountRef.current.count = 0;
+      }
+      return row;
     },
     enabled: options.enabled && !!body,
     refetchInterval: (q) => {
       const row = q.state.data as OrderLookupApiRow | undefined;
       if (!row) return 2500;
-      if (row.found === false) return false;
       if (row.is_paid) return false;
+      // Give the webhook + DB insert a few seconds of grace before giving up.
+      if (
+        row.found === false &&
+        missCountRef.current.count >= FOUND_FALSE_RETRY_BUDGET
+      ) {
+        return false;
+      }
       return 2500;
     },
     staleTime: 15_000,

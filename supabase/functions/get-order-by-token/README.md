@@ -14,22 +14,22 @@ sole auth gate.
 
 ## At a glance
 
-| | |
-| --- | --- |
-| **Method / path**   | `POST /functions/v1/get-order-by-token` |
-| **Gateway auth**    | `apikey: <SUPABASE_ANON_KEY>` (header) |
-| **Body**            | `{ "token": "<base64url.base64url>" }` |
-| **Token lifetime**  | 15 min (`ORDER_TTL_SECONDS` in [`_shared/invoice/token.ts`](../_shared/invoice/token.ts)) |
-| **Token type**      | must be `order_access` — `invoice_access` tokens are rejected |
-| **Rate limit**      | 20 requests / 60 s per `order_id` (post-verify); 21st → `429` with `Retry-After`. State in Postgres (`public.edge_rate_limits`), in-memory fallback on DB outage |
-| **Returns (200)**   | `{ order, items }` — `order.metadata` **and** `order.shipping_address` both PII-whitelisted (definitions in `_shared/order-response-whitelists.ts`) |
-| **DB access**       | service role (bypasses RLS) |
-| **Logs**            | structured JSON: `{ fn, step, order_id?, reason?, ... }` (matches `sign-order-token`) |
-| **Env vars**        | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `INVOICE_SIGNING_SECRET` |
-| **Tests**           | **55 passing** — 35 handler-layer + 5 Postgres store + 3 composite store + 5 whitelists + 7 labels |
-| **E2E**             | `cypress/e2e/get_order_by_token_mocked_spec.ts` — stubs both edge functions end-to-end |
-| **OpenAPI**         | `openapi.fragment.json` picked up by `npm run openapi:edge-functions` |
-| **Deploy**          | not bundled; `supabase functions deploy get-order-by-token` |
+|                    |                                                                                                                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Method / path**  | `POST /functions/v1/get-order-by-token`                                                                                                                                                          |
+| **Gateway auth**   | `apikey: <SUPABASE_ANON_KEY>` (header)                                                                                                                                                           |
+| **Body**           | `{ "token": "<base64url.base64url>" }`                                                                                                                                                           |
+| **Token lifetime** | 15 min (`ORDER_TTL_SECONDS` in [`_shared/invoice/token.ts`](../_shared/invoice/token.ts))                                                                                                        |
+| **Token type**     | must be `order_access` — `invoice_access` tokens are rejected                                                                                                                                    |
+| **Rate limit**     | 20 requests / 60 s per `order_id` (post-verify); 21st → `429` with `Retry-After`. State in Postgres (`public.edge_rate_limits`), in-memory fallback on DB outage                                 |
+| **Returns (200)**  | `{ order, items }` — `order.metadata` **and** `order.shipping_address` both PII-whitelisted (definitions in `_shared/order-response-whitelists.ts`)                                              |
+| **DB access**      | service role (bypasses RLS)                                                                                                                                                                      |
+| **Logs**           | structured JSON: `{ fn, step, order_id?, reason?, ... }` (matches `sign-order-token`)                                                                                                            |
+| **Env vars**       | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `INVOICE_SIGNING_SECRET`                                                                                                                            |
+| **Tests**          | **55 passing** — 35 handler-layer + 5 Postgres store + 3 composite store + 5 whitelists + 7 labels (rate-limit tests now live in `_shared/rate-limit/`, shared with `order-confirmation-lookup`) |
+| **E2E**            | `cypress/e2e/get_order_by_token_mocked_spec.ts` — stubs both edge functions end-to-end                                                                                                           |
+| **OpenAPI**        | `openapi.fragment.json` picked up by `npm run openapi:edge-functions`                                                                                                                            |
+| **Deploy**         | not bundled; `supabase functions deploy get-order-by-token`                                                                                                                                      |
 
 ---
 
@@ -39,14 +39,14 @@ sole auth gate.
 
 **Legend** — colour code, consistent throughout:
 
-| Swatch | Meaning |
-| --- | --- |
-| green rectangle | success response |
-| red rectangle   | error response (status + body) |
+| Swatch          | Meaning                                      |
+| --------------- | -------------------------------------------- |
+| green rectangle | success response                             |
+| red rectangle   | error response (status + body)               |
 | grey rectangle  | not our response (e.g. Supabase gateway 401) |
-| yellow diamond  | handler decision point |
-| blue cylinder   | Postgres query / DB |
-| light rectangle | annotation (whitelist keys, shared secret) |
+| yellow diamond  | handler decision point                       |
+| blue cylinder   | Postgres query / DB                          |
+| light rectangle | annotation (whitelist keys, shared secret)   |
 
 <details>
 <summary>Mermaid source (edit <code>diagram.mmd</code> and regenerate)</summary>
@@ -99,17 +99,17 @@ Content-Type: application/json
 
 ### Errors
 
-| Status | Body | When |
-| --- | --- | --- |
-| `400` | `Invalid JSON body`           | `req.json()` threw |
-| `400` | `Missing token`               | Zod body schema failed (missing / non-string / empty) |
-| `401` | `Invalid or expired token`    | bad signature, malformed, or expired |
-| `401` | `Wrong token type`            | valid but not `order_access` |
-| `401` | *(HTML / different JSON)*     | **Gateway**, not us — missing `apikey` |
-| `404` | `Order not found`             | token valid, row gone |
-| `429` | `Too many requests`           | >20 requests/min on the same `order_id`; `Retry-After` header present |
-| `500` | `Database error`              | Postgrest error on `orders` or `order_items` |
-| `500` | `Internal server error`       | unexpected throw; full detail server-side only |
+| Status | Body                       | When                                                                  |
+| ------ | -------------------------- | --------------------------------------------------------------------- |
+| `400`  | `Invalid JSON body`        | `req.json()` threw                                                    |
+| `400`  | `Missing token`            | Zod body schema failed (missing / non-string / empty)                 |
+| `401`  | `Invalid or expired token` | bad signature, malformed, or expired                                  |
+| `401`  | `Wrong token type`         | valid but not `order_access`                                          |
+| `401`  | _(HTML / different JSON)_  | **Gateway**, not us — missing `apikey`                                |
+| `404`  | `Order not found`          | token valid, row gone                                                 |
+| `429`  | `Too many requests`        | >20 requests/min on the same `order_id`; `Retry-After` header present |
+| `500`  | `Database error`           | Postgrest error on `orders` or `order_items`                          |
+| `500`  | `Internal server error`    | unexpected throw; full detail server-side only                        |
 
 <details>
 <summary>Full success response example</summary>
@@ -126,26 +126,41 @@ Content-Type: application/json
     "shipping_address": {
       // Whitelisted — see PUBLIC_SHIPPING_ADDRESS_KEYS in handler.ts.
       // phone and address_line2 are deliberately stripped.
-      "first_name": "…", "last_name": "…",
-      "address_line1": "…", "postal_code": "…",
-      "city": "…", "country": "FR", "email": "…"
+      "first_name": "…",
+      "last_name": "…",
+      "address_line1": "…",
+      "postal_code": "…",
+      "city": "…",
+      "country": "FR",
+      "email": "…",
     },
     "metadata": {
       // Whitelisted — see PUBLIC_ORDER_METADATA_KEYS in handler.ts.
       // Populated by _shared/confirm-order.ts after successful payment.
       "customer_email": "alice@example.com",
-      "payment_method_label": "Carte bancaire"
+      "payment_method_label": "Carte bancaire",
     },
     "payment_method": "card",
     "user_id": null,
-    "pricing_snapshot": { /* server-computed totals */ },
-    "subtotal_amount": 4999, "discount_amount": 0,
-    "shipping_amount":  0,   "total_amount":     4999
+    "pricing_snapshot": {
+      /* server-computed totals */
+    },
+    "subtotal_amount": 4999,
+    "discount_amount": 0,
+    "shipping_amount": 0,
+    "total_amount": 4999,
   },
   "items": [
-    { "quantity": 2, "unit_price": 2499, "total_price": 4998,
-      "product_snapshot": { /* … */ }, "product_id": 42 }
-  ]
+    {
+      "quantity": 2,
+      "unit_price": 2499,
+      "total_price": 4998,
+      "product_snapshot": {
+        /* … */
+      },
+      "product_id": 42,
+    },
+  ],
 }
 ```
 
@@ -199,20 +214,26 @@ Content-Type: application/json
 ```bash
 # Lint
 deno lint --config supabase/functions/deno.json \
-  supabase/functions/get-order-by-token/
+  supabase/functions/get-order-by-token/ \
+  supabase/functions/_shared/rate-limit/
 
 # Typecheck (handler + 3 rate-limit store files + tests)
 deno check --config supabase/functions/deno.json \
   supabase/functions/get-order-by-token/index.ts \
   supabase/functions/get-order-by-token/handler.ts \
-  supabase/functions/get-order-by-token/lib/rate-limit.ts \
-  supabase/functions/get-order-by-token/lib/rate-limit-postgres.ts \
-  supabase/functions/get-order-by-token/lib/rate-limit-composite.ts \
+  supabase/functions/_shared/rate-limit/rate-limit.ts \
+  supabase/functions/_shared/rate-limit/rate-limit-postgres.ts \
+  supabase/functions/_shared/rate-limit/rate-limit-composite.ts \
   supabase/functions/get-order-by-token/index_test.ts
 
-# Tests for this function (35 handler + 5 Postgres + 3 composite = 43)
+# Tests for this function (35 handler-layer)
 deno test --config supabase/functions/deno.json --allow-env \
   supabase/functions/get-order-by-token/
+
+# Shared rate-limit primitives — now under _shared/, consumed by both
+# get-order-by-token and order-confirmation-lookup (5 Postgres + 3 composite)
+deno test --config supabase/functions/deno.json --allow-env \
+  supabase/functions/_shared/rate-limit/
 
 # Shared helpers owned by this function's write + response path (12)
 deno test --config supabase/functions/deno.json --allow-env \
@@ -271,19 +292,19 @@ supabase functions deploy get-order-by-token
 
 Always check the **response body**, not just the status code.
 
-| Symptom | Likely cause | What to check |
-| --- | --- | --- |
-| `400 Invalid JSON body` | frontend sent malformed JSON | POST body in `OrderConfirmation.tsx` / `fetchOrderByToken` |
-| `400 Missing token`     | empty / non-string / null token | frontend payload |
-| `401 Invalid or expired token` | secret mismatch **or** >15 min old | `INVOICE_SIGNING_SECRET` same on `sign-order-token` **and** here |
-| `401 Wrong token type`  | caller sent an `invoice_access` token | use `/invoice/*` routes instead |
-| `401` HTML / `No API key found` | **Gateway**, not us | add `apikey: SUPABASE_ANON_KEY` header |
-| `404 Order not found`   | token valid, row missing | DB truncation, wrong project/env |
-| `429 Too many requests` | 20 req/min budget per `order_id` exceeded | wait `Retry-After` seconds; check for a buggy client retry loop |
-| `500 Database error`    | Postgrest error on query | grep structured logs for `"step":"db_query_orders"` or `"db_query_order_items"` and the `pg_code` field |
-| `500 Internal server error` | generic catch-all (sanitized) | grep server logs for `"step":"unexpected"` |
-| `200` but `metadata`/`shipping_address` fields missing | **by design** — whitelists | `metadata`: `customer_email` + `payment_method_label` only; `shipping_address`: no `phone`, no `address_line2` |
-| endpoint never reached, client spins | stuck upstream on `sign-order-token` 409 | check `stripe-webhook` and `reconcile-payment` |
+| Symptom                                                | Likely cause                              | What to check                                                                                                  |
+| ------------------------------------------------------ | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `400 Invalid JSON body`                                | frontend sent malformed JSON              | POST body in `OrderConfirmation.tsx` / `fetchOrderByToken`                                                     |
+| `400 Missing token`                                    | empty / non-string / null token           | frontend payload                                                                                               |
+| `401 Invalid or expired token`                         | secret mismatch **or** >15 min old        | `INVOICE_SIGNING_SECRET` same on `sign-order-token` **and** here                                               |
+| `401 Wrong token type`                                 | caller sent an `invoice_access` token     | use `/invoice/*` routes instead                                                                                |
+| `401` HTML / `No API key found`                        | **Gateway**, not us                       | add `apikey: SUPABASE_ANON_KEY` header                                                                         |
+| `404 Order not found`                                  | token valid, row missing                  | DB truncation, wrong project/env                                                                               |
+| `429 Too many requests`                                | 20 req/min budget per `order_id` exceeded | wait `Retry-After` seconds; check for a buggy client retry loop                                                |
+| `500 Database error`                                   | Postgrest error on query                  | grep structured logs for `"step":"db_query_orders"` or `"db_query_order_items"` and the `pg_code` field        |
+| `500 Internal server error`                            | generic catch-all (sanitized)             | grep server logs for `"step":"unexpected"`                                                                     |
+| `200` but `metadata`/`shipping_address` fields missing | **by design** — whitelists                | `metadata`: `customer_email` + `payment_method_label` only; `shipping_address`: no `phone`, no `address_line2` |
+| endpoint never reached, client spins                   | stuck upstream on `sign-order-token` 409  | check `stripe-webhook` and `reconcile-payment`                                                                 |
 
 <details>
 <summary>Curl sanity checks</summary>
@@ -321,7 +342,7 @@ import { handleRequest } from './handler.ts';
 // makeAdmin is the fake-client helper in index_test.ts
 const res = await handleRequest(
   new Request('http://x', { method: 'POST', body: '{"token":"bogus"}' }),
-  makeAdmin(),
+  makeAdmin()
 );
 console.log(res.status, await res.json());
 // 401 { error: 'Invalid or expired token' }
@@ -336,12 +357,12 @@ console.log(res.status, await res.json());
 <details>
 <summary>Shipped (5 tiers audited, all landed)</summary>
 
-| Tier | Scope |
-| --- | --- |
-| **1** | Extracted `handleRequest` into `handler.ts` so tests can mock the Supabase client. Fixed 400-vs-500 on malformed JSON. Sanitized 500 path. Added 12 handler tests. |
-| **2** | Zod schemas as single source of truth for row shapes; `ORDER_SELECT` / `ITEMS_SELECT` derived — drift impossible. Zod-validated request body. PII whitelist for `metadata`. Added 11 tests, including an end-to-end PII-leak regression guard. |
-| **3** | Removed dead `payload.exp < nowSeconds` re-check (superseded by `verifyTokenPayload`). |
-| **4** | Fixed `product_id` type drift (now `number \| null`, matches DB `INTEGER`). Populated `metadata.payment_method_label` via new `_shared/payment-method-label.ts` wired into `_shared/confirm-order.ts`. Added `lib/rate-limit.ts` — 20 req/min per `order_id`, post-verify, returns 429 + `Retry-After`. Converted all handler logs to structured JSON (`{ fn, step, order_id?, reason?, ... }`) matching `sign-order-token`. Whitelisted `shipping_address` (drops `phone`, `address_line2`). Added `openapi.fragment.json`. Audited `pricing_snapshot` — numeric totals only, safe to echo. 7 new tests. |
+| Tier  | Scope                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1** | Extracted `handleRequest` into `handler.ts` so tests can mock the Supabase client. Fixed 400-vs-500 on malformed JSON. Sanitized 500 path. Added 12 handler tests.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| **2** | Zod schemas as single source of truth for row shapes; `ORDER_SELECT` / `ITEMS_SELECT` derived — drift impossible. Zod-validated request body. PII whitelist for `metadata`. Added 11 tests, including an end-to-end PII-leak regression guard.                                                                                                                                                                                                                                                                                                                                                                                                    |
+| **3** | Removed dead `payload.exp < nowSeconds` re-check (superseded by `verifyTokenPayload`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **4** | Fixed `product_id` type drift (now `number \| null`, matches DB `INTEGER`). Populated `metadata.payment_method_label` via new `_shared/payment-method-label.ts` wired into `_shared/confirm-order.ts`. Added `lib/rate-limit.ts` — 20 req/min per `order_id`, post-verify, returns 429 + `Retry-After`. Converted all handler logs to structured JSON (`{ fn, step, order_id?, reason?, ... }`) matching `sign-order-token`. Whitelisted `shipping_address` (drops `phone`, `address_line2`). Added `openapi.fragment.json`. Audited `pricing_snapshot` — numeric totals only, safe to echo. 7 new tests.                                         |
 | **5** | Cypress E2E spec (`cypress/e2e/get_order_by_token_mocked_spec.ts`): happy path + 409-retry + 401-error via edge-function stubs. Externalized rate-limit state to Postgres (`public.edge_rate_limits` + atomic `edge_rate_limit_consume` RPC) with in-memory fallback on DB outage — store abstraction in `lib/rate-limit{,-postgres,-composite}.ts`. Promoted both response whitelists to `_shared/order-response-whitelists.ts` so future endpoints get the same PII contract. Widened `paymentMethodLabel` dictionary from 10 → 34 Stripe methods (cards, wallets, BNPL, bank-redirect, offline/in-store). 20 new tests across the new modules. |
 
 Totals across all five tiers for surfaces owned by this function:
@@ -379,12 +400,6 @@ supabase/functions/get-order-by-token/
 ├── index.ts                          thin Deno.serve wrapper (env + composite store wiring + delegate)
 ├── handler.ts                        exported handleRequest + schemas (whitelists re-exported from _shared)
 ├── index_test.ts                     35 handler-layer tests
-├── lib/
-│   ├── rate-limit.ts                 store interface + in-memory implementation
-│   ├── rate-limit-postgres.ts        Postgres-backed store (wraps edge_rate_limit_consume RPC)
-│   ├── rate-limit-postgres_test.ts   5 tests (RPC contract, bigint coercion, error paths)
-│   ├── rate-limit-composite.ts       primary-with-fallback wrapper
-│   └── rate-limit-composite_test.ts  3 tests (short-circuit, fallback triggers, optional callback)
 ├── openapi.fragment.json             merged by npm run openapi:edge-functions
 ├── diagram.mmd                       Mermaid source for the data-flow diagram
 ├── diagram.png                       rendered version (embedded by this README)
@@ -392,7 +407,7 @@ supabase/functions/get-order-by-token/
 └── README.md                         this file
 ```
 
-Shared helpers this function owns the contract of (new or touched here):
+Shared helpers this function owns or consumes (new or touched here):
 
 ```
 supabase/functions/_shared/
@@ -400,8 +415,19 @@ supabase/functions/_shared/
 ├── order-response-whitelists_test.ts   5 tests (drop, null handling, key-set stability)
 ├── payment-method-label.ts             34 Stripe methods → French labels
 ├── payment-method-label_test.ts        7 tests (every category + introspection guard)
-└── confirm-order.ts                    imports the label, writes metadata.payment_method_label
+├── confirm-order.ts                    imports the label, writes metadata.payment_method_label
+└── rate-limit/
+    ├── rate-limit.ts                   store interface + in-memory implementation (shared with order-confirmation-lookup)
+    ├── rate-limit-postgres.ts          Postgres-backed store (wraps edge_rate_limit_consume RPC)
+    ├── rate-limit-postgres_test.ts     5 tests (RPC contract, bigint coercion, error paths)
+    ├── rate-limit-composite.ts         primary-with-fallback wrapper
+    └── rate-limit-composite_test.ts    3 tests (short-circuit, fallback triggers, optional callback)
 ```
+
+> The `rate-limit/` primitives moved out of `get-order-by-token/lib/` when
+> `order-confirmation-lookup` was rate-limited (same Postgres RPC, different
+> identifier namespace). `get-order-by-token` still owns the Postgres
+> migration and the atomic `edge_rate_limit_consume` RPC.
 
 Migration:
 

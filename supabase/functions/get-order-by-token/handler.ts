@@ -44,7 +44,7 @@ import {
   memoryRateLimitStore,
   type RateLimitResult,
   type RateLimitStore,
-} from './lib/rate-limit.ts';
+} from '../_shared/rate-limit/rate-limit.ts';
 
 // Re-export so existing external consumers (tests, docs, potential future
 // direct importers) keep working unchanged. The source of truth now lives

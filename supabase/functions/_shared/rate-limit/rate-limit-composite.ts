@@ -8,7 +8,11 @@
  * that the cross-isolate guarantee is temporarily lost; what we refuse to
  * do is break the request path.
  */
-import type { RateLimitOptions, RateLimitResult, RateLimitStore } from './rate-limit.ts';
+import type {
+  RateLimitOptions,
+  RateLimitResult,
+  RateLimitStore,
+} from './rate-limit.ts';
 
 export interface CompositeOptions {
   /** Optional hook fired when the primary fails and we fall back. */
