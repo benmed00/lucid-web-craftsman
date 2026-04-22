@@ -23,7 +23,9 @@ export const EXTERNAL_SERVICES = {
     network: 'https://m.stripe.network',
   },
   currency: {
-    frankfurter: 'https://api.frankfurter.app',
+    // Canonical API host; api.frankfurter.app 301s here — calling .dev directly avoids
+    // redirect + CSP (browser fetch to follow-up host must be allowlisted).
+    frankfurter: 'https://api.frankfurter.dev',
     exchangeRate: 'https://api.exchangerate.host',
   },
   fonts: {
@@ -40,6 +42,29 @@ export const EXTERNAL_SERVICES = {
     main: 'https://lovable.dev',
   },
 } as const;
+
+/**
+ * Frankfurter does not send Access-Control-Allow-Origin; Vite dev/preview proxies
+ * `/frankfurter-api` to avoid browser CORS. Vitest uses the real URL (Node fetch).
+ * Proxy target must match the public API host (see `vite.config.ts`).
+ */
+export function frankfurterApiBase(): string {
+  if (
+    import.meta.env.DEV &&
+    !import.meta.env.VITEST &&
+    typeof window !== 'undefined'
+  ) {
+    return '/frankfurter-api';
+  }
+  if (
+    import.meta.env.PROD &&
+    typeof window !== 'undefined' &&
+    window.location.port === '4173'
+  ) {
+    return '/frankfurter-api';
+  }
+  return EXTERNAL_SERVICES.currency.frankfurter;
+}
 
 // Content Security Policy configuration
 export const CSP_CONFIG = {

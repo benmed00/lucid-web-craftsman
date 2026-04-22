@@ -5,9 +5,13 @@
  * The frontend NEVER builds an invoice from local state.
  * The frontend NEVER uses blob: URLs — HTML is rendered in-route via iframe.
  */
-import { supabase } from '@/integrations/supabase/client';
+import {
+  supabase,
+  resolvedSupabasePublishableKey,
+} from '@/integrations/supabase/client';
+import { supabaseFunctionsV1BaseUrl } from '@/lib/invoice/supabaseFunctionsBaseUrl';
 
-const FUNCTIONS_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1`;
+const FUNCTIONS_URL = supabaseFunctionsV1BaseUrl();
 
 export class InvoiceError extends Error {}
 
@@ -29,27 +33,19 @@ export async function fetchInvoice(
 
   const {
     data: { session },
-  } = await supabase.auth.getSession();
+  } = await supabase.auth.getSession(); // for fetchInvoice: optional JWT for owner/admin; guests rely on `token` body
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    apikey: resolvedSupabasePublishableKey,
   };
   if (session?.access_token)
-    headers.Authorization = `Bearer ${session.access_token}`;
+    headers.Authorization = `Bearer ${session.access_token}`; // when set, generate-invoice authorizes via RLS/ownership in the function
 
-  const guestId = (() => {
-    try {
-      return localStorage.getItem('guest_id') || '';
-    } catch {
-      return '';
-    }
-  })();
-  if (guestId) headers['x-guest-id'] = guestId;
-
+  // x-guest-id removed: post-Stripe guest_id often mismatched browser storage, causing spurious 401/empty data
   const res = await fetch(`${FUNCTIONS_URL}/generate-invoice`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ order_id: orderId, token }),
+    body: JSON.stringify({ order_id: orderId, token }), // token: HMAC from email or sign-order-token; primary guest auth
   });
 
   if (!res.ok) {
@@ -70,9 +66,9 @@ export async function downloadInvoice(
   token?: string
 ): Promise<void> {
   if (!orderId) throw new InvoiceError('Order ID is required');
-  const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
-  const url = `/invoice/${orderId}${tokenParam}`;
-  const win = window.open(url, '_blank', 'noopener');
+  const tokenParam = token ? `?token=${encodeURIComponent(token)}` : ''; // pass HMAC to /invoice so fetchInvoice can auth without guest header
+  const url = `/invoice/${orderId}${tokenParam}`; // same-origin route; child tab runs fetchInvoice
+  const win = window.open(url, '_blank', 'noopener'); // new tab: PDF/print UX without replacing confirmation
   if (!win) {
     throw new InvoiceError(
       'Popup bloqué. Autorisez les fenêtres pop-up pour télécharger la facture.'
@@ -83,21 +79,36 @@ export async function downloadInvoice(
 /** Request a short-lived (15min) order-access token for /order-confirmation. */
 export async function requestOrderToken(orderId: string): Promise<string> {
   if (!orderId) throw new InvoiceError('Order ID is required');
-  const res = await fetch(`${FUNCTIONS_URL}/sign-order-token`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-    },
-    body: JSON.stringify({ order_id: orderId }),
-  });
-  if (!res.ok) {
+
+  const maxAttempts = 3;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const res = await fetch(`${FUNCTIONS_URL}/sign-order-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: resolvedSupabasePublishableKey,
+      },
+      body: JSON.stringify({ order_id: orderId }),
+    });
+
+    if (res.ok) {
+      const body = await res.json();
+      const token = body.token;
+      if (!token) throw new InvoiceError('No token returned');
+      return token;
+    }
+
+    if (res.status === 409 && attempt < maxAttempts - 1) {
+      await res.text().catch(() => '');
+      await new Promise((r) => setTimeout(r, 700 * (attempt + 1)));
+      continue;
+    }
+
     const err = await res.json().catch(() => ({}));
-    throw new InvoiceError(err.error || `sign-order-token HTTP ${res.status}`);
+    throw new InvoiceError(
+      (err as { error?: string }).error || `sign-order-token HTTP ${res.status}`
+    );
   }
-  const { token } = await res.json();
-  if (!token) throw new InvoiceError('No token returned');
-  return token;
 }
 
 export interface OrderByTokenResponse {
@@ -141,7 +152,7 @@ export async function fetchOrderByToken(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      apikey: resolvedSupabasePublishableKey,
     },
     body: JSON.stringify({ token }),
   });
@@ -161,18 +172,10 @@ export async function requestInvoiceToken(orderId: string): Promise<string> {
   } = await supabase.auth.getSession();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    apikey: resolvedSupabasePublishableKey,
   };
   if (session?.access_token)
-    headers.Authorization = `Bearer ${session.access_token}`;
-  const guestId = (() => {
-    try {
-      return localStorage.getItem('guest_id') || '';
-    } catch {
-      return '';
-    }
-  })();
-  if (guestId) headers['x-guest-id'] = guestId;
+    headers.Authorization = `Bearer ${session.access_token}`; // only signed-in owners/admins or edge pairing — no x-guest-id
 
   const res = await fetch(`${FUNCTIONS_URL}/sign-invoice-token`, {
     method: 'POST',

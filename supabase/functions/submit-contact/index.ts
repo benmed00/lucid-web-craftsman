@@ -1,6 +1,160 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+/** Comma-separated override; default notifies both inboxes below. */
+const DEFAULT_CONTACT_NOTIFY_EMAILS = [
+  'contact@rif-elegance.com',
+  'benyakoub.fr@gmail.com',
+] as const;
+
+const FROM_NAME = 'Rif Straw — Contact';
+
+const parseFromEmail = (raw: string | undefined): string => {
+  if (!raw) return 'contact@rif-elegance.com';
+  const match = raw.match(/<([^>]+)>/);
+  return match ? match[1].trim() : raw.trim();
+};
+
+function getContactNotifyRecipientsFromEnv(): string[] {
+  const raw = Deno.env.get('CONTACT_FORM_NOTIFY_EMAILS')?.trim();
+  if (raw) {
+    return raw
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return [...DEFAULT_CONTACT_NOTIFY_EMAILS];
+}
+
+const NOTIFY_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Parse comma-separated list; keep only plausible emails (same cap as single-field validation). */
+function parseNotifyEmailList(raw: string): string[] {
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(
+      (e) =>
+        e.length > 0 &&
+        e.length <= 254 &&
+        NOTIFY_EMAIL_REGEX.test(e)
+    );
+}
+
+/**
+ * Recipients for Brevo notification, in order:
+ * 1. `site_settings.contactFormNotifyEmails` in `app_settings` (non-empty, at least one valid email)
+ * 2. `CONTACT_FORM_NOTIFY_EMAILS` env
+ * 3. Built-in defaults
+ */
+async function resolveContactNotifyRecipients(
+  supabaseClient: ReturnType<typeof createClient>
+): Promise<string[]> {
+  try {
+    const { data, error } = await supabaseClient
+      .from('app_settings')
+      .select('setting_value')
+      .eq('setting_key', 'site_settings')
+      .maybeSingle();
+
+    if (error || data?.setting_value == null) {
+      return getContactNotifyRecipientsFromEnv();
+    }
+
+    const blob = data.setting_value as Record<string, unknown>;
+    const rawFromDb = blob.contactFormNotifyEmails;
+    if (typeof rawFromDb === 'string' && rawFromDb.trim()) {
+      const valid = parseNotifyEmailList(rawFromDb);
+      if (valid.length > 0) return valid;
+    }
+  } catch (e) {
+    console.warn(
+      '[submit-contact] Could not read contactFormNotifyEmails from app_settings',
+      e
+    );
+  }
+  return getContactNotifyRecipientsFromEnv();
+}
+
+async function sendContactNotificationEmail(params: {
+  sanitized: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string | null;
+    company: string | null;
+    subject: string;
+    message: string;
+  };
+  notifyTo: string[];
+  replyToEmail: string;
+  replyToName: string;
+  ip_address: string;
+}): Promise<void> {
+  const apiKey = Deno.env.get('BREVO_API_KEY');
+  if (!apiKey) {
+    console.warn(
+      '[submit-contact] BREVO_API_KEY not set; skipping notification email'
+    );
+    return;
+  }
+
+  const { sanitized, notifyTo, replyToEmail, replyToName, ip_address } = params;
+  const to = notifyTo;
+  if (to.length === 0) return;
+
+  const fromEmail = parseFromEmail(Deno.env.get('RESEND_FROM_EMAIL'));
+  const subjectLine = `[Contact] ${sanitized.subject}`.slice(0, 200);
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"></head>
+<body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111;">
+  <h2 style="margin:0 0 12px;">New contact form message</h2>
+  <table style="border-collapse:collapse;max-width:560px;">
+    <tr><td style="padding:4px 12px 4px 0;font-weight:600;">Name</td><td>${sanitized.first_name} ${sanitized.last_name}</td></tr>
+    <tr><td style="padding:4px 12px 4px 0;font-weight:600;">Email</td><td><a href="mailto:${sanitized.email}">${sanitized.email}</a></td></tr>
+    ${sanitized.phone ? `<tr><td style="padding:4px 12px 4px 0;font-weight:600;">Phone</td><td>${sanitized.phone}</td></tr>` : ''}
+    ${sanitized.company ? `<tr><td style="padding:4px 12px 4px 0;font-weight:600;">Company</td><td>${sanitized.company}</td></tr>` : ''}
+    <tr><td style="padding:4px 12px 4px 0;font-weight:600;vertical-align:top;">Subject</td><td>${sanitized.subject}</td></tr>
+  </table>
+  <p style="font-weight:600;margin:16px 0 8px;">Message</p>
+  <pre style="white-space:pre-wrap;background:#f4f4f5;padding:12px;border-radius:8px;font-size:14px;">${sanitized.message}</pre>
+  <p style="font-size:12px;color:#666;margin-top:24px;">IP: ${ip_address}</p>
+</body></html>`;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { name: FROM_NAME, email: fromEmail },
+        to: to.map((email) => ({ email })),
+        subject: subjectLine,
+        htmlContent: html,
+        replyTo: {
+          email: replyToEmail,
+          name: replyToName.slice(0, 100) || replyToEmail,
+        },
+      }),
+      signal: controller.signal,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.error('[submit-contact] Brevo error', res.status, data);
+      return;
+    }
+    console.log('[submit-contact] Notification email sent', data);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
@@ -214,7 +368,8 @@ serve(async (req) => {
       user_agent: userAgent.substring(0, 500), // Limit user agent length
     };
 
-    // Insert contact message
+    // Primary persistence: every valid submission is stored in `contact_messages`
+    // for admin queries / analysis. Email notification runs only after this succeeds.
     const { error } = await supabaseClient
       .from('contact_messages')
       .insert([sanitizedData]);
@@ -234,6 +389,20 @@ serve(async (req) => {
       });
 
       throw error;
+    }
+
+    try {
+      const notifyTo = await resolveContactNotifyRecipients(supabaseClient);
+      await sendContactNotificationEmail({
+        sanitized: sanitizedData,
+        notifyTo,
+        replyToEmail: String(email).trim(),
+        replyToName:
+          `${String(firstName).trim()} ${String(lastName).trim()}`.trim(),
+        ip_address: clientIP,
+      });
+    } catch (notifyErr) {
+      console.error('[submit-contact] Notification email failed', notifyErr);
     }
 
     // Log successful submission (without sensitive data)

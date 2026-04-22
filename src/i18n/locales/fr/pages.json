@@ -293,6 +293,97 @@
     "backHome": "Retour à l'accueil"
   },
 
+  "invoicePage": {
+    "generating": "Génération de votre facture…",
+    "orderShort": "Commande #{{shortId}}",
+    "unavailableTitle": "Facture indisponible",
+    "orderLine": "Commande",
+    "noContent": "Aucun contenu reçu.",
+    "retry": "Réessayer",
+    "contactSupport": "Contacter le support",
+    "helpPrefix": "Aide :",
+    "backToOrder": "Ma commande",
+    "invoiceLabel": "Facture #{{shortId}}",
+    "shop": "Boutique",
+    "printPdf": "Imprimer / PDF",
+    "iframeTitle": "Facture commande {{orderId}}",
+    "errorGeneric": "Erreur lors de la génération."
+  },
+
+  "maintenance": {
+    "title": "Site en maintenance",
+    "defaultMessage": "Nous effectuons actuellement des travaux de maintenance pour améliorer votre expérience.",
+    "returnExpected": "Retour prévu : {{time}}",
+    "backSoon": "Nous serons de retour très bientôt",
+    "urgentContact": "Pour toute question urgente, contactez-nous :",
+    "brandLine": "Rif Raw Straw — Artisanat berbère authentique"
+  },
+
+  "artisans": {
+    "hero": {
+      "kicker": "Artisanat authentique du Maroc",
+      "title1": "Façonné à la Main,",
+      "title2": "Enraciné dans l'Héritage",
+      "subtitle": "Rencontrez les artisans derrière chaque création Rif Raw Straw"
+    },
+    "heroImageAlt": "Mains d'artisan tressant la paille dans les montagnes du Rif",
+    "story": {
+      "imageAlt": "Portrait d'une artisane amazighe",
+      "kicker": "Notre histoire",
+      "title1": "Une tradition",
+      "title2": "à préserver",
+      "p1": "Du Rif à Essaouira, de Fès à Marrakech — un artisanat ancestral perdure à travers le Maroc.",
+      "p2": "Chaque matière — paille, doum, raphia, fil de soie — est travaillée à la main selon des techniques transmises de génération en génération.",
+      "p3": "Chez Rif Raw Straw, chaque achat soutient directement ces artisans et aide à préserver un patrimoine vivant."
+    },
+    "grid": {
+      "kicker": "Les mains derrière l'art",
+      "title": "Nos Artisans",
+      "subtitle": "Les mains talentueuses qui façonnent chaque pièce de notre collection.",
+      "portraitAlt": "Portrait de {{name}}"
+    },
+    "years": "{{count}} ans",
+    "featured": {
+      "kicker": "Artisan à l'honneur",
+      "yearsExperience": "{{count}} ans d'expérience"
+    },
+    "featuredImageAlt": "{{name}}, {{specialty}}",
+    "process": {
+      "kicker": "Savoir-faire",
+      "title": "Le Processus",
+      "subtitle": "De la matière brute au chef-d'œuvre — chaque étape faite à la main.",
+      "steps": {
+        "harvesting": {
+          "title": "Récolte",
+          "description": "La paille brute est soigneusement sélectionnée et récoltée à la main dans les montagnes du Rif.",
+          "alt": "Mains récoltant des tiges de paille dorée dans les montagnes du Rif au Maroc"
+        },
+        "weaving": {
+          "title": "Tissage",
+          "description": "Chaque brin est tressé selon des techniques transmises de génération en génération par les artisans marocains.",
+          "alt": "Mains habiles tressant des fibres de paille naturelle en motifs complexes"
+        },
+        "shaping": {
+          "title": "Mise en forme",
+          "description": "Les artisans façonnent chaque pièce à la main, lui donnant sa silhouette unique.",
+          "alt": "Mains d'artisan façonnant un chapeau de paille sur une forme en bois"
+        },
+        "finishing": {
+          "title": "Finition",
+          "description": "Les touches finales — coupe, vapeur et contrôle qualité — garantissent l'excellence.",
+          "alt": "Inspection finale d'un chapeau de paille artisanal avec ciseaux et vapeur"
+        }
+      }
+    },
+    "closingQuote": "« Chaque pièce porte une histoire, une culture, une main. »",
+    "cta": {
+      "kicker": "Soutenez l'artisanat",
+      "title": "Découvrez la Collection",
+      "body": "Chaque achat soutient directement ces artisans et leurs familles, préservant un patrimoine culturel unique.",
+      "button": "Voir la collection"
+    }
+  },
+
   "contact": {
     "seo": {
       "title": "Contact | Rifstraw",
@@ -381,6 +472,15 @@
       "minCharacters": "Le message doit contenir au moins 20 caractères.",
 
       "privacy": "J’accepte la politique de confidentialité et le traitement de mes données.",
+
+      "success": "Votre message a bien été envoyé. Nous vous répondrons dans les plus brefs délais.",
+      "rateLimited": "Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.",
+      "submitting": "Envoi en cours…",
+
+      "validation": {
+        "subjectMinLength": "Le sujet doit contenir au moins 5 caractères.",
+        "messageMinLength": "Le message doit contenir au moins 20 caractères."
+      },
 
       "submit": "Envoyer le message"
     },
@@ -489,6 +589,40 @@
       "thankYou": "Merci pour votre commande !",
       "company": "Rif Raw Straw",
       "freeShipping": "Offerte"
+    },
+    "orderConfirmation": {
+      "successHeadline": "Paiement confirmé",
+      "successSubline": "Votre commande a bien été enregistrée",
+      "emailTo": "Un email de confirmation a été envoyé à {{email}}",
+      "emailGeneric": "Un email de confirmation vous a été envoyé.",
+      "ctaTitle": "Que souhaitez-vous faire ?",
+      "viewOrders": "Voir mes commandes",
+      "guestInvoiceLink": "Page facture",
+      "continueShopping": "Continuer mes achats",
+      "orderHeading": "Commande #{{shortId}}",
+      "itemsTitle": "Articles",
+      "quantityLine": "Quantité : {{count}}",
+      "totalPaid": "Total payé",
+      "paidWith": "Payé par {{method}}",
+      "shippingAddress": "Adresse de livraison",
+      "trustPaymentSecure": "Paiement sécurisé",
+      "trustStripe": "via Stripe",
+      "trustTrackingTitle": "Suivi à venir",
+      "trustTrackingHint": "par email",
+      "trustSupport": "Support",
+      "loadingTitle": "Paiement confirmé ✓",
+      "loadingSubtitle": "Chargement des détails de votre commande…",
+      "errorTitle": "Impossible d'afficher la commande",
+      "errorBody": "Nous n'avons pas pu charger les détails. Si vous avez été débité, contactez le support.",
+      "homeLink": "Retour à l'accueil",
+      "toastOrderIdMissing": "Identifiant de commande manquant.",
+      "toastInvoiceError": "Facture indisponible.",
+      "toastInvoiceEmailHint": "Vous pouvez aussi y accéder depuis l'email de confirmation."
+    },
+    "legacyRoute": {
+      "orderNotFoundBody": "Nous ne trouvons pas votre commande. Si vous avez effectué un paiement, vérifiez votre email pour la confirmation.",
+      "redirecting": "Redirection en cours…",
+      "contactSupport": "Contacter le support"
     }
   },
 

@@ -23,6 +23,7 @@ Ce dossier regroupe les **tests E2E navigateur** (Cypress). Index documentation 
 | `npm run e2e:ci:shard` | Comme `e2e:ci`, mais **un sous-ensemble de fichiers** specs (`CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL`) — job **e2e-full** CI. |
 | `npm run e2e:ci:smoke` | Idem, filtré **`@smoke`** (aligné sur la CI PR).                                                                             |
 | `npm run e2e:checkout` | Idem, uniquement **checkout** (`checkout_flow_spec`, `checkout_persistence_spec`, `checkout_db_hydration_spec`).             |
+| `npm run e2e:contact`  | Idem, uniquement **`contact_form_spec.js`** (formulaire + intercept `submit-contact`).                                       |
 | `npm run e2e:open`     | Mode interactif (serveurs déjà démarrés).                                                                                    |
 
 **Secrets dépôt (optionnels)** pour limiter les tests ignorés en CI : `CYPRESS_CUSTOMER_EMAIL`, `CYPRESS_CUSTOMER_PASSWORD`, `CYPRESS_ADMIN_EMAIL`, `CYPRESS_ADMIN_PASSWORD` — fusionnés vers `CUSTOMER_*` / `ADMIN_*` dans `Cypress.env()` par `setupNodeEvents` dans `cypress.config.ts`.
@@ -64,7 +65,7 @@ These pieces intentionally stay in lockstep:
 
 1. **`vite.config.ts`** — `server.port: 8080` and **`strictPort: true`**. If something else already listens on 8080, `npm run dev` exits instead of picking 8081/8082. That avoids a class of failures where `start-server-and-test` (or a human) assumes **8080** but Cypress hits the wrong port and `cy.visit` fails with **ECONNREFUSED**.
 2. **`cypress.config.ts`** — `baseUrl` defaults to **`http://localhost:8080`**. Override with **`CYPRESS_BASE_URL`** only when you deliberately run Vite on another origin.
-3. **`package.json`** — `e2e:ci`, `e2e:ci:smoke`, **`e2e:checkout`**, and related scripts use **`http-get://localhost:8080`** as the “app is up” probe alongside the mock API on **3001**.
+3. **`package.json`** — `e2e:ci`, `e2e:ci:smoke`, **`e2e:checkout`**, **`e2e:contact`**, etc. use **`http-get://localhost:8080/contact`** as the “Vite SPA is up” probe (avoids a false **200** on `/` from a wrong process already bound to **8080**). Mock API on **3001** unchanged.
 
 Operational summary: free port **8080** before CI-style E2E, or set **`CYPRESS_BASE_URL`** to match wherever Vite is actually served. Root [`../AGENTS.md`](../AGENTS.md) duplicates the short version for agents and local setup.
 
@@ -129,6 +130,7 @@ Commands are defined in the root [`../package.json`](../package.json). Common en
 | `npm run e2e:regression` | Headless; `@regression` subset.                                                                                                                               |
 | `npm run e2e:ci`         | Starts mock API + Vite, then full `cypress run` (CI-style).                                                                                                   |
 | `npm run e2e:checkout`   | Same stack; runs **checkout** specs only (`checkout_flow_spec.js`, `checkout_persistence_spec.js`, `checkout_db_hydration_spec.ts`).                          |
+| `npm run e2e:contact`    | Same stack; runs **`contact_form_spec.js`** only (needs Vite SPA on 8080 — avoid bare `cypress run` without servers).                                         |
 | `npm run e2e:ci:shard`   | Same stack; runs a **slice of spec files** via `CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL` (see `scripts/cypress-e2e-shard.mjs`). Used by **e2e-full** CI matrix. |
 | `npm run e2e:ci:smoke`   | Same as `e2e:ci` but filtered to `@smoke`.                                                                                                                    |
 

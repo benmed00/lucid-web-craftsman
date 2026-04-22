@@ -3,6 +3,21 @@ import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import './index.css';
 
+import { installForbiddenOrderRestFetchGuard } from '@/lib/security/forbiddenOrderRestFetchGuard';
+
+installForbiddenOrderRestFetchGuard();
+console.log('[BUILD VERSION]', import.meta.env.VITE_APP_VERSION);
+
+// TEMPORARY: production saw order/invoice pages running old JS from a cached SW bundle
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  // Unregister all SWs on every full page load so no prior /sw.js keeps controlling the origin
+  void navigator.serviceWorker.getRegistrations().then((regs) => {
+    for (const reg of regs) {
+      void reg.unregister(); // Each registration may cache a different scope; remove all
+    }
+  });
+}
+
 // ============= 1. Storage self-healing (MUST run before anything else) =============
 import {
   validateAndSanitizeStorage,
@@ -36,10 +51,8 @@ import App from './App';
 // Import performance utilities and store initializers
 import { initPerformanceOptimizations } from '@/utils/sitemapGenerator';
 import { setupProductionErrorSuppression } from './utils/errorSuppression';
-import {
-  registerServiceWorker,
-  addResourceHints,
-} from './utils/cacheOptimization';
+// registerServiceWorker omitted: it ran ~2s after load and could re-register SW, undoing the unregister above
+import { addResourceHints } from './utils/cacheOptimization';
 import {
   initializeCartStore,
   initializeCurrencyStore,
@@ -78,8 +91,8 @@ if (!window.__PERF_OPTIMIZED__) {
       initPerformanceOptimizations();
       addResourceHints();
       setTimeout(() => {
-        registerServiceWorker();
-        initializeBusinessRules().catch(console.warn);
+        // Previously: registerServiceWorker() here — that re-applied /sw.js after we had cleared it at boot
+        initializeBusinessRules().catch(console.warn); // non-critical; keep after paint
       }, 2000);
     });
   });

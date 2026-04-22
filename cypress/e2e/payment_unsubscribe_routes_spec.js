@@ -8,7 +8,7 @@ describe('Payment success route @regression', () => {
     // No session_id / PayPal return → OrderConfirmation (not PaymentSuccess).
     // OrderConfirmation uses a fixed FR copy when ?token is absent.
     cy.visit('/order-confirmation');
-    cy.contains(/Le lien est incomplet|lien recu dans votre email/i, {
+    cy.contains(/Impossible d'afficher la commande/i, {
       timeout: 15000,
     }).should('be.visible');
   });

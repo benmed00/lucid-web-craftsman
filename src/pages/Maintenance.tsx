@@ -1,25 +1,30 @@
 import { Wrench, Clock, Mail, Calendar } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { enUS, fr as frLocale } from 'date-fns/locale';
 
 const Maintenance = () => {
+  const { t, i18n } = useTranslation('pages');
   const { maintenanceReturnTime, maintenanceMessage } = useMaintenanceMode();
+  const isFr = i18n.language?.startsWith('fr') ?? false;
+  const dateLocale = isFr ? frLocale : enUS;
+  const datePattern = isFr
+    ? "EEEE d MMMM yyyy 'à' HH:mm"
+    : "EEEE, MMMM d, yyyy 'at' HH:mm";
 
   const formatReturnTime = (dateStr: string | null) => {
     if (!dateStr) return null;
     try {
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return null;
-      return format(date, "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr });
+      return format(date, datePattern, { locale: dateLocale });
     } catch {
       return null;
     }
   };
 
   const formattedReturnTime = formatReturnTime(maintenanceReturnTime);
-  const defaultMessage =
-    'Nous effectuons actuellement des travaux de maintenance pour améliorer votre expérience.';
 
   return (
     <div
@@ -45,10 +50,10 @@ const Maintenance = () => {
             className="text-3xl font-serif font-semibold"
             style={{ color: '#292524' }}
           >
-            Site en maintenance
+            {t('maintenance.title')}
           </h1>
           <p style={{ color: '#57534e' }}>
-            {maintenanceMessage || defaultMessage}
+            {maintenanceMessage || t('maintenance.defaultMessage')}
           </p>
         </div>
 
@@ -60,8 +65,10 @@ const Maintenance = () => {
           <Clock className="h-4 w-4" />
           <span className="text-sm">
             {formattedReturnTime
-              ? `Retour prévu : ${formattedReturnTime}`
-              : 'Nous serons de retour très bientôt'}
+              ? t('maintenance.returnExpected', {
+                  time: formattedReturnTime,
+                })
+              : t('maintenance.backSoon')}
           </span>
         </div>
 
@@ -90,7 +97,7 @@ const Maintenance = () => {
           }}
         >
           <p className="text-sm mb-3" style={{ color: '#57534e' }}>
-            Pour toute question urgente, contactez-nous :
+            {t('maintenance.urgentContact')}
           </p>
           <a
             href="mailto:contact@rifrawstraw.com"
@@ -108,7 +115,7 @@ const Maintenance = () => {
 
         {/* Brand */}
         <p className="text-xs" style={{ color: '#a8a29e' }}>
-          Rif Raw Straw — Artisanat berbère authentique
+          {t('maintenance.brandLine')}
         </p>
       </div>
     </div>

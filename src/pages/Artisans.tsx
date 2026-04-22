@@ -42,54 +42,24 @@ function resolveArtisan(row: ArtisanJoinRow, locale: string): ArtisanView {
   };
 }
 
-const PROCESS_STEPS = [
+type ProcessStepKey = 'harvesting' | 'weaving' | 'shaping' | 'finishing';
+
+const PROCESS_SLIDES: { key: ProcessStepKey; image: string }[] = [
   {
-    title: 'Harvesting',
-    titleFr: 'Récolte',
-    description:
-      'Raw straw is carefully selected and harvested by hand from the Rif mountains during peak season.',
-    descriptionFr:
-      'La paille brute est soigneusement sélectionnée et récoltée à la main dans les montagnes du Rif.',
+    key: 'harvesting',
     image: '/assets/images/artisans/process-harvesting.jpg',
-    alt: "Hands harvesting golden straw stalks in Morocco's Rif mountains",
-    altFr:
-      'Mains récoltant des tiges de paille dorée dans les montagnes du Rif au Maroc',
   },
   {
-    title: 'Weaving',
-    titleFr: 'Tissage',
-    description:
-      'Each strand is braided using techniques passed down through generations of Moroccan artisans.',
-    descriptionFr:
-      'Chaque brin est tressé selon des techniques transmises de génération en génération par les artisans marocains.',
+    key: 'weaving',
     image: '/assets/images/artisans/process-weaving.jpg',
-    alt: 'Skilled hands braiding natural straw fibers into intricate patterns',
-    altFr:
-      'Mains habiles tressant des fibres de paille naturelle en motifs complexes',
   },
   {
-    title: 'Shaping',
-    titleFr: 'Mise en forme',
-    description:
-      'Artisans mold every piece by hand, giving each hat its unique silhouette and character.',
-    descriptionFr:
-      'Les artisans façonnent chaque pièce à la main, lui donnant sa silhouette unique.',
+    key: 'shaping',
     image: '/assets/images/artisans/process-shaping.jpg',
-    alt: 'Artisan hands shaping a straw hat on a wooden form',
-    altFr:
-      "Mains d'artisan façonnant un chapeau de paille sur une forme en bois",
   },
   {
-    title: 'Finishing',
-    titleFr: 'Finition',
-    description:
-      'Final touches — trimming, steaming, and quality checks — ensure every piece meets our standards.',
-    descriptionFr:
-      "Les touches finales — coupe, vapeur et contrôle qualité — garantissent l'excellence.",
+    key: 'finishing',
     image: '/assets/images/artisans/process-finishing.jpg',
-    alt: 'Final quality inspection of a handmade straw hat with scissors and steam',
-    altFr:
-      "Inspection finale d'un chapeau de paille artisanal avec ciseaux et vapeur",
   },
 ];
 
@@ -137,9 +107,8 @@ function FadeInSection({
 }
 
 const ArtisansPage = () => {
-  const { i18n } = useTranslation(['pages', 'common']);
-  const locale = i18n.language?.split('-')[0] ?? 'fr';
-  const isFr = locale === 'fr';
+  const { t, i18n } = useTranslation('pages');
+  const locale = i18n.language?.startsWith('en') ? 'en' : 'fr';
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -165,7 +134,7 @@ const ArtisansPage = () => {
         <div className="absolute inset-0">
           <img
             src="/assets/images/artisans/hero-rif-weaving.jpg"
-            alt="Artisan hands weaving straw in the Rif mountains"
+            alt={t('artisans.heroImageAlt')}
             className="w-full h-full object-cover scale-105"
             loading="eager"
           />
@@ -174,22 +143,18 @@ const ArtisansPage = () => {
 
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           <p className="text-xs md:text-sm tracking-[0.35em] uppercase text-white/60 mb-6 font-light animate-fade-in">
-            {isFr
-              ? 'Artisanat authentique du Maroc'
-              : 'Authentic Moroccan Craftsmanship'}
+            {t('artisans.hero.kicker')}
           </p>
           <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white font-bold tracking-wide leading-[1.1] mb-8 animate-fade-in">
-            {isFr ? 'Façonné à la Main,' : 'Crafted by Hands,'}
+            {t('artisans.hero.title1')}
             <br />
             <span className="italic font-normal text-white/90">
-              {isFr ? "Enraciné dans l'Héritage" : 'Rooted in Heritage'}
+              {t('artisans.hero.title2')}
             </span>
           </h1>
           <div className="w-16 h-px bg-white/40 mx-auto mb-6" />
           <p className="text-base md:text-lg text-white/70 font-light tracking-wider max-w-xl mx-auto leading-relaxed animate-fade-in">
-            {isFr
-              ? 'Rencontrez les artisans derrière chaque création Rif Raw Straw'
-              : 'Meet the artisans behind every Rif Raw Straw creation'}
+            {t('artisans.hero.subtitle')}
           </p>
         </div>
 
@@ -209,7 +174,7 @@ const ArtisansPage = () => {
               <div className="overflow-hidden rounded-sm">
                 <img
                   src="/assets/images/artisans/amazigh-woman.png"
-                  alt="Portrait of an Amazigh artisan woman"
+                  alt={t('artisans.story.imageAlt')}
                   className="w-full aspect-[4/5] object-cover hover:scale-105 transition-transform duration-1000"
                   loading="lazy"
                 />
@@ -217,32 +182,26 @@ const ArtisansPage = () => {
               <div className="space-y-10">
                 <div>
                   <p className="text-xs tracking-[0.3em] uppercase text-primary/70 mb-4 font-medium">
-                    {isFr ? 'Notre histoire' : 'Our Story'}
+                    {t('artisans.story.kicker')}
                   </p>
                   <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground font-semibold leading-[1.15] tracking-wide">
-                    {isFr ? 'Une tradition' : 'A Tradition'}
+                    {t('artisans.story.title1')}
                     <br />
                     <span className="italic font-normal text-foreground/80">
-                      {isFr ? 'à préserver' : 'Worth Preserving'}
+                      {t('artisans.story.title2')}
                     </span>
                   </h2>
                 </div>
                 <div className="w-16 h-px bg-primary/40" />
                 <div className="space-y-6">
                   <p className="text-muted-foreground text-lg leading-[1.8] font-light">
-                    {isFr
-                      ? 'Du Rif à Essaouira, de Fès à Marrakech — un artisanat ancestral perdure à travers le Maroc.'
-                      : 'From the Rif to Essaouira, from Fès to Marrakech — an ancestral craft lives on across Morocco.'}
+                    {t('artisans.story.p1')}
                   </p>
                   <p className="text-muted-foreground text-lg leading-[1.8] font-light">
-                    {isFr
-                      ? 'Chaque matière — paille, doum, raphia, fil de soie — est travaillée à la main selon des techniques transmises de génération en génération.'
-                      : 'Each material — straw, doum palm, raphia, silk thread — is worked by hand using techniques passed down through generations.'}
+                    {t('artisans.story.p2')}
                   </p>
                   <p className="text-muted-foreground text-lg leading-[1.8] font-light">
-                    {isFr
-                      ? 'Chez Rif Raw Straw, chaque achat soutient directement ces artisans et aide à préserver un patrimoine vivant.'
-                      : 'At Rif Raw Straw, every purchase directly supports these artisans and helps preserve a living heritage.'}
+                    {t('artisans.story.p3')}
                   </p>
                 </div>
               </div>
@@ -259,15 +218,13 @@ const ArtisansPage = () => {
           <FadeInSection>
             <div className="text-center mb-20 max-w-2xl mx-auto">
               <p className="text-xs tracking-[0.3em] uppercase text-primary/70 mb-4 font-medium">
-                {isFr ? "Les mains derrière l'art" : 'The Hands Behind the Art'}
+                {t('artisans.grid.kicker')}
               </p>
               <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground font-semibold tracking-wide mb-5">
-                {isFr ? 'Nos Artisans' : 'Meet Our Artisans'}
+                {t('artisans.grid.title')}
               </h2>
               <p className="text-muted-foreground text-lg font-light leading-relaxed">
-                {isFr
-                  ? 'Les mains talentueuses qui façonnent chaque pièce de notre collection.'
-                  : 'The talented hands shaping every piece in our collection.'}
+                {t('artisans.grid.subtitle')}
               </p>
             </div>
           </FadeInSection>
@@ -286,17 +243,17 @@ const ArtisansPage = () => {
                     className="group cursor-default"
                     style={{ animationDelay: `${i * 0.1}s` }}
                   >
-                    {/* Image */}
                     <div className="overflow-hidden rounded-sm mb-6">
                       <img
                         src={artisan.photo_url || '/placeholder.svg'}
-                        alt={`Portrait of ${artisan.name}`}
+                        alt={t('artisans.grid.portraitAlt', {
+                          name: artisan.name,
+                        })}
                         className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
                         loading="lazy"
                       />
                     </div>
 
-                    {/* Info */}
                     <div className="space-y-3">
                       <h3 className="font-serif text-2xl md:text-3xl text-foreground font-semibold tracking-wide group-hover:text-primary transition-colors duration-500">
                         {artisan.name}
@@ -309,10 +266,12 @@ const ArtisansPage = () => {
                             {artisan.location || artisan.region}
                           </span>
                         )}
-                        {artisan.experience_years && (
+                        {artisan.experience_years != null && (
                           <span className="text-xs tracking-[0.15em] text-muted-foreground flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            {artisan.experience_years} {isFr ? 'ans' : 'years'}
+                            {t('artisans.years', {
+                              count: artisan.experience_years,
+                            })}
                           </span>
                         )}
                       </div>
@@ -342,21 +301,22 @@ const ArtisansPage = () => {
         <section className="py-0">
           <FadeInSection>
             <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
-              {/* Image side — edge-to-edge */}
               <div className="h-[450px] lg:h-auto overflow-hidden">
                 <img
                   src={featured.photo_url || '/placeholder.svg'}
-                  alt={`${featured.name}, ${featured.specialty}`}
+                  alt={t('artisans.featuredImageAlt', {
+                    name: featured.name,
+                    specialty: featured.specialty ?? '',
+                  })}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
               </div>
 
-              {/* Content side */}
               <div className="bg-card flex items-center">
                 <div className="p-10 md:p-16 lg:p-20 space-y-8 max-w-xl">
                   <p className="text-xs tracking-[0.3em] uppercase text-primary/70 font-medium">
-                    {isFr ? "Artisan à l'honneur" : 'Featured Artisan'}
+                    {t('artisans.featured.kicker')}
                   </p>
                   <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground font-semibold leading-tight tracking-wide">
                     {featured.name}
@@ -367,7 +327,7 @@ const ArtisansPage = () => {
                     <div className="relative pl-8">
                       <Quote className="absolute top-0 left-0 w-6 h-6 text-primary/20" />
                       <p className="text-muted-foreground text-lg leading-[1.8] italic font-light">
-                        "{featured.quote}"
+                        &ldquo;{featured.quote}&rdquo;
                       </p>
                     </div>
                   )}
@@ -376,11 +336,12 @@ const ArtisansPage = () => {
                     {featured.bio}
                   </p>
 
-                  {featured.experience_years && (
+                  {featured.experience_years != null && (
                     <p className="text-sm text-muted-foreground/70 flex items-center gap-2 tracking-wide">
                       <Clock className="w-4 h-4 text-primary/50" />
-                      {featured.experience_years}{' '}
-                      {isFr ? "ans d'expérience" : 'years of experience'}
+                      {t('artisans.featured.yearsExperience', {
+                        count: featured.experience_years,
+                      })}
                       {featured.location && ` — ${featured.location}`}
                     </p>
                   )}
@@ -399,27 +360,25 @@ const ArtisansPage = () => {
           <FadeInSection>
             <div className="text-center mb-20 max-w-2xl mx-auto">
               <p className="text-xs tracking-[0.3em] uppercase text-primary/70 mb-4 font-medium">
-                {isFr ? 'Savoir-faire' : 'Craftsmanship'}
+                {t('artisans.process.kicker')}
               </p>
               <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground font-semibold tracking-wide mb-5">
-                {isFr ? 'Le Processus' : 'The Making Process'}
+                {t('artisans.process.title')}
               </h2>
               <p className="text-muted-foreground text-lg font-light leading-relaxed">
-                {isFr
-                  ? "De la matière brute au chef-d'œuvre — chaque étape faite à la main."
-                  : 'From raw material to finished masterpiece — every step done by hand.'}
+                {t('artisans.process.subtitle')}
               </p>
             </div>
           </FadeInSection>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 max-w-6xl mx-auto">
-            {PROCESS_STEPS.map((step, i) => (
-              <FadeInSection key={step.title}>
+            {PROCESS_SLIDES.map((slide, i) => (
+              <FadeInSection key={slide.key}>
                 <div className="group text-center">
                   <div className="relative mb-8 overflow-hidden rounded-sm">
                     <img
-                      src={step.image}
-                      alt={isFr ? step.altFr : step.alt}
+                      src={slide.image}
+                      alt={t(`artisans.process.steps.${slide.key}.alt`)}
                       className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
                       loading="lazy"
                     />
@@ -428,10 +387,10 @@ const ArtisansPage = () => {
                     </div>
                   </div>
                   <h3 className="font-serif text-xl text-foreground font-semibold mb-3 tracking-wide">
-                    {isFr ? step.titleFr : step.title}
+                    {t(`artisans.process.steps.${slide.key}.title`)}
                   </h3>
                   <p className="text-muted-foreground text-sm leading-relaxed font-light">
-                    {isFr ? step.descriptionFr : step.description}
+                    {t(`artisans.process.steps.${slide.key}.description`)}
                   </p>
                 </div>
               </FadeInSection>
@@ -448,9 +407,7 @@ const ArtisansPage = () => {
           <div className="container mx-auto px-4 text-center max-w-3xl">
             <div className="w-12 h-px bg-primary/30 mx-auto mb-10" />
             <p className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground/80 font-normal leading-[1.5] tracking-wide italic">
-              {isFr
-                ? '"Chaque pièce porte une histoire, une culture, une main."'
-                : '"Every piece carries a story, a culture, a hand."'}
+              {t('artisans.closingQuote')}
             </p>
             <div className="w-12 h-px bg-primary/30 mx-auto mt-10" />
           </div>
@@ -464,15 +421,13 @@ const ArtisansPage = () => {
         <FadeInSection>
           <div className="container mx-auto px-4 text-center max-w-3xl">
             <p className="text-xs tracking-[0.3em] uppercase text-primary-foreground/50 mb-6 font-medium">
-              {isFr ? "Soutenez l'artisanat" : 'Support the Craft'}
+              {t('artisans.cta.kicker')}
             </p>
             <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold tracking-wide mb-6 leading-tight">
-              {isFr ? 'Découvrez la Collection' : 'Discover the Collection'}
+              {t('artisans.cta.title')}
             </h2>
             <p className="text-primary-foreground/70 text-lg font-light leading-relaxed mb-10 max-w-xl mx-auto">
-              {isFr
-                ? 'Chaque achat soutient directement ces artisans et leurs familles, préservant un patrimoine culturel unique.'
-                : 'Every purchase directly supports these artisans and their families, preserving a unique cultural heritage.'}
+              {t('artisans.cta.body')}
             </p>
             <Button
               asChild
@@ -480,7 +435,7 @@ const ArtisansPage = () => {
               className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 rounded-none px-10 py-6 text-sm tracking-[0.15em] uppercase font-medium"
             >
               <Link to="/products">
-                {isFr ? 'Voir la collection' : 'Shop the Collection'}
+                {t('artisans.cta.button')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>

@@ -50,6 +50,23 @@ const siteSettingsSchema = z.object({
     .string()
     .email("Format d'email invalide")
     .max(255, 'Maximum 255 caractères'),
+  /** Comma-separated inboxes that receive contact form copies (Brevo). Empty = use server env / defaults. */
+  contactFormNotifyEmails: z
+    .string()
+    .max(800, 'Maximum 800 caractères')
+    .refine(
+      (s) => {
+        if (!s.trim()) return true;
+        const parts = s
+          .split(',')
+          .map((p) => p.trim())
+          .filter(Boolean);
+        return parts.every(
+          (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && e.length <= 254
+        );
+      },
+      { message: 'Liste invalide : emails séparés par des virgules' }
+    ),
   contactPhone: z.string().max(20, 'Maximum 20 caractères'),
   address: z.string().max(200, 'Maximum 200 caractères'),
   currency: z.string().min(1, 'Devise requise'),
@@ -76,6 +93,7 @@ interface SiteSettings {
   siteName: string;
   siteDescription: string;
   contactEmail: string;
+  contactFormNotifyEmails: string;
   contactPhone: string;
   address: string;
   currency: string;
@@ -115,6 +133,7 @@ const defaultSiteSettings: SiteSettings = {
   siteName: '',
   siteDescription: '',
   contactEmail: '',
+  contactFormNotifyEmails: '',
   contactPhone: '',
   address: '',
   currency: 'EUR',
@@ -546,6 +565,40 @@ const AdminSettings = () => {
                   </p>
                 )}
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contactFormNotifyEmails">
+                Emails de réception du formulaire de contact
+              </Label>
+              <Input
+                id="contactFormNotifyEmails"
+                type="text"
+                placeholder="exemple@domaine.com, autre@domaine.com"
+                value={siteSettings.contactFormNotifyEmails}
+                onChange={(e) =>
+                  setSiteSettings({
+                    ...siteSettings,
+                    contactFormNotifyEmails: e.target.value,
+                  })
+                }
+                className={
+                  validationErrors.site.contactFormNotifyEmails
+                    ? 'border-red-500'
+                    : ''
+                }
+              />
+              <p className="text-xs text-stone-500">
+                Adresses qui reçoivent la copie Brevo des messages du formulaire
+                (séparées par des virgules). Laisser vide pour utiliser la
+                configuration serveur (variables d&apos;environnement).
+              </p>
+              {validationErrors.site.contactFormNotifyEmails && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {validationErrors.site.contactFormNotifyEmails}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">

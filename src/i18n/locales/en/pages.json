@@ -415,6 +415,97 @@
     "backHome": "Back to home"
   },
 
+  "invoicePage": {
+    "generating": "Generating your invoice…",
+    "orderShort": "Order #{{shortId}}",
+    "unavailableTitle": "Invoice unavailable",
+    "orderLine": "Order",
+    "noContent": "No content received.",
+    "retry": "Retry",
+    "contactSupport": "Contact support",
+    "helpPrefix": "Help:",
+    "backToOrder": "My order",
+    "invoiceLabel": "Invoice #{{shortId}}",
+    "shop": "Shop",
+    "printPdf": "Print / PDF",
+    "iframeTitle": "Invoice order {{orderId}}",
+    "errorGeneric": "Could not generate the invoice."
+  },
+
+  "maintenance": {
+    "title": "Site under maintenance",
+    "defaultMessage": "We're performing maintenance to improve your experience.",
+    "returnExpected": "Expected return: {{time}}",
+    "backSoon": "We'll be back very soon",
+    "urgentContact": "For urgent questions, contact us:",
+    "brandLine": "Rif Raw Straw — Authentic Berber craftsmanship"
+  },
+
+  "artisans": {
+    "hero": {
+      "kicker": "Authentic Moroccan Craftsmanship",
+      "title1": "Crafted by Hands,",
+      "title2": "Rooted in Heritage",
+      "subtitle": "Meet the artisans behind every Rif Raw Straw creation"
+    },
+    "heroImageAlt": "Artisan hands weaving straw in the Rif mountains",
+    "story": {
+      "imageAlt": "Portrait of an Amazigh artisan woman",
+      "kicker": "Our Story",
+      "title1": "A Tradition",
+      "title2": "Worth Preserving",
+      "p1": "From the Rif to Essaouira, from Fès to Marrakech — an ancestral craft lives on across Morocco.",
+      "p2": "Each material — straw, doum palm, raphia, silk thread — is worked by hand using techniques passed down through generations.",
+      "p3": "At Rif Raw Straw, every purchase directly supports these artisans and helps preserve a living heritage."
+    },
+    "grid": {
+      "kicker": "The Hands Behind the Art",
+      "title": "Meet Our Artisans",
+      "subtitle": "The talented hands shaping every piece in our collection.",
+      "portraitAlt": "Portrait of {{name}}"
+    },
+    "years": "{{count}} years",
+    "featured": {
+      "kicker": "Featured Artisan",
+      "yearsExperience": "{{count}} years of experience"
+    },
+    "featuredImageAlt": "{{name}}, {{specialty}}",
+    "process": {
+      "kicker": "Craftsmanship",
+      "title": "The Making Process",
+      "subtitle": "From raw material to finished masterpiece — every step done by hand.",
+      "steps": {
+        "harvesting": {
+          "title": "Harvesting",
+          "description": "Raw straw is carefully selected and harvested by hand from the Rif mountains during peak season.",
+          "alt": "Hands harvesting golden straw stalks in Morocco's Rif mountains"
+        },
+        "weaving": {
+          "title": "Weaving",
+          "description": "Each strand is braided using techniques passed down through generations of Moroccan artisans.",
+          "alt": "Skilled hands braiding natural straw fibers into intricate patterns"
+        },
+        "shaping": {
+          "title": "Shaping",
+          "description": "Artisans mold every piece by hand, giving each hat its unique silhouette and character.",
+          "alt": "Artisan hands shaping a straw hat on a wooden form"
+        },
+        "finishing": {
+          "title": "Finishing",
+          "description": "Final touches — trimming, steaming, and quality checks — ensure every piece meets our standards.",
+          "alt": "Final quality inspection of a handmade straw hat with scissors and steam"
+        }
+      }
+    },
+    "closingQuote": "“Every piece carries a story, a culture, a hand.”",
+    "cta": {
+      "kicker": "Support the Craft",
+      "title": "Discover the Collection",
+      "body": "Every purchase directly supports these artisans and their families, preserving a unique cultural heritage.",
+      "button": "Shop the Collection"
+    }
+  },
+
   "contact": {
     "seo": {
       "title": "Contact | Rifstraw",
@@ -503,6 +594,15 @@
       "minCharacters": "The message must contain at least 20 characters.",
 
       "privacy": "I agree to the privacy policy and the processing of my personal data.",
+
+      "success": "Your message has been sent. We'll get back to you soon.",
+      "rateLimited": "Too many attempts. Please wait a few minutes before trying again.",
+      "submitting": "Sending…",
+
+      "validation": {
+        "subjectMinLength": "The subject must contain at least 5 characters.",
+        "messageMinLength": "The message must contain at least 20 characters."
+      },
 
       "submit": "Send message"
     },
@@ -611,6 +711,40 @@
       "thankYou": "Thank you for your order!",
       "company": "Rif Raw Straw",
       "freeShipping": "Free"
+    },
+    "orderConfirmation": {
+      "successHeadline": "Payment confirmed",
+      "successSubline": "Your order has been placed successfully",
+      "emailTo": "A confirmation email was sent to {{email}}",
+      "emailGeneric": "A confirmation email has been sent to you.",
+      "ctaTitle": "What would you like to do?",
+      "viewOrders": "View my orders",
+      "guestInvoiceLink": "Invoice page",
+      "continueShopping": "Continue shopping",
+      "orderHeading": "Order #{{shortId}}",
+      "itemsTitle": "Items",
+      "quantityLine": "Qty: {{count}}",
+      "totalPaid": "Total paid",
+      "paidWith": "Paid with {{method}}",
+      "shippingAddress": "Shipping address",
+      "trustPaymentSecure": "Secure payment",
+      "trustStripe": "via Stripe",
+      "trustTrackingTitle": "Tracking coming soon",
+      "trustTrackingHint": "by email",
+      "trustSupport": "Support",
+      "loadingTitle": "Payment confirmed ✓",
+      "loadingSubtitle": "Loading your order details…",
+      "errorTitle": "Unable to display your order",
+      "errorBody": "We couldn't load the details. If you were charged, please contact support.",
+      "homeLink": "Back to home",
+      "toastOrderIdMissing": "Order ID is missing.",
+      "toastInvoiceError": "Invoice unavailable.",
+      "toastInvoiceEmailHint": "You can also open it from your confirmation email."
+    },
+    "legacyRoute": {
+      "orderNotFoundBody": "We couldn't find your order. If you completed a payment, check your email for the confirmation.",
+      "redirecting": "Redirecting…",
+      "contactSupport": "Contact support"
     }
   },
   "profile": {

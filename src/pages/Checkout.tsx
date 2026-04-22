@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -16,6 +17,11 @@ import { disableServiceWorkerForCriticalFlow } from '@/utils/cacheOptimization';
 
 const Checkout = () => {
   const c = useCheckoutPage();
+  const { t: tCheckout, i18n } = useTranslation('checkout');
+  const checkoutSeoKeywords = useMemo(() => {
+    const raw = tCheckout('seo.checkoutKeywords', { returnObjects: true });
+    return Array.isArray(raw) ? (raw as string[]) : [];
+  }, [tCheckout, i18n.language]);
 
   useEffect(() => {
     disableServiceWorkerForCriticalFlow().catch(() => {
@@ -30,7 +36,7 @@ const Checkout = () => {
         <SEOHelmet
           title={c.t('payment.title') + ' - Rif Raw Straw'}
           description={c.t('payment.securePayment')}
-          keywords={['paiement', 'checkout', 'commande sécurisée']}
+          keywords={checkoutSeoKeywords}
           url="/checkout"
           type="website"
         />
@@ -56,7 +62,7 @@ const Checkout = () => {
         <SEOHelmet
           title={c.t('payment.title') + ' - Rif Raw Straw'}
           description={c.t('payment.securePayment')}
-          keywords={['paiement', 'checkout', 'commande sécurisée']}
+          keywords={checkoutSeoKeywords}
           url="/checkout"
           type="website"
         />
@@ -87,12 +93,7 @@ const Checkout = () => {
       <SEOHelmet
         title={c.t('payment.title') + ' - Rif Raw Straw'}
         description={c.t('payment.securePayment')}
-        keywords={[
-          'paiement sécurisé',
-          'checkout',
-          'commande',
-          'artisanat berbère',
-        ]}
+        keywords={checkoutSeoKeywords}
         url="/checkout"
         type="website"
       />
@@ -207,10 +208,7 @@ const Checkout = () => {
         {/* Security footer */}
         <div className="max-w-6xl mx-auto mt-8 flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="h-4 w-4 text-primary" />
-          <span>
-            Paiement sécurisé par Stripe — Vos données sont chiffrées en SSL
-            256-bit
-          </span>
+          <span>{c.t('payment.stripeFooter')}</span>
         </div>
       </div>
 

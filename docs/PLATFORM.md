@@ -80,14 +80,15 @@ User pays (Stripe Checkout)
 - **Checkout UI (step 1):** [`src/components/checkout/CustomerInfoStep.tsx`](../src/components/checkout/CustomerInfoStep.tsx) — customer form; file header links back to this doc and E2E notes.
 - **create-payment (Edge) config:** [`supabase/functions/create-payment/constants.ts`](../supabase/functions/create-payment/constants.ts) — CORS, limits, Stripe return URLs; links to [`DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md) and repo doc index in its header.
 
-### Polling and UX
+### Order confirmation data path
 
-- After return, **`usePaymentOrderLookup`** (React Query) polls **`order-lookup`** until **`is_paid`** or **`found: false`** (stops on denied / missing). Older **`paymentPollingConfig`**-driven loops were removed from the Stripe path when verification moved fully to the edge lookup.
+- **`/order-confirmation`** loads order data only via **`sign-order-token`** then **`get-order-by-token`** (no browser `rest/v1/orders` or `order_items` on that surface). Legacy **`/payment-success?session_id=`** may call **`order-lookup`** once to resolve `order_id`, then redirects into that token flow.
+- **`sign-order-token`** may return **409** while the row is not paid yet; the client retries **at most twice** (three attempts total) only for that status.
 - **stripe-webhook** retries transient DB/PostgREST failures for critical writes (see function env: `WEBHOOK_DB_RETRY_*`, optional `WEBHOOK_TIMING_LOG`).
 
 ### Service worker
 
-- `public/sw.js` bypasses caching for sensitive paths (e.g. `/order-confirmation`) so query strings and fresh HTML are not stale.
+- `public/sw.js` bypasses sensitive navigations (e.g. `/order-confirmation`, `/invoice`, `/checkout`) and **does not cache hashed `/assets/*.js`** so payment and confirmation code cannot go stale behind the SW. Boot still unregisters SW in `main.tsx` until a versioned strategy is adopted.
 
 ## Storefront vs admin isolation
 
@@ -105,7 +106,7 @@ User pays (Stripe Checkout)
 
 Hooks involved: `useCartSync`, `useCheckoutFormPersistence`, `useCheckoutResume`, `useCheckoutSession`, and `AuthContext` cleanup (including `clearCheckoutContextState`). Storage allowlisting: `src/lib/storage/safeStorage.ts`, `StorageGuard.ts`.
 
-**Tests:** `src/lib/cart/cartSyncPolicy.test.ts`, `src/lib/checkout/checkoutStorageKeys.test.ts`, `src/lib/checkout/paymentPollingConfig.test.ts`; E2E: `cypress/e2e/elevated_storefront_spec.ts` (requires `ADMIN_*` or `CUSTOMER_*` in `cypress.env.json`).
+**Tests:** `src/lib/cart/cartSyncPolicy.test.ts`, `src/lib/checkout/checkoutStorageKeys.test.ts`, `src/lib/invoice/generateInvoice.requestOrderToken.test.ts`, `src/lib/security/forbiddenOrderRestFetchGuard.test.ts`; E2E: `cypress/e2e/elevated_storefront_spec.ts` (requires `ADMIN_*` or `CUSTOMER_*` in `cypress.env.json`).
 
 ## Known residual risks (honest)
 

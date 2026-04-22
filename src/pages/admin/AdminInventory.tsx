@@ -36,46 +36,41 @@ import {
   Filter,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   fetchAdminInventoryProducts,
   updateAdminProductInventory,
+  type AdminInventoryProduct,
+  type UpdateAdminProductInventoryInput,
 } from '@/services/adminInventoryApi';
 import { useCurrency } from '@/stores/currencyStore';
-
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  stock_quantity: number;
-  min_stock_level: number;
-  is_available: boolean;
-  price: number;
-  images: string[];
-}
-
-interface StockUpdate {
-  productId: number;
-  newQuantity: number;
-  minLevel: number;
-  isAvailable: boolean;
-}
 
 const AdminInventory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [stockFilter, setStockFilter] = useState('all');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] =
+    useState<AdminInventoryProduct | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const { formatPrice } = useCurrency();
 
-  // Fetch products data
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['admin-inventory'],
-    queryFn: async () => {
-      const data = await fetchAdminInventoryProducts();
-      return data as Product[];
+    queryFn: fetchAdminInventoryProducts,
+  });
+
+  const updateStockMutation = useMutation({
+    mutationFn: updateAdminProductInventory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      setEditDialogOpen(false);
+      toast.success('Stock mis à jour avec succès');
+    },
+    onError: (error) => {
+      console.error('Error updating stock:', error);
+      toast.error('Erreur lors de la mise à jour du stock');
     },
   });
 
@@ -123,26 +118,7 @@ const AdminInventory = () => {
     return { totalProducts, lowStock, outOfStock, totalValue };
   }, [products]);
 
-  const handleUpdateStock = async (updates: StockUpdate) => {
-    try {
-      await updateAdminProductInventory({
-        productId: updates.productId,
-        stock_quantity: updates.newQuantity,
-        min_stock_level: updates.minLevel,
-        is_available: updates.isAvailable,
-      });
-
-      queryClient.invalidateQueries({ queryKey: ['admin-inventory'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      setEditDialogOpen(false);
-      toast.success('Stock mis à jour avec succès');
-    } catch (error) {
-      console.error('Error updating stock:', error);
-      toast.error('Erreur lors de la mise à jour du stock');
-    }
-  };
-
-  const getStockStatusBadge = (product: Product) => {
+  const getStockStatusBadge = (product: AdminInventoryProduct) => {
     if (product.stock_quantity === 0) {
       return <Badge variant="destructive">Rupture de stock</Badge>;
     }
@@ -333,7 +309,7 @@ const AdminInventory = () => {
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                           <img
-                            src={product.images[0] || '/placeholder.svg'}
+                            src={product.images[0] ?? '/placeholder.svg'}
                             alt={product.name}
                             className="w-full h-full object-cover"
                           />
@@ -393,8 +369,10 @@ const AdminInventory = () => {
           </DialogHeader>
           {selectedProduct && (
             <EditStockForm
+              key={selectedProduct.id}
               product={selectedProduct}
-              onUpdate={handleUpdateStock}
+              isSaving={updateStockMutation.isPending}
+              onSave={(payload) => updateStockMutation.mutate(payload)}
               onCancel={() => setEditDialogOpen(false)}
             />
           )}
@@ -404,33 +382,36 @@ const AdminInventory = () => {
   );
 };
 
-// Edit Stock Form Component
 interface EditStockFormProps {
-  product: Product;
-  onUpdate: (updates: StockUpdate) => void;
+  product: AdminInventoryProduct;
+  isSaving: boolean;
+  onSave: (payload: UpdateAdminProductInventoryInput) => void;
   onCancel: () => void;
 }
 
 const EditStockForm: React.FC<EditStockFormProps> = ({
   product,
-  onUpdate,
+  isSaving,
+  onSave,
   onCancel,
 }) => {
-  const [stockQuantity, setStockQuantity] = useState(
-    product.stock_quantity.toString()
+  const [stockQuantity, setStockQuantity] = useState(() =>
+    String(product.stock_quantity)
   );
-  const [minLevel, setMinLevel] = useState(product.min_stock_level.toString());
+  const [minLevel, setMinLevel] = useState(() =>
+    String(product.min_stock_level)
+  );
   const [isAvailable, setIsAvailable] = useState(product.is_available);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newQuantity = parseInt(stockQuantity);
-    const newMinLevel = parseInt(minLevel);
+    const newQuantity = Number.parseInt(stockQuantity, 10);
+    const newMinLevel = Number.parseInt(minLevel, 10);
 
     if (
-      isNaN(newQuantity) ||
-      isNaN(newMinLevel) ||
+      !Number.isFinite(newQuantity) ||
+      !Number.isFinite(newMinLevel) ||
       newQuantity < 0 ||
       newMinLevel < 0
     ) {
@@ -438,11 +419,11 @@ const EditStockForm: React.FC<EditStockFormProps> = ({
       return;
     }
 
-    onUpdate({
+    onSave({
       productId: product.id,
-      newQuantity,
-      minLevel: newMinLevel,
-      isAvailable,
+      stock_quantity: newQuantity,
+      min_stock_level: newMinLevel,
+      is_available: isAvailable,
     });
   };
 
@@ -484,10 +465,15 @@ const EditStockForm: React.FC<EditStockFormProps> = ({
       </div>
 
       <div className="flex gap-2 pt-4">
-        <Button type="submit" className="flex-1">
-          Sauvegarder
+        <Button type="submit" className="flex-1" disabled={isSaving}>
+          {isSaving ? 'Enregistrement…' : 'Sauvegarder'}
         </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isSaving}
+        >
           Annuler
         </Button>
       </div>

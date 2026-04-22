@@ -1,4 +1,12 @@
 {
+  "seo": {
+    "checkoutKeywords": [
+      "paiement sécurisé",
+      "checkout",
+      "commande",
+      "artisanat berbère"
+    ]
+  },
   "cart": {
     "title": "Votre Panier",
     "empty": "Votre panier est vide",
@@ -127,12 +135,14 @@
     "pay": "Payer {{amount}}",
     "processing": "Traitement en cours...",
     "redirecting": "Redirection vers le paiement...",
+    "retrying": "Nouvelle tentative de paiement…",
     "cod": "Paiement à la livraison",
     "codDescription": "Payez en espèces à la réception — Loire-Atlantique (44) uniquement",
     "codInfo": "Le paiement sera collecté par le livreur",
     "codNotAvailable": "Le paiement à la livraison n'est pas disponible pour cette adresse",
     "ssl": "SSL 256-bit",
-    "secureLabel": "Paiement sécurisé"
+    "secureLabel": "Paiement sécurisé",
+    "stripeFooter": "Paiement sécurisé par Stripe — vos données sont chiffrées en SSL 256-bit"
   },
   "promo": {
     "label": "Code promo",
@@ -146,6 +156,7 @@
     "limitReached": "Ce code a atteint sa limite d'utilisation"
   },
   "errors": {
+    "rateLimited": "Trop de tentatives de paiement. Veuillez patienter quelques minutes.",
     "requiredField": "Ce champ est obligatoire",
     "invalidEmail": "Email invalide",
     "invalidPhone": "Numéro de téléphone invalide",

@@ -101,7 +101,7 @@ Scope: Supabase database schema/policies/migrations, storage policies, edge func
    - Recommended next step: split public-webhook vs internal/admin endpoints and enable `verify_jwt=true` wherever feasible.
 
 8. **Service role key appeared in frontend env typing.**
-   - File: `vite-env.d.ts`
+   - File: `src/vite-env.d.ts`
    - Impact: confusion and accidental misuse in client-side code.
    - Fix applied: removed service-role declaration from `ImportMetaEnv`.
 

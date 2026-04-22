@@ -4,7 +4,7 @@
  */
 
 import { NetworkError } from '@/lib/errors/AppError';
-import { EXTERNAL_SERVICES } from '@/config/app.config';
+import { frankfurterApiBase } from '@/config/app.config';
 
 // Request configuration
 interface RequestConfig extends RequestInit {
@@ -173,9 +173,7 @@ class ApiClient {
 }
 
 // Pre-configured API clients for external services
-export const currencyApi = new ApiClient(
-  EXTERNAL_SERVICES.currency.frankfurter
-);
+export const currencyApi = new ApiClient(frankfurterApiBase());
 
 // Default API client
 export const apiClient = new ApiClient();

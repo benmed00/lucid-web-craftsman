@@ -4,6 +4,10 @@
  * Reads optional ?token=... for guest access via signed URL.
  * Calls the generate-invoice Edge Function and renders the returned HTML
  * inline via iframe srcDoc — clean same-origin URL, no blob: URLs.
+ *
+ * "Ma commande" links with `?order_id=` only: order confirmation mints a
+ * fresh `order_access` token. Do not pass the invoice `invoice_access`
+ * token — get-order-by-token accepts only `order_access`.
  */
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
@@ -14,11 +18,13 @@ import {
   ArrowLeft,
   ShoppingBag,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import { fetchInvoice, InvoiceError } from '@/lib/invoice/generateInvoice';
 
 const InvoicePage = () => {
+  const { t } = useTranslation('pages');
   const { orderId } = useParams<{ orderId: string }>();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') || undefined;
@@ -29,6 +35,8 @@ const InvoicePage = () => {
   const [loading, setLoading] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const triggeredRef = useRef(false);
+
+  const shortId = (orderId || '').slice(-8).toUpperCase();
 
   useEffect(() => {
     if (!orderId || triggeredRef.current) return;
@@ -42,9 +50,7 @@ const InvoicePage = () => {
       } catch (e) {
         if (cancelled) return;
         setError(
-          e instanceof InvoiceError
-            ? e.message
-            : 'Erreur lors de la génération.'
+          e instanceof InvoiceError ? e.message : t('invoicePage.errorGeneric')
         );
       } finally {
         if (!cancelled) setLoading(false);
@@ -58,14 +64,14 @@ const InvoicePage = () => {
   // Auto-print when ?print=1 and iframe is ready
   useEffect(() => {
     if (!autoPrint || !html) return;
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       try {
         iframeRef.current?.contentWindow?.print();
       } catch {
         /* ignore */
       }
     }, 600);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [autoPrint, html]);
 
   const handlePrint = () => {
@@ -82,10 +88,10 @@ const InvoicePage = () => {
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-primary mx-auto mb-3 animate-spin" />
           <p className="text-muted-foreground text-sm">
-            Génération de votre facture…
+            {t('invoicePage.generating')}
           </p>
           <p className="text-xs text-muted-foreground/70 mt-1">
-            Commande #{(orderId || '').slice(-8).toUpperCase()}
+            {t('invoicePage.orderShort', { shortId })}
           </p>
         </div>
       </div>
@@ -100,16 +106,16 @@ const InvoicePage = () => {
             <AlertTriangle className="w-7 h-7 text-destructive" />
           </div>
           <h1 className="font-serif text-2xl text-foreground mb-2">
-            Facture indisponible
+            {t('invoicePage.unavailableTitle')}
           </h1>
           <p className="text-sm text-muted-foreground mb-1">
-            Commande{' '}
+            {t('invoicePage.orderLine')}{' '}
             <span className="font-mono font-medium text-foreground">
-              #{(orderId || '').slice(-8).toUpperCase()}
+              #{shortId}
             </span>
           </p>
           <p className="text-sm text-destructive mt-4 mb-6">
-            {error || 'Aucun contenu reçu.'}
+            {error || t('invoicePage.noContent')}
           </p>
           <div className="flex flex-col sm:flex-row gap-2 justify-center">
             <Button
@@ -117,14 +123,14 @@ const InvoicePage = () => {
               variant="outline"
               size="sm"
             >
-              Réessayer
+              {t('invoicePage.retry')}
             </Button>
             <Button asChild variant="secondary" size="sm">
-              <Link to="/contact">Contacter le support</Link>
+              <Link to="/contact">{t('invoicePage.contactSupport')}</Link>
             </Button>
           </div>
           <p className="text-xs text-muted-foreground mt-6">
-            Aide :{' '}
+            {t('invoicePage.helpPrefix')}{' '}
             <a
               className="text-primary underline"
               href="mailto:contact@rifelegance.com"
@@ -144,22 +150,24 @@ const InvoicePage = () => {
         <div className="container mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <Button asChild variant="ghost" size="sm" className="gap-2">
-              <Link to={`/order-confirmation?order_id=${orderId}`}>
-                <ArrowLeft className="w-4 h-4" /> Ma commande
+              <Link
+                to={`/order-confirmation?order_id=${encodeURIComponent(orderId ?? '')}`}
+              >
+                <ArrowLeft className="w-4 h-4" /> {t('invoicePage.backToOrder')}
               </Link>
             </Button>
             <span className="text-sm text-muted-foreground hidden sm:inline">
-              Facture #{(orderId || '').slice(-8).toUpperCase()}
+              {t('invoicePage.invoiceLabel', { shortId })}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm" className="gap-2">
               <Link to="/products">
-                <ShoppingBag className="w-4 h-4" /> Boutique
+                <ShoppingBag className="w-4 h-4" /> {t('invoicePage.shop')}
               </Link>
             </Button>
             <Button onClick={handlePrint} size="sm" className="gap-2">
-              <Printer className="w-4 h-4" /> Imprimer / PDF
+              <Printer className="w-4 h-4" /> {t('invoicePage.printPdf')}
             </Button>
           </div>
         </div>
@@ -171,7 +179,7 @@ const InvoicePage = () => {
           <iframe
             ref={iframeRef}
             srcDoc={html}
-            title={`Facture commande ${orderId}`}
+            title={t('invoicePage.iframeTitle', { orderId: orderId ?? '' })}
             className="w-full border-0 print:h-auto"
             style={{ height: 'calc(100vh - 100px)', minHeight: '900px' }}
           />

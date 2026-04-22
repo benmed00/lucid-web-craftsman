@@ -217,44 +217,12 @@ describe('Enterprise: Cart Page @enterprise @regression', () => {
 });
 
 // ─── Contact form ──────────────────────────────────────────────────────────
+// Detailed validation + mocked `submit-contact`: `cypress/e2e/contact_form_spec.js`
 describe('Enterprise: Contact Form @enterprise @regression', () => {
-  beforeEach(() => {
+  it('contact page loads with the main form controls', () => {
     cy.visit('/contact');
-  });
-
-  it('should have all required form fields', () => {
-    cy.get('#firstName').should('exist');
-    cy.get('#lastName').should('exist');
+    cy.get('#contact-form-submit').should('be.visible');
     cy.get('#email').should('exist');
-    cy.get('#subject').should('exist');
-    cy.get('#message').should('exist');
-    cy.get('#contact-form-submit').should('exist');
-  });
-
-  it('should validate message min length', () => {
-    cy.get('#firstName').type('Test');
-    cy.get('#lastName').type('User');
-    cy.get('#email').type('test@example.com');
-    cy.get('#subject').select(1);
-    cy.get('#message').type('Short');
-    cy.get('#contact-form-submit').click();
-    cy.contains(/20|caractères|characters/i).should('exist');
-  });
-
-  it('should accept valid form and attempt submit', () => {
-    cy.intercept('POST', '**/contact**', { statusCode: 200, body: {} }).as(
-      'contactSubmit'
-    );
-    cy.get('#firstName').type('Jean');
-    cy.get('#lastName').type('Dupont');
-    cy.get('#email').type('jean.dupont@test.com');
-    cy.get('#subject').select(1);
-    cy.get('#message').type(
-      'This is a valid message with more than twenty characters for testing.'
-    );
-    cy.get('#contact-form-submit').click();
-    // Either success toast or network request
-    cy.get('body').should('be.visible');
   });
 });
 

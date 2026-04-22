@@ -1,4 +1,12 @@
 {
+  "seo": {
+    "checkoutKeywords": [
+      "secure payment",
+      "checkout",
+      "secure order",
+      "Berber craftsmanship"
+    ]
+  },
   "cart": {
     "title": "Your Cart",
     "empty": "Your cart is empty",
@@ -127,12 +135,14 @@
     "pay": "Pay {{amount}}",
     "processing": "Processing...",
     "redirecting": "Redirecting to payment...",
+    "retrying": "Retrying payment…",
     "cod": "Cash on Delivery",
     "codDescription": "Pay cash upon receipt — Loire-Atlantique (44) only",
     "codInfo": "Payment will be collected by the delivery driver",
     "codNotAvailable": "Cash on delivery is not available for this address",
     "ssl": "SSL 256-bit",
-    "secureLabel": "Secure payment"
+    "secureLabel": "Secure payment",
+    "stripeFooter": "Secure payment by Stripe — your data is protected with 256-bit SSL encryption"
   },
   "promo": {
     "label": "Promo code",
@@ -146,6 +156,7 @@
     "limitReached": "This code has reached its usage limit"
   },
   "errors": {
+    "rateLimited": "Too many payment attempts. Please wait a few minutes.",
     "requiredField": "This field is required",
     "invalidEmail": "Invalid email",
     "invalidPhone": "Invalid phone number",

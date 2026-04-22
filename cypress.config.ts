@@ -5,7 +5,8 @@
  * All specs live under cypress/e2e/ (TypeScript or JavaScript).
  *
  * Port contract: baseUrl defaults to http://localhost:8080 — same as Vite (vite.config.ts
- * server.port + strictPort). npm scripts e2e:ci, e2e:checkout, e2e:ci:smoke wait on that URL.
+ * server.port + strictPort). npm scripts e2e:ci, e2e:checkout, e2e:contact, e2e:ci:smoke wait
+ * until http://localhost:8080/contact returns 200 (Vite SPA), then run Cypress.
  * Set CYPRESS_BASE_URL if the dev server runs elsewhere.
  *
  * @see https://docs.cypress.io/guides/references/configuration

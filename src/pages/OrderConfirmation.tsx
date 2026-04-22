@@ -12,8 +12,13 @@ import {
   Truck,
   ShieldCheck,
 } from 'lucide-react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { useEffect, useState, useCallback, useRef } from 'react';
+import {
+  Link,
+  useSearchParams,
+  useNavigate,
+  useParams,
+} from 'react-router-dom';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -35,27 +40,30 @@ import {
   pricingSnapshotV1Schema,
   type PricingSnapshotV1,
 } from '@/lib/checkout/pricingSnapshot';
+import { looksLikeOrderUuid } from '@/lib/checkout/orderUuid';
 
 // ================================================================
 // Types
 // ================================================================
 type OrderRow = OrderByTokenResponse['order'];
 type ItemRow = OrderByTokenResponse['items'][number];
-type ConfirmationState = 'loading' | 'processing' | 'success' | 'error';
+// No 'processing' state: only loading until sign-order-token+get-order-by-token complete (avoids mixed UI phases)
+type ConfirmationState = 'loading' | 'success' | 'error';
 
-const COUNTRY_NAMES: Record<string, string> = {
-  FR: 'France',
-  DE: 'Allemagne',
-  BE: 'Belgique',
-  CH: 'Suisse',
-  ES: 'Espagne',
-  IT: 'Italie',
-  NL: 'Pays-Bas',
-  GB: 'Royaume-Uni',
-  US: 'États-Unis',
-  CA: 'Canada',
-  MA: 'Maroc',
-};
+function regionDisplayName(
+  regionCode: string | undefined,
+  locale: string
+): string {
+  if (!regionCode) return '';
+  try {
+    return (
+      new Intl.DisplayNames([locale], { type: 'region' }).of(regionCode) ??
+      regionCode
+    );
+  } catch {
+    return regionCode;
+  }
+}
 
 interface NormalizedItem {
   name: string;
@@ -72,17 +80,18 @@ function normalizeItems(items: ItemRow[]): NormalizedItem[] {
       images?: string[];
     };
     return {
-      name: snap.name || 'Produit',
+      name: (snap.name ?? '').trim(), // no fake "Produit" label; isOrderPayloadValid enforces real names
       quantity: it.quantity,
-      unitPrice: Number(it.unit_price) || 0,
+      unitPrice: Number(it.unit_price) || 0, // coerced for display; invalid rows are rejected before success
       totalPrice: Number(it.total_price) || 0,
-      image: snap.images?.[0],
+      image: snap.images?.[0], // optional thumbnail from product_snapshot
     };
   });
 }
 
+// Renamed from legacy "snapshot" wording: pricing_v1 = Stripe JSON; order_amount = DB columns from same token response
 interface ResolvedTotals {
-  source: 'snapshot_v1' | 'legacy_amount';
+  source: 'pricing_v1' | 'order_amount';
   currency: string;
   total: number;
   subtotal: number;
@@ -91,38 +100,52 @@ interface ResolvedTotals {
 }
 
 /**
- * Prefer the authoritative `pricing_snapshot` (Stripe-sourced, minor units).
- * Fall back to the legacy `order.amount` shape when no snapshot is available,
- * computing shipping as `total - subtotal` as before. This keeps legacy orders
- * rendering while guaranteeing that any order confirmed after this PR matches
- * the email and Stripe exactly.
+ * Display totals: prefer `pricing_snapshot` (Stripe, minor units) when valid;
+ * otherwise derive from `order.amount` and line items (same source as the token response).
  */
 function resolveTotals(
   order: OrderRow,
   items: NormalizedItem[]
 ): ResolvedTotals {
-  const parsed = pricingSnapshotV1Schema.safeParse(order.pricing_snapshot);
+  const parsed = pricingSnapshotV1Schema.safeParse(order.pricing_snapshot); // authoritative when webhook wrote v1
   if (parsed.success) {
-    const snap: PricingSnapshotV1 = parsed.data;
+    const row: PricingSnapshotV1 = parsed.data;
     return {
-      source: 'snapshot_v1',
-      currency: snap.currency.toUpperCase(),
-      total: snap.total_minor / 100,
-      subtotal: snap.subtotal_minor / 100,
-      shipping: snap.shipping_minor / 100,
-      discount: snap.discount_minor / 100,
+      source: 'pricing_v1',
+      currency: row.currency.toUpperCase(), // display
+      total: row.total_minor / 100, // minor → major units
+      subtotal: row.subtotal_minor / 100,
+      shipping: row.shipping_minor / 100,
+      discount: row.discount_minor / 100,
     };
   }
-  const total = Number(order.amount) || 0;
-  const subtotal = items.reduce((s, i) => s + i.totalPrice, 0);
+  const total = Number(order.amount) || 0; // older paid rows may lack v1 snapshot
+  const subtotal = items.reduce((s, i) => s + i.totalPrice, 0); // sum line totals
   return {
-    source: 'legacy_amount',
-    currency: (order.currency || 'EUR').toUpperCase(),
+    source: 'order_amount',
+    currency: (order.currency || 'EUR').toUpperCase(), // default display currency when column sparse
     total,
     subtotal,
-    shipping: Math.max(0, total - subtotal),
+    shipping: Math.max(0, total - subtotal), // imputed shipping = remainder (same math as pre-refactor)
     discount: 0,
   };
+}
+
+// Hard gate: never render success with 0€ / empty lines / missing labels (replaces “minimal fallback” behavior)
+function isOrderPayloadValid(order: OrderRow, items: ItemRow[]): boolean {
+  if (!order || !items || items.length === 0) return false; // empty RLS or race → error state, not success
+
+  const linesHaveName = items.every((it) => {
+    const snap = (it.product_snapshot ?? {}) as { name?: string };
+    return typeof snap.name === 'string' && snap.name.trim().length > 0; // every line must be displayable
+  });
+  if (!linesHaveName) return false;
+
+  const snapParsed = pricingSnapshotV1Schema.safeParse(order.pricing_snapshot);
+  if (snapParsed.success) {
+    return snapParsed.data.total_minor > 0; // Stripe snapshot must show a positive total
+  }
+  return (Number(order.amount) || 0) > 0; // non-v1 rows: DB amount is the monotonic check
 }
 
 // ================================================================
@@ -132,13 +155,17 @@ function resolveTotals(
 function OrderSuccess({
   order,
   items,
+  orderAccessToken, // same HMAC as sign-order-token success; /invoice?token=… avoids guest_id on generate-invoice
   onDownloadInvoice,
 }: {
   order: OrderRow;
   items: ItemRow[];
+  orderAccessToken: string; // 15m order_access token, kept for links + optional invoice re-open
   onDownloadInvoice: () => void;
 }) {
+  const { t, i18n } = useTranslation('pages');
   const { user } = useAuth();
+  const locale = i18n.resolvedLanguage ?? i18n.language ?? 'en';
   const normalized = normalizeItems(items);
   const totals = resolveTotals(order, normalized);
   const totalEuros = totals.total;
@@ -148,23 +175,33 @@ function OrderSuccess({
   const currencySymbol = totals.currency === 'EUR' ? '€' : totals.currency;
 
   const orderNumber = order.id.slice(-8).toUpperCase();
-  const orderDate = new Date(order.created_at).toLocaleDateString('fr-FR', {
+  const orderDate = new Date(order.created_at).toLocaleDateString(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
   const customerEmail =
-    (order.metadata as any)?.customer_email ||
-    (order.shipping_address as any)?.email ||
+    (order.metadata as { customer_email?: string } | null)?.customer_email ||
+    (order.shipping_address as { email?: string } | null)?.email ||
     '';
-  const addr = order.shipping_address as any;
+  const addr = order.shipping_address as
+    | {
+        first_name?: string;
+        last_name?: string;
+        email?: string;
+        address_line1?: string;
+        postal_code?: string;
+        city?: string;
+        country?: string;
+      }
+    | null
+    | undefined;
   const customerName = addr
     ? `${addr.first_name || ''} ${addr.last_name || ''}`.trim()
     : '';
-
-  // Diagnostics — should never log CRITICAL when state === 'success'.
-  console.log('[OrderConfirmation] ORDER', order);
-  console.log('[OrderConfirmation] ITEMS', items);
+  const paymentLabel = (
+    order.metadata as { payment_method_label?: string } | null
+  )?.payment_method_label;
 
   return (
     <>
@@ -173,48 +210,55 @@ function OrderSuccess({
           <CheckCircle className="w-14 h-14 text-primary" strokeWidth={2.5} />
         </div>
         <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-3">
-          Paiement confirmé
+          {t('paymentSuccess.orderConfirmation.successHeadline')}
         </h1>
         <p className="text-base md:text-lg text-foreground/90 font-medium mb-2">
-          Votre commande a bien été enregistrée
+          {t('paymentSuccess.orderConfirmation.successSubline')}
         </p>
-        <p className="text-muted-foreground text-sm">
-          Un email de confirmation a été envoyé à{' '}
-          <span className="font-medium text-foreground">
-            {customerEmail || 'votre adresse'}
-          </span>
-        </p>
+        {customerEmail ? (
+          <p className="text-muted-foreground text-sm">
+            {t('paymentSuccess.orderConfirmation.emailTo', {
+              email: customerEmail,
+            })}
+          </p>
+        ) : (
+          <p className="text-muted-foreground text-sm">
+            {t('paymentSuccess.orderConfirmation.emailGeneric')}
+          </p>
+        )}
       </div>
 
       {/* CTAs */}
       <div className="bg-card rounded-2xl border border-border shadow-md p-6 mb-6 animate-fade-in">
         <p className="text-sm font-semibold text-foreground mb-4 text-center">
-          Que souhaitez-vous faire ?
+          {t('paymentSuccess.orderConfirmation.ctaTitle')}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Button onClick={onDownloadInvoice} className="gap-2" size="lg">
             <FileText className="w-5 h-5" />
-            Télécharger la facture
+            {t('paymentSuccess.invoice.download')}
           </Button>
           {user ? (
             <Button asChild variant="outline" size="lg" className="gap-2">
               <Link to="/orders">
                 <Package className="w-5 h-5" />
-                Voir mes commandes
+                {t('paymentSuccess.orderConfirmation.viewOrders')}
               </Link>
             </Button>
           ) : (
             <Button asChild variant="outline" size="lg" className="gap-2">
-              <Link to={`/invoice/${order.id}`}>
+              <Link
+                to={`/invoice/${order.id}?token=${encodeURIComponent(orderAccessToken)}`} // guest invoice: token auth, not x-guest-id
+              >
                 <Download className="w-5 h-5" />
-                Page facture
+                {t('paymentSuccess.orderConfirmation.guestInvoiceLink')}
               </Link>
             </Button>
           )}
           <Button asChild variant="secondary" size="lg" className="gap-2">
             <Link to="/products">
               <ShoppingBag className="w-5 h-5" />
-              Continuer mes achats
+              {t('paymentSuccess.orderConfirmation.continueShopping')}
             </Link>
           </Button>
         </div>
@@ -224,7 +268,9 @@ function OrderSuccess({
       <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden text-left mb-6 animate-fade-in">
         <div className="bg-muted/50 px-6 py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
           <p className="text-sm font-semibold text-foreground">
-            Commande #{orderNumber}
+            {t('paymentSuccess.orderConfirmation.orderHeading', {
+              shortId: orderNumber,
+            })}
           </p>
           <p className="text-xs text-muted-foreground">{orderDate}</p>
         </div>
@@ -233,9 +279,11 @@ function OrderSuccess({
           <div className="px-6 py-3 border-t border-border">
             <div className="flex items-center gap-2 text-sm">
               <Package className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="font-medium text-foreground">
-                {customerName || 'Client'}
-              </span>
+              {customerName ? (
+                <span className="font-medium text-foreground">
+                  {customerName} {/* no static "Client" placeholder */}
+                </span>
+              ) : null}
             </div>
             {customerEmail && (
               <p className="text-xs text-muted-foreground ml-6">
@@ -246,7 +294,9 @@ function OrderSuccess({
         )}
 
         <div className="px-6 py-4 border-t border-border">
-          <p className="text-sm font-semibold text-foreground mb-3">Articles</p>
+          <p className="text-sm font-semibold text-foreground mb-3">
+            {t('paymentSuccess.orderConfirmation.itemsTitle')}
+          </p>
           <div className="space-y-3">
             {normalized.map((item, idx) => (
               <div key={idx} className="flex items-center justify-between">
@@ -263,7 +313,9 @@ function OrderSuccess({
                       {item.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Quantité : {item.quantity}
+                      {t('paymentSuccess.orderConfirmation.quantityLine', {
+                        count: item.quantity,
+                      })}
                     </p>
                   </div>
                 </div>
@@ -277,45 +329,48 @@ function OrderSuccess({
 
         <div className="px-6 py-4 border-t border-border space-y-1">
           <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Sous-total</span>
+            <span>{t('paymentSuccess.invoice.subtotal')}</span>
             <span>
               {subtotal.toFixed(2)} {currencySymbol}
             </span>
           </div>
           {discount > 0 && (
             <div className="flex justify-between text-sm text-primary">
-              <span>Réduction</span>
+              <span>{t('paymentSuccess.invoice.discount')}</span>
               <span>
                 -{discount.toFixed(2)} {currencySymbol}
               </span>
             </div>
           )}
           <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Livraison</span>
+            <span>{t('paymentSuccess.invoice.shipping')}</span>
             <span>
               {shippingCalc === 0
-                ? 'Offerte'
+                ? t('paymentSuccess.invoice.freeShipping')
                 : `${shippingCalc.toFixed(2)} ${currencySymbol}`}
             </span>
           </div>
           <div className="flex justify-between text-base font-bold text-foreground pt-2 border-t border-border">
-            <span>Total payé</span>
+            <span>{t('paymentSuccess.orderConfirmation.totalPaid')}</span>
             <span>
               {totalEuros.toFixed(2)} {currencySymbol}
             </span>
           </div>
         </div>
 
-        <div className="px-6 py-3 border-t border-border">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CreditCard className="w-3.5 h-3.5" />
-            <span>
-              Payé par{' '}
-              {(order.metadata as any)?.payment_method_label ||
-                'Carte bancaire'}
-            </span>
+        {/* No default "Carte bancaire" when label missing — avoids implying a method we did not read from DB */}
+        {paymentLabel && (
+          <div className="px-6 py-3 border-t border-border">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>
+                {t('paymentSuccess.orderConfirmation.paidWith', {
+                  method: paymentLabel,
+                })}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Shipping address */}
@@ -323,7 +378,7 @@ function OrderSuccess({
         <div className="bg-card rounded-xl border border-border shadow-sm p-5 mb-6">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
             <Truck className="w-4 h-4" />
-            Adresse de livraison
+            {t('paymentSuccess.orderConfirmation.shippingAddress')}
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">
             {addr.first_name} {addr.last_name}
@@ -332,7 +387,7 @@ function OrderSuccess({
             <br />
             {addr.postal_code} {addr.city}
             <br />
-            {COUNTRY_NAMES[addr.country] || addr.country}
+            {regionDisplayName(addr.country, locale)}
           </p>
         </div>
       )}
@@ -343,18 +398,26 @@ function OrderSuccess({
           <div className="flex flex-col items-center gap-1.5">
             <ShieldCheck className="w-6 h-6 text-primary" />
             <p className="text-xs font-medium text-foreground">
-              Paiement sécurisé
+              {t('paymentSuccess.orderConfirmation.trustPaymentSecure')}
             </p>
-            <p className="text-[11px] text-muted-foreground">via Stripe</p>
+            <p className="text-[11px] text-muted-foreground">
+              {t('paymentSuccess.orderConfirmation.trustStripe')}
+            </p>
           </div>
           <div className="flex flex-col items-center gap-1.5">
             <Truck className="w-6 h-6 text-primary" />
-            <p className="text-xs font-medium text-foreground">Suivi à venir</p>
-            <p className="text-[11px] text-muted-foreground">par email</p>
+            <p className="text-xs font-medium text-foreground">
+              {t('paymentSuccess.orderConfirmation.trustTrackingTitle')}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {t('paymentSuccess.orderConfirmation.trustTrackingHint')}
+            </p>
           </div>
           <div className="flex flex-col items-center gap-1.5">
             <Mail className="w-6 h-6 text-primary" />
-            <p className="text-xs font-medium text-foreground">Support</p>
+            <p className="text-xs font-medium text-foreground">
+              {t('paymentSuccess.orderConfirmation.trustSupport')}
+            </p>
             <a
               href="mailto:contact@rifrawstraw.com"
               className="text-[11px] text-primary underline"
@@ -368,36 +431,33 @@ function OrderSuccess({
   );
 }
 
-function OrderError({ reason }: { reason: string }) {
+const SUPPORT_EMAIL = 'contact@rifrawstraw.com'; // single CTA per product copy; no technical error string in UI
+
+function OrderError() {
+  const { t } = useTranslation('pages');
   return (
     <div className="text-center py-16 max-w-md mx-auto">
       <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-destructive/10 flex items-center justify-center">
         <AlertTriangle className="w-12 h-12 text-destructive" />
       </div>
+      {/* Hard error copy: no dev reason string, no “retry with fake data” path */}
       <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-3">
-        Impossible d'afficher la commande
+        {t('paymentSuccess.orderConfirmation.errorTitle')}
       </h1>
-      <p className="text-muted-foreground mb-2">
-        Nous n'avons pas pu charger les détails de cette commande.
-      </p>
-      <p className="text-muted-foreground text-sm mb-6">
-        Si vous avez été débité, contactez le support — votre paiement est
-        protégé.
-      </p>
-      <p className="text-xs text-muted-foreground/70 mb-6 font-mono">
-        {reason}
+      <p className="text-muted-foreground mb-6">
+        {t('paymentSuccess.orderConfirmation.errorBody')}
       </p>
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
         <Button asChild className="gap-2">
-          <a href="mailto:contact@rifrawstraw.com">
+          <a href={`mailto:${SUPPORT_EMAIL}`}>
             <Mail className="w-4 h-4" />
-            Contacter le support
+            {SUPPORT_EMAIL} {/* label = address so the CTA is unambiguous */}
           </a>
         </Button>
         <Button asChild variant="outline" className="gap-2">
           <Link to="/">
             <Home className="w-4 h-4" />
-            Retour à l'accueil
+            {t('paymentSuccess.orderConfirmation.homeLink')}
           </Link>
         </Button>
       </div>
@@ -412,146 +472,138 @@ const OrderConfirmation = () => {
   const { t } = useTranslation(['pages', 'common']);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const orderId = searchParams.get('order_id');
+  const { orderReference } = useParams<{ orderReference?: string }>();
+  // Canonical `?order_id=` wins; else legacy path param from `/order-confirmation/:orderReference`
+  const orderId = useMemo(() => {
+    const q = searchParams.get('order_id')?.trim() ?? '';
+    if (q && looksLikeOrderUuid(q)) return q;
+    const p = orderReference?.trim() ?? '';
+    if (p && looksLikeOrderUuid(p)) return p;
+    return null;
+  }, [searchParams, orderReference]);
+
+  // Path-only links skip OrderConfirmationEntry (payment_return / canonicalize). Replace URL so one route owns the page.
+  const needsCanonicalRedirect = useMemo(() => {
+    const q = searchParams.get('order_id')?.trim() ?? '';
+    if (q && looksLikeOrderUuid(q)) return false;
+    const p = orderReference?.trim() ?? '';
+    return Boolean(p && looksLikeOrderUuid(p));
+  }, [searchParams, orderReference]);
+
   const isPayPal = searchParams.get('paypal') === 'true';
 
-  const [state, setState] = useState<ConfirmationState>('loading');
-  const [order, setOrder] = useState<OrderRow | null>(null);
-  const [items, setItems] = useState<ItemRow[]>([]);
-  const [errorReason, setErrorReason] = useState<string>('');
+  useEffect(() => {
+    if (!needsCanonicalRedirect || !orderReference) return;
+    const next = new URLSearchParams(searchParams);
+    next.set('order_id', orderReference.trim());
+    const s = next.toString();
+    navigate(
+      { pathname: '/order-confirmation', search: s ? `?${s}` : '' },
+      { replace: true }
+    );
+  }, [needsCanonicalRedirect, orderReference, searchParams, navigate]);
+
+  const [state, setState] = useState<ConfirmationState>('loading'); // only loading|success|error: no “processing” retry phase
+  const [order, setOrder] = useState<OrderRow | null>(null); // set only from get-order-by-token (no Supabase .from in this page)
+  const [items, setItems] = useState<ItemRow[]>([]); // same source as order (token response)
+  const [orderAccessToken, setOrderAccessToken] = useState<string | null>(null); // HMAC for invoice tab + download; avoids re-minting when possible
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(
     null
   );
   const { clearCart } = useCart();
   const { user } = useAuth();
-  const initRef = useRef(false);
 
-  // Clean up cart on mount
+  // Dedupes StrictMode’s double effect; still re-runs when order id or PayPal return query changes
+  const preflightRunKey = useMemo(
+    () =>
+      `${orderId ?? ''}|${String(needsCanonicalRedirect)}|${isPayPal}|${searchParams.get('token') ?? ''}`,
+    [orderId, needsCanonicalRedirect, isPayPal, searchParams]
+  );
+  const lastPreflightKey = useRef<string>('');
+
   useEffect(() => {
-    localStorage.removeItem('checkout_payment_pending');
-    clearCart();
-    localStorage.removeItem('cart');
+    clearCart(); // clear persisted cart via store only — removed direct localStorage writes to avoid split-brain with checkout keys
   }, [clearCart]);
 
-  // Strict token-based load with bounded retry (handles payment-confirmation lag).
+  // Single pass: no polling/retry (409/network used to mask race; we fail fast to error UI)
   const loadOrder = useCallback(async (oid: string) => {
-    setState('processing');
-    const DELAYS = [500, 1000, 2000];
-    const MAX_ATTEMPTS = DELAYS.length + 1; // 4 total attempts
+    setState('loading');
+    try {
+      const token = await requestOrderToken(oid); // sign-order-token (server checks paid, mints 15m HMAC)
+      const { order: o, items: its } = await fetchOrderByToken(token); // sole read path — never anon REST on orders/order_items
 
-    const logFail = (
-      step: string,
-      reason: string,
-      extra: Record<string, unknown> = {}
-    ) => {
-      console.error('[OrderConfirmation] CRITICAL', {
-        order_id: oid,
-        step,
-        reason,
-        ...extra,
-      });
-    };
-
-    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-      try {
-        const token = await requestOrderToken(oid);
-        const { order: o, items: its } = await fetchOrderByToken(token);
-
-        const amount = Number(o?.amount) || 0;
-        const empty = !o || amount <= 0 || !its || its.length === 0;
-
-        if (!empty) {
-          setOrder(o);
-          setItems(its);
-          setState('success');
-          return;
-        }
-
-        // Retryable: data not yet consistent (webhook still landing).
-        if (attempt < MAX_ATTEMPTS - 1) {
-          console.warn('[OrderConfirmation] retry', {
-            order_id: oid,
-            step: 'load',
-            attempt: attempt + 1,
-            amount,
-            items: its?.length ?? 0,
-          });
-          await new Promise((r) => setTimeout(r, DELAYS[attempt]));
-          continue;
-        }
-
-        logFail('validate', 'empty_after_retries', {
-          amount,
-          items: its?.length ?? 0,
+      if (!isOrderPayloadValid(o, its)) {
+        console.error('[OrderConfirmation][CRITICAL]', {
+          order_id: oid,
+          order: o,
+          items: its,
+          amount: o ? Number(o.amount) : null,
+          item_count: its?.length ?? 0,
         });
-        setErrorReason(
-          amount <= 0 ? `Invalid amount (${amount})` : 'No items found'
-        );
-        setState('error');
-        return;
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Unknown error';
-        // 409 from sign-order-token = not yet paid → retry. Other errors also retried (network blips).
-        if (attempt < MAX_ATTEMPTS - 1) {
-          console.warn('[OrderConfirmation] retry', {
-            order_id: oid,
-            step: 'fetch',
-            attempt: attempt + 1,
-            reason: msg,
-          });
-          await new Promise((r) => setTimeout(r, DELAYS[attempt]));
-          continue;
-        }
-        logFail('fetch', msg);
-        setErrorReason(msg);
         setState('error');
         return;
       }
+
+      setOrder(o);
+      setItems(its);
+      setOrderAccessToken(token); // keep for /invoice?token= and downloadInvoice without second sign
+      setState('success');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      console.error('[OrderConfirmation] token flow failed', {
+        order_id: oid,
+        msg,
+      });
+      setState('error'); // any sign/get failure → same hard error UI (no “minimal” fake order)
     }
   }, []);
 
-  // Initial verification
   useEffect(() => {
-    if (initRef.current) return;
-    initRef.current = true;
+    if (needsCanonicalRedirect) return; // wait for replace navigation; remount under `/order-confirmation?order_id=`
 
     if (!orderId) {
-      setErrorReason('Missing order_id in URL');
-      setState('error');
+      lastPreflightKey.current = '';
+      setState('error'); // no valid UUID in ?order_id= or /:orderReference — cannot call sign-order-token
       return;
     }
+
+    if (lastPreflightKey.current === preflightRunKey) return;
+    lastPreflightKey.current = preflightRunKey;
 
     const run = async () => {
       try {
         if (isPayPal) {
           const paypalToken = searchParams.get('token');
           if (!paypalToken) {
-            setErrorReason('Missing PayPal token');
             setState('error');
             return;
           }
-          setState('processing');
           await invokeVerifyPaypalPayment({
             paypal_order_id: paypalToken,
             order_id: orderId,
-          });
+          }); // sync PayPal capture with our order before we mint token
         } else {
-          // Stripe path: fire-and-forget reconcile to flip status server-side.
-          setState('processing');
-          await invokeReconcilePayment({ order_id: orderId }).catch(() => {
-            /* ignore — get-order-by-token will surface truth */
+          // Best-effort Stripe session reconcile; loadOrder’s token read is still source of truth
+          await invokeReconcilePayment({ order_id: orderId }).catch((err) => {
+            console.warn('[OrderConfirmation] reconcile-payment failed', err);
           });
         }
         await loadOrder(orderId);
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Verification failed';
-        console.error('[OrderConfirmation] CRITICAL', { reason: msg });
-        setErrorReason(msg);
+        console.error('[OrderConfirmation] preflight failed', { reason: msg });
         setState('error');
       }
     };
-    run();
-  }, [orderId, isPayPal, searchParams, loadOrder]);
+    void run();
+  }, [
+    preflightRunKey,
+    needsCanonicalRedirect,
+    orderId,
+    isPayPal,
+    searchParams,
+    loadOrder,
+  ]);
 
   // Auto-redirect for authenticated users after success
   useEffect(() => {
@@ -570,28 +622,29 @@ const OrderConfirmation = () => {
     return () => clearInterval(interval);
   }, [user, state, navigate]);
 
-  // Invoice download
   const handleDownloadInvoice = useCallback(async () => {
     if (!orderId) {
-      toast.error('Identifiant de commande manquant.');
+      toast.error(t('paymentSuccess.orderConfirmation.toastOrderIdMissing'));
       return;
     }
     try {
-      await downloadInvoiceShared(orderId);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Facture indisponible.';
-      toast.error(msg, {
-        description:
-          "Vous pouvez aussi y accéder depuis l'email de confirmation.",
+      // Reuse minted HMAC if present; else one more sign — generate-invoice never uses x-guest-id
+      const invToken = orderAccessToken ?? (await requestOrderToken(orderId));
+      await downloadInvoiceShared(orderId, invToken);
+    } catch {
+      toast.error(t('paymentSuccess.orderConfirmation.toastInvoiceError'), {
+        description: t(
+          'paymentSuccess.orderConfirmation.toastInvoiceEmailHint'
+        ),
       });
     }
-  }, [orderId]);
+  }, [orderId, orderAccessToken, t]);
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 md:py-16">
         <div className="max-w-2xl mx-auto">
-          {(state === 'loading' || state === 'processing') && (
+          {state === 'loading' && (
             <div className="text-center py-16">
               <div className="relative w-20 h-20 mx-auto mb-6">
                 <CheckCircle className="w-20 h-20 text-primary" />
@@ -600,32 +653,38 @@ const OrderConfirmation = () => {
                 </div>
               </div>
               <h1 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
-                Paiement confirmé ✓
+                {t('paymentSuccess.orderConfirmation.loadingTitle')}
               </h1>
               <p className="text-muted-foreground">
-                Chargement des détails de votre commande…
+                {t('paymentSuccess.orderConfirmation.loadingSubtitle')}
               </p>
             </div>
           )}
 
-          {state === 'success' && order && (
+          {/* Guard orderAccessToken so we never link to /invoice without a signed string */}
+          {state === 'success' && order && orderAccessToken && (
             <OrderSuccess
               order={order}
               items={items}
+              orderAccessToken={orderAccessToken}
               onDownloadInvoice={handleDownloadInvoice}
             />
           )}
 
-          {state === 'error' && <OrderError reason={errorReason} />}
+          {state === 'error' && <OrderError />}
 
           {state === 'success' && user && redirectCountdown !== null && (
             <p className="text-sm text-muted-foreground text-center mt-4">
-              Redirection vers vos commandes dans {redirectCountdown}s…{' '}
+              {t('paymentSuccess.ui.redirectOrders', {
+                count: redirectCountdown,
+              })}{' '}
+              {/* type=button: avoid implicit submit if this block is ever moved inside a <form> */}
               <button
+                type="button"
                 onClick={() => setRedirectCountdown(null)}
                 className="underline text-primary hover:text-primary/80"
               >
-                Annuler
+                {t('paymentSuccess.ui.cancelRedirect')}
               </button>
             </p>
           )}
@@ -633,10 +692,10 @@ const OrderConfirmation = () => {
           {/* Help section */}
           <div className="mt-12 p-6 bg-primary/10 rounded-lg text-center">
             <h3 className="text-lg font-medium text-foreground mb-2">
-              {t('pages:paymentSuccess.help.title')}
+              {t('paymentSuccess.help.title')}
             </h3>
             <p className="text-muted-foreground mb-4">
-              {t('pages:paymentSuccess.help.description')}
+              {t('paymentSuccess.help.description')}
             </p>
             <Button variant="outline" asChild>
               <Link to="/contact" className="flex items-center justify-center">

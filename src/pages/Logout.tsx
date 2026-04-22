@@ -1,7 +1,10 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { signOutLocal } from '@/services/authApi';
 
 export default function LogoutPage() {
+  const { t } = useTranslation('common');
+
   useEffect(() => {
     const logout = async () => {
       try {
@@ -35,7 +38,7 @@ export default function LogoutPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <p className="text-lg text-muted-foreground animate-pulse">
-        Déconnexion en cours…
+        {t('logoutFlow.signingOut')}
       </p>
     </div>
   );

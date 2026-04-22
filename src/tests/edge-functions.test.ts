@@ -78,6 +78,11 @@ describe.each([
   'process-scheduled-emails',
   'carrier-webhook',
   'order-confirmation-lookup',
+  'submit-contact',
+  'generate-invoice',
+  'get-order-by-token',
+  'sign-order-token',
+  'sign-invoice-token',
 ])('Edge Function: %s', (functionName) => {
   it('should be invokable (returns response, not network error)', async () => {
     if (!isRealSupabase) return;
@@ -481,6 +486,108 @@ describe('stripe-webhook', () => {
       expect(response.status).toBe(405);
     },
     5000
+  );
+});
+
+describe('submit-contact', () => {
+  const contactHeaders = (): Record<string, string> => ({
+    Authorization: `Bearer ${ANON_KEY}`,
+    apikey: ANON_KEY,
+    'Content-Type': 'application/json',
+  });
+
+  it('should accept CORS preflight (OPTIONS)', async () => {
+    if (!isRealSupabase) return;
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-contact`, {
+      method: 'OPTIONS',
+    });
+    expect(res.ok).toBe(true);
+  }, 10000);
+
+  it('should return 400 when required fields are missing', async () => {
+    if (!isRealSupabase) return;
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-contact`, {
+      method: 'POST',
+      headers: contactHeaders(),
+      body: JSON.stringify({
+        firstName: 'Marie',
+        // lastName, email, subject, message omitted
+      }),
+    });
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error?: string };
+    expect(body.error).toMatch(/Missing required fields/i);
+  }, 15000);
+
+  it('should return 400 for invalid email', async () => {
+    if (!isRealSupabase) return;
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-contact`, {
+      method: 'POST',
+      headers: contactHeaders(),
+      body: JSON.stringify({
+        firstName: 'Marie',
+        lastName: 'Dupont',
+        email: 'not-an-email',
+        subject: 'product-question',
+        message: 'Hello this is twenty chars ok',
+      }),
+    });
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error?: string };
+    expect(body.error).toMatch(/Invalid email format/i);
+  }, 15000);
+
+  it('should return 400 for invalid name characters', async () => {
+    if (!isRealSupabase) return;
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-contact`, {
+      method: 'POST',
+      headers: contactHeaders(),
+      body: JSON.stringify({
+        firstName: 'X',
+        lastName: '123',
+        email: 'valid@example.com',
+        subject: 'hello',
+        message: 'This message is long enough for validation ok.',
+      }),
+    });
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error?: string };
+    expect(body.error).toMatch(/Invalid name format/i);
+  }, 15000);
+
+  /**
+   * Full path: DB insert + Brevo notify. Skipped unless CONTACT_FORM_LIVE_INSERT_TEST=1
+   * to avoid polluting production contact_messages.
+   */
+  it.skipIf(
+    !isRealSupabase ||
+      (typeof process !== 'undefined' &&
+        process.env?.CONTACT_FORM_LIVE_INSERT_TEST !== '1')
+  )(
+    'should return 200 and success for a valid payload (live insert)',
+    async () => {
+      const suffix = `${Date.now()}`;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-contact`, {
+        method: 'POST',
+        headers: contactHeaders(),
+        body: JSON.stringify({
+          firstName: 'E2E',
+          lastName: 'ContactTest',
+          email: `contact-test+${suffix}@example.com`,
+          phone: '',
+          company: '',
+          subject: 'support',
+          message: 'Automated test message with enough length.',
+        }),
+      });
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as {
+        success?: boolean;
+        message?: string;
+      };
+      expect(body.success).toBe(true);
+    },
+    20000
   );
 });
 

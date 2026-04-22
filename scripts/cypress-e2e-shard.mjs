@@ -67,7 +67,7 @@ const specArg = specList.join(',');
 const cypressCmd = total > 1 ? `cypress run --spec ${specArg}` : 'cypress run';
 
 // One shell string so Windows cmd / PowerShell parse the last argument like npm scripts do.
-const fullCmd = `npx start-server-and-test "npm run start:api" http-get://localhost:3001 "npm run dev:e2e" http-get://localhost:8080 "${cypressCmd.replace(/"/g, '\\"')}"`;
+const fullCmd = `npx start-server-and-test "npm run start:api" http-get://localhost:3001 "npm run dev:e2e" http-get://localhost:8080/contact "${cypressCmd.replace(/"/g, '\\"')}"`;
 
 try {
   execSync(fullCmd, {

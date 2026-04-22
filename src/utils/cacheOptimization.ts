@@ -70,7 +70,11 @@ export const preloadCriticalImages = (imageUrls: string[]): void => {
 };
 
 /**
- * Registers service worker for enhanced caching
+ * Registers service worker for enhanced caching.
+ *
+ * Not invoked from `main.tsx` today: boot-time SW unregister must not be
+ * followed by registration (stale order / invoice JS). Call only if you reintroduce
+ * SW with a versioned cache strategy and exclude payment routes.
  */
 export const registerServiceWorker = async (): Promise<void> => {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
@@ -82,6 +86,7 @@ export const registerServiceWorker = async (): Promise<void> => {
     pathname.startsWith('/checkout') ||
     pathname.startsWith('/payment-success') ||
     pathname.startsWith('/order-confirmation') ||
+    pathname.startsWith('/invoice') ||
     pathname.startsWith('/admin');
 
   if (isCriticalFlow) {

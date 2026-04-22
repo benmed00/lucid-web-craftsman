@@ -3,6 +3,9 @@
     "name": "Rif Raw Straw",
     "tagline": "Artisanat Berbère Authentique"
   },
+  "logoutFlow": {
+    "signingOut": "Déconnexion en cours…"
+  },
   "nav": {
     "home": "Accueil",
     "shop": "Boutique",

@@ -1,56 +1,98 @@
 /**
- * Order confirmation page with mocked DB lookup (no Stripe).
- * Uses the new /order-confirmation?order_id=... route.
+ * Order confirmation with Edge Function mocks (token flow only — no REST/v1).
  *
  * Tags: @regression
  */
 
-describe('Order confirmation (mocked DB) @regression', () => {
-  it('shows confirmation when order is found and paid', () => {
-    const orderId = 'e2e-mock-order-id';
+const ORDER_ID = '11111111-2222-3333-4444-555555555555';
+const ORDER_CONFIRM_MOCK_TOKEN = 'e2e-dummy-payload.e2e-dummy-signature';
 
-    // Intercept the Supabase REST query for orders
-    cy.intercept('GET', /\/rest\/v1\/orders\?.*id.*eq.*e2e-mock-order-id/, {
+const orderConfirmMockOrder = {
+  id: ORDER_ID,
+  status: 'paid',
+  order_status: 'processing',
+  amount: 4200,
+  currency: 'eur',
+  created_at: new Date().toISOString(),
+  shipping_address: {
+    first_name: 'E2E',
+    last_name: 'User',
+    email: 'e2e@example.com',
+    address_line1: '1 rue Test',
+    postal_code: '75001',
+    city: 'Paris',
+    country: 'FR',
+  },
+  metadata: {
+    customer_email: 'e2e@example.com',
+    payment_method_label: 'Carte bancaire',
+  },
+  payment_method: 'card',
+  user_id: null,
+  pricing_snapshot: null,
+  subtotal_amount: 4200,
+  discount_amount: 0,
+  shipping_amount: 0,
+  total_amount: 4200,
+};
+
+const orderConfirmMockItem = {
+  quantity: 1,
+  unit_price: 4200,
+  total_price: 4200,
+  product_snapshot: { name: 'Test Product', images: [] },
+  product_id: 1,
+};
+
+describe('Order confirmation (edge mocked) @regression', () => {
+  it('shows confirmation when sign-order-token and get-order-by-token succeed', () => {
+    cy.intercept('POST', /\/functions\/v1\/reconcile-payment/, {
       statusCode: 200,
-      body: [
-        {
-          id: orderId,
-          status: 'paid',
-          order_status: 'paid',
-          amount: 4200,
-          currency: 'EUR',
-          created_at: new Date().toISOString(),
-          shipping_address: null,
-          metadata: {},
-          payment_method: 'card',
-          user_id: null,
-        },
-      ],
-    }).as('orderLookup');
+      body: { ok: true },
+    });
 
-    // Intercept order_items
-    cy.intercept(
-      'GET',
-      /\/rest\/v1\/order_items\?.*order_id.*eq.*e2e-mock-order-id/,
-      {
+    cy.intercept('POST', /\/functions\/v1\/sign-order-token/, {
+      statusCode: 200,
+      body: { token: ORDER_CONFIRM_MOCK_TOKEN },
+    }).as('signOrderToken');
+
+    cy.intercept('POST', /\/functions\/v1\/get-order-by-token/, (req) => {
+      expect(req.body).to.have.property('token', ORDER_CONFIRM_MOCK_TOKEN);
+      req.reply({
         statusCode: 200,
-        body: [
-          {
-            quantity: 1,
-            unit_price: 4200,
-            total_price: 4200,
-            product_snapshot: { name: 'Test Product', images: [] },
-          },
-        ],
-      }
-    ).as('orderItems');
+        body: { order: orderConfirmMockOrder, items: [orderConfirmMockItem] },
+      });
+    }).as('getOrderByToken');
 
-    cy.visit(`/order-confirmation?order_id=${orderId}`);
+    cy.visit(`/order-confirmation?order_id=${encodeURIComponent(ORDER_ID)}`);
 
-    cy.contains(/Paiement confirmé|Payment confirmed|Paiement reçu/i, {
-      timeout: 25000,
-    }).should('be.visible');
+    cy.wait('@signOrderToken', { timeout: 20000 });
+    cy.wait('@getOrderByToken', { timeout: 20000 });
 
+    cy.contains(/Paiement confirmé/i, { timeout: 15000 }).should('be.visible');
     cy.contains('Test Product').should('be.visible');
+  });
+
+  it('legacy path /order-confirmation/:orderId replaces with ?order_id= (canonical URL)', () => {
+    cy.intercept('POST', /\/functions\/v1\/reconcile-payment/, {
+      statusCode: 200,
+      body: { ok: true },
+    });
+    cy.intercept('POST', /\/functions\/v1\/sign-order-token/, {
+      statusCode: 200,
+      body: { token: ORDER_CONFIRM_MOCK_TOKEN },
+    });
+    cy.intercept('POST', /\/functions\/v1\/get-order-by-token/, {
+      statusCode: 200,
+      body: { order: orderConfirmMockOrder, items: [orderConfirmMockItem] },
+    });
+
+    cy.visit(`/order-confirmation/${ORDER_ID}`);
+
+    cy.url({ timeout: 15000 }).should('include', '/order-confirmation');
+    cy.url().should('include', `order_id=${encodeURIComponent(ORDER_ID)}`);
+    cy.url().should('not.match', /\/order-confirmation\/[0-9a-f-]{36}/i);
+
+    cy.contains(/Paiement confirmé/i, { timeout: 15000 }).should('be.visible');
   });
 });

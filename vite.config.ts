@@ -3,11 +3,13 @@
  *
  * Build tool for React (SWC), Vitest, and dev server.
  * - base: '/' (Lovable preview compatible)
- * - Dev server: port 8080, proxies /api and /health to json-server (3001)
+ * - Dev server: port 8080, proxies /api and /health to json-server (3001);
+ *   /frankfurter-api → api.frankfurter.dev (no browser CORS on the public API)
  * - Test: jsdom, globals, setupTests.ts
  *
  * E2E port contract (keep in sync with cypress.config.ts baseUrl + package.json e2e:*):
- * Cypress and start-server-and-test wait on http://localhost:8080. The dev server uses
+ * start-server-and-test waits on http://localhost:8080/contact (SPA route) so a stray
+ * listener on 8080 that only serves `/` does not look “ready”. Cypress baseUrl stays :8080. The dev server uses
  * strictPort so we never silently bind to 8081/8082 when 8080 is taken (that mismatch
  * caused cy.visit ECONNREFUSED). Override the app origin with CYPRESS_BASE_URL if needed.
  *
@@ -17,8 +19,13 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import type { PreRenderedAsset } from 'rollup';
+import { readFileSync } from 'fs';
 import path from 'path';
 import react from '@vitejs/plugin-react-swc';
+
+const pkgVersion = JSON.parse(
+  readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
+).version as string;
 
 // ==========================================================================
 // Optional Lovable component tagger
@@ -37,6 +44,12 @@ try {
 export default defineConfig(({ mode }) => ({
   base: '/',
 
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(
+      process.env.VITE_APP_VERSION ?? pkgVersion
+    ),
+  },
+
   // ==========================================================================
   // Dev server — must stay on 8080 for Cypress (see file header: E2E port contract)
   // ==========================================================================
@@ -46,6 +59,12 @@ export default defineConfig(({ mode }) => ({
     // Fail if 8080 is taken (don’t silently use 8082 — Cypress baseUrl stays :8080)
     strictPort: true,
     proxy: {
+      '/frankfurter-api': {
+        target: 'https://api.frankfurter.dev',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (p) => p.replace(/^\/frankfurter-api/, ''),
+      },
       '/api': { target: 'http://localhost:3001', changeOrigin: true },
       '/health': { target: 'http://localhost:3001', changeOrigin: true },
     },
@@ -63,6 +82,14 @@ export default defineConfig(({ mode }) => ({
       'X-XSS-Protection': '1; mode=block',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
       'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+    },
+    proxy: {
+      '/frankfurter-api': {
+        target: 'https://api.frankfurter.dev',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (p) => p.replace(/^\/frankfurter-api/, ''),
+      },
     },
   },
 

@@ -264,6 +264,19 @@ const App = () => {
                     <Routes>
                       {/* Critical route loaded immediately */}
                       <Route path="/" element={<Index />} />
+                      {/* Common alias — landing is `/`, not `/home` (paths are case-sensitive) */}
+                      <Route
+                        path="/home"
+                        element={<Navigate to="/" replace />}
+                      />
+                      <Route
+                        path="/Home"
+                        element={<Navigate to="/" replace />}
+                      />
+                      <Route
+                        path="/HOME"
+                        element={<Navigate to="/" replace />}
+                      />
                       <Route
                         path="/products"
                         element={

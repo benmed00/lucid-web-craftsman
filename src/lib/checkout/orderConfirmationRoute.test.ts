@@ -24,7 +24,7 @@ describe('classifyOrderConfirmationRoute — fresh returns go to PaymentSuccess'
     expect(route.kind).toBe('payment_success');
   });
 
-  it('R3: payment_complete=1 keeps PaymentSuccess mounted after cleanup', () => {
+  it('R3: order_id + payment_complete=1 classifies as fresh return (PaymentSuccess then strips marker)', () => {
     const route = classifyOrderConfirmationRoute(
       sp(`order_id=${ORDER_UUID}&payment_complete=1`)
     );

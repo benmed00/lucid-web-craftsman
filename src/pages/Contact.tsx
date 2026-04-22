@@ -37,7 +37,7 @@ import {
 } from '@/hooks/useCompanySettings';
 import { apiClient } from '@/lib/api/apiClient';
 import { handleError, ValidationError } from '@/lib/errors/AppError';
-import { EXTERNAL_SERVICES } from '@/config/app.config';
+import { supabaseFunctionsV1BaseUrl } from '@/lib/invoice/supabaseFunctionsBaseUrl';
 
 // Lazy load the map component for better performance
 const LocationMap = lazy(() => import('@/components/ui/LocationMap'));
@@ -148,7 +148,7 @@ const Contact = () => {
       }
 
       await apiClient.post(
-        `${EXTERNAL_SERVICES.supabase.url}/functions/v1/submit-contact`,
+        `${supabaseFunctionsV1BaseUrl()}/submit-contact`,
         sanitizedData,
         { headers }
       );

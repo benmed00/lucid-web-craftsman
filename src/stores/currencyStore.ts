@@ -100,7 +100,7 @@ export const useCurrencyStore = create<CurrencyState>()(
             // Use centralized API client for consistent error handling
             const data = await currencyApi.get<{
               rates?: { USD?: number; GBP?: number };
-            }>('/latest?from=EUR&to=USD,GBP');
+            }>('/v1/latest?from=EUR&to=USD,GBP');
 
             // Frankfurter API returns { rates: { USD: x, GBP: y } }
             if (!data.rates) {

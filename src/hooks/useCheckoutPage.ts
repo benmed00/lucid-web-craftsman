@@ -625,20 +625,14 @@ export function useCheckoutPage() {
         {
           maxAttempts: 2,
           baseDelayMs: 1000,
-          onRetry: () =>
-            toast.info('Nouvelle tentative de paiement...', { duration: 2000 }),
+          onRetry: () => toast.info(t('payment.retrying'), { duration: 2000 }),
         }
       );
 
       if (error) {
         const errorMsg = error.message || '';
         if (errorMsg.includes('rate limit') || errorMsg.includes('429')) {
-          toast.error(
-            t(
-              'errors.rateLimited',
-              'Trop de tentatives. Veuillez patienter quelques minutes.'
-            )
-          );
+          toast.error(t('errors.rateLimited'));
         } else if (
           errorMsg.includes('stock') ||
           errorMsg.includes('indisponible') ||

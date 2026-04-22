@@ -21,8 +21,8 @@
  *   on the next service worker activation.
  */
 
-const STATIC_CACHE_NAME = 'rif-static-v10';
-const IMAGE_CACHE_NAME = 'rif-images-v10';
+const STATIC_CACHE_NAME = 'rif-static-v11';
+const IMAGE_CACHE_NAME = 'rif-images-v11';
 
 const MAX_CACHE_SIZE = 100; // per bucket
 
@@ -107,14 +107,23 @@ self.addEventListener('fetch', (event) => {
     url.pathname.startsWith('/functions/') ||
     url.pathname.startsWith('/payment-success') ||
     url.pathname.startsWith('/order-confirmation') ||
+    url.pathname.startsWith('/invoice') ||
     url.pathname.startsWith('/checkout')
   ) {
     return;
   }
 
-  // ── Static assets with content hashes (JS, CSS, fonts) → cache-first ──
+  // ── Hashed JS bundles: never intercept — avoids stale payment / confirmation code ──
   if (
-    request.url.match(/\.(js|css|woff|woff2|ttf|eot)(\?.*)?$/) &&
+    request.url.match(/\.js(\?.*)?$/) &&
+    request.url.includes('/assets/')
+  ) {
+    return;
+  }
+
+  // ── Static assets with content hashes (CSS, fonts) → cache-first ──
+  if (
+    request.url.match(/\.(css|woff|woff2|ttf|eot)(\?.*)?$/) &&
     request.url.includes('/assets/')
   ) {
     event.respondWith(cacheFirst(request, STATIC_CACHE_NAME));

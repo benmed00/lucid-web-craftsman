@@ -2,17 +2,15 @@
  * Order-confirmation page with the **Edge Function** path mocked end-to-end.
  *
  * Why this spec exists separately from `order_confirmation_mocked_spec.ts`:
- *   - The other spec intercepts Supabase REST (`/rest/v1/orders?…`) directly.
- *     That path does not exercise `get-order-by-token`.
- *   - This spec stubs the three edge functions the confirmation page actually
- *     calls (`reconcile-payment`, `sign-order-token`, `get-order-by-token`)
- *     and asserts the UI reacts to each of them correctly.
+ *   - Both specs use the token pipeline only (no browser REST on `orders` /
+ *     `order_items`). This file adds scenarios for 409 retry and auth failure.
+ *   - Stubs: `reconcile-payment`, `sign-order-token`, `get-order-by-token`.
  *
  * Covered scenarios:
  *   1. Happy path — token issued, order fetched, confirmation UI renders.
- *   2. `sign-order-token` retry loop — 409 on the first call, 200 on the
- *      second; confirmation still renders.
- *   3. `get-order-by-token` → 401 → page surfaces an error (contract check).
+ *   2. `sign-order-token` returns 409 twice then 200 → success after controlled retry.
+ *   3. `sign-order-token` returns 409 on all attempts → hard error.
+ *   4. `get-order-by-token` → 401 → error state (contract check).
  *
  * Tags: @regression
  */
@@ -102,32 +100,59 @@ describe('Order confirmation via get-order-by-token (edge mocked) @regression', 
     cy.contains('Article E2E').should('be.visible');
   });
 
-  it('retry: sign-order-token 409 then 200; confirmation eventually renders', () => {
-    let signCalls = 0;
+  it('sign-order-token: two 409 then 200 succeeds (max two retries)', () => {
+    let calls = 0;
     cy.intercept('POST', /\/functions\/v1\/sign-order-token/, (req) => {
-      signCalls += 1;
-      if (signCalls === 1) {
+      calls += 1;
+      if (calls <= 2) {
         req.reply({ statusCode: 409, body: { error: 'Order not ready' } });
-      } else {
-        req.reply({ statusCode: 200, body: { token: FAKE_TOKEN } });
+        return;
       }
+      req.reply({ statusCode: 200, body: { token: FAKE_TOKEN } });
     }).as('signOrderTokenRetry');
 
-    cy.intercept('POST', /\/functions\/v1\/get-order-by-token/, {
-      statusCode: 200,
-      body: { order: fakeOrder(ORDER_ID_RETRY), items: [fakeItem] },
-    }).as('getOrderByTokenRetry');
+    cy.intercept('POST', /\/functions\/v1\/get-order-by-token/, (req) => {
+      expect(req.body).to.have.property('token', FAKE_TOKEN);
+      req.reply({
+        statusCode: 200,
+        body: { order: fakeOrder(ORDER_ID_RETRY), items: [fakeItem] },
+      });
+    }).as('getOrderAfterRetry');
 
     visit(ORDER_ID_RETRY);
 
-    // Two calls on sign-order-token — one 409, one 200.
     cy.wait('@signOrderTokenRetry', { timeout: 20000 });
-    cy.wait('@signOrderTokenRetry', { timeout: 20000 });
-
-    // Then exactly one successful get-order-by-token.
-    cy.wait('@getOrderByTokenRetry', { timeout: 20000 });
+    cy.wait('@signOrderTokenRetry');
+    cy.wait('@signOrderTokenRetry');
+    cy.wait('@getOrderAfterRetry', { timeout: 20000 });
 
     cy.contains(/Paiement confirmé/i, { timeout: 15000 }).should('be.visible');
+    cy.contains('Article E2E').should('be.visible');
+  });
+
+  it('error: sign-order-token returns 409 on every attempt → hard error', () => {
+    cy.intercept('POST', /\/functions\/v1\/sign-order-token/, {
+      statusCode: 409,
+      body: { error: 'Order not ready' },
+    }).as('signOrderToken409');
+
+    cy.intercept('POST', /\/functions\/v1\/get-order-by-token/, (req) => {
+      req.reply({
+        statusCode: 200,
+        body: { order: fakeOrder(ORDER_ID_RETRY), items: [fakeItem] },
+      });
+    }).as('getOrderByTokenShouldNotRun');
+
+    visit(ORDER_ID_RETRY);
+
+    cy.wait('@signOrderToken409', { timeout: 20000 });
+    cy.wait('@signOrderToken409');
+    cy.wait('@signOrderToken409');
+
+    cy.contains(/Impossible d'afficher la commande/i, {
+      timeout: 15000,
+    }).should('be.visible');
+    cy.contains(/Paiement confirmé/i, { timeout: 2000 }).should('not.exist');
   });
 
   it('error: get-order-by-token returns 401 → page surfaces an error state', () => {
@@ -143,11 +168,11 @@ describe('Order confirmation via get-order-by-token (edge mocked) @regression', 
 
     visit(ORDER_ID_ERROR);
 
-    // The frontend retries up to 4× on errors. We don't pin the exact count —
-    // we just confirm at least one failing fetch completed and the UI does
-    // not mis-report success.
     cy.wait('@getOrderByTokenFail', { timeout: 30000 });
 
+    cy.contains(/Impossible d'afficher la commande/i, {
+      timeout: 10000,
+    }).should('be.visible');
     cy.contains(/Paiement confirmé/i, { timeout: 3000 }).should('not.exist');
   });
 });
