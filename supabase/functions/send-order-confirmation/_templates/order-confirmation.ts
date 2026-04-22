@@ -39,7 +39,9 @@ const esc = (s: string) =>
 const formatPrice = (price: number, currency: string) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency }).format(price);
 
-const SITE_URL = (Deno.env.get('SITE_URL') || 'https://www.rifelegance.com').replace(/\/+$/, '');
+const SITE_URL = (
+  Deno.env.get('SITE_URL') || 'https://www.rifelegance.com'
+).replace(/\/+$/, '');
 
 export function buildOrderConfirmationHtml(
   props: OrderConfirmationProps
@@ -61,7 +63,9 @@ export function buildOrderConfirmationHtml(
   } = props;
 
   const invoiceId = orderId || orderNumber;
-  const tokenQuery = invoiceToken ? `?token=${encodeURIComponent(invoiceToken)}` : '';
+  const tokenQuery = invoiceToken
+    ? `?token=${encodeURIComponent(invoiceToken)}`
+    : '';
   const invoiceUrl = `${SITE_URL}/invoice/${invoiceId}${tokenQuery}`;
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(invoiceUrl)}`;
 

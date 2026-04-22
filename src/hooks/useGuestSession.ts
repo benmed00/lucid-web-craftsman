@@ -153,7 +153,7 @@ export function useGuestSession() {
           const td = tokenData as Record<string, string> | null;
           const guestId = td?.guest_id || generateUUID();
           const signature = td?.signature || undefined;
-          
+
           const newSession: GuestSession = {
             guestId,
             signature,

@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchSecurityAlertsRows,
+  resolveSecurityAlertById,
+} from '@/services/adminSecurityAlertsApi';
+import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import {
   Card,
   CardContent,
@@ -94,13 +98,7 @@ export const SecurityAlertsCard: React.FC = () => {
   } = useQuery({
     queryKey: ['security-alerts'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('security_alerts')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
+      const data = await fetchSecurityAlertsRows();
       return data as SecurityAlert[];
     },
   });
@@ -108,7 +106,7 @@ export const SecurityAlertsCard: React.FC = () => {
   // Trigger alert notification manually
   const triggerNotification = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke(
+      const { data, error } = await invokeSupabaseEdgeFunction(
         'security-alert-notification'
       );
       if (error) throw error;
@@ -133,16 +131,7 @@ export const SecurityAlertsCard: React.FC = () => {
 
     setIsResolving(true);
     try {
-      const { error } = await supabase
-        .from('security_alerts')
-        .update({
-          is_resolved: true,
-          resolved_at: new Date().toISOString(),
-          resolution_notes: resolutionNotes,
-        })
-        .eq('id', selectedAlert.id);
-
-      if (error) throw error;
+      await resolveSecurityAlertById(selectedAlert.id, resolutionNotes);
 
       toast.success('Alerte marquée comme résolue');
       setSelectedAlert(null);

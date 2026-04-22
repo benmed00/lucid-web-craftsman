@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchFraudAssessmentLatestForOrder,
+  rpcOverrideFraudAssessment,
+} from '@/services/adminOrderUiApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -78,15 +81,7 @@ export function FraudAssessmentPanel({ orderId }: FraudAssessmentPanelProps) {
   const { data: assessment, isLoading } = useQuery({
     queryKey: ['fraud-assessment', orderId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('fraud_assessments')
-        .select('*')
-        .eq('order_id', orderId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
+      const data = await fetchFraudAssessmentLatestForOrder(orderId);
       if (!data) return null;
 
       // Parse triggered_rules from JSON - cast to unknown first to avoid type conflicts
@@ -114,10 +109,10 @@ export function FraudAssessmentPanel({ orderId }: FraudAssessmentPanelProps) {
 
   const overrideMutation = useMutation({
     mutationFn: async ({ action }: { action: 'approve' | 'reject' }) => {
-      const { data, error } = await supabase.rpc('override_fraud_assessment', {
-        p_order_id: orderId,
-        p_action: action,
-        p_reason: overrideReason,
+      const { data, error } = await rpcOverrideFraudAssessment({
+        orderId,
+        action,
+        reason: overrideReason,
       });
       if (error) throw error;
       return data;

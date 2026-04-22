@@ -1,7 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Leaf, Instagram, Star, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
+import {
+  ArrowRight,
+  Leaf,
+  Instagram,
+  Star,
+  ShieldCheck,
+  Truck,
+  RotateCcw,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Link } from 'react-router-dom';
@@ -68,7 +75,7 @@ const Index = () => {
         <section className="relative overflow-hidden">
           {/* Background wash */}
           <div className="absolute inset-0 bg-gradient-to-br from-secondary via-background to-sand-100 dark:from-sand-900 dark:via-background dark:to-sand-800" />
-          
+
           <div className="relative container mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20 lg:py-28">
             <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-20">
               {/* Left: Copy */}
@@ -124,11 +131,15 @@ const Index = () => {
                 >
                   <div className="flex -space-x-1">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-rating-star text-rating-star" />
+                      <Star
+                        key={i}
+                        className="h-4 w-4 fill-rating-star text-rating-star"
+                      />
                     ))}
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    4.9/5 · 200+ {t('common:trust.happyCustomers', 'clients satisfaits')}
+                    4.9/5 · 200+{' '}
+                    {t('common:trust.happyCustomers', 'clients satisfaits')}
                   </span>
                 </div>
               </div>
@@ -148,14 +159,34 @@ const Index = () => {
           <div className="container mx-auto px-4">
             <div className="flex flex-wrap justify-center md:justify-between items-center gap-6 md:gap-8 py-4 md:py-5">
               {[
-                { icon: Truck, text: t('common:trust.freeShipping', 'Livraison offerte dès 50€') },
-                { icon: RotateCcw, text: t('common:trust.returns', 'Retours gratuits 14j') },
-                { icon: ShieldCheck, text: t('common:trust.securePayment', 'Paiement sécurisé') },
-                { icon: Leaf, text: t('common:trust.handmade', '100% fait main') },
+                {
+                  icon: Truck,
+                  text: t(
+                    'common:trust.freeShipping',
+                    'Livraison offerte dès 50€'
+                  ),
+                },
+                {
+                  icon: RotateCcw,
+                  text: t('common:trust.returns', 'Retours gratuits 14j'),
+                },
+                {
+                  icon: ShieldCheck,
+                  text: t('common:trust.securePayment', 'Paiement sécurisé'),
+                },
+                {
+                  icon: Leaf,
+                  text: t('common:trust.handmade', '100% fait main'),
+                },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                <div
+                  key={i}
+                  className="flex items-center gap-2.5 text-sm text-muted-foreground"
+                >
                   <item.icon className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span className="whitespace-nowrap font-medium">{item.text}</span>
+                  <span className="whitespace-nowrap font-medium">
+                    {item.text}
+                  </span>
                 </div>
               ))}
             </div>
@@ -185,8 +216,18 @@ const Index = () => {
                 },
                 {
                   icon: (
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    <svg
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                      />
                     </svg>
                   ),
                   title: t('pages:home.features.craft.title'),
@@ -194,8 +235,18 @@ const Index = () => {
                 },
                 {
                   icon: (
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v13m0-13V6a2 2 0 1 1 2 2h-2zm0 0V5.5A2.5 2.5 0 1 0 9.5 8H12zm-7 4h14M5 12a2 2 0 1 1 0-4h14a2 2 0 1 1 0 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
+                    <svg
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M12 8v13m0-13V6a2 2 0 1 1 2 2h-2zm0 0V5.5A2.5 2.5 0 1 0 9.5 8H12zm-7 4h14M5 12a2 2 0 1 1 0-4h14a2 2 0 1 1 0 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"
+                      />
                     </svg>
                   ),
                   title: t('pages:home.features.design.title'),
@@ -225,7 +276,10 @@ const Index = () => {
 
         {/* ──── PRODUCT SHOWCASE ──── */}
         <Suspense fallback={<SectionFallback />}>
-          <section id="shop" className="bg-secondary/50 py-16 md:py-24 lg:py-32">
+          <section
+            id="shop"
+            className="bg-secondary/50 py-16 md:py-24 lg:py-32"
+          >
             <div className="container mx-auto px-4">
               <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 md:mb-14 gap-6">
                 <div className="max-w-2xl text-center lg:text-left">

@@ -1,10 +1,7 @@
 // Hook to check if there's a pending checkout session to resume
 import { useState, useEffect } from 'react';
 import { safeGetItem } from '@/lib/storage/safeStorage';
-
-const CHECKOUT_FORM_KEY = 'checkout_form_data';
-const CHECKOUT_STEP_KEY = 'checkout_current_step';
-const CHECKOUT_TIMESTAMP_KEY = 'checkout_timestamp';
+import { getCheckoutStorageKeys } from '@/lib/checkout/checkoutStorageKeys';
 
 interface CheckoutResumeInfo {
   hasPendingCheckout: boolean;
@@ -20,41 +17,38 @@ export function useCheckoutResume(): CheckoutResumeInfo {
   });
 
   useEffect(() => {
-    // Check timestamp (24h TTL — matches checkout_sessions.expires_at)
-    const timestamp = safeGetItem<number>(CHECKOUT_TIMESTAMP_KEY, {
-      storage: 'localStorage',
-    });
-    const isExpired =
-      !timestamp || Date.now() - timestamp > 24 * 60 * 60 * 1000;
-
-    // Check for saved step
-    const savedStep = safeGetItem<number>(CHECKOUT_STEP_KEY, {
-      storage: 'localStorage',
-    });
-
-    // Check for saved form data
-    const savedFormData = safeGetItem<Record<string, string>>(
-      CHECKOUT_FORM_KEY,
-      {
+    const scanBucket = (elevated: boolean) => {
+      const k = getCheckoutStorageKeys(elevated);
+      const timestamp = safeGetItem<number>(k.timestamp, {
         storage: 'localStorage',
-      }
-    );
+      });
+      const isExpired =
+        !timestamp || Date.now() - timestamp > 24 * 60 * 60 * 1000;
+      const savedStep = safeGetItem<number>(k.step, {
+        storage: 'localStorage',
+      });
+      const savedFormData = safeGetItem<Record<string, string>>(k.form, {
+        storage: 'localStorage',
+      });
+      const hasFormData =
+        savedFormData &&
+        (savedFormData.firstName ||
+          savedFormData.lastName ||
+          savedFormData.email ||
+          savedFormData.address);
+      const hasPendingCheckout =
+        !isExpired && !!hasFormData && (savedStep || 1) >= 1;
+      return { hasPendingCheckout, savedStep: savedStep || 1, isExpired };
+    };
 
-    // Has pending checkout if there's form data with meaningful content and step > 1
-    const hasFormData =
-      savedFormData &&
-      (savedFormData.firstName ||
-        savedFormData.lastName ||
-        savedFormData.email ||
-        savedFormData.address);
-
-    const hasPendingCheckout =
-      !isExpired && !!hasFormData && (savedStep || 1) >= 1;
+    const std = scanBucket(false);
+    const el = scanBucket(true);
+    const pick = std.hasPendingCheckout ? std : el;
 
     setInfo({
-      hasPendingCheckout,
-      savedStep: savedStep || 1,
-      isExpired,
+      hasPendingCheckout: std.hasPendingCheckout || el.hasPendingCheckout,
+      savedStep: pick.savedStep,
+      isExpired: pick.isExpired,
     });
   }, []);
 

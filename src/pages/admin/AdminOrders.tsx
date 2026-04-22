@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchAdminOrderByIdWithPayments,
+  fetchAdminOrdersListWithPayments,
+  subscribeOrdersTableAllEvents,
+  updateOrderLegacyStatusField,
+} from '@/services/adminOrdersApi';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -93,31 +98,7 @@ const AdminOrders = () => {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from('orders')
-        .select(
-          `
-          *,
-          order_items (
-            id,
-            product_id,
-            quantity,
-            unit_price,
-            total_price,
-            product_snapshot
-          ),
-          payments (
-            id,
-            status,
-            amount,
-            processed_at
-          )
-        `
-        )
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
+      const data = await fetchAdminOrdersListWithPayments();
       setOrders((data as unknown as Order[]) || []);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -135,71 +116,32 @@ const AdminOrders = () => {
 
   // Real-time subscription for orders
   useEffect(() => {
-    const channel = supabase
-      .channel('orders-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-        },
-        (payload) => {
-          console.log('Order change detected:', payload);
+    return subscribeOrdersTableAllEvents((payload) => {
+      console.log('Order change detected:', payload);
 
-          if (payload.eventType === 'INSERT') {
-            // Fetch the new order with related data
-            fetchOrderById(payload.new.id);
-            toast.info('Nouvelle commande reçue!');
-          } else if (payload.eventType === 'UPDATE') {
-            setOrders((prev) =>
-              prev.map((order) =>
-                order.id === payload.new.id
-                  ? { ...order, ...payload.new }
-                  : order
-              )
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setOrders((prev) =>
-              prev.filter((order) => order.id !== payload.old.id)
-            );
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      if (payload.eventType === 'INSERT') {
+        fetchOrderById(payload.new.id);
+        toast.info('Nouvelle commande reçue!');
+      } else if (payload.eventType === 'UPDATE') {
+        setOrders((prev) =>
+          prev.map((order) =>
+            order.id === payload.new.id ? { ...order, ...payload.new } : order
+          )
+        );
+      } else if (payload.eventType === 'DELETE') {
+        setOrders((prev) =>
+          prev.filter((order) => order.id !== payload.old.id)
+        );
+      }
+    });
   }, []);
 
   const fetchOrderById = async (orderId: string) => {
-    const { data, error } = await supabase
-      .from('orders')
-      .select(
-        `
-        *,
-        order_items (
-          id,
-          product_id,
-          quantity,
-          unit_price,
-          total_price,
-          product_snapshot
-        ),
-        payments (
-          id,
-          status,
-          amount,
-          processed_at
-        )
-      `
-      )
-      .eq('id', orderId)
-      .single();
-
-    if (!error && data) {
+    try {
+      const data = await fetchAdminOrderByIdWithPayments(orderId);
       setOrders((prev) => [data as unknown as Order, ...prev]);
+    } catch {
+      /* row missing or RLS — ignore for realtime INSERT */
     }
   };
 
@@ -236,15 +178,7 @@ const AdminOrders = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          status: newStatus,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', orderId);
-
-      if (error) throw error;
+      await updateOrderLegacyStatusField(orderId, newStatus);
 
       toast.success('Statut de commande mis à jour');
       fetchOrders();

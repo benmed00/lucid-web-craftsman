@@ -1,25 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
-import { Badge } from '@/components/ui/badge';
+import {
+  fetchActiveArtisansFullWithTranslations,
+  type ArtisanFullJoinRow as ArtisanJoinRow,
+} from '@/services/artisansApi';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Clock, Quote, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PageFooter from '@/components/PageFooter';
-
-// --- Types ---
-type ArtisanRow = Database['public']['Tables']['artisans']['Row'];
-type ArtisanTranslation = Pick<
-  Database['public']['Tables']['artisan_translations']['Row'],
-  'locale' | 'specialty' | 'quote' | 'bio_short' | 'bio'
->;
-
-type ArtisanJoinRow = ArtisanRow & {
-  artisan_translations: ArtisanTranslation[] | null;
-};
 
 type ArtisanView = {
   id: string;
@@ -61,8 +51,9 @@ const PROCESS_STEPS = [
     descriptionFr:
       'La paille brute est soigneusement sélectionnée et récoltée à la main dans les montagnes du Rif.',
     image: '/assets/images/artisans/process-harvesting.jpg',
-    alt: 'Hands harvesting golden straw stalks in Morocco\'s Rif mountains',
-    altFr: 'Mains récoltant des tiges de paille dorée dans les montagnes du Rif au Maroc',
+    alt: "Hands harvesting golden straw stalks in Morocco's Rif mountains",
+    altFr:
+      'Mains récoltant des tiges de paille dorée dans les montagnes du Rif au Maroc',
   },
   {
     title: 'Weaving',
@@ -73,7 +64,8 @@ const PROCESS_STEPS = [
       'Chaque brin est tressé selon des techniques transmises de génération en génération par les artisans marocains.',
     image: '/assets/images/artisans/process-weaving.jpg',
     alt: 'Skilled hands braiding natural straw fibers into intricate patterns',
-    altFr: 'Mains habiles tressant des fibres de paille naturelle en motifs complexes',
+    altFr:
+      'Mains habiles tressant des fibres de paille naturelle en motifs complexes',
   },
   {
     title: 'Shaping',
@@ -84,7 +76,8 @@ const PROCESS_STEPS = [
       'Les artisans façonnent chaque pièce à la main, lui donnant sa silhouette unique.',
     image: '/assets/images/artisans/process-shaping.jpg',
     alt: 'Artisan hands shaping a straw hat on a wooden form',
-    altFr: 'Mains d\'artisan façonnant un chapeau de paille sur une forme en bois',
+    altFr:
+      "Mains d'artisan façonnant un chapeau de paille sur une forme en bois",
   },
   {
     title: 'Finishing',
@@ -92,10 +85,11 @@ const PROCESS_STEPS = [
     description:
       'Final touches — trimming, steaming, and quality checks — ensure every piece meets our standards.',
     descriptionFr:
-      'Les touches finales — coupe, vapeur et contrôle qualité — garantissent l\'excellence.',
+      "Les touches finales — coupe, vapeur et contrôle qualité — garantissent l'excellence.",
     image: '/assets/images/artisans/process-finishing.jpg',
     alt: 'Final quality inspection of a handmade straw hat with scissors and steam',
-    altFr: 'Inspection finale d\'un chapeau de paille artisanal avec ciseaux et vapeur',
+    altFr:
+      "Inspection finale d'un chapeau de paille artisanal avec ciseaux et vapeur",
   },
 ];
 
@@ -143,7 +137,7 @@ function FadeInSection({
 }
 
 const ArtisansPage = () => {
-  const { t, i18n } = useTranslation(['pages', 'common']);
+  const { i18n } = useTranslation(['pages', 'common']);
   const locale = i18n.language?.split('-')[0] ?? 'fr';
   const isFr = locale === 'fr';
 
@@ -154,19 +148,8 @@ const ArtisansPage = () => {
   const { data: artisans = [], isLoading } = useQuery<ArtisanView[]>({
     queryKey: ['artisans-page', locale],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('artisans')
-        .select(`
-          *,
-          artisan_translations!left (
-            locale, specialty, quote, bio_short, bio
-          )
-        `)
-        .eq('is_active', true)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      return (data as ArtisanJoinRow[]).map((row) => resolveArtisan(row, locale));
+      const rows = await fetchActiveArtisansFullWithTranslations();
+      return rows.map((row) => resolveArtisan(row, locale));
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -191,13 +174,15 @@ const ArtisansPage = () => {
 
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           <p className="text-xs md:text-sm tracking-[0.35em] uppercase text-white/60 mb-6 font-light animate-fade-in">
-            {isFr ? 'Artisanat authentique du Maroc' : 'Authentic Moroccan Craftsmanship'}
+            {isFr
+              ? 'Artisanat authentique du Maroc'
+              : 'Authentic Moroccan Craftsmanship'}
           </p>
           <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white font-bold tracking-wide leading-[1.1] mb-8 animate-fade-in">
             {isFr ? 'Façonné à la Main,' : 'Crafted by Hands,'}
             <br />
             <span className="italic font-normal text-white/90">
-              {isFr ? 'Enraciné dans l\'Héritage' : 'Rooted in Heritage'}
+              {isFr ? "Enraciné dans l'Héritage" : 'Rooted in Heritage'}
             </span>
           </h1>
           <div className="w-16 h-px bg-white/40 mx-auto mb-6" />
@@ -274,7 +259,7 @@ const ArtisansPage = () => {
           <FadeInSection>
             <div className="text-center mb-20 max-w-2xl mx-auto">
               <p className="text-xs tracking-[0.3em] uppercase text-primary/70 mb-4 font-medium">
-                {isFr ? 'Les mains derrière l\'art' : 'The Hands Behind the Art'}
+                {isFr ? "Les mains derrière l'art" : 'The Hands Behind the Art'}
               </p>
               <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground font-semibold tracking-wide mb-5">
                 {isFr ? 'Nos Artisans' : 'Meet Our Artisans'}
@@ -371,7 +356,7 @@ const ArtisansPage = () => {
               <div className="bg-card flex items-center">
                 <div className="p-10 md:p-16 lg:p-20 space-y-8 max-w-xl">
                   <p className="text-xs tracking-[0.3em] uppercase text-primary/70 font-medium">
-                    {isFr ? 'Artisan à l\'honneur' : 'Featured Artisan'}
+                    {isFr ? "Artisan à l'honneur" : 'Featured Artisan'}
                   </p>
                   <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground font-semibold leading-tight tracking-wide">
                     {featured.name}
@@ -394,7 +379,8 @@ const ArtisansPage = () => {
                   {featured.experience_years && (
                     <p className="text-sm text-muted-foreground/70 flex items-center gap-2 tracking-wide">
                       <Clock className="w-4 h-4 text-primary/50" />
-                      {featured.experience_years} {isFr ? 'ans d\'expérience' : 'years of experience'}
+                      {featured.experience_years}{' '}
+                      {isFr ? "ans d'expérience" : 'years of experience'}
                       {featured.location && ` — ${featured.location}`}
                     </p>
                   )}
@@ -420,7 +406,7 @@ const ArtisansPage = () => {
               </h2>
               <p className="text-muted-foreground text-lg font-light leading-relaxed">
                 {isFr
-                  ? 'De la matière brute au chef-d\'œuvre — chaque étape faite à la main.'
+                  ? "De la matière brute au chef-d'œuvre — chaque étape faite à la main."
                   : 'From raw material to finished masterpiece — every step done by hand.'}
               </p>
             </div>
@@ -478,7 +464,7 @@ const ArtisansPage = () => {
         <FadeInSection>
           <div className="container mx-auto px-4 text-center max-w-3xl">
             <p className="text-xs tracking-[0.3em] uppercase text-primary-foreground/50 mb-6 font-medium">
-              {isFr ? 'Soutenez l\'artisanat' : 'Support the Craft'}
+              {isFr ? "Soutenez l'artisanat" : 'Support the Craft'}
             </p>
             <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold tracking-wide mb-6 leading-tight">
               {isFr ? 'Découvrez la Collection' : 'Discover the Collection'}

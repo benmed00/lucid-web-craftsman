@@ -31,7 +31,10 @@ serve(async (req) => {
       console.error('[CLEANUP] RPC error:', error.message);
       return new Response(
         JSON.stringify({ success: false, error: error.message }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        }
       );
     }
 
@@ -40,14 +43,17 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, cancelled_count: cleanedCount }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
     );
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[CLEANUP] Error:', msg);
-    return new Response(
-      JSON.stringify({ success: false, error: msg }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    );
+    return new Response(JSON.stringify({ success: false, error: msg }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500,
+    });
   }
 });

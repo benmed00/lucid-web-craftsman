@@ -7,7 +7,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchApprovedReviewsForProduct,
+  insertProductReview,
+} from '@/services/reviewsApi';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -57,17 +60,10 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
 
   const fetchReviews = async () => {
     try {
-      const { data, error } = await supabase
-        .from('product_reviews')
-        .select('*')
-        .eq('product_id', productId)
-        .eq('is_approved', true)
-        .order('created_at', { ascending: false });
+      const data = await fetchApprovedReviewsForProduct(productId);
 
-      if (error) throw error;
-
-      setReviews(data || []);
-      calculateStats(data || []);
+      setReviews((data as Review[]) || []);
+      calculateStats((data as Review[]) || []);
     } catch (error) {
       // Silent error handling for production
     } finally {
@@ -110,16 +106,14 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('product_reviews').insert({
+      await insertProductReview({
         user_id: user.id,
         product_id: productId,
         rating: reviewForm.rating,
         title: reviewForm.title || null,
         comment: reviewForm.comment || null,
-        is_approved: false, // Reviews need approval
+        is_approved: false,
       });
-
-      if (error) throw error;
 
       toast.success('Merci pour votre avis ! Il sera publié après modération.');
       setShowReviewForm(false);

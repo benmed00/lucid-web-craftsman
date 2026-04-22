@@ -19,7 +19,10 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import PageFooter from '@/components/PageFooter';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  invokeVerifyPaypalPayment,
+  invokeReconcilePayment,
+} from '@/services/supabaseFunctionsApi';
 import { useCart } from '@/stores';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -28,6 +31,10 @@ import {
   fetchOrderByToken,
   type OrderByTokenResponse,
 } from '@/lib/invoice/generateInvoice';
+import {
+  pricingSnapshotV1Schema,
+  type PricingSnapshotV1,
+} from '@/lib/checkout/pricingSnapshot';
 
 // ================================================================
 // Types
@@ -37,9 +44,17 @@ type ItemRow = OrderByTokenResponse['items'][number];
 type ConfirmationState = 'loading' | 'processing' | 'success' | 'error';
 
 const COUNTRY_NAMES: Record<string, string> = {
-  FR: 'France', DE: 'Allemagne', BE: 'Belgique', CH: 'Suisse',
-  ES: 'Espagne', IT: 'Italie', NL: 'Pays-Bas', GB: 'Royaume-Uni',
-  US: 'États-Unis', CA: 'Canada', MA: 'Maroc',
+  FR: 'France',
+  DE: 'Allemagne',
+  BE: 'Belgique',
+  CH: 'Suisse',
+  ES: 'Espagne',
+  IT: 'Italie',
+  NL: 'Pays-Bas',
+  GB: 'Royaume-Uni',
+  US: 'États-Unis',
+  CA: 'Canada',
+  MA: 'Maroc',
 };
 
 interface NormalizedItem {
@@ -52,7 +67,10 @@ interface NormalizedItem {
 
 function normalizeItems(items: ItemRow[]): NormalizedItem[] {
   return items.map((it) => {
-    const snap = (it.product_snapshot ?? {}) as { name?: string; images?: string[] };
+    const snap = (it.product_snapshot ?? {}) as {
+      name?: string;
+      images?: string[];
+    };
     return {
       name: snap.name || 'Produit',
       quantity: it.quantity,
@@ -61,6 +79,50 @@ function normalizeItems(items: ItemRow[]): NormalizedItem[] {
       image: snap.images?.[0],
     };
   });
+}
+
+interface ResolvedTotals {
+  source: 'snapshot_v1' | 'legacy_amount';
+  currency: string;
+  total: number;
+  subtotal: number;
+  shipping: number;
+  discount: number;
+}
+
+/**
+ * Prefer the authoritative `pricing_snapshot` (Stripe-sourced, minor units).
+ * Fall back to the legacy `order.amount` shape when no snapshot is available,
+ * computing shipping as `total - subtotal` as before. This keeps legacy orders
+ * rendering while guaranteeing that any order confirmed after this PR matches
+ * the email and Stripe exactly.
+ */
+function resolveTotals(
+  order: OrderRow,
+  items: NormalizedItem[]
+): ResolvedTotals {
+  const parsed = pricingSnapshotV1Schema.safeParse(order.pricing_snapshot);
+  if (parsed.success) {
+    const snap: PricingSnapshotV1 = parsed.data;
+    return {
+      source: 'snapshot_v1',
+      currency: snap.currency.toUpperCase(),
+      total: snap.total_minor / 100,
+      subtotal: snap.subtotal_minor / 100,
+      shipping: snap.shipping_minor / 100,
+      discount: snap.discount_minor / 100,
+    };
+  }
+  const total = Number(order.amount) || 0;
+  const subtotal = items.reduce((s, i) => s + i.totalPrice, 0);
+  return {
+    source: 'legacy_amount',
+    currency: (order.currency || 'EUR').toUpperCase(),
+    total,
+    subtotal,
+    shipping: Math.max(0, total - subtotal),
+    discount: 0,
+  };
 }
 
 // ================================================================
@@ -78,20 +140,27 @@ function OrderSuccess({
 }) {
   const { user } = useAuth();
   const normalized = normalizeItems(items);
-  const totalEuros = Number(order.amount) || 0;
-  const subtotal = normalized.reduce((s, i) => s + i.totalPrice, 0);
-  const shippingCalc = Math.max(0, totalEuros - subtotal);
+  const totals = resolveTotals(order, normalized);
+  const totalEuros = totals.total;
+  const subtotal = totals.subtotal;
+  const shippingCalc = totals.shipping;
+  const discount = totals.discount;
+  const currencySymbol = totals.currency === 'EUR' ? '€' : totals.currency;
 
   const orderNumber = order.id.slice(-8).toUpperCase();
   const orderDate = new Date(order.created_at).toLocaleDateString('fr-FR', {
-    day: 'numeric', month: 'long', year: 'numeric',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
   });
   const customerEmail =
     (order.metadata as any)?.customer_email ||
     (order.shipping_address as any)?.email ||
     '';
   const addr = order.shipping_address as any;
-  const customerName = addr ? `${addr.first_name || ''} ${addr.last_name || ''}`.trim() : '';
+  const customerName = addr
+    ? `${addr.first_name || ''} ${addr.last_name || ''}`.trim()
+    : '';
 
   // Diagnostics — should never log CRITICAL when state === 'success'.
   console.log('[OrderConfirmation] ORDER', order);
@@ -111,7 +180,9 @@ function OrderSuccess({
         </p>
         <p className="text-muted-foreground text-sm">
           Un email de confirmation a été envoyé à{' '}
-          <span className="font-medium text-foreground">{customerEmail || 'votre adresse'}</span>
+          <span className="font-medium text-foreground">
+            {customerEmail || 'votre adresse'}
+          </span>
         </p>
       </div>
 
@@ -152,7 +223,9 @@ function OrderSuccess({
       {/* Order summary */}
       <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden text-left mb-6 animate-fade-in">
         <div className="bg-muted/50 px-6 py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-          <p className="text-sm font-semibold text-foreground">Commande #{orderNumber}</p>
+          <p className="text-sm font-semibold text-foreground">
+            Commande #{orderNumber}
+          </p>
           <p className="text-xs text-muted-foreground">{orderDate}</p>
         </div>
 
@@ -160,10 +233,14 @@ function OrderSuccess({
           <div className="px-6 py-3 border-t border-border">
             <div className="flex items-center gap-2 text-sm">
               <Package className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="font-medium text-foreground">{customerName || 'Client'}</span>
+              <span className="font-medium text-foreground">
+                {customerName || 'Client'}
+              </span>
             </div>
             {customerEmail && (
-              <p className="text-xs text-muted-foreground ml-6">{customerEmail}</p>
+              <p className="text-xs text-muted-foreground ml-6">
+                {customerEmail}
+              </p>
             )}
           </div>
         )}
@@ -182,8 +259,12 @@ function OrderSuccess({
                     />
                   )}
                   <div>
-                    <p className="text-sm font-medium text-foreground">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">Quantité : {item.quantity}</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {item.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Quantité : {item.quantity}
+                    </p>
                   </div>
                 </div>
                 <p className="text-sm font-medium text-foreground">
@@ -197,22 +278,42 @@ function OrderSuccess({
         <div className="px-6 py-4 border-t border-border space-y-1">
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>Sous-total</span>
-            <span>{subtotal.toFixed(2)} €</span>
+            <span>
+              {subtotal.toFixed(2)} {currencySymbol}
+            </span>
           </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-sm text-primary">
+              <span>Réduction</span>
+              <span>
+                -{discount.toFixed(2)} {currencySymbol}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>Livraison</span>
-            <span>{shippingCalc === 0 ? 'Offerte' : `${shippingCalc.toFixed(2)} €`}</span>
+            <span>
+              {shippingCalc === 0
+                ? 'Offerte'
+                : `${shippingCalc.toFixed(2)} ${currencySymbol}`}
+            </span>
           </div>
           <div className="flex justify-between text-base font-bold text-foreground pt-2 border-t border-border">
             <span>Total payé</span>
-            <span>{totalEuros.toFixed(2)} €</span>
+            <span>
+              {totalEuros.toFixed(2)} {currencySymbol}
+            </span>
           </div>
         </div>
 
         <div className="px-6 py-3 border-t border-border">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <CreditCard className="w-3.5 h-3.5" />
-            <span>Payé par {(order.metadata as any)?.payment_method_label || 'Carte bancaire'}</span>
+            <span>
+              Payé par{' '}
+              {(order.metadata as any)?.payment_method_label ||
+                'Carte bancaire'}
+            </span>
           </div>
         </div>
       </div>
@@ -225,9 +326,12 @@ function OrderSuccess({
             Adresse de livraison
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            {addr.first_name} {addr.last_name}<br />
-            {addr.address_line1}<br />
-            {addr.postal_code} {addr.city}<br />
+            {addr.first_name} {addr.last_name}
+            <br />
+            {addr.address_line1}
+            <br />
+            {addr.postal_code} {addr.city}
+            <br />
             {COUNTRY_NAMES[addr.country] || addr.country}
           </p>
         </div>
@@ -238,7 +342,9 @@ function OrderSuccess({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
           <div className="flex flex-col items-center gap-1.5">
             <ShieldCheck className="w-6 h-6 text-primary" />
-            <p className="text-xs font-medium text-foreground">Paiement sécurisé</p>
+            <p className="text-xs font-medium text-foreground">
+              Paiement sécurisé
+            </p>
             <p className="text-[11px] text-muted-foreground">via Stripe</p>
           </div>
           <div className="flex flex-col items-center gap-1.5">
@@ -249,7 +355,10 @@ function OrderSuccess({
           <div className="flex flex-col items-center gap-1.5">
             <Mail className="w-6 h-6 text-primary" />
             <p className="text-xs font-medium text-foreground">Support</p>
-            <a href="mailto:contact@rifrawstraw.com" className="text-[11px] text-primary underline">
+            <a
+              href="mailto:contact@rifrawstraw.com"
+              className="text-[11px] text-primary underline"
+            >
               contact@rifrawstraw.com
             </a>
           </div>
@@ -272,9 +381,12 @@ function OrderError({ reason }: { reason: string }) {
         Nous n'avons pas pu charger les détails de cette commande.
       </p>
       <p className="text-muted-foreground text-sm mb-6">
-        Si vous avez été débité, contactez le support — votre paiement est protégé.
+        Si vous avez été débité, contactez le support — votre paiement est
+        protégé.
       </p>
-      <p className="text-xs text-muted-foreground/70 mb-6 font-mono">{reason}</p>
+      <p className="text-xs text-muted-foreground/70 mb-6 font-mono">
+        {reason}
+      </p>
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
         <Button asChild className="gap-2">
           <a href="mailto:contact@rifrawstraw.com">
@@ -307,7 +419,9 @@ const OrderConfirmation = () => {
   const [order, setOrder] = useState<OrderRow | null>(null);
   const [items, setItems] = useState<ItemRow[]>([]);
   const [errorReason, setErrorReason] = useState<string>('');
-  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(
+    null
+  );
   const { clearCart } = useCart();
   const { user } = useAuth();
   const initRef = useRef(false);
@@ -325,8 +439,17 @@ const OrderConfirmation = () => {
     const DELAYS = [500, 1000, 2000];
     const MAX_ATTEMPTS = DELAYS.length + 1; // 4 total attempts
 
-    const logFail = (step: string, reason: string, extra: Record<string, unknown> = {}) => {
-      console.error('[OrderConfirmation] CRITICAL', { order_id: oid, step, reason, ...extra });
+    const logFail = (
+      step: string,
+      reason: string,
+      extra: Record<string, unknown> = {}
+    ) => {
+      console.error('[OrderConfirmation] CRITICAL', {
+        order_id: oid,
+        step,
+        reason,
+        ...extra,
+      });
     };
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
@@ -347,14 +470,23 @@ const OrderConfirmation = () => {
         // Retryable: data not yet consistent (webhook still landing).
         if (attempt < MAX_ATTEMPTS - 1) {
           console.warn('[OrderConfirmation] retry', {
-            order_id: oid, step: 'load', attempt: attempt + 1, amount, items: its?.length ?? 0,
+            order_id: oid,
+            step: 'load',
+            attempt: attempt + 1,
+            amount,
+            items: its?.length ?? 0,
           });
           await new Promise((r) => setTimeout(r, DELAYS[attempt]));
           continue;
         }
 
-        logFail('validate', 'empty_after_retries', { amount, items: its?.length ?? 0 });
-        setErrorReason(amount <= 0 ? `Invalid amount (${amount})` : 'No items found');
+        logFail('validate', 'empty_after_retries', {
+          amount,
+          items: its?.length ?? 0,
+        });
+        setErrorReason(
+          amount <= 0 ? `Invalid amount (${amount})` : 'No items found'
+        );
         setState('error');
         return;
       } catch (e) {
@@ -362,7 +494,10 @@ const OrderConfirmation = () => {
         // 409 from sign-order-token = not yet paid → retry. Other errors also retried (network blips).
         if (attempt < MAX_ATTEMPTS - 1) {
           console.warn('[OrderConfirmation] retry', {
-            order_id: oid, step: 'fetch', attempt: attempt + 1, reason: msg,
+            order_id: oid,
+            step: 'fetch',
+            attempt: attempt + 1,
+            reason: msg,
           });
           await new Promise((r) => setTimeout(r, DELAYS[attempt]));
           continue;
@@ -396,15 +531,16 @@ const OrderConfirmation = () => {
             return;
           }
           setState('processing');
-          await supabase.functions.invoke('verify-paypal-payment', {
-            body: { paypal_order_id: paypalToken, order_id: orderId },
+          await invokeVerifyPaypalPayment({
+            paypal_order_id: paypalToken,
+            order_id: orderId,
           });
         } else {
           // Stripe path: fire-and-forget reconcile to flip status server-side.
           setState('processing');
-          await supabase.functions
-            .invoke('reconcile-payment', { body: { order_id: orderId } })
-            .catch(() => { /* ignore — get-order-by-token will surface truth */ });
+          await invokeReconcilePayment({ order_id: orderId }).catch(() => {
+            /* ignore — get-order-by-token will surface truth */
+          });
         }
         await loadOrder(orderId);
       } catch (e) {
@@ -445,7 +581,8 @@ const OrderConfirmation = () => {
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Facture indisponible.';
       toast.error(msg, {
-        description: "Vous pouvez aussi y accéder depuis l'email de confirmation.",
+        description:
+          "Vous pouvez aussi y accéder depuis l'email de confirmation.",
       });
     }
   }, [orderId]);
@@ -454,7 +591,6 @@ const OrderConfirmation = () => {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 md:py-16">
         <div className="max-w-2xl mx-auto">
-
           {(state === 'loading' || state === 'processing') && (
             <div className="text-center py-16">
               <div className="relative w-20 h-20 mx-auto mb-6">

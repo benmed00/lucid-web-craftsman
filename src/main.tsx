@@ -58,7 +58,7 @@ declare global {
 
 // Setup error suppression for production
 setupProductionErrorSuppression();
-// NOTE: Diagnostic Supabase connectivity test was removed — 
+// NOTE: Diagnostic Supabase connectivity test was removed —
 // the actual product query serves as the connectivity check.
 
 // ============= 3. Deterministic store initialization =============

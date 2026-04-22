@@ -26,25 +26,13 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should navigate to checkout with items in cart', () => {
-    // Add a product
-    cy.get(catalogAddToCart).first().click();
-    // Go to cart
-    cy.visit('/cart');
-    cy.get('body').should('be.visible');
-    // Click proceed to checkout
-    cy.get('button, a')
-      .contains(/commander|checkout|paiement/i)
-      .first()
-      .click();
+    cy.addCatalogLineAndOpenCartSpa();
+    cy.get('#main-content #cart-checkout-button').should('be.visible').click();
     cy.url().should('include', '/checkout');
   });
 
   it('should fill personal info and advance to shipping', () => {
-    cy.get(catalogAddToCart).first().click();
-    cy.visit('/checkout');
-
-    // Wait for form to load (skeleton gone, persistence ready)
-    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.addCatalogLineAndOpenCheckoutStep1();
     cy.get('#firstName').clear().type('Jean');
     cy.get('#lastName').clear().type('Dupont');
     cy.get('#email').clear().type('jean.dupont@test.com');
@@ -61,10 +49,7 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should fill shipping info and advance to payment', () => {
-    cy.get(catalogAddToCart).first().click();
-    cy.visit('/checkout');
-
-    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.addCatalogLineAndOpenCheckoutStep1();
     cy.get('#firstName').clear().type('Jean');
     cy.get('#lastName').clear().type('Dupont');
     cy.get('#email').clear().type('jean.dupont@test.com');
@@ -91,11 +76,7 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should show error for invalid promo code', () => {
-    cy.get(catalogAddToCart).first().click();
-    cy.visit('/checkout');
-
-    // Wait for checkout to load, then find promo input (FR: "Entrez votre code", EN: "Enter your code")
-    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.addCatalogLineAndOpenCheckoutStep1();
     cy.get(
       'input[placeholder*="promo"], input[placeholder*="code"], input[placeholder*="Code"]'
     )
@@ -112,10 +93,7 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should clear promo error when user types new code', () => {
-    cy.get(catalogAddToCart).first().click();
-    cy.visit('/checkout');
-
-    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.addCatalogLineAndOpenCheckoutStep1();
     cy.get(
       'input[placeholder*="promo"], input[placeholder*="code"], input[placeholder*="Code"]'
     )
@@ -142,10 +120,7 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should show postal code format hint based on country', () => {
-    cy.get(catalogAddToCart).first().click();
-    cy.visit('/checkout');
-
-    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.addCatalogLineAndOpenCheckoutStep1();
     cy.get('#firstName').clear().type('Jean');
     cy.get('#lastName').clear().type('Dupont');
     cy.get('#email').clear().type('jean.dupont@test.com');
@@ -163,10 +138,7 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should validate postal code format per country', () => {
-    cy.get(catalogAddToCart).first().click();
-    cy.visit('/checkout');
-
-    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.addCatalogLineAndOpenCheckoutStep1();
     cy.get('#firstName').clear().type('Jean');
     cy.get('#lastName').clear().type('Dupont');
     cy.get('#email').clear().type('jean.dupont@test.com');
@@ -190,8 +162,7 @@ describe('Checkout Flow @smoke @regression', () => {
   });
 
   it('should increase and decrease line-item quantity on cart page', () => {
-    cy.get(catalogAddToCart).first().click();
-    cy.visit('/cart');
+    cy.addCatalogLineAndOpenCartSpa();
     const qtyLabel = '[aria-label^="Quantité:"], [aria-label^="Quantity:"]';
     // cart-item-* id is on the product title <h3>, not the line card — use article
     cy.get('[role="article"]')

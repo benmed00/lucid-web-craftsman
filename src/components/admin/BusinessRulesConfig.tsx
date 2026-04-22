@@ -16,7 +16,15 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchAppSettingIdValueMaybe,
+  fetchAppSettingValueByKey,
+  insertAppSettingRows,
+  updateAppSettingByKey,
+} from '@/services/appSettingsApi';
+import { insertAuditLogRow } from '@/services/auditLogsApi';
+import { fetchAuthUserOrNull } from '@/services/profileApi';
+import type { Json } from '@/integrations/supabase/types';
 import {
   ShoppingCart,
   Heart,
@@ -46,18 +54,10 @@ export const BusinessRulesConfig: React.FC = () => {
   const loadRules = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'business_rules')
-        .maybeSingle();
+      const raw = await fetchAppSettingValueByKey('business_rules');
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-
-      if (data?.setting_value) {
-        const fetchedRules = data.setting_value as Partial<BusinessRules>;
+      if (raw) {
+        const fetchedRules = raw as Partial<BusinessRules>;
         setRules({
           cart: { ...DEFAULT_BUSINESS_RULES.cart, ...fetchedRules.cart },
           wishlist: {
@@ -86,53 +86,38 @@ export const BusinessRulesConfig: React.FC = () => {
   const saveRules = async () => {
     setSaving(true);
     try {
-      // First check if the setting exists
-      const { data: existing } = await supabase
-        .from('app_settings')
-        .select('id, setting_value')
-        .eq('setting_key', 'business_rules')
-        .single();
+      const existing = await fetchAppSettingIdValueMaybe('business_rules');
 
       const oldRules = existing?.setting_value as Partial<BusinessRules> | null;
-      const newRulesJson = JSON.parse(JSON.stringify(rules));
+      const newRulesJson = JSON.parse(JSON.stringify(rules)) as Json;
 
-      if (existing) {
-        // Update existing
-        const { error: updateError } = await supabase
-          .from('app_settings')
-          .update({
+      if (existing?.id) {
+        await updateAppSettingByKey('business_rules', {
+          setting_value: newRulesJson,
+          description:
+            'Business rules for cart, wishlist, and checkout. Configurable from admin dashboard.',
+          updated_at: new Date().toISOString(),
+        });
+      } else {
+        await insertAppSettingRows([
+          {
+            setting_key: 'business_rules',
             setting_value: newRulesJson,
             description:
               'Business rules for cart, wishlist, and checkout. Configurable from admin dashboard.',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('setting_key', 'business_rules');
-
-        if (updateError) throw updateError;
-      } else {
-        // Insert new
-        const { error: insertError } = await supabase
-          .from('app_settings')
-          .insert([
-            {
-              setting_key: 'business_rules',
-              setting_value: newRulesJson,
-              description:
-                'Business rules for cart, wishlist, and checkout. Configurable from admin dashboard.',
-            },
-          ]);
-
-        if (insertError) throw insertError;
+          },
+        ]);
       }
 
-      // Log the change in audit_logs for compliance
-      const { data: userData } = await supabase.auth.getUser();
-      await supabase.from('audit_logs').insert({
-        user_id: userData.user?.id,
+      const user = await fetchAuthUserOrNull();
+      await insertAuditLogRow({
+        user_id: user?.id ?? null,
         action: 'BUSINESS_RULES_UPDATED',
         resource_type: 'app_settings',
         resource_id: 'business_rules',
-        old_values: oldRules ? JSON.parse(JSON.stringify(oldRules)) : null,
+        old_values: oldRules
+          ? (JSON.parse(JSON.stringify(oldRules)) as Json)
+          : null,
         new_values: newRulesJson,
       });
 

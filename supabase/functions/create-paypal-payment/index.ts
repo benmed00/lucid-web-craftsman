@@ -1,6 +1,8 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.2';
 
+import { getValidOrigin } from '../create-payment/constants.ts';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
@@ -268,11 +270,7 @@ serve(async (req) => {
         ) * 100
       ) / 100;
 
-    const origin = (
-      req.headers.get('origin') ||
-      Deno.env.get('SITE_URL') ||
-      'https://www.rifelegance.com'
-    ).replace(/\/+$/, '');
+    const siteBaseUrl: string = getValidOrigin(req);
 
     const breakdown: any = {
       item_total: { currency_code: 'EUR', value: itemTotal.toFixed(2) },
@@ -304,8 +302,8 @@ serve(async (req) => {
         brand_name: 'Rif Raw Straw',
         landing_page: 'BILLING',
         user_action: 'PAY_NOW',
-        return_url: `${origin}/order-confirmation?paypal=true&order_id=${orderData.id}`,
-        cancel_url: `${origin}/checkout?cancelled=true`,
+        return_url: `${siteBaseUrl}/order-confirmation?paypal=true&order_id=${orderData.id}&payment_complete=1`,
+        cancel_url: `${siteBaseUrl}/checkout?cancelled=true`,
       },
       payer: customerInfo?.email
         ? {

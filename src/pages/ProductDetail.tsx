@@ -752,7 +752,10 @@ const ProductDetail: React.FC = () => {
 
               {/* Scarcity + Stock & Shipping Info */}
               <div className="space-y-3">
-                <ScarcityIndicator stockInfo={singleStockInfo} productName={product.name} />
+                <ScarcityIndicator
+                  stockInfo={singleStockInfo}
+                  productName={product.name}
+                />
 
                 {singleStockInfo && !singleStockInfo.isOutOfStock && (
                   <Alert>
@@ -768,7 +771,9 @@ const ProductDetail: React.FC = () => {
                   <Alert>
                     <AlertDescription className="flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 text-destructive" />
-                      <span className="text-sm">{t('productDetail.stock.outOfStock')}</span>
+                      <span className="text-sm">
+                        {t('productDetail.stock.outOfStock')}
+                      </span>
                     </AlertDescription>
                   </Alert>
                 )}

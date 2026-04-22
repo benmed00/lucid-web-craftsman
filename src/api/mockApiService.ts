@@ -1,6 +1,13 @@
 // import axios from "axios"; // Marked as unused
 
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchPublishedBlogPostBySlug,
+  fetchPublishedBlogPostRows,
+} from '@/services/blogPublicApi';
+import {
+  fetchAllProductsByCreatedAtDescRaw,
+  fetchProductRowByIdAnyStatus,
+} from '@/services/productService';
 import {
   Product,
   normalizeProduct,
@@ -86,11 +93,7 @@ const convertDBToLegacy = (dbPost: BlogPostDB): BlogPostLegacy => {
 
 export const getBlogPosts = async (): Promise<BlogPostLegacy[]> => {
   try {
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .eq('status', 'published')
-      .order('published_at', { ascending: false });
+    const { data, error } = await fetchPublishedBlogPostRows();
 
     if (error) {
       console.error('Error fetching blog posts from DB:', error);
@@ -115,11 +118,7 @@ export const getBlogPostById = async (
 ): Promise<BlogPostLegacy | null> => {
   try {
     // First try to fetch from DB
-    const { data: allPosts, error } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .eq('status', 'published')
-      .order('published_at', { ascending: false });
+    const { data: allPosts, error } = await fetchPublishedBlogPostRows();
 
     if (error || !allPosts || allPosts.length === 0) {
       // Fallback to static data
@@ -148,12 +147,7 @@ export const getBlogPostBySlug = async (
   slug: string
 ): Promise<BlogPostLegacy | null> => {
   try {
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .eq('slug', slug)
-      .eq('status', 'published')
-      .single();
+    const { data, error } = await fetchPublishedBlogPostBySlug(slug);
 
     if (error || !data) {
       console.error(`Post with slug ${slug} not found`, error);
@@ -167,21 +161,11 @@ export const getBlogPostBySlug = async (
   }
 };
 
-// Products API - using Supabase
+// Products API — reads via `productService` helpers
 export const getProducts = async (): Promise<Product[]> => {
   try {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching products:', error);
-      throw error;
-    }
-
-    // Use centralized normalizer for consistency
-    return normalizeProducts(data || []);
+    const data = await fetchAllProductsByCreatedAtDescRaw();
+    return normalizeProducts((data || []) as Product[]);
   } catch (error) {
     console.error('Error fetching products:', error);
     throw error;
@@ -190,19 +174,10 @@ export const getProducts = async (): Promise<Product[]> => {
 
 export const getProductById = async (id: number): Promise<Product | null> => {
   try {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      console.error(`Product with ID ${id} not found`, error);
-      return null;
-    }
+    const data = await fetchProductRowByIdAnyStatus(id);
 
     // Use centralized normalizer for consistency
-    return data ? normalizeProduct(data) : null;
+    return data ? normalizeProduct(data as Product) : null;
   } catch (error) {
     console.error(`Product with ID ${id} not found`, error);
     return null;

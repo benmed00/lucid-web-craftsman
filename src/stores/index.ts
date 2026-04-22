@@ -2,7 +2,7 @@
 // Central export for all Zustand stores with unified initialization
 
 import { initializeCartStore as initCart } from './cartStore';
-import { initializeWishlistStore as initWishlist } from './wishlistStore';
+import { initializeWishlistStore as initWishlist } from '@/hooks/useWishlist';
 import { initializeCurrencyStore as initCurrency } from './currencyStore';
 import { initializeThemeStore as initTheme } from './themeStore';
 
@@ -19,18 +19,11 @@ export {
   MAX_CART_QUANTITY,
   HIGH_VALUE_ORDER_THRESHOLD,
   type CartItem,
+  type UseCartReturn,
 } from './cartStore';
 
-export {
-  useWishlistStore,
-  useWishlist,
-  initializeWishlistStore,
-  selectWishlistItems,
-  selectWishlistCount,
-  selectWishlistLoading,
-  selectIsInWishlist,
-  type WishlistItem,
-} from './wishlistStore';
+export { initializeWishlistStore } from '@/hooks/useWishlist';
+export type { WishlistItem } from '@/hooks/useWishlist';
 
 export {
   useCurrencyStore,

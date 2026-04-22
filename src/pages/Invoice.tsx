@@ -7,7 +7,13 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
-import { Loader2, AlertTriangle, Printer, ArrowLeft, ShoppingBag } from 'lucide-react';
+import {
+  Loader2,
+  AlertTriangle,
+  Printer,
+  ArrowLeft,
+  ShoppingBag,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { fetchInvoice, InvoiceError } from '@/lib/invoice/generateInvoice';
@@ -35,25 +41,39 @@ const InvoicePage = () => {
         setHtml(html);
       } catch (e) {
         if (cancelled) return;
-        setError(e instanceof InvoiceError ? e.message : 'Erreur lors de la génération.');
+        setError(
+          e instanceof InvoiceError
+            ? e.message
+            : 'Erreur lors de la génération.'
+        );
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [orderId, token]);
 
   // Auto-print when ?print=1 and iframe is ready
   useEffect(() => {
     if (!autoPrint || !html) return;
     const t = setTimeout(() => {
-      try { iframeRef.current?.contentWindow?.print(); } catch { /* ignore */ }
+      try {
+        iframeRef.current?.contentWindow?.print();
+      } catch {
+        /* ignore */
+      }
     }, 600);
     return () => clearTimeout(t);
   }, [autoPrint, html]);
 
   const handlePrint = () => {
-    try { iframeRef.current?.contentWindow?.print(); } catch { /* ignore */ }
+    try {
+      iframeRef.current?.contentWindow?.print();
+    } catch {
+      /* ignore */
+    }
   };
 
   if (loading) {
@@ -61,7 +81,9 @@ const InvoicePage = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-primary mx-auto mb-3 animate-spin" />
-          <p className="text-muted-foreground text-sm">Génération de votre facture…</p>
+          <p className="text-muted-foreground text-sm">
+            Génération de votre facture…
+          </p>
           <p className="text-xs text-muted-foreground/70 mt-1">
             Commande #{(orderId || '').slice(-8).toUpperCase()}
           </p>
@@ -77,16 +99,24 @@ const InvoicePage = () => {
           <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
             <AlertTriangle className="w-7 h-7 text-destructive" />
           </div>
-          <h1 className="font-serif text-2xl text-foreground mb-2">Facture indisponible</h1>
+          <h1 className="font-serif text-2xl text-foreground mb-2">
+            Facture indisponible
+          </h1>
           <p className="text-sm text-muted-foreground mb-1">
             Commande{' '}
             <span className="font-mono font-medium text-foreground">
               #{(orderId || '').slice(-8).toUpperCase()}
             </span>
           </p>
-          <p className="text-sm text-destructive mt-4 mb-6">{error || 'Aucun contenu reçu.'}</p>
+          <p className="text-sm text-destructive mt-4 mb-6">
+            {error || 'Aucun contenu reçu.'}
+          </p>
           <div className="flex flex-col sm:flex-row gap-2 justify-center">
-            <Button onClick={() => window.location.reload()} variant="outline" size="sm">
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+              size="sm"
+            >
               Réessayer
             </Button>
             <Button asChild variant="secondary" size="sm">
@@ -95,7 +125,10 @@ const InvoicePage = () => {
           </div>
           <p className="text-xs text-muted-foreground mt-6">
             Aide :{' '}
-            <a className="text-primary underline" href="mailto:contact@rifelegance.com">
+            <a
+              className="text-primary underline"
+              href="mailto:contact@rifelegance.com"
+            >
               contact@rifelegance.com
             </a>
           </p>

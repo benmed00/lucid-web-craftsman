@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  deleteTagTranslationById,
+  fetchAllTagTranslations,
+  insertTagTranslation,
+  updateTagTranslationById,
+} from '@/services/tagTranslationsApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -73,11 +78,7 @@ const AdminTags = () => {
   const { data: tags, isLoading } = useQuery({
     queryKey: ['admin-tag-translations'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('tag_translations')
-        .select('*')
-        .order('tag_key');
-      if (error) throw error;
+      const data = await fetchAllTagTranslations();
       return data as TagTranslation[];
     },
   });
@@ -85,7 +86,7 @@ const AdminTags = () => {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: TagFormData) => {
-      const { error } = await supabase.from('tag_translations').insert({
+      await insertTagTranslation({
         tag_key: data.tag_key,
         fr: data.fr,
         en: data.en || null,
@@ -93,7 +94,6 @@ const AdminTags = () => {
         es: data.es || null,
         de: data.de || null,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-tag-translations'] });
@@ -109,18 +109,14 @@ const AdminTags = () => {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: TagFormData }) => {
-      const { error } = await supabase
-        .from('tag_translations')
-        .update({
-          tag_key: data.tag_key,
-          fr: data.fr,
-          en: data.en || null,
-          ar: data.ar || null,
-          es: data.es || null,
-          de: data.de || null,
-        })
-        .eq('id', id);
-      if (error) throw error;
+      await updateTagTranslationById(id, {
+        tag_key: data.tag_key,
+        fr: data.fr,
+        en: data.en || null,
+        ar: data.ar || null,
+        es: data.es || null,
+        de: data.de || null,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-tag-translations'] });
@@ -136,11 +132,7 @@ const AdminTags = () => {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('tag_translations')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
+      await deleteTagTranslationById(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-tag-translations'] });

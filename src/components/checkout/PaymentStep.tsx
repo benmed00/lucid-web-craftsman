@@ -173,7 +173,8 @@ const PaymentStep = ({
           <div>
             <p className="font-medium">{paymentError}</p>
             <p className="text-destructive/70 mt-1">
-              Vous pouvez réessayer en toute sécurité — aucun montant n'a été débité.
+              Vous pouvez réessayer en toute sécurité — aucun montant n'a été
+              débité.
             </p>
           </div>
         </div>

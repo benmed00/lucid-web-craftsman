@@ -1,6 +1,9 @@
 // Extracted profile management logic from AuthContext
 import { useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchProfileFullById,
+  updateProfileReturnRow,
+} from '@/services/profileApi';
 import type { Profile } from './AuthContext';
 
 // ============= Profile Cache =============
@@ -50,16 +53,7 @@ export function useProfileActions(
       }
 
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', uid)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          throw error;
-        }
-
+        const data = await fetchProfileFullById(uid);
         const profile = data as Profile | null;
         profileCache.set(uid, profile);
         setProfile(profile);
@@ -76,14 +70,10 @@ export function useProfileActions(
     async (profileData: Partial<Profile>): Promise<Profile> => {
       if (!userId) throw new Error('No user logged in');
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(profileData)
-        .eq('id', userId)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const data = await updateProfileReturnRow(
+        userId,
+        profileData as Record<string, unknown>
+      );
 
       const profile = data as Profile;
       profileCache.set(userId, profile);

@@ -1,5 +1,7 @@
 # Supabase Production Security Checklist
 
+**Doc hub:** [Documentation index](../README.md) · [Engineering standards](../STANDARDS.md).
+
 Use this checklist before every production deployment.
 
 ## Database / RLS

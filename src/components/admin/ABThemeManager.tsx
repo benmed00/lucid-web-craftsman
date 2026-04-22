@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchLatestAbThemeTest,
+  updateAbThemeTestById,
+  resetAbThemeTestCounters,
+} from '@/services/adminAbThemeTestsApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -35,26 +39,19 @@ const ABThemeManager = () => {
   const { data: test, isLoading } = useQuery<ABTest | null>({
     queryKey: ['ab-theme-test-admin'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ab_theme_tests')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) setSplit((data as ABTest).split_percentage);
-      return data as ABTest | null;
+      const data = await fetchLatestAbThemeTest();
+      if (data) setSplit((data as unknown as ABTest).split_percentage);
+      return (data as unknown as ABTest) ?? null;
     },
   });
 
   const toggleMutation = useMutation({
     mutationFn: async (active: boolean) => {
       if (!test) return;
-      const { error } = await supabase
-        .from('ab_theme_tests')
-        .update({ is_active: active, split_percentage: split })
-        .eq('id', test.id);
-      if (error) throw error;
+      await updateAbThemeTestById(test.id, {
+        is_active: active,
+        split_percentage: split,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ab-theme-test-admin'] });
@@ -65,18 +62,7 @@ const ABThemeManager = () => {
   const resetMutation = useMutation({
     mutationFn: async () => {
       if (!test) return;
-      const { error } = await supabase
-        .from('ab_theme_tests')
-        .update({
-          variant_a_views: 0,
-          variant_b_views: 0,
-          variant_a_add_to_cart: 0,
-          variant_b_add_to_cart: 0,
-          variant_a_checkout: 0,
-          variant_b_checkout: 0,
-        })
-        .eq('id', test.id);
-      if (error) throw error;
+      await resetAbThemeTestCounters(test.id);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ab-theme-test-admin'] });
@@ -84,7 +70,8 @@ const ABThemeManager = () => {
     },
   });
 
-  if (isLoading) return <div className="animate-pulse h-48 bg-muted rounded-lg" />;
+  if (isLoading)
+    return <div className="animate-pulse h-48 bg-muted rounded-lg" />;
   if (!test) return null;
 
   const totalA = test.variant_a_views;
@@ -135,14 +122,16 @@ const ABThemeManager = () => {
               </span>
             </div>
             <div className="space-y-1 text-sm">
-              <p>Vues : <strong>{totalA}</strong></p>
               <p>
-                Ajouts panier : <strong>{test.variant_a_add_to_cart}</strong>{' '}
-                ({pct(test.variant_a_add_to_cart, totalA)})
+                Vues : <strong>{totalA}</strong>
               </p>
               <p>
-                Checkouts : <strong>{test.variant_a_checkout}</strong>{' '}
-                ({pct(test.variant_a_checkout, totalA)})
+                Ajouts panier : <strong>{test.variant_a_add_to_cart}</strong> (
+                {pct(test.variant_a_add_to_cart, totalA)})
+              </p>
+              <p>
+                Checkouts : <strong>{test.variant_a_checkout}</strong> (
+                {pct(test.variant_a_checkout, totalA)})
               </p>
             </div>
           </div>
@@ -155,14 +144,16 @@ const ABThemeManager = () => {
               </span>
             </div>
             <div className="space-y-1 text-sm">
-              <p>Vues : <strong>{totalB}</strong></p>
               <p>
-                Ajouts panier : <strong>{test.variant_b_add_to_cart}</strong>{' '}
-                ({pct(test.variant_b_add_to_cart, totalB)})
+                Vues : <strong>{totalB}</strong>
               </p>
               <p>
-                Checkouts : <strong>{test.variant_b_checkout}</strong>{' '}
-                ({pct(test.variant_b_checkout, totalB)})
+                Ajouts panier : <strong>{test.variant_b_add_to_cart}</strong> (
+                {pct(test.variant_b_add_to_cart, totalB)})
+              </p>
+              <p>
+                Checkouts : <strong>{test.variant_b_checkout}</strong> (
+                {pct(test.variant_b_checkout, totalB)})
               </p>
             </div>
           </div>

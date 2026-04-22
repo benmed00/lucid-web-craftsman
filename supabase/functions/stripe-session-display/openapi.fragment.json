@@ -1,0 +1,42 @@
+{
+  "summary": "Stripe Checkout session display (no DB writes)",
+  "requestBody": {
+    "required": true,
+    "content": {
+      "application/json": {
+        "schema": {
+          "type": "object",
+          "required": ["session_id"],
+          "properties": {
+            "session_id": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "responses": {
+    "200": {
+      "description": "ok, payment_status, line items summary",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "ok": { "type": "boolean" },
+              "session_id": { "type": "string" },
+              "payment_status": { "type": "string" },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      }
+    }
+  }
+}

@@ -4,13 +4,13 @@
  * No auth required: the order_id UUID is itself unguessable, and the token
  * is short-lived. Returns 404 if order doesn't exist (avoids token-as-oracle).
  */
-// @ts-nocheck
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { signOrderToken } from '../_shared/invoice/token.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
@@ -26,7 +26,8 @@ function json(body: unknown, status = 200) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+  if (req.method === 'OPTIONS')
+    return new Response(null, { headers: corsHeaders });
 
   try {
     const { order_id } = await req.json();
@@ -41,23 +42,49 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (error) {
-      console.error(JSON.stringify({ fn: 'sign-order-token', step: 'db_query', order_id, reason: error.message }));
+      console.error(
+        JSON.stringify({
+          fn: 'sign-order-token',
+          step: 'db_query',
+          order_id,
+          reason: error.message,
+        })
+      );
       return json({ error: 'Database error' }, 500);
     }
     if (!order) {
-      console.warn(JSON.stringify({ fn: 'sign-order-token', step: 'lookup', order_id, reason: 'not_found' }));
+      console.warn(
+        JSON.stringify({
+          fn: 'sign-order-token',
+          step: 'lookup',
+          order_id,
+          reason: 'not_found',
+        })
+      );
       return json({ error: 'Order not found' }, 404);
     }
 
     // Only issue tokens for orders that have actually been paid / progressed.
-    const ALLOWED = new Set(['paid', 'processing', 'completed', 'shipped', 'delivered']);
+    const ALLOWED = new Set([
+      'paid',
+      'processing',
+      'completed',
+      'shipped',
+      'delivered',
+    ]);
     const status = (order.status || '').toLowerCase();
     const orderStatus = (order.order_status || '').toLowerCase();
     if (!ALLOWED.has(status) && !ALLOWED.has(orderStatus)) {
-      console.warn(JSON.stringify({
-        fn: 'sign-order-token', step: 'status_gate', order_id,
-        reason: 'order_not_paid', status, order_status: orderStatus,
-      }));
+      console.warn(
+        JSON.stringify({
+          fn: 'sign-order-token',
+          step: 'status_gate',
+          order_id,
+          reason: 'order_not_paid',
+          status,
+          order_status: orderStatus,
+        })
+      );
       return json({ error: 'Order not ready' }, 409);
     }
 

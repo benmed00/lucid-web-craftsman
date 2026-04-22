@@ -21,7 +21,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Plus, Save } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { insertAdminProductRow } from '@/services/adminProductsApi';
 import { toast } from 'sonner';
 import { ProductImageManager } from './ProductImageManager';
 
@@ -142,9 +142,7 @@ export const ProductFormWithImages = ({
         images: formData.images,
       };
 
-      const { error } = await supabase.from('products').insert(productData);
-
-      if (error) throw error;
+      await insertAdminProductRow(productData);
 
       toast.success('Produit créé avec succès');
 

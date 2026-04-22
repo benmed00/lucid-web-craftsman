@@ -40,7 +40,15 @@ import {
   Package,
   ShoppingCart,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchAllProfilesOrdered,
+  fetchCartItemsByUserId,
+  fetchCustomerOrdersWithItems,
+  fetchLoyaltyPointsAll,
+  fetchOrdersForCustomerStats,
+  rpcGetUserEmailsForAdmin,
+} from '@/services/adminCustomersApi';
+import { fetchProductsIdNamePriceByIds } from '@/services/adminOrderCommandApi';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -140,40 +148,26 @@ const AdminCustomers = () => {
       setLoading(true);
 
       // Batch fetch: profiles + all orders + loyalty points in parallel
-      const [profilesRes, ordersRes, loyaltyRes] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('orders')
-          .select('id, user_id, amount, status, order_status, created_at'),
-        supabase
-          .from('loyalty_points')
-          .select('user_id, points_balance, tier, total_points_earned'),
+      const [profilesData, ordersData, loyaltyData] = await Promise.all([
+        fetchAllProfilesOrdered(),
+        fetchOrdersForCustomerStats(),
+        fetchLoyaltyPointsAll(),
       ]);
 
-      if (profilesRes.error) throw profilesRes.error;
-
       // Fetch emails for all profile IDs via admin RPC
-      const profileIds = (profilesRes.data || []).map((p) => p.id);
+      const profileIds = (profilesData || []).map((p) => p.id);
       const emailsByUser = new Map<string, string>();
 
       if (profileIds.length > 0) {
-        const { data: emailData } = await supabase.rpc(
-          'get_user_emails_for_admin',
-          {
-            p_user_ids: profileIds,
-          }
-        );
+        const { data: emailData } = await rpcGetUserEmailsForAdmin(profileIds);
         (emailData || []).forEach((e: { user_id: string; email: string }) => {
           emailsByUser.set(e.user_id, e.email);
         });
       }
 
       // Index orders by user_id
-      const ordersByUser = new Map<string, typeof ordersRes.data>();
-      (ordersRes.data || []).forEach((order) => {
+      const ordersByUser = new Map<string, typeof ordersData>();
+      (ordersData || []).forEach((order) => {
         if (!order.user_id) return;
         const existing = ordersByUser.get(order.user_id) || [];
         existing.push(order);
@@ -182,7 +176,7 @@ const AdminCustomers = () => {
 
       // Index loyalty by user_id
       const loyaltyByUser = new Map<string, LoyaltyInfo>();
-      (loyaltyRes.data || []).forEach((lp) => {
+      (loyaltyData || []).forEach((lp) => {
         loyaltyByUser.set(lp.user_id, {
           points_balance: lp.points_balance,
           tier: lp.tier,
@@ -190,7 +184,7 @@ const AdminCustomers = () => {
         });
       });
 
-      const customersWithStats = (profilesRes.data || []).map((profile) => {
+      const customersWithStats = (profilesData || []).map((profile) => {
         const userOrders = ordersByUser.get(profile.id) || [];
         // Revenue-countable statuses (exclude cancelled/failed/refunded)
         const revenueStatuses = [
@@ -267,25 +261,12 @@ const AdminCustomers = () => {
     setDetailLoading(true);
 
     try {
-      const [ordersRes, cartRes] = await Promise.all([
-        supabase
-          .from('orders')
-          .select(
-            `
-            id, amount, status, order_status, created_at, payment_method, tracking_number, carrier,
-            order_items (id, product_id, quantity, unit_price, total_price, product_snapshot)
-          `
-          )
-          .eq('user_id', customer.id)
-          .order('created_at', { ascending: false })
-          .limit(30),
-        supabase
-          .from('cart_items')
-          .select('id, product_id, quantity, created_at')
-          .eq('user_id', customer.id),
+      const [ordersRaw, cartRes] = await Promise.all([
+        fetchCustomerOrdersWithItems(customer.id, 30),
+        fetchCartItemsByUserId(customer.id),
       ]);
 
-      const orders: CustomerOrder[] = (ordersRes.data || []).map(
+      const orders: CustomerOrder[] = (ordersRaw || []).map(
         (o: Record<string, unknown>) => ({
           id: o.id as string,
           amount: o.amount as number | null,
@@ -300,7 +281,7 @@ const AdminCustomers = () => {
       );
 
       // Enrich cart items with product names from products table
-      let cartItems: CartItem[] = (cartRes.data || []).map((c) => ({
+      let cartItems: CartItem[] = (cartRes || []).map((c) => ({
         id: c.id,
         product_id: c.product_id,
         quantity: c.quantity,
@@ -312,10 +293,7 @@ const AdminCustomers = () => {
           .map((c) => c.product_id)
           .filter(Boolean) as number[];
         if (productIds.length > 0) {
-          const { data: products } = await supabase
-            .from('products')
-            .select('id, name, price')
-            .in('id', productIds);
+          const products = await fetchProductsIdNamePriceByIds(productIds);
           const productMap = new Map(
             (products || []).map((p) => [
               p.id,

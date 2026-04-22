@@ -5,7 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
+import {
+  insertNewsletterSubscription,
+  invokeNewsletterWelcome,
+} from '@/services/newsletterApi';
 import { toast } from 'sonner';
 import {
   Tooltip,
@@ -52,7 +56,7 @@ const NewsletterSubscription = ({
     try {
       const normalizedEmail = email.trim().toLowerCase();
 
-      const { error } = await supabase.from('newsletter_subscriptions').insert({
+      const { error } = await insertNewsletterSubscription({
         email: normalizedEmail,
         status: 'active',
         consent_given: true,
@@ -65,7 +69,7 @@ const NewsletterSubscription = ({
           subscription_variant: variant,
           user_agent: navigator.userAgent,
           timestamp: Date.now(),
-        },
+        } as Json,
       });
 
       if (error) {
@@ -83,13 +87,7 @@ const NewsletterSubscription = ({
         toast.success(t('newsletter.success'));
 
         // Send welcome email via Brevo (fire-and-forget)
-        supabase.functions
-          .invoke('send-newsletter-welcome', {
-            body: { email: normalizedEmail },
-          })
-          .then(({ error: emailErr }) => {
-            if (emailErr) console.error('Welcome email error:', emailErr);
-          });
+        void invokeNewsletterWelcome(normalizedEmail);
 
         setTimeout(() => setIsSubscribed(false), 5000);
       }

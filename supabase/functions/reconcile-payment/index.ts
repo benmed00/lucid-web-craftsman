@@ -7,7 +7,11 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@18.5.0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.2';
-import { confirmOrderFromStripe, sendConfirmationEmail } from '../_shared/confirm-order.ts';
+import {
+  confirmOrderFromStripe,
+  sendConfirmationEmail,
+} from '../_shared/confirm-order.ts';
+import { persistPricingSnapshot } from '../_shared/persist-pricing-snapshot.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,7 +42,10 @@ serve(async (req) => {
     if (!orderId) {
       return new Response(
         JSON.stringify({ success: false, error: 'Missing order_id' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
       );
     }
 
@@ -49,7 +56,9 @@ serve(async (req) => {
     // ================================================================
     const { data: existingOrder, error: fetchError } = await supabaseService
       .from('orders')
-      .select('id, status, order_status, stripe_session_id, amount, currency, metadata')
+      .select(
+        'id, status, order_status, stripe_session_id, amount, currency, metadata'
+      )
       .eq('id', orderId)
       .maybeSingle();
 
@@ -57,19 +66,31 @@ serve(async (req) => {
       logStep('DB fetch error', { error: fetchError.message });
       return new Response(
         JSON.stringify({ success: false, error: 'Database error' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        }
       );
     }
 
     // Order already paid — idempotent return
-    if (existingOrder && (existingOrder.status === 'paid' || existingOrder.status === 'completed')) {
+    if (
+      existingOrder &&
+      (existingOrder.status === 'paid' || existingOrder.status === 'completed')
+    ) {
       logStep('IDEMPOTENT: Order already paid', { orderId });
       return new Response(
         JSON.stringify({
-          success: true, reconciled: false, order_id: existingOrder.id,
-          status: existingOrder.status, message: 'Order already confirmed',
+          success: true,
+          reconciled: false,
+          order_id: existingOrder.id,
+          status: existingOrder.status,
+          message: 'Order already confirmed',
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
       );
     }
 
@@ -77,27 +98,47 @@ serve(async (req) => {
     if (!existingOrder) {
       logStep('Order not found in database', { orderId });
       return new Response(
-        JSON.stringify({ success: false, reconciled: false, error: 'Order not found', order_id: orderId }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        JSON.stringify({
+          success: false,
+          reconciled: false,
+          error: 'Order not found',
+          order_id: orderId,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
       );
     }
 
     // No Stripe session to reconcile with
     if (!existingOrder.stripe_session_id) {
-      logStep('No Stripe session to reconcile', { orderId, status: existingOrder.status });
+      logStep('No Stripe session to reconcile', {
+        orderId,
+        status: existingOrder.status,
+      });
       return new Response(
         JSON.stringify({
-          success: false, reconciled: false, order_id: orderId,
-          status: existingOrder.status, message: 'No Stripe session associated',
+          success: false,
+          reconciled: false,
+          order_id: orderId,
+          status: existingOrder.status,
+          message: 'No Stripe session associated',
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
       );
     }
 
     // ================================================================
     // Step 2: Verify with Stripe
     // ================================================================
-    logStep('Checking Stripe session', { orderId, stripeSessionId: existingOrder.stripe_session_id });
+    logStep('Checking Stripe session', {
+      orderId,
+      stripeSessionId: existingOrder.stripe_session_id,
+    });
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2025-08-27.basil',
@@ -105,27 +146,42 @@ serve(async (req) => {
 
     let session: Stripe.Checkout.Session;
     try {
-      session = await stripe.checkout.sessions.retrieve(existingOrder.stripe_session_id);
+      session = await stripe.checkout.sessions.retrieve(
+        existingOrder.stripe_session_id
+      );
     } catch (stripeErr) {
       logStep('Stripe API error', { error: (stripeErr as Error).message });
       return new Response(
         JSON.stringify({
-          success: false, error: 'Unable to verify with Stripe',
-          order_id: orderId, status: existingOrder.status,
+          success: false,
+          error: 'Unable to verify with Stripe',
+          order_id: orderId,
+          status: existingOrder.status,
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
       );
     }
 
     if (session.payment_status !== 'paid') {
-      logStep('Stripe session not paid', { paymentStatus: session.payment_status });
+      logStep('Stripe session not paid', {
+        paymentStatus: session.payment_status,
+      });
       return new Response(
         JSON.stringify({
-          success: false, reconciled: false, order_id: orderId,
-          status: existingOrder.status, stripe_status: session.payment_status,
+          success: false,
+          reconciled: false,
+          order_id: orderId,
+          status: existingOrder.status,
+          stripe_status: session.payment_status,
           message: 'Payment not yet completed in Stripe',
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
       );
     }
 
@@ -137,7 +193,8 @@ serve(async (req) => {
         ? session.payment_intent
         : (session.payment_intent as any)?.id;
 
-    const correlationId = session.metadata?.correlation_id ||
+    const correlationId =
+      session.metadata?.correlation_id ||
       (existingOrder.metadata as any)?.correlation_id;
 
     const result = await confirmOrderFromStripe(supabaseService, {
@@ -156,22 +213,45 @@ serve(async (req) => {
       logStep('Already processed by another flow');
       return new Response(
         JSON.stringify({
-          success: true, reconciled: false, order_id: orderId,
+          success: true,
+          reconciled: false,
+          order_id: orderId,
           message: 'Order already processed by webhook or verify-payment',
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
       );
     }
 
     if (!result.confirmed) {
       logStep('Reconciliation failed', { error: result.error });
       return new Response(
-        JSON.stringify({ success: false, error: result.error || 'Failed to reconcile' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        JSON.stringify({
+          success: false,
+          error: result.error || 'Failed to reconcile',
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        }
       );
     }
 
     logStep('ORDER RECONCILED SUCCESSFULLY', { orderId });
+
+    // ================================================================
+    // Step 3b: Persist authoritative pricing snapshot from Stripe so the
+    // email and confirmation page read the same totals whichever path
+    // (webhook / verify / reconcile) confirmed the order.
+    // ================================================================
+    await persistPricingSnapshot(supabaseService, stripe, {
+      orderId,
+      session,
+      source: 'reconcile_payment',
+      correlationId,
+    });
 
     // ================================================================
     // Step 4: Send confirmation email (idempotent, non-blocking)
@@ -180,7 +260,9 @@ serve(async (req) => {
     if (customerEmail) {
       const { data: freshOrder } = await supabaseService
         .from('orders')
-        .select('order_items(id, product_id, quantity, unit_price), amount, currency, shipping_address')
+        .select(
+          'order_items(id, product_id, quantity, unit_price), amount, currency, shipping_address'
+        )
         .eq('id', orderId)
         .single();
 
@@ -200,18 +282,23 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        success: true, reconciled: true, order_id: orderId,
-        status: 'paid', message: 'Order successfully reconciled',
+        success: true,
+        reconciled: true,
+        order_id: orderId,
+        status: 'paid',
+        message: 'Order successfully reconciled',
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
     );
-
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     logStep('ERROR', { message: msg });
-    return new Response(
-      JSON.stringify({ success: false, error: msg }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    );
+    return new Response(JSON.stringify({ success: false, error: msg }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500,
+    });
   }
 });

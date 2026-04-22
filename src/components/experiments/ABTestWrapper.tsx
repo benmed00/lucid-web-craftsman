@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
 
 interface ABTestWrapperProps {
   /** Unique experiment name for localStorage persistence */
@@ -15,7 +15,7 @@ interface ABTestWrapperProps {
 
 /**
  * A/B Test Wrapper — deterministic, persistent variant assignment.
- * 
+ *
  * Usage:
  * ```tsx
  * <ABTestWrapper

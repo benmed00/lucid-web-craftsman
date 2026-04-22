@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useDeferredValue } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
-import { supabase } from '@/integrations/supabase/client';
+import { logUserProductSearchActivity } from '@/services/activityApi';
 import { useCachedProductSearch } from './useCachedProductSearch';
 
 export interface AdvancedFilterOptions {
@@ -149,22 +149,14 @@ export const useAdvancedProductFilters = ({
       if (!enableAnalytics) return;
 
       try {
-        // Log to user activity
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          await supabase.rpc('log_user_activity', {
-            p_user_id: user.id,
-            p_activity_type: 'PRODUCT_SEARCH',
-            p_description: `Searched for "${analytics.searchQuery}" with filters`,
-            p_metadata: {
-              filters: analytics.filters,
-              resultCount: analytics.resultCount,
-              timestamp: analytics.timestamp,
-            },
-          });
-        }
+        await logUserProductSearchActivity({
+          description: `Searched for "${analytics.searchQuery}" with filters`,
+          metadata: {
+            filters: analytics.filters,
+            resultCount: analytics.resultCount,
+            timestamp: analytics.timestamp,
+          },
+        });
 
         // Track popular search terms and filters
         if (analytics.searchQuery.trim()) {

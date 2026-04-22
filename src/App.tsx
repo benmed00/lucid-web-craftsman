@@ -9,7 +9,8 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { setNavigate } from '@/lib/navigation';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import { useWebVitals } from '@/hooks/useWebVitals';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { lazy, Suspense, useEffect } from 'react';
@@ -59,7 +60,12 @@ const CGV = lazyWithRetry(() => import('./pages/CGV'));
 const Cart = lazyWithRetry(() => import('./pages/Cart'));
 const Checkout = lazyWithRetry(() => import('./pages/Checkout'));
 const Contact = lazyWithRetry(() => import('./pages/Contact'));
-const OrderConfirmation = lazyWithRetry(() => import('./pages/OrderConfirmation'));
+const OrderConfirmationEntry = lazyWithRetry(
+  () => import('./pages/OrderConfirmationEntry')
+);
+const OrderConfirmation = lazyWithRetry(
+  () => import('./pages/OrderConfirmation')
+);
 const Invoice = lazyWithRetry(() => import('./pages/Invoice'));
 // Legacy route — kept for backward-compatible redirect
 const PaymentSuccess = lazyWithRetry(() => import('./pages/PaymentSuccess'));
@@ -165,31 +171,6 @@ const PageLoadingFallback = () => (
     </div>
   </div>
 );
-
-// Optimized React Query configuration
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 10, // 10 minutes cache retention
-      retry: 2,
-      retryDelay: (attempt: number) =>
-        Math.min(1000 * Math.pow(2, attempt), 8000),
-      refetchOnWindowFocus: false,
-      refetchOnMount: true,
-      refetchOnReconnect: true,
-      // IMPORTANT: 'always' ensures queries fire even when navigator.onLine
-      // is false (common in iframe/preview environments like Lovable).
-      // Without this, React Query pauses all queries and the UI shows
-      // infinite skeletons / SafetyTimeout errors.
-      networkMode: 'always',
-    },
-    mutations: {
-      retry: 0,
-      networkMode: 'always',
-    },
-  },
-});
 
 const basePath: string = '/';
 
@@ -357,7 +338,7 @@ const App = () => {
                         path="/order-confirmation"
                         element={
                           <Suspense fallback={<PageLoadingFallback />}>
-                            <OrderConfirmation />
+                            <OrderConfirmationEntry />
                           </Suspense>
                         }
                       />
@@ -375,6 +356,14 @@ const App = () => {
                         element={
                           <Suspense fallback={<PageLoadingFallback />}>
                             <PaymentSuccess />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/order-confirmation/:orderReference"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <OrderConfirmation />
                           </Suspense>
                         }
                       />
@@ -707,12 +696,12 @@ const App = () => {
                       />
                     </Routes>
                   </MaintenanceWrapper>
-                </BrowserRouter>
 
-                {/* Newsletter exit-intent popup */}
-                <Suspense fallback={null}>
-                  <NewsletterExitIntent />
-                </Suspense>
+                  {/* Inside Router so exit-intent can follow pathname (suppress on /checkout, etc.) */}
+                  <Suspense fallback={null}>
+                    <NewsletterExitIntent />
+                  </Suspense>
+                </BrowserRouter>
 
                 {/* Système de notifications */}
                 <Toaster />
@@ -723,10 +712,13 @@ const App = () => {
                   <TTIOptimizer />
                 </Suspense>
 
-                {/* Devtools React Query (en développement seulement) */}
-                {import.meta.env.DEV && (
-                  <ReactQueryDevtools initialIsOpen={false} />
-                )}
+                {/* Devtools: omit in E2E (VITE_E2E) and when Cypress runs the app — avoids floating control vs. selectors */}
+                {import.meta.env.DEV &&
+                  import.meta.env.VITE_E2E !== '1' &&
+                  typeof window !== 'undefined' &&
+                  !(window as unknown as { Cypress?: unknown }).Cypress && (
+                    <ReactQueryDevtools initialIsOpen={false} />
+                  )}
               </TooltipProvider>
             </AuthProvider>
           </OfflineManager>

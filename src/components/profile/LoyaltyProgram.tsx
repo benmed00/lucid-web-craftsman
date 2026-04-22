@@ -17,7 +17,14 @@ import {
   ShoppingCart,
   Sparkles,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  addLoyaltyPointsRpc,
+  fetchActiveLoyaltyRewards,
+  fetchLoyaltyPointsRow,
+  fetchLoyaltyTransactions,
+  initLoyaltyAccountRpc,
+  insertLoyaltyRedemption,
+} from '@/services/loyaltyApi';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -65,48 +72,31 @@ interface LoyaltyProgramProps {
 async function fetchLoyaltyData(userId: string) {
   let pointsData: LoyaltyPoints | null = null;
 
-  const { data, error } = await supabase
-    .from('loyalty_points')
-    .select('*')
-    .eq('user_id', userId)
-    .maybeSingle();
-
-  if (error) console.error('Error loading loyalty points:', error);
-
-  if (!data) {
-    // Try to initialize loyalty account
-    try {
-      await supabase.rpc('init_loyalty_account', { p_user_id: userId });
-      const { data: newData } = await supabase
-        .from('loyalty_points')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-      pointsData = newData;
-    } catch (e) {
-      console.error('Error initializing loyalty account:', e);
+  try {
+    const data = await fetchLoyaltyPointsRow(userId);
+    if (!data) {
+      try {
+        await initLoyaltyAccountRpc(userId);
+        pointsData = (await fetchLoyaltyPointsRow(
+          userId
+        )) as LoyaltyPoints | null;
+      } catch (e) {
+        console.error('Error initializing loyalty account:', e);
+      }
+    } else {
+      pointsData = data as LoyaltyPoints;
     }
-  } else {
-    pointsData = data;
+  } catch (e) {
+    console.error('Error loading loyalty points:', e);
   }
 
-  const { data: transactionsData } = await supabase
-    .from('loyalty_transactions')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(10);
-
-  const { data: rewardsData } = await supabase
-    .from('loyalty_rewards')
-    .select('*')
-    .eq('is_active', true)
-    .order('points_cost', { ascending: true });
+  const transactionsData = await fetchLoyaltyTransactions(userId, 10);
+  const rewardsData = await fetchActiveLoyaltyRewards();
 
   return {
     loyaltyData: pointsData,
-    transactions: (transactionsData || []) as LoyaltyTransaction[],
-    rewards: (rewardsData || []) as LoyaltyReward[],
+    transactions: transactionsData as LoyaltyTransaction[],
+    rewards: rewardsData as LoyaltyReward[],
   };
 }
 
@@ -163,16 +153,14 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
 
     setIsRedeeming(reward.id);
     try {
-      const { error } = await supabase.from('loyalty_redemptions').insert({
+      await insertLoyaltyRedemption({
         user_id: user.id,
         reward_id: reward.id,
         points_spent: reward.points_cost,
         status: 'pending',
       });
 
-      if (error) throw error;
-
-      await supabase.rpc('add_loyalty_points', {
+      await addLoyaltyPointsRpc({
         p_user_id: user.id,
         p_points: -reward.points_cost,
         p_source_type: 'redemption',

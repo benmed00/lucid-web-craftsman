@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Bell, Loader2, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
 
 interface AlertResult {
@@ -43,11 +43,9 @@ const PromoAlertChecker = () => {
     setResult(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke(
+      const { data, error } = await invokeSupabaseEdgeFunction(
         'check-promo-alerts',
-        {
-          body: config,
-        }
+        config as Record<string, unknown>
       );
 
       if (error) throw error;

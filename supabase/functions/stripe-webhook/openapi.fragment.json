@@ -1,0 +1,32 @@
+{
+  "summary": "Stripe webhook (signed events)",
+  "description": "Raw Stripe event payload; requires Stripe-Signature header. Typically called by Stripe, not the browser.",
+  "requestBody": {
+    "required": true,
+    "content": {
+      "application/json": {
+        "schema": {
+          "type": "object",
+          "description": "Stripe Event object",
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "responses": {
+    "200": {
+      "description": "Acknowledged",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "400": {
+      "description": "Invalid signature or payload"
+    }
+  }
+}

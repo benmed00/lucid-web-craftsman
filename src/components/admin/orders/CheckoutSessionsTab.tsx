@@ -47,7 +47,7 @@ import {
   ExternalLink,
   RefreshCw,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchCheckoutSessionsAdmin } from '@/services/adminOrderUiApi';
 import { useQuery } from '@tanstack/react-query';
 
 // Types
@@ -171,18 +171,7 @@ export function CheckoutSessionsTab() {
   } = useQuery({
     queryKey: ['checkout-sessions', statusFilter],
     queryFn: async () => {
-      let query = supabase
-        .from('checkout_sessions')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
+      const data = await fetchCheckoutSessionsAdmin(statusFilter, 100);
 
       // Map database types to component types
       return (data || []).map((row) => ({

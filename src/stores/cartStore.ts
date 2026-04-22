@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
-import { supabase } from '@/integrations/supabase/client';
+import { getAuthUser, onAuthStateChange } from '@/services/cartApi';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import {
   safeSetItem,
@@ -23,6 +23,12 @@ import {
   processOfflineQueue,
   createQueueOperation,
 } from '@/hooks/useCartSync';
+import {
+  resolveCartSyncPolicy,
+  invalidateCartSyncPolicyCache,
+  isSupabaseCartSyncAllowed,
+  getCartPersistStorageName,
+} from '@/lib/cart/cartSyncPolicy';
 
 // Re-export types
 export type { CartItem, QueueOperation };
@@ -148,9 +154,9 @@ export const useCartStore = create<CartState>()(
             get().triggerSave();
 
             // A/B conversion tracking (fire-and-forget)
-            import('@/hooks/useABThemeTest').then(({ trackABConversion }) =>
-              trackABConversion('add_to_cart')
-            ).catch(() => {});
+            import('@/hooks/useABThemeTest')
+              .then(({ trackABConversion }) => trackABConversion('add_to_cart'))
+              .catch(() => {});
           },
 
           removeItem: (productId) => {
@@ -228,9 +234,15 @@ export const useCartStore = create<CartState>()(
               return;
             }
 
-            const {
-              data: { user },
-            } = await supabase.auth.getUser();
+            if (!isSupabaseCartSyncAllowed()) {
+              toast.info('Panier local', {
+                description:
+                  'La synchronisation cloud est désactivée pour les comptes administrateur sur la boutique.',
+              });
+              return;
+            }
+
+            const user = await getAuthUser();
             if (!user) return;
 
             set({ isSyncing: true });
@@ -292,6 +304,7 @@ export const useCartStore = create<CartState>()(
         }),
         {
           name: 'cart-storage',
+          skipHydration: true,
           version: 2,
           partialize: (state) => ({
             items: state.items.map((item) => ({
@@ -492,11 +505,9 @@ export function initializeCartStore() {
       const { isOnline, items, isInitialized } = useCartStore.getState();
       if (!isInitialized) return;
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await getAuthUser();
 
-      if (user && isOnline) {
+      if (user && isOnline && isSupabaseCartSyncAllowed()) {
         await saveToSupabase(user.id, items, isOnline);
       } else {
         safeSetItem(StorageKeys.CART, { items }, { ttl: StorageTTL.WEEK });
@@ -513,8 +524,12 @@ export function initializeCartStore() {
     toast.success('Connexion rétablie');
 
     const { isAuthenticated, offlineQueue } = useCartStore.getState();
-    if (isAuthenticated && offlineQueue.length > 0) {
-      supabase.auth.getUser().then(({ data: { user } }) => {
+    if (
+      isAuthenticated &&
+      offlineQueue.length > 0 &&
+      isSupabaseCartSyncAllowed()
+    ) {
+      void getAuthUser().then((user) => {
         if (user) {
           processOfflineQueue(user.id, offlineQueue).then(({ failed }) => {
             if (failed.length === 0) {
@@ -533,58 +548,79 @@ export function initializeCartStore() {
   });
 
   // Auth state listener
-  supabase.auth.onAuthStateChange(async (event, session) => {
+  onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
+      await resolveCartSyncPolicy(session.user.id);
+      useCartStore.persist.setOptions({
+        name: getCartPersistStorageName(),
+      });
+      await useCartStore.persist.rehydrate();
+
       useCartStore.setState({ isAuthenticated: true, isSyncing: true });
 
       try {
-        const localItems = useCartStore.getState().items;
-        const mergedItems = await loadAndMergeSupabaseCart(
-          session.user.id,
-          localItems
-        );
-        useCartStore.setState({ items: mergedItems });
+        if (isSupabaseCartSyncAllowed()) {
+          const localItems = useCartStore.getState().items;
+          const mergedItems = await loadAndMergeSupabaseCart(
+            session.user.id,
+            localItems
+          );
+          useCartStore.setState({ items: mergedItems });
 
-        if (mergedItems.length > 0) {
-          await saveToSupabase(session.user.id, mergedItems, true);
-          safeRemoveItem(StorageKeys.CART);
+          if (mergedItems.length > 0) {
+            await saveToSupabase(session.user.id, mergedItems, true);
+            safeRemoveItem(StorageKeys.CART);
+          }
         }
       } finally {
         useCartStore.setState({ isSyncing: false });
       }
     } else if (event === 'SIGNED_OUT') {
+      invalidateCartSyncPolicyCache();
+      await resolveCartSyncPolicy(null);
+      useCartStore.persist.setOptions({ name: 'cart-storage' });
       useCartStore.setState({
         isAuthenticated: false,
         items: [],
-        isInitialized: false,
+        offlineQueue: [],
+        isInitialized: true,
       });
       safeRemoveItem(StorageKeys.CART);
       useCartStore.getState()._clearQueue();
     }
   });
 
-  // Initial load
+  // Initial load — resolve admin vs customer cart bucket before rehydrating persist
   (async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getAuthUser();
+
+    await resolveCartSyncPolicy(user?.id ?? null);
+    useCartStore.persist.setOptions({
+      name: getCartPersistStorageName(),
+    });
+    await useCartStore.persist.rehydrate();
 
     if (user) {
       useCartStore.setState({ isAuthenticated: true, isSyncing: true });
       try {
-        const localItems = await loadLocalCart();
-        const mergedItems = await loadAndMergeSupabaseCart(user.id, localItems);
-        useCartStore.setState({ items: mergedItems });
+        if (isSupabaseCartSyncAllowed()) {
+          const localItems = await loadLocalCart();
+          const mergedItems = await loadAndMergeSupabaseCart(
+            user.id,
+            localItems
+          );
+          useCartStore.setState({ items: mergedItems });
 
-        if (mergedItems.length > 0) {
-          await saveToSupabase(user.id, mergedItems, true);
-          safeRemoveItem(StorageKeys.CART);
+          if (mergedItems.length > 0) {
+            await saveToSupabase(user.id, mergedItems, true);
+            safeRemoveItem(StorageKeys.CART);
+          }
         }
       } finally {
         useCartStore.setState({ isSyncing: false });
       }
     } else {
-      const localItems = await loadLocalCart();
+      const localItems: CartItem[] = await loadLocalCart();
       if (localItems.length > 0) {
         useCartStore.setState({ items: localItems });
       }
@@ -594,41 +630,117 @@ export function initializeCartStore() {
   })();
 }
 
-// Compatibility hook
-export function useCart() {
-  const rawItems = useCartStore((state) => state.items);
-  const isOnline = useCartStore((state) => state.isOnline);
-  const isAuthenticated = useCartStore((state) => state.isAuthenticated);
-  const isSyncing = useCartStore((state) => state.isSyncing);
-  const offlineQueue = useCartStore((state) => state.offlineQueue);
+/**
+ * Public return type of {@link useCart}: only {@link CartState} field picks + {@link CartItem}
+ * view-models — no parallel cart domain interface.
+ *
+ * - **Actions** — same signatures as on {@link CartState} (`updateItemQuantity` is an alias name
+ *   for `updateQuantity` for historical API compatibility).
+ * - **`cart` / `items` / `totalPrice`** — derived like {@link selectCartItems} /
+ *   {@link selectTotalPrice}: only lines with a resolved `product` count toward totals.
+ * - **`hasPendingProductResolution`** — `true` when persist rehydrated `{ id, quantity }` rows
+ *   and batch `loadProductsForCartItems` has not yet attached `product` (UI should wait, not show
+ *   “empty cart”).
+ * - **`pendingOperations`** — `offlineQueue.length` from {@link CartState.offlineQueue}.
+ */
+export type UseCartReturn = Pick<
+  CartState,
+  | 'isOnline'
+  | 'isAuthenticated'
+  | 'isSyncing'
+  | 'addItem'
+  | 'removeItem'
+  | 'clearCart'
+  | 'syncNow'
+> & {
+  /** Subtotal view for header/checkout: valid lines only (mirrors selector logic below). */
+  cart: { items: CartItem[]; totalPrice: number };
+  /** Convenience alias of `cart.items` for list renderers. */
+  items: CartItem[];
+  hasPendingProductResolution: boolean;
+  itemCount: number;
+  totalPrice: number;
+  pendingOperations: number;
+  /** Same function as {@link CartState.updateQuantity}; legacy name on the hook surface. */
+  updateItemQuantity: CartState['updateQuantity'];
+  dispatch: () => void;
+};
 
-  const addItem = useCartStore((state) => state.addItem);
-  const removeItem = useCartStore((state) => state.removeItem);
-  const updateQuantity = useCartStore((state) => state.updateQuantity);
-  const clearCart = useCartStore((state) => state.clearCart);
-  const syncNow = useCartStore((state) => state.syncNow);
+/**
+ * React-facing facade over {@link useCartStore}: subscribes to raw `items` and exposes **valid**
+ * cart lines (hydrated `product`), derived totals/flags, and store actions.
+ *
+ * Prefer this in components; use {@link useCartStore} only when you need internal fields
+ * (`isInitialized`, `offlineQueue` payloads, `triggerSave`, etc.).
+ */
+export function useCart(): UseCartReturn {
+  const rawItems: CartItem[] = useCartStore((state: CartState) => state.items);
+  const isOnline: boolean = useCartStore((state: CartState) => state.isOnline);
+  const isAuthenticated: boolean = useCartStore(
+    (state: CartState) => state.isAuthenticated
+  );
+  const isSyncing: boolean = useCartStore(
+    (state: CartState) => state.isSyncing
+  );
+  const offlineQueue: QueueOperation[] = useCartStore(
+    (state: CartState) => state.offlineQueue
+  );
 
-  const validItems = rawItems.filter((item) => item?.product?.id != null);
-  const itemCount = validItems.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = validItems.reduce(
-    (sum, item) => sum + (item.product.price ?? 0) * item.quantity,
+  const addItem: CartState['addItem'] = useCartStore(
+    (state: CartState) => state.addItem
+  );
+  const removeItem: CartState['removeItem'] = useCartStore(
+    (state: CartState) => state.removeItem
+  );
+  const updateQuantity: CartState['updateQuantity'] = useCartStore(
+    (state: CartState) => state.updateQuantity
+  );
+  const clearCart: CartState['clearCart'] = useCartStore(
+    (state: CartState) => state.clearCart
+  );
+  const syncNow: CartState['syncNow'] = useCartStore(
+    (state: CartState) => state.syncNow
+  );
+
+  const validItems: CartItem[] = rawItems.filter(
+    (item: CartItem) => item?.product?.id != null
+  );
+  const hasPendingProductResolution: boolean = rawItems.some(
+    (item: CartItem) =>
+      item.quantity > 0 && (item.product == null || item.product.id == null)
+  );
+  const itemCount: number = validItems.reduce(
+    (sum: number, item: CartItem) => sum + item.quantity,
+    0
+  );
+  const totalPrice: number = validItems.reduce(
+    (sum: number, item: CartItem) =>
+      sum + (item.product.price ?? 0) * item.quantity,
     0
   );
 
-  return {
+  const pendingOperations: number = offlineQueue.length;
+
+  const dispatch: () => void = () =>
+    console.warn('dispatch is deprecated, use direct actions');
+
+  const cartReturn: UseCartReturn = {
     cart: { items: validItems, totalPrice },
     items: validItems,
+    hasPendingProductResolution,
     itemCount,
     totalPrice,
     isOnline,
     isAuthenticated,
     isSyncing,
-    pendingOperations: offlineQueue.length,
+    pendingOperations,
     addItem,
     removeItem,
     updateItemQuantity: updateQuantity,
     clearCart,
     syncNow,
-    dispatch: () => console.warn('dispatch is deprecated, use direct actions'),
+    dispatch,
   };
+
+  return cartReturn;
 }

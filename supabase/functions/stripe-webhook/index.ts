@@ -5,6 +5,7 @@ import {
   confirmOrderFromStripe,
   sendConfirmationEmail,
 } from '../_shared/confirm-order.ts';
+import { persistPricingSnapshot } from '../_shared/persist-pricing-snapshot.ts';
 
 const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -27,6 +28,11 @@ serve(async (req) => {
   );
 
   const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
+  // Explicit escape hatch for local integration testing only. MUST NOT be set
+  // in production — the function is deployed with verify_jwt=false, so any
+  // anonymous caller could otherwise mark an order as paid.
+  const allowUnsigned =
+    Deno.env.get('STRIPE_WEBHOOK_ALLOW_UNSIGNED')?.trim() === 'true';
 
   try {
     const body = await req.text();
@@ -36,10 +42,16 @@ serve(async (req) => {
 
     if (webhookSecret && signature) {
       try {
-        event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
+        event = await stripe.webhooks.constructEventAsync(
+          body,
+          signature,
+          webhookSecret
+        );
         logStep('Webhook signature verified', { type: event.type });
       } catch (err) {
-        logStep('Webhook signature verification failed', { error: (err as Error).message });
+        logStep('Webhook signature verification failed', {
+          error: (err as Error).message,
+        });
         await logPaymentEvent(supabaseService, {
           event_type: 'webhook_signature_invalid',
           status: 'error',
@@ -49,9 +61,48 @@ serve(async (req) => {
         });
         return new Response('Invalid signature', { status: 400 });
       }
-    } else {
+    } else if (allowUnsigned) {
+      // Opt-in, dev-only path. Logged loudly and audited so prod misconfig is
+      // visible in payment_events.
       event = JSON.parse(body) as Stripe.Event;
-      logStep('WARNING: Webhook received without signature verification', { type: event.type });
+      logStep(
+        'DEV-ONLY: Webhook accepted without signature (STRIPE_WEBHOOK_ALLOW_UNSIGNED=true)',
+        { type: event.type }
+      );
+      await logPaymentEvent(supabaseService, {
+        event_type: 'webhook_unsigned_accepted',
+        status: 'warning',
+        actor: 'stripe_webhook',
+        error_message:
+          'Processed without signature because STRIPE_WEBHOOK_ALLOW_UNSIGNED=true',
+        details: { stripe_event_type: event.type },
+      });
+    } else {
+      // Fail closed. Either STRIPE_WEBHOOK_SECRET is missing (deployment
+      // misconfiguration) or the caller did not supply a stripe-signature
+      // header. In either case we must NOT trust the body.
+      logStep('Rejecting unsigned webhook request', {
+        hasSecret: !!webhookSecret,
+        hasSignature: !!signature,
+      });
+      await logPaymentEvent(supabaseService, {
+        event_type: 'webhook_unsigned_rejected',
+        status: 'error',
+        actor: 'stripe_webhook',
+        error_message: webhookSecret
+          ? 'Missing stripe-signature header'
+          : 'STRIPE_WEBHOOK_SECRET is not configured',
+        details: { hasSecret: !!webhookSecret, hasSignature: !!signature },
+      });
+      return new Response(
+        JSON.stringify({
+          error: 'Webhook signature required',
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
 
     await logPaymentEvent(supabaseService, {
@@ -120,7 +171,9 @@ async function handleCheckoutCompleted(
   });
 
   if (session.payment_status !== 'paid') {
-    logStep('Session not paid, skipping', { paymentStatus: session.payment_status });
+    logStep('Session not paid, skipping', {
+      paymentStatus: session.payment_status,
+    });
     return;
   }
 
@@ -154,7 +207,8 @@ async function handleCheckoutCompleted(
     discountCode: session.metadata?.discount_code,
     source: 'stripe_webhook',
     customerEmail: session.customer_details?.email,
-    customerName: session.customer_details?.name || session.metadata?.customer_name,
+    customerName:
+      session.customer_details?.name || session.metadata?.customer_name,
   });
 
   if (result.alreadyProcessed) {
@@ -182,13 +236,28 @@ async function handleCheckoutCompleted(
   }
 
   // ================================================================
+  // PERSIST AUTHORITATIVE PRICING SNAPSHOT (non-blocking)
+  // Email + confirmation page must prefer this over recomputation.
+  // Uses the shared helper so verify-payment / reconcile-payment behave
+  // identically.
+  // ================================================================
+  await persistPricingSnapshot(supabase, stripe, {
+    orderId,
+    session,
+    source: 'stripe_webhook',
+    correlationId,
+  });
+
+  // ================================================================
   // SEND CONFIRMATION EMAIL (non-blocking)
   // ================================================================
   const customerEmail = session.customer_details?.email;
   if (customerEmail) {
     const { data: order } = await supabase
       .from('orders')
-      .select('order_items(id, product_id, quantity, unit_price), amount, currency, shipping_address')
+      .select(
+        'order_items(id, product_id, quantity, unit_price), amount, currency, shipping_address'
+      )
       .eq('id', orderId)
       .single();
 
@@ -196,7 +265,10 @@ async function handleCheckoutCompleted(
       await sendConfirmationEmail(supabase, {
         orderId,
         customerEmail,
-        customerName: session.customer_details?.name || session.metadata?.customer_name || 'Client',
+        customerName:
+          session.customer_details?.name ||
+          session.metadata?.customer_name ||
+          'Client',
         orderItems: order.order_items || [],
         orderAmount: order.amount,
         currency: order.currency,
@@ -243,7 +315,9 @@ async function handleCheckoutCompleted(
     });
     logStep('Fraud detection completed');
   } catch (fraudErr) {
-    logStep('Fraud detection error (non-fatal)', { error: (fraudErr as Error).message });
+    logStep('Fraud detection error (non-fatal)', {
+      error: (fraudErr as Error).message,
+    });
   }
 
   logStep('Webhook processing completed', { orderId, correlationId });
@@ -259,7 +333,10 @@ async function handlePaymentIntentSucceeded(
   const orderId = paymentIntent.metadata?.order_id;
   const correlationId = paymentIntent.metadata?.correlation_id;
 
-  logStep('Processing payment_intent.succeeded', { paymentIntentId: paymentIntent.id, orderId });
+  logStep('Processing payment_intent.succeeded', {
+    paymentIntentId: paymentIntent.id,
+    orderId,
+  });
 
   if (!orderId) {
     logStep('No order_id in payment_intent metadata, skipping');
@@ -281,18 +358,27 @@ async function handlePaymentIntentSucceeded(
     status: result.confirmed ? 'success' : 'info',
     actor: 'stripe_webhook',
     correlation_id: correlationId,
-    details: { payment_intent_id: paymentIntent.id, was_update: result.confirmed && !result.alreadyProcessed },
+    details: {
+      payment_intent_id: paymentIntent.id,
+      was_update: result.confirmed && !result.alreadyProcessed,
+    },
   });
 }
 
 // ============================================================
 // Handle checkout.session.expired
 // ============================================================
-async function handleCheckoutExpired(supabase: any, session: Stripe.Checkout.Session) {
+async function handleCheckoutExpired(
+  supabase: any,
+  session: Stripe.Checkout.Session
+) {
   const orderId = session.metadata?.order_id;
   const correlationId = session.metadata?.correlation_id;
 
-  logStep('Processing checkout.session.expired', { sessionId: session.id, orderId });
+  logStep('Processing checkout.session.expired', {
+    sessionId: session.id,
+    orderId,
+  });
 
   if (orderId) {
     const { data: existingOrder } = await supabase
@@ -345,7 +431,10 @@ async function handleCheckoutExpired(supabase: any, session: Stripe.Checkout.Ses
 // ============================================================
 // Handle payment_intent.payment_failed
 // ============================================================
-async function handlePaymentFailed(supabase: any, paymentIntent: Stripe.PaymentIntent) {
+async function handlePaymentFailed(
+  supabase: any,
+  paymentIntent: Stripe.PaymentIntent
+) {
   const orderId = paymentIntent.metadata?.order_id;
   const correlationId = paymentIntent.metadata?.correlation_id;
 
@@ -366,7 +455,8 @@ async function handlePaymentFailed(supabase: any, paymentIntent: Stripe.PaymentI
         metadata: {
           ...(existingOrder?.metadata || {}),
           payment_failed_at: new Date().toISOString(),
-          failure_message: paymentIntent.last_payment_error?.message || 'Unknown',
+          failure_message:
+            paymentIntent.last_payment_error?.message || 'Unknown',
           failure_code: paymentIntent.last_payment_error?.code || 'unknown',
           correlation_id: correlationId,
         },
@@ -381,7 +471,8 @@ async function handlePaymentFailed(supabase: any, paymentIntent: Stripe.PaymentI
       new_status: 'payment_failed',
       changed_by: 'webhook',
       reason_code: 'PAYMENT_FAILED',
-      reason_message: paymentIntent.last_payment_error?.message || 'Payment failed',
+      reason_message:
+        paymentIntent.last_payment_error?.message || 'Payment failed',
     });
   }
 
@@ -391,7 +482,8 @@ async function handlePaymentFailed(supabase: any, paymentIntent: Stripe.PaymentI
     status: 'error',
     actor: 'stripe_webhook',
     correlation_id: correlationId,
-    error_message: paymentIntent.last_payment_error?.message || 'Payment failed',
+    error_message:
+      paymentIntent.last_payment_error?.message || 'Payment failed',
     details: {
       failure_code: paymentIntent.last_payment_error?.code,
       payment_intent_id: paymentIntent.id,

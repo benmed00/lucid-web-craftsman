@@ -22,7 +22,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { SendShippingEmailButton } from '@/components/admin/SendShippingEmailButton';
 import { SendDeliveryEmailButton } from '@/components/admin/SendDeliveryEmailButton';
 import { SendCancellationEmailButton } from '@/components/admin/SendCancellationEmailButton';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  updateOrderInternalNotes,
+  updateOrderTrackingFields,
+} from '@/services/adminOrderUiApi';
 import { toast } from 'sonner';
 import {
   User,
@@ -100,17 +103,11 @@ export function OrderDetailsPanel({
   const handleSaveTracking = async () => {
     setIsSavingTracking(true);
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          carrier: trackingForm.carrier || null,
-          tracking_number: trackingForm.tracking_number || null,
-          tracking_url: trackingForm.tracking_url || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', orderId);
-
-      if (error) throw error;
+      await updateOrderTrackingFields(orderId, {
+        carrier: trackingForm.carrier || null,
+        tracking_number: trackingForm.tracking_number || null,
+        tracking_url: trackingForm.tracking_url || null,
+      });
       toast.success('Informations de suivi mises à jour');
       setIsEditingTracking(false);
       refetch();
@@ -130,15 +127,7 @@ export function OrderDetailsPanel({
   const handleSaveNotes = async () => {
     setIsSavingNotes(true);
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          internal_notes: internalNotes || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', orderId);
-
-      if (error) throw error;
+      await updateOrderInternalNotes(orderId, internalNotes || null);
       toast.success('Notes mises à jour');
       setIsEditingNotes(false);
       refetch();

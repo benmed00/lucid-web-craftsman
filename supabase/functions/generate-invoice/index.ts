@@ -5,16 +5,19 @@
  * Idempotent: returns existing snapshot on subsequent calls.
  * Storage: HTML persisted in `invoices` table; signed Storage URL future-ready.
  */
-// @ts-nocheck
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { verifyToken } from '../_shared/invoice/token.ts';
-import { validateInvoice, InvoiceValidationError } from '../_shared/invoice/validate.ts';
+import {
+  validateInvoice,
+  InvoiceValidationError,
+} from '../_shared/invoice/validate.ts';
 import { renderInvoiceHTML } from '../_shared/invoice/render.ts';
 import type { InvoiceData } from '../_shared/invoice/types.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-guest-id',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-guest-id',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
@@ -35,7 +38,10 @@ function buildInvoiceNumber(orderId: string, createdAt: string): string {
   return `${year}-${orderId.slice(-8).toUpperCase()}`;
 }
 
-async function authorize(req: Request, body: { order_id?: string; token?: string }): Promise<string> {
+async function authorize(
+  req: Request,
+  body: { order_id?: string; token?: string }
+): Promise<string> {
   // 1) Signed token wins (works for guests + email links)
   if (body.token) {
     const tokenOrderId = await verifyToken(body.token);
@@ -50,10 +56,16 @@ async function authorize(req: Request, body: { order_id?: string; token?: string
   // 2) Authenticated user — check ownership or admin
   const authHeader = req.headers.get('Authorization');
   if (authHeader) {
-    const userClient = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_ANON_KEY')!, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user } } = await userClient.auth.getUser();
+    const userClient = createClient(
+      SUPABASE_URL,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      {
+        global: { headers: { Authorization: authHeader } },
+      }
+    );
+    const {
+      data: { user },
+    } = await userClient.auth.getUser();
     if (user) {
       const { data: order } = await admin
         .from('orders')
@@ -62,7 +74,9 @@ async function authorize(req: Request, body: { order_id?: string; token?: string
         .maybeSingle();
       if (order?.user_id === user.id) return body.order_id;
 
-      const { data: isAdmin } = await admin.rpc('is_admin_user', { _user_id: user.id });
+      const { data: isAdmin } = await admin.rpc('is_admin_user', {
+        _user_id: user.id,
+      });
       if (isAdmin) return body.order_id;
     }
   }
@@ -83,7 +97,14 @@ async function authorize(req: Request, body: { order_id?: string; token?: string
 }
 
 /** Statuses that imply the order has been paid (besides explicit payment row). */
-const PAID_ORDER_STATUSES = ['paid', 'completed', 'confirmed', 'processing', 'shipped', 'delivered'];
+const PAID_ORDER_STATUSES = [
+  'paid',
+  'completed',
+  'confirmed',
+  'processing',
+  'shipped',
+  'delivered',
+];
 const PAID_PAYMENT_STATUSES = ['succeeded', 'completed', 'paid'];
 
 async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
@@ -91,13 +112,20 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
   // 1) ORDER
   const { data: order, error: orderErr } = await admin
     .from('orders')
-    .select('id, status, order_status, amount, currency, created_at, shipping_address, metadata, payment_method, payment_reference')
+    .select(
+      'id, status, order_status, amount, currency, created_at, shipping_address, metadata, payment_method, payment_reference'
+    )
     .eq('id', orderId)
     .maybeSingle();
 
-  if (orderErr) throw new InvoiceValidationError(`Order fetch failed: ${orderErr.message}`);
+  if (orderErr)
+    throw new InvoiceValidationError(`Order fetch failed: ${orderErr.message}`);
   if (!order) throw new InvoiceValidationError('Order not found');
-  console.log('[generate-invoice] [step1] order ok', { id: order.id, amount: order.amount, status: order.status });
+  console.log('[generate-invoice] [step1] order ok', {
+    id: order.id,
+    amount: order.amount,
+    status: order.status,
+  });
 
   // 2) ITEMS — strict
   console.log('[generate-invoice] [step2] fetching items', { orderId });
@@ -106,22 +134,32 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
     .select('quantity, unit_price, total_price, product_snapshot')
     .eq('order_id', orderId);
 
-  if (itemsErr) throw new InvoiceValidationError(`Items fetch failed: ${itemsErr.message}`);
-  if (!items || items.length === 0) throw new InvoiceValidationError('Order has no items');
+  if (itemsErr)
+    throw new InvoiceValidationError(`Items fetch failed: ${itemsErr.message}`);
+  if (!items || items.length === 0)
+    throw new InvoiceValidationError('Order has no items');
   console.log('[generate-invoice] [step2] items ok', { count: items.length });
 
   // 3) PAYMENT (latest)
   console.log('[generate-invoice] [step3] fetching payments', { orderId });
   const { data: payments, error: payErr } = await admin
     .from('payments')
-    .select('payment_method, processed_at, stripe_payment_intent_id, status, amount, created_at')
+    .select(
+      'payment_method, processed_at, stripe_payment_intent_id, status, amount, created_at'
+    )
     .eq('order_id', orderId)
     .order('created_at', { ascending: false })
     .limit(1);
 
-  if (payErr) throw new InvoiceValidationError(`Payments fetch failed: ${payErr.message}`);
+  if (payErr)
+    throw new InvoiceValidationError(
+      `Payments fetch failed: ${payErr.message}`
+    );
   const payment = payments?.[0];
-  console.log('[generate-invoice] [step3] payment', { found: !!payment, status: payment?.status });
+  console.log('[generate-invoice] [step3] payment', {
+    found: !!payment,
+    status: payment?.status,
+  });
 
   // 4) AMOUNTS — values are stored in EUROS (not cents). Compute strictly from items.
   const subtotal = items.reduce((s, it) => s + Number(it.total_price || 0), 0);
@@ -134,10 +172,13 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
   // 5) PAID STATUS — order status OR payment row in a paid state
   const orderStatus = (order.status || order.order_status || '').toLowerCase();
   const paymentStatus = (payment?.status || '').toLowerCase();
-  const isPaid = PAID_ORDER_STATUSES.includes(orderStatus) || PAID_PAYMENT_STATUSES.includes(paymentStatus);
+  const isPaid =
+    PAID_ORDER_STATUSES.includes(orderStatus) ||
+    PAID_PAYMENT_STATUSES.includes(paymentStatus);
 
   // 6) STRICT: paid orders MUST have a transaction reference
-  const transactionId = payment?.stripe_payment_intent_id || order.payment_reference || null;
+  const transactionId =
+    payment?.stripe_payment_intent_id || order.payment_reference || null;
   if (isPaid && !transactionId) {
     throw new InvoiceValidationError('Paid order has no payment reference');
   }
@@ -167,14 +208,20 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
       country: addr.country || '',
     },
     items: items.map((it) => ({
-      name: (it.product_snapshot as any)?.name || (it.product_snapshot as any)?.title || 'Produit',
+      name:
+        (it.product_snapshot as any)?.name ||
+        (it.product_snapshot as any)?.title ||
+        'Produit',
       quantity: Number(it.quantity) || 1,
       unit_price: Number(it.unit_price) || 0,
       total: Number(it.total_price) || 0,
     })),
     totals: { subtotal, shipping, discount, total },
     payment: {
-      method: payment?.payment_method || order.payment_method || 'Carte bancaire (Stripe)',
+      method:
+        payment?.payment_method ||
+        order.payment_method ||
+        'Carte bancaire (Stripe)',
       status: isPaid ? 'paid' : 'pending',
       transaction_id: transactionId,
       paid_at: payment?.processed_at || (isPaid ? order.created_at : null),
@@ -182,12 +229,18 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
   };
 
   validateInvoice(data);
-  console.log('[generate-invoice] [step4] validated', { invoice_number: data.invoice_number, total, items: items.length, paid: isPaid });
+  console.log('[generate-invoice] [step4] validated', {
+    invoice_number: data.invoice_number,
+    total,
+    items: items.length,
+    paid: isPaid,
+  });
   return data;
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+  if (req.method === 'OPTIONS')
+    return new Response(null, { headers: corsHeaders });
 
   try {
     const body = await req.json().catch(() => ({}));
@@ -223,14 +276,23 @@ Deno.serve(async (req) => {
     if (insertErr && !insertErr.message.includes('duplicate')) {
       console.error('[generate-invoice] [step5] insert failed', insertErr);
     } else {
-      console.log('[generate-invoice] [step5] snapshot saved', { invoice_number: data.invoice_number });
+      console.log('[generate-invoice] [step5] snapshot saved', {
+        invoice_number: data.invoice_number,
+      });
     }
 
-    return jsonResponse({ invoice_number: data.invoice_number, html, cached: false });
+    return jsonResponse({
+      invoice_number: data.invoice_number,
+      html,
+      cached: false,
+    });
   } catch (err) {
-    const status = err instanceof InvoiceValidationError ? 400
-      : err.message === 'Unauthorized' ? 401
-      : 500;
+    const status =
+      err instanceof InvoiceValidationError
+        ? 400
+        : err.message === 'Unauthorized'
+          ? 401
+          : 500;
     console.error('[generate-invoice]', err.message);
     return jsonResponse({ error: err.message }, status);
   }

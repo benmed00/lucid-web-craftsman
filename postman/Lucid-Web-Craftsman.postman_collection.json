@@ -1,0 +1,1943 @@
+{
+  "info": {
+    "name": "Lucid Web Craftsman",
+    "description": "Mock API (dev) + Supabase Edge Functions.\n\n- **OpenAPI:** `openapi/supabase-edge-functions.json` (run `npm run openapi:edge-functions`).\n- **Secrets:** use `postman/Lucid-Web-Craftsman.local.postman_environment.json` (gitignored); copy from `.example`.\n- **Mocks:** enable saved examples on Mock API folder → Create Mock Server in Postman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "mock_api_base",
+      "value": "http://localhost:3001"
+    },
+    {
+      "key": "vite_base",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "supabase_url",
+      "value": "https://YOUR_PROJECT.supabase.co"
+    },
+    {
+      "key": "supabase_anon_key",
+      "value": ""
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "guest_id",
+      "value": ""
+    },
+    {
+      "key": "stripe_session_id",
+      "value": "cs_test_replace_me"
+    },
+    {
+      "key": "order_confirmation_token",
+      "value": ""
+    },
+    {
+      "key": "csrf_token",
+      "value": ""
+    },
+    {
+      "key": "csrf_nonce",
+      "value": ""
+    },
+    {
+      "key": "csrf_hash",
+      "value": ""
+    },
+    {
+      "key": "checkout_session_id",
+      "value": ""
+    },
+    {
+      "key": "paypal_order_id",
+      "value": ""
+    },
+    {
+      "key": "order_id",
+      "value": ""
+    },
+    {
+      "key": "stripe_signature",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Mock API (local)",
+      "description": "Run `npm run start:api` (port 3001). See [backend/server.cjs](backend/server.cjs). Use saved examples for Postman Mock Server.",
+      "item": [
+        {
+          "name": "Root",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/",
+            "description": "Service banner and endpoint list."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"has version\", () => pm.expect(j).to.have.property(\"version\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Running",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": ""
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"name\": \"Mock API Server\",\n  \"version\": \"1.0.0\",\n  \"status\": \"running\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/health",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"status ok\", () => pm.expect(pm.response.json().status).to.eql(\"ok\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": ""
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"ok\",\n  \"timestamp\": \"2025-01-01T12:00:00.000Z\",\n  \"uptime\": 1,\n  \"env\": \"development\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Health live",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/health/live",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Alive",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": ""
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"alive\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Health ready",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/health/ready",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.expect(pm.response.code).to.be.oneOf([200, 503]));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "API info",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/info",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "API metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/metrics",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get cart",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/cart",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"items array\", () => pm.expect(pm.response.json().items).to.be.an(\"array\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Empty cart",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": ""
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"items\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "Set cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/cart",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"product\": {\n        \"id\": 1\n      },\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/orders?_page=1&_limit=10",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const p = pm.response.json();",
+                  "pm.test(\"pagination\", () => { pm.expect(p).to.have.keys([\"items\",\"page\",\"limit\",\"total\",\"totalPages\"]); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Page 1",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": ""
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"items\": [],\n  \"page\": 1,\n  \"limit\": 10,\n  \"total\": 0,\n  \"totalPages\": 0\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/orders",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"name\": \"Test\",\n      \"quantity\": 1,\n      \"price\": 10\n    }\n  ],\n  \"customerEmail\": \"test@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"id\", () => pm.expect(pm.response.json().id).to.exist);",
+                  "pm.collectionVariables.set(\"last_mock_order_id\", pm.response.json().id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create order validation error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/orders",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerEmail\": \"x@y.z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"code\", () => pm.expect(pm.response.json().code).to.eql(\"VALIDATION_ERROR\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Newsletter subscribe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/newsletter",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"hello@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"201\", () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Created",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": ""
+              },
+              "status": "OK",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Subscribed successfully\",\n  \"id\": \"sub_abc\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Newsletter invalid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/newsletter",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"not-an-email\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"400\", () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contact submit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/contact",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"a@b.co\",\n  \"subject\": \"Hi\",\n  \"message\": \"Hello from Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"201\", () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Created",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": ""
+              },
+              "status": "OK",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Message sent successfully\",\n  \"id\": \"msg_1\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "List products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/products?_page=1&_limit=5",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const p = pm.response.json();",
+                  "pm.test(\"pagination\", () => pm.expect(p.items).to.be.an(\"array\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Product by id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/products/1",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"id\", () => pm.expect(pm.response.json().id).to.eql(1));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Product 404",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/products/99999",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"404\", () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List posts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/posts?_page=1&_limit=5",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Post by id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Request-Id",
+                "value": "{{$guid}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": "{{mock_api_base}}/api/posts/1",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Supabase Edge Functions",
+      "description": "Set `supabase_url` and `supabase_anon_key`. Use `access_token` (user JWT) where noted. Never commit secrets — use `.local` environment file.",
+      "item": [
+        {
+          "name": "Storefront & checkout",
+          "item": [
+            {
+              "name": "order-lookup",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "x-guest-id",
+                    "value": "{{guest_id}}",
+                    "type": "text",
+                    "disabled": true
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/order-lookup",
+                "description": "READ order by Stripe session id. Optional header `x-guest-id` for guests.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"session_id\": \"{{stripe_session_id}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                      "pm.test(\"JSON\", () => pm.response.to.be.json);",
+                      "pm.expect(pm.response.json()).to.have.property(\"found\");"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "verify-payment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "x-guest-id",
+                    "value": "{{guest_id}}",
+                    "type": "text",
+                    "disabled": true
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/verify-payment",
+                "description": "READ Stripe session + order state after redirect.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"session_id\": \"{{stripe_session_id}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"2xx\", () => pm.expect(pm.response.code).to.be.within(200, 299));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "stripe-session-display",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/stripe-session-display",
+                "description": "Stripe session snapshot (no DB).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"session_id\": \"{{stripe_session_id}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.to.have.status(200));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "order-confirmation-lookup",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/order-confirmation-lookup",
+                "description": "Signed token from confirmation email.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"{{order_confirmation_token}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"2xx\", () => pm.expect(pm.response.code).to.be.within(200, 299));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "submit-contact (edge)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/submit-contact",
+                "description": "Production contact function (not mock API).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Post\",\n  \"lastName\": \"Man\",\n  \"email\": \"pm@example.com\",\n  \"phone\": \"\",\n  \"company\": \"\",\n  \"subject\": \"API test\",\n  \"message\": \"Hello\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"2xx or 429\", () => pm.expect([200,429]).to.include(pm.response.code));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "create-payment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "x-csrf-token",
+                    "value": "{{csrf_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "x-csrf-nonce",
+                    "value": "{{csrf_nonce}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "x-csrf-hash",
+                    "value": "{{csrf_hash}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "x-checkout-session-id",
+                    "value": "{{checkout_session_id}}",
+                    "type": "text",
+                    "disabled": true
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/create-payment",
+                "description": "Requires valid `x-csrf-token`, `x-csrf-nonce`, `x-csrf-hash` from the storefront. Expect 403 without them.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"product\": {\n        \"id\": 1\n      },\n      \"quantity\": 1\n    }\n  ],\n  \"customerInfo\": {\n    \"email\": \"test@example.com\",\n    \"firstName\": \"T\",\n    \"lastName\": \"E\"\n  },\n  \"discount\": null,\n  \"guestSession\": {\n    \"guest_id\": \"{{guest_id}}\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"responds\", () => pm.expect(pm.response.code).to.be.at.least(200));",
+                      "// 403 without valid CSRF; 422 on bad body; 200 only with full valid flow"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "create-paypal-payment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/create-paypal-payment",
+                "description": "PayPal order creation; server validates cart.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"product\": {\n        \"id\": 1\n      },\n      \"quantity\": 1\n    }\n  ],\n  \"customerInfo\": {\n    \"email\": \"test@example.com\"\n  },\n  \"discount\": {}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"has response\", () => pm.expect(pm.response.code).to.be.at.least(200));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "verify-paypal-payment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/verify-paypal-payment",
+                "description": "Requires user JWT or internal auth per function.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"paypal_order_id\": \"{{paypal_order_id}}\",\n  \"order_id\": \"{{order_id}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"401 or 200\", () => pm.expect([200,401]).to.include(pm.response.code));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Webhooks",
+          "item": [
+            {
+              "name": "stripe-webhook",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Stripe-Signature",
+                    "value": "{{stripe_signature}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": \"evt_test\",\n  \"type\": \"checkout.session.completed\",\n  \"data\": {\n    \"object\": {}\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{supabase_url}}/functions/v1/stripe-webhook",
+                "description": "Stripe signs the raw body; use Stripe CLI or saved mock examples."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"responds\", () => pm.expect(pm.response.code).to.be.at.least(200));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "response": [
+                {
+                  "name": "Mock invalid signature",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [],
+                    "url": ""
+                  },
+                  "status": "Bad Request",
+                  "code": 400,
+                  "_postman_previewlanguage": "json",
+                  "header": [],
+                  "body": "{\"error\":\"Invalid signature\"}"
+                }
+              ]
+            },
+            {
+              "name": "carrier-webhook",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/carrier-webhook",
+                "description": "Carrier callback; see function for auth and payload.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"responds\", () => pm.expect(pm.response.code).to.be.at.least(200));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Admin & scheduled (invoke)",
+          "description": "Most calls need **service role** or **admin JWT** and specific JSON bodies. Fill from admin UI network tab or function source. Default body `{}`.",
+          "item": [
+            {
+              "name": "generate-sitemap",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/generate-sitemap",
+                "description": "Returns sitemap XML; uses GET in OpenAPI generator."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"2xx\", () => pm.expect(pm.response.code).to.be.within(200, 299));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "check-promo-alerts",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/check-promo-alerts",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// check-promo-alerts: adjust Authorization (user JWT vs service role) and body",
+                      "pm.test(\"not network error\", () => pm.expect(pm.response.code).to.exist);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "create-admin-user",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/create-admin-user",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// create-admin-user: adjust Authorization (user JWT vs service role) and body",
+                      "pm.test(\"not network error\", () => pm.expect(pm.response.code).to.exist);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "process-scheduled-emails",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/process-scheduled-emails",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// process-scheduled-emails: adjust Authorization (user JWT vs service role) and body",
+                      "pm.test(\"not network error\", () => pm.expect(pm.response.code).to.exist);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "security-alert-notification",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/security-alert-notification",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// security-alert-notification: adjust Authorization (user JWT vs service role) and body",
+                      "pm.test(\"not network error\", () => pm.expect(pm.response.code).to.exist);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "send-abandoned-cart-email",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/send-abandoned-cart-email",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// send-abandoned-cart-email: adjust Authorization (user JWT vs service role) and body",
+                      "pm.test(\"not network error\", () => pm.expect(pm.response.code).to.exist);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "send-cancellation-email",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/send-cancellation-email",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// send-cancellation-email: adjust Authorization (user JWT vs service role) and body",
+                      "pm.test(\"not network error\", () => pm.expect(pm.response.code).to.exist);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "send-delivery-confirmation",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/send-delivery-confirmation",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// send-delivery-confirmation: adjust Authorization (user JWT vs service role) and body",
+                      "pm.test(\"not network error\", () => pm.expect(pm.response.code).to.exist);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "send-newsletter-welcome",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/send-newsletter-welcome",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// send-newsletter-welcome: adjust Authorization (user JWT vs service role) and body",
+                      "pm.test(\"not network error\", () => pm.expect(pm.response.code).to.exist);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "send-order-confirmation",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/send-order-confirmation",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// send-order-confirmation: adjust Authorization (user JWT vs service role) and body",
+                      "pm.test(\"not network error\", () => pm.expect(pm.response.code).to.exist);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "send-order-notification-improved",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/send-order-notification-improved",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// send-order-notification-improved: adjust Authorization (user JWT vs service role) and body",
+                      "pm.test(\"not network error\", () => pm.expect(pm.response.code).to.exist);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "send-shipping-notification",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/send-shipping-notification",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// send-shipping-notification: adjust Authorization (user JWT vs service role) and body",
+                      "pm.test(\"not network error\", () => pm.expect(pm.response.code).to.exist);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "send-vip-order-notification",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/send-vip-order-notification",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// send-vip-order-notification: adjust Authorization (user JWT vs service role) and body",
+                      "pm.test(\"not network error\", () => pm.expect(pm.response.code).to.exist);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "translate-tag",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "apikey",
+                    "value": "{{supabase_anon_key}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{supabase_url}}/functions/v1/translate-tag",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// translate-tag: adjust Authorization (user JWT vs service role) and body",
+                      "pm.test(\"not network error\", () => pm.expect(pm.response.code).to.exist);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

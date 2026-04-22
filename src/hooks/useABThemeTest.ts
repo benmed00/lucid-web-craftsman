@@ -54,21 +54,27 @@ export function useABThemeTest() {
       variant = Math.random() * 100 < activeTest.split_percentage ? 'a' : 'b';
       try {
         sessionStorage.setItem(AB_SESSION_KEY, variant);
-      } catch { /* private mode */ }
+      } catch {
+        /* private mode */
+      }
     }
 
     // Apply theme
-    const theme = (variant === 'a' ? activeTest.variant_a : activeTest.variant_b) as UIStyle;
+    const theme = (
+      variant === 'a' ? activeTest.variant_a : activeTest.variant_b
+    ) as UIStyle;
     setUIStyle(theme);
 
     // Track view once per session
     if (!viewTracked.current) {
       viewTracked.current = true;
-      supabase.rpc('increment_ab_counter', {
-        test_id: activeTest.id,
-        variant,
-        counter_type: 'view',
-      }).then(/* fire-and-forget */);
+      supabase
+        .rpc('increment_ab_counter', {
+          test_id: activeTest.id,
+          variant,
+          counter_type: 'view',
+        })
+        .then(/* fire-and-forget */);
     }
   }, [activeTest, setUIStyle]);
 
@@ -83,7 +89,9 @@ export function useABThemeTest() {
 /**
  * Call this to track a conversion event for the active A/B test.
  */
-export async function trackABConversion(counterType: 'add_to_cart' | 'checkout') {
+export async function trackABConversion(
+  counterType: 'add_to_cart' | 'checkout'
+) {
   const variant = sessionStorage.getItem(AB_SESSION_KEY) as 'a' | 'b' | null;
   if (!variant) return;
 

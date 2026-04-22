@@ -16,7 +16,13 @@ import {
   Shield,
 } from 'lucide-react';
 import ImageUpload from '@/components/ui/ImageUpload';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  clearProfileAvatarUrl,
+  getAvatarPublicUrl,
+  updateProfileFields,
+  updateProfileReturnRow,
+  uploadAvatarObject,
+} from '@/services/profileApi';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -116,14 +122,10 @@ export function ProfileOverview({
           : null,
       };
 
-      const { error } = await supabase
-        .from('profiles')
-        .update(sanitizedData)
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      await updateProfileReturnRow(
+        user.id,
+        sanitizedData as Record<string, unknown>
+      );
 
       onProfileUpdate();
       setIsEditing(false);
@@ -142,30 +144,17 @@ export function ProfileOverview({
       const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
-      // Upload with timeout to prevent hanging
-      const uploadPromise = supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { upsert: true });
+      const uploadPromise = uploadAvatarObject(filePath, file);
 
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Upload timeout after 30s')), 30000)
       );
 
-      const { error: uploadError } = await Promise.race([
-        uploadPromise,
-        timeoutPromise,
-      ]);
+      await Promise.race([uploadPromise, timeoutPromise]);
 
-      if (uploadError) throw uploadError;
+      const publicUrl = getAvatarPublicUrl(filePath);
 
-      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: data.publicUrl })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
+      await updateProfileFields(user.id, { avatar_url: publicUrl });
 
       onProfileUpdate();
 
@@ -178,12 +167,7 @@ export function ProfileOverview({
 
   const handleRemoveAvatar = async () => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ avatar_url: null })
-        .eq('id', user.id);
-
-      if (error) throw error;
+      await clearProfileAvatarUrl(user.id);
 
       onProfileUpdate();
 

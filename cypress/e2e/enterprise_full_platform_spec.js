@@ -32,7 +32,7 @@ const PUBLIC_ROUTES = [
   { path: '/terms-of-service', name: 'Terms of Service' },
   { path: '/story', name: 'Story' },
   { path: '/unsubscribe', name: 'Unsubscribe' },
-  { path: '/payment-success', name: 'Payment Success' },
+  { path: '/order-confirmation', name: 'Order confirmation' },
 ];
 
 // ─── Redirection tests ────────────────────────────────────────────────────
@@ -298,8 +298,14 @@ describe('Enterprise: Checkout smoke @enterprise @smoke', () => {
     cy.stubCheckoutIntercepts();
     cy.visit('/products');
     cy.get(enterpriseCatalogAddToCart, { timeout: 25000 }).first().click();
-    cy.visit('/checkout');
-    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.get('a[href="/cart"]')
+      .filter(':visible')
+      .first()
+      .should('be.visible')
+      .click();
+    cy.waitForCartPageWithItems();
+    cy.get('#main-content #cart-checkout-button').should('be.visible').click();
+    cy.waitForCheckoutCustomerStep();
   });
 });
 

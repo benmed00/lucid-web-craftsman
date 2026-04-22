@@ -50,6 +50,7 @@ const Cart = () => {
     clearCart,
     updateItemQuantity,
     removeItem,
+    hasPendingProductResolution,
   } = useCart();
   const { rules } = useBusinessRules();
   const { formatPrice } = useCurrency();
@@ -131,6 +132,32 @@ const Cart = () => {
   const shippingCost = calculation?.cost || 0;
   const total = subtotal + shippingCost;
 
+  if (hasPendingProductResolution && cart.items.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SEOHelmet
+          title={t('cart.title') + ' - Rif Raw Straw'}
+          description={t('cart.emptyMessage')}
+          keywords={['panier', 'achat', 'commande', 'artisanat berbère']}
+          url="/cart"
+          type="website"
+        />
+        <main
+          id="main-content"
+          className="container mx-auto px-4 py-16"
+          data-testid="cart-page-resolving"
+        >
+          <div className="max-w-xl mx-auto space-y-4 animate-pulse">
+            <div className="h-8 bg-muted rounded w-48 mx-auto" />
+            <div className="h-40 bg-muted rounded" />
+            <div className="h-12 bg-muted rounded" />
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   if (cart.items.length === 0) {
     return (
       <div className="min-h-screen bg-background">
@@ -141,7 +168,11 @@ const Cart = () => {
           url="/cart"
           type="website"
         />
-        <main id="main-content" className="container mx-auto px-4 py-16">
+        <main
+          id="main-content"
+          className="container mx-auto px-4 py-16"
+          data-testid="cart-page-empty"
+        >
           <div className="text-center">
             <div
               className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6"
@@ -186,6 +217,7 @@ const Cart = () => {
       <main
         id="main-content"
         className="container mx-auto px-4 py-4 md:py-8 safe-area"
+        data-testid="cart-page-with-items"
       >
         <div className="mb-6 md:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

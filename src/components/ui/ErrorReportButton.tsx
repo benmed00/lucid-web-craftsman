@@ -14,7 +14,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
+import { getAuthUser } from '@/services/cartApi';
+import {
+  insertSupportErrorReport,
+  uploadErrorReportScreenshot,
+} from '@/services/errorReportsApi';
 
 interface ErrorReportForm {
   email: string;
@@ -79,37 +84,6 @@ export const ErrorReportButton = () => {
     return `guest-${guestId}`;
   };
 
-  const uploadScreenshot = async (
-    file: File,
-    userId?: string
-  ): Promise<string | null> => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const ownerSegment = userId || getGuestOwnerId();
-      const filePath = `reports/${ownerSegment}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('error-screenshots')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        return null;
-      }
-
-      // Get public URL
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('error-screenshots').getPublicUrl(filePath);
-
-      return publicUrl;
-    } catch (error) {
-      console.error('Screenshot upload failed:', error);
-      return null;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -121,17 +95,33 @@ export const ErrorReportButton = () => {
     setIsSubmitting(true);
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await getAuthUser();
 
-      // Upload screenshot if present
       let screenshotUrl: string | null = null;
       if (screenshot) {
-        screenshotUrl = await uploadScreenshot(screenshot, user?.id);
+        const ownerSegment = user?.id || getGuestOwnerId();
+        screenshotUrl = await uploadErrorReportScreenshot(
+          screenshot,
+          ownerSegment
+        );
       }
 
-      const reportData = {
+      const browser_info = {
+        language: navigator.language,
+        platform: navigator.platform,
+        cookieEnabled: navigator.cookieEnabled,
+        onLine: navigator.onLine,
+        screen: {
+          width: screen.width,
+          height: screen.height,
+        },
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        },
+      } as Json;
+
+      await insertSupportErrorReport({
         user_id: user?.id || null,
         email: form.email,
         error_type: form.errorType,
@@ -139,27 +129,8 @@ export const ErrorReportButton = () => {
         screenshot_url: screenshotUrl,
         page_url: window.location.href,
         user_agent: navigator.userAgent,
-        browser_info: {
-          language: navigator.language,
-          platform: navigator.platform,
-          cookieEnabled: navigator.cookieEnabled,
-          onLine: navigator.onLine,
-          screen: {
-            width: screen.width,
-            height: screen.height,
-          },
-          viewport: {
-            width: window.innerWidth,
-            height: window.innerHeight,
-          },
-        },
-      };
-
-      const { error } = await supabase
-        .from('support_tickets_error_reports')
-        .insert([reportData]);
-
-      if (error) throw error;
+        browser_info,
+      });
 
       toast.success(t('report.success'));
       setForm({ email: '', description: '', errorType: 'bug_report' });

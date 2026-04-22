@@ -2,7 +2,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchFreeShippingThresholdSetting,
+  validateCouponCodeRpc,
+} from '@/services/checkoutApi';
+import { createPaymentSessionWithRetry } from '@/services/checkoutService';
 import { stockService } from '@/services/stockService';
 import { useLazyStripe } from '@/components/performance/LazyStripe';
 import { useCart } from '@/stores';
@@ -10,6 +14,7 @@ import { useCurrency } from '@/stores/currencyStore';
 import { useCsrfToken } from '@/hooks/useCsrfToken';
 import { useBusinessRules } from '@/hooks/useBusinessRules';
 import { useGuestSession } from '@/hooks/useGuestSession';
+import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import {
   validateCustomerInfo,
   validateShippingAddress,
@@ -17,13 +22,74 @@ import {
   validatePromoCode,
 } from '@/utils/checkoutValidation';
 import { sanitizeUserInput } from '@/utils/xssProtection';
-import { retryWithBackoff } from '@/lib/retryWithBackoff';
 import {
   useCheckoutSession,
   type CartItemSnapshot,
 } from '@/hooks/useCheckoutSession';
 import { useCheckoutFormPersistence } from '@/hooks/useCheckoutFormPersistence';
+import { type TFunction } from 'i18next';
 import { isEligibleForCOD } from '@/utils/shipping';
+
+// =============================================================================
+// Hook return types — always `ReturnType<typeof hook>` so signatures stay in sync
+// with implementations (single source of truth).
+// =============================================================================
+
+type UseTranslationHookReturn = ReturnType<typeof useTranslation>;
+type LazyStripeHookReturn = ReturnType<typeof useLazyStripe>;
+type CartHookReturn = ReturnType<typeof useCart>;
+type CurrencyHookReturn = ReturnType<typeof useCurrency>;
+type CsrfTokenHookReturn = ReturnType<typeof useCsrfToken>;
+type BusinessRulesHookReturn = ReturnType<typeof useBusinessRules>;
+type GuestSessionHookReturn = ReturnType<typeof useGuestSession>;
+type OptimizedAuthHookReturn = ReturnType<typeof useOptimizedAuth>;
+type CheckoutSessionHookReturn = ReturnType<typeof useCheckoutSession>;
+type CheckoutFormPersistenceHookReturn = ReturnType<
+  typeof useCheckoutFormPersistence
+>;
+
+/**
+ * Subset of each hook return that this file reads. Built from the HookReturn
+ * aliases above so Pick keys are checked against the real return shape.
+ */
+type CheckoutPageTranslationSlice = Pick<UseTranslationHookReturn, 't'> & {
+  /** Namespace is fixed at the call site: `useTranslation('checkout')`. */
+  t: TFunction<'checkout'>;
+};
+type CheckoutPageStripeSlice = Pick<LazyStripeHookReturn, 'loadStripe'>;
+type CheckoutPageCartSlice = Pick<
+  CartHookReturn,
+  'cart' | 'hasPendingProductResolution'
+>;
+type CheckoutPageCurrencySlice = Pick<CurrencyHookReturn, 'formatPrice'>;
+type CheckoutPageCsrfSlice = Pick<CsrfTokenHookReturn, 'getCsrfHeaders'>;
+type CheckoutPageBusinessRulesSlice = Pick<BusinessRulesHookReturn, 'rules'>;
+type CheckoutPageGuestSessionSlice = Pick<
+  GuestSessionHookReturn,
+  'getSessionData'
+>;
+type CheckoutPageAuthSlice = Pick<OptimizedAuthHookReturn, 'user'>;
+type CheckoutPageSessionSlice = Pick<
+  CheckoutSessionHookReturn,
+  | 'sessionId'
+  | 'savePersonalInfo'
+  | 'saveShippingInfo'
+  | 'savePromoCode'
+  | 'saveCartSnapshot'
+  | 'updateStep'
+  | 'isLoading'
+>;
+type CheckoutPageFormPersistenceSlice = Pick<
+  CheckoutFormPersistenceHookReturn,
+  | 'formData'
+  | 'setFormData'
+  | 'isLoading'
+  | 'savedStep'
+  | 'savedCompletedSteps'
+  | 'saveStepState'
+  | 'savedCoupon'
+  | 'saveCoupon'
+>;
 
 export interface DiscountCoupon {
   id: string;
@@ -41,13 +107,17 @@ export interface FreeShippingSettings {
 }
 
 export function useCheckoutPage() {
-  const { t } = useTranslation('checkout');
-  const { loadStripe: _loadStripe } = useLazyStripe();
-  const { cart } = useCart();
-  const { formatPrice } = useCurrency();
-  const { getCsrfHeaders } = useCsrfToken();
-  const { rules: businessRules } = useBusinessRules();
-  const { getSessionData: getGuestSessionData } = useGuestSession();
+  const { t }: CheckoutPageTranslationSlice = useTranslation('checkout');
+  const { loadStripe: _loadStripe }: CheckoutPageStripeSlice = useLazyStripe();
+  const { cart, hasPendingProductResolution }: CheckoutPageCartSlice =
+    useCart();
+  const { formatPrice }: CheckoutPageCurrencySlice = useCurrency();
+  const { getCsrfHeaders }: CheckoutPageCsrfSlice = useCsrfToken();
+  const { rules: businessRules }: CheckoutPageBusinessRulesSlice =
+    useBusinessRules();
+  const { getSessionData: getGuestSessionData }: CheckoutPageGuestSessionSlice =
+    useGuestSession();
+  const { user }: CheckoutPageAuthSlice = useOptimizedAuth();
 
   const {
     sessionId: checkoutSessionId,
@@ -57,7 +127,7 @@ export function useCheckoutPage() {
     saveCartSnapshot,
     updateStep,
     isLoading: _isSessionLoading,
-  } = useCheckoutSession();
+  }: CheckoutPageSessionSlice = useCheckoutSession();
 
   const {
     formData,
@@ -68,7 +138,7 @@ export function useCheckoutPage() {
     saveStepState,
     savedCoupon,
     saveCoupon,
-  } = useCheckoutFormPersistence();
+  }: CheckoutPageFormPersistenceSlice = useCheckoutFormPersistence();
 
   const [step, setStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -123,15 +193,9 @@ export function useCheckoutPage() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const { data, error } = await supabase
-          .from('app_settings')
-          .select('setting_value')
-          .eq('setting_key', 'free_shipping_threshold')
-          .maybeSingle();
-        if (!error && data?.setting_value) {
-          setFreeShippingSettings(
-            data.setting_value as unknown as FreeShippingSettings
-          );
+        const raw = await fetchFreeShippingThresholdSetting();
+        if (raw) {
+          setFreeShippingSettings(raw as unknown as FreeShippingSettings);
         }
       } catch (e) {
         console.error('Error fetching free shipping settings:', e);
@@ -186,18 +250,15 @@ export function useCheckoutPage() {
     []
   );
 
-    const handleFieldChange = useCallback(
-    (field: string, value: string) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-      // Auto-reset COD if postal code changes to non-eligible
-      if (field === 'postalCode') {
-        setPaymentMethod((prev) =>
-          prev === 'cod' && !isEligibleForCOD(value) ? 'card' : prev
-        );
-      }
-    },
-    []
-  );
+  const handleFieldChange = useCallback((field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Auto-reset COD if postal code changes to non-eligible
+    if (field === 'postalCode') {
+      setPaymentMethod((prev) =>
+        prev === 'cod' && !isEligibleForCOD(value) ? 'card' : prev
+      );
+    }
+  }, []);
 
   const handleClearError = useCallback(
     (field: string) =>
@@ -250,41 +311,47 @@ export function useCheckoutPage() {
     setPromoError('');
 
     try {
-      const { data, error } = await supabase
-        .rpc('validate_coupon_code', { p_code: sanitizedCode })
-        .maybeSingle();
-
-      if (error || !data) {
+      let data: unknown;
+      try {
+        data = await validateCouponCodeRpc(sanitizedCode);
+      } catch {
         setPromoError(t('promo.invalid'));
         return;
       }
 
+      if (!data) {
+        setPromoError(t('promo.invalid'));
+        return;
+      }
+
+      const row = data as Record<string, unknown>;
       const now = new Date();
-      if (data.valid_from && new Date(data.valid_from) > now) {
+      if (row.valid_from && new Date(String(row.valid_from)) > now) {
         setPromoError(t('promo.invalid'));
         return;
       }
-      if (data.valid_until && new Date(data.valid_until) < now) {
+      if (row.valid_until && new Date(String(row.valid_until)) < now) {
         setPromoError(t('promo.expired'));
         return;
       }
-      if (data.usage_limit && data.usage_count >= data.usage_limit) {
+      if (
+        row.usage_limit &&
+        Number(row.usage_count) >= Number(row.usage_limit)
+      ) {
         setPromoError(t('promo.limitReached'));
         return;
       }
-      if (data.minimum_order_amount && subtotal < data.minimum_order_amount) {
+      const minOrd = row.minimum_order_amount;
+      if (typeof minOrd === 'number' && subtotal < minOrd) {
         setPromoError(
           t('promo.minOrder', {
-            amount: formatPrice(data.minimum_order_amount),
+            amount: formatPrice(minOrd),
           })
         );
         return;
       }
 
-      const coupon: DiscountCoupon = {
-        ...data,
-        type: data.type as 'percentage' | 'fixed',
-      };
+      const coupon = row as unknown as DiscountCoupon;
       setAppliedCoupon(coupon);
       saveCoupon(coupon as any);
       setPromoCode('');
@@ -449,9 +516,9 @@ export function useCheckoutPage() {
       setPaymentError(null);
 
       // A/B conversion tracking (fire-and-forget)
-      import('@/hooks/useABThemeTest').then(({ trackABConversion }) =>
-        trackABConversion('checkout')
-      ).catch(() => {});
+      import('@/hooks/useABThemeTest')
+        .then(({ trackABConversion }) => trackABConversion('checkout'))
+        .catch(() => {});
       if (honeypot) {
         toast.error(t('errors.genericError'));
         setIsProcessing(false);
@@ -506,10 +573,21 @@ export function useCheckoutPage() {
 
       const csrfHeaders = await getCsrfHeaders();
       const guestSession = getGuestSessionData();
-      // COD: validate eligibility and skip Stripe
+      if (!user && !guestSession) {
+        toast.error(
+          t(
+            'errors.genericError',
+            'Session de paiement indisponible. Veuillez reessayer.'
+          )
+        );
+        setIsProcessing(false);
+        return;
+      }
       if (paymentMethod === 'cod') {
         if (!isEligibleForCOD(formData.postalCode)) {
-          toast.error('Le paiement à la livraison n\'est pas disponible pour cette adresse.');
+          toast.error(
+            "Le paiement à la livraison n'est pas disponible pour cette adresse."
+          );
           setPaymentMethod('card');
           setIsProcessing(false);
           return;
@@ -519,44 +597,31 @@ export function useCheckoutPage() {
       const functionName =
         paymentMethod === 'paypal' ? 'create-paypal-payment' : 'create-payment';
 
-      const { data, error } = await retryWithBackoff(
-        async () => {
-          const result = await supabase.functions.invoke(functionName, {
-            body: {
-              items: cartItems,
-              customerInfo: sanitizedFormData,
-              guestSession,
-              paymentMethod,
-              discount: appliedCoupon
-                ? {
-                    couponId: appliedCoupon.id,
-                    code: sanitizeUserInput(appliedCoupon.code),
-                    amount: discount,
-                    includesFreeShipping:
-                      appliedCoupon.includes_free_shipping || false,
-                  }
-                : null,
-            },
-            headers: {
-              ...csrfHeaders,
-              ...(checkoutSessionId
-                ? { 'x-checkout-session-id': checkoutSessionId }
-                : {}),
-            },
-          });
-          if (result.error) {
-            const msg = result.error.message || '';
-            if (
-              msg.includes('fetch') ||
-              msg.includes('network') ||
-              msg.includes('503') ||
-              msg.includes('502') ||
-              msg.includes('timeout')
-            )
-              throw result.error;
-          }
-          return result;
+      const headerRecord: Record<string, string> = {
+        ...csrfHeaders,
+        ...(checkoutSessionId
+          ? { 'x-checkout-session-id': checkoutSessionId }
+          : {}),
+      };
+
+      const { data, error } = await createPaymentSessionWithRetry(
+        functionName,
+        {
+          items: cartItems,
+          customerInfo: sanitizedFormData,
+          guestSession,
+          paymentMethod,
+          discount: appliedCoupon
+            ? {
+                couponId: appliedCoupon.id,
+                code: sanitizeUserInput(appliedCoupon.code),
+                amount: discount,
+                includesFreeShipping:
+                  appliedCoupon.includes_free_shipping || false,
+              }
+            : null,
         },
+        headerRecord,
         {
           maxAttempts: 2,
           baseDelayMs: 1000,
@@ -595,7 +660,8 @@ export function useCheckoutPage() {
         try {
           const snapshot = {
             email: sanitizedFormData.email,
-            customerName: `${sanitizedFormData.firstName} ${sanitizedFormData.lastName}`.trim(),
+            customerName:
+              `${sanitizedFormData.firstName} ${sanitizedFormData.lastName}`.trim(),
             items: cartItems.map((item) => ({
               name: item.product.name,
               quantity: item.quantity,
@@ -634,7 +700,10 @@ export function useCheckoutPage() {
         errorMessage.includes('Invalid email') ||
         errorMessage.includes('invalide')
       ) {
-        userMessage = t('errors.invalidEmail', 'Veuillez vérifier vos informations.');
+        userMessage = t(
+          'errors.invalidEmail',
+          'Veuillez vérifier vos informations.'
+        );
       } else if (
         errorMessage.includes('network') ||
         errorMessage.includes('fetch') ||
@@ -655,6 +724,7 @@ export function useCheckoutPage() {
 
   return {
     // State
+    hasPendingProductResolution,
     step,
     completedSteps,
     formData,

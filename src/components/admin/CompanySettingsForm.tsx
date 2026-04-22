@@ -12,7 +12,13 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { MapPin, Save, Loader2, AlertCircle, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchAppSettingIdValueMaybe,
+  fetchAppSettingValueByKey,
+  insertAppSettingRows,
+  updateAppSettingByKey,
+} from '@/services/appSettingsApi';
+import type { Json } from '@/integrations/supabase/types';
 import {
   CompanySettings,
   invalidateCompanySettingsCache,
@@ -55,17 +61,10 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
 
   const loadSettings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'company_settings')
-        .maybeSingle();
+      const raw = await fetchAppSettingValueByKey('company_settings');
 
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (data?.setting_value) {
-        const fetchedSettings =
-          data.setting_value as unknown as Partial<CompanySettings>;
+      if (raw != null && typeof raw === 'object') {
+        const fetchedSettings = raw as unknown as Partial<CompanySettings>;
         setSettings({
           ...DEFAULT_COMPANY_SETTINGS,
           ...fetchedSettings,
@@ -135,35 +134,23 @@ export function CompanySettingsForm({ className }: CompanySettingsFormProps) {
 
     setIsSaving(true);
     try {
-      // Check if setting exists
-      const { data: existing } = await supabase
-        .from('app_settings')
-        .select('id')
-        .eq('setting_key', 'company_settings')
-        .single();
+      const existing = await fetchAppSettingIdValueMaybe('company_settings');
 
-      const jsonValue = JSON.parse(JSON.stringify(settings));
+      const jsonValue = JSON.parse(JSON.stringify(settings)) as Json;
 
-      if (existing) {
-        const { error } = await supabase
-          .from('app_settings')
-          .update({
-            setting_value: jsonValue,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('setting_key', 'company_settings');
-
-        if (error) throw error;
+      if (existing?.id) {
+        await updateAppSettingByKey('company_settings', {
+          setting_value: jsonValue,
+          updated_at: new Date().toISOString(),
+        });
       } else {
-        const { error } = await supabase.from('app_settings').insert([
+        await insertAppSettingRows([
           {
             setting_key: 'company_settings',
             setting_value: jsonValue,
             description: 'Company contact and address settings',
           },
         ]);
-
-        if (error) throw error;
       }
 
       // Invalidate cache so other components get fresh data

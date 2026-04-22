@@ -21,8 +21,8 @@
  *   on the next service worker activation.
  */
 
-const STATIC_CACHE_NAME = 'rif-static-v9';
-const IMAGE_CACHE_NAME = 'rif-images-v9';
+const STATIC_CACHE_NAME = 'rif-static-v10';
+const IMAGE_CACHE_NAME = 'rif-images-v10';
 
 const MAX_CACHE_SIZE = 100; // per bucket
 

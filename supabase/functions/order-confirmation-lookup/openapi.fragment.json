@@ -1,0 +1,40 @@
+{
+  "summary": "Resolve order from signed email token",
+  "requestBody": {
+    "required": true,
+    "content": {
+      "application/json": {
+        "schema": {
+          "type": "object",
+          "required": ["token"],
+          "properties": {
+            "token": {
+              "type": "string",
+              "description": "Signed token from order confirmation link"
+            },
+            "order_reference": {
+              "type": "string",
+              "description": "Optional CMD-... reference; must match token"
+            }
+          }
+        }
+      }
+    }
+  },
+  "responses": {
+    "200": {
+      "description": "found and order snapshot or found=false",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "found": { "type": "boolean" }
+            },
+            "additionalProperties": true
+          }
+        }
+      }
+    }
+  }
+}

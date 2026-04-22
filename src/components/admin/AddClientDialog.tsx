@@ -12,7 +12,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { UserPlus, Upload } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { getAuthSession } from '@/services/authApi';
+import {
+  createAdminUserEdge,
+  uploadPublicAvatarForNewClient,
+} from '@/services/adminUsersApi';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -40,27 +44,7 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
   });
 
   const handleAvatarUpload = async (file: File): Promise<string | null> => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        console.error('Error uploading avatar:', uploadError);
-        return null;
-      }
-
-      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-
-      return data.publicUrl;
-    } catch (error) {
-      console.error('Error uploading avatar:', error);
-      return null;
-    }
+    return uploadPublicAvatarForNewClient(file);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,25 +75,19 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
       }
 
       // Get current session for authentication
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData } = await getAuthSession();
       if (!sessionData.session) {
         throw new Error('Vous devez être connecté pour créer un client');
       }
 
-      // Call edge function to create user with admin privileges (requires super_admin role)
-      const { data, error } = await supabase.functions.invoke(
-        'create-admin-user',
-        {
-          body: {
-            email: formData.email,
-            password: formData.password,
-            userData: {
-              ...formData,
-              avatar_url: avatarUrl,
-            },
-          },
-        }
-      );
+      const { data, error } = await createAdminUserEdge({
+        email: formData.email,
+        password: formData.password,
+        userData: {
+          ...formData,
+          avatar_url: avatarUrl,
+        },
+      });
 
       if (error) throw error;
       if (data.error) throw new Error(data.error);

@@ -1,0 +1,50 @@
+{
+  "summary": "Look up order by order_id (canonical) or Stripe session_id (legacy)",
+  "requestBody": {
+    "required": true,
+    "content": {
+      "application/json": {
+        "schema": {
+          "type": "object",
+          "description": "Send exactly one identifier: if both order_id and session_id are present, order_id wins.",
+          "oneOf": [
+            {
+              "required": ["order_id"],
+              "properties": {
+                "order_id": {
+                  "type": "string",
+                  "description": "Postgres orders.id (UUID)"
+                }
+              }
+            },
+            {
+              "required": ["session_id"],
+              "properties": {
+                "session_id": {
+                  "type": "string",
+                  "description": "Stripe Checkout Session id (cs_...) or mis-encoded order UUID"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "responses": {
+    "200": {
+      "description": "found=false hides unauthorized rows; otherwise order subset",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "found": { "type": "boolean" }
+            },
+            "additionalProperties": true
+          }
+        }
+      }
+    }
+  }
+}

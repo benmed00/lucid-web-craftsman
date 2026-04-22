@@ -6,6 +6,7 @@ import {
   corsHeaders,
   getValidOrigin,
   RATE_LIMIT_WINDOW_MS,
+  resolveProductionOrigin,
 } from './constants.ts';
 import {
   buildStripeCheckoutLineItems,
@@ -168,7 +169,8 @@ serve(async (req) => {
         logStep('COD rejected — ineligible postal code', { postalCode });
         return new Response(
           JSON.stringify({
-            error: 'Le paiement à la livraison n\'est disponible que pour la Loire-Atlantique (44).',
+            error:
+              "Le paiement à la livraison n'est disponible que pour la Loire-Atlantique (44).",
             error_type: 'validation',
           }),
           {
@@ -224,13 +226,14 @@ serve(async (req) => {
     // ========================================================================
     // DISCOUNT VERIFICATION — server-side coupon validation
     // ========================================================================
-    let { discountAmountCents, hasFreeShipping, verifiedDiscountCode } =
-      await resolveServerDiscount(
-        supabaseService,
-        verifiedItems,
-        discount,
-        logStep
-      );
+    const discountResult = await resolveServerDiscount(
+      supabaseService,
+      verifiedItems,
+      discount,
+      logStep
+    );
+    let discountAmountCents = discountResult.discountAmountCents;
+    const { hasFreeShipping, verifiedDiscountCode } = discountResult;
 
     // ========================================================================
     // AMOUNT CALCULATION (all amounts in CENTS for Stripe)
@@ -260,9 +263,13 @@ serve(async (req) => {
     const lineItems = buildStripeCheckoutLineItems({
       verifiedItems,
       discountRatio,
-      imageOriginPrefix: getValidOrigin(req),
+      storefrontPublicBaseUrl: resolveProductionOrigin(),
+      supabaseProjectUrl: Deno.env.get('SUPABASE_URL') ?? undefined,
       hasFreeShipping,
       subtotalEuros,
+      stripeProductImageFallbackUrl:
+        Deno.env.get('CHECKOUT_FALLBACK_PRODUCT_IMAGE_URL')?.trim() ||
+        undefined,
     });
 
     // ========================================================================
@@ -430,15 +437,31 @@ serve(async (req) => {
     // Update order with Stripe session ID and link to checkout session
     const checkoutSessionId: string | null =
       req.headers.get('x-checkout-session-id') || null;
-    await supabaseService
+    const { error: stripeLinkError } = await supabaseService
       .from('orders')
       .update({
         stripe_session_id: session.id,
+        metadata: {
+          ...(orderData.metadata || {}),
+          stripe_session_id: session.id,
+          checkout_session_id: checkoutSessionId,
+        },
         ...(checkoutSessionId
           ? { checkout_session_id: checkoutSessionId }
           : {}),
       })
       .eq('id', orderData.id);
+
+    if (stripeLinkError) {
+      logStep('Failed to persist stripe_session_id linkage', {
+        orderId: orderData.id,
+        sessionId: session.id,
+        error: stripeLinkError.message,
+      });
+      throw new Error(
+        `Failed to link Stripe session to order: ${stripeLinkError.message}`
+      );
+    }
 
     // Log payment event
     await logPaymentEvent({

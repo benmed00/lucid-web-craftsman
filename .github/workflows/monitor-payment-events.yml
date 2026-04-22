@@ -1,0 +1,43 @@
+# Polls monitor-payment-events every 5 minutes (10-minute lookback window).
+# Requires repo secrets: SUPABASE_URL, SUPABASE_ANON_KEY, MONITOR_PAYMENT_EVENTS_TOKEN
+# (set MONITOR_PAYMENT_EVENTS_TOKEN in Supabase Function secrets to match).
+name: Monitor payment events
+
+concurrency:
+  group: monitor-payment-events-${{ github.workflow }}
+  cancel-in-progress: true
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Poll monitor-payment-events
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          MONITOR_PAYMENT_EVENTS_TOKEN: ${{ secrets.MONITOR_PAYMENT_EVENTS_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_ANON_KEY:-}" ] || [ -z "${MONITOR_PAYMENT_EVENTS_TOKEN:-}" ]; then
+            echo "::error::Set repository secrets SUPABASE_URL, SUPABASE_ANON_KEY, and MONITOR_PAYMENT_EVENTS_TOKEN"
+            exit 1
+          fi
+          resp=$(curl -sfS \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "x-monitor-token: ${MONITOR_PAYMENT_EVENTS_TOKEN}" \
+            "${SUPABASE_URL}/functions/v1/monitor-payment-events?window_minutes=10")
+          severity=$(echo "$resp" | jq -r .highest_severity)
+          count=$(echo "$resp" | jq -r .total_count)
+          echo "severity=$severity count=$count"
+          if [ "$severity" = "critical" ]; then
+            echo "::error::Critical payment events in window — see monitor-payment-events logs and payment_events_critical"
+            exit 1
+          fi

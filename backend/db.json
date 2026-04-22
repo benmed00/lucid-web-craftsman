@@ -8,7 +8,10 @@
       "date": "14 Mai 2025",
       "author": "Layla Nakouri",
       "category": "Artisanat",
-      "featured": true
+      "featured": true,
+      "slug": "art-tissage-rif",
+      "readingMinutes": 8,
+      "tags": ["artisanat", "rif", "patrimoine"]
     },
     {
       "id": 2,
@@ -17,7 +20,10 @@
       "image": "/lucid-web-craftsman/assets/images/blog/fibre_vegetal.jpg",
       "date": "28 Avril 2025",
       "author": "Thomas Dubois",
-      "category": "Durabilité"
+      "category": "Durabilité",
+      "slug": "fibres-naturelles",
+      "readingMinutes": 6,
+      "tags": ["durabilité", "matériaux"]
     },
     {
       "id": 3,
@@ -27,7 +33,10 @@
       "date": "10 Avril 2025",
       "author": "Sophie Laurent",
       "category": "Portraits",
-      "featured": true
+      "featured": true,
+      "slug": "amina-maitre-artisane",
+      "readingMinutes": 12,
+      "tags": ["portrait", "coopérative"]
     },
     {
       "id": 4,
@@ -36,7 +45,10 @@
       "image": "/lucid-web-craftsman/assets/images/blog/symboles_berberes.webp",
       "date": "2 Avril 2025",
       "author": "Mehdi Alaoui",
-      "category": "Culture"
+      "category": "Culture",
+      "slug": "symboles-berberes",
+      "readingMinutes": 5,
+      "tags": ["culture", "motifs"]
     },
     {
       "id": 5,
@@ -45,7 +57,10 @@
       "image": "https://images.unsplash.com/photo-1610701596007-11502861dcfa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
       "date": "15 Mars 2025",
       "author": "Claire Dubois",
-      "category": "Conseils"
+      "category": "Conseils",
+      "slug": "entretien-fibres",
+      "readingMinutes": 4,
+      "tags": ["entretien", "conseils"]
     },
     {
       "id": 6,
@@ -54,7 +69,84 @@
       "image": "https://images.unsplash.com/photo-1515377905703-c4788e51af15?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
       "date": "28 Février 2025",
       "author": "Jean Martin",
-      "category": "Éthique"
+      "category": "Éthique",
+      "slug": "commerce-equitable",
+      "readingMinutes": 7,
+      "tags": ["éthique", "commerce-équitable"]
+    },
+    {
+      "id": 7,
+      "title": "Edge: titre minimal",
+      "excerpt": "Seuls les champs requis pour la liste.",
+      "date": "1 Janvier 2025",
+      "author": "QA Bot",
+      "category": "Tests",
+      "slug": "edge-minimal-post",
+      "featured": false,
+      "readingMinutes": 0,
+      "tags": []
+    },
+    {
+      "id": 8,
+      "title": "تجربة RTL والنصوص المختلطة Mixed العربية + Latin 日本語",
+      "excerpt": "Post de démo: guillemets \"internes\", apostrophe l', et symboles ⟨⟩ «» … ellipsis",
+      "image": "",
+      "date": "31 Décembre 2024",
+      "author": "محمد التجريبي",
+      "category": "I18n & QA",
+      "slug": "edge-rtl-mixed-scripts",
+      "featured": false,
+      "readingMinutes": 1,
+      "tags": ["i18n", "rtl", "unicode"],
+      "meta": { "locale": "ar-MA", "draft": false, "views": 0 }
+    },
+    {
+      "id": 9,
+      "title": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "excerpt": "Excerpt volontairement très long pour stresser les cartes UI et les troncatures. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      "image": "https://images.unsplash.com/photo-1515377905703-c4788e51af15?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=60",
+      "date": "29 Février 2024",
+      "author": "Edge Case",
+      "category": "Stress / Layout",
+      "slug": "edge-long-title-excerpt",
+      "featured": false,
+      "readingMinutes": 999,
+      "tags": ["stress", "layout", "overflow"]
+    },
+    {
+      "id": 10,
+      "title": "JSON & \"échappement\" <test> & ampersands & co.",
+      "excerpt": "Line1\nLine2\n\tTabbed line. Prix: 0,00 € — NaN-ish text but not a number.",
+      "image": null,
+      "date": "",
+      "author": "",
+      "category": "Électronique & Co.",
+      "slug": "edge-escapes-empty-dates",
+      "featured": false,
+      "readingMinutes": null,
+      "tags": ["escape", "empty-fields"]
+    },
+    {
+      "id": 11,
+      "title": "Blog post with numeric-looking date string",
+      "excerpt": "Sorting edge: date as ISO-like string in French feed.",
+      "date": "2025-06-01",
+      "author": "Sort Tester",
+      "category": "QA",
+      "slug": "edge-iso-date-sort",
+      "tags": ["sort"]
+    },
+    {
+      "id": 12,
+      "title": "Emoji stress 🧺🧵✨ — \"quotes\" inside title",
+      "excerpt": "Single char category below.",
+      "date": "7 Juin 2025",
+      "author": "Fun QA",
+      "category": "☆",
+      "slug": "edge-emoji-category",
+      "featured": true,
+      "readingMinutes": 3,
+      "tags": ["emoji", "fun"]
     }
   ],
   "products": [
@@ -70,7 +162,10 @@
       "new": true,
       "artisan": "Fatima Ouazzani",
       "artisanStory": "Fatima vit dans un petit village des montagnes du Rif où elle a appris l'art du tissage de sa grand-mère dès l'âge de 12 ans. Elle consacre environ 18 heures à la création de chaque sac.",
-      "related": [2, 3, 6]
+      "related": [2, 3, 6],
+      "sku": "LWC-SAC-001",
+      "stock": 42,
+      "tags": ["best-seller", "fait-main"]
     },
     {
       "id": 2,
@@ -81,7 +176,10 @@
       "description": "Un chapeau traditionnel berbère tissé à la main avec des fibres de palmier nain, offrant une protection élégante contre le soleil méditerranéen.",
       "details": "Taille ajustable<br>Matériau: Fibres de palmier nain<br>Ruban décoratif en coton tissé",
       "care": "Nettoyer avec une brosse douce<br>Ne pas plier ou écraser",
-      "artisan": "Hassan Ameziane"
+      "artisan": "Hassan Ameziane",
+      "sku": "LWC-CHP-002",
+      "stock": 120,
+      "tags": ["chapeau", "été"]
     },
     {
       "id": 3,
@@ -92,7 +190,10 @@
       "description": "Cette pochette brodée à la main présente des motifs traditionnels berbères réalisés avec des fils colorés sur une base de tissu robuste.",
       "details": "Dimensions: 25 x 15 cm<br>Matériau: Coton et fils de soie<br>Fermeture éclair",
       "care": "Nettoyage délicat à la main",
-      "artisan": "Aisha Tazi"
+      "artisan": "Aisha Tazi",
+      "sku": "LWC-POCH-003",
+      "stock": 15,
+      "tags": ["broderie"]
     },
     {
       "id": 4,
@@ -103,7 +204,10 @@
       "description": "Ce cabas spacieux est confectionné à partir de fibres végétales locales. Idéal pour les courses ou comme sac de plage.",
       "details": "Dimensions: 45 x 35 x 15 cm<br>Matériau: Fibres naturelles tressées<br>Poignées renforcées",
       "care": "Nettoyer avec un chiffon légèrement humide<br>Sécher à l'air libre<br>Éviter l'eau salée",
-      "artisan": "Omar Benali"
+      "artisan": "Omar Benali",
+      "sku": "LWC-CAB-004",
+      "stock": 8,
+      "tags": ["cabas", "plage"]
     },
     {
       "id": 5,
@@ -115,7 +219,11 @@
       "details": "Taille unique avec cordon ajustable<br>Matériau: Paille tressée à la main<br>Bord de 10 cm",
       "care": "Nettoyer avec une brosse douce<br>Éviter l'eau",
       "new": true,
-      "artisan": "Rachid El Mansouri"
+      "artisan": "Rachid El Mansouri",
+      "sku": "LWC-CHP-005",
+      "stock": 0,
+      "tags": ["rupture-stock-test"],
+      "backInStockEstimate": "2025-08-01"
     },
     {
       "id": 6,
@@ -126,10 +234,361 @@
       "description": "Ce panier de marché traditionnel est parfait pour les courses quotidiennes, alliant fonctionnalité et esthétique artisanale.",
       "details": "Dimensions: 40 x 30 x 20 cm<br>Matériau: Osier et cuir<br>Poignées en cuir véritable",
       "care": "Nettoyer avec un chiffon humide<br>Sécher à l'air libre",
-      "artisan": "Youssef Benali"
+      "artisan": "Youssef Benali",
+      "sku": "LWC-PAN-006",
+      "stock": 33,
+      "tags": ["panier", "osier"]
+    },
+    {
+      "id": 7,
+      "name": "Échantillon symbolique — prix plancher",
+      "price": 0.01,
+      "images": [],
+      "category": "Tests",
+      "description": "Produit factice pour tester les montants très petits, tableaux d'images vides, et catégories hors catalogue habituel.",
+      "details": "",
+      "care": "N/A",
+      "sku": "LWC-EDGE-001",
+      "stock": 10000,
+      "tags": ["edge", "penny"],
+      "discontinued": false,
+      "metadata": { "taxCategory": "sample", "nonShippable": true }
+    },
+    {
+      "id": 8,
+      "name": "Article premium (prix élevé + décimales longues)",
+      "price": 12499.99,
+      "salePrice": 11249.995,
+      "images": ["https://images.unsplash.com/photo-1578237493287-8d4d2b03591a?ixlib=rb-4.0.3&auto=format&fit=crop&w=640&q=80"],
+      "category": "Édition limitée",
+      "description": "Stress test prix > 10k et salePrice avec trois décimales.",
+      "sku": "LWC-LUX-008",
+      "stock": 1,
+      "tags": ["luxury", "edge-price"],
+      "artisan": "Collectif — atelier nord",
+      "related": [1, 6]
+    },
+    {
+      "id": 9,
+      "name": "سلة صغيرة 小号 panier 🧺",
+      "price": 19.99,
+      "images": ["/lucid-web-craftsman/assets/images/sacs/sac_traditionnel.jpg"],
+      "category": "Sacs",
+      "description": "Nom unicode + emoji pour tests d'affichage et de recherche.",
+      "sku": "LWC-UNI-009",
+      "stock": null,
+      "tags": ["unicode", "i18n"],
+      "weightKg": 0.085,
+      "dimensionsMm": { "w": 180, "h": 220, "d": 90 }
+    },
+    {
+      "id": 10,
+      "name": "Produit sans artisan (champs optionnels manquants)",
+      "price": 0,
+      "images": [],
+      "category": "Tests",
+      "description": "Pas de care/details — images tableau vide pour null-safety UI.",
+      "sku": "LWC-SPARSE-010",
+      "stock": 0,
+      "discontinued": true,
+      "tags": []
+    },
+    {
+      "id": 11,
+      "name": "Bandoulière \"spéciale\" & ampersands <display>",
+      "price": 33.333333,
+      "images": [],
+      "category": "Accessoires & Sangles / QA",
+      "description": "Guillemets et caractères spéciaux dans le nom et la catégorie.",
+      "details": "Longueur: 140 cm",
+      "care": "Soap & water OK",
+      "sku": "LWC-STR-011-β",
+      "stock": 7,
+      "tags": ["strap", "special-chars"],
+      "variants": [
+        { "id": "v-cuir", "label": "Cuir", "priceDelta": 10 },
+        { "id": "v-coton", "label": "Coton bio", "priceDelta": 0 }
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Kit atelier (objet imbriqué)",
+      "price": 145.5,
+      "images": ["https://images.unsplash.com/photo-1590874103328-eac38a683ce7?ixlib=rb-4.0.3&auto=format&fit=crop&w=640&q=80"],
+      "category": "Kits",
+      "description": "Inclut un petit inventaire imbriqué pour tests de rendu récursif.",
+      "sku": "LWC-KIT-012",
+      "stock": 4,
+      "tags": ["kit", "nested"],
+      "bundle": {
+        "items": [
+          { "sku": "THREAD-01", "qty": 3 },
+          { "sku": "NEEDLE-S", "qty": 1 }
+        ],
+        "warrantyMonths": 24
+      }
+    },
+    {
+      "id": 13,
+      "name": "Produit tableau tags vides et booléens",
+      "price": 5,
+      "images": ["https://images.unsplash.com/photo-1572307480813-ceb0e59d8325?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=60"],
+      "category": "Tests",
+      "description": "Flags booléens mixtes.",
+      "sku": "LWC-BOOL-013",
+      "stock": 50,
+      "tags": [],
+      "new": false,
+      "featured": false,
+      "allowBackorder": true
+    },
+    {
+      "id": 14,
+      "name": "Référence SKU avec espaces et slash",
+      "price": 88,
+      "category": "Accessoires",
+      "description": "SKU exotique pour filtres et URLs.",
+      "sku": "LWC/SP 14-A_ test",
+      "images": [],
+      "stock": 2,
+      "tags": ["sku-edge"]
     }
   ],
   "cart": {
-    "items": []
-  }
+    "items": [
+      {
+        "productId": 1,
+        "name": "Sac à Main Tissé Traditionnel",
+        "quantity": 1,
+        "price": 89,
+        "lineTotal": 89,
+        "sku": "LWC-SAC-001"
+      },
+      {
+        "productId": 7,
+        "name": "Échantillon symbolique — prix plancher",
+        "quantity": 3,
+        "price": 0.01,
+        "lineTotal": 0.03,
+        "sku": "LWC-EDGE-001",
+        "giftWrap": false
+      },
+      {
+        "productId": 11,
+        "name": "Bandoulière \"spéciale\" & ampersands <display>",
+        "quantity": 2,
+        "price": 33.333333,
+        "lineTotal": 66.666666,
+        "variantId": "v-cuir",
+        "notes": "Client asked: leave at reception if absent."
+      },
+      {
+        "productId": 9,
+        "name": "سلة صغيرة 小号 panier 🧺",
+        "quantity": 1,
+        "price": 19.99,
+        "lineTotal": 19.99,
+        "metadata": { "source": "wishlist-merge", "addedAt": "2025-03-20T08:00:00.000Z" }
+      }
+    ],
+    "couponCode": null,
+    "currency": "EUR",
+    "version": 3,
+    "lastMergedFrom": "localStorage"
+  },
+  "orders": [
+    {
+      "id": "ord_seed_demo_1",
+      "status": "delivered",
+      "createdAt": "2025-02-10T14:30:00.000Z",
+      "updatedAt": "2025-02-12T09:00:00.000Z",
+      "items": [
+        {
+          "productId": 1,
+          "name": "Sac à Main Tissé Traditionnel",
+          "quantity": 1,
+          "price": 89
+        }
+      ],
+      "total": 89,
+      "customerEmail": "demo@example.com"
+    },
+    {
+      "id": "ord_seed_demo_2",
+      "status": "pending",
+      "createdAt": "2025-03-01T11:15:00.000Z",
+      "updatedAt": "2025-03-01T11:15:00.000Z",
+      "items": [
+        {
+          "productId": 2,
+          "name": "Chapeau de Paille Berbère",
+          "quantity": 2,
+          "price": 45
+        },
+        {
+          "productId": 3,
+          "name": "Pochette Brodée à la Main",
+          "quantity": 1,
+          "price": 62
+        }
+      ],
+      "total": 152,
+      "customerEmail": "artisan.fan@example.com"
+    },
+    {
+      "id": "ord_edge_empty_items_zero_total",
+      "status": "cancelled",
+      "createdAt": "2024-12-01T00:00:00.000Z",
+      "updatedAt": "2024-12-02T15:00:00.000Z",
+      "items": [],
+      "total": 0,
+      "customerEmail": "void-order@example.com",
+      "cancellationReason": "payment_timeout",
+      "tags": ["edge", "empty-cart-checkout"]
+    },
+    {
+      "id": "ord_edge_fractional_and_address",
+      "status": "processing",
+      "createdAt": "2025-01-17T09:41:33.123Z",
+      "updatedAt": "2025-01-17T09:45:00.000Z",
+      "items": [
+        {
+          "productId": 8,
+          "name": "Article premium (prix élevé + décimales longues)",
+          "quantity": 1,
+          "price": 11249.995
+        },
+        {
+          "productId": 7,
+          "name": "Échantillon symbolique — prix plancher",
+          "quantity": 1,
+          "price": 0.01
+        }
+      ],
+      "total": 11250.005,
+      "customerEmail": "wholesale+b2b@sub.example.co.uk",
+      "shippingAddress": {
+        "line1": "12 Rue de l'Ampère",
+        "line2": "Bâtiment B — 3ᵉ étage",
+        "city": "Casablanca",
+        "region": "Grand Casablanca",
+        "postalCode": "20000",
+        "country": "MA"
+      },
+      "locale": "fr-FR",
+      "metadata": {
+        "channel": "web",
+        "userAgentSnippet": "Mozilla/5.0 (edge-case)",
+        "flags": { "gift": true, "express": false }
+      },
+      "tags": ["wholesale", "intl"]
+    },
+    {
+      "id": "ord_edge_high_qty",
+      "status": "pending",
+      "createdAt": "2025-03-15T23:59:59.999Z",
+      "updatedAt": "2025-03-15T23:59:59.999Z",
+      "items": [
+        {
+          "productId": 13,
+          "name": "Produit tableau tags vides et booléens",
+          "quantity": 999,
+          "price": 5
+        }
+      ],
+      "total": 4995,
+      "customerEmail": "stress@example.com",
+      "customerNotes": "Please ship in 3 parcels if possible. Call before delivery: +212-5XX-XXXXXX."
+    },
+    {
+      "id": "ord_edge_unicode_refund",
+      "status": "refunded",
+      "createdAt": "2025-02-28T12:00:00.000Z",
+      "updatedAt": "2025-03-05T18:22:00.000Z",
+      "items": [
+        {
+          "productId": 9,
+          "name": "سلة صغيرة 小号 panier 🧺",
+          "quantity": 1,
+          "price": 19.99
+        }
+      ],
+      "total": 19.99,
+      "customerEmail": "用户@例子.中国",
+      "refund": { "amount": 19.99, "currency": "EUR", "reason": "customer_request" },
+      "tags": ["refund", "unicode-email"]
+    },
+    {
+      "id": "ord_edge_nested_nulls",
+      "status": "shipped",
+      "createdAt": "2025-04-01T10:00:00.000Z",
+      "updatedAt": "2025-04-03T08:00:00.000Z",
+      "items": [
+        {
+          "productId": 12,
+          "name": "Kit atelier (objet imbriqué)",
+          "quantity": 1,
+          "price": 145.5,
+          "customizations": null
+        }
+      ],
+      "total": 145.5,
+      "customerEmail": "nullable-fields@example.org",
+      "shippingAddress": null,
+      "tracking": { "carrier": "MockPost", "id": "TRK-0000000000000001", "events": [] }
+    }
+  ],
+  "newsletterSubscriptions": [
+    {
+      "id": "nl_seed_1",
+      "email": "newsletter+seed1@example.com",
+      "subscribedAt": "2025-01-05T12:00:00.000Z",
+      "source": "footer_form",
+      "locale": "fr"
+    },
+    {
+      "id": "nl_seed_2",
+      "email": "user.name+tags@sub-domain.example.co.uk",
+      "subscribedAt": "2025-02-14T08:30:00.000Z",
+      "source": "popup",
+      "locale": "en-GB"
+    },
+    {
+      "id": "nl_seed_3",
+      "email": "unicode-local@مثال.مصر",
+      "subscribedAt": "2025-03-01T00:00:00.000Z",
+      "source": "manual_seed",
+      "consentVersion": "v2.1"
+    }
+  ],
+  "contactSubmissions": [
+    {
+      "id": "ct_seed_1",
+      "name": "Jean Dupont",
+      "email": "jean.dupont@example.fr",
+      "subject": "Question sur un panier",
+      "message": "Bonjour,\n\nPourriez-vous confirmer les délais pour le produit réf. LWC-SAC-001 ?\n\nMerci,\nJean",
+      "createdAt": "2025-02-20T14:22:00.000Z",
+      "priority": "normal"
+    },
+    {
+      "id": "ct_seed_2",
+      "name": "",
+      "email": "anonymous-tip@example.com",
+      "subject": "",
+      "message": "Empty subject/name allowed in mock — edge case for UI labels.",
+      "createdAt": "2025-03-10T09:00:00.000Z",
+      "priority": "low"
+    },
+    {
+      "id": "ct_seed_3",
+      "name": "O'Brien & Sons Ltd",
+      "email": "contact@obrien.example",
+      "subject": "Quote request — \"urgent\" order",
+      "message": "We need 500 units. Special chars: <>&\"' and a long line: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "createdAt": "2025-03-22T16:45:00.000Z",
+      "priority": "high",
+      "attachmentsMeta": { "expected": false, "count": 0 }
+    }
+  ]
 }

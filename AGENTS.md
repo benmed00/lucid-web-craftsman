@@ -1,5 +1,9 @@
 # AGENTS.md
 
+**Maintained narrative docs:** [docs/README.md](docs/README.md) (platform behavior, standards, E2E matrix).
+
+**SPA API modules:** [`src/services/README.md`](src/services/README.md) · full conventions: [docs/PLATFORM.md — Client API layer](docs/PLATFORM.md#client-api-layer).
+
 ## Cursor Cloud specific instructions
 
 ### Services overview
@@ -18,16 +22,21 @@ Start the mock API first (`npm run start:api &`), then start the frontend (`npm 
 
 ### Key commands
 
-See `package.json` scripts. Highlights:
+See `package.json` scripts. Script implementations live under [`scripts/`](scripts/) — [`scripts/README.md`](scripts/README.md). Highlights:
 
-- **E2E (CI-style):** `npm run e2e:ci` — full suite; **`npm run e2e:ci:smoke`** — only `@smoke`; **`npm run e2e:checkout`** — checkout flow + persistence specs only; **`npm run e2e:ci:shard`** — same as `e2e:ci` but runs a slice of spec files (`CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL`, see [`scripts/cypress-e2e-shard.mjs`](scripts/cypress-e2e-shard.mjs)). Smoke/full workflows start mock API (3001) + Vite (8080) then Cypress. GitHub **E2E**: **smoke** on PR/push to `main`; **full** uses **two parallel shard jobs** on schedule/`workflow_dispatch` (see [`docs/E2E-COVERAGE.md`](docs/E2E-COVERAGE.md)).
+- **E2E (CI-style):** `npm run e2e:ci` — full suite; **`npm run e2e:ci:smoke`** — only `@smoke`; **`npm run e2e:checkout`** — checkout flow + persistence + DB hydration specs; **`npm run e2e:ci:shard`** — same as `e2e:ci` but runs a slice of spec files (`CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL`, see [`scripts/cypress-e2e-shard.mjs`](scripts/cypress-e2e-shard.mjs)). Smoke/full workflows start mock API (3001) + Vite (8080) then Cypress. GitHub **E2E**: **smoke** on PR/push to `main`; **full** uses **two parallel shard jobs** on schedule/`workflow_dispatch` (see [`docs/E2E-COVERAGE.md`](docs/E2E-COVERAGE.md)).
 - **Typecheck:** `npm run type:check` — `tsc --noEmit` for `tsconfig.app.json`, `tsconfig.node.json`, and `cypress/tsconfig.json` (also runs in `npm run validate`).
 - **Lint:** `npm run lint -- --max-warnings 9999` (0 errors expected; many pre-existing warnings)
-- **Format check:** `npm run format:check`
+- **Format:** **`npm run format`** — apply Prettier (writes files); run before commit when you want the tree aligned with CI. **`npm run format:check`** — verify only (also part of `npm run validate`). See [docs/STANDARDS.md — Verifications](docs/STANDARDS.md#verifications-local-before-pr).
 - **Unit tests:** `npm run test:unit` (Vitest; excludes RLS tests)
-- **Create-payment (Deno):** `npm run test:create-payment` (quick); **`npm run verify:create-payment`** matches CI (`deno check` + `deno lint` + `deno test` with **frozen** `supabase/functions/deno.lock`). Requires [Deno](https://deno.land/) v2 on `PATH`. GitHub Actions: workflow **Deno create-payment** on the same branches as root **CI** (`main`, `feat/backend-migration-and-cypress`, `yakov/git-state-cleanup`).
+- **Create-payment (Deno):** `npm run test:create-payment` (quick); **`npm run verify:create-payment`** matches CI (`deno check` + `deno lint` + `deno test`; no frozen lockfile — Supabase’s Docker bundler cannot read Deno 2 lockfile v5). Requires [Deno](https://deno.land/) v2 on `PATH`. GitHub Actions: workflow **Deno create-payment** on the same branches as root **CI** (`main`, `feat/backend-migration-and-cypress`, `yakov/git-state-cleanup`).
+- **Deploy Edge (payment return):** **`npm run deploy:functions:payment-success`** — `order-lookup`, `stripe-session-display`, `verify-payment`. **`npm run deploy:functions:stripe-return`** — same plus `send-order-confirmation` and `stripe-webhook`. **`npm run deploy:functions:all`** — redeploy every function that has `supabase/functions/<name>/index.ts` (see [`scripts/deploy-all-supabase-functions.mjs`](scripts/deploy-all-supabase-functions.mjs)). `supabase/functions/deno.lock` and `supabase/functions/*/deno.lock` are **gitignored** so a Deno 2 lockfile v5 is not committed (the hosted bundler rejects it).
+- **Pricing snapshot (checkout):** **`npm run test:pricing-snapshot`** — Deno tests for `stripe-webhook/lib/pricing-snapshot.ts` and `send-order-confirmation/_lib/email-pricing-from-db.ts`, plus Vitest for `src/lib/checkout/pricingSnapshot.ts` (Zod). Same Deno tests run in **Deno create-payment** GitHub Actions (see `.github/workflows/deno-create-payment.yml`).
 - **Build:** `npm run build`
 - **CI validation:** `npm run validate` (does **not** run Cypress; use `e2e:ci` / `e2e:ci:smoke` separately).
+- **OpenAPI (edge functions):** `npm run openapi:edge-functions` — writes [`openapi/supabase-edge-functions.json`](openapi/supabase-edge-functions.json). Optional per-function detail: `supabase/functions/<name>/openapi.fragment.json`. **`npm run openapi:edge-functions:check`** — regenerate + `git diff --exit-code` (for CI or pre-push). Notes: [`openapi/README.md`](openapi/README.md).
+- **Postman:** `npm run postman:collection` — regenerates [`postman/Lucid-Web-Craftsman.postman_collection.json`](postman/Lucid-Web-Craftsman.postman_collection.json). **`npm run postman:collection:check`** — same drift check (CI runs this; saved examples use a **fixed** health `timestamp` so output is deterministic). **`npm run api:artifacts`** — runs both generators. Import the collection + [`postman/Lucid-Web-Craftsman.postman_environment.json`](postman/Lucid-Web-Craftsman.postman_environment.json); copy [`postman/Lucid-Web-Craftsman.local.postman_environment.example.json`](postman/Lucid-Web-Craftsman.local.postman_environment.example.json) to `postman/Lucid-Web-Craftsman.local.postman_environment.json` (gitignored) for real keys. Do not commit Postman Desktop folders under `postman/.postman/` or `postman/postman/` (gitignored). Notes: [`postman/README.md`](postman/README.md).
+- **Edge Functions (folder index):** [`supabase/functions/README.md`](supabase/functions/README.md) — links to `DATA_FLOW`, `verify-payment`, OpenAPI, Postman.
 
 **GitHub Actions:** **[`ci.yml`](.github/workflows/ci.yml)** runs lint, typecheck, unit tests, and build. **[`e2e.yml`](.github/workflows/e2e.yml)** runs Cypress separately (smoke on PR/push; full on weekly schedule; **`workflow_dispatch`** with **`suite`** `smoke` or `full`). Both use **concurrency** (`cancel-in-progress`) and minimal **`permissions`**.
 
@@ -54,4 +63,4 @@ See `package.json` scripts. Highlights:
 - Prettier uses `"endOfLine": "lf"` (see `.prettierrc.json`) to match Linux CI; on Windows, prefer `git config core.autocrlf input` or let your editor save LF for tracked sources.
 - Edge function tests (`src/tests/edge-functions.test.ts`) skip tests requiring `SUPABASE_SERVICE_ROLE_KEY` if not set.
 - **`npm run test:ui`:** Vitest UI is bound to `127.0.0.1:24678` (not the default `51204`) because Windows can reserve port ranges that cause `EACCES` on the default port. Override with e.g. `npx vitest --ui --api.host 127.0.0.1 --api.port <port>` if needed.
-- The `create-payment` edge function is split across `index.ts`, `types.ts`, `constants.ts`, and `lib/` (`verified-cart`, `discount`, `amounts`, `stripe-session`, `stripe-customer`, `orders`, `auth-user`, `checkout-schema`, `payment-events`, `stripe-client`, `errors`, `security`, `rate-limit`, `log`); data flow and audit notes live in `supabase/functions/create-payment/DATA_FLOW.md`; roadmap in `REFACTOR_PLAN.md`. From repo root: `npm run verify:create-payment` (or individual `deno:*:create-payment` scripts in `package.json`).
+- The `create-payment` edge function is split across `index.ts`, `types.ts`, [`constants.ts`](supabase/functions/create-payment/constants.ts) (CORS, limits, origins; links to docs in its header), and `lib/` (`verified-cart`, `discount`, `amounts`, `stripe-session`, `stripe-customer`, `orders`, `auth-user`, `checkout-schema`, `payment-events`, `stripe-client`, `errors`, `security`, `rate-limit`, `log`); data flow and audit notes live in [`supabase/functions/create-payment/DATA_FLOW.md`](supabase/functions/create-payment/DATA_FLOW.md); roadmap in [`REFACTOR_PLAN.md`](supabase/functions/create-payment/REFACTOR_PLAN.md). From repo root: `npm run verify:create-payment` (or individual `deno:*:create-payment` scripts in `package.json`).

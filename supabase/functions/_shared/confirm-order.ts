@@ -16,6 +16,8 @@
  * Returns: { confirmed: boolean; alreadyProcessed: boolean; orderId: string }
  */
 
+import { paymentMethodLabel } from './payment-method-label.ts';
+
 export interface ConfirmOrderInput {
   orderId: string;
   stripeSessionId: string;
@@ -63,26 +65,44 @@ export async function confirmOrderFromStripe(
   // ================================================================
   const { data: order, error: fetchError } = await supabase
     .from('orders')
-    .select('id, status, order_status, amount, currency, user_id, metadata, shipping_address, billing_address, order_items(id, product_id, quantity, unit_price, total_price)')
+    .select(
+      'id, status, order_status, amount, currency, user_id, metadata, shipping_address, billing_address, order_items(id, product_id, quantity, unit_price, total_price)'
+    )
     .eq('id', orderId)
     .single();
 
   if (fetchError || !order) {
     logStep(source, 'Order not found', { orderId, error: fetchError?.message });
-    return { confirmed: false, alreadyProcessed: false, orderId, error: 'Order not found' };
+    return {
+      confirmed: false,
+      alreadyProcessed: false,
+      orderId,
+      error: 'Order not found',
+    };
   }
 
   // ================================================================
   // Step 2: Idempotency check
   // ================================================================
   if (order.status === 'paid' || order.status === 'completed') {
-    logStep(source, 'IDEMPOTENT: Order already confirmed', { orderId, status: order.status });
+    logStep(source, 'IDEMPOTENT: Order already confirmed', {
+      orderId,
+      status: order.status,
+    });
     return { confirmed: true, alreadyProcessed: true, orderId };
   }
 
   if (order.status !== 'pending') {
-    logStep(source, 'Order in unexpected status', { orderId, status: order.status });
-    return { confirmed: false, alreadyProcessed: false, orderId, error: `Unexpected status: ${order.status}` };
+    logStep(source, 'Order in unexpected status', {
+      orderId,
+      status: order.status,
+    });
+    return {
+      confirmed: false,
+      alreadyProcessed: false,
+      orderId,
+      error: `Unexpected status: ${order.status}`,
+    };
   }
 
   // ================================================================
@@ -95,6 +115,9 @@ export async function confirmOrderFromStripe(
     correlation_id: correlationId,
     stripe_session_id: stripeSessionId,
     payment_intent_id: paymentIntentId,
+    // Human-readable label for the confirmation page / emails. Read-side
+    // (get-order-by-token) forwards this via its metadata whitelist.
+    payment_method_label: paymentMethodLabel(paymentMethod),
   };
 
   if (source === 'stripe_webhook') {
@@ -137,11 +160,19 @@ export async function confirmOrderFromStripe(
 
   if (updateError) {
     logStep(source, 'Update error', { error: updateError.message });
-    return { confirmed: false, alreadyProcessed: false, orderId, error: updateError.message };
+    return {
+      confirmed: false,
+      alreadyProcessed: false,
+      orderId,
+      error: updateError.message,
+    };
   }
 
   if (!updatedOrder) {
-    logStep(source, 'IDEMPOTENT: Lost optimistic lock — another process confirmed first');
+    logStep(
+      source,
+      'IDEMPOTENT: Lost optimistic lock — another process confirmed first'
+    );
     return { confirmed: true, alreadyProcessed: true, orderId };
   }
 
@@ -193,15 +224,28 @@ export async function confirmOrderFromStripe(
         .single();
 
       if (product) {
-        const newStock = Math.max(0, (product.stock_quantity || 0) - item.quantity);
+        const newStock = Math.max(
+          0,
+          (product.stock_quantity || 0) - item.quantity
+        );
         await supabase
           .from('products')
-          .update({ stock_quantity: newStock, updated_at: new Date().toISOString() })
+          .update({
+            stock_quantity: newStock,
+            updated_at: new Date().toISOString(),
+          })
           .eq('id', item.product_id);
-        logStep(source, 'Stock decremented', { productId: item.product_id, sold: item.quantity, newStock });
+        logStep(source, 'Stock decremented', {
+          productId: item.product_id,
+          sold: item.quantity,
+          newStock,
+        });
       }
     } catch (err) {
-      logStep(source, 'Stock update error (non-fatal)', { productId: item.product_id, error: (err as Error).message });
+      logStep(source, 'Stock update error (non-fatal)', {
+        productId: item.product_id,
+        error: (err as Error).message,
+      });
     }
   }
 
@@ -210,7 +254,9 @@ export async function confirmOrderFromStripe(
   // ================================================================
   if (discountCode) {
     try {
-      const { error: rpcError } = await supabase.rpc('increment_coupon_usage', { p_code: discountCode });
+      const { error: rpcError } = await supabase.rpc('increment_coupon_usage', {
+        p_code: discountCode,
+      });
       if (rpcError) {
         // Fallback: manual increment
         const { data: coupon } = await supabase
@@ -227,7 +273,9 @@ export async function confirmOrderFromStripe(
       }
       logStep(source, 'Coupon usage incremented', { code: discountCode });
     } catch (err) {
-      logStep(source, 'Coupon increment error (non-fatal)', { error: (err as Error).message });
+      logStep(source, 'Coupon increment error (non-fatal)', {
+        error: (err as Error).message,
+      });
     }
   }
 
@@ -298,7 +346,11 @@ export async function sendConfirmationEmail(
   }
 ): Promise<void> {
   try {
-    // Idempotency: Check if email already sent
+    // Fast-path dedup: skip the downstream call if we already logged a
+    // successful send. The authoritative idempotency barrier lives inside
+    // send-order-confirmation itself, which uses a partial unique index on
+    // email_logs (order_id, template_name) WHERE status='sent' so two
+    // concurrent callers can race and the DB guarantees a single send.
     const { data: existingEmail } = await supabase
       .from('email_logs')
       .select('id')
@@ -308,7 +360,9 @@ export async function sendConfirmationEmail(
       .maybeSingle();
 
     if (existingEmail) {
-      console.log(`[CONFIRM-ORDER][${input.source}] Email already sent, skipping`);
+      console.log(
+        `[CONFIRM-ORDER][${input.source}] Email already sent, skipping`
+      );
       return;
     }
 
@@ -318,7 +372,9 @@ export async function sendConfirmationEmail(
       .select('id, name, images, price')
       .in('id', productIds);
 
-    const productMap = new Map<number, any>((products || []).map((p: any) => [p.id, p]));
+    const productMap = new Map<number, any>(
+      (products || []).map((p: any) => [p.id, p])
+    );
 
     const emailItems = input.orderItems.map((item: any) => {
       const product = productMap.get(item.product_id);
@@ -331,7 +387,8 @@ export async function sendConfirmationEmail(
     });
 
     const emailSubtotal = emailItems.reduce(
-      (sum: number, item: any) => sum + item.price * item.quantity, 0
+      (sum: number, item: any) => sum + item.price * item.quantity,
+      0
     );
     const total = input.orderAmount / 100;
     const shipping = total - emailSubtotal > 0 ? total - emailSubtotal : 0;
@@ -353,7 +410,9 @@ export async function sendConfirmationEmail(
           items: emailItems,
           subtotal: emailSubtotal,
           shipping,
-          discount: input.discountAmountCents ? input.discountAmountCents / 100 : 0,
+          discount: input.discountAmountCents
+            ? input.discountAmountCents / 100
+            : 0,
           total,
           currency: input.currency?.toUpperCase() || 'EUR',
           shippingAddress: shippingAddr
@@ -361,15 +420,23 @@ export async function sendConfirmationEmail(
                 address: shippingAddr.address_line1 || '',
                 city: shippingAddr.city || '',
                 postalCode: shippingAddr.postal_code || '',
-                country: shippingAddr.country === 'FR' ? 'France' : shippingAddr.country || 'France',
+                country:
+                  shippingAddr.country === 'FR'
+                    ? 'France'
+                    : shippingAddr.country || 'France',
               }
             : undefined,
         }),
       }
     );
 
-    console.log(`[CONFIRM-ORDER][${input.source}] Confirmation email triggered`);
+    console.log(
+      `[CONFIRM-ORDER][${input.source}] Confirmation email triggered`
+    );
   } catch (err) {
-    console.error(`[CONFIRM-ORDER][${input.source}] Email error (non-fatal):`, (err as Error).message);
+    console.error(
+      `[CONFIRM-ORDER][${input.source}] Email error (non-fatal):`,
+      (err as Error).message
+    );
   }
 }

@@ -146,7 +146,11 @@ export type OrderInsertMetadata = {
   verified_subtotal_cents: number;
 };
 
-export type OrderRow = { id: string };
+export type OrderRow = {
+  id: string;
+  /** Present when row is loaded with `select('*')` after insert. */
+  metadata?: Record<string, unknown> | null;
+};
 
 export type OrderItemInsert = {
   order_id: string;

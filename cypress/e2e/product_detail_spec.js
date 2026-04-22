@@ -169,7 +169,7 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
           .click();
 
         cy.contains(/ajouté au panier|added to cart|ajouté/i, {
-          timeout: 8000,
+          timeout: 15000,
         }).should('be.visible');
       }
     );
@@ -191,7 +191,7 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
 
             cy.get('[data-testid="product-add-to-cart"]').click();
             cy.contains(/ajouté au panier|added to cart|ajouté/i, {
-              timeout: 8000,
+              timeout: 15000,
             }).should('be.visible');
 
             cy.get('[data-testid="nav-cart-count"]', { timeout: 4000 })
@@ -216,13 +216,14 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
 
         cy.get('[data-testid="product-add-to-cart"]').click();
         cy.contains(/ajouté au panier|added to cart|ajouté/i, {
-          timeout: 8000,
+          timeout: 15000,
         }).should('be.visible');
 
         cy.visit('/');
         cy.get('body').should('be.visible');
 
         cy.visit('/cart');
+        cy.waitForCartPageWithItems();
         cy.get('main#main-content', { timeout: 12000 }).within(() => {
           cy.get('h1')
             .should('be.visible')

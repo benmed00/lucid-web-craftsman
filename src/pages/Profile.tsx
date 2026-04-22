@@ -14,7 +14,15 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useCsrfToken } from '@/hooks/useCsrfToken';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  clearProfileAvatarUrl,
+  fetchProfileRow,
+  getAvatarPublicUrl,
+  updateAuthUserFullName,
+  uploadAvatarObject,
+  upsertProfileAvatarUrl,
+  upsertProfileRow,
+} from '@/services/profileApi';
 import { User, Mail, Calendar } from 'lucide-react';
 import ImageUpload from '@/components/ui/ImageUpload';
 import {
@@ -47,15 +55,15 @@ export default function Profile() {
     const loadProfile = async () => {
       if (!user) return;
       setFullName(user.user_metadata?.full_name || '');
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('full_name,bio,avatar_url')
-        .eq('id', user.id)
-        .maybeSingle();
-      if (!error && data) {
-        setFullName(data.full_name || user.user_metadata?.full_name || '');
-        setBio(data.bio || '');
-        setAvatarUrl(data.avatar_url || '');
+      try {
+        const data = await fetchProfileRow(user.id);
+        if (data) {
+          setFullName(data.full_name || user.user_metadata?.full_name || '');
+          setBio(data.bio || '');
+          setAvatarUrl(data.avatar_url || '');
+        }
+      } catch {
+        /* non-blocking */
       }
     };
     loadProfile();
@@ -71,23 +79,15 @@ export default function Profile() {
 
       setIsUpdating(true);
       // Update auth metadata full name
-      const { error: authError } = await supabase.auth.updateUser({
-        data: { full_name: sanitizedFullName },
-      });
-      if (authError) throw authError;
+      await updateAuthUserFullName(sanitizedFullName);
 
-      // Upsert profile with full name, bio, and current avatar URL
       const sanitizedBio = sanitizeUserInput(bio).slice(0, 500);
-      const { error: profileError } = await supabase.from('profiles').upsert(
-        {
-          id: user.id,
-          full_name: sanitizedFullName,
-          bio: sanitizedBio,
-          avatar_url: avatarUrl || null,
-        },
-        { onConflict: 'id' }
-      );
-      if (profileError) throw profileError;
+      await upsertProfileRow({
+        id: user.id,
+        full_name: sanitizedFullName,
+        bio: sanitizedBio,
+        avatar_url: avatarUrl || null,
+      });
 
       toast({
         title: 'Profil mis à jour',
@@ -111,28 +111,16 @@ export default function Profile() {
     const ext = (file.type.split('/')[1] || 'jpg').toLowerCase();
     const filePath = `${user.id}/avatar_${Date.now()}.${ext}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, file, { upsert: true, contentType: file.type });
-    if (uploadError) throw uploadError;
-
-    const { data: publicData } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(filePath);
-    const publicUrl = publicData.publicUrl;
+    await uploadAvatarObject(filePath, file);
+    const publicUrl = getAvatarPublicUrl(filePath);
     setAvatarUrl(publicUrl);
 
-    await supabase
-      .from('profiles')
-      .upsert({ id: user.id, avatar_url: publicUrl }, { onConflict: 'id' });
+    await upsertProfileAvatarUrl(user.id, publicUrl);
   };
 
   const handleRemoveAvatar = async () => {
     if (!user) return;
-    await supabase
-      .from('profiles')
-      .update({ avatar_url: null })
-      .eq('id', user.id);
+    await clearProfileAvatarUrl(user.id);
     setAvatarUrl('');
   };
 
