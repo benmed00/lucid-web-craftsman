@@ -11,7 +11,6 @@ import {
   StorageTTL,
 } from '@/lib/storage/safeStorage';
 import { cache, CacheTTL, CacheTags } from '@/lib/cache/UnifiedCache';
-import { currencyApi } from '@/lib/api/apiClient';
 // handleError/NetworkError removed — currency fetch uses silent fallback
 
 // ============= Types =============
@@ -97,20 +96,9 @@ export const useCurrencyStore = create<CurrencyState>()(
 
             set({ isLoading: true });
 
-            // Use centralized API client for consistent error handling
-            const data = await currencyApi.get<{
-              rates?: { USD?: number; GBP?: number };
-            }>('/latest?from=EUR&to=USD,GBP');
-
-            // Frankfurter API returns { rates: { USD: x, GBP: y } }
-            if (!data.rates) {
-              set({ isLoading: false, lastUpdated: Date.now() });
-              return;
-            }
-
             const rates = {
-              USD: data.rates.USD ?? DEFAULT_EXCHANGE_RATES.EUR.USD,
-              GBP: data.rates.GBP ?? DEFAULT_EXCHANGE_RATES.EUR.GBP,
+              USD: DEFAULT_EXCHANGE_RATES.EUR.USD,
+              GBP: DEFAULT_EXCHANGE_RATES.EUR.GBP,
               MAD: DEFAULT_EXCHANGE_RATES.EUR.MAD, // MAD not supported by frankfurter, use default
             };
 

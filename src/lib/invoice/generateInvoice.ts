@@ -7,7 +7,10 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 
-const FUNCTIONS_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1`;
+const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL ||
+  'https://xcvlijchkmhjonhfildm.supabase.co';
+const FUNCTIONS_URL = `${SUPABASE_URL.replace(/\/$/, '')}/functions/v1`;
 
 export class InvoiceError extends Error {}
 
