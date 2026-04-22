@@ -22,7 +22,10 @@ Deno.test('paymentMethodLabel: cards and wallets', () => {
 Deno.test('paymentMethodLabel: bank redirect / account', () => {
   assertEquals(paymentMethodLabel('paypal'), 'PayPal');
   assertEquals(paymentMethodLabel('sepa_debit'), 'Prélèvement SEPA');
-  assertEquals(paymentMethodLabel('us_bank_account'), 'Virement bancaire (ACH)');
+  assertEquals(
+    paymentMethodLabel('us_bank_account'),
+    'Virement bancaire (ACH)'
+  );
   assertEquals(paymentMethodLabel('bacs_debit'), 'Prélèvement Bacs');
   assertEquals(paymentMethodLabel('au_becs_debit'), 'Prélèvement BECS');
   assertEquals(paymentMethodLabel('ideal'), 'iDEAL');
@@ -36,10 +39,7 @@ Deno.test('paymentMethodLabel: bank redirect / account', () => {
 
 Deno.test('paymentMethodLabel: BNPL', () => {
   assertEquals(paymentMethodLabel('klarna'), 'Klarna');
-  assertEquals(
-    paymentMethodLabel('afterpay_clearpay'),
-    'Afterpay / Clearpay'
-  );
+  assertEquals(paymentMethodLabel('afterpay_clearpay'), 'Afterpay / Clearpay');
   assertEquals(paymentMethodLabel('affirm'), 'Affirm');
 });
 

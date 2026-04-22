@@ -38,7 +38,7 @@ const { __resetRateLimitStore } = await import(
 // ---------------------------------------------------------------------------
 
 Deno.test('signOrderToken → verifyTokenPayload roundtrip', async () => {
-    resetState();
+  resetState();
   const token = await signOrderToken('order-123');
   const payload = await verifyTokenPayload(token);
   assertEquals(payload.order_id, 'order-123');
@@ -51,13 +51,13 @@ Deno.test('signOrderToken → verifyTokenPayload roundtrip', async () => {
 });
 
 Deno.test('verifyTokenPayload rejects malformed token', async () => {
-    resetState();
+  resetState();
   await assertRejects(() => verifyTokenPayload('not-a-token'), Error);
   await assertRejects(() => verifyTokenPayload('a.b.c'), Error);
 });
 
 Deno.test('verifyTokenPayload rejects bad signature', async () => {
-    resetState();
+  resetState();
   const token = await signOrderToken('order-123');
   const [payloadB64] = token.split('.');
   const tampered = `${payloadB64}.AAAA`;
@@ -69,7 +69,7 @@ Deno.test('verifyTokenPayload rejects bad signature', async () => {
 });
 
 Deno.test('verifyTokenPayload rejects expired token', async () => {
-    resetState();
+  resetState();
   // Forge an expired token using the same secret.
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -97,7 +97,7 @@ Deno.test('verifyTokenPayload rejects expired token', async () => {
 });
 
 Deno.test('signToken (invoice) yields invoice_access type', async () => {
-    resetState();
+  resetState();
   const token = await signToken('order-xyz');
   const payload = await verifyTokenPayload(token);
   assertEquals(payload.type, 'invoice_access');
@@ -195,7 +195,7 @@ function resetState(): void {
 
 // Scenario 4
 Deno.test('handleRequest: invalid/tampered token → 401', async () => {
-    resetState();
+  resetState();
   const res = await handleRequest(makePostReq({ token: 'bogus' }), makeAdmin());
   assertEquals(res.status, 401);
   assertEquals(await res.json(), { error: 'Invalid or expired token' });
@@ -203,7 +203,7 @@ Deno.test('handleRequest: invalid/tampered token → 401', async () => {
 
 // Scenario 5 — the security boundary we were most worried about
 Deno.test('handleRequest: invoice_access token rejected → 401', async () => {
-    resetState();
+  resetState();
   const token = await signToken(ORDER_ID); // 30-day invoice_access token
   const res = await handleRequest(makePostReq({ token }), makeAdmin());
   assertEquals(res.status, 401);
@@ -212,7 +212,7 @@ Deno.test('handleRequest: invoice_access token rejected → 401', async () => {
 
 // Scenario 8
 Deno.test('handleRequest: order not found → 404', async () => {
-    resetState();
+  resetState();
   const token = await signOrderToken(ORDER_ID);
   const res = await handleRequest(
     makePostReq({ token }),
@@ -224,7 +224,7 @@ Deno.test('handleRequest: order not found → 404', async () => {
 
 // Scenario 9 — happy path
 Deno.test('handleRequest: happy path returns order + items → 200', async () => {
-    resetState();
+  resetState();
   const token = await signOrderToken(ORDER_ID);
   const res = await handleRequest(
     makePostReq({ token }),
@@ -244,7 +244,7 @@ Deno.test('handleRequest: happy path returns order + items → 200', async () =>
 
 // Scenario 10 — null items normalized to []
 Deno.test('handleRequest: null items normalized to empty array', async () => {
-    resetState();
+  resetState();
   const token = await signOrderToken(ORDER_ID);
   const res = await handleRequest(
     makePostReq({ token }),
@@ -260,7 +260,7 @@ Deno.test('handleRequest: null items normalized to empty array', async () => {
 
 // Hardening: 400 for malformed JSON (previously collapsed into 500)
 Deno.test('handleRequest: malformed JSON body → 400', async () => {
-    resetState();
+  resetState();
   const req = new Request('http://localhost/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -272,21 +272,21 @@ Deno.test('handleRequest: malformed JSON body → 400', async () => {
 });
 
 Deno.test('handleRequest: missing token field → 400', async () => {
-    resetState();
+  resetState();
   const res = await handleRequest(makePostReq({}), makeAdmin());
   assertEquals(res.status, 400);
   assertEquals(await res.json(), { error: 'Missing token' });
 });
 
 Deno.test('handleRequest: non-string token → 400', async () => {
-    resetState();
+  resetState();
   const res = await handleRequest(makePostReq({ token: 123 }), makeAdmin());
   assertEquals(res.status, 400);
   assertEquals(await res.json(), { error: 'Missing token' });
 });
 
 Deno.test('handleRequest: orders DB error → 500 "Database error"', async () => {
-    resetState();
+  resetState();
   const token = await signOrderToken(ORDER_ID);
   const res = await handleRequest(
     makePostReq({ token }),
@@ -308,7 +308,7 @@ Deno.test('handleRequest: orders DB error → 500 "Database error"', async () =>
 });
 
 Deno.test('handleRequest: items DB error → 500 "Database error"', async () => {
-    resetState();
+  resetState();
   const token = await signOrderToken(ORDER_ID);
   const res = await handleRequest(
     makePostReq({ token }),
@@ -372,28 +372,28 @@ Deno.test(
 
 // Zod request-body schema hardening
 Deno.test('handleRequest: empty-string token → 400', async () => {
-    resetState();
-  const res = await handleRequest(
-    makePostReq({ token: '' }),
-    makeAdmin()
-  );
+  resetState();
+  const res = await handleRequest(makePostReq({ token: '' }), makeAdmin());
   assertEquals(res.status, 400);
   assertEquals(await res.json(), { error: 'Missing token' });
 });
 
-Deno.test('handleRequest: extra unknown fields on body are ignored', async () => {
+Deno.test(
+  'handleRequest: extra unknown fields on body are ignored',
+  async () => {
     resetState();
-  const token = await signOrderToken(ORDER_ID);
-  const res = await handleRequest(
-    makePostReq({ token, hacker: 'DROP TABLE orders' }),
-    makeAdmin({
-      order: { data: FAKE_ORDER, error: null },
-      items: { data: [], error: null },
-    })
-  );
-  // Extra fields must not break parsing — Zod's default is strip, not reject.
-  assertEquals(res.status, 200);
-});
+    const token = await signOrderToken(ORDER_ID);
+    const res = await handleRequest(
+      makePostReq({ token, hacker: 'DROP TABLE orders' }),
+      makeAdmin({
+        order: { data: FAKE_ORDER, error: null },
+        items: { data: [], error: null },
+      })
+    );
+    // Extra fields must not break parsing — Zod's default is strip, not reject.
+    assertEquals(res.status, 200);
+  }
+);
 
 // Drift guard: schema is the source of truth for the SELECT string
 Deno.test('ORDER_SELECT is derived from OrderRowSchema (no drift)', () => {
@@ -433,21 +433,24 @@ Deno.test('FAKE_ITEM fixture conforms to OrderItemRowSchema', () => {
 });
 
 // Metadata PII whitelist — the core Tier 2 security change.
-Deno.test('pickPublicOrderMetadata: drops everything not on the whitelist', () => {
-  const raw = {
-    client_ip: '203.0.113.42',
-    stripe_session_id: 'cs_live_abcdef',
-    correlation_id: 'corr-123',
-    device_type: 'mobile',
-    customer_email: 'alice@example.com',
-    payment_method_label: 'Carte Visa',
-  };
-  const safe = pickPublicOrderMetadata(raw);
-  assertEquals(safe, {
-    customer_email: 'alice@example.com',
-    payment_method_label: 'Carte Visa',
-  });
-});
+Deno.test(
+  'pickPublicOrderMetadata: drops everything not on the whitelist',
+  () => {
+    const raw = {
+      client_ip: '203.0.113.42',
+      stripe_session_id: 'cs_live_abcdef',
+      correlation_id: 'corr-123',
+      device_type: 'mobile',
+      customer_email: 'alice@example.com',
+      payment_method_label: 'Carte Visa',
+    };
+    const safe = pickPublicOrderMetadata(raw);
+    assertEquals(safe, {
+      customer_email: 'alice@example.com',
+      payment_method_label: 'Carte Visa',
+    });
+  }
+);
 
 Deno.test('pickPublicOrderMetadata: null input → null output', () => {
   assertEquals(pickPublicOrderMetadata(null), null);
@@ -493,10 +496,7 @@ Deno.test(
     if (body.order.metadata && 'client_ip' in body.order.metadata) {
       throw new Error('PII leak: client_ip present in response');
     }
-    if (
-      body.order.metadata &&
-      'stripe_session_id' in body.order.metadata
-    ) {
+    if (body.order.metadata && 'stripe_session_id' in body.order.metadata) {
       throw new Error('Internal id leak: stripe_session_id present');
     }
     // And the whitelisted fields DO make it through unchanged.
@@ -601,17 +601,16 @@ Deno.test(
     };
     const keys = Object.keys(body.order.shipping_address ?? {});
     assertEquals(keys.sort(), [...PUBLIC_SHIPPING_ADDRESS_KEYS].sort());
-    if (
-      body.order.shipping_address &&
-      'phone' in body.order.shipping_address
-    ) {
+    if (body.order.shipping_address && 'phone' in body.order.shipping_address) {
       throw new Error('phone leaked through shipping_address whitelist');
     }
     if (
       body.order.shipping_address &&
       'address_line2' in body.order.shipping_address
     ) {
-      throw new Error('address_line2 leaked through shipping_address whitelist');
+      throw new Error(
+        'address_line2 leaked through shipping_address whitelist'
+      );
     }
   }
 );
@@ -700,10 +699,7 @@ Deno.test(
     // Hammer with a bogus token — none of these should count against any
     // order_id's budget since rate-limit is keyed by a verified payload.
     for (let i = 0; i < 50; i++) {
-      const res = await handleRequest(
-        makePostReq({ token: 'bogus' }),
-        admin
-      );
+      const res = await handleRequest(makePostReq({ token: 'bogus' }), admin);
       assertEquals(res.status, 401);
       await res.body?.cancel();
     }

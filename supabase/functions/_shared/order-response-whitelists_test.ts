@@ -26,11 +26,14 @@ Deno.test('pickPublicOrderMetadata: drops every non-whitelisted key', () => {
   });
 });
 
-Deno.test('pickPublicOrderMetadata: null / undefined / no matches → null', () => {
-  assertEquals(pickPublicOrderMetadata(null), null);
-  assertEquals(pickPublicOrderMetadata(undefined), null);
-  assertEquals(pickPublicOrderMetadata({ client_ip: '1.2.3.4' }), null);
-});
+Deno.test(
+  'pickPublicOrderMetadata: null / undefined / no matches → null',
+  () => {
+    assertEquals(pickPublicOrderMetadata(null), null);
+    assertEquals(pickPublicOrderMetadata(undefined), null);
+    assertEquals(pickPublicOrderMetadata({ client_ip: '1.2.3.4' }), null);
+  }
+);
 
 Deno.test('pickPublicShippingAddress: keeps 7 UI-consumed keys', () => {
   const raw = {
@@ -61,21 +64,24 @@ Deno.test('pickPublicShippingAddress: null / undefined → null', () => {
 });
 
 // Stability guards — changing a whitelist is a deliberate act, not an accident.
-Deno.test('whitelist key sets are stable (change is a breaking contract)', () => {
-  assertEquals(
-    [...PUBLIC_ORDER_METADATA_KEYS],
-    ['customer_email', 'payment_method_label']
-  );
-  assertEquals(
-    [...PUBLIC_SHIPPING_ADDRESS_KEYS],
-    [
-      'first_name',
-      'last_name',
-      'email',
-      'address_line1',
-      'postal_code',
-      'city',
-      'country',
-    ]
-  );
-});
+Deno.test(
+  'whitelist key sets are stable (change is a breaking contract)',
+  () => {
+    assertEquals(
+      [...PUBLIC_ORDER_METADATA_KEYS],
+      ['customer_email', 'payment_method_label']
+    );
+    assertEquals(
+      [...PUBLIC_SHIPPING_ADDRESS_KEYS],
+      [
+        'first_name',
+        'last_name',
+        'email',
+        'address_line1',
+        'postal_code',
+        'city',
+        'country',
+      ]
+    );
+  }
+);

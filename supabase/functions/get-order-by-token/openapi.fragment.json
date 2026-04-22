@@ -32,12 +32,12 @@
               "order": {
                 "type": "object",
                 "properties": {
-                  "id":               { "type": "string" },
-                  "status":           { "type": ["string", "null"] },
-                  "order_status":     { "type": ["string", "null"] },
-                  "amount":           { "type": ["number", "null"] },
-                  "currency":         { "type": ["string", "null"] },
-                  "created_at":       { "type": "string", "format": "date-time" },
+                  "id": { "type": "string" },
+                  "status": { "type": ["string", "null"] },
+                  "order_status": { "type": ["string", "null"] },
+                  "amount": { "type": ["number", "null"] },
+                  "currency": { "type": ["string", "null"] },
+                  "created_at": { "type": "string", "format": "date-time" },
                   "shipping_address": {
                     "type": ["object", "null"],
                     "description": "Whitelisted: first_name, last_name, email, address_line1, postal_code, city, country.",
@@ -47,18 +47,21 @@
                     "type": ["object", "null"],
                     "description": "Whitelisted: customer_email, payment_method_label.",
                     "properties": {
-                      "customer_email":       { "type": "string" },
+                      "customer_email": { "type": "string" },
                       "payment_method_label": { "type": "string" }
                     },
                     "additionalProperties": false
                   },
-                  "payment_method":    { "type": ["string", "null"] },
-                  "user_id":           { "type": ["string", "null"] },
-                  "pricing_snapshot":  { "type": ["object", "null"], "additionalProperties": true },
-                  "subtotal_amount":   { "type": ["number", "null"] },
-                  "discount_amount":   { "type": ["number", "null"] },
-                  "shipping_amount":   { "type": ["number", "null"] },
-                  "total_amount":      { "type": ["number", "null"] }
+                  "payment_method": { "type": ["string", "null"] },
+                  "user_id": { "type": ["string", "null"] },
+                  "pricing_snapshot": {
+                    "type": ["object", "null"],
+                    "additionalProperties": true
+                  },
+                  "subtotal_amount": { "type": ["number", "null"] },
+                  "discount_amount": { "type": ["number", "null"] },
+                  "shipping_amount": { "type": ["number", "null"] },
+                  "total_amount": { "type": ["number", "null"] }
                 }
               },
               "items": {
@@ -66,11 +69,14 @@
                 "items": {
                   "type": "object",
                   "properties": {
-                    "quantity":         { "type": "number" },
-                    "unit_price":       { "type": "number" },
-                    "total_price":      { "type": "number" },
-                    "product_snapshot": { "type": ["object", "null"], "additionalProperties": true },
-                    "product_id":       { "type": ["integer", "null"] }
+                    "quantity": { "type": "number" },
+                    "unit_price": { "type": "number" },
+                    "total_price": { "type": "number" },
+                    "product_snapshot": {
+                      "type": ["object", "null"],
+                      "additionalProperties": true
+                    },
+                    "product_id": { "type": ["integer", "null"] }
                   }
                 }
               }

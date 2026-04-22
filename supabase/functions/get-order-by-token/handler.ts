@@ -117,17 +117,14 @@ export type OrderItemRow = z.infer<typeof OrderItemRowSchema>;
 export const ORDER_SELECT: string = Object.keys(OrderRowSchema.shape).join(
   ', '
 );
-export const ITEMS_SELECT: string = Object.keys(
-  OrderItemRowSchema.shape
-).join(', ');
+export const ITEMS_SELECT: string = Object.keys(OrderItemRowSchema.shape).join(
+  ', '
+);
 
 // Whitelists live in _shared/order-response-whitelists.ts — re-exported above.
 // Shape of the `order` object actually returned — `metadata` and
 // `shipping_address` both swapped for their whitelisted views.
-export type PublicOrderRow = Omit<
-  OrderRow,
-  'metadata' | 'shipping_address'
-> & {
+export type PublicOrderRow = Omit<OrderRow, 'metadata' | 'shipping_address'> & {
   metadata: PublicOrderMetadata | null;
   shipping_address: PublicShippingAddress | null;
 };

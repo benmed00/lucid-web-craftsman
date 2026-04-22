@@ -41,6 +41,5 @@ const rateLimitStore: RateLimitStore = createCompositeRateLimitStore(
 );
 
 Deno.serve(
-  (req: Request): Promise<Response> =>
-    handleRequest(req, admin, rateLimitStore)
+  (req: Request): Promise<Response> => handleRequest(req, admin, rateLimitStore)
 );
