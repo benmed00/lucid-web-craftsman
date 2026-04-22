@@ -13,7 +13,7 @@
  */
 import type Stripe from 'https://esm.sh/stripe@18.5.0';
 
-import { buildPricingSnapshotV1FromStripe } from '../stripe-webhook/lib/pricing-snapshot.ts';
+import { buildPricingSnapshotV1FromStripe } from './pricing-snapshot.ts';
 
 export interface PersistSnapshotInput {
   orderId: string;
