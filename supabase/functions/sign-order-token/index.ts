@@ -91,7 +91,8 @@ Deno.serve(async (req) => {
     const token = await signOrderToken(order_id);
     return json({ token });
   } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed';
     console.error('[sign-order-token]', err);
-    return json({ error: err.message || 'Failed' }, 500);
+    return json({ error: message }, 500);
   }
 });
