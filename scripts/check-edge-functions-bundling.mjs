@@ -158,6 +158,61 @@ function denoCheck(fnName) {
   return { ok: true, output: '' };
 }
 
+function parseDenoErrors(output) {
+  // Extract structured info from "Module not found" / "Relative import path"
+  // / "Cannot resolve module" deno error lines, e.g.:
+  //   error: Module not found "file:///.../foo.ts".
+  //       at file:///.../bar.ts:4:32
+  const issues = [];
+  const lines = output.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const mModule = line.match(
+      /(?:Module not found|Cannot resolve module|Relative import path[^"]*"([^"]+)"[^"]*not (?:prefixed|found))/
+    );
+    if (!mModule && !/error:/i.test(line)) continue;
+
+    const missingMatch =
+      line.match(/Module not found\s+"([^"]+)"/i) ||
+      line.match(/Cannot resolve module\s+"([^"]+)"/i) ||
+      line.match(/"([^"]+)"\s+not (?:prefixed|found)/i);
+    const missing = missingMatch ? missingMatch[1] : null;
+
+    // Look ahead for the "at file://..." location line
+    let location = null;
+    for (let j = i + 1; j < Math.min(i + 6, lines.length); j++) {
+      const at = lines[j].match(/at\s+(file:\/\/[^\s:]+):(\d+):(\d+)/);
+      if (at) {
+        const filePath = fileURLToPath(at[1]);
+        location = {
+          file: path.relative(root, filePath),
+          line: Number(at[2]),
+          col: Number(at[3]),
+        };
+        break;
+      }
+    }
+
+    issues.push({
+      message: line.replace(/^error:\s*/i, '').trim(),
+      missing: missing ? toRelative(missing) : null,
+      location,
+    });
+  }
+  return issues;
+}
+
+function toRelative(maybeFileUrl) {
+  if (maybeFileUrl.startsWith('file://')) {
+    try {
+      return path.relative(root, fileURLToPath(maybeFileUrl));
+    } catch {
+      return maybeFileUrl;
+    }
+  }
+  return maybeFileUrl;
+}
+
 const argv = process.argv.slice(2);
 const skipDeno = argv.includes('--no-deno');
 const filter = argv.filter((a) => !a.startsWith('--'));
@@ -176,25 +231,51 @@ console.error(
 
 let failed = 0;
 for (const fn of functions) {
-  const violations = findCrossFunctionImports(fn);
+  const { violations, missing } = findCrossFunctionImports(fn);
   let denoResult = { ok: true, output: '' };
   if (!skipDeno) denoResult = denoCheck(fn);
 
-  if (violations.length === 0 && denoResult.ok) {
+  if (violations.length === 0 && missing.length === 0 && denoResult.ok) {
     console.error(`  ✓ ${fn}`);
     continue;
   }
 
   failed++;
   console.error(`  ✗ ${fn}`);
+
   for (const v of violations) {
-    console.error(
-      `      cross-function import: ${v.spec}  (in ${v.file}) → ${v.resolvedTo}`
-    );
+    console.error(`      cross-function import`);
+    console.error(`        importer:   ${v.file}:${v.line}:${v.col}`);
+    console.error(`        specifier:  ${v.spec}`);
+    console.error(`        resolves:   supabase/functions/${v.resolvedTo}`);
+    console.error(`        fix:        ${v.suggestion}`);
   }
+
+  for (const miss of missing) {
+    console.error(`      missing import target`);
+    console.error(`        importer:   ${miss.file}:${miss.line}:${miss.col}`);
+    console.error(`        specifier:  ${miss.spec}`);
+    console.error(`        expected:   ${miss.expectedPath} (not on disk)`);
+  }
+
   if (!denoResult.ok) {
-    const head = denoResult.output.split('\n').slice(0, 8).join('\n      ');
-    console.error(`      deno check failed:\n      ${head}`);
+    const issues = parseDenoErrors(denoResult.output);
+    if (issues.length > 0) {
+      for (const iss of issues) {
+        console.error(`      deno check error: ${iss.message}`);
+        if (iss.missing) {
+          console.error(`        missing module: ${iss.missing}`);
+        }
+        if (iss.location) {
+          console.error(
+            `        imported from:  ${iss.location.file}:${iss.location.line}:${iss.location.col}`
+          );
+        }
+      }
+    } else {
+      const head = denoResult.output.split('\n').slice(0, 8).join('\n      ');
+      console.error(`      deno check failed:\n      ${head}`);
+    }
   }
 }
 
