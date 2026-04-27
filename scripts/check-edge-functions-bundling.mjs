@@ -60,9 +60,41 @@ function walk(dir, out = []) {
 const IMPORT_RE =
   /(?:import|export)\s+(?:[^'"`;]+?\s+from\s+)?['"`]([^'"`]+)['"`]/g;
 
+function lineColForOffset(src, offset) {
+  let line = 1;
+  let col = 1;
+  for (let i = 0; i < offset && i < src.length; i++) {
+    if (src[i] === '\n') {
+      line++;
+      col = 1;
+    } else {
+      col++;
+    }
+  }
+  return { line, col };
+}
+
+function resolveImportTarget(absPath) {
+  // Mirror Deno's resolution for relative specifiers: try the path as-is,
+  // then with .ts/.tsx/.js/.mjs/.mts extensions, then index.ts inside a dir.
+  if (fs.existsSync(absPath) && fs.statSync(absPath).isFile()) return absPath;
+  const exts = ['.ts', '.tsx', '.js', '.mjs', '.mts'];
+  for (const ext of exts) {
+    if (fs.existsSync(absPath + ext)) return absPath + ext;
+  }
+  if (fs.existsSync(absPath) && fs.statSync(absPath).isDirectory()) {
+    for (const ext of exts) {
+      const idx = path.join(absPath, 'index' + ext);
+      if (fs.existsSync(idx)) return idx;
+    }
+  }
+  return null;
+}
+
 function findCrossFunctionImports(fnName) {
   const fnDir = path.join(functionsRoot, fnName);
   const violations = [];
+  const missing = [];
   for (const file of walk(fnDir)) {
     const src = fs.readFileSync(file, 'utf8');
     let m;
@@ -71,19 +103,38 @@ function findCrossFunctionImports(fnName) {
       const spec = m[1];
       if (!spec.startsWith('.')) continue;
       const resolved = path.resolve(path.dirname(file), spec);
+      const { line, col } = lineColForOffset(src, m.index);
+      const importerRel = path.relative(root, file);
+
+      // Detect imports whose resolved target does not exist on disk.
+      const target = resolveImportTarget(resolved);
+      if (!target) {
+        missing.push({
+          file: importerRel,
+          spec,
+          line,
+          col,
+          expectedPath: path.relative(root, resolved),
+        });
+        continue;
+      }
+
       const rel = path.relative(functionsRoot, resolved);
       if (rel.startsWith('..') || path.isAbsolute(rel)) continue;
       const topDir = rel.split(path.sep)[0];
       if (topDir === fnName) continue;
       if (ALLOWED_PARENT_DIRS.has(topDir)) continue;
       violations.push({
-        file: path.relative(root, file),
+        file: importerRel,
         spec,
+        line,
+        col,
         resolvedTo: rel,
+        suggestion: `mv this module to supabase/functions/_shared/ and import from '../_shared/...'`,
       });
     }
   }
-  return violations;
+  return { violations, missing };
 }
 
 function denoCheck(fnName) {
