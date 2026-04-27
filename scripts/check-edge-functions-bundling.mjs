@@ -16,12 +16,7 @@
  *
  * Requires: Deno v2 on PATH (same as `npm run verify:create-payment`).
  */
-import { execSync, spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:child_process'
-  .constructor === Function
-  ? await import('node:fs').then((m) => m)
-  : null;
-
+import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
