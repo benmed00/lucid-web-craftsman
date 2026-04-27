@@ -13,6 +13,9 @@
  * Usage:
  *   node scripts/check-edge-functions-bundling.mjs            # check all
  *   node scripts/check-edge-functions-bundling.mjs fn1 fn2    # subset
+ *   node scripts/check-edge-functions-bundling.mjs \
+ *     --report-json reports/bundling.json \
+ *     --report-html reports/bundling.html                     # write artifacts
  *
  * Requires: Deno v2 on PATH (same as `npm run verify:create-payment`).
  */
