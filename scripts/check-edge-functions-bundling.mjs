@@ -13,6 +13,9 @@
  * Usage:
  *   node scripts/check-edge-functions-bundling.mjs            # check all
  *   node scripts/check-edge-functions-bundling.mjs fn1 fn2    # subset
+ *   node scripts/check-edge-functions-bundling.mjs \
+ *     --report-json reports/bundling.json \
+ *     --report-html reports/bundling.html                     # write artifacts
  *
  * Requires: Deno v2 on PATH (same as `npm run verify:create-payment`).
  */
@@ -213,9 +216,25 @@ function toRelative(maybeFileUrl) {
   return maybeFileUrl;
 }
 
+function parseFlagValue(args, name) {
+  const eq = args.find((a) => a.startsWith(`--${name}=`));
+  if (eq) return eq.slice(name.length + 3);
+  const idx = args.indexOf(`--${name}`);
+  if (idx !== -1 && args[idx + 1] && !args[idx + 1].startsWith('--')) {
+    return args[idx + 1];
+  }
+  return null;
+}
+
 const argv = process.argv.slice(2);
 const skipDeno = argv.includes('--no-deno');
-const filter = argv.filter((a) => !a.startsWith('--'));
+const reportJsonPath = parseFlagValue(argv, 'report-json');
+const reportHtmlPath = parseFlagValue(argv, 'report-html');
+const filter = argv.filter(
+  (a, i, arr) =>
+    !a.startsWith('--') &&
+    !(i > 0 && /^--(report-json|report-html)$/.test(arr[i - 1]))
+);
 const functions = listFunctions(filter);
 
 if (functions.length === 0) {
@@ -229,13 +248,36 @@ console.error(
   }\n`
 );
 
+const report = {
+  generatedAt: new Date().toISOString(),
+  root,
+  functionsChecked: functions.length,
+  skipDeno,
+  functions: [],
+};
+
 let failed = 0;
 for (const fn of functions) {
   const { violations, missing } = findCrossFunctionImports(fn);
   let denoResult = { ok: true, output: '' };
   if (!skipDeno) denoResult = denoCheck(fn);
+  const denoIssues = denoResult.ok ? [] : parseDenoErrors(denoResult.output);
+  const fnFailed =
+    violations.length > 0 || missing.length > 0 || !denoResult.ok;
 
-  if (violations.length === 0 && missing.length === 0 && denoResult.ok) {
+  report.functions.push({
+    name: fn,
+    status: fnFailed ? 'failed' : 'passed',
+    crossFunctionImports: violations,
+    missingImports: missing,
+    denoCheck: {
+      ok: denoResult.ok,
+      issues: denoIssues,
+      rawOutput: denoResult.ok ? '' : denoResult.output,
+    },
+  });
+
+  if (!fnFailed) {
     console.error(`  ✓ ${fn}`);
     continue;
   }
@@ -259,9 +301,8 @@ for (const fn of functions) {
   }
 
   if (!denoResult.ok) {
-    const issues = parseDenoErrors(denoResult.output);
-    if (issues.length > 0) {
-      for (const iss of issues) {
+    if (denoIssues.length > 0) {
+      for (const iss of denoIssues) {
         console.error(`      deno check error: ${iss.message}`);
         if (iss.missing) {
           console.error(`        missing module: ${iss.missing}`);
@@ -279,6 +320,110 @@ for (const fn of functions) {
   }
 }
 
+report.failedCount = failed;
+report.passedCount = functions.length - failed;
+
+function htmlEscape(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderHtml(rep) {
+  const rows = rep.functions
+    .map((f) => {
+      const issues = [];
+      for (const v of f.crossFunctionImports) {
+        issues.push(
+          `<li><strong>cross-function import</strong> <code>${htmlEscape(
+            v.spec
+          )}</code><br/>importer: <code>${htmlEscape(f.name)} → ${htmlEscape(
+            v.file
+          )}:${v.line}:${v.col}</code><br/>resolves: <code>supabase/functions/${htmlEscape(
+            v.resolvedTo
+          )}</code><br/>fix: ${htmlEscape(v.suggestion)}</li>`
+        );
+      }
+      for (const m of f.missingImports) {
+        issues.push(
+          `<li><strong>missing import target</strong> <code>${htmlEscape(
+            m.spec
+          )}</code><br/>importer: <code>${htmlEscape(m.file)}:${m.line}:${
+            m.col
+          }</code><br/>expected: <code>${htmlEscape(m.expectedPath)}</code> (not on disk)</li>`
+        );
+      }
+      for (const iss of f.denoCheck.issues) {
+        issues.push(
+          `<li><strong>deno check</strong>: ${htmlEscape(iss.message)}${
+            iss.missing
+              ? `<br/>missing module: <code>${htmlEscape(iss.missing)}</code>`
+              : ''
+          }${
+            iss.location
+              ? `<br/>imported from: <code>${htmlEscape(iss.location.file)}:${iss.location.line}:${iss.location.col}</code>`
+              : ''
+          }</li>`
+        );
+      }
+      const status =
+        f.status === 'passed'
+          ? '<span style="color:#0a0">✓ passed</span>'
+          : '<span style="color:#c00">✗ failed</span>';
+      return `<tr><td><code>${htmlEscape(f.name)}</code></td><td>${status}</td><td><ul>${
+        issues.join('') || '<li>—</li>'
+      }</ul></td></tr>`;
+    })
+    .join('');
+
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<title>Edge Functions bundling report</title>
+<style>
+  body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:24px;color:#222}
+  h1{margin:0 0 8px}
+  .meta{color:#666;margin-bottom:16px;font-size:14px}
+  table{border-collapse:collapse;width:100%}
+  th,td{border:1px solid #ddd;padding:8px;vertical-align:top;text-align:left;font-size:14px}
+  th{background:#f6f6f6}
+  code{background:#f3f3f3;padding:1px 4px;border-radius:3px;font-size:12px}
+  ul{margin:0;padding-left:18px}
+  li{margin-bottom:6px}
+</style></head><body>
+<h1>Edge Functions bundling report</h1>
+<div class="meta">
+  Generated: ${htmlEscape(rep.generatedAt)} ·
+  Functions checked: ${rep.functionsChecked} ·
+  <span style="color:#0a0">passed: ${rep.passedCount}</span> ·
+  <span style="color:#c00">failed: ${rep.failedCount}</span>${
+    rep.skipDeno ? ' · <em>deno check skipped</em>' : ''
+  }
+</div>
+<table><thead><tr><th>Function</th><th>Status</th><th>Findings</th></tr></thead>
+<tbody>${rows}</tbody></table>
+</body></html>`;
+}
+
+if (reportJsonPath) {
+  const abs = path.isAbsolute(reportJsonPath)
+    ? reportJsonPath
+    : path.resolve(root, reportJsonPath);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, JSON.stringify(report, null, 2));
+  console.error(`\nJSON report: ${path.relative(root, abs)}`);
+}
+
+if (reportHtmlPath) {
+  const abs = path.isAbsolute(reportHtmlPath)
+    ? reportHtmlPath
+    : path.resolve(root, reportHtmlPath);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, renderHtml(report));
+  console.error(`HTML report: ${path.relative(root, abs)}`);
+}
+
 if (failed > 0) {
   console.error(
     `\n${failed} function(s) failed bundling check. Move shared code to supabase/functions/_shared/.`
@@ -287,3 +432,4 @@ if (failed > 0) {
 }
 
 console.error('\nAll functions passed bundling check.');
+
