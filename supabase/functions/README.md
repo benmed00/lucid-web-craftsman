@@ -15,6 +15,10 @@ Source for deployed Edge Functions lives in subdirectories here. Parent folder (
 
 Other folders under `supabase/functions/` follow the same deploy layout; optional OpenAPI fragments: `openapi.fragment.json` per function.
 
+## Shared contracts
+
+- **Pricing snapshot (`orders.pricing_snapshot`):** [`_shared/PRICING_SNAPSHOT.md`](./_shared/PRICING_SNAPSHOT.md) — v1 schema, invariants, and versioning rules. Read this before changing `_shared/pricing-snapshot.ts` or `_shared/persist-pricing-snapshot.ts`. Tests: `npm run test:pricing-snapshot`.
+
 ## HTTP contracts & collections
 
 - **OpenAPI (bundled):** [`openapi/supabase-edge-functions.json`](../../openapi/supabase-edge-functions.json) — `npm run openapi:edge-functions` · drift: `openapi:edge-functions:check`
