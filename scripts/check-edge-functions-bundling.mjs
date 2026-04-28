@@ -425,6 +425,9 @@ function renderHtml(rep) {
   code{background:#f3f3f3;padding:1px 4px;border-radius:3px;font-size:12px}
   ul{margin:0;padding-left:18px}
   li{margin-bottom:6px}
+  a{color:#0366d6;text-decoration:none}
+  a:hover{text-decoration:underline}
+  a.alt{color:#888;font-size:11px;margin-left:4px}
 </style></head><body>
 <h1>Edge Functions bundling report</h1>
 <div class="meta">
