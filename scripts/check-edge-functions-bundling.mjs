@@ -421,7 +421,9 @@ function renderHtml(rep) {
         f.status === 'passed'
           ? '<span style="color:#0a0">✓ passed</span>'
           : '<span style="color:#c00">✗ failed</span>';
-      return `<tr><td><code>${htmlEscape(f.name)}</code></td><td>${status}</td><td><ul>${
+      return `<tr data-status="${htmlEscape(f.status)}" data-name="${htmlEscape(
+        f.name.toLowerCase()
+      )}"><td><code>${htmlEscape(f.name)}</code></td><td>${status}</td><td><ul>${
         issues.join('') || '<li>—</li>'
       }</ul></td></tr>`;
     })
