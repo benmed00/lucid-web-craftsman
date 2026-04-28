@@ -230,10 +230,15 @@ const argv = process.argv.slice(2);
 const skipDeno = argv.includes('--no-deno');
 const reportJsonPath = parseFlagValue(argv, 'report-json');
 const reportHtmlPath = parseFlagValue(argv, 'report-html');
+const reportCompactJsonPath = parseFlagValue(argv, 'report-compact-json');
+const emitCompactStdout = argv.includes('--compact-json');
 const filter = argv.filter(
   (a, i, arr) =>
     !a.startsWith('--') &&
-    !(i > 0 && /^--(report-json|report-html)$/.test(arr[i - 1]))
+    !(
+      i > 0 &&
+      /^--(report-json|report-html|report-compact-json)$/.test(arr[i - 1])
+    )
 );
 const functions = listFunctions(filter);
 
