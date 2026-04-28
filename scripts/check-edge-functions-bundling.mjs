@@ -18,6 +18,9 @@
  *     --report-html reports/bundling.html \
  *     --report-compact-json reports/bundling-errors.json   # flat error list
  *   node scripts/check-edge-functions-bundling.mjs --compact-json   # stdout
+ *   node scripts/check-edge-functions-bundling.mjs \
+ *     --baseline reports/bundling-baseline.json    # exit 1 only on NEW
+ *                                                  # findings vs baseline
  *
  * Requires: Deno v2 on PATH (same as `npm run verify:create-payment`).
  */
@@ -234,12 +237,15 @@ const reportJsonPath = parseFlagValue(argv, 'report-json');
 const reportHtmlPath = parseFlagValue(argv, 'report-html');
 const reportCompactJsonPath = parseFlagValue(argv, 'report-compact-json');
 const emitCompactStdout = argv.includes('--compact-json');
+const baselinePath = parseFlagValue(argv, 'baseline');
 const filter = argv.filter(
   (a, i, arr) =>
     !a.startsWith('--') &&
     !(
       i > 0 &&
-      /^--(report-json|report-html|report-compact-json)$/.test(arr[i - 1])
+      /^--(report-json|report-html|report-compact-json|baseline)$/.test(
+        arr[i - 1]
+      )
     )
 );
 const functions = listFunctions(filter);
@@ -523,6 +529,67 @@ if (reportCompactJsonPath) {
 if (emitCompactStdout) {
   // Print compact errors to stdout so CI can pipe directly (e.g. `| jq`).
   process.stdout.write(JSON.stringify(buildCompactErrors(report), null, 2) + '\n');
+}
+
+/**
+ * Build a stable signature for a finding so we can diff current vs baseline
+ * without being sensitive to ordering or transient fields like timestamps.
+ */
+function findingKey(e) {
+  return [e.function, e.type, e.spec || '', e.importer || '', e.expectedPath || '']
+    .join('|');
+}
+
+if (baselinePath) {
+  const abs = path.isAbsolute(baselinePath)
+    ? baselinePath
+    : path.resolve(root, baselinePath);
+  if (!fs.existsSync(abs)) {
+    console.error(
+      `\nBaseline not found at ${path.relative(root, abs)} — treating all current findings as new.`
+    );
+  }
+  const current = buildCompactErrors(report);
+  let baseline = [];
+  if (fs.existsSync(abs)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(abs, 'utf8'));
+      // Accept either a compact errors array or a full report object.
+      baseline = Array.isArray(parsed)
+        ? parsed
+        : buildCompactErrors(parsed);
+    } catch (e) {
+      console.error(`\nFailed to parse baseline JSON: ${e.message}`);
+      process.exit(2);
+    }
+  }
+  const baselineKeys = new Set(baseline.map(findingKey));
+  const currentKeys = new Set(current.map(findingKey));
+  const newFindings = current.filter((e) => !baselineKeys.has(findingKey(e)));
+  const fixedFindings = baseline.filter((e) => !currentKeys.has(findingKey(e)));
+
+  console.error(
+    `\nBaseline diff: ${current.length} current, ${baseline.length} baseline, ${newFindings.length} new, ${fixedFindings.length} fixed.`
+  );
+  if (fixedFindings.length > 0) {
+    console.error(
+      `  ✓ ${fixedFindings.length} previously-known finding(s) no longer present — consider refreshing the baseline.`
+    );
+  }
+  if (newFindings.length > 0) {
+    console.error(`\n${newFindings.length} NEW finding(s) vs baseline:`);
+    for (const e of newFindings) {
+      console.error(`  ✗ [${e.type}] ${e.function} — ${e.message}`);
+      if (e.importer) console.error(`      at ${e.importer}`);
+    }
+    process.exit(1);
+  }
+  console.error(
+    failed > 0
+      ? `\nNo regressions vs baseline (existing ${failed} function failure(s) ignored). Exit 0.`
+      : `\nAll functions passed bundling check.`
+  );
+  process.exit(0);
 }
 
 if (failed > 0) {
