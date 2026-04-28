@@ -21,6 +21,10 @@
  *   node scripts/check-edge-functions-bundling.mjs \
  *     --baseline reports/bundling-baseline.json    # exit 1 only on NEW
  *                                                  # findings vs baseline
+ *   node scripts/check-edge-functions-bundling.mjs \
+ *     --filter-status failed --filter-name stripe  # narrow report artifacts
+ *                                                  # to failing functions whose
+ *                                                  # name contains "stripe"
  *
  * Requires: Deno v2 on PATH (same as `npm run verify:create-payment`).
  */
