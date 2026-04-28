@@ -34,10 +34,7 @@ function parseNotifyEmailList(raw: string): string[] {
     .split(',')
     .map((s) => s.trim())
     .filter(
-      (e) =>
-        e.length > 0 &&
-        e.length <= 254 &&
-        NOTIFY_EMAIL_REGEX.test(e)
+      (e) => e.length > 0 && e.length <= 254 && NOTIFY_EMAIL_REGEX.test(e)
     );
 }
 

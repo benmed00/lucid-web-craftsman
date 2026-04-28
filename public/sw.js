@@ -114,10 +114,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // ── Hashed JS bundles: never intercept — avoids stale payment / confirmation code ──
-  if (
-    request.url.match(/\.js(\?.*)?$/) &&
-    request.url.includes('/assets/')
-  ) {
+  if (request.url.match(/\.js(\?.*)?$/) && request.url.includes('/assets/')) {
     return;
   }
 

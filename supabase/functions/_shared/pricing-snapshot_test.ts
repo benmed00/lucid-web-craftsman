@@ -57,7 +57,12 @@ Deno.test('multi-line items compute unit_minor by quantity', () => {
     { description: 'Hat B', quantity: 3, amount_total: 9000 },
   ];
   const snap = buildPricingSnapshotV1FromStripe(
-    { id: 'cs_4', currency: 'eur', amount_subtotal: 15000, amount_total: 15000 },
+    {
+      id: 'cs_4',
+      currency: 'eur',
+      amount_subtotal: 15000,
+      amount_total: 15000,
+    },
     lines
   );
   assertEquals(snap.lines.length, 2);
@@ -69,28 +74,25 @@ Deno.test('multi-line items compute unit_minor by quantity', () => {
 });
 
 Deno.test('line with missing description falls back to "Article"', () => {
-  const snap = buildPricingSnapshotV1FromStripe(
-    { id: 'cs_5' },
-    [{ quantity: 1, amount_total: 100 }]
-  );
+  const snap = buildPricingSnapshotV1FromStripe({ id: 'cs_5' }, [
+    { quantity: 1, amount_total: 100 },
+  ]);
   assertEquals(snap.lines[0]!.description, 'Article');
 });
 
 Deno.test('line with zero/missing quantity does not divide by zero', () => {
-  const snap = buildPricingSnapshotV1FromStripe(
-    { id: 'cs_6' },
-    [{ description: 'X', quantity: 0, amount_total: 500 }]
-  );
+  const snap = buildPricingSnapshotV1FromStripe({ id: 'cs_6' }, [
+    { description: 'X', quantity: 0, amount_total: 500 },
+  ]);
   assertEquals(snap.lines[0]!.unit_minor, 500);
   assertEquals(snap.lines[0]!.line_total_minor, 500);
   assertEquals(snap.lines[0]!.quantity, 0);
 });
 
 Deno.test('line description is trimmed', () => {
-  const snap = buildPricingSnapshotV1FromStripe(
-    { id: 'cs_7' },
-    [{ description: '  Pochette  ', quantity: 1, amount_total: 100 }]
-  );
+  const snap = buildPricingSnapshotV1FromStripe({ id: 'cs_7' }, [
+    { description: '  Pochette  ', quantity: 1, amount_total: 100 },
+  ]);
   assertEquals(snap.lines[0]!.description, 'Pochette');
 });
 
@@ -100,44 +102,49 @@ Deno.test('finalized_at is ISO-8601', () => {
 });
 
 Deno.test('line with missing amount_total defaults to 0', () => {
-  const snap = buildPricingSnapshotV1FromStripe(
-    { id: 'cs_missing_amt' },
-    [{ description: 'NoAmt', quantity: 2 }]
-  );
+  const snap = buildPricingSnapshotV1FromStripe({ id: 'cs_missing_amt' }, [
+    { description: 'NoAmt', quantity: 2 },
+  ]);
   assertEquals(snap.lines[0]!.line_total_minor, 0);
   assertEquals(snap.lines[0]!.unit_minor, 0);
   assertEquals(snap.lines[0]!.quantity, 2);
 });
 
-Deno.test('line with null amount_total and null quantity defaults safely', () => {
-  const snap = buildPricingSnapshotV1FromStripe(
-    { id: 'cs_null' },
-    [{ description: 'Null', quantity: null, amount_total: null }]
-  );
-  assertEquals(snap.lines[0]!.quantity, 1);
-  assertEquals(snap.lines[0]!.line_total_minor, 0);
-  assertEquals(snap.lines[0]!.unit_minor, 0);
-});
+Deno.test(
+  'line with null amount_total and null quantity defaults safely',
+  () => {
+    const snap = buildPricingSnapshotV1FromStripe({ id: 'cs_null' }, [
+      { description: 'Null', quantity: null, amount_total: null },
+    ]);
+    assertEquals(snap.lines[0]!.quantity, 1);
+    assertEquals(snap.lines[0]!.line_total_minor, 0);
+    assertEquals(snap.lines[0]!.unit_minor, 0);
+  }
+);
 
-Deno.test('line with negative quantity (return/refund) falls back to line total for unit', () => {
-  // qty <= 0 short-circuits division — unit_minor mirrors line_total_minor
-  const snap = buildPricingSnapshotV1FromStripe(
-    { id: 'cs_neg_qty' },
-    [{ description: 'Return', quantity: -2, amount_total: -6000 }]
-  );
-  assertEquals(snap.lines[0]!.quantity, -2);
-  assertEquals(snap.lines[0]!.line_total_minor, -6000);
-  assertEquals(snap.lines[0]!.unit_minor, -6000);
-});
+Deno.test(
+  'line with negative quantity (return/refund) falls back to line total for unit',
+  () => {
+    // qty <= 0 short-circuits division — unit_minor mirrors line_total_minor
+    const snap = buildPricingSnapshotV1FromStripe({ id: 'cs_neg_qty' }, [
+      { description: 'Return', quantity: -2, amount_total: -6000 },
+    ]);
+    assertEquals(snap.lines[0]!.quantity, -2);
+    assertEquals(snap.lines[0]!.line_total_minor, -6000);
+    assertEquals(snap.lines[0]!.unit_minor, -6000);
+  }
+);
 
-Deno.test('line with negative amount_total and positive quantity (discount line)', () => {
-  const snap = buildPricingSnapshotV1FromStripe(
-    { id: 'cs_neg_amt' },
-    [{ description: 'Discount', quantity: 1, amount_total: -500 }]
-  );
-  assertEquals(snap.lines[0]!.line_total_minor, -500);
-  assertEquals(snap.lines[0]!.unit_minor, -500);
-});
+Deno.test(
+  'line with negative amount_total and positive quantity (discount line)',
+  () => {
+    const snap = buildPricingSnapshotV1FromStripe({ id: 'cs_neg_amt' }, [
+      { description: 'Discount', quantity: 1, amount_total: -500 },
+    ]);
+    assertEquals(snap.lines[0]!.line_total_minor, -500);
+    assertEquals(snap.lines[0]!.unit_minor, -500);
+  }
+);
 
 Deno.test('session with missing amount fields defaults to 0', () => {
   const snap = buildPricingSnapshotV1FromStripe(
@@ -170,10 +177,9 @@ Deno.test('empty line items produce empty lines array', () => {
 });
 
 Deno.test('unit_minor rounds to nearest minor unit (banker-safe)', () => {
-  const snap = buildPricingSnapshotV1FromStripe(
-    { id: 'cs_round' },
-    [{ description: 'Odd', quantity: 3, amount_total: 100 }]
-  );
+  const snap = buildPricingSnapshotV1FromStripe({ id: 'cs_round' }, [
+    { description: 'Odd', quantity: 3, amount_total: 100 },
+  ]);
   // 100 / 3 = 33.33... → rounds to 33
   assertEquals(snap.lines[0]!.unit_minor, 33);
   assertEquals(snap.lines[0]!.line_total_minor, 100);

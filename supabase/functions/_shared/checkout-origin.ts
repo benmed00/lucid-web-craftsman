@@ -19,7 +19,8 @@ const ALLOWED_ORIGINS: string[] = [
 ];
 
 function normalizeRequestOrigin(req: Request): string | null {
-  const raw = req.headers.get('Origin')?.trim() || req.headers.get('Referer')?.trim();
+  const raw =
+    req.headers.get('Origin')?.trim() || req.headers.get('Referer')?.trim();
   if (!raw) return null;
   try {
     const u = new URL(raw);
@@ -32,7 +33,10 @@ function normalizeRequestOrigin(req: Request): string | null {
 function isLocalDevOrigin(origin: string): boolean {
   try {
     const u = new URL(origin);
-    return u.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(u.hostname);
+    return (
+      u.protocol === 'http:' &&
+      ['localhost', '127.0.0.1', '[::1]'].includes(u.hostname)
+    );
   } catch {
     return false;
   }
@@ -43,9 +47,15 @@ function isPrivateLanHttpOrigin(origin: string): boolean {
     const u = new URL(origin);
     if (u.protocol !== 'http:') return false;
     const parts = u.hostname.split('.').map(Number);
-    if (parts.length !== 4 || parts.some((n) => !Number.isInteger(n) || n < 0 || n > 255)) return false;
+    if (
+      parts.length !== 4 ||
+      parts.some((n) => !Number.isInteger(n) || n < 0 || n > 255)
+    )
+      return false;
     const [a, b] = parts;
-    return a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168);
+    return (
+      a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)
+    );
   } catch {
     return false;
   }

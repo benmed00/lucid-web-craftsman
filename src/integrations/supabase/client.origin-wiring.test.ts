@@ -8,10 +8,7 @@ import { describe, it, expect } from 'vitest';
  */
 describe('client.ts uses resolveSupabaseOrigin', () => {
   it('wires createClient to the canonical resolver export', () => {
-    const path = join(
-      process.cwd(),
-      'src/integrations/supabase/client.ts'
-    );
+    const path = join(process.cwd(), 'src/integrations/supabase/client.ts');
     const src = readFileSync(path, 'utf8');
     expect(src).toContain("from './resolveSupabaseOrigin'");
     expect(src).toContain(

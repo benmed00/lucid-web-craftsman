@@ -2,10 +2,11 @@
 
 The `orders.pricing_snapshot` JSONB column is the **authoritative, immutable
 record of money for a paid order**. It is built from Stripe (Checkout Session
-+ line items) and persisted by every confirmation path (`stripe-webhook`,
-`verify-payment`, `reconcile-payment`) so the email, SPA order confirmation,
-invoice, and admin OMS all read the exact same numbers regardless of which
-path confirmed the order.
+
+- line items) and persisted by every confirmation path (`stripe-webhook`,
+  `verify-payment`, `reconcile-payment`) so the email, SPA order confirmation,
+  invoice, and admin OMS all read the exact same numbers regardless of which
+  path confirmed the order.
 
 This document defines the contract and the rules for evolving it without
 breaking existing rows.
@@ -41,23 +42,23 @@ breaking existing rows.
 
 ```ts
 type PricingSnapshotV1 = {
-  version: 1;                         // discriminator
-  currency: string;                   // ISO-4217 lowercase, e.g. "eur"
-  source: 'stripe_checkout_session';  // only allowed source today
-  stripe_session_id: string;          // cs_...
+  version: 1; // discriminator
+  currency: string; // ISO-4217 lowercase, e.g. "eur"
+  source: 'stripe_checkout_session'; // only allowed source today
+  stripe_session_id: string; // cs_...
   // All amounts are in **minor units** (cents for EUR), matching Stripe.
-  subtotal_minor: number;             // session.amount_subtotal
-  discount_minor: number;             // total_details.amount_discount ?? 0
-  shipping_minor: number;             // total_details.amount_shipping ?? 0
-  tax_minor: number;                  // total_details.amount_tax ?? 0
-  total_minor: number;                // session.amount_total — authoritative
+  subtotal_minor: number; // session.amount_subtotal
+  discount_minor: number; // total_details.amount_discount ?? 0
+  shipping_minor: number; // total_details.amount_shipping ?? 0
+  tax_minor: number; // total_details.amount_tax ?? 0
+  total_minor: number; // session.amount_total — authoritative
   lines: Array<{
-    description: string;              // trimmed; falls back to "Article"
+    description: string; // trimmed; falls back to "Article"
     quantity: number;
-    unit_minor: number;               // round(line_total / quantity), 0-safe
-    line_total_minor: number;         // Stripe line_item.amount_total
+    unit_minor: number; // round(line_total / quantity), 0-safe
+    line_total_minor: number; // Stripe line_item.amount_total
   }>;
-  finalized_at: string;               // ISO-8601 UTC
+  finalized_at: string; // ISO-8601 UTC
 };
 ```
 
