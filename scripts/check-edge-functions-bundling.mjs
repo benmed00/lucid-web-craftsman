@@ -445,6 +445,12 @@ function renderHtml(rep) {
   a{color:#0366d6;text-decoration:none}
   a:hover{text-decoration:underline}
   a.alt{color:#888;font-size:11px;margin-left:4px}
+  .filters{display:flex;gap:12px;align-items:center;margin:12px 0 16px;flex-wrap:wrap}
+  .filters label{font-size:13px;color:#444}
+  .filters select,.filters input{padding:6px 8px;font-size:13px;border:1px solid #ccc;border-radius:4px;font-family:inherit}
+  .filters input{min-width:220px}
+  .filters .count{color:#666;font-size:13px;margin-left:auto}
+  tr.hidden{display:none}
 </style></head><body>
 <h1>Edge Functions bundling report</h1>
 <div class="meta">
@@ -453,10 +459,56 @@ function renderHtml(rep) {
   <span style="color:#0a0">passed: ${rep.passedCount}</span> ·
   <span style="color:#c00">failed: ${rep.failedCount}</span>${
     rep.skipDeno ? ' · <em>deno check skipped</em>' : ''
+  }${
+    rep.appliedFilters &&
+    (rep.appliedFilters.status !== 'all' || rep.appliedFilters.name)
+      ? ` · <em>CLI filters: status=${htmlEscape(
+          rep.appliedFilters.status
+        )}${
+          rep.appliedFilters.name
+            ? `, name~="${htmlEscape(rep.appliedFilters.name)}"`
+            : ''
+        }</em>`
+      : ''
   }
 </div>
+<div class="filters">
+  <label>Status:
+    <select id="f-status">
+      <option value="all">All</option>
+      <option value="passed">Passed</option>
+      <option value="failed">Failed</option>
+    </select>
+  </label>
+  <label>Name contains:
+    <input id="f-name" type="search" placeholder="e.g. stripe" />
+  </label>
+  <span class="count" id="f-count"></span>
+</div>
 <table><thead><tr><th>Function</th><th>Status</th><th>Findings</th></tr></thead>
-<tbody>${rows}</tbody></table>
+<tbody id="f-tbody">${rows}</tbody></table>
+<script>
+(function(){
+  var tbody=document.getElementById('f-tbody');
+  var rows=Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+  var sel=document.getElementById('f-status');
+  var inp=document.getElementById('f-name');
+  var count=document.getElementById('f-count');
+  function apply(){
+    var s=sel.value, n=inp.value.trim().toLowerCase();
+    var visible=0;
+    rows.forEach(function(r){
+      var ok=(s==='all'||r.dataset.status===s) && (!n||r.dataset.name.indexOf(n)!==-1);
+      r.classList.toggle('hidden', !ok);
+      if(ok) visible++;
+    });
+    count.textContent=visible+' / '+rows.length+' shown';
+  }
+  sel.addEventListener('change', apply);
+  inp.addEventListener('input', apply);
+  apply();
+})();
+</script>
 </body></html>`;
 }
 
