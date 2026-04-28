@@ -15,7 +15,9 @@
  *   node scripts/check-edge-functions-bundling.mjs fn1 fn2    # subset
  *   node scripts/check-edge-functions-bundling.mjs \
  *     --report-json reports/bundling.json \
- *     --report-html reports/bundling.html                     # write artifacts
+ *     --report-html reports/bundling.html \
+ *     --report-compact-json reports/bundling-errors.json   # flat error list
+ *   node scripts/check-edge-functions-bundling.mjs --compact-json   # stdout
  *
  * Requires: Deno v2 on PATH (same as `npm run verify:create-payment`).
  */
@@ -230,10 +232,15 @@ const argv = process.argv.slice(2);
 const skipDeno = argv.includes('--no-deno');
 const reportJsonPath = parseFlagValue(argv, 'report-json');
 const reportHtmlPath = parseFlagValue(argv, 'report-html');
+const reportCompactJsonPath = parseFlagValue(argv, 'report-compact-json');
+const emitCompactStdout = argv.includes('--compact-json');
 const filter = argv.filter(
   (a, i, arr) =>
     !a.startsWith('--') &&
-    !(i > 0 && /^--(report-json|report-html)$/.test(arr[i - 1]))
+    !(
+      i > 0 &&
+      /^--(report-json|report-html|report-compact-json)$/.test(arr[i - 1])
+    )
 );
 const functions = listFunctions(filter);
 
@@ -406,6 +413,56 @@ function renderHtml(rep) {
 </body></html>`;
 }
 
+/**
+ * Flatten the structured report into normalized error objects for CI:
+ *   { function, type, importer, spec, expectedPath, suggestion, message }
+ * - `importer` is `<file>:<line>:<col>` when location is known, else null.
+ * - One entry per finding (cross-function import, missing import, deno issue).
+ */
+function buildCompactErrors(rep) {
+  const out = [];
+  for (const f of rep.functions) {
+    for (const v of f.crossFunctionImports) {
+      out.push({
+        function: f.name,
+        type: 'cross-function-import',
+        importer: `${v.file}:${v.line}:${v.col}`,
+        spec: v.spec,
+        expectedPath: `supabase/functions/${v.resolvedTo}`,
+        suggestion: v.suggestion,
+        message: `Cross-function import "${v.spec}" resolves to sibling function`,
+      });
+    }
+    for (const m of f.missingImports) {
+      out.push({
+        function: f.name,
+        type: 'missing-import',
+        importer: `${m.file}:${m.line}:${m.col}`,
+        spec: m.spec,
+        expectedPath: m.expectedPath,
+        suggestion: `create the missing module or fix the specifier`,
+        message: `Missing import target "${m.spec}" (expected ${m.expectedPath})`,
+      });
+    }
+    for (const iss of f.denoCheck.issues) {
+      out.push({
+        function: f.name,
+        type: 'deno-check',
+        importer: iss.location
+          ? `${iss.location.file}:${iss.location.line}:${iss.location.col}`
+          : null,
+        spec: iss.missing || null,
+        expectedPath: iss.missing || null,
+        suggestion: iss.missing
+          ? `ensure ${iss.missing} exists or update the import specifier`
+          : `resolve deno check error and re-run`,
+        message: iss.message,
+      });
+    }
+  }
+  return out;
+}
+
 if (reportJsonPath) {
   const abs = path.isAbsolute(reportJsonPath)
     ? reportJsonPath
@@ -422,6 +479,20 @@ if (reportHtmlPath) {
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   fs.writeFileSync(abs, renderHtml(report));
   console.error(`HTML report: ${path.relative(root, abs)}`);
+}
+
+if (reportCompactJsonPath) {
+  const abs = path.isAbsolute(reportCompactJsonPath)
+    ? reportCompactJsonPath
+    : path.resolve(root, reportCompactJsonPath);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, JSON.stringify(buildCompactErrors(report), null, 2));
+  console.error(`Compact JSON report: ${path.relative(root, abs)}`);
+}
+
+if (emitCompactStdout) {
+  // Print compact errors to stdout so CI can pipe directly (e.g. `| jq`).
+  process.stdout.write(JSON.stringify(buildCompactErrors(report), null, 2) + '\n');
 }
 
 if (failed > 0) {
