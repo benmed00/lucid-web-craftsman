@@ -238,12 +238,21 @@ const reportHtmlPath = parseFlagValue(argv, 'report-html');
 const reportCompactJsonPath = parseFlagValue(argv, 'report-compact-json');
 const emitCompactStdout = argv.includes('--compact-json');
 const baselinePath = parseFlagValue(argv, 'baseline');
+// Report filtering (does not affect which functions are CHECKED — only which
+// appear in generated artifacts and the compact errors output).
+const filterStatusRaw = parseFlagValue(argv, 'filter-status'); // passed|failed|all
+const filterStatus = (filterStatusRaw || 'all').toLowerCase();
+if (!['all', 'passed', 'failed'].includes(filterStatus)) {
+  console.error(`Invalid --filter-status: ${filterStatusRaw} (use passed|failed|all)`);
+  process.exit(2);
+}
+const filterName = parseFlagValue(argv, 'filter-name'); // substring
 const filter = argv.filter(
   (a, i, arr) =>
     !a.startsWith('--') &&
     !(
       i > 0 &&
-      /^--(report-json|report-html|report-compact-json|baseline)$/.test(
+      /^--(report-json|report-html|report-compact-json|baseline|filter-status|filter-name)$/.test(
         arr[i - 1]
       )
     )
