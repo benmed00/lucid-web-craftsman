@@ -338,6 +338,22 @@ function htmlEscape(s) {
     .replace(/"/g, '&quot;');
 }
 
+function renderImporterLink(rep, relFile, line, col) {
+  // Build a clickable link that opens the importer file at the failing
+  // line/column directly in VS Code / Cursor. Most editors register the
+  // `vscode://file/...` handler; we also expose a `file://` fallback so the
+  // link still resolves in plain browsers.
+  const abs = path.resolve(rep.root, relFile);
+  const lineNum = Number(line) || 1;
+  const colNum = Number(col) || 1;
+  const vscodeHref = `vscode://file/${abs}:${lineNum}:${colNum}`;
+  const fileHref = `file://${abs}#L${lineNum}`;
+  const label = `${relFile}:${lineNum}:${colNum}`;
+  return `<a href="${htmlEscape(vscodeHref)}" title="Open in VS Code / Cursor at line ${lineNum}, column ${colNum}"><code>${htmlEscape(
+    label
+  )}</code></a> <a class="alt" href="${htmlEscape(fileHref)}" title="Open file in browser">↗</a>`;
+}
+
 function renderHtml(rep) {
   const rows = rep.functions
     .map((f) => {
@@ -346,9 +362,12 @@ function renderHtml(rep) {
         issues.push(
           `<li><strong>cross-function import</strong> <code>${htmlEscape(
             v.spec
-          )}</code><br/>importer: <code>${htmlEscape(f.name)} → ${htmlEscape(
-            v.file
-          )}:${v.line}:${v.col}</code><br/>resolves: <code>supabase/functions/${htmlEscape(
+          )}</code><br/>importer: ${renderImporterLink(
+            rep,
+            v.file,
+            v.line,
+            v.col
+          )}<br/>resolves: <code>supabase/functions/${htmlEscape(
             v.resolvedTo
           )}</code><br/>fix: ${htmlEscape(v.suggestion)}</li>`
         );
@@ -357,9 +376,12 @@ function renderHtml(rep) {
         issues.push(
           `<li><strong>missing import target</strong> <code>${htmlEscape(
             m.spec
-          )}</code><br/>importer: <code>${htmlEscape(m.file)}:${m.line}:${
+          )}</code><br/>importer: ${renderImporterLink(
+            rep,
+            m.file,
+            m.line,
             m.col
-          }</code><br/>expected: <code>${htmlEscape(m.expectedPath)}</code> (not on disk)</li>`
+          )}<br/>expected: <code>${htmlEscape(m.expectedPath)}</code> (not on disk)</li>`
         );
       }
       for (const iss of f.denoCheck.issues) {
@@ -370,7 +392,12 @@ function renderHtml(rep) {
               : ''
           }${
             iss.location
-              ? `<br/>imported from: <code>${htmlEscape(iss.location.file)}:${iss.location.line}:${iss.location.col}</code>`
+              ? `<br/>imported from: ${renderImporterLink(
+                  rep,
+                  iss.location.file,
+                  iss.location.line,
+                  iss.location.col
+                )}`
               : ''
           }</li>`
         );
@@ -398,6 +425,9 @@ function renderHtml(rep) {
   code{background:#f3f3f3;padding:1px 4px;border-radius:3px;font-size:12px}
   ul{margin:0;padding-left:18px}
   li{margin-bottom:6px}
+  a{color:#0366d6;text-decoration:none}
+  a:hover{text-decoration:underline}
+  a.alt{color:#888;font-size:11px;margin-left:4px}
 </style></head><body>
 <h1>Edge Functions bundling report</h1>
 <div class="meta">
