@@ -10,7 +10,7 @@
  * Tags: @enterprise @smoke @regression
  */
 
-const BASE_URL = Cypress.config('baseUrl') || 'http://localhost:8080';
+const BASE_URL = Cypress.config('baseUrl') || 'http://127.0.0.1:8080';
 
 // ─── Route inventory (public) ───────────────────────────────────────────────
 const PUBLIC_ROUTES = [
