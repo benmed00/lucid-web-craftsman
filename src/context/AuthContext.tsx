@@ -166,7 +166,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // distinguish "same user re-authenticating" (keep checkout state) from
   // "different user" (scrub checkout state to prevent cross-session leaks).
   const lastUserIdRef = useRef<string | null>(null);
-  const initStartMsRef = useRef<number>(performance.now());
+  // Set inside the init effect (not at render time) so the watchdog message
+  // measures real init duration, not render → effect-commit lag.
+  const initStartMsRef = useRef<number>(0);
 
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -245,6 +247,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let isMounted = true;
     // Guard: ignore onAuthStateChange events until initAuth() completes
     const initDone = { current: false };
+
+    // Capture init start when the effect actually runs (not at render time)
+    // so elapsed-ms in the watchdog warning reflects real init duration.
+    initStartMsRef.current = performance.now();
 
     // Safety timeout — if init hasn't completed, force resolve
     const safetyTimeout = setTimeout(async () => {
