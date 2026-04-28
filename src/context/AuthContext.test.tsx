@@ -1,5 +1,5 @@
 // src/context/AuthContext.test.tsx
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import React, { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -33,6 +33,7 @@ vi.mock('@/integrations/supabase/client', () => ({
       resetPasswordForEmail: vi.fn(),
       updateUser: vi.fn(),
     },
+    rpc: vi.fn().mockResolvedValue({ data: 'user', error: null }),
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
@@ -104,6 +105,12 @@ describe('AuthProvider', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    // Ensure a test that enables fake timers cannot poison the rest
+    // of this file (waitFor relies on real timers by default).
+    vi.useRealTimers();
+  });
+
   it('should provide initial auth state', async () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -133,6 +140,57 @@ describe('AuthProvider', () => {
 
     expect(result.current.user).toEqual(mockUser);
     expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  it('should restore session without waiting for getUser (optimistic init)', async () => {
+    const mockUser = { id: 'user-123', email: 'test@example.com' };
+    const mockSession = { user: mockUser, access_token: 'token' };
+
+    vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
+      data: { session: mockSession as any },
+      error: null,
+    });
+
+    // Simulate a slow / hanging network call to /auth/v1/user.
+    vi.mocked(supabase.auth.getUser).mockImplementationOnce(
+      () => new Promise(() => {}) as any
+    );
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
+    expect(result.current.user).toEqual(mockUser);
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(supabase.auth.getUser).toHaveBeenCalled();
+  });
+
+  it('should force ready when getSession hangs (watchdog)', async () => {
+    vi.useFakeTimers();
+    const consoleWarnSpy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {});
+
+    vi.mocked(supabase.auth.getSession).mockImplementationOnce(
+      () => new Promise(() => {}) as any
+    );
+
+    try {
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await act(async () => {
+        vi.advanceTimersByTime(6000);
+      });
+
+      expect(result.current.isInitialized).toBe(true);
+      expect(result.current.user).toBeNull();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/Init timed out/)
+      );
+    } finally {
+      consoleWarnSpy.mockRestore();
+      vi.useRealTimers();
+    }
   });
 
   it('should throw error when useAuth is used outside provider', () => {

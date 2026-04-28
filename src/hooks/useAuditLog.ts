@@ -42,7 +42,11 @@ export const useAuditLog = () => {
         entity_type: entityType,
         entity_id: entityId,
         details,
-        ip_address: await getClientIP(),
+        // IP is not captured client-side: ipify violates CSP and JS-side IPs are unreliable.
+        // TODO: capture client IP server-side via a Supabase Edge Function using the
+        // `x-forwarded-for` / `cf-connecting-ip` request headers, then persist audit rows
+        // to a real `audit_logs` table instead of sessionStorage.
+        ip_address: undefined,
         user_agent: navigator.userAgent,
       };
 
@@ -82,15 +86,4 @@ export const useAuditLog = () => {
     getAuditLogs,
     isLogging,
   };
-};
-
-// Helper function to get client IP (simplified for demo)
-const getClientIP = async (): Promise<string> => {
-  try {
-    const response = await fetch('https://api.ipify.org?format=json');
-    const data = await response.json();
-    return data.ip;
-  } catch {
-    return 'unknown';
-  }
 };

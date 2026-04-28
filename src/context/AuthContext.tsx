@@ -166,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // distinguish "same user re-authenticating" (keep checkout state) from
   // "different user" (scrub checkout state to prevent cross-session leaks).
   const lastUserIdRef = useRef<string | null>(null);
+  const initStartMsRef = useRef<number>(performance.now());
 
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -245,11 +246,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Guard: ignore onAuthStateChange events until initAuth() completes
     const initDone = { current: false };
 
-    // Safety timeout — if init hasn't completed in 4s, force resolve
+    // Safety timeout — if init hasn't completed, force resolve
     const safetyTimeout = setTimeout(async () => {
       if (!isMounted || initDone.current) return;
       console.warn(
-        '[AUTH_SESSION_EVENT] Init timed out after 4s, forcing ready'
+        `[AUTH_SESSION_EVENT] Init timed out after ${Math.round(performance.now() - initStartMsRef.current)}ms, forcing ready (path=${window.location.pathname})`
       );
       initDone.current = true;
       setAuthState((prev) =>
@@ -257,7 +258,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ? { ...prev, isLoading: false, isInitialized: true }
           : prev
       );
-    }, 4000);
+    }, 6000);
 
     // Auth state listener — guarded by initDone
     const {
@@ -400,30 +401,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } = await supabase.auth.getSession();
 
         if (session?.user) {
-          // Validate JWT is still valid
-          const { error: userError } = await supabase.auth.getUser();
-          if (userError) {
-            console.warn(
-              '[AUTH_SESSION_EVENT] JWT invalid, clearing:',
-              userError.message
-            );
-            cleanupAuthState();
-            await supabase.auth.signOut({ scope: 'local' });
-            if (isMounted) {
-              setAuthState({
-                user: null,
-                session: null,
-                profile: null,
-                role: 'anonymous',
-                isLoading: false,
-                isInitialized: true,
-                isRoleLoading: false,
-              });
-            }
-            initDone.current = true;
-            return;
-          }
-
           if (isMounted) {
             logSessionEvent('SESSION_RESTORED', session.user.id);
             lastUserIdRef.current = session.user.id;
@@ -438,6 +415,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             loadUserProfile(session.user.id);
             loadUserRole();
           }
+
+          // Background JWT revalidation — does not gate app initialization.
+          // If the token is invalid, clear local auth state to avoid a UI
+          // that appears signed-in while subsequent requests 401.
+          void supabase.auth.getUser().then(async ({ error: userError }) => {
+            if (!isMounted || !userError) return;
+            console.warn(
+              '[AUTH_SESSION_EVENT] JWT invalid, clearing:',
+              userError.message
+            );
+            cleanupAuthState();
+            try {
+              await supabase.auth.signOut({ scope: 'local' });
+            } catch {
+              /* ignore */
+            }
+            if (isMounted) {
+              setAuthState({
+                user: null,
+                session: null,
+                profile: null,
+                role: 'anonymous',
+                isLoading: false,
+                isInitialized: true,
+                isRoleLoading: false,
+              });
+            }
+          });
         } else {
           if (isMounted) {
             setAuthState((prev) => ({
