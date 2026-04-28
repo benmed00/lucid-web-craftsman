@@ -234,12 +234,15 @@ const reportJsonPath = parseFlagValue(argv, 'report-json');
 const reportHtmlPath = parseFlagValue(argv, 'report-html');
 const reportCompactJsonPath = parseFlagValue(argv, 'report-compact-json');
 const emitCompactStdout = argv.includes('--compact-json');
+const baselinePath = parseFlagValue(argv, 'baseline');
 const filter = argv.filter(
   (a, i, arr) =>
     !a.startsWith('--') &&
     !(
       i > 0 &&
-      /^--(report-json|report-html|report-compact-json)$/.test(arr[i - 1])
+      /^--(report-json|report-html|report-compact-json|baseline)$/.test(
+        arr[i - 1]
+      )
     )
 );
 const functions = listFunctions(filter);
