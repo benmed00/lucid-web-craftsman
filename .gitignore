@@ -79,3 +79,4 @@ supabase/.temp/
 supabase/functions/deno.lock
 supabase/functions/*/deno.lock
 
+reports/

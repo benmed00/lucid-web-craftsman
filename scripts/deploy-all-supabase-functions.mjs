@@ -40,7 +40,13 @@ if (functions.length === 0) {
   process.exit(1);
 }
 
-console.error(`Deploying ${functions.length} function(s) to linked project…`);
+console.error(`Pre-deploy bundling check…`);
+execSync('node scripts/check-edge-functions-bundling.mjs --no-deno', {
+  cwd: root,
+  stdio: 'inherit',
+});
+
+console.error(`\nDeploying ${functions.length} function(s) to linked project…`);
 for (let i = 0; i < functions.length; i++) {
   const name = functions[i];
   console.error(
