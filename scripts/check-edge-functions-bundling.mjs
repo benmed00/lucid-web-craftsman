@@ -18,6 +18,9 @@
  *     --report-html reports/bundling.html \
  *     --report-compact-json reports/bundling-errors.json   # flat error list
  *   node scripts/check-edge-functions-bundling.mjs --compact-json   # stdout
+ *   node scripts/check-edge-functions-bundling.mjs \
+ *     --baseline reports/bundling-baseline.json    # exit 1 only on NEW
+ *                                                  # findings vs baseline
  *
  * Requires: Deno v2 on PATH (same as `npm run verify:create-payment`).
  */
