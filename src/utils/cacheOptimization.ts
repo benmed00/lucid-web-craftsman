@@ -1,6 +1,8 @@
 // Cache optimization utilities for SEO performance
 // Prevents duplicate image requests and optimizes resource loading
 
+import { resolveSupabaseOrigin } from '@/integrations/supabase/resolveSupabaseOrigin';
+
 // Image URL deduplication to prevent loading same image multiple times
 const imageUrlCache = new Map<string, string>();
 
@@ -140,9 +142,17 @@ export const disableServiceWorkerForCriticalFlow = async (): Promise<void> => {
 export const addResourceHints = (): void => {
   if (typeof document === 'undefined') return;
 
+  const supabaseHost = (() => {
+    try {
+      return new URL(resolveSupabaseOrigin()).host;
+    } catch {
+      return 'xcvlijchkmhjonhfildm.supabase.co';
+    }
+  })();
+
   // DNS prefetch for external domains
   const domains = [
-    'xcvlijchkmhjonhfildm.supabase.co',
+    supabaseHost,
     'js.stripe.com',
     'm.stripe.network',
   ];
@@ -157,7 +167,7 @@ export const addResourceHints = (): void => {
   });
 
   // Preconnect to critical domains
-  const criticalDomains = ['xcvlijchkmhjonhfildm.supabase.co'];
+  const criticalDomains = [supabaseHost];
 
   criticalDomains.forEach((domain) => {
     if (

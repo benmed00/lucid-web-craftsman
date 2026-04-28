@@ -38,6 +38,7 @@ import {
 import { apiClient } from '@/lib/api/apiClient';
 import { handleError, ValidationError } from '@/lib/errors/AppError';
 import { supabaseFunctionsV1BaseUrl } from '@/lib/invoice/supabaseFunctionsBaseUrl';
+import { resolvedSupabasePublishableKey } from '@/integrations/supabase/client';
 
 // Lazy load the map component for better performance
 const LocationMap = lazy(() => import('@/components/ui/LocationMap'));
@@ -142,6 +143,7 @@ const Contact = () => {
       // Use centralized API client for consistent error handling
       const session = await getAuthSession();
       const headers: Record<string, string> = {};
+      headers['apikey'] = resolvedSupabasePublishableKey;
       if (session.data.session?.access_token) {
         headers['Authorization'] =
           `Bearer ${session.data.session.access_token}`;
