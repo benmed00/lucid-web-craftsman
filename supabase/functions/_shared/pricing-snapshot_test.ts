@@ -119,14 +119,15 @@ Deno.test('line with null amount_total and null quantity defaults safely', () =>
   assertEquals(snap.lines[0]!.unit_minor, 0);
 });
 
-Deno.test('line with negative quantity (return/refund) preserves sign in unit_minor', () => {
+Deno.test('line with negative quantity (return/refund) falls back to line total for unit', () => {
+  // qty <= 0 short-circuits division — unit_minor mirrors line_total_minor
   const snap = buildPricingSnapshotV1FromStripe(
     { id: 'cs_neg_qty' },
     [{ description: 'Return', quantity: -2, amount_total: -6000 }]
   );
   assertEquals(snap.lines[0]!.quantity, -2);
   assertEquals(snap.lines[0]!.line_total_minor, -6000);
-  assertEquals(snap.lines[0]!.unit_minor, 3000);
+  assertEquals(snap.lines[0]!.unit_minor, -6000);
 });
 
 Deno.test('line with negative amount_total and positive quantity (discount line)', () => {
