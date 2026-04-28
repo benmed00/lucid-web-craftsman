@@ -289,6 +289,43 @@ npm run e2e:ci
 npm run e2e:ci:smoke
 ```
 
+### Tests pricing-snapshot (Deno)
+
+Le contrat de **pricing snapshot** (mapping Stripe → snapshot v1 stocké en DB et réutilisé pour facture / email de confirmation) est couvert par une suite Deno dédiée. Voir [`supabase/functions/_shared/PRICING_SNAPSHOT.md`](supabase/functions/_shared/PRICING_SNAPSHOT.md) pour le contrat et les règles de versionnement.
+
+**Prérequis :**
+
+- **Deno v2** sur le `PATH` (même version que `npm run verify:create-payment`). Vérifier avec `deno --version`.
+- Aucune variable d'environnement, clé Supabase ni accès réseau requis — les tests sont 100 % offline et exécutent uniquement la logique de mapping.
+- Le script utilise `--allow-env --no-check` (pas de typecheck Deno, pas de lockfile gelé) pour rester aligné avec le bundler hosté de Supabase.
+
+**Lancer uniquement les tests pricing snapshot :**
+
+```bash
+npm run test:pricing-snapshot:deno
+```
+
+Cible deux fichiers :
+
+- `supabase/functions/_shared/pricing-snapshot_test.ts` — 17 tests (devises, totaux, mapping de lignes, valeurs manquantes, quantités négatives, arrondis).
+- `supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts` — 2 tests garantissant que le ré-export depuis `stripe-webhook/` reste compatible.
+
+**Sortie attendue (succès) :**
+
+```
+running 17 tests from ./supabase/functions/_shared/pricing-snapshot_test.ts
+...
+ok | 17 passed | 0 failed (XXms)
+
+running 2 tests from ./supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts
+...
+ok | 2 passed | 0 failed (XXms)
+```
+
+Total : **19 tests passants**, code de sortie `0`. Toute régression échoue avec `1 failed` et le code `1`, ce qui bloque le job **Deno create-payment** dans GitHub Actions ([`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml)).
+
+Pour exécuter en plus la version Vitest (Zod côté client) : `npm run test:pricing-snapshot`.
+
 **Documentation technique :**
 
 - **[`docs/README.md`](docs/README.md)** — index (liens vers tout le reste).
