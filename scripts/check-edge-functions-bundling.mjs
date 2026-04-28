@@ -508,12 +508,45 @@ function buildCompactErrors(rep) {
   return out;
 }
 
+/**
+ * Apply CLI report filters (--filter-status, --filter-name) to the report.
+ * Returns a shallow-cloned report whose `functions[]` is filtered. Counts and
+ * an `appliedFilters` block are recomputed so downstream consumers see the
+ * filtered totals instead of the unfiltered ones.
+ */
+function applyReportFilters(rep) {
+  const nameNeedle = filterName ? filterName.toLowerCase() : null;
+  const filtered = rep.functions.filter((f) => {
+    if (filterStatus !== 'all' && f.status !== filterStatus) return false;
+    if (nameNeedle && !f.name.toLowerCase().includes(nameNeedle)) return false;
+    return true;
+  });
+  return {
+    ...rep,
+    appliedFilters: { status: filterStatus, name: filterName || null },
+    functions: filtered,
+    functionsChecked: filtered.length,
+    passedCount: filtered.filter((f) => f.status === 'passed').length,
+    failedCount: filtered.filter((f) => f.status === 'failed').length,
+  };
+}
+
+const filteredReport = applyReportFilters(report);
+const hasFilters = filterStatus !== 'all' || !!filterName;
+if (hasFilters) {
+  console.error(
+    `\nReport filters: status=${filterStatus}${
+      filterName ? `, name~="${filterName}"` : ''
+    } → ${filteredReport.functions.length}/${report.functions.length} function(s) in artifacts.`
+  );
+}
+
 if (reportJsonPath) {
   const abs = path.isAbsolute(reportJsonPath)
     ? reportJsonPath
     : path.resolve(root, reportJsonPath);
   fs.mkdirSync(path.dirname(abs), { recursive: true });
-  fs.writeFileSync(abs, JSON.stringify(report, null, 2));
+  fs.writeFileSync(abs, JSON.stringify(filteredReport, null, 2));
   console.error(`\nJSON report: ${path.relative(root, abs)}`);
 }
 
@@ -522,7 +555,7 @@ if (reportHtmlPath) {
     ? reportHtmlPath
     : path.resolve(root, reportHtmlPath);
   fs.mkdirSync(path.dirname(abs), { recursive: true });
-  fs.writeFileSync(abs, renderHtml(report));
+  fs.writeFileSync(abs, renderHtml(filteredReport));
   console.error(`HTML report: ${path.relative(root, abs)}`);
 }
 
@@ -531,13 +564,18 @@ if (reportCompactJsonPath) {
     ? reportCompactJsonPath
     : path.resolve(root, reportCompactJsonPath);
   fs.mkdirSync(path.dirname(abs), { recursive: true });
-  fs.writeFileSync(abs, JSON.stringify(buildCompactErrors(report), null, 2));
+  fs.writeFileSync(
+    abs,
+    JSON.stringify(buildCompactErrors(filteredReport), null, 2)
+  );
   console.error(`Compact JSON report: ${path.relative(root, abs)}`);
 }
 
 if (emitCompactStdout) {
   // Print compact errors to stdout so CI can pipe directly (e.g. `| jq`).
-  process.stdout.write(JSON.stringify(buildCompactErrors(report), null, 2) + '\n');
+  process.stdout.write(
+    JSON.stringify(buildCompactErrors(filteredReport), null, 2) + '\n'
+  );
 }
 
 /**
