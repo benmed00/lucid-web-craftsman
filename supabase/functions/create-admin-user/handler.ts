@@ -14,9 +14,9 @@
  *
  * @searchTags edge-function, rbac, super-admin, provisioning, Auth.admin.createUser, profiles, rate-limit
  *
- * Dependencies: `npm:@supabase/supabase-js@2` via `supabase/functions/deno.json` import map alias.
+ * Dependencies: `@supabase/supabase-js` (maps to npm in `supabase/functions/deno.json`).
  */
-import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 /** CORS headers applied to JSON and preflight responses. */
 export const corsHeaders = {

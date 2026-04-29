@@ -18,10 +18,10 @@
  * @searchTags deno-test, create-admin-user, mock-supabase, rbac, super-admin
  *
  * @see ./handler.ts — implementation under test
- * @see ../../deno.json — compiler + import map (`@std/assert`, `npm:@supabase/supabase-js@2`)
+ * @see ../../deno.json — compiler + import map (`@std/assert`, `@supabase/supabase-js`)
  */
 import { assertEquals } from '@std/assert';
-import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 import {
   type CreateAdminHandlerDeps,
@@ -66,46 +66,55 @@ function mockAdmin(opts: {
   const hasRole = opts.hasRole ?? true;
   const rateOk = opts.rateOk ?? true;
   return {
-    rpc: async (name: string): Promise<{ data: unknown; error: unknown }> => {
-      if (name === 'has_role') return { data: hasRole, error: null };
+    rpc: (name: string): Promise<{ data: unknown; error: unknown }> => {
+      if (name === 'has_role')
+        return Promise.resolve({ data: hasRole, error: null });
       if (name === 'check_rate_limit') {
-        if (opts.rateThrows) throw new Error('rpc network');
-        return { data: rateOk, error: null };
+        if (opts.rateThrows) return Promise.reject(new Error('rpc network'));
+        return Promise.resolve({ data: rateOk, error: null });
       }
-      if (name === 'log_security_event') return { data: null, error: null };
-      return { data: null, error: null };
+      if (name === 'log_security_event')
+        return Promise.resolve({ data: null, error: null });
+      return Promise.resolve({ data: null, error: null });
     },
     auth: {
       admin: {
-        createUser: async () => {
-          if (opts.createUserError) {
-            return {
-              data: { user: null },
-              error: { message: opts.createUserError },
-            };
-          }
-          return {
-            data: {
-              user: {
-                id: 'new-user-id',
-                email: 'created@example.com',
-              },
-            },
+        createUser: (): Promise<{
+          data: { user: Record<string, unknown> | null };
+          error: { message: string } | null;
+        }> =>
+          opts.createUserError
+            ? Promise.resolve({
+                data: { user: null },
+                error: { message: opts.createUserError },
+              })
+            : Promise.resolve({
+                data: {
+                  user: {
+                    id: 'new-user-id',
+                    email: 'created@example.com',
+                  },
+                },
+                error: null,
+              }),
+        deleteUser: (): Promise<{
+          data: Record<string, unknown>;
+          error: null;
+        }> =>
+          Promise.resolve({
+            data: {},
             error: null,
-          };
-        },
-        deleteUser: async () => ({
-          data: {},
-          error: null,
-        }),
+          }),
       },
     },
     from(_table: string) {
       return {
-        insert: async () =>
-          opts.profileError
-            ? { error: { message: opts.profileError } }
-            : { error: null },
+        insert: (): Promise<{ error: { message: string } | null }> =>
+          Promise.resolve(
+            opts.profileError
+              ? { error: { message: opts.profileError } }
+              : { error: null }
+          ),
       };
     },
   };
@@ -132,15 +141,20 @@ function asAdminClient(m: ReturnType<typeof mockAdmin>): SupabaseClient {
 function mockAuth(ok: boolean) {
   return {
     auth: {
-      getClaims: async () =>
-        ok
-          ? {
-              data: {
-                claims: { sub: 'caller-uuid' },
-              },
-              error: null,
-            }
-          : { data: null, error: { message: 'bad' } },
+      getClaims: (): Promise<{
+        data: { claims: { sub: string } } | null;
+        error: { message: string } | null;
+      }> =>
+        Promise.resolve(
+          ok
+            ? {
+                data: {
+                  claims: { sub: 'caller-uuid' },
+                },
+                error: null,
+              }
+            : { data: null, error: { message: 'bad' } }
+        ),
     },
   } as unknown as SupabaseClient;
 }

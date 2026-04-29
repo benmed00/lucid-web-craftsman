@@ -338,6 +338,7 @@ export default function Auth() {
 
           {/* Form */}
           <form
+            data-testid="auth-form"
             onSubmit={isSignUp ? handleSignUp : handleSignIn}
             className="space-y-5"
           >
@@ -354,6 +355,7 @@ export default function Auth() {
                 </Label>
                 <Input
                   id="auth-name"
+                  data-testid="auth-name"
                   name="name"
                   type="text"
                   autoComplete="name"
@@ -376,6 +378,7 @@ export default function Auth() {
               </Label>
               <Input
                 id="auth-email"
+                data-testid="auth-email"
                 name="email"
                 type="email"
                 autoComplete="email"
@@ -438,6 +441,7 @@ export default function Auth() {
                   <div className="relative">
                     <Input
                       id="auth-confirm-password"
+                      data-testid="auth-confirm-password"
                       name="confirm-password"
                       type={showConfirmPassword ? 'text' : 'password'}
                       autoComplete="new-password"
@@ -506,6 +510,7 @@ export default function Auth() {
             {/* CTA */}
             <Button
               type="submit"
+              data-testid="auth-submit"
               disabled={isLoading}
               className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-base font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01]"
             >
@@ -600,6 +605,7 @@ export default function Auth() {
                 {isFr ? 'Déjà un compte ?' : 'Already have an account?'}{' '}
                 <button
                   type="button"
+                  data-testid="auth-toggle-signin"
                   onClick={() => setView('signin')}
                   className="text-foreground font-semibold hover:text-primary transition-colors underline-offset-4 hover:underline"
                 >
@@ -611,6 +617,7 @@ export default function Auth() {
                 {isFr ? 'Pas encore de compte ?' : "Don't have an account?"}{' '}
                 <button
                   type="button"
+                  data-testid="auth-toggle-signup"
                   onClick={() => setView('signup')}
                   className="text-foreground font-semibold hover:text-primary transition-colors underline-offset-4 hover:underline inline-flex items-center gap-1"
                 >

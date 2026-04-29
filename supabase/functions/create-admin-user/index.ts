@@ -19,7 +19,7 @@
  *
  * **Tests**: `npm run test:create-admin-user` (delegates to `handler_test.ts` via `handler.ts`).
  */
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { serve } from '@std/http/server';
 import { defaultCreateAdminDeps, handleCreateAdminRequest } from './handler.ts';
 
 serve((req) => handleCreateAdminRequest(req, defaultCreateAdminDeps()));

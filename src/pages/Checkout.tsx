@@ -89,7 +89,7 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-muted/20">
+    <div className="min-h-screen bg-muted/20" data-testid="checkout-page-main">
       <SEOHelmet
         title={c.t('payment.title') + ' - Rif Raw Straw'}
         description={c.t('payment.securePayment')}
@@ -248,6 +248,7 @@ const Checkout = () => {
             </Button>
           ) : (
             <Button
+              data-testid="checkout-pay-mobile"
               className="flex-[1.3] min-h-[48px] bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs px-2"
               onClick={c.handlePayment}
               disabled={c.isProcessing}

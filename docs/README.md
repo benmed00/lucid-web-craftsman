@@ -5,7 +5,8 @@ This folder holds **maintained** technical documentation for the Rif Raw Straw s
 | Document                                          | Purpose                                                                                                                                                         |
 | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [**PLATFORM.md**](./PLATFORM.md)                  | System shape: frontend layout, **`src/services`** API layer, state, checkout/payment return, storefront isolation, **route inventory** (synced from `App.tsx`). |
-| [**STANDARDS.md**](./STANDARDS.md)                | Quality bar: TypeScript, lint/format, tests, accessibility, security checks, API artifacts (OpenAPI / Postman).                                                 |
+| [**STANDARDS.md**](./STANDARDS.md)                | Quality bar: TypeScript, lint/format, tests, accessibility, security checks, API artifacts (OpenAPI / Postman); commitlint; merge playbook.                     |
+| [**TECH_DEBT.md**](./TECH_DEBT.md)                | ESLint carve-outs (`no-restricted-imports`), Deno/`@ts-nocheck` escape hatches — shrink with tickets, do not expand silently.                                   |
 | [**E2E-COVERAGE.md**](./E2E-COVERAGE.md)          | Cypress scope: scripts, CI jobs, what is automated vs out of scope.                                                                                             |
 | [**docs/scripts/README.md**](./scripts/README.md) | Node helpers: Edge **bundling checker** (imports + optional `deno check`), **bulk deploy**, limitations and report flags.                                       |
 

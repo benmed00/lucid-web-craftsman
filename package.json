@@ -53,7 +53,10 @@
     "deno:check:create-payment": "deno check supabase/functions/create-payment/index.ts --config supabase/functions/deno.json",
     "deno:lint:create-payment": "deno lint supabase/functions/create-payment/ --config supabase/functions/deno.json",
     "test:create-payment": "deno test supabase/functions/create-payment/ --config supabase/functions/deno.json --allow-env",
+    "deno:check:create-admin-user": "deno check supabase/functions/create-admin-user/index.ts --config supabase/functions/deno.json",
+    "deno:lint:create-admin-user": "deno lint supabase/functions/create-admin-user/ --config supabase/functions/deno.json",
     "test:create-admin-user": "deno test --allow-env --config supabase/functions/deno.json supabase/functions/create-admin-user/handler_test.ts",
+    "verify:create-admin-user": "npm run deno:check:create-admin-user && npm run deno:lint:create-admin-user && npm run test:create-admin-user",
     "verify:create-payment": "npm run deno:check:create-payment && npm run deno:lint:create-payment && deno test supabase/functions/create-payment/ --config supabase/functions/deno.json --allow-env",
     "deploy:functions:create-payment": "supabase functions deploy create-payment",
     "deploy:functions:payment-success": "supabase functions deploy order-lookup && supabase functions deploy stripe-session-display && supabase functions deploy verify-payment",
@@ -96,7 +99,8 @@
     "openapi:edge-functions:check": "node scripts/openapi-edge-functions-check.mjs",
     "postman:collection": "node scripts/build-postman-collection.mjs",
     "postman:collection:check": "node scripts/postman-collection-check.mjs",
-    "api:artifacts": "npm run openapi:edge-functions && npm run postman:collection"
+    "api:artifacts": "npm run openapi:edge-functions && npm run postman:collection",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -172,6 +176,8 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.5.2",
+    "@commitlint/config-conventional": "^20.5.0",
     "@cypress/grep": "^5.1.0",
     "@eslint/js": "^9.27.0",
     "@tailwindcss/typography": "^0.5.15",
@@ -198,6 +204,7 @@
     "eslint-plugin-unused-imports": "^4.4.1",
     "gh-pages": "^6.3.0",
     "globals": "^15.9.0",
+    "husky": "^9.1.7",
     "jsdom": "^26.1.0",
     "lovable-tagger": "^1.1.7",
     "postcss": "^8.4.47",
