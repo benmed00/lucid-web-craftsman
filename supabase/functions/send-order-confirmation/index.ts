@@ -1,13 +1,16 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import { buildOrderConfirmationHtml } from './_templates/order-confirmation.ts';
 import { signToken } from '../_shared/invoice/token.ts';
+import type { Database, Json } from '../_shared/database.types.ts';
 import {
   buildEmailPricingFromSnapshot,
   isPricingSnapshotV1,
   shippingAddressFromOrderRow,
   type DbOrderItemRow,
 } from './_lib/email-pricing-from-db.ts';
+
+type DbClient = SupabaseClient<Database>;
 
 const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
 const FROM_NAME = 'Rif Raw Straw';
@@ -54,10 +57,10 @@ interface OrderConfirmationRequest {
   previewOnly?: boolean;
 }
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   console.log(
     `[send-order-confirmation] ${step}`,
-    details ? JSON.stringify(details) : ''
+    details !== undefined ? JSON.stringify(details) : ''
   );
 };
 
@@ -95,14 +98,14 @@ const sendBrevoEmail = async (
 };
 
 const logEmailToDatabase = async (
-  supabase: any,
+  supabase: DbClient,
   templateName: string,
   recipientEmail: string,
   recipientName: string | null,
   orderId: string | null,
   status: string,
   errorMessage: string | null,
-  metadata: any
+  metadata: Json | null
 ) => {
   try {
     await supabase.from('email_logs').insert({
@@ -125,7 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+  const serviceClient = createClient<Database>(supabaseUrl, supabaseServiceKey);
   let data: OrderConfirmationRequest | undefined;
 
   try {
@@ -406,8 +409,9 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       }
     );
-  } catch (error: any) {
-    logStep('Error sending order confirmation', { error: error.message });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    logStep('Error sending order confirmation', { error: msg });
     try {
       await logEmailToDatabase(
         serviceClient,
@@ -416,19 +420,16 @@ const handler = async (req: Request): Promise<Response> => {
         data?.customerName || null,
         data?.orderId || null,
         'failed',
-        error.message,
+        msg,
         {}
       );
     } catch (logErr) {
       console.error('Failed to log email failure:', logErr);
     }
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      }
-    );
+    return new Response(JSON.stringify({ success: false, error: msg }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
   }
 };
 

@@ -226,7 +226,9 @@ const handler = async (req: Request): Promise<Response> => {
           },
           sent_at: new Date().toISOString(),
         });
-      } catch (emailError: any) {
+      } catch (emailError: unknown) {
+        const em =
+          emailError instanceof Error ? emailError.message : String(emailError);
         console.error('Error sending email:', emailError);
         // Log failure
         await supabase.from('email_logs').insert({
@@ -234,7 +236,7 @@ const handler = async (req: Request): Promise<Response> => {
           recipient_email: config.admin_email,
           recipient_name: 'Promo Admin',
           status: 'failed',
-          error_message: emailError.message,
+          error_message: em,
           metadata: {
             expiringCount: expiringCoupons.length,
             nearLimitCount: nearLimitCoupons.length,
@@ -272,9 +274,10 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in check-promo-alerts:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const msg = error instanceof Error ? error.message : String(error);
+    return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

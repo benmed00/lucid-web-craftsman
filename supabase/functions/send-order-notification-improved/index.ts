@@ -1,5 +1,8 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
+import type { Database } from '../_shared/database.types.ts';
+
+type DbClient = SupabaseClient<Database>;
 
 const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
 const FROM_NAME = 'Rif Raw Straw';
@@ -24,6 +27,14 @@ interface OrderNotificationPayload {
   new_status: string;
 }
 
+type OrderRow = Database['public']['Tables']['orders']['Row'];
+
+/** Order row plus resolved customer identity for HTML templates. */
+type OrderNotificationEmailContext = OrderRow & {
+  customer_name: string;
+  customer_email: string;
+};
+
 const getStatusText = (status: string): string => {
   const statusMap: { [key: string]: string } = {
     pending: 'En attente de paiement',
@@ -37,7 +48,7 @@ const getStatusText = (status: string): string => {
 };
 
 const checkIdempotency = async (
-  supabase: any,
+  supabase: DbClient,
   orderId: string,
   status: string
 ): Promise<boolean> => {
@@ -88,10 +99,10 @@ const sendBrevoEmail = async (
 
 const getEmailContent = (
   status: string,
-  orderData: any
+  orderData: OrderNotificationEmailContext
 ): { subject: string; html: string; templateName: string } => {
   const statusText = getStatusText(status);
-  const formattedTotal = `${(orderData.amount / 100).toFixed(2)} ${orderData.currency?.toUpperCase() || 'EUR'}`;
+  const formattedTotal = `${(Number(orderData.amount ?? 0) / 100).toFixed(2)} ${orderData.currency?.toUpperCase() || 'EUR'}`;
   const orderNumber = orderData.id.slice(-8).toUpperCase();
 
   switch (status) {
@@ -178,7 +189,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey);
 
     const internalSecret = req.headers.get('X-Internal-Secret');
     const configuredSecret = Deno.env.get('INTERNAL_NOTIFY_SECRET');
@@ -187,7 +198,7 @@ const handler = async (req: Request): Promise<Response> => {
       (configuredSecret && internalSecret === configuredSecret);
 
     if (!isInternalCall) {
-      const authClient = createClient(
+      const authClient = createClient<Database>(
         supabaseUrl,
         Deno.env.get('SUPABASE_ANON_KEY')!,
         {
@@ -250,6 +261,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    if (!orderData.user_id) {
+      throw new Error('Order has no associated user for notification email');
+    }
+
     const {
       data: { user },
       error: userError,
@@ -264,7 +279,7 @@ const handler = async (req: Request): Promise<Response> => {
     const customerEmail = user.email;
     if (!customerEmail) throw new Error('Customer email not found');
 
-    const emailOrderData = {
+    const emailOrderData: OrderNotificationEmailContext = {
       ...orderData,
       customer_name: customerName,
       customer_email: customerEmail,
@@ -305,15 +320,13 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in send-order-notification-improved:', error);
-    return new Response(
-      JSON.stringify({ error: error.message, success: false }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      }
-    );
+    const msg = error instanceof Error ? error.message : String(error);
+    return new Response(JSON.stringify({ error: msg, success: false }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
   }
 };
 

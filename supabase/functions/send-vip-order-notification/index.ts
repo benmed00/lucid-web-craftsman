@@ -1,6 +1,23 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import type { Database, Json } from '../_shared/database.types.ts';
+import { jsonToRecord } from '../_shared/json-helpers.ts';
 
+function vipDestinationEmail(settingValue: Json | null): string {
+  const rules = jsonToRecord(settingValue);
+  const contact = rules.contact;
+  if (
+    contact &&
+    typeof contact === 'object' &&
+    !Array.isArray(contact) &&
+    contact !== null
+  ) {
+    const c = contact as Record<string, Json>;
+    const raw = c.vipEmail ?? c.vip_email;
+    if (typeof raw === 'string' && raw.includes('@')) return raw.trim();
+  }
+  return 'vip@rifrawstraw.com';
+}
 const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
 const FROM_NAME = 'Rif Raw Straw';
 const parseFromEmail = (raw: string | undefined): string => {
@@ -76,11 +93,11 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey);
     const isInternalCall = token === supabaseServiceKey;
 
     if (!isInternalCall) {
-      const authClient = createClient(
+      const authClient = createClient<Database>(
         supabaseUrl,
         Deno.env.get('SUPABASE_ANON_KEY')!,
         {
@@ -139,8 +156,7 @@ const handler = async (req: Request): Promise<Response> => {
       .eq('setting_key', 'business_rules')
       .single();
 
-    const businessRules = (settingsData?.setting_value as any) || {};
-    const vipEmail = businessRules?.contact?.vipEmail || 'vip@rifrawstraw.com';
+    const vipEmail = vipDestinationEmail(settingsData?.setting_value ?? null);
 
     const orderNumber = payload.order_id.slice(-8);
     const formattedTotal = `${payload.order_total.toFixed(2)} €`;
@@ -211,15 +227,13 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in send-vip-order-notification:', error);
-    return new Response(
-      JSON.stringify({ error: error.message, success: false }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      }
-    );
+    const msg = error instanceof Error ? error.message : String(error);
+    return new Response(JSON.stringify({ error: msg, success: false }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
   }
 };
 

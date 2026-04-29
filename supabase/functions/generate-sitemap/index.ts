@@ -92,9 +92,10 @@ serve(async (_req: Request): Promise<Response> => {
         'Cache-Control': 'public, max-age=3600',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Sitemap generation error:', error);
-    return new Response(`<!-- Error generating sitemap: ${error.message} -->`, {
+    const msg = error instanceof Error ? error.message : String(error);
+    return new Response(`<!-- Error generating sitemap: ${msg} -->`, {
       status: 500,
       headers: { 'Content-Type': 'application/xml' },
     });

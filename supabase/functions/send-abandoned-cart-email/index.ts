@@ -1,5 +1,7 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import type { Database, Json } from '../_shared/database.types.ts';
+import { jsonToRecord } from '../_shared/json-helpers.ts';
 
 const FROM_NAME = 'Rif Straw';
 const FROM_EMAIL_FALLBACK = 'contact@rif-elegance.com';
@@ -25,9 +27,61 @@ const corsHeaders = {
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
+interface CartDisplayLine {
+  displayName: string;
+  quantity: number;
+  price: number;
+}
+
+interface CheckoutPersonalParsed {
+  email?: string;
+  firstName?: string;
+  first_name?: string;
+}
+
+function parsePersonalInfo(pi: Json | null): CheckoutPersonalParsed {
+  const r = jsonToRecord(pi);
+  const email = typeof r.email === 'string' ? r.email : undefined;
+  const firstFromCamel =
+    typeof r.firstName === 'string' ? r.firstName : undefined;
+  const firstFromSnake =
+    typeof r.first_name === 'string' ? r.first_name : undefined;
+  return {
+    email,
+    firstName: firstFromCamel ?? firstFromSnake,
+    first_name: firstFromSnake,
+  };
+}
+
+/** Maps `checkout_sessions.cart_items` JSON to stable display lines. */
+function cartLinesFromJson(items: Json | null): CartDisplayLine[] {
+  if (!Array.isArray(items)) return [];
+  const lines: CartDisplayLine[] = [];
+  for (const row of items) {
+    if (row === null || typeof row !== 'object' || Array.isArray(row)) {
+      continue;
+    }
+    const o = row as Record<string, unknown>;
+    const displayName =
+      typeof o.name === 'string'
+        ? o.name
+        : typeof o.product_name === 'string'
+          ? o.product_name
+          : 'Produit artisanal';
+    const quantity =
+      typeof o.quantity === 'number' && Number.isFinite(o.quantity)
+        ? o.quantity
+        : 1;
+    const price =
+      typeof o.price === 'number' && Number.isFinite(o.price) ? o.price : 0;
+    lines.push({ displayName, quantity, price });
+  }
+  return lines;
+}
+
 const generateAbandonedCartHtml = (
-  items: any[],
-  personalInfo: any,
+  items: CartDisplayLine[],
+  personalInfo: CheckoutPersonalParsed,
   _sessionId: string
 ): string => {
   const siteUrl = getSiteUrl();
@@ -36,13 +90,13 @@ const generateAbandonedCartHtml = (
   const itemsHtml = (items || [])
     .slice(0, 5)
     .map(
-      (item: any) => `
+      (item) => `
       <tr>
         <td style="padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:14px;color:#374151;">
-          ${item.name || item.product_name || 'Produit artisanal'} × ${item.quantity || 1}
+          ${item.displayName} × ${item.quantity}
         </td>
         <td style="padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:14px;color:#374151;text-align:right;">
-          ${(item.price || 0).toFixed(2)} €
+          ${item.price.toFixed(2)} €
         </td>
       </tr>`
     )
@@ -119,7 +173,7 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey);
 
     // Find sessions abandoned > 1 hour ago, not yet emailed
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
@@ -145,7 +199,7 @@ serve(async (req: Request): Promise<Response> => {
     const FROM_EMAIL = getFromEmail();
 
     for (const session of sessions || []) {
-      const personalInfo = session.personal_info as any;
+      const personalInfo = parsePersonalInfo(session.personal_info);
       const email = personalInfo?.email;
       if (!email) continue;
 
@@ -163,7 +217,7 @@ serve(async (req: Request): Promise<Response> => {
         continue;
       }
 
-      const cartItems = session.cart_items as any[];
+      const cartItems = cartLinesFromJson(session.cart_items);
       const htmlContent = generateAbandonedCartHtml(
         cartItems,
         personalInfo,
@@ -218,13 +272,15 @@ serve(async (req: Request): Promise<Response> => {
 
         results.push({ session_id: session.id, email, status: 'sent' });
         console.log(`Abandoned cart email sent to ${email}`);
-      } catch (emailError: any) {
-        console.error(`Failed to send to ${email}:`, emailError.message);
+      } catch (emailError: unknown) {
+        const em =
+          emailError instanceof Error ? emailError.message : String(emailError);
+        console.error(`Failed to send to ${email}:`, em);
         results.push({
           session_id: session.id,
           email,
           status: 'failed',
-          error: emailError.message,
+          error: em,
         });
       }
     }
@@ -236,14 +292,12 @@ serve(async (req: Request): Promise<Response> => {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in send-abandoned-cart-email:', error);
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      }
-    );
+    const msg = error instanceof Error ? error.message : String(error);
+    return new Response(JSON.stringify({ success: false, error: msg }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
   }
 });

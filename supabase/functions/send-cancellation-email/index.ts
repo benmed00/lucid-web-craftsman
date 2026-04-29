@@ -1,8 +1,11 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import * as React from 'https://esm.sh/react@18.3.1';
 import { renderAsync } from 'https://esm.sh/@react-email/components@0.0.22';
 import { CancellationEmail } from './_templates/cancellation-email.tsx';
+import type { Database, Json } from '../_shared/database.types.ts';
+
+type DbClient = SupabaseClient<Database>;
 
 const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
 const FROM_NAME = 'Rif Raw Straw';
@@ -37,10 +40,10 @@ interface CancellationRequest {
   previewOnly?: boolean;
 }
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   console.log(
     `[send-cancellation-email] ${step}`,
-    details ? JSON.stringify(details) : ''
+    details !== undefined ? JSON.stringify(details) : ''
   );
 };
 
@@ -80,14 +83,14 @@ const sendBrevoEmail = async (
 };
 
 const logEmailToDatabase = async (
-  supabase: any,
+  supabase: DbClient,
   templateName: string,
   recipientEmail: string,
   recipientName: string | null,
   orderId: string | null,
   status: string,
   errorMessage: string | null,
-  metadata: any
+  metadata: Json | null
 ) => {
   try {
     await supabase.from('email_logs').insert({
@@ -110,7 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+  const serviceClient = createClient<Database>(supabaseUrl, supabaseServiceKey);
 
   try {
     const authHeader = req.headers.get('Authorization');
@@ -125,7 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
     const isInternalCall = token === supabaseServiceKey;
 
     if (!isInternalCall) {
-      const authClient = createClient(
+      const authClient = createClient<Database>(
         supabaseUrl,
         Deno.env.get('SUPABASE_ANON_KEY')!,
         {
@@ -265,29 +268,32 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       }
     );
-  } catch (error: any) {
-    logStep('Error sending cancellation email', { error: error.message });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    logStep('Error sending cancellation email', { error: msg });
     const body = await req
       .clone()
       .json()
       .catch(() => ({}));
+    const parsed = body as {
+      customerEmail?: string;
+      customerName?: string | null;
+      orderId?: string | null;
+    };
     await logEmailToDatabase(
       serviceClient,
       'cancellation-notification',
-      body.customerEmail || 'unknown',
-      body.customerName || null,
-      body.orderId || null,
+      parsed.customerEmail || 'unknown',
+      parsed.customerName || null,
+      parsed.orderId || null,
       'failed',
-      error.message,
+      msg,
       {}
     );
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      }
-    );
+    return new Response(JSON.stringify({ success: false, error: msg }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
   }
 };
 

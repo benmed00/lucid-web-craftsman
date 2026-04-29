@@ -1,5 +1,9 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
+
+import type { Database, Json } from '../_shared/database.types.ts';
+
+type ServiceDbClient = SupabaseClient<Database>;
 
 /** Comma-separated override; default notifies both inboxes below. */
 const DEFAULT_CONTACT_NOTIFY_EMAILS = [
@@ -45,7 +49,7 @@ function parseNotifyEmailList(raw: string): string[] {
  * 3. Built-in defaults
  */
 async function resolveContactNotifyRecipients(
-  supabaseClient: ReturnType<typeof createClient>
+  supabaseClient: ServiceDbClient
 ): Promise<string[]> {
   try {
     const { data, error } = await supabaseClient
@@ -249,7 +253,7 @@ const sanitizeForPlainText = (
 };
 
 const checkRateLimit = async (
-  supabaseClient: any,
+  supabaseClient: ServiceDbClient,
   identifier: string
 ): Promise<boolean> => {
   try {
@@ -279,7 +283,7 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
+    const supabaseClient = createClient<Database>(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
@@ -298,13 +302,13 @@ serve(async (req) => {
     if (!isAllowed) {
       // Log suspicious activity
       await supabaseClient.rpc('log_security_event', {
-        p_event_type: 'CONTACT_FORM_RATE_LIMIT',
-        p_severity: 'medium',
-        p_event_data: JSON.stringify({
+        event_type: 'CONTACT_FORM_RATE_LIMIT',
+        severity: 'medium',
+        details: {
           ip_address: clientIP,
           user_agent: userAgent,
           timestamp: new Date().toISOString(),
-        }),
+        } as Json,
       });
 
       return new Response(
@@ -376,13 +380,13 @@ serve(async (req) => {
 
       // Log security event for database errors
       await supabaseClient.rpc('log_security_event', {
-        p_event_type: 'CONTACT_FORM_DB_ERROR',
-        p_severity: 'high',
-        p_event_data: JSON.stringify({
+        event_type: 'CONTACT_FORM_DB_ERROR',
+        severity: 'high',
+        details: {
           error_code: error.code,
           ip_address: clientIP,
           timestamp: new Date().toISOString(),
-        }),
+        } as Json,
       });
 
       throw error;

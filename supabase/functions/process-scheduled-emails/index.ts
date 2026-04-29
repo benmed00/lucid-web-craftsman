@@ -109,19 +109,21 @@ serve(async (req: Request): Promise<Response> => {
         } else {
           throw new Error(sendResult?.error || 'Unknown error');
         }
-      } catch (emailError: any) {
+      } catch (emailError: unknown) {
+        const em =
+          emailError instanceof Error ? emailError.message : String(emailError);
         console.error(`Error processing email ${email.id}:`, emailError);
         await supabase
           .from('scheduled_emails')
           .update({
             status: 'failed',
-            error_message: emailError.message || 'Unknown error',
+            error_message: em || 'Unknown error',
           })
           .eq('id', email.id);
         results.push({
           id: email.id,
           status: 'failed',
-          error: emailError.message,
+          error: em,
         });
       }
     }
@@ -135,14 +137,12 @@ serve(async (req: Request): Promise<Response> => {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in process-scheduled-emails:', error);
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      }
-    );
+    const msg = error instanceof Error ? error.message : String(error);
+    return new Response(JSON.stringify({ success: false, error: msg }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
   }
 });
