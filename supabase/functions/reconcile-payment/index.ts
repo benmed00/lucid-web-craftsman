@@ -6,12 +6,17 @@
  */
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@18.5.0';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.2';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import {
   confirmOrderFromStripe,
+  orderItemsForConfirmationEmail,
   sendConfirmationEmail,
 } from '../_shared/confirm-order.ts';
+import type { Database } from '../_shared/database.types.ts';
+import { jsonToRecord } from '../_shared/json-helpers.ts';
 import { authoritativeTotalMinor } from '../_shared/order-money.ts';
+
+type DbClient = SupabaseClient<Database>;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -31,9 +36,13 @@ serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  const supabaseService = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { persistSession: false },
-  });
+  const supabaseService: DbClient = createClient<Database>(
+    supabaseUrl,
+    serviceRoleKey,
+    {
+      auth: { persistSession: false },
+    }
+  );
 
   try {
     const body = await req.json();
@@ -188,14 +197,21 @@ serve(async (req) => {
     // ================================================================
     // Step 3: CENTRALIZED confirmation
     // ================================================================
+    const pi = session.payment_intent;
     const paymentIntentId =
-      typeof session.payment_intent === 'string'
-        ? session.payment_intent
-        : (session.payment_intent as any)?.id;
+      typeof pi === 'string'
+        ? pi
+        : pi && typeof pi === 'object'
+          ? pi.id
+          : undefined;
 
+    const sessionCorr =
+      typeof session.metadata?.correlation_id === 'string'
+        ? session.metadata.correlation_id
+        : undefined;
+    const metaCorr = jsonToRecord(existingOrder.metadata).correlation_id;
     const correlationId =
-      session.metadata?.correlation_id ||
-      (existingOrder.metadata as any)?.correlation_id;
+      sessionCorr ?? (typeof metaCorr === 'string' ? metaCorr : undefined);
 
     const result = await confirmOrderFromStripe(supabaseService, {
       orderId,
@@ -261,12 +277,12 @@ serve(async (req) => {
           orderId,
           customerEmail,
           customerName: session.customer_details?.name || 'Client',
-          orderItems: freshOrder.order_items || [],
+          orderItems: orderItemsForConfirmationEmail(freshOrder.order_items),
           orderAmount: authoritativeTotalMinor({
             total_amount: freshOrder.total_amount,
             amount: freshOrder.amount,
           }),
-          currency: freshOrder.currency,
+          currency: freshOrder.currency ?? 'eur',
           shippingAddress: freshOrder.shipping_address,
           source: 'reconcile_payment',
         });

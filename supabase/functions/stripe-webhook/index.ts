@@ -1,14 +1,19 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@18.5.0';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.2';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import {
   confirmOrderFromStripe,
+  orderItemsForConfirmationEmail,
   sendConfirmationEmail,
 } from '../_shared/confirm-order.ts';
 import {
   authoritativeTotalMajor,
   authoritativeTotalMinor,
 } from '../_shared/order-money.ts';
+import type { Database, Json } from '../_shared/database.types.ts';
+import { jsonToRecord } from '../_shared/json-helpers.ts';
+
+type WebhookSupabase = SupabaseClient<Database>;
 
 const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -24,7 +29,7 @@ serve(async (req) => {
     apiVersion: '2025-08-27.basil',
   });
 
-  const supabaseService = createClient(
+  const supabaseService = createClient<Database>(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     { auth: { persistSession: false } }
@@ -159,7 +164,7 @@ serve(async (req) => {
 // Now delegates to shared confirmOrderFromStripe
 // ============================================================
 async function handleCheckoutCompleted(
-  supabase: any,
+  supabase: WebhookSupabase,
   stripe: Stripe,
   session: Stripe.Checkout.Session
 ) {
@@ -261,12 +266,12 @@ async function handleCheckoutCompleted(
           session.customer_details?.name ||
           session.metadata?.customer_name ||
           'Client',
-        orderItems: order.order_items || [],
+        orderItems: orderItemsForConfirmationEmail(order.order_items),
         orderAmount: authoritativeTotalMinor({
           total_amount: order.total_amount,
           amount: order.amount,
         }),
-        currency: order.currency,
+        currency: order.currency ?? 'eur',
         shippingAddress: order.shipping_address,
         discountAmountCents: session.metadata?.discount_amount_cents
           ? parseInt(session.metadata.discount_amount_cents)
@@ -302,11 +307,8 @@ async function handleCheckoutCompleted(
     await supabase.rpc('calculate_fraud_score', {
       p_order_id: orderId,
       p_customer_email: session.customer_details?.email || '',
-      p_shipping_address: order?.shipping_address,
-      p_billing_address: order?.billing_address,
-      p_ip_address: null,
-      p_user_agent: null,
-      p_checkout_duration_seconds: null,
+      p_shipping_address: (order?.shipping_address ?? {}) as Json,
+      p_billing_address: (order?.billing_address ?? {}) as Json,
       p_is_first_order: isFirstOrder,
       p_order_amount: authoritativeTotalMajor({
         total_amount: order?.total_amount ?? null,
@@ -327,7 +329,7 @@ async function handleCheckoutCompleted(
 // Handle payment_intent.succeeded — secondary confirmation
 // ============================================================
 async function handlePaymentIntentSucceeded(
-  supabase: any,
+  supabase: WebhookSupabase,
   paymentIntent: Stripe.PaymentIntent
 ) {
   const orderId = paymentIntent.metadata?.order_id;
@@ -369,7 +371,7 @@ async function handlePaymentIntentSucceeded(
 // Handle checkout.session.expired
 // ============================================================
 async function handleCheckoutExpired(
-  supabase: any,
+  supabase: WebhookSupabase,
   session: Stripe.Checkout.Session
 ) {
   const orderId = session.metadata?.order_id;
@@ -393,11 +395,11 @@ async function handleCheckoutExpired(
         status: 'cancelled',
         order_status: 'cancelled',
         metadata: {
-          ...(existingOrder?.metadata || {}),
+          ...jsonToRecord(existingOrder?.metadata),
           cancelled_reason: 'stripe_session_expired',
           cancelled_at: new Date().toISOString(),
           correlation_id: correlationId,
-        },
+        } as Json,
         updated_at: new Date().toISOString(),
       })
       .eq('id', orderId)
@@ -432,7 +434,7 @@ async function handleCheckoutExpired(
 // Handle payment_intent.payment_failed
 // ============================================================
 async function handlePaymentFailed(
-  supabase: any,
+  supabase: WebhookSupabase,
   paymentIntent: Stripe.PaymentIntent
 ) {
   const orderId = paymentIntent.metadata?.order_id;
@@ -453,13 +455,13 @@ async function handlePaymentFailed(
         status: 'payment_failed',
         order_status: 'payment_failed',
         metadata: {
-          ...(existingOrder?.metadata || {}),
+          ...jsonToRecord(existingOrder?.metadata),
           payment_failed_at: new Date().toISOString(),
           failure_message:
             paymentIntent.last_payment_error?.message || 'Unknown',
           failure_code: paymentIntent.last_payment_error?.code || 'unknown',
           correlation_id: correlationId,
-        },
+        } as Json,
         updated_at: new Date().toISOString(),
       })
       .eq('id', orderId)
@@ -495,7 +497,7 @@ async function handlePaymentFailed(
 // Helper: Log payment event
 // ============================================================
 async function logPaymentEvent(
-  supabase: any,
+  supabase: WebhookSupabase,
   event: {
     order_id?: string;
     event_type: string;
@@ -503,7 +505,7 @@ async function logPaymentEvent(
     actor: string;
     correlation_id?: string;
     error_message?: string;
-    details?: Record<string, unknown>;
+    details?: Json;
     ip_address?: string;
     user_agent?: string;
     duration_ms?: number;
@@ -516,7 +518,7 @@ async function logPaymentEvent(
       event_type: event.event_type,
       status: event.status,
       actor: event.actor,
-      details: event.details || {},
+      details: (event.details ?? {}) as Json,
       error_message: event.error_message || null,
       ip_address: event.ip_address || null,
       user_agent: event.user_agent || null,

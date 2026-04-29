@@ -4,7 +4,9 @@
  * Caller must own the order (authenticated) OR provide matching x-guest-id.
  * Used by: order-confirmation page (frontend) and email templates (server-side).
  */
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import type { Database } from '../_shared/database.types.ts';
+import { jsonToRecord } from '../_shared/json-helpers.ts';
 import { signToken } from '../_shared/invoice/token.ts';
 
 const corsHeaders = {
@@ -17,7 +19,7 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
-const admin = createClient(SUPABASE_URL, SERVICE_KEY);
+const admin = createClient<Database>(SUPABASE_URL, SERVICE_KEY);
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -46,7 +48,7 @@ Deno.serve(async (req) => {
 
     const authHeader = req.headers.get('Authorization');
     if (authHeader) {
-      const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+      const userClient = createClient<Database>(SUPABASE_URL, ANON_KEY, {
         global: { headers: { Authorization: authHeader } },
       });
       const {
@@ -56,7 +58,7 @@ Deno.serve(async (req) => {
         if (order.user_id === user.id) authorized = true;
         else {
           const { data: isAdmin } = await admin.rpc('is_admin_user', {
-            _user_id: user.id,
+            user_uuid: user.id,
           });
           if (isAdmin) authorized = true;
         }
@@ -65,8 +67,12 @@ Deno.serve(async (req) => {
 
     if (!authorized) {
       const guestId = req.headers.get('x-guest-id');
-      const orderGuestId = (order.metadata as any)?.guest_id;
-      if (guestId && orderGuestId && guestId === orderGuestId)
+      const orderGuestId = jsonToRecord(order.metadata).guest_id;
+      if (
+        typeof guestId === 'string' &&
+        typeof orderGuestId === 'string' &&
+        guestId === orderGuestId
+      )
         authorized = true;
     }
 
@@ -74,8 +80,8 @@ Deno.serve(async (req) => {
 
     const token = await signToken(order_id);
     return json({ token });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[sign-invoice-token]', err);
-    return json({ error: err.message || 'Failed' }, 500);
+    return json({ error: err instanceof Error ? err.message : 'Failed' }, 500);
   }
 });

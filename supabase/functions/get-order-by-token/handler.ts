@@ -27,8 +27,9 @@
  * by Supabase log search.
  */
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
-
 import { z } from 'zod';
+
+import type { Database } from '../_shared/database.types.ts';
 import {
   verifyTokenPayload,
   type TokenPayload,
@@ -189,7 +190,7 @@ function messageOf(err: unknown): string {
 
 export async function handleRequest(
   req: Request,
-  admin: SupabaseClient,
+  admin: SupabaseClient<Database>,
   /**
    * Rate-limit store. Defaults to the module-level in-memory store so
    * callers and existing tests don't need to wire anything. Production

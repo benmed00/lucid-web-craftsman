@@ -19,6 +19,8 @@
 import type Stripe from 'https://esm.sh/stripe@18.5.0';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
+import type { Database, Json } from './database.types.ts';
+import { jsonToRecord } from './json-helpers.ts';
 import { authoritativeTotalMinor } from './order-money.ts';
 import { paymentMethodLabel } from './payment-method-label.ts';
 import { persistPricingSnapshot } from './persist-pricing-snapshot.ts';
@@ -45,13 +47,46 @@ export interface ConfirmOrderResult {
   error?: string;
 }
 
+/** Order line shape passed into confirmation email (matches webhook / verify selects). */
+export interface ConfirmationEmailOrderItem {
+  product_id: number;
+  quantity: number;
+  unit_price: number;
+}
+
+/** Drops lines with missing `product_id` (invalid for confirmation email product lookup). */
+export function orderItemsForConfirmationEmail(
+  rows:
+    | {
+        product_id: number | null;
+        quantity: number;
+        unit_price: number;
+      }[]
+    | null
+    | undefined
+): ConfirmationEmailOrderItem[] {
+  return (rows ?? []).flatMap((row) =>
+    typeof row.product_id !== 'number'
+      ? []
+      : [
+          {
+            product_id: row.product_id,
+            quantity: row.quantity,
+            unit_price: row.unit_price,
+          },
+        ]
+  );
+}
+
+type DbClient = SupabaseClient<Database>;
+
 const logStep = (source: string, step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CONFIRM-ORDER][${source}] ${step}${detailsStr}`);
 };
 
 export async function confirmOrderFromStripe(
-  supabase: SupabaseClient,
+  supabase: DbClient,
   input: ConfirmOrderInput
 ): Promise<ConfirmOrderResult> {
   const {
@@ -118,16 +153,20 @@ export async function confirmOrderFromStripe(
   // ================================================================
   // Step 3: Atomic status update with optimistic lock
   // ================================================================
-  const metadataUpdate: Record<string, unknown> = {
-    ...(order.metadata || {}),
+  const metadataUpdate: Record<string, Json> = {
+    ...jsonToRecord(order.metadata),
     confirmed_by: source,
     confirmed_at: new Date().toISOString(),
-    correlation_id: correlationId,
     stripe_session_id: stripeSessionId,
-    payment_intent_id: paymentIntentId,
     // Human-readable label for the confirmation page / emails. Read-side
     // (get-order-by-token) forwards this via its metadata whitelist.
     payment_method_label: paymentMethodLabel(paymentMethod),
+    ...(correlationId !== undefined && correlationId !== ''
+      ? { correlation_id: correlationId }
+      : {}),
+    ...(paymentIntentId !== undefined && paymentIntentId !== ''
+      ? { payment_intent_id: paymentIntentId }
+      : {}),
   };
 
   if (source === 'stripe_webhook') {
@@ -141,24 +180,30 @@ export async function confirmOrderFromStripe(
     metadataUpdate.verified_at = new Date().toISOString();
   }
 
-  const updatePayload: Record<string, unknown> = {
+  let mergedMetadata: Record<string, Json> = metadataUpdate;
+
+  // Phase 4: Always override email from Stripe (single source of truth)
+  if (customerEmail) {
+    const priorName = metadataUpdate.customer_name;
+    const resolvedName =
+      customerName?.trim() ||
+      (typeof priorName === 'string' ? priorName : undefined);
+    mergedMetadata = {
+      ...metadataUpdate,
+      customer_email: customerEmail,
+      ...(resolvedName ? { customer_name: resolvedName } : {}),
+    };
+  }
+
+  const updatePayload: Database['public']['Tables']['orders']['Update'] = {
     status: 'paid',
     order_status: 'paid',
     stripe_session_id: stripeSessionId,
     payment_reference: paymentIntentId,
     payment_method: paymentMethod,
-    metadata: metadataUpdate,
+    metadata: mergedMetadata as Json,
     updated_at: new Date().toISOString(),
   };
-
-  // Phase 4: Always override email from Stripe (single source of truth)
-  if (customerEmail) {
-    updatePayload.metadata = {
-      ...metadataUpdate,
-      customer_email: customerEmail,
-      customer_name: customerName || metadataUpdate.customer_name,
-    };
-  }
 
   const { data: updatedOrder, error: updateError } = await supabase
     .from('orders')
@@ -218,7 +263,10 @@ export async function confirmOrderFromStripe(
     verify_payment: 'Payment verified via client redirect (webhook fallback)',
     reconcile_payment: 'Payment reconciled from Stripe session data',
   };
-  const changedByMap = {
+  const changedByMap: Record<
+    ConfirmOrderInput['source'],
+    Database['public']['Enums']['status_change_actor']
+  > = {
     stripe_webhook: 'webhook',
     verify_payment: 'system',
     reconcile_payment: 'system',
@@ -226,7 +274,8 @@ export async function confirmOrderFromStripe(
 
   await supabase.from('order_status_history').insert({
     order_id: orderId,
-    previous_status: order.order_status || 'payment_pending',
+    previous_status: (order.order_status ??
+      'payment_pending') as Database['public']['Enums']['order_status'],
     new_status: 'paid',
     changed_by: changedByMap[source],
     reason_code: reasonCodeMap[source],
@@ -236,13 +285,14 @@ export async function confirmOrderFromStripe(
       correlation_id: correlationId,
       payment_intent: paymentIntentId,
       source,
-    },
+    } as Json,
   });
 
   // ================================================================
   // Step 5: Stock decrement
   // ================================================================
   for (const item of order.order_items || []) {
+    if (item.product_id == null) continue;
     try {
       const { data: product } = await supabase
         .from('products')
@@ -313,7 +363,7 @@ export async function confirmOrderFromStripe(
     order_id: orderId,
     stripe_payment_intent_id: paymentIntentId,
     amount: paymentAmountMinor,
-    currency: order.currency,
+    currency: order.currency ?? 'eur',
     status: 'completed',
     processed_at: new Date().toISOString(),
     metadata: {
@@ -323,7 +373,7 @@ export async function confirmOrderFromStripe(
       payment_method: paymentMethod,
       source,
       discount_code: discountCode || null,
-    },
+    } as Json,
   });
 
   // ================================================================
@@ -339,11 +389,11 @@ export async function confirmOrderFromStripe(
       details: {
         payment_intent_id: paymentIntentId,
         amount: paymentAmountMinor,
-        currency: order.currency,
+        currency: order.currency ?? 'eur',
         discount_code: discountCode || null,
         stock_decremented: true,
         source,
-      },
+      } as Json,
     });
   } catch {
     // Non-fatal
@@ -354,23 +404,58 @@ export async function confirmOrderFromStripe(
   return { confirmed: true, alreadyProcessed: false, orderId };
 }
 
+/** Shipping subset read from `orders.shipping_address` JSON for email bodies. */
+export interface ConfirmationEmailShipping {
+  address_line1?: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  zip?: string;
+  country?: string;
+}
+
+export interface SendConfirmationEmailInput {
+  orderId: string;
+  customerEmail: string;
+  customerName: string;
+  orderItems: ConfirmationEmailOrderItem[];
+  /** Minor units (cents), same basis as `payments.amount`. */
+  orderAmount: number;
+  currency: string;
+  shippingAddress: Json | null;
+  discountAmountCents?: number;
+  source: string;
+}
+
+function readShippingForEmail(
+  j: Json | null | undefined
+): ConfirmationEmailShipping {
+  const r = jsonToRecord(j);
+  return {
+    address_line1:
+      typeof r.address_line1 === 'string'
+        ? r.address_line1
+        : typeof r.address === 'string'
+          ? r.address
+          : undefined,
+    city: typeof r.city === 'string' ? r.city : undefined,
+    postal_code:
+      typeof r.postal_code === 'string'
+        ? r.postal_code
+        : typeof r.zip === 'string'
+          ? r.zip
+          : undefined,
+    country: typeof r.country === 'string' ? r.country : undefined,
+  };
+}
+
 /**
  * Send confirmation email — idempotent, non-blocking.
  * Separated from confirmOrderFromStripe to keep the core function focused.
  */
 export async function sendConfirmationEmail(
-  supabase: SupabaseClient,
-  input: {
-    orderId: string;
-    customerEmail: string;
-    customerName: string;
-    orderItems: any[];
-    orderAmount: number;
-    currency: string;
-    shippingAddress: any;
-    discountAmountCents?: number;
-    source: string;
-  }
+  supabase: DbClient,
+  input: SendConfirmationEmailInput
 ): Promise<void> {
   try {
     // Fast-path dedup: skip the downstream call if we already logged a
@@ -393,17 +478,21 @@ export async function sendConfirmationEmail(
       return;
     }
 
-    const productIds = input.orderItems.map((item: any) => item.product_id);
+    const productIds = input.orderItems.map((item) => item.product_id);
     const { data: products } = await supabase
       .from('products')
       .select('id, name, images, price')
       .in('id', productIds);
 
-    const productMap = new Map<number, any>(
-      (products || []).map((p: any) => [p.id, p])
+    type ProductLite = Pick<
+      Database['public']['Tables']['products']['Row'],
+      'id' | 'name' | 'images' | 'price'
+    >;
+    const productMap = new Map<number, ProductLite>(
+      (products ?? []).map((p) => [p.id, p])
     );
 
-    const emailItems = input.orderItems.map((item: any) => {
+    const emailItems = input.orderItems.map((item) => {
       const product = productMap.get(item.product_id);
       return {
         name: product?.name || `Product #${item.product_id}`,
@@ -414,13 +503,13 @@ export async function sendConfirmationEmail(
     });
 
     const emailSubtotal = emailItems.reduce(
-      (sum: number, item: any) => sum + item.price * item.quantity,
+      (sum, item) => sum + item.price * item.quantity,
       0
     );
     const total = input.orderAmount / 100;
     const shipping = total - emailSubtotal > 0 ? total - emailSubtotal : 0;
 
-    const shippingAddr = input.shippingAddress;
+    const shippingAddr = readShippingForEmail(input.shippingAddress);
 
     await fetch(
       `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-order-confirmation`,

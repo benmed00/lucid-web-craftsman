@@ -12,15 +12,54 @@
  */
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@18.5.0';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.2';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import {
   confirmOrderFromStripe,
+  orderItemsForConfirmationEmail,
   sendConfirmationEmail,
 } from '../_shared/confirm-order.ts';
+import type { Database, Json } from '../_shared/database.types.ts';
+import { jsonToRecord } from '../_shared/json-helpers.ts';
 import {
   authoritativeTotalMajor,
   authoritativeTotalMinor,
 } from '../_shared/order-money.ts';
+
+type DbClient = SupabaseClient<Database>;
+
+/** Minimal order shape returned by `findOrderBySession` selects. */
+type OrderForVerify = Pick<
+  Database['public']['Tables']['orders']['Row'],
+  | 'id'
+  | 'status'
+  | 'order_status'
+  | 'amount'
+  | 'total_amount'
+  | 'currency'
+  | 'shipping_address'
+  | 'metadata'
+  | 'created_at'
+  | 'user_id'
+>;
+
+type OrderItemRow = Pick<
+  Database['public']['Tables']['order_items']['Row'],
+  'quantity' | 'unit_price' | 'total_price' | 'product_snapshot'
+>;
+
+function productTitleFromSnapshot(snapshot: Json | null): string {
+  const r = jsonToRecord(snapshot);
+  const n = r.name ?? r.title;
+  return typeof n === 'string' ? n : 'Product';
+}
+
+function shippingField(addr: Record<string, Json>, ...keys: string[]): string {
+  for (const k of keys) {
+    const v = addr[k];
+    if (typeof v === 'string' && v.length > 0) return v;
+  }
+  return '';
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,9 +79,13 @@ serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  const supabaseService = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { persistSession: false },
-  });
+  const supabaseService: DbClient = createClient<Database>(
+    supabaseUrl,
+    serviceRoleKey,
+    {
+      auth: { persistSession: false },
+    }
+  );
   const authHeader = req.headers.get('Authorization');
   const bearerToken = authHeader?.startsWith('Bearer ')
     ? authHeader.replace('Bearer ', '')
@@ -54,7 +97,7 @@ serve(async (req) => {
   let authenticatedUserId: string | null = null;
   try {
     if (bearerToken && !isInternalServiceCall) {
-      const anonClient = createClient(
+      const anonClient = createClient<Database>(
         supabaseUrl,
         Deno.env.get('SUPABASE_ANON_KEY') ?? ''
       );
@@ -69,7 +112,7 @@ serve(async (req) => {
     logStep('Could not extract user from auth header (non-fatal)');
   }
 
-  function isAuthorizedOrder(order: any): boolean {
+  function isAuthorizedOrder(order: OrderForVerify): boolean {
     if (isInternalServiceCall) return true;
     if (
       authenticatedUserId &&
@@ -77,9 +120,9 @@ serve(async (req) => {
       authenticatedUserId === order.user_id
     )
       return true;
-    const metadata = (order?.metadata || {}) as Record<string, unknown>;
+    const meta = jsonToRecord(order.metadata);
     const orderGuestId =
-      typeof metadata.guest_id === 'string' ? metadata.guest_id : null;
+      typeof meta.guest_id === 'string' ? meta.guest_id : null;
     return !!(guestId && orderGuestId && guestId === orderGuestId);
   }
 
@@ -94,17 +137,18 @@ serve(async (req) => {
     const selectOrderFields =
       'id, status, order_status, amount, total_amount, currency, shipping_address, metadata, created_at, user_id';
 
-    const isOrderConfirmed = (order: any): boolean => {
+    const isOrderConfirmed = (order: OrderForVerify): boolean => {
       const status = String(order?.status || '').toLowerCase();
       const orderStatus = String(order?.order_status || '').toLowerCase();
-      const metadata = (order?.metadata || {}) as Record<string, unknown>;
+      const metadata = jsonToRecord(order.metadata);
+      const wp = metadata.webhook_processed;
       return (
         status === 'paid' ||
         status === 'completed' ||
         orderStatus === 'paid' ||
         orderStatus === 'completed' ||
-        metadata.webhook_processed === true ||
-        metadata.webhook_processed === 'true'
+        wp === true ||
+        wp === 'true'
       );
     };
 
@@ -260,18 +304,15 @@ serve(async (req) => {
         .select('quantity, unit_price, total_price, product_snapshot')
         .eq('order_id', oid);
 
-      const orderItems = (items || []).map((item: any) => {
-        const snapshot = item.product_snapshot as any;
-        return {
-          product_name: snapshot?.name || 'Product',
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          total_price: item.total_price,
-        };
-      });
+      const orderItems = (items ?? []).map((item: OrderItemRow) => ({
+        product_name: productTitleFromSnapshot(item.product_snapshot),
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total_price: item.total_price,
+      }));
 
       const itemsSubtotal = orderItems.reduce(
-        (sum: number, i: any) => sum + i.total_price,
+        (sum, i) => sum + Number(i.total_price ?? 0),
         0
       );
       const orderTotalMinor = authoritativeTotalMinor({
@@ -279,23 +320,32 @@ serve(async (req) => {
         amount: orderData.amount ?? null,
       });
       const shipping = Math.max(0, orderTotalMinor - itemsSubtotal);
-      const shippingAddr = orderData.shipping_address as any;
+      const shipJson = jsonToRecord(orderData.shipping_address);
 
       return {
         items: orderItems,
         subtotal: itemsSubtotal,
         shipping,
         total: orderTotalMinor,
-        shippingAddress: shippingAddr
-          ? {
-              line1: shippingAddr.address_line1 || shippingAddr.line1 || '',
-              line2: shippingAddr.address_line2 || shippingAddr.line2 || '',
-              city: shippingAddr.city || '',
-              postalCode:
-                shippingAddr.postal_code || shippingAddr.postalCode || '',
-              country: shippingAddr.country || 'FR',
-            }
-          : null,
+        shippingAddress:
+          Object.keys(shipJson).length > 0
+            ? {
+                line1: shippingField(
+                  shipJson,
+                  'address_line1',
+                  'line1',
+                  'address'
+                ),
+                line2: shippingField(shipJson, 'address_line2', 'line2'),
+                city: shippingField(shipJson, 'city'),
+                postalCode: shippingField(
+                  shipJson,
+                  'postal_code',
+                  'postalCode'
+                ),
+                country: shippingField(shipJson, 'country') || 'FR',
+              }
+            : null,
         paymentMethod: session.payment_method_types?.[0] || 'card',
         currency: orderData.currency?.toUpperCase() || 'EUR',
         stripeSessionId: session_id,
@@ -346,8 +396,13 @@ serve(async (req) => {
         ? session.payment_intent
         : session.payment_intent?.id;
 
+    const sessionCorr =
+      typeof session.metadata?.correlation_id === 'string'
+        ? session.metadata.correlation_id
+        : undefined;
+    const dbCorr = jsonToRecord(orderData.metadata).correlation_id;
     const correlationId =
-      session.metadata?.correlation_id || orderData.metadata?.correlation_id;
+      sessionCorr ?? (typeof dbCorr === 'string' ? dbCorr : undefined);
 
     const result = await confirmOrderFromStripe(supabaseService, {
       orderId: orderData.id,
@@ -389,12 +444,12 @@ serve(async (req) => {
             orderId: orderData.id,
             customerEmail,
             customerName: session.customer_details?.name || 'Client',
-            orderItems: freshOrder.order_items || [],
+            orderItems: orderItemsForConfirmationEmail(freshOrder.order_items),
             orderAmount: authoritativeTotalMinor({
               total_amount: freshOrder.total_amount,
               amount: freshOrder.amount,
             }),
-            currency: freshOrder.currency,
+            currency: freshOrder.currency ?? 'eur',
             shippingAddress: freshOrder.shipping_address,
             source: 'verify_payment',
           });
@@ -404,11 +459,12 @@ serve(async (req) => {
       // Fraud detection
       try {
         let isFirstOrder = true;
-        if (orderData.metadata?.user_id) {
+        const metaUser = jsonToRecord(orderData.metadata).user_id;
+        if (typeof metaUser === 'string') {
           const { count } = await supabaseService
             .from('orders')
             .select('id', { count: 'exact', head: true })
-            .eq('user_id', orderData.metadata.user_id as string)
+            .eq('user_id', metaUser)
             .neq('id', orderData.id)
             .eq('status', 'paid');
           isFirstOrder = (count || 0) === 0;
@@ -416,11 +472,14 @@ serve(async (req) => {
         await supabaseService.rpc('calculate_fraud_score', {
           p_order_id: orderData.id,
           p_customer_email: session.customer_details?.email || '',
-          p_shipping_address: orderData.shipping_address,
-          p_billing_address: orderData.shipping_address,
-          p_ip_address: null,
-          p_user_agent: null,
-          p_checkout_duration_seconds: null,
+          p_shipping_address:
+            orderData.shipping_address === null
+              ? ({} as Json)
+              : (orderData.shipping_address as Json),
+          p_billing_address:
+            orderData.shipping_address === null
+              ? ({} as Json)
+              : (orderData.shipping_address as Json),
           p_is_first_order: isFirstOrder,
           p_order_amount: authoritativeTotalMajor({
             total_amount: orderData.total_amount ?? null,

@@ -13,6 +13,7 @@
 import type Stripe from 'https://esm.sh/stripe@18.5.0';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
+import type { Database, Json } from './database.types.ts';
 import { buildPricingSnapshotV1FromStripe } from './pricing-snapshot.ts';
 
 export interface PersistSnapshotInput {
@@ -32,8 +33,10 @@ export interface PersistSnapshotResult {
  * Lists Stripe line items for `session` and writes an immutable v1 snapshot
  * to `orders.pricing_snapshot`, plus the mirror minor-unit columns.
  */
+type DbClient = SupabaseClient<Database>;
+
 export async function persistPricingSnapshot(
-  supabase: SupabaseClient,
+  supabase: DbClient,
   stripe: Stripe,
   input: PersistSnapshotInput
 ): Promise<PersistSnapshotResult> {
@@ -85,7 +88,7 @@ export async function persistPricingSnapshot(
         error_message: message,
         details: {
           session_id: session.id,
-        },
+        } as Json,
       });
     } catch {
       // Event logging is best-effort.

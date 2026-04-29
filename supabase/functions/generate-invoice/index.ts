@@ -5,7 +5,7 @@
  * Idempotent: returns existing snapshot on subsequent calls.
  * Storage: HTML persisted in `invoices` table; signed Storage URL future-ready.
  */
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { verifyToken } from '../_shared/invoice/token.ts';
 import {
   validateInvoice,
@@ -13,6 +13,8 @@ import {
 } from '../_shared/invoice/validate.ts';
 import { renderInvoiceHTML } from '../_shared/invoice/render.ts';
 import type { InvoiceData } from '../_shared/invoice/types.ts';
+import type { Database, Json } from '../_shared/database.types.ts';
+import { jsonToRecord } from '../_shared/json-helpers.ts';
 import { authoritativeTotalMajor } from '../_shared/order-money.ts';
 import { resolveCustomerEmail } from '../_shared/order-response-whitelists.ts';
 
@@ -26,7 +28,13 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-const admin = createClient(SUPABASE_URL, SERVICE_KEY);
+const admin = createClient<Database>(SUPABASE_URL, SERVICE_KEY);
+
+function snapshotProductTitle(snapshot: Json | null): string {
+  const r = jsonToRecord(snapshot);
+  const n = r.name ?? r.title;
+  return typeof n === 'string' ? n : 'Produit';
+}
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -58,7 +66,7 @@ async function authorize(
   // 2) Authenticated user — check ownership or admin
   const authHeader = req.headers.get('Authorization');
   if (authHeader) {
-    const userClient = createClient(
+    const userClient = createClient<Database>(
       SUPABASE_URL,
       Deno.env.get('SUPABASE_ANON_KEY')!,
       {
@@ -77,7 +85,7 @@ async function authorize(
       if (order?.user_id === user.id) return body.order_id;
 
       const { data: isAdmin } = await admin.rpc('is_admin_user', {
-        _user_id: user.id,
+        user_uuid: user.id,
       });
       if (isAdmin) return body.order_id;
     }
@@ -91,8 +99,13 @@ async function authorize(
       .select('metadata')
       .eq('id', body.order_id)
       .maybeSingle();
-    const orderGuestId = (order?.metadata as any)?.guest_id;
-    if (orderGuestId && orderGuestId === guestId) return body.order_id;
+    const orderGuestId = jsonToRecord(order?.metadata).guest_id;
+    if (
+      typeof orderGuestId === 'string' &&
+      orderGuestId.length > 0 &&
+      orderGuestId === guestId
+    )
+      return body.order_id;
   }
 
   throw new Error('Unauthorized');
@@ -169,9 +182,10 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
     total_amount: order.total_amount ?? null,
     amount: order.amount ?? null,
   });
-  const discount = Number(
-    (order.metadata as Record<string, unknown>)?.discount_amount || 0
-  );
+  const metaForDiscount = jsonToRecord(order.metadata);
+  const discountRaw = metaForDiscount.discount_amount;
+  const discount =
+    typeof discountRaw === 'number' ? discountRaw : Number(discountRaw ?? 0);
   // Prefer authoritative order total (total_amount / legacy amount ladder); else items-only sum.
   const total = orderTotalMajor > 0 ? orderTotalMajor : subtotal;
   const shipping = Math.max(0, total - subtotal + discount);
@@ -194,11 +208,12 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
     throw new InvoiceValidationError(`Invalid invoice total: ${total}`);
   }
 
-  const addr = (order.shipping_address as any) || {};
-  const fullName = `${addr.first_name || ''} ${addr.last_name || ''}`.trim();
+  const addr = jsonToRecord(order.shipping_address);
+  const fullName =
+    `${typeof addr.first_name === 'string' ? addr.first_name : ''} ${typeof addr.last_name === 'string' ? addr.last_name : ''}`.trim();
   const email = resolveCustomerEmail({
-    metadata: order.metadata as Record<string, unknown> | null,
-    shipping_address: order.shipping_address as Record<string, unknown> | null,
+    metadata: jsonToRecord(order.metadata),
+    shipping_address: jsonToRecord(order.shipping_address),
   });
   if (!email) throw new InvoiceValidationError('Order has no customer email');
 
@@ -211,17 +226,19 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
     client: {
       name: fullName || email.split('@')[0],
       email,
-      address_line1: addr.address_line1 || addr.address || '',
-      address_line2: addr.address_line2 || undefined,
-      postal_code: addr.postal_code || addr.zip || '',
-      city: addr.city || '',
-      country: addr.country || '',
+      address_line1:
+        (typeof addr.address_line1 === 'string' ? addr.address_line1 : '') ||
+        (typeof addr.address === 'string' ? addr.address : ''),
+      address_line2:
+        typeof addr.address_line2 === 'string' ? addr.address_line2 : undefined,
+      postal_code:
+        (typeof addr.postal_code === 'string' ? addr.postal_code : '') ||
+        (typeof addr.zip === 'string' ? addr.zip : ''),
+      city: typeof addr.city === 'string' ? addr.city : '',
+      country: typeof addr.country === 'string' ? addr.country : '',
     },
     items: items.map((it) => ({
-      name:
-        (it.product_snapshot as any)?.name ||
-        (it.product_snapshot as any)?.title ||
-        'Produit',
+      name: snapshotProductTitle(it.product_snapshot),
       quantity: Number(it.quantity) || 1,
       unit_price: Number(it.unit_price) || 0,
       total: Number(it.total_price) || 0,
@@ -277,7 +294,7 @@ Deno.serve(async (req) => {
     const { error: insertErr } = await admin.from('invoices').insert({
       order_id: orderId,
       invoice_number: data.invoice_number,
-      json_snapshot: data,
+      json_snapshot: data as unknown as Json,
       html,
       total_amount: data.totals.total,
       currency: data.currency,
