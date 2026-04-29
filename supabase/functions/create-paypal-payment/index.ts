@@ -9,10 +9,43 @@ const corsHeaders = {
     'authorization, x-client-info, apikey, content-type, x-csrf-token, x-csrf-nonce, x-csrf-hash, x-guest-id, x-checkout-session-id, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+const logStep = (step: string, details?: unknown) => {
+  const detailsStr =
+    details !== undefined ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[PAYPAL-PAYMENT] ${step}${detailsStr}`);
 };
+
+/** Client POST body — prices are verified server-side from DB. */
+interface IncomingCartItem {
+  product: {
+    id: number;
+    name?: string;
+    description?: string;
+    images?: unknown;
+    price?: number;
+  };
+  quantity: number;
+}
+
+type VerifiedCartItem = IncomingCartItem & { _dbPrice: number };
+
+type DbProductPick = {
+  id: number;
+  price: number;
+  name: string;
+  stock_quantity: number | null;
+};
+
+interface PayPalOrderBreakdown {
+  item_total: { currency_code: string; value: string };
+  shipping: { currency_code: string; value: string };
+  discount?: { currency_code: string; value: string };
+}
+
+interface PayPalCreateOrderResponse {
+  id: string;
+  links?: Array<{ rel: string; href: string }>;
+}
 
 const getPayPalBaseUrl = () => {
   const mode = Deno.env.get('PAYPAL_MODE') || 'sandbox';
@@ -50,8 +83,12 @@ const getAccessToken = async (): Promise<string> => {
       throw new Error(`Failed to get PayPal access token: ${error}`);
     }
 
-    const data = await response.json();
-    return data.access_token;
+    const data = (await response.json()) as { access_token?: string };
+    const token = data.access_token;
+    if (typeof token !== 'string') {
+      throw new Error('PayPal token response missing access_token');
+    }
+    return token;
   } finally {
     clearTimeout(timeout);
   }
@@ -76,7 +113,15 @@ serve(async (req) => {
   try {
     logStep('Function started');
 
-    const { items, customerInfo, discount } = await req.json();
+    const { items, customerInfo, discount } = (await req.json()) as {
+      items?: IncomingCartItem[];
+      customerInfo?: {
+        email?: string;
+        firstName?: string;
+        lastName?: string;
+      };
+      discount?: { code?: string };
+    };
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       throw new Error('No items provided for payment');
@@ -102,7 +147,7 @@ serve(async (req) => {
     }
 
     // --- SERVER-SIDE PRICE VERIFICATION ---
-    const productIds = items.map((item: any) => item.product.id);
+    const productIds = items.map((item) => item.product.id);
     const { data: dbProducts, error: productError } = await supabaseService
       .from('products')
       .select('id, price, name, stock_quantity')
@@ -114,10 +159,12 @@ serve(async (req) => {
       );
     }
 
-    const productMap = new Map(dbProducts.map((p: any) => [p.id, p]));
+    const productMap = new Map<number, DbProductPick>(
+      dbProducts.map((p) => [p.id, p])
+    );
 
     // Validate each item against DB prices
-    const verifiedItems = items.map((item: any) => {
+    const verifiedItems: VerifiedCartItem[] = items.map((item) => {
       const dbProduct = productMap.get(item.product.id);
       if (!dbProduct) {
         throw new Error(`Product not found: ${item.product.id}`);
@@ -139,7 +186,7 @@ serve(async (req) => {
 
     // Calculate totals with SERVER-VERIFIED prices
     const subtotal = verifiedItems.reduce(
-      (sum: number, item: any) => sum + item._dbPrice * item.quantity,
+      (sum, item) => sum + item._dbPrice * item.quantity,
       0
     );
 
@@ -232,7 +279,7 @@ serve(async (req) => {
     logStep('Order created', { orderId: orderData.id });
 
     // Create order items with DB-verified prices
-    const orderItems = verifiedItems.map((item: any) => ({
+    const orderItems = verifiedItems.map((item) => ({
       order_id: orderData.id,
       product_id: item.product.id,
       quantity: item.quantity,
@@ -253,8 +300,8 @@ serve(async (req) => {
     logStep('Got PayPal access token');
 
     // Build PayPal order items with server prices
-    const paypalItems = verifiedItems.map((item: any) => ({
-      name: item.product.name.substring(0, 127),
+    const paypalItems = verifiedItems.map((item) => ({
+      name: (item.product.name ?? 'Product').substring(0, 127),
       unit_amount: {
         currency_code: 'EUR',
         value: item._dbPrice.toFixed(2),
@@ -265,14 +312,14 @@ serve(async (req) => {
     const itemTotal =
       Math.round(
         verifiedItems.reduce(
-          (sum: number, item: any) => sum + item._dbPrice * item.quantity,
+          (sum, item) => sum + item._dbPrice * item.quantity,
           0
         ) * 100
       ) / 100;
 
     const siteBaseUrl: string = getValidOrigin(req);
 
-    const breakdown: any = {
+    const breakdown: PayPalOrderBreakdown = {
       item_total: { currency_code: 'EUR', value: itemTotal.toFixed(2) },
       shipping: { currency_code: 'EUR', value: roundedShipping.toFixed(2) },
     };
@@ -321,7 +368,7 @@ serve(async (req) => {
     const paypalController = new AbortController();
     const paypalTimeout = setTimeout(() => paypalController.abort(), 20000);
 
-    let paypalOrder: any;
+    let paypalOrder: PayPalCreateOrderResponse;
     try {
       const paypalResponse = await fetch(
         `${getPayPalBaseUrl()}/v2/checkout/orders`,
@@ -346,7 +393,7 @@ serve(async (req) => {
         throw new Error(`PayPal order creation failed: ${errorText}`);
       }
 
-      paypalOrder = await paypalResponse.json();
+      paypalOrder = (await paypalResponse.json()) as PayPalCreateOrderResponse;
     } finally {
       clearTimeout(paypalTimeout);
     }
@@ -370,7 +417,7 @@ serve(async (req) => {
       .eq('id', orderData.id);
 
     const approvalLink = paypalOrder.links?.find(
-      (link: any) => link.rel === 'approve'
+      (link) => link.rel === 'approve'
     );
 
     if (!approvalLink) {

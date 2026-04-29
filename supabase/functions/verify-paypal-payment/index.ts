@@ -10,8 +10,9 @@ const corsHeaders = {
     'authorization, x-client-info, apikey, content-type, x-guest-id, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+const logStep = (step: string, details?: unknown) => {
+  const detailsStr =
+    details !== undefined ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[VERIFY-PAYPAL] ${step}${detailsStr}`);
 };
 
@@ -50,12 +51,37 @@ const getAccessToken = async (): Promise<string> => {
       throw new Error(`Failed to get PayPal access token: ${error}`);
     }
 
-    const data = await response.json();
-    return data.access_token;
+    const data = (await response.json()) as { access_token?: string };
+    const token = data.access_token;
+    if (typeof token !== 'string') {
+      throw new Error('PayPal token response missing access_token');
+    }
+    return token;
   } finally {
     clearTimeout(timeout);
   }
 };
+
+interface PayPalCheckoutOrder {
+  status?: string;
+  purchase_units?: Array<{
+    amount?: { value?: string };
+    payments?: { captures?: Array<{ id?: string }> };
+  }>;
+  payer?: {
+    email_address?: string;
+    payer_id?: string;
+    name?: { given_name?: string; surname?: string };
+  };
+}
+
+interface PayPalCaptureOrderResponse {
+  status?: string;
+  purchase_units?: Array<{
+    payments?: { captures?: Array<{ id?: string }> };
+  }>;
+  payer?: PayPalCheckoutOrder['payer'];
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -74,6 +100,8 @@ serve(async (req) => {
     const _internalSecret = Deno.env.get('INTERNAL_NOTIFY_SECRET');
     const isInternalCall =
       authHeader === `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`;
+
+    let authenticatedUserId: string | undefined;
 
     if (!isInternalCall) {
       if (!authHeader?.startsWith('Bearer ')) {
@@ -98,8 +126,8 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      // Store userId for ownership check below
-      (req as any)._userId = claimsData.claims.sub;
+      const sub = claimsData.claims.sub;
+      authenticatedUserId = typeof sub === 'string' ? sub : undefined;
     }
 
     const { paypal_order_id, order_id } = await req.json();
@@ -125,7 +153,7 @@ serve(async (req) => {
     }
 
     // Ownership check for non-internal calls
-    const userId = (req as any)._userId;
+    const userId = authenticatedUserId;
     if (userId && existingOrder.user_id && existingOrder.user_id !== userId) {
       return new Response(JSON.stringify({ error: 'Forbidden' }), {
         status: 403,
@@ -156,7 +184,7 @@ serve(async (req) => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
 
-    let paypalOrder: any;
+    let paypalOrder: PayPalCheckoutOrder;
     try {
       const orderResponse = await fetch(
         `${getPayPalBaseUrl()}/v2/checkout/orders/${paypal_order_id}`,
@@ -176,7 +204,7 @@ serve(async (req) => {
         throw new Error(`Failed to get PayPal order: ${errorText}`);
       }
 
-      paypalOrder = await orderResponse.json();
+      paypalOrder = (await orderResponse.json()) as PayPalCheckoutOrder;
     } finally {
       clearTimeout(timeout);
     }
@@ -217,7 +245,7 @@ serve(async (req) => {
       const captureController = new AbortController();
       const captureTimeout = setTimeout(() => captureController.abort(), 20000);
 
-      let captureData: any;
+      let captureData: PayPalCaptureOrderResponse;
       try {
         const captureResponse = await fetch(
           `${getPayPalBaseUrl()}/v2/checkout/orders/${paypal_order_id}/capture`,
@@ -237,7 +265,8 @@ serve(async (req) => {
           throw new Error(`PayPal capture failed: ${errorText}`);
         }
 
-        captureData = await captureResponse.json();
+        captureData =
+          (await captureResponse.json()) as PayPalCaptureOrderResponse;
       } finally {
         clearTimeout(captureTimeout);
       }
@@ -250,7 +279,7 @@ serve(async (req) => {
         const payer = captureData.payer;
 
         // Optimistic lock: only update if still pending
-        const { data: updated, error: updateError } = await supabaseService
+        const { data: updated } = await supabaseService
           .from('orders')
           .update({
             status: 'paid',
@@ -285,13 +314,6 @@ serve(async (req) => {
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
               status: 200,
             }
-          );
-        }
-
-        if (updateError) {
-          logStep('Error updating order', updateError);
-          throw new Error(
-            `Failed to update order: ${(updateError as any).message}`
           );
         }
 
