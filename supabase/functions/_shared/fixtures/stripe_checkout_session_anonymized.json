@@ -1,0 +1,26 @@
+{
+  "id": "cs_fixture_anonymized_001",
+  "object": "checkout.session",
+  "currency": "eur",
+  "amount_subtotal": 6200,
+  "amount_total": 6800,
+  "total_details": {
+    "amount_discount": 100,
+    "amount_shipping": 500,
+    "amount_tax": 200
+  },
+  "line_items": {
+    "data": [
+      {
+        "description": "Sac artisanal",
+        "quantity": 2,
+        "amount_total": 6000
+      },
+      {
+        "description": "Frais de livraison",
+        "quantity": 1,
+        "amount_total": 500
+      }
+    ]
+  }
+}

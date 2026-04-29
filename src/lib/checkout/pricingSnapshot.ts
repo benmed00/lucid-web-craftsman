@@ -1,35 +1,24 @@
-import { z } from 'zod';
+import {
+  pricingSnapshotV1Schema,
+  pricingLineV1Schema,
+  type PricingSnapshotV1,
+} from './pricingSnapshotSchema';
 
-export const pricingLineV1Schema = z.object({
-  description: z.string(),
-  quantity: z.number(),
-  unit_minor: z.number(),
-  line_total_minor: z.number(),
-});
+export { pricingSnapshotV1Schema, pricingLineV1Schema, type PricingSnapshotV1 };
 
-export const pricingSnapshotV1Schema = z.object({
-  version: z.literal(1),
-  currency: z.string(),
-  source: z.literal('stripe_checkout_session'),
-  stripe_session_id: z.string(),
-  subtotal_minor: z.number(),
-  discount_minor: z.number(),
-  shipping_minor: z.number(),
-  tax_minor: z.number(),
-  total_minor: z.number(),
-  lines: z.array(pricingLineV1Schema),
-  finalized_at: z.string(),
-});
-
-export type PricingSnapshotV1 = z.infer<typeof pricingSnapshotV1Schema>;
-
+/** SPA-side detection — keep keywords aligned with `isShippingLineDescription` in `supabase/functions/_shared/pricing-snapshot.ts`. */
 export function isSnapshotShippingLine(description: string): boolean {
   const d = description.toLowerCase();
   return (
     d.includes('frais de livraison') ||
     d.includes('livraison standard') ||
+    d === 'shipping' ||
     d.includes('shipping') ||
-    d === 'shipping'
+    d.includes('delivery') ||
+    d.includes('envío') ||
+    d.includes('envio') ||
+    d.includes('spedizione') ||
+    d.includes('versand')
   );
 }
 

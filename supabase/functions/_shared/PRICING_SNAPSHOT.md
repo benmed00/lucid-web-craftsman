@@ -31,6 +31,9 @@ breaking existing rows.
 
 - Deno (server, authoritative shape):
   - `supabase/functions/_shared/pricing-snapshot_test.ts`
+  - `supabase/functions/_shared/pricing_snapshot_golden_test.ts` — fixture JSON `fixtures/pricing_snapshot_v1.golden.json` + schéma Zod (`src/lib/checkout/pricingSnapshotSchema.ts`)
+  - `supabase/functions/_shared/pricing_snapshot_extended_test.ts` — JPY, fixture Stripe anonymisée, volumétrie
+  - `supabase/functions/_shared/persist-pricing-snapshot_test.ts` — `persistPricingSnapshot` avec mocks
   - `supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts`
   - `supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts`
 - Vitest (SPA Zod schema): `src/lib/checkout/pricingSnapshot.test.ts`

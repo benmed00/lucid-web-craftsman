@@ -48,15 +48,9 @@ export function isPricingSnapshotV1(row: unknown): row is PricingSnapshotV1 {
   );
 }
 
-export function isShippingLineDescription(description: string): boolean {
-  const d = description.toLowerCase();
-  return (
-    d.includes('frais de livraison') ||
-    d.includes('livraison standard') ||
-    d.includes('shipping') ||
-    d === 'shipping'
-  );
-}
+import { isShippingLineDescription } from '../../_shared/pricing-snapshot.ts';
+
+export { isShippingLineDescription };
 
 export function buildEmailPricingFromSnapshot(
   snap: PricingSnapshotV1,

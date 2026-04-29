@@ -41,5 +41,9 @@ jobs:
       - name: Deno test
         run: deno test create-payment/ --config deno.json --allow-env
 
+      - name: Assert Deno v2 for pricing helpers
+        working-directory: ${{ github.workspace }}
+        run: node scripts/assert-deno-v2.mjs
+
       - name: Deno test checkout pricing helpers
-        run: deno test --allow-env --no-check _shared/pricing-snapshot_test.ts stripe-webhook/lib/pricing-snapshot_test.ts send-order-confirmation/_lib/email-pricing-from-db_test.ts
+        run: deno test --allow-env --allow-read=${{ github.workspace }} --no-check --config deno.json _shared/pricing-snapshot_test.ts _shared/pricing_snapshot_golden_test.ts _shared/pricing_snapshot_extended_test.ts _shared/persist-pricing-snapshot_test.ts stripe-webhook/lib/pricing-snapshot_test.ts send-order-confirmation/_lib/email-pricing-from-db_test.ts

@@ -190,5 +190,9 @@ Deno.test('isShippingLineDescription matches French + English variants', () => {
   assertEquals(isShippingLineDescription('Livraison standard'), true);
   assertEquals(isShippingLineDescription('Shipping'), true);
   assertEquals(isShippingLineDescription('shipping fees'), true);
+  assertEquals(isShippingLineDescription('Delivery fee'), true);
+  assertEquals(isShippingLineDescription('Envío estándar'), true);
+  assertEquals(isShippingLineDescription('Spedizione'), true);
+  assertEquals(isShippingLineDescription('Versand'), true);
   assertEquals(isShippingLineDescription('Pochette'), false);
 });

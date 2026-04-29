@@ -88,6 +88,11 @@ export function isShippingLineDescription(description: string): boolean {
     d.includes('frais de livraison') ||
     d.includes('livraison standard') ||
     d === 'shipping' ||
-    d.includes('shipping')
+    d.includes('shipping') ||
+    d.includes('delivery') ||
+    d.includes('envío') ||
+    d.includes('envio') ||
+    d.includes('spedizione') ||
+    d.includes('versand')
   );
 }
