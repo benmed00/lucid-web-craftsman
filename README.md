@@ -7,6 +7,7 @@
 [![Vite](https://img.shields.io/badge/Vite-5.0+-646CFF.svg)](https://vitejs.dev/)
 [![CI](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/ci.yml/badge.svg)](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/ci.yml)
 [![E2E](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/e2e.yml/badge.svg)](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/e2e.yml)
+[![Deno create-payment](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/deno-create-payment.yml/badge.svg)](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/deno-create-payment.yml)
 
 ## 📖 Vue d'ensemble
 
@@ -299,6 +300,34 @@ Le contrat de **pricing snapshot** (mapping Stripe → snapshot v1 stocké en DB
 - Aucune variable d'environnement, clé Supabase ni accès réseau requis — les tests sont 100 % offline et exécutent uniquement la logique de mapping.
 - Le script utilise `--allow-env --no-check` (pas de typecheck Deno, pas de lockfile gelé) pour rester aligné avec le bundler hosté de Supabase.
 
+**Checklist offline / sans secrets :**
+
+- [x] **Aucun accès réseau** requis à l'exécution — pure logique de mapping in-memory (les imports `https://deno.land/std@…` sont mis en cache par Deno au premier run, puis réutilisés hors-ligne).
+- [x] **Aucune variable d'environnement** requise — ni `SUPABASE_*`, ni `STRIPE_*`, ni `BREVO_*`. Le flag `--allow-env` est présent par confort mais aucun `Deno.env.get(...)` n'est appelé par les tests.
+- [x] **Aucun secret / token** à provisionner localement ou en CI — les workflows GitHub n'injectent rien pour ce job.
+- [x] **Aucune base de données** — pas de connexion Postgres ni de mock Supabase.
+- [x] **Déterministe** — mêmes entrées ⇒ mêmes sorties, indépendant de l'horloge / locale / fuseau.
+
+**Vérification rapide (zéro variable d'environnement requise) :**
+
+```bash
+# Doit retourner 0 occurrence dans les fichiers de tests pricing snapshot.
+rg -n 'Deno\.env|process\.env|fetch\(' \
+  supabase/functions/_shared/pricing-snapshot.ts \
+  supabase/functions/_shared/pricing-snapshot_test.ts \
+  supabase/functions/stripe-webhook/lib/pricing-snapshot.ts \
+  supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts \
+  && echo "⚠️  env / network usage detected" \
+  || echo "✅  no env vars, no network calls — safe to run offline"
+```
+
+Et pour confirmer que la suite passe avec un environnement totalement vide :
+
+```bash
+env -i PATH="$PATH" HOME="$HOME" npm run test:pricing-snapshot:deno
+```
+
+
 **Lancer uniquement les tests pricing snapshot :**
 
 ```bash
@@ -310,21 +339,127 @@ Cible deux fichiers :
 - `supabase/functions/_shared/pricing-snapshot_test.ts` — 17 tests (devises, totaux, mapping de lignes, valeurs manquantes, quantités négatives, arrondis).
 - `supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts` — 2 tests garantissant que le ré-export depuis `stripe-webhook/` reste compatible.
 
-**Sortie attendue (succès) :**
+**Sortie attendue (succès) — format exact tel qu'émis par `deno test` :**
 
 ```
-running 17 tests from ./supabase/functions/_shared/pricing-snapshot_test.ts
-...
-ok | 17 passed | 0 failed (XXms)
-
 running 2 tests from ./supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts
-...
-ok | 2 passed | 0 failed (XXms)
+buildPricingSnapshotV1FromStripe maps Stripe totals and lines ... ok (5ms)
+isShippingLineDescription detects French shipping row ... ok (0ms)
+running 17 tests from ./supabase/functions/_shared/pricing-snapshot_test.ts
+currency is normalized to lowercase ... ok (1ms)
+defaults currency to eur when missing ... ok (0ms)
+total_details fields map to discount/shipping/tax ... ok (0ms)
+multi-line items compute unit_minor by quantity ... ok (0ms)
+line with missing description falls back to "Article" ... ok (0ms)
+line with zero/missing quantity does not divide by zero ... ok (0ms)
+line description is trimmed ... ok (0ms)
+finalized_at is ISO-8601 ... ok (0ms)
+line with missing amount_total defaults to 0 ... ok (0ms)
+line with null amount_total and null quantity defaults safely ... ok (0ms)
+line with negative quantity (return/refund) falls back to line total for unit ... ok (0ms)
+line with negative amount_total and positive quantity (discount line) ... ok (0ms)
+session with missing amount fields defaults to 0 ... ok (0ms)
+session with partial total_details fills missing with 0 ... ok (25ms)
+empty line items produce empty lines array ... ok (0ms)
+unit_minor rounds to nearest minor unit (banker-safe) ... ok (0ms)
+isShippingLineDescription matches French + English variants ... ok (0ms)
+
+ok | 19 passed | 0 failed (163ms)
 ```
 
-Total : **19 tests passants**, code de sortie `0`. Toute régression échoue avec `1 failed` et le code `1`, ce qui bloque le job **Deno create-payment** dans GitHub Actions ([`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml)).
+**Détails du format à connaître :**
+
+- **Une seule ligne `running N tests from ./<path>` par fichier**, dans l'ordre où Deno les charge (ici `stripe-webhook/lib/...` puis `_shared/...`). L'ordre peut varier selon la version de Deno mais reste stable d'un run à l'autre sur la même machine.
+- **Un bloc par test** : `<nom du test> ... ok (Xms)`. Les durées entre parenthèses sont **non-déterministes** : la plupart affichent `(0ms)`, certains atteignent quelques `ms` (vu jusqu'à `(25ms)` localement) selon la charge CPU, le cache disque, et la première compilation TypeScript de Deno. C'est pourquoi la doc note historiquement `(XXms)` à la place — n'importe quel entier ≥ 0 suivi de `ms` est valide.
+- **Échec d'un test** : la ligne devient `<nom> ... FAILED (Xms)` avec un encart `failures:` listant les tests cassés au-dessus du résumé.
+- **Ligne de résumé finale** : précédée d'**une ligne vide**, toujours en **dernière position** de la sortie de `deno test`, au format `ok | <passed> passed | <failed> failed (<total>ms)`. C'est cette ligne qui est lue en CI ; elle apparaît **après** tous les blocs `running ... from ...` (et non pas une fois par fichier). Total attendu : **19 passed | 0 failed**, exit code `0`. Toute régression devient `FAILED | 18 passed | 1 failed (...)` avec exit code `1` et bloque le job **Deno create-payment** ([`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml)).
+
+**Inspecter les exécutions CI (lien direct) :**
+
+- 📊 **Tous les runs du workflow** : [github.com/benmed00/lucid-web-craftsman/actions/workflows/deno-create-payment.yml](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/deno-create-payment.yml) — filtrable par branche, statut, acteur. Le badge tout en haut du README pointe au même endroit.
+- 🟢 **Dernier run sur `main`** : [actions/workflows/deno-create-payment.yml?query=branch%3Amain](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/deno-create-payment.yml?query=branch%3Amain) — utile comme référence "vert connu".
+- 🔴 **Derniers échecs uniquement** : [actions/workflows/deno-create-payment.yml?query=is%3Afailure](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/deno-create-payment.yml?query=is%3Afailure) — saute directement aux runs cassés, ouvrir le job `deno` puis l'étape **`Deno test checkout pricing helpers`** qui contient la sortie ci-dessus.
+- 🔍 **Job + étape précis** : sur n'importe quel run ouvert, le bloc qui exécute la suite pricing snapshot s'appelle `deno → Deno test checkout pricing helpers` (logs accessibles à l'URL `…/actions/runs/<run_id>/job/<job_id>#step:7:1`). Cliquer sur le numéro d'étape recopie un lien permanent vers la ligne en erreur — utile à coller dans une PR.
+- 📦 **Recherche par PR** : sur l'onglet "Checks" d'une pull request, le check s'appelle exactement `Deno create-payment / deno`. Cliquer dessus ouvre le run + le job déjà déroulé sur l'étape qui a échoué.
+
+> ⚠️ **Note de couverture** : la commande locale `npm run test:pricing-snapshot:deno` exécute **les deux** fichiers (`_shared/pricing-snapshot_test.ts` + `stripe-webhook/lib/pricing-snapshot_test.ts`, soit 19 tests). En CI, l'étape **`Deno test checkout pricing helpers`** exécute uniquement `stripe-webhook/lib/pricing-snapshot_test.ts` + `send-order-confirmation/_lib/email-pricing-from-db_test.ts` — les 17 cas de `_shared/...` ne sont **pas** couverts par ce job. Une régression sur le module `_shared/pricing-snapshot.ts` ne sera détectée en CI que via les tests Vitest (`npm run validate` → `npm run test:unit`) qui consomment indirectement le contrat. Pour être sûr avant de merger : **lancer `npm run test:pricing-snapshot:deno` en local**.
+- **Téléchargements** : au tout premier run sur une machine vierge, Deno log `Download https://deno.land/std@0.190.0/...` au-dessus de la sortie (mise en cache locale). Les runs suivants n'affichent plus ces lignes — l'absence ou la présence n'affecte ni le format du résumé ni l'exit code.
+- **Pas de couleurs ANSI en CI / pipe** : Deno détecte qu'il n'écrit pas dans un TTY et omet automatiquement les codes couleur ; le format texte ci-dessus reste identique.
+
 
 Pour exécuter en plus la version Vitest (Zod côté client) : `npm run test:pricing-snapshot`.
+
+#### Dépannage : `deno` introuvable ou version incompatible
+
+| Symptôme (sortie de `npm run test:pricing-snapshot:deno`) | Cause probable | Correctif |
+|---|---|---|
+| `sh: 1: deno: not found` ou `'deno' is not recognized as an internal or external command` | Deno n'est pas installé ou pas dans le `PATH` du shell où `npm` tourne. | Installer Deno **v2** : `curl -fsSL https://deno.land/install.sh \| sh` (Linux/macOS) ou `irm https://deno.land/install.ps1 \| iex` (Windows PowerShell). Puis ajouter `~/.deno/bin` au `PATH` (`export PATH="$HOME/.deno/bin:$PATH"` dans `~/.bashrc` / `~/.zshrc`) et **rouvrir le terminal**. |
+| `deno --version` affiche `1.x.x` au lieu de `2.x.x` | Version trop ancienne (le projet exige Deno 2 — même contrainte que `npm run verify:create-payment`). | Mettre à jour : `deno upgrade` (auto-update vers la dernière stable). Pour épingler explicitement la v2 : `deno upgrade --version 2.x` ou réinstaller avec `DENO_INSTALL=$HOME/.deno sh -c "$(curl -fsSL https://deno.land/install.sh)"`. |
+| `error: Unsupported lockfile version '5'` | Un vieux Deno (1.x) tente de lire `deno.lock` v5 généré par Deno 2. | Mêmes correctifs que la ligne précédente — passer en Deno 2. Le lockfile racine (`deno.lock`) est intentionnellement v5 ; le bundler hosté de Supabase, lui, ne le lit pas (raisons documentées dans `AGENTS.md`). |
+| `error: Module not found "https://deno.land/std@0.190.0/..."` au premier run | Tout premier run sur la machine, pas de cache Deno + accès réseau bloqué (proxy d'entreprise, machine offline). | Lancer **une fois** avec accès réseau pour pré-remplir le cache : `deno cache supabase/functions/_shared/pricing-snapshot_test.ts supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts`. Les runs suivants sont 100 % offline (voir checklist ci-dessus). Derrière un proxy : exporter `HTTPS_PROXY` / `HTTP_PROXY` avant la commande. |
+| `error: The module's source code could not be parsed` ou erreurs de typecheck Deno | `deno test` fait un typecheck par défaut sur des fichiers que le bundler Supabase ne typecheck pas. | Le script npm passe déjà `--no-check` ; si vous lancez `deno test` à la main, **ajouter `--no-check`** : `deno test --allow-env --no-check supabase/functions/_shared/pricing-snapshot_test.ts`. |
+| `error: Uncaught (in promise) PermissionDenied: Requires env access` | Vous lancez `deno test` à la main sans `--allow-env`. | Toujours utiliser `--allow-env` (présent par confort dans le script npm — la suite n'appelle aucun `Deno.env.get`, mais Deno demande la permission au chargement de certains modules std). |
+| Sur Windows : `'npm' is not recognized` après installation Deno | Conflit de `PATH` ou shell mal rouvert. | Vérifier que `node`, `npm` **et** `deno` sont tous trois trouvables : `node -v && npm -v && deno --version`. Si seul `deno` manque, ré-éxecuter le bloc `Add-Content $PROFILE '$env:Path += ";$env:USERPROFILE\.deno\bin"'` puis relancer PowerShell. |
+
+**Vérification rapide de la stack avant de relancer :**
+
+```bash
+node -v && npm -v && deno --version
+# Attendu (au minimum) : node v18+, npm v9+, deno 2.x.x
+```
+
+Si tout est conforme et que le test échoue toujours, voir la section [Inspecter les exécutions CI (lien direct)](#inspecter-les-exécutions-ci-lien-direct) ci-dessus pour comparer la sortie locale avec un run vert connu sur `main`.
+
+
+#### Mettre à jour ou régénérer les fixtures pricing snapshot
+
+> **TL;DR** — Il n'existe **pas** de pipeline auto de régénération (pas de `__snapshots__/`, pas de `*.fixture.json`, pas de `--update-snapshots`). Les "fixtures" sont des **objets `StripeSessionLike` inline en TypeScript** dans les fichiers `*_test.ts`, modifiés à la main puis vérifiés en relançant `npm run test:pricing-snapshot:deno`.
+
+**Où vivent les fixtures :**
+
+- `supabase/functions/_shared/pricing-snapshot_test.ts` — 17 cas (devises, totaux, mapping de lignes, valeurs manquantes, quantités négatives, arrondis). Chaque test construit son propre littéral `const session: StripeSessionLike = { ... }` puis appelle `buildPricingSnapshotV1FromStripe(session, lines)` et `assertEquals(...)` sur la sortie attendue.
+- `supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts` — 2 cas garantissant que le ré-export depuis `stripe-webhook/` reste compatible (mêmes types, même résultat).
+- **Contrat** : avant toute modification de forme, lire [`supabase/functions/_shared/PRICING_SNAPSHOT.md`](supabase/functions/_shared/PRICING_SNAPSHOT.md) (versionnement v1, champs obligatoires, règles d'arrondi en minor units).
+
+**Workflow recommandé pour ajouter / modifier un cas :**
+
+1. **Capturer la session Stripe réelle** (optionnel mais recommandé pour les vrais bugs en prod) :
+   ```bash
+   # Depuis le dashboard Stripe ou via CLI, en mode test (jamais live).
+   stripe checkout sessions retrieve cs_test_xxx --expand=line_items.data > /tmp/session.json
+   ```
+   ⚠️ **Anonymiser** avant de coller dans le test : retirer `customer_details.email`, `customer`, `payment_intent`, `client_reference_id`, et tout `metadata.*` PII. Garder uniquement les champs lus par `buildPricingSnapshotV1FromStripe` (`amount_total`, `amount_subtotal`, `currency`, `total_details.{amount_discount,amount_shipping,amount_tax}`, et pour chaque ligne `description`, `amount_total`, `quantity`).
+2. **Réduire au minimum** : un test = un comportement. Inliner uniquement les champs nécessaires — pas la session Stripe complète. Les autres champs sont typés `Partial<...>` côté `StripeSessionLike` et restent optionnels.
+3. **Ajouter le `Deno.test(...)` correspondant** dans `_shared/pricing-snapshot_test.ts` (et seulement répliquer dans `stripe-webhook/lib/...` si le test concerne spécifiquement le ré-export). Calculer **à la main** les valeurs attendues en minor units (ex. `12.34 €` ⇒ `1234`) et les écrire en dur dans `assertEquals` — **ne jamais** dériver `expected` depuis un autre appel à la fonction sous test (ce serait un test tautologique).
+4. **Vérifier immédiatement** :
+   ```bash
+   # Relance toute la suite, doit afficher: ok | 20 passed | 0 failed (Xms)
+   npm run test:pricing-snapshot:deno
+
+   # Variante Vitest (Zod côté client) — utile si la forme du snapshot change.
+   npm run test:pricing-snapshot
+   ```
+5. **Cibler un seul test** pendant l'itération (Deno supporte le filtre `--filter`) :
+   ```bash
+   deno test --allow-env --no-check \
+     --filter "currency is normalized to lowercase" \
+     supabase/functions/_shared/pricing-snapshot_test.ts
+   ```
+6. **Mettre à jour le compteur dans la doc** — la section "Sortie attendue" ci-dessus mentionne `19 passed`. Si vous ajoutez/supprimez un test, **incrémentez/décrémentez ce nombre** dans le bloc de sortie attendue + dans la phrase de résumé pour que la doc reste alignée avec la CI.
+
+**Si la forme du snapshot v1 change (champ ajouté / renommé / supprimé) :**
+
+1. **Bumper la version** (`v1` ⇒ `v2`) dans `pricing-snapshot.ts` selon les règles de [`PRICING_SNAPSHOT.md`](supabase/functions/_shared/PRICING_SNAPSHOT.md) — un changement breaking ne doit **jamais** réutiliser `v1`, sinon les snapshots persistés en DB deviennent invalides à la lecture.
+2. Mettre à jour **tous** les `assertEquals` en parallèle dans les deux fichiers `*_test.ts`.
+3. Mettre à jour le schéma Zod côté client (`src/lib/checkout/pricingSnapshot.ts`) + son test Vitest associé.
+4. Relancer `npm run test:pricing-snapshot` (Deno + Vitest combinés) — doit passer en intégralité avant ouverture de PR.
+
+**Anti-patterns à éviter :**
+
+- ❌ Ne pas créer de fichier `*.fixture.json` ou de dossier `__snapshots__/` pour ces tests — le contrat veut que les entrées/sorties attendues restent **lisibles dans le test lui-même** (revue de PR ⇒ diff parlant).
+- ❌ Ne pas appeler `buildPricingSnapshotV1FromStripe` pour générer la valeur attendue (tautologie, masque les régressions).
+- ❌ Ne pas coller une session Stripe brute non-anonymisée — risque de fuite PII en clair dans Git.
+
 
 **Documentation technique :**
 

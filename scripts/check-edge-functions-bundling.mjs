@@ -357,18 +357,57 @@ function htmlEscape(s) {
     .replace(/"/g, '&quot;');
 }
 
+function toPositiveInt(value, fallback) {
+  // Accept numbers and numeric strings; reject NaN, Infinity, <=0, non-integers.
+  const n = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  const i = Math.floor(n);
+  return i > 0 ? i : fallback;
+}
+
 function renderImporterLink(rep, relFile, line, col) {
   // Build a clickable link that opens the importer file at the failing
   // line/column directly in VS Code / Cursor. Most editors register the
   // `vscode://file/...` handler; we also expose a `file://` fallback so the
   // link still resolves in plain browsers.
-  const abs = path.resolve(rep.root, relFile);
-  const lineNum = Number(line) || 1;
-  const colNum = Number(col) || 1;
-  const vscodeHref = `vscode://file/${abs}:${lineNum}:${colNum}`;
-  const fileHref = `file://${abs}#L${lineNum}`;
-  const label = `${relFile}:${lineNum}:${colNum}`;
-  return `<a href="${htmlEscape(vscodeHref)}" title="Open in VS Code / Cursor at line ${lineNum}, column ${colNum}"><code>${htmlEscape(
+  //
+  // This function is defensive: importer location can be missing entirely
+  // (e.g. deno errors without an `at file://...` line) or carry unexpected
+  // values (null, undefined, NaN, negative, strings like "?"). In those
+  // cases we degrade gracefully instead of emitting a broken `<a href="">`.
+  const safeFile =
+    typeof relFile === 'string' && relFile.trim().length > 0
+      ? relFile.trim()
+      : null;
+
+  if (!safeFile) {
+    return '<span class="muted" title="Importer location unavailable"><code>(unknown location)</code></span>';
+  }
+
+  const lineNum = toPositiveInt(line, 1);
+  const colNum = toPositiveInt(col, 1);
+  const hadLine = toPositiveInt(line, 0) > 0;
+  const hadCol = toPositiveInt(col, 0) > 0;
+
+  let abs;
+  try {
+    abs = path.resolve(rep.root || '.', safeFile);
+  } catch {
+    // path.resolve can throw on exotic inputs; fall back to a plain label.
+    return `<code>${htmlEscape(safeFile)}</code>`;
+  }
+
+  // encodeURI keeps `/` and `:` intact while escaping spaces, accents, etc.
+  const encodedAbs = encodeURI(abs).replace(/#/g, '%23').replace(/\?/g, '%3F');
+  const vscodeHref = `vscode://file/${encodedAbs}:${lineNum}:${colNum}`;
+  const fileHref = `file://${encodedAbs}#L${lineNum}`;
+  const label = hadLine
+    ? `${safeFile}:${lineNum}${hadCol ? `:${colNum}` : ''}`
+    : safeFile;
+  const titleSuffix = hadLine
+    ? ` at line ${lineNum}${hadCol ? `, column ${colNum}` : ''}`
+    : ' (line/column unknown — opening at top of file)';
+  return `<a href="${htmlEscape(vscodeHref)}" title="Open in VS Code / Cursor${titleSuffix}"><code>${htmlEscape(
     label
   )}</code></a> <a class="alt" href="${htmlEscape(fileHref)}" title="Open file in browser">↗</a>`;
 }
@@ -449,6 +488,7 @@ function renderHtml(rep) {
   a{color:#0366d6;text-decoration:none}
   a:hover{text-decoration:underline}
   a.alt{color:#888;font-size:11px;margin-left:4px}
+  .muted{color:#888;font-style:italic}
   .filters{display:flex;gap:12px;align-items:center;margin:12px 0 16px;flex-wrap:wrap}
   .filters label{font-size:13px;color:#444}
   .filters select,.filters input{padding:6px 8px;font-size:13px;border:1px solid #ccc;border-radius:4px;font-family:inherit}
