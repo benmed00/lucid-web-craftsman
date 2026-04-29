@@ -5,9 +5,11 @@ name: Deno create-payment
 
 on:
   push:
-    branches: [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
+    branches:
+      [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
   pull_request:
-    branches: [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
+    branches:
+      [main, feat/backend-migration-and-cypress, yakov/git-state-cleanup]
 
 concurrency:
   group: deno-create-payment-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -37,6 +39,4 @@ jobs:
         run: deno test create-payment/ --config deno.json --allow-env
 
       - name: Deno test checkout pricing helpers
-        run: |
-          deno test stripe-webhook/lib/pricing-snapshot_test.ts
-          deno test send-order-confirmation/_lib/email-pricing-from-db_test.ts
+        run: deno test --allow-env --no-check _shared/pricing-snapshot_test.ts stripe-webhook/lib/pricing-snapshot_test.ts send-order-confirmation/_lib/email-pricing-from-db_test.ts

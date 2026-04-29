@@ -73,7 +73,7 @@
     "supabase:types:gen": "node scripts/supabase-gen-types.mjs",
     "test:edge-functions": "vitest run src/tests/edge-functions.test.ts src/tests/edge-functions-carrier-mappings.test.ts",
     "test:unit": "vitest run --exclude \"**/rls-*\"",
-    "test:pricing-snapshot": "deno test supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts && deno test supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts && vitest run src/lib/checkout/pricingSnapshot.test.ts",
+    "test:pricing-snapshot": "deno test --allow-env --no-check supabase/functions/_shared/pricing-snapshot_test.ts supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts && vitest run src/lib/checkout/pricingSnapshot.test.ts",
     "test:pricing-snapshot:deno": "deno test --allow-env --no-check supabase/functions/_shared/pricing-snapshot_test.ts supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts",
     "coverage": "vitest run --coverage",
     "e2e:open": "cypress open",
