@@ -151,11 +151,7 @@ export const addResourceHints = (): void => {
   })();
 
   // DNS prefetch for external domains
-  const domains = [
-    supabaseHost,
-    'js.stripe.com',
-    'm.stripe.network',
-  ];
+  const domains = [supabaseHost, 'js.stripe.com', 'm.stripe.network'];
 
   domains.forEach((domain) => {
     if (!document.querySelector(`link[href="//${domain}"]`)) {

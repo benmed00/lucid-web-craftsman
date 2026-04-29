@@ -38,7 +38,7 @@ import {
 import { apiClient } from '@/lib/api/apiClient';
 import { handleError, ValidationError } from '@/lib/errors/AppError';
 import { supabaseFunctionsV1BaseUrl } from '@/lib/invoice/supabaseFunctionsBaseUrl';
-import { resolvedSupabasePublishableKey } from '@/integrations/supabase/client';
+import { resolvedSupabasePublishableKey } from '@/services/supabasePublishableKey';
 
 // Lazy load the map component for better performance
 const LocationMap = lazy(() => import('@/components/ui/LocationMap'));

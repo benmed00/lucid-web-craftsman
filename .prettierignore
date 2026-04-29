@@ -29,4 +29,7 @@ db.json
 # Example assets (no need to format)
 public/vite.svg
 
+# Supabase Postgres codegen (`npm run supabase:types:gen`) — avoids massive churn vs Prettier churn on regen
+src/integrations/supabase/types.ts
+
 # Long-form docs with intentional layout (tables, lists) — add paths here if Prettier hurts readability
