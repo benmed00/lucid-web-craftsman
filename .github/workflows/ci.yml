@@ -37,6 +37,14 @@ jobs:
       - name: Format check
         run: npm run format:check
 
+      - name: Setup Deno (edge functions — full bundling check)
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Edge functions bundling check (Deno)
+        run: npm run check:edge-functions:bundling:full
+
       - name: OpenAPI spec drift check
         run: npm run openapi:edge-functions:check
 

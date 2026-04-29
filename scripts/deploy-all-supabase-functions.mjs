@@ -4,6 +4,9 @@
  *
  * Usage (repo root): npm run deploy:functions:all
  * Requires: supabase link, supabase login, network.
+ *
+ * The npm script runs `check:edge-functions:bundling` (cross-function import rules,
+ * no Deno) before this file — this script does not duplicate that check.
  */
 import { execSync } from 'child_process';
 import { existsSync, readdirSync, statSync } from 'fs';
@@ -39,12 +42,6 @@ if (functions.length === 0) {
   console.error('No functions found under', functionsRoot);
   process.exit(1);
 }
-
-console.error(`Pre-deploy bundling check…`);
-execSync('node scripts/check-edge-functions-bundling.mjs --no-deno', {
-  cwd: root,
-  stdio: 'inherit',
-});
 
 console.error(`\nDeploying ${functions.length} function(s) to linked project…`);
 for (let i = 0; i < functions.length; i++) {

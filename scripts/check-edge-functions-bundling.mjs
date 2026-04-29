@@ -26,25 +26,108 @@
  *                                                  # to failing functions whose
  *                                                  # name contains "stripe"
  *
- * Requires: Deno v2 on PATH (same as `npm run verify:create-payment`).
+ * Notes:
+ *   - Unless --no-deno: runs node scripts/assert-deno-v2.mjs once, then
+ *     deno check --config supabase/functions/deno.json (same import map as
+ *     other repo Deno scripts).
+ *   - Static import()/export ... from and string-literal import('...') with
+ *     relative specifiers are scanned; dynamic import() with non-literal
+ *     specifiers is not analyzed.
+ *   - Report filters (--filter-*) do not change baseline comparison; baseline
+ *     always uses the full run (buildCompactErrors on the unfiltered report).
+ *   - Deno diagnostics: there is no stable `deno check --json` for structured
+ *     diagnostics; `parseDenoErrors()` is regex-based heuristics only. The
+ *     authoritative stderr is always `denoCheck.rawOutput` on each function row
+ *     (`--report-json`) and duplicated in HTML when parsing yields no issues.
+ *
+ * Requires: Deno v2 on PATH when not using --no-deno (same as verify:create-payment).
  */
+// @ts-check
+/// <reference types="node" />
 import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const root = path.join(__dirname, '..');
-const functionsRoot = path.join(root, 'supabase', 'functions');
+/**
+ * Shared typings for CLI output, structured reports (`--report-json`), baseline diff, and HTML.
+ * Consumers: `buildCompactErrors`, HTML render path, `@ts-check`.
+ * @typedef {'passed' | 'failed'} ReportStatus
+ * @typedef {{ file: string; spec: string; line: number; col: number; resolvedTo: string; suggestion: string }} CrossFunctionViolation
+ * @typedef {{ file: string; spec: string; line: number; col: number; expectedPath: string }} MissingImport
+ * @typedef {{ ok: boolean; output: string }} DenoCheckOutcome
+ * @typedef {{ file: string; line: number; col: number } | null} IssueLocation
+ * @typedef {{ message: string; missing: string | null; location: IssueLocation }} DenoIssue
+ * @typedef {{
+ *   name: string;
+ *   status: ReportStatus;
+ *   crossFunctionImports: CrossFunctionViolation[];
+ *   missingImports: MissingImport[];
+ *   denoCheck: {
+ *     ok: boolean;
+ *     issues: DenoIssue[];
+ *     rawOutput: string;
+ *   };
+ * }} FunctionReportRow
+ * @typedef {{
+ *   generatedAt: string;
+ *   root: string;
+ *   functionsChecked: number;
+ *   skipDeno: boolean;
+ *   functions: FunctionReportRow[];
+ *   failedCount?: number;
+ *   passedCount?: number;
+ * }} BundlingReport
+ * @typedef {{
+ *   function: string;
+ *   type: string;
+ *   importer: string | null;
+ *   spec: string | null;
+ *   expectedPath: string | null;
+ *   suggestion: string;
+ *   message: string;
+ * }} CompactError
+ * @typedef {BundlingReport & {
+ *   appliedFilters?: { status: string; name: string | null };
+ * }} FilteredBundlingReport
+ */
 
+/** @type {string} */
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+/** @type {string} */
+const root = path.join(__dirname, '..');
+/** @type {string} */
+const functionsRoot = path.join(root, 'supabase', 'functions');
+/** @type {string} */
+const denoConfigPath = path.join(functionsRoot, 'deno.json');
+
+/** @type {Set<string>} */
 const SKIP = new Set(['_shared', 'tests', 'node_modules']);
+/** @type {Set<string>} */
 const ALLOWED_PARENT_DIRS = new Set(['_shared']);
 
+/** Max directory depth relative to each function folder (guards symlink/deep trees). */
+const MAX_WALK_DEPTH = 48;
+
+/** Extensions tried for resolving relative imports and matched by {@link walk}. */
+const SOURCE_EXTS = ['.ts', '.tsx', '.jsx', '.js', '.mjs', '.cjs', '.mts'];
+
+/**
+ * Directory names under `supabase/functions` that contain `index.ts`, excluding skips.
+ * Optional `filter` limits to listed names (positional CLI args).
+ * @param {string[] | undefined} filter
+ * @returns {string[]}
+ */
 function listFunctions(filter) {
+  /** @type {string[]} */
   const names = [];
-  for (const name of fs.readdirSync(functionsRoot)) {
+  /** @type {string} */
+  let name;
+  for (name of fs.readdirSync(functionsRoot)) {
     if (SKIP.has(name) || name.startsWith('.')) continue;
+    /** @type {string} */
     const dir = path.join(functionsRoot, name);
+    /** @type {import('fs').Stats | undefined} */
     let st;
     try {
       st = fs.statSync(dir);
@@ -59,23 +142,59 @@ function listFunctions(filter) {
   return names.sort((a, b) => a.localeCompare(b));
 }
 
-function walk(dir, out = []) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(full, out);
-    else if (/\.(ts|tsx|mts|js|mjs)$/.test(entry.name)) out.push(full);
+/**
+ * Recursive scan of `dir`: eligible source extensions (`SOURCE_EXTS`), skips `.` dirs,
+ * `node_modules`, symlinks (avoids cycles), and stops past {@link MAX_WALK_DEPTH}.
+ * @param {string} dir
+ * @param {string[]} [out]
+ * @param {number} [depth]
+ * @returns {string[]}
+ */
+function walk(dir, out = [], depth = 0) {
+  if (depth > MAX_WALK_DEPTH) return out;
+  /** @type {string} */
+  let name;
+  for (name of fs.readdirSync(dir)) {
+    if (name.startsWith('.') || name === 'node_modules') continue;
+    /** @type {string} */
+    const full = path.join(dir, name);
+    /** @type {import('fs').Stats | undefined} */
+    let st;
+    try {
+      st = fs.lstatSync(full);
+    } catch {
+      continue;
+    }
+    if (st.isSymbolicLink()) continue;
+    if (st.isDirectory()) walk(full, out, depth + 1);
+    else if (st.isFile() && /\.(ts|tsx|jsx|mts|js|mjs|cjs)$/i.test(name))
+      out.push(full);
   }
   return out;
 }
 
+/** @type {RegExp} */
 const IMPORT_RE =
   /(?:import|export)\s+(?:[^'"`;]+?\s+from\s+)?['"`]([^'"`]+)['"`]/g;
+/** Relative string literal inside import('...') only (not computed specifiers).
+ * @type {RegExp}
+ */
+const DYNAMIC_IMPORT_RE = /\bimport\s*\(\s*(['"])(\.\.?[^'"]+)\1\s*\)/g;
 
+/**
+ * Converts a UTF-16 code unit offset in `src` to 1-based `{ line, col }` (matches editor-style positions).
+ * @param {string} src
+ * @param {number} offset
+ * @returns {{ line: number; col: number }}
+ */
 function lineColForOffset(src, offset) {
+  /** @type {number} */
   let line = 1;
+  /** @type {number} */
   let col = 1;
-  for (let i = 0; i < offset && i < src.length; i++) {
+  /** @type {number} */
+  let i;
+  for (i = 0; i < offset && i < src.length; i++) {
     if (src[i] === '\n') {
       line++;
       col = 1;
@@ -86,16 +205,26 @@ function lineColForOffset(src, offset) {
   return { line, col };
 }
 
+/**
+ * Minimal filesystem resolver for a relative specifier: exact path, +extension, or `index.*` inside a directory.
+ * Not a full Deno resolver — approximates common Edge Function layouts.
+ * @param {string} absPath
+ * @returns {string | null}
+ */
 function resolveImportTarget(absPath) {
   // Mirror Deno's resolution for relative specifiers: try the path as-is,
-  // then with .ts/.tsx/.js/.mjs/.mts extensions, then index.ts inside a dir.
+  // then +extension, then index.* inside a directory (`SOURCE_EXTS`).
   if (fs.existsSync(absPath) && fs.statSync(absPath).isFile()) return absPath;
-  const exts = ['.ts', '.tsx', '.js', '.mjs', '.mts'];
-  for (const ext of exts) {
+  /** @type {readonly string[]} */
+  const exts = SOURCE_EXTS;
+  /** @type {string} */
+  let ext;
+  for (ext of exts) {
     if (fs.existsSync(absPath + ext)) return absPath + ext;
   }
   if (fs.existsSync(absPath) && fs.statSync(absPath).isDirectory()) {
-    for (const ext of exts) {
+    for (ext of exts) {
+      /** @type {string} */
       const idx = path.join(absPath, 'index' + ext);
       if (fs.existsSync(idx)) return idx;
     }
@@ -103,58 +232,129 @@ function resolveImportTarget(absPath) {
   return null;
 }
 
+/**
+ * Classifies one relative `./`/`../` specifier: missing file on disk, cross-function sibling import, or allowed.
+ * Mutates `violations`, `missing`, and `seen` (dedupe key = file:line:spec).
+ * @param {string} fnName
+ * @param {string} file
+ * @param {string} src
+ * @param {string} spec
+ * @param {number} matchIndex
+ * @param {CrossFunctionViolation[]} violations
+ * @param {MissingImport[]} missing
+ * @param {Set<string>} seen
+ * @returns {void}
+ */
+function recordRelativeImport(fnName, file, src, spec, matchIndex, violations, missing, seen) {
+  if (!spec.startsWith('.')) return;
+  /** @type {string} */
+  const resolved = path.resolve(path.dirname(file), spec);
+  const { line, col } = lineColForOffset(src, matchIndex);
+  /** @type {string} */
+  const importerRel = path.relative(root, file);
+  /** @type {string} */
+  const dedupeKey = `${importerRel}:${line}:${spec}`;
+  if (seen.has(dedupeKey)) return;
+  seen.add(dedupeKey);
+
+  /** @type {string | null} */
+  const target = resolveImportTarget(resolved);
+  if (!target) {
+    missing.push({
+      file: importerRel,
+      spec,
+      line,
+      col,
+      expectedPath: path.relative(root, resolved),
+    });
+    return;
+  }
+
+  /** @type {string} */
+  const rel = path.relative(functionsRoot, resolved);
+  if (rel.startsWith('..') || path.isAbsolute(rel)) return;
+  /** @type {string} */
+  const topDir = rel.split(path.sep)[0];
+  if (topDir === fnName) return;
+  if (ALLOWED_PARENT_DIRS.has(topDir)) return;
+  violations.push({
+    file: importerRel,
+    spec,
+    line,
+    col,
+    resolvedTo: rel,
+    suggestion: `mv this module to supabase/functions/_shared/ and import from '../_shared/...'`,
+  });
+}
+
+/**
+ * Scans static `import`/`export … from` and string `import('./x')` in all sources under one function folder.
+ * @param {string} fnName
+ * @returns {{ violations: CrossFunctionViolation[]; missing: MissingImport[] }}
+ */
 function findCrossFunctionImports(fnName) {
+  /** @type {string} */
   const fnDir = path.join(functionsRoot, fnName);
+  /** @type {CrossFunctionViolation[]} */
   const violations = [];
+  /** @type {MissingImport[]} */
   const missing = [];
-  for (const file of walk(fnDir)) {
+  /** @type {Set<string>} */
+  const seen = new Set();
+  /** @type {string} */
+  let file;
+  for (file of walk(fnDir)) {
+    /** @type {string} */
     const src = fs.readFileSync(file, 'utf8');
+    /** @type {RegExpExecArray | null} */
     let m;
     IMPORT_RE.lastIndex = 0;
     while ((m = IMPORT_RE.exec(src)) !== null) {
-      const spec = m[1];
-      if (!spec.startsWith('.')) continue;
-      const resolved = path.resolve(path.dirname(file), spec);
-      const { line, col } = lineColForOffset(src, m.index);
-      const importerRel = path.relative(root, file);
-
-      // Detect imports whose resolved target does not exist on disk.
-      const target = resolveImportTarget(resolved);
-      if (!target) {
-        missing.push({
-          file: importerRel,
-          spec,
-          line,
-          col,
-          expectedPath: path.relative(root, resolved),
-        });
-        continue;
-      }
-
-      const rel = path.relative(functionsRoot, resolved);
-      if (rel.startsWith('..') || path.isAbsolute(rel)) continue;
-      const topDir = rel.split(path.sep)[0];
-      if (topDir === fnName) continue;
-      if (ALLOWED_PARENT_DIRS.has(topDir)) continue;
-      violations.push({
-        file: importerRel,
-        spec,
-        line,
-        col,
-        resolvedTo: rel,
-        suggestion: `mv this module to supabase/functions/_shared/ and import from '../_shared/...'`,
-      });
+      recordRelativeImport(
+        fnName,
+        file,
+        src,
+        m[1],
+        m.index,
+        violations,
+        missing,
+        seen
+      );
+    }
+    DYNAMIC_IMPORT_RE.lastIndex = 0;
+    while ((m = DYNAMIC_IMPORT_RE.exec(src)) !== null) {
+      recordRelativeImport(
+        fnName,
+        file,
+        src,
+        m[2],
+        m.index,
+        violations,
+        missing,
+        seen
+      );
     }
   }
   return { violations, missing };
 }
 
+/**
+ * Runs `deno check --config supabase/functions/deno.json` on `supabase/functions/<fn>/index.ts`.
+ * @param {string} fnName
+ * @returns {DenoCheckOutcome}
+ */
 function denoCheck(fnName) {
+  /** @type {string} */
   const entry = path.join(functionsRoot, fnName, 'index.ts');
-  const result = spawnSync('deno', ['check', '--quiet', entry], {
-    cwd: root,
-    encoding: 'utf8',
-  });
+  /** @type {import('node:child_process').SpawnSyncReturns<string>} */
+  const result = spawnSync(
+    'deno',
+    ['check', '--quiet', '--config', denoConfigPath, entry],
+    {
+      cwd: root,
+      encoding: 'utf8',
+    }
+  );
   if (result.error) {
     return {
       ok: false,
@@ -170,31 +370,53 @@ function denoCheck(fnName) {
   return { ok: true, output: '' };
 }
 
+/**
+ * Best-effort parse of Deno stderr: module resolution-ish lines + generic `error:` lines.
+ * Deduped by message + missing + location bucket. Deno ships no `--json` for `deno check`
+ * diagnostics — **`denoCheck.rawOutput` is authoritative** when this heuristic misses patterns.
+ * @param {string} output
+ * @returns {DenoIssue[]}
+ */
 function parseDenoErrors(output) {
   // Extract structured info from "Module not found" / "Relative import path"
   // / "Cannot resolve module" deno error lines, e.g.:
   //   error: Module not found "file:///.../foo.ts".
   //       at file:///.../bar.ts:4:32
+  /** @type {DenoIssue[]} */
   const issues = [];
+  /** @type {Set<string>} */
+  const seen = new Set();
+  /** @type {string[]} */
   const lines = output.split('\n');
-  for (let i = 0; i < lines.length; i++) {
+  /** @type {number} */
+  let i;
+  for (i = 0; i < lines.length; i++) {
+    /** @type {string} */
     const line = lines[i];
+    /** @type {RegExpMatchArray | null} */
     const mModule = line.match(
       /(?:Module not found|Cannot resolve module|Relative import path[^"]*"([^"]+)"[^"]*not (?:prefixed|found))/
     );
     if (!mModule && !/error:/i.test(line)) continue;
 
+    /** @type {RegExpMatchArray | null} */
     const missingMatch =
       line.match(/Module not found\s+"([^"]+)"/i) ||
       line.match(/Cannot resolve module\s+"([^"]+)"/i) ||
       line.match(/"([^"]+)"\s+not (?:prefixed|found)/i);
-    const missing = missingMatch ? missingMatch[1] : null;
+    /** @type {string | null} */
+    const missingRaw = missingMatch ? missingMatch[1] : null;
 
     // Look ahead for the "at file://..." location line
+    /** @type {IssueLocation} */
     let location = null;
-    for (let j = i + 1; j < Math.min(i + 6, lines.length); j++) {
+    /** @type {number} */
+    let j;
+    for (j = i + 1; j < Math.min(i + 6, lines.length); j++) {
+      /** @type {RegExpMatchArray | null} */
       const at = lines[j].match(/at\s+(file:\/\/[^\s:]+):(\d+):(\d+)/);
       if (at) {
+        /** @type {string} */
         const filePath = fileURLToPath(at[1]);
         location = {
           file: path.relative(root, filePath),
@@ -205,15 +427,43 @@ function parseDenoErrors(output) {
       }
     }
 
-    issues.push({
+    /** @type {DenoIssue} */
+    const issue = {
       message: line.replace(/^error:\s*/i, '').trim(),
-      missing: missing ? toRelative(missing) : null,
+      missing: missingRaw ? toRelative(missingRaw) : null,
       location,
-    });
+    };
+    /** @type {string} */
+    const locKey = location
+      ? `${location.file}:${location.line}:${location.col}`
+      : '';
+    /** @type {string} */
+    const dedupeKey = [issue.message, issue.missing || '', locKey].join('\0');
+    if (seen.has(dedupeKey)) continue;
+    seen.add(dedupeKey);
+    issues.push(issue);
   }
   return issues;
 }
 
+/**
+ * Truncate long stderr for consoles and embedded report fields.
+ * @param {string} text
+ * @param {number} maxChars
+ * @returns {string}
+ */
+function truncateUtf(text, maxChars) {
+  if (text.length <= maxChars) return text;
+  /** @type {number} */
+  const omit = text.length - maxChars + 40;
+  return `${text.slice(0, maxChars - 40)}\n… (${omit} characters omitted)`;
+}
+
+/**
+ * Normalizes Deno diagnostic paths: `file:///...` → repo-relative path; leaves bare specifiers unchanged.
+ * @param {string} maybeFileUrl
+ * @returns {string}
+ */
 function toRelative(maybeFileUrl) {
   if (maybeFileUrl.startsWith('file://')) {
     try {
@@ -225,9 +475,17 @@ function toRelative(maybeFileUrl) {
   return maybeFileUrl;
 }
 
+/**
+ * Parses `--flag value` or `--flag=value` from `argv` (used for report paths and filters).
+ * @param {string[]} args
+ * @param {string} name
+ * @returns {string | null}
+ */
 function parseFlagValue(args, name) {
+  /** @type {string | undefined} */
   const eq = args.find((a) => a.startsWith(`--${name}=`));
   if (eq) return eq.slice(name.length + 3);
+  /** @type {number} */
   const idx = args.indexOf(`--${name}`);
   if (idx !== -1 && args[idx + 1] && !args[idx + 1].startsWith('--')) {
     return args[idx + 1];
@@ -235,22 +493,33 @@ function parseFlagValue(args, name) {
   return null;
 }
 
+/** @type {string[]} */
 const argv = process.argv.slice(2);
+/** @type {boolean} */
 const skipDeno = argv.includes('--no-deno');
+/** @type {string | null} */
 const reportJsonPath = parseFlagValue(argv, 'report-json');
+/** @type {string | null} */
 const reportHtmlPath = parseFlagValue(argv, 'report-html');
+/** @type {string | null} */
 const reportCompactJsonPath = parseFlagValue(argv, 'report-compact-json');
+/** @type {boolean} */
 const emitCompactStdout = argv.includes('--compact-json');
+/** @type {string | null} */
 const baselinePath = parseFlagValue(argv, 'baseline');
 // Report filtering (does not affect which functions are CHECKED — only which
 // appear in generated artifacts and the compact errors output).
+/** @type {string | null} */
 const filterStatusRaw = parseFlagValue(argv, 'filter-status'); // passed|failed|all
+/** @type {string} */
 const filterStatus = (filterStatusRaw || 'all').toLowerCase();
 if (!['all', 'passed', 'failed'].includes(filterStatus)) {
   console.error(`Invalid --filter-status: ${filterStatusRaw} (use passed|failed|all)`);
   process.exit(2);
 }
+/** @type {string | null} */
 const filterName = parseFlagValue(argv, 'filter-name'); // substring
+/** @type {string[]} */
 const filter = argv.filter(
   (a, i, arr) =>
     !a.startsWith('--') &&
@@ -261,11 +530,29 @@ const filter = argv.filter(
       )
     )
 );
+/** @type {string[]} */
 const functions = listFunctions(filter);
 
 if (functions.length === 0) {
   console.error('No functions found under', functionsRoot);
   process.exit(1);
+}
+
+if (!skipDeno) {
+  /** @type {string} */
+  const assertScript = path.join(__dirname, 'assert-deno-v2.mjs');
+  /** @type {import('node:child_process').SpawnSyncReturns<string>} */
+  const asserted = spawnSync(process.execPath, [assertScript], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  if (asserted.error) {
+    console.error(asserted.error.message);
+    process.exit(1);
+  }
+  if (asserted.status !== 0 && asserted.status !== null) {
+    process.exit(asserted.status);
+  }
 }
 
 console.error(
@@ -274,20 +561,28 @@ console.error(
   }\n`
 );
 
+/** @type {BundlingReport} */
 const report = {
   generatedAt: new Date().toISOString(),
   root,
   functionsChecked: functions.length,
   skipDeno,
+  /** @type {FunctionReportRow[]} */
   functions: [],
 };
 
+/** @type {number} */
 let failed = 0;
-for (const fn of functions) {
+/** @type {string} */
+let fn;
+for (fn of functions) {
   const { violations, missing } = findCrossFunctionImports(fn);
+  /** @type {DenoCheckOutcome} */
   let denoResult = { ok: true, output: '' };
   if (!skipDeno) denoResult = denoCheck(fn);
+  /** @type {DenoIssue[]} */
   const denoIssues = denoResult.ok ? [] : parseDenoErrors(denoResult.output);
+  /** @type {boolean} */
   const fnFailed =
     violations.length > 0 || missing.length > 0 || !denoResult.ok;
 
@@ -340,8 +635,10 @@ for (const fn of functions) {
         }
       }
     } else {
-      const head = denoResult.output.split('\n').slice(0, 8).join('\n      ');
-      console.error(`      deno check failed:\n      ${head}`);
+      console.error(`      deno check stderr (heuristic parser found nothing; authoritative text):`);
+      /** @type {string} */
+      const dumped = truncateUtf(denoResult.output, 32000).split('\n').join('\n      ');
+      console.error(`      ${dumped}`);
     }
   }
 }
@@ -349,6 +646,11 @@ for (const fn of functions) {
 report.failedCount = failed;
 report.passedCount = functions.length - failed;
 
+/**
+ * HTML entity escape for injected user/repo paths inside the HTML report.
+ * @param {unknown} s
+ * @returns {string}
+ */
 function htmlEscape(s) {
   return String(s)
     .replace(/&/g, '&amp;')
@@ -357,14 +659,30 @@ function htmlEscape(s) {
     .replace(/"/g, '&quot;');
 }
 
+/**
+ * Coerces `value` to a finite positive integer, or returns `fallback` (used for stable line/col in editor links).
+ * @param {unknown} value
+ * @param {number} fallback
+ * @returns {number}
+ */
 function toPositiveInt(value, fallback) {
   // Accept numbers and numeric strings; reject NaN, Infinity, <=0, non-integers.
+  /** @type {number} */
   const n = typeof value === 'number' ? value : Number(value);
   if (!Number.isFinite(n)) return fallback;
+  /** @type {number} */
   const i = Math.floor(n);
   return i > 0 ? i : fallback;
 }
 
+/**
+ * Renders clickable `vscode://file/...` plus `file://` fallback so HTML report rows open at the offending line/col.
+ * @param {FilteredBundlingReport | BundlingReport} rep
+ * @param {unknown} relFile
+ * @param {unknown} line
+ * @param {unknown} col
+ * @returns {string}
+ */
 function renderImporterLink(rep, relFile, line, col) {
   // Build a clickable link that opens the importer file at the failing
   // line/column directly in VS Code / Cursor. Most editors register the
@@ -375,6 +693,7 @@ function renderImporterLink(rep, relFile, line, col) {
   // (e.g. deno errors without an `at file://...` line) or carry unexpected
   // values (null, undefined, NaN, negative, strings like "?"). In those
   // cases we degrade gracefully instead of emitting a broken `<a href="">`.
+  /** @type {string | null} */
   const safeFile =
     typeof relFile === 'string' && relFile.trim().length > 0
       ? relFile.trim()
@@ -384,11 +703,16 @@ function renderImporterLink(rep, relFile, line, col) {
     return '<span class="muted" title="Importer location unavailable"><code>(unknown location)</code></span>';
   }
 
+  /** @type {number} */
   const lineNum = toPositiveInt(line, 1);
+  /** @type {number} */
   const colNum = toPositiveInt(col, 1);
+  /** @type {boolean} */
   const hadLine = toPositiveInt(line, 0) > 0;
+  /** @type {boolean} */
   const hadCol = toPositiveInt(col, 0) > 0;
 
+  /** @type {string | undefined} */
   let abs;
   try {
     abs = path.resolve(rep.root || '.', safeFile);
@@ -398,12 +722,17 @@ function renderImporterLink(rep, relFile, line, col) {
   }
 
   // encodeURI keeps `/` and `:` intact while escaping spaces, accents, etc.
+  /** @type {string} */
   const encodedAbs = encodeURI(abs).replace(/#/g, '%23').replace(/\?/g, '%3F');
+  /** @type {string} */
   const vscodeHref = `vscode://file/${encodedAbs}:${lineNum}:${colNum}`;
+  /** @type {string} */
   const fileHref = `file://${encodedAbs}#L${lineNum}`;
+  /** @type {string} */
   const label = hadLine
     ? `${safeFile}:${lineNum}${hadCol ? `:${colNum}` : ''}`
     : safeFile;
+  /** @type {string} */
   const titleSuffix = hadLine
     ? ` at line ${lineNum}${hadCol ? `, column ${colNum}` : ''}`
     : ' (line/column unknown — opening at top of file)';
@@ -412,9 +741,16 @@ function renderImporterLink(rep, relFile, line, col) {
   )}</code></a> <a class="alt" href="${htmlEscape(fileHref)}" title="Open file in browser">↗</a>`;
 }
 
+/**
+ * Full standalone HTML document: table of findings, client-side status/name filters for large reports.
+ * @param {FilteredBundlingReport} rep
+ * @returns {string}
+ */
 function renderHtml(rep) {
+  /** @type {string} */
   const rows = rep.functions
     .map((f) => {
+      /** @type {string[]} */
       const issues = [];
       for (const v of f.crossFunctionImports) {
         issues.push(
@@ -460,6 +796,18 @@ function renderHtml(rep) {
           }</li>`
         );
       }
+      if (
+        !f.denoCheck.ok &&
+        f.denoCheck.rawOutput &&
+        f.denoCheck.issues.length === 0
+      ) {
+        issues.push(
+          `<li><strong>deno check (stderr — unparsed)</strong><span class="muted"> Heuristic <code>parseDenoErrors</code> matched no lines; see full <code>denoCheck.rawOutput</code> in JSON.</span><pre class="denoRaw">${htmlEscape(
+            truncateUtf(f.denoCheck.rawOutput, 200000)
+          )}</pre></li>`
+        );
+      }
+      /** @type {string} */
       const status =
         f.status === 'passed'
           ? '<span style="color:#0a0">✓ passed</span>'
@@ -495,6 +843,7 @@ function renderHtml(rep) {
   .filters input{min-width:220px}
   .filters .count{color:#666;font-size:13px;margin-left:auto}
   tr.hidden{display:none}
+  pre.denoRaw{white-space:pre-wrap;word-break:break-word;font-size:11px;overflow:auto;max-height:60vh;background:#f9f9f9;border:1px solid #e0e0e0;border-radius:4px;padding:8px;margin-top:6px}
 </style></head><body>
 <h1>Edge Functions bundling report</h1>
 <div class="meta">
@@ -560,9 +909,13 @@ function renderHtml(rep) {
  * Flatten the structured report into normalized error objects for CI:
  *   { function, type, importer, spec, expectedPath, suggestion, message }
  * - `importer` is `<file>:<line>:<col>` when location is known, else null.
- * - One entry per finding (cross-function import, missing import, deno issue).
+ * - One entry per finding (cross-function import, missing import, structured deno issue,
+ *   or one synthetic **`deno-check`** row when **`deno check` failed but `parseDenoErrors`** returned nothing).
+ * @param {FilteredBundlingReport | BundlingReport} rep
+ * @returns {CompactError[]}
  */
 function buildCompactErrors(rep) {
+  /** @type {CompactError[]} */
   const out = [];
   for (const f of rep.functions) {
     for (const v of f.crossFunctionImports) {
@@ -602,6 +955,25 @@ function buildCompactErrors(rep) {
         message: iss.message,
       });
     }
+    if (
+      !f.denoCheck.ok &&
+      f.denoCheck.rawOutput.trim().length > 0 &&
+      f.denoCheck.issues.length === 0
+    ) {
+      out.push({
+        function: f.name,
+        type: 'deno-check',
+        importer: null,
+        spec: null,
+        expectedPath: null,
+        suggestion:
+          'See full bundling JSON `denoCheck.rawOutput`; stderr did not match parseDenoErrors heuristics.',
+        message: truncateUtf(
+          `deno check stderr (no heuristic match):\n${f.denoCheck.rawOutput}`,
+          65536
+        ),
+      });
+    }
   }
   return out;
 }
@@ -611,9 +983,13 @@ function buildCompactErrors(rep) {
  * Returns a shallow-cloned report whose `functions[]` is filtered. Counts and
  * an `appliedFilters` block are recomputed so downstream consumers see the
  * filtered totals instead of the unfiltered ones.
+ * @param {BundlingReport} rep
+ * @returns {FilteredBundlingReport}
  */
 function applyReportFilters(rep) {
+  /** @type {string | null} */
   const nameNeedle = filterName ? filterName.toLowerCase() : null;
+  /** @type {FunctionReportRow[]} */
   const filtered = rep.functions.filter((f) => {
     if (filterStatus !== 'all' && f.status !== filterStatus) return false;
     if (nameNeedle && !f.name.toLowerCase().includes(nameNeedle)) return false;
@@ -629,7 +1005,9 @@ function applyReportFilters(rep) {
   };
 }
 
+/** @type {FilteredBundlingReport} */
 const filteredReport = applyReportFilters(report);
+/** @type {boolean} */
 const hasFilters = filterStatus !== 'all' || !!filterName;
 if (hasFilters) {
   console.error(
@@ -640,33 +1018,36 @@ if (hasFilters) {
 }
 
 if (reportJsonPath) {
-  const abs = path.isAbsolute(reportJsonPath)
+  /** @type {string} */
+  const absJson = path.isAbsolute(reportJsonPath)
     ? reportJsonPath
     : path.resolve(root, reportJsonPath);
-  fs.mkdirSync(path.dirname(abs), { recursive: true });
-  fs.writeFileSync(abs, JSON.stringify(filteredReport, null, 2));
-  console.error(`\nJSON report: ${path.relative(root, abs)}`);
+  fs.mkdirSync(path.dirname(absJson), { recursive: true });
+  fs.writeFileSync(absJson, JSON.stringify(filteredReport, null, 2));
+  console.error(`\nJSON report: ${path.relative(root, absJson)}`);
 }
 
 if (reportHtmlPath) {
-  const abs = path.isAbsolute(reportHtmlPath)
+  /** @type {string} */
+  const absHtml = path.isAbsolute(reportHtmlPath)
     ? reportHtmlPath
     : path.resolve(root, reportHtmlPath);
-  fs.mkdirSync(path.dirname(abs), { recursive: true });
-  fs.writeFileSync(abs, renderHtml(filteredReport));
-  console.error(`HTML report: ${path.relative(root, abs)}`);
+  fs.mkdirSync(path.dirname(absHtml), { recursive: true });
+  fs.writeFileSync(absHtml, renderHtml(filteredReport));
+  console.error(`HTML report: ${path.relative(root, absHtml)}`);
 }
 
 if (reportCompactJsonPath) {
-  const abs = path.isAbsolute(reportCompactJsonPath)
+  /** @type {string} */
+  const absCompact = path.isAbsolute(reportCompactJsonPath)
     ? reportCompactJsonPath
     : path.resolve(root, reportCompactJsonPath);
-  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.mkdirSync(path.dirname(absCompact), { recursive: true });
   fs.writeFileSync(
-    abs,
+    absCompact,
     JSON.stringify(buildCompactErrors(filteredReport), null, 2)
   );
-  console.error(`Compact JSON report: ${path.relative(root, abs)}`);
+  console.error(`Compact JSON report: ${path.relative(root, absCompact)}`);
 }
 
 if (emitCompactStdout) {
@@ -677,8 +1058,9 @@ if (emitCompactStdout) {
 }
 
 /**
- * Build a stable signature for a finding so we can diff current vs baseline
- * without being sensitive to ordering or transient fields like timestamps.
+ * Build a stable signature for baseline diffing: ordering-insensitive equality on structural fields (not timestamps).
+ * @param {CompactError} e
+ * @returns {string}
  */
 function findingKey(e) {
   return [e.function, e.type, e.spec || '', e.importer || '', e.expectedPath || '']
@@ -686,31 +1068,45 @@ function findingKey(e) {
 }
 
 if (baselinePath) {
-  const abs = path.isAbsolute(baselinePath)
+  /** @type {string} */
+  const absBaseline = path.isAbsolute(baselinePath)
     ? baselinePath
     : path.resolve(root, baselinePath);
-  if (!fs.existsSync(abs)) {
+  if (!fs.existsSync(absBaseline)) {
     console.error(
-      `\nBaseline not found at ${path.relative(root, abs)} — treating all current findings as new.`
+      `\nBaseline not found at ${path.relative(root, absBaseline)} — treating all current findings as new.`
     );
   }
+  /** @type {CompactError[]} */
   const current = buildCompactErrors(report);
+  /** @type {CompactError[]} */
   let baseline = [];
-  if (fs.existsSync(abs)) {
+  if (fs.existsSync(absBaseline)) {
     try {
-      const parsed = JSON.parse(fs.readFileSync(abs, 'utf8'));
+      /** @type {unknown} */
+      const parsed = JSON.parse(fs.readFileSync(absBaseline, 'utf8'));
       // Accept either a compact errors array or a full report object.
       baseline = Array.isArray(parsed)
-        ? parsed
-        : buildCompactErrors(parsed);
+        ? /** @type {CompactError[]} */ (parsed)
+        : buildCompactErrors(/** @type {BundlingReport} */ (parsed));
     } catch (e) {
-      console.error(`\nFailed to parse baseline JSON: ${e.message}`);
+      /** @type {unknown} */
+      const err = e;
+      console.error(
+        `\nFailed to parse baseline JSON: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
       process.exit(2);
     }
   }
+  /** @type {Set<string>} */
   const baselineKeys = new Set(baseline.map(findingKey));
+  /** @type {Set<string>} */
   const currentKeys = new Set(current.map(findingKey));
+  /** @type {CompactError[]} */
   const newFindings = current.filter((e) => !baselineKeys.has(findingKey(e)));
+  /** @type {CompactError[]} */
   const fixedFindings = baseline.filter((e) => !currentKeys.has(findingKey(e)));
 
   console.error(
