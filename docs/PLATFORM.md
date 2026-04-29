@@ -85,6 +85,9 @@ User pays (Stripe Checkout)
 - **`/order-confirmation`** loads order data only via **`sign-order-token`** then **`get-order-by-token`** (no browser `rest/v1/orders` or `order_items` on that surface). Legacy **`/payment-success?session_id=`** may call **`order-lookup`** once to resolve `order_id`, then redirects into that token flow.
 - **`sign-order-token`** may return **409** while the row is not paid yet; the client retries **at most twice** (three attempts total) only for that status.
 - **stripe-webhook** retries transient DB/PostgREST failures for critical writes (see function env: `WEBHOOK_DB_RETRY_*`, optional `WEBHOOK_TIMING_LOG`).
+- **`orders.total_amount`** / **`pricing_snapshot`** hold authoritative minor-unit totals after payment; legacy **`orders.amount`** remains for backward compatibility. The SPA uses **`fallbackTotalMinorFromOrder`** ([`src/lib/checkout/pricingSnapshot.ts`](../src/lib/checkout/pricingSnapshot.ts)) when v1 snapshot is absent.
+
+**Legacy `amount` units (do not assume `amount * 100`):** older planning docs sometimes modeled legacy totals as “major units × 100”. In this repo, Stripe-era **`orders.amount`** is stored in **minor units (cents)** at checkout write-time (see [`DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md)); **`authoritativeTotalMinor`** / **`fallbackTotalMinorFromOrder`** implement the read-side ladder. SQL backfill for **`total_amount`** is unit-aware ([`20260324183000_order_pricing_snapshot.sql`](../supabase/migrations/20260324183000_order_pricing_snapshot.sql)).
 
 ### Service worker
 

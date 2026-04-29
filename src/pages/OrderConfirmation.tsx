@@ -39,7 +39,9 @@ import {
 import {
   pricingSnapshotV1Schema,
   type PricingSnapshotV1,
+  fallbackTotalMinorFromOrder,
 } from '@/lib/checkout/pricingSnapshot';
+import { resolveCustomerEmail } from '@/lib/checkout/customerEmail';
 import { looksLikeOrderUuid } from '@/lib/checkout/orderUuid';
 
 // ================================================================
@@ -101,7 +103,7 @@ interface ResolvedTotals {
 
 /**
  * Display totals: prefer `pricing_snapshot` (Stripe, minor units) when valid;
- * otherwise derive from `order.amount` and line items (same source as the token response).
+ * otherwise `orders.total_amount` then legacy `orders.amount` (minor units), then line items.
  */
 function resolveTotals(
   order: OrderRow,
@@ -119,14 +121,16 @@ function resolveTotals(
       discount: row.discount_minor / 100,
     };
   }
-  const total = Number(order.amount) || 0; // older paid rows may lack v1 snapshot
-  const subtotal = items.reduce((s, i) => s + i.totalPrice, 0); // sum line totals
+  const minorTotal = fallbackTotalMinorFromOrder(order);
+  const totalEuro = minorTotal / 100;
+  const subtotalMinor = items.reduce((s, i) => s + i.totalPrice, 0);
+  const subtotalEuro = subtotalMinor / 100;
   return {
     source: 'order_amount',
-    currency: (order.currency || 'EUR').toUpperCase(), // default display currency when column sparse
-    total,
-    subtotal,
-    shipping: Math.max(0, total - subtotal), // imputed shipping = remainder (same math as pre-refactor)
+    currency: (order.currency || 'EUR').toUpperCase(),
+    total: totalEuro,
+    subtotal: subtotalEuro,
+    shipping: Math.max(0, totalEuro - subtotalEuro),
     discount: 0,
   };
 }
@@ -145,7 +149,7 @@ function isOrderPayloadValid(order: OrderRow, items: ItemRow[]): boolean {
   if (snapParsed.success) {
     return snapParsed.data.total_minor > 0; // Stripe snapshot must show a positive total
   }
-  return (Number(order.amount) || 0) > 0; // non-v1 rows: DB amount is the monotonic check
+  return fallbackTotalMinorFromOrder(order) > 0;
 }
 
 // ================================================================
@@ -180,10 +184,10 @@ function OrderSuccess({
     month: 'long',
     year: 'numeric',
   });
-  const customerEmail =
-    (order.metadata as { customer_email?: string } | null)?.customer_email ||
-    (order.shipping_address as { email?: string } | null)?.email ||
-    '';
+  const customerEmail = resolveCustomerEmail({
+    metadata: order.metadata as Record<string, unknown> | null,
+    shipping_address: order.shipping_address as Record<string, unknown> | null,
+  });
   const addr = order.shipping_address as
     | {
         first_name?: string;
@@ -537,7 +541,7 @@ const OrderConfirmation = () => {
           order_id: oid,
           order: o,
           items: its,
-          amount: o ? Number(o.amount) : null,
+          fallback_minor: o ? fallbackTotalMinorFromOrder(o) : null,
           item_count: its?.length ?? 0,
         });
         setState('error');

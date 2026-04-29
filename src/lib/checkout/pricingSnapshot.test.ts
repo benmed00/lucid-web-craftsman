@@ -8,7 +8,24 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { pricingSnapshotV1Schema } from './pricingSnapshotSchema';
+import {
+  fallbackTotalMinorFromOrder,
+  pricingSnapshotV1Schema,
+} from './pricingSnapshot';
+
+describe('fallbackTotalMinorFromOrder', () => {
+  it('prefers total_amount when set', () => {
+    expect(
+      fallbackTotalMinorFromOrder({ total_amount: 6100, amount: 9999 })
+    ).toBe(6100);
+  });
+
+  it('falls back to legacy amount when total_amount missing', () => {
+    expect(
+      fallbackTotalMinorFromOrder({ total_amount: null, amount: 4999 })
+    ).toBe(4999);
+  });
+});
 
 describe('pricingSnapshotV1Schema', () => {
   it('accepts a v1 Stripe-shaped snapshot', () => {

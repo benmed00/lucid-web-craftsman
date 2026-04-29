@@ -16,7 +16,12 @@
  * Returns: { confirmed: boolean; alreadyProcessed: boolean; orderId: string }
  */
 
+import type Stripe from 'https://esm.sh/stripe@18.5.0';
+import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
+
+import { authoritativeTotalMinor } from './order-money.ts';
 import { paymentMethodLabel } from './payment-method-label.ts';
+import { persistPricingSnapshot } from './persist-pricing-snapshot.ts';
 
 export interface ConfirmOrderInput {
   orderId: string;
@@ -28,6 +33,9 @@ export interface ConfirmOrderInput {
   source: 'stripe_webhook' | 'verify_payment' | 'reconcile_payment';
   customerEmail?: string;
   customerName?: string;
+  /** When both are set, authoritative pricing is persisted before the payments row. */
+  stripe?: Stripe;
+  session?: Stripe.Checkout.Session;
 }
 
 export interface ConfirmOrderResult {
@@ -43,7 +51,7 @@ const logStep = (source: string, step: string, details?: unknown) => {
 };
 
 export async function confirmOrderFromStripe(
-  supabase: any,
+  supabase: SupabaseClient,
   input: ConfirmOrderInput
 ): Promise<ConfirmOrderResult> {
   const {
@@ -56,6 +64,8 @@ export async function confirmOrderFromStripe(
     source,
     customerEmail,
     customerName,
+    stripe,
+    session,
   } = input;
 
   logStep(source, 'Starting order confirmation', { orderId, stripeSessionId });
@@ -66,7 +76,7 @@ export async function confirmOrderFromStripe(
   const { data: order, error: fetchError } = await supabase
     .from('orders')
     .select(
-      'id, status, order_status, amount, currency, user_id, metadata, shipping_address, billing_address, order_items(id, product_id, quantity, unit_price, total_price)'
+      'id, status, order_status, amount, total_amount, currency, user_id, metadata, shipping_address, billing_address, order_items(id, product_id, quantity, unit_price, total_price)'
     )
     .eq('id', orderId)
     .single();
@@ -178,6 +188,23 @@ export async function confirmOrderFromStripe(
 
   logStep(source, 'Order status updated to paid', { orderId });
 
+  let paymentAmountMinor = authoritativeTotalMinor({
+    total_amount: order.total_amount,
+    amount: order.amount,
+  });
+
+  if (stripe && session) {
+    const persistResult = await persistPricingSnapshot(supabase, stripe, {
+      orderId,
+      session,
+      source,
+      correlationId,
+    });
+    if (persistResult.ok && typeof persistResult.total_minor === 'number') {
+      paymentAmountMinor = persistResult.total_minor;
+    }
+  }
+
   // ================================================================
   // Step 4: Status history
   // ================================================================
@@ -285,7 +312,7 @@ export async function confirmOrderFromStripe(
   await supabase.from('payments').insert({
     order_id: orderId,
     stripe_payment_intent_id: paymentIntentId,
-    amount: order.amount,
+    amount: paymentAmountMinor,
     currency: order.currency,
     status: 'completed',
     processed_at: new Date().toISOString(),
@@ -311,7 +338,7 @@ export async function confirmOrderFromStripe(
       actor: source,
       details: {
         payment_intent_id: paymentIntentId,
-        amount: order.amount,
+        amount: paymentAmountMinor,
         currency: order.currency,
         discount_code: discountCode || null,
         stock_decremented: true,
@@ -332,7 +359,7 @@ export async function confirmOrderFromStripe(
  * Separated from confirmOrderFromStripe to keep the core function focused.
  */
 export async function sendConfirmationEmail(
-  supabase: any,
+  supabase: SupabaseClient,
   input: {
     orderId: string;
     customerEmail: string;

@@ -5,7 +5,10 @@ import {
   confirmOrderFromStripe,
   sendConfirmationEmail,
 } from '../_shared/confirm-order.ts';
-import { persistPricingSnapshot } from '../_shared/persist-pricing-snapshot.ts';
+import {
+  authoritativeTotalMajor,
+  authoritativeTotalMinor,
+} from '../_shared/order-money.ts';
 
 const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -209,6 +212,8 @@ async function handleCheckoutCompleted(
     customerEmail: session.customer_details?.email,
     customerName:
       session.customer_details?.name || session.metadata?.customer_name,
+    stripe,
+    session,
   });
 
   if (result.alreadyProcessed) {
@@ -236,19 +241,6 @@ async function handleCheckoutCompleted(
   }
 
   // ================================================================
-  // PERSIST AUTHORITATIVE PRICING SNAPSHOT (non-blocking)
-  // Email + confirmation page must prefer this over recomputation.
-  // Uses the shared helper so verify-payment / reconcile-payment behave
-  // identically.
-  // ================================================================
-  await persistPricingSnapshot(supabase, stripe, {
-    orderId,
-    session,
-    source: 'stripe_webhook',
-    correlationId,
-  });
-
-  // ================================================================
   // SEND CONFIRMATION EMAIL (non-blocking)
   // ================================================================
   const customerEmail = session.customer_details?.email;
@@ -256,7 +248,7 @@ async function handleCheckoutCompleted(
     const { data: order } = await supabase
       .from('orders')
       .select(
-        'order_items(id, product_id, quantity, unit_price), amount, currency, shipping_address'
+        'order_items(id, product_id, quantity, unit_price), amount, total_amount, currency, shipping_address'
       )
       .eq('id', orderId)
       .single();
@@ -270,7 +262,10 @@ async function handleCheckoutCompleted(
           session.metadata?.customer_name ||
           'Client',
         orderItems: order.order_items || [],
-        orderAmount: order.amount,
+        orderAmount: authoritativeTotalMinor({
+          total_amount: order.total_amount,
+          amount: order.amount,
+        }),
         currency: order.currency,
         shippingAddress: order.shipping_address,
         discountAmountCents: session.metadata?.discount_amount_cents
@@ -287,7 +282,9 @@ async function handleCheckoutCompleted(
   try {
     const { data: order } = await supabase
       .from('orders')
-      .select('user_id, amount, shipping_address, billing_address')
+      .select(
+        'user_id, amount, total_amount, shipping_address, billing_address'
+      )
       .eq('id', orderId)
       .single();
 
@@ -311,7 +308,10 @@ async function handleCheckoutCompleted(
       p_user_agent: null,
       p_checkout_duration_seconds: null,
       p_is_first_order: isFirstOrder,
-      p_order_amount: (order?.amount || 0) / 100,
+      p_order_amount: authoritativeTotalMajor({
+        total_amount: order?.total_amount ?? null,
+        amount: order?.amount ?? null,
+      }),
     });
     logStep('Fraud detection completed');
   } catch (fraudErr) {

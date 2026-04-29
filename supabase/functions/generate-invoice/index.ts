@@ -13,6 +13,8 @@ import {
 } from '../_shared/invoice/validate.ts';
 import { renderInvoiceHTML } from '../_shared/invoice/render.ts';
 import type { InvoiceData } from '../_shared/invoice/types.ts';
+import { authoritativeTotalMajor } from '../_shared/order-money.ts';
+import { resolveCustomerEmail } from '../_shared/order-response-whitelists.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -113,7 +115,7 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
   const { data: order, error: orderErr } = await admin
     .from('orders')
     .select(
-      'id, status, order_status, amount, currency, created_at, shipping_address, metadata, payment_method, payment_reference'
+      'id, status, order_status, amount, total_amount, currency, created_at, shipping_address, metadata, payment_method, payment_reference'
     )
     .eq('id', orderId)
     .maybeSingle();
@@ -161,12 +163,17 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
     status: payment?.status,
   });
 
-  // 4) AMOUNTS — values are stored in EUROS (not cents). Compute strictly from items.
+  // Item line totals follow order_items snapshots (same units as historical invoice renderer).
   const subtotal = items.reduce((s, it) => s + Number(it.total_price || 0), 0);
-  const orderTotal = Number(order.amount || 0);
-  const discount = Number((order.metadata as any)?.discount_amount || 0);
-  // Shipping = order total - subtotal + discount (clamped). If order.amount missing, fall back to subtotal.
-  const total = orderTotal > 0 ? orderTotal : subtotal;
+  const orderTotalMajor = authoritativeTotalMajor({
+    total_amount: order.total_amount ?? null,
+    amount: order.amount ?? null,
+  });
+  const discount = Number(
+    (order.metadata as Record<string, unknown>)?.discount_amount || 0
+  );
+  // Prefer authoritative order total (total_amount / legacy amount ladder); else items-only sum.
+  const total = orderTotalMajor > 0 ? orderTotalMajor : subtotal;
   const shipping = Math.max(0, total - subtotal + discount);
 
   // 5) PAID STATUS — order status OR payment row in a paid state
@@ -189,7 +196,10 @@ async function buildInvoiceData(orderId: string): Promise<InvoiceData> {
 
   const addr = (order.shipping_address as any) || {};
   const fullName = `${addr.first_name || ''} ${addr.last_name || ''}`.trim();
-  const email = (order.metadata as any)?.customer_email || addr.email || '';
+  const email = resolveCustomerEmail({
+    metadata: order.metadata as Record<string, unknown> | null,
+    shipping_address: order.shipping_address as Record<string, unknown> | null,
+  });
   if (!email) throw new InvoiceValidationError('Order has no customer email');
 
   const data: InvoiceData = {
@@ -286,14 +296,15 @@ Deno.serve(async (req) => {
       html,
       cached: false,
     });
-  } catch (err) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     const status =
       err instanceof InvoiceValidationError
         ? 400
-        : err.message === 'Unauthorized'
+        : message === 'Unauthorized'
           ? 401
           : 500;
-    console.error('[generate-invoice]', err.message);
-    return jsonResponse({ error: err.message }, status);
+    console.error('[generate-invoice]', message);
+    return jsonResponse({ error: message }, status);
   }
 });

@@ -2,16 +2,16 @@
  * Single place that turns a Stripe Checkout Session into an authoritative
  * `orders.pricing_snapshot` (+ minor-unit columns) on our side.
  *
- * ALL three confirmation paths — stripe-webhook, verify-payment, reconcile-payment —
- * must call this after `confirmOrderFromStripe` succeeds, so the email + SPA
- * + admin UI all see the same Stripe-sourced pricing regardless of which
- * path confirmed the order.
+ * Invoked from `confirmOrderFromStripe` when `stripe` + `session` are passed
+ * (checkout.session.completed, verify-payment, reconcile-payment). Ops alerts:
+ * `pricing_snapshot_persist_failed` is aggregated by `payment_events_unacked_since`
+ * (see `monitor-payment-events` README).
  *
  * Failures are non-fatal for the confirmation, but are audited into
- * `payment_events` as `pricing_snapshot_persist_failed` so silent drift is
- * visible in ops dashboards.
+ * `payment_events` as `pricing_snapshot_persist_failed`.
  */
 import type Stripe from 'https://esm.sh/stripe@18.5.0';
+import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 import { buildPricingSnapshotV1FromStripe } from './pricing-snapshot.ts';
 
@@ -33,7 +33,7 @@ export interface PersistSnapshotResult {
  * to `orders.pricing_snapshot`, plus the mirror minor-unit columns.
  */
 export async function persistPricingSnapshot(
-  supabase: any,
+  supabase: SupabaseClient,
   stripe: Stripe,
   input: PersistSnapshotInput
 ): Promise<PersistSnapshotResult> {

@@ -17,7 +17,10 @@ import {
   confirmOrderFromStripe,
   sendConfirmationEmail,
 } from '../_shared/confirm-order.ts';
-import { persistPricingSnapshot } from '../_shared/persist-pricing-snapshot.ts';
+import {
+  authoritativeTotalMajor,
+  authoritativeTotalMinor,
+} from '../_shared/order-money.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -89,7 +92,7 @@ serve(async (req) => {
     logStep('Verifying session', { sessionId: session_id });
 
     const selectOrderFields =
-      'id, status, order_status, amount, currency, shipping_address, metadata, created_at, user_id';
+      'id, status, order_status, amount, total_amount, currency, shipping_address, metadata, created_at, user_id';
 
     const isOrderConfirmed = (order: any): boolean => {
       const status = String(order?.status || '').toLowerCase();
@@ -271,15 +274,18 @@ serve(async (req) => {
         (sum: number, i: any) => sum + i.total_price,
         0
       );
-      const orderTotal = orderData.amount || itemsSubtotal;
-      const shipping = Math.max(0, orderTotal - itemsSubtotal);
+      const orderTotalMinor = authoritativeTotalMinor({
+        total_amount: orderData.total_amount ?? null,
+        amount: orderData.amount ?? null,
+      });
+      const shipping = Math.max(0, orderTotalMinor - itemsSubtotal);
       const shippingAddr = orderData.shipping_address as any;
 
       return {
         items: orderItems,
         subtotal: itemsSubtotal,
         shipping,
-        total: orderTotal,
+        total: orderTotalMinor,
         shippingAddress: shippingAddr
           ? {
               line1: shippingAddr.address_line1 || shippingAddr.line1 || '',
@@ -353,6 +359,8 @@ serve(async (req) => {
       source: 'verify_payment',
       customerEmail: session.customer_details?.email,
       customerName: session.customer_details?.name,
+      stripe,
+      session,
     });
 
     if (!result.confirmed && !result.alreadyProcessed) {
@@ -364,17 +372,6 @@ serve(async (req) => {
       alreadyProcessed: result.alreadyProcessed,
     });
 
-    // Persist the authoritative pricing snapshot from the Stripe session so
-    // the email + SPA see the same totals, even if the webhook never fires.
-    if (!result.alreadyProcessed) {
-      await persistPricingSnapshot(supabaseService, stripe, {
-        orderId: orderData.id,
-        session,
-        source: 'verify_payment',
-        correlationId,
-      });
-    }
-
     // Send email if we did the confirmation
     if (!result.alreadyProcessed) {
       const customerEmail = session.customer_details?.email;
@@ -382,7 +379,7 @@ serve(async (req) => {
         const { data: freshOrder } = await supabaseService
           .from('orders')
           .select(
-            'order_items(id, product_id, quantity, unit_price), amount, currency, shipping_address'
+            'order_items(id, product_id, quantity, unit_price), amount, total_amount, currency, shipping_address'
           )
           .eq('id', orderData.id)
           .single();
@@ -393,7 +390,10 @@ serve(async (req) => {
             customerEmail,
             customerName: session.customer_details?.name || 'Client',
             orderItems: freshOrder.order_items || [],
-            orderAmount: freshOrder.amount,
+            orderAmount: authoritativeTotalMinor({
+              total_amount: freshOrder.total_amount,
+              amount: freshOrder.amount,
+            }),
             currency: freshOrder.currency,
             shippingAddress: freshOrder.shipping_address,
             source: 'verify_payment',
@@ -422,7 +422,10 @@ serve(async (req) => {
           p_user_agent: null,
           p_checkout_duration_seconds: null,
           p_is_first_order: isFirstOrder,
-          p_order_amount: orderData.amount / 100,
+          p_order_amount: authoritativeTotalMajor({
+            total_amount: orderData.total_amount ?? null,
+            amount: orderData.amount ?? null,
+          }),
         });
       } catch (fraudErr) {
         logStep('Fraud detection error (non-fatal)', {

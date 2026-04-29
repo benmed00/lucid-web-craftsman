@@ -5,6 +5,7 @@
  * Run: `npm run test:pricing-snapshot:deno`
  */
 import { assertEquals } from 'https://deno.land/std@0.190.0/testing/asserts.ts';
+import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 import { persistPricingSnapshot } from './persist-pricing-snapshot.ts';
 
@@ -50,7 +51,7 @@ Deno.test(
     };
 
     const result = await persistPricingSnapshot(
-      supabase as never,
+      supabase as unknown as SupabaseClient,
       stripe as never,
       {
         orderId: 'order-uuid-1',

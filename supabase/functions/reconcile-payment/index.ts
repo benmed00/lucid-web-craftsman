@@ -11,7 +11,7 @@ import {
   confirmOrderFromStripe,
   sendConfirmationEmail,
 } from '../_shared/confirm-order.ts';
-import { persistPricingSnapshot } from '../_shared/persist-pricing-snapshot.ts';
+import { authoritativeTotalMinor } from '../_shared/order-money.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -57,7 +57,7 @@ serve(async (req) => {
     const { data: existingOrder, error: fetchError } = await supabaseService
       .from('orders')
       .select(
-        'id, status, order_status, stripe_session_id, amount, currency, metadata'
+        'id, status, order_status, stripe_session_id, amount, total_amount, currency, metadata'
       )
       .eq('id', orderId)
       .maybeSingle();
@@ -207,6 +207,8 @@ serve(async (req) => {
       source: 'reconcile_payment',
       customerEmail: session.customer_details?.email,
       customerName: session.customer_details?.name,
+      stripe,
+      session,
     });
 
     if (result.alreadyProcessed) {
@@ -242,18 +244,6 @@ serve(async (req) => {
     logStep('ORDER RECONCILED SUCCESSFULLY', { orderId });
 
     // ================================================================
-    // Step 3b: Persist authoritative pricing snapshot from Stripe so the
-    // email and confirmation page read the same totals whichever path
-    // (webhook / verify / reconcile) confirmed the order.
-    // ================================================================
-    await persistPricingSnapshot(supabaseService, stripe, {
-      orderId,
-      session,
-      source: 'reconcile_payment',
-      correlationId,
-    });
-
-    // ================================================================
     // Step 4: Send confirmation email (idempotent, non-blocking)
     // ================================================================
     const customerEmail = session.customer_details?.email;
@@ -261,7 +251,7 @@ serve(async (req) => {
       const { data: freshOrder } = await supabaseService
         .from('orders')
         .select(
-          'order_items(id, product_id, quantity, unit_price), amount, currency, shipping_address'
+          'order_items(id, product_id, quantity, unit_price), amount, total_amount, currency, shipping_address'
         )
         .eq('id', orderId)
         .single();
@@ -272,7 +262,10 @@ serve(async (req) => {
           customerEmail,
           customerName: session.customer_details?.name || 'Client',
           orderItems: freshOrder.order_items || [],
-          orderAmount: freshOrder.amount,
+          orderAmount: authoritativeTotalMinor({
+            total_amount: freshOrder.total_amount,
+            amount: freshOrder.amount,
+          }),
           currency: freshOrder.currency,
           shippingAddress: freshOrder.shipping_address,
           source: 'reconcile_payment',

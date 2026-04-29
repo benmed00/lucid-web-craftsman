@@ -30,3 +30,19 @@ export async function fetchOrdersAnalyticsPreviousPeriod(
   if (error) throw error;
   return data ?? [];
 }
+
+/** Paid orders in range with no pricing_snapshot (ops / drift indicator). */
+export async function fetchPaidOrdersMissingPricingSnapshotCount(
+  startIso: string,
+  endIso: string
+): Promise<number> {
+  const { count, error } = await supabase
+    .from('orders')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'paid')
+    .is('pricing_snapshot', null)
+    .gte('created_at', startIso)
+    .lte('created_at', endIso);
+  if (error) throw error;
+  return count ?? 0;
+}

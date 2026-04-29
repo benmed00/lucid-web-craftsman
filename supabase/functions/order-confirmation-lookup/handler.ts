@@ -55,6 +55,7 @@ import {
   type RateLimitResult,
   type RateLimitStore,
 } from '../_shared/rate-limit/rate-limit.ts';
+import { authoritativeTotalMajor } from '../_shared/order-money.ts';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -472,7 +473,11 @@ export async function handleRequest(
         ? ((order as { total_amount?: number | null }).total_amount as number)
         : null;
     const amountTotal = resolveDisplayTotalEuros(
-      Number(order.amount || 0),
+      authoritativeTotalMajor({
+        total_amount:
+          (order as { total_amount?: number | null }).total_amount ?? null,
+        amount: (order as { amount?: number | null }).amount ?? null,
+      }),
       itemsSubtotal,
       totalAmountMinor
     );

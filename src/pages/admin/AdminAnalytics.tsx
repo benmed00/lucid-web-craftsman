@@ -20,6 +20,7 @@ import {
   BarChart3,
   PieChart,
   Download,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   Select,
@@ -31,6 +32,7 @@ import {
 import {
   fetchOrdersAnalyticsCurrentPeriod,
   fetchOrdersAnalyticsPreviousPeriod,
+  fetchPaidOrdersMissingPricingSnapshotCount,
 } from '@/services/adminAnalyticsApi';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -61,6 +63,9 @@ interface AnalyticsData {
     time: string;
     amount?: number;
   }>;
+  ops?: {
+    paidOrdersMissingPricingSnapshot: number;
+  };
 }
 
 const AdminAnalytics = () => {
@@ -248,6 +253,17 @@ const AdminAnalytics = () => {
           };
         });
 
+      let paidOrdersMissingPricingSnapshot = 0;
+      try {
+        paidOrdersMissingPricingSnapshot =
+          await fetchPaidOrdersMissingPricingSnapshotCount(
+            startDate.toISOString(),
+            endDate.toISOString()
+          );
+      } catch {
+        paidOrdersMissingPricingSnapshot = 0;
+      }
+
       setAnalytics({
         overview: {
           revenue: {
@@ -274,6 +290,7 @@ const AdminAnalytics = () => {
         topProducts,
         salesByCategory,
         recentActivity,
+        ops: { paidOrdersMissingPricingSnapshot },
       });
     } catch (error) {
       console.error('Error fetching analytics:', error);
@@ -479,6 +496,17 @@ const AdminAnalytics = () => {
 
   return (
     <div className="space-y-6">
+      {(analytics.ops?.paidOrdersMissingPricingSnapshot ?? 0) > 0 && (
+        <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-foreground flex gap-2 items-start">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+          <span>
+            {analytics.ops!.paidOrdersMissingPricingSnapshot} commande(s)
+            payée(s) sans `pricing_snapshot` sur la période — consulter
+            `payment_events` (`pricing_snapshot_persist_failed`) et la fonction
+            Edge monitor-payment-events.
+          </span>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>

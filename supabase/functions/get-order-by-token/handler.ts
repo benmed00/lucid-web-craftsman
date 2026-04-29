@@ -27,6 +27,7 @@
  * by Supabase log search.
  */
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
+
 import { z } from 'zod';
 import {
   verifyTokenPayload,
@@ -78,6 +79,9 @@ export const RequestBodySchema = z.object({
  * `OrderRow` — exact shape returned by `SELECT … FROM orders`.
  * Kept as a Zod schema so the column list below is derivable (no drift)
  * and test fixtures can be validated at build time.
+ *
+ * `amount` is legacy (often cents at checkout write-time); prefer `total_amount`
+ * and `pricing_snapshot` after Stripe persists authoritative minor-unit totals.
  */
 export const OrderRowSchema = z.object({
   id: z.string(),

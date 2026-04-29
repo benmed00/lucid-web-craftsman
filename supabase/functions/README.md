@@ -17,6 +17,7 @@ Other folders under `supabase/functions/` follow the same deploy layout; optiona
 
 ## Shared contracts
 
+- **`orders.amount`** column is legacy (checkout-time minors); **`orders.total_amount`** + **`pricing_snapshot`** are authoritative after Stripe persists pricing (`confirmOrderFromStripe` calls `_shared/persist-pricing-snapshot.ts` when `stripe` + `session` are provided).
 - **Pricing snapshot (`orders.pricing_snapshot`):** [`_shared/PRICING_SNAPSHOT.md`](./_shared/PRICING_SNAPSHOT.md) — v1 schema, invariants, and versioning rules. Read this before changing `_shared/pricing-snapshot.ts` or `_shared/persist-pricing-snapshot.ts`. Tests: `npm run test:pricing-snapshot`.
 
 ## HTTP contracts & collections

@@ -485,7 +485,7 @@ function main() {
     },
     variable: [
       { key: 'mock_api_base', value: 'http://localhost:3001' },
-      { key: 'vite_base', value: 'http://localhost:8080' },
+      { key: 'vite_base', value: 'http://127.0.0.1:8080' },
       { key: 'supabase_url', value: 'https://YOUR_PROJECT.supabase.co' },
       { key: 'supabase_anon_key', value: '' },
       { key: 'access_token', value: '' },

@@ -1,9 +1,11 @@
 import { useTranslation } from 'react-i18next';
+import { fallbackTotalMinorFromOrder } from '@/lib/checkout/pricingSnapshot';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCustomerOrder } from '@/hooks/useOrderManagement';
+import type { CustomerOrderView } from '@/types/order.types';
 import {
   CheckCircle,
   Clock,
@@ -245,7 +247,14 @@ export function CustomerOrderTracker({ orderId }: CustomerOrderTrackerProps) {
         <div className="flex items-center justify-between text-lg font-semibold">
           <span>Total</span>
           <span>
-            {(order.total_amount / 100).toFixed(2)}{' '}
+            {(
+              fallbackTotalMinorFromOrder({
+                total_amount: order.total_amount ?? null,
+                amount:
+                  (order as CustomerOrderView & { amount?: number | null })
+                    .amount ?? null,
+              }) / 100
+            ).toFixed(2)}{' '}
             {order.currency.toUpperCase()}
           </span>
         </div>

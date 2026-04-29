@@ -77,3 +77,22 @@ export function pickPublicShippingAddress(
   }
   return Object.keys(out).length === 0 ? null : out;
 }
+
+/** Stripe `metadata.customer_email` wins over form `shipping_address.email`. */
+export function resolveCustomerEmail(order: {
+  metadata?: Record<string, unknown> | null;
+  shipping_address?: Record<string, unknown> | null;
+}): string {
+  const meta = order.metadata as { customer_email?: string } | undefined;
+  if (
+    typeof meta?.customer_email === 'string' &&
+    meta.customer_email.trim().length > 0
+  ) {
+    return meta.customer_email.trim();
+  }
+  const ship = order.shipping_address as { email?: string } | undefined;
+  if (typeof ship?.email === 'string' && ship.email.trim().length > 0) {
+    return ship.email.trim();
+  }
+  return '';
+}

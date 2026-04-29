@@ -43,3 +43,22 @@ export function logPricingConsistency(
     );
   }
 }
+
+/**
+ * When `pricing_snapshot` v1 is absent: prefer `orders.total_amount` (minor units),
+ * then legacy `orders.amount` (minor / cents for Stripe-checkout rows).
+ * Aligned with `supabase/functions/_shared/order-money.ts`.
+ */
+export function fallbackTotalMinorFromOrder(order: {
+  total_amount?: number | null;
+  amount?: number | null;
+}): number {
+  if (
+    typeof order.total_amount === 'number' &&
+    !Number.isNaN(order.total_amount)
+  ) {
+    return order.total_amount;
+  }
+  const a = Number(order.amount ?? 0);
+  return Number.isFinite(a) ? Math.round(a) : 0;
+}
