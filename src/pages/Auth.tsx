@@ -401,6 +401,7 @@ export default function Auth() {
               <div className="relative">
                 <Input
                   id="auth-password"
+                  data-testid="auth-password"
                   name={isSignUp ? 'new-password' : 'password'}
                   type={showPassword ? 'text' : 'password'}
                   autoComplete={isSignUp ? 'new-password' : 'current-password'}
