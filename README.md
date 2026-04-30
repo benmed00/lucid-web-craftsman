@@ -373,6 +373,49 @@ ok | 26 passed | 0 failed (XXms)
 
 Pour la suite complète **Deno (mapping + helpers email) + Vitest (Zod client)** : `npm run test:pricing-snapshot`.
 
+#### Préparer le cache Deno pour des runs 100 % hors-ligne
+
+Deno télécharge ses dépendances (`https://deno.land/std@…`, `npm:` et `jsr:` via la map d'imports `supabase/functions/deno.json`) **au premier run**, puis les sert depuis le cache local (`$DENO_DIR`, par défaut `~/.cache/deno` sous Linux/macOS, `%LOCALAPPDATA%\deno` sous Windows). Une fois ce cache amorcé, **`npm run test:pricing-snapshot:deno`** s'exécute sans aucun accès réseau — utile en avion, derrière un proxy strict, ou en CI air-gapped.
+
+**Étape 1 — Premier run en ligne (amorçage du cache) :**
+
+```bash
+# Pré-télécharge tous les modules importés par les tests Deno listés dans le script npm,
+# en réutilisant la même map d'imports que le test runner.
+deno cache --config supabase/functions/deno.json \
+  supabase/functions/_shared/pricing-snapshot_test.ts \
+  supabase/functions/_shared/pricing_snapshot_golden_test.ts \
+  supabase/functions/_shared/pricing_snapshot_extended_test.ts \
+  supabase/functions/_shared/persist-pricing-snapshot_test.ts \
+  supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts \
+  supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts
+```
+
+Sortie attendue (la première fois) : une série de lignes `Download https://deno.land/std@0.190.0/...` puis `Download https://jsr.io/@std/assert/...`, sans erreur. Si `deno cache` se termine sans `error:`, le cache est prêt.
+
+> Derrière un proxy d'entreprise : exporter `HTTPS_PROXY` / `HTTP_PROXY` (et au besoin `DENO_CERT=/chemin/ca-bundle.pem`) **avant** la commande `deno cache`. Ces variables ne sont **pas** nécessaires pour les runs offline ultérieurs.
+
+**Étape 2 — Vérifier que tout passe hors-ligne :**
+
+```bash
+# Force Deno à n'utiliser que le cache local — échoue si un module manque encore.
+DENO_OFFLINE=1 npm run test:pricing-snapshot:deno
+# (équivalent manuel : deno test --cached-only --allow-env --allow-read=. --no-check ... )
+```
+
+Sortie attendue : strictement la même que décrite dans **Sortie attendue** plus haut (`ok | 26 passed | 0 failed (XXms)`), **sans** aucune ligne `Download ...`. Si vous voyez `error: Specifier not found in cache`, retournez à l'étape 1 avec une connexion : un fichier de test a probablement été ajouté et importe un nouveau module.
+
+**Étape 3 (optionnelle) — Geler le cache pour le partager / l'archiver :**
+
+```bash
+# Localiser le cache pour le sauvegarder ou le monter dans une image Docker / runner CI air-gapped.
+deno info | grep -i "DENO_DIR"
+# Exemple : DENO_DIR location: /home/dev/.cache/deno
+tar czf deno-cache.tgz -C "$(deno info --json | jq -r '.denoDir')" .
+```
+
+Sur un runner CI offline, restaurer ensuite ce tarball dans `$DENO_DIR` **avant** d'exécuter `npm run test:pricing-snapshot:deno` (qui passe déjà `--no-check` et n'a besoin d'aucun secret — voir la **Checklist offline / sans secrets** ci-dessus).
+
 #### Dépannage : `deno` introuvable ou version incompatible
 
 | Symptôme (sortie de `npm run test:pricing-snapshot:deno`)                                 | Cause probable                                                                                                  | Correctif                                                                                                                                                                                                                                                                                                                                        |
