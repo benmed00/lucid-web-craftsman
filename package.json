@@ -75,6 +75,7 @@
     "test:unit": "vitest run --exclude \"**/rls-*\"",
     "test:pricing-snapshot": "node scripts/assert-deno-v2.mjs && deno test --allow-env --allow-read=. --no-check --config supabase/functions/deno.json supabase/functions/_shared/pricing-snapshot_test.ts supabase/functions/_shared/pricing_snapshot_golden_test.ts supabase/functions/_shared/pricing_snapshot_extended_test.ts supabase/functions/_shared/persist-pricing-snapshot_test.ts supabase/functions/_shared/confirm-order_test.ts supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts && vitest run src/lib/checkout/pricingSnapshot.test.ts",
     "test:pricing-snapshot:deno": "node scripts/assert-deno-v2.mjs && deno test --allow-env --allow-read=. --no-check --config supabase/functions/deno.json supabase/functions/_shared/pricing-snapshot_test.ts supabase/functions/_shared/pricing_snapshot_golden_test.ts supabase/functions/_shared/pricing_snapshot_extended_test.ts supabase/functions/_shared/persist-pricing-snapshot_test.ts supabase/functions/_shared/confirm-order_test.ts supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts",
+    "verify:pricing-snapshot:offline": "node scripts/verify-pricing-snapshot-offline.mjs",
     "coverage": "vitest run --coverage",
     "e2e:open": "cypress open",
     "e2e:run": "cypress run",
