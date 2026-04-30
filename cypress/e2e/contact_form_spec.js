@@ -5,8 +5,8 @@
  * behaviour (validation + mocked POST) lives here.
  *
  * Run (do **not** call `cypress run` alone unless Vite + mock API are already up on 8080/3001):
- *   npm run e2e:contact
- * or the full suite: npm run e2e:ci
+ *   pnpm run e2e:contact
+ * or the full suite: pnpm run e2e:ci
  * A bare `cy.visit('/contact')` → **404** usually means port 8080 is not this app (or dev server off).
  *
  * Tags: @regression (full), @smoke (first test only via grep in CI smoke if desired)

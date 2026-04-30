@@ -24,7 +24,7 @@ webhook probes, Slack webhook shims).
 | **Logs**          | structured JSON: `{ fn, step, reason?, ... }`                                                                |
 | **Env vars**      | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, optional `MONITOR_PAYMENT_EVENTS_TOKEN`                         |
 | **Tests**         | 22 handler-layer (auth, method, window parsing, shape, error paths)                                          |
-| **OpenAPI**       | `openapi.fragment.json` — picked up by `npm run openapi:edge-functions`                                      |
+| **OpenAPI**       | `openapi.fragment.json` — picked up by `pnpm run openapi:edge-functions`                                      |
 | **Deploy**        | `supabase functions deploy monitor-payment-events`                                                           |
 
 ---
@@ -218,7 +218,7 @@ supabase/functions/monitor-payment-events/
 ├── index.ts                  thin Deno.serve wrapper (env + delegate)
 ├── handler.ts                exported handleRequest + typed row helpers
 ├── handler_test.ts           22 tests
-├── openapi.fragment.json     merged by npm run openapi:edge-functions
+├── openapi.fragment.json     merged by pnpm run openapi:edge-functions
 └── README.md                 this file
 
 supabase/migrations/

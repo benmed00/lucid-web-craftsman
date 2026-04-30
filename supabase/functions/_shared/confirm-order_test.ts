@@ -1,6 +1,6 @@
 /**
  * Prerequisites: Deno 2, `--config supabase/functions/deno.json`.
- * Run: `npm run test:pricing-snapshot` (includes this file).
+ * Run: `pnpm run test:pricing-snapshot` (includes this file).
  *
  * Uses lightweight mocks — asserts persist wiring inside confirmOrderFromStripe.
  */

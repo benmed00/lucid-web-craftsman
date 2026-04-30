@@ -17,7 +17,7 @@
  * **Runtime secrets (Supabase dashboard / Edge env)**
  * `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` — injected by Supabase when deployed.
  *
- * **Tests**: `npm run test:create-admin-user` (delegates to `handler_test.ts` via `handler.ts`).
+ * **Tests**: `pnpm run test:create-admin-user` (delegates to `handler_test.ts` via `handler.ts`).
  */
 import { serve } from '@std/http/server';
 import { defaultCreateAdminDeps, handleCreateAdminRequest } from './handler.ts';

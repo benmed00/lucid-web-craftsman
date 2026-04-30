@@ -719,10 +719,10 @@ const buildHelpHtml = () => {
   <h2>Port already in use (EADDRINUSE)</h2>
   <p class="muted">Another process is bound to the same port (default <span class="kbd">3001</span>). Stop the old mock server, or run on another port:</p>
   <pre class="code-block"># PowerShell
-$env:PORT='3002'; npm run start:api
+$env:PORT='3002'; pnpm run start:api
 
 # bash
-PORT=3002 npm run start:api</pre>
+PORT=3002 pnpm run start:api</pre>
 </div>
 <div class="panel">
   <h2>Frontend + mock</h2>
@@ -1380,7 +1380,7 @@ server.on('error', (err) => {
     log('error', `Port ${CONFIG.port} is already in use — another Mock API (or app) is listening`, {
       port: CONFIG.port,
       code: err.code,
-      hint: `Stop the process using port ${CONFIG.port}, or start on a different port: PORT=3002 npm run start:api (PowerShell: $env:PORT='3002'; npm run start:api)`,
+      hint: `Stop the process using port ${CONFIG.port}, or start on a different port: PORT=3002 pnpm run start:api (PowerShell: $env:PORT='3002'; pnpm run start:api)`,
     });
     process.exit(1);
     return;

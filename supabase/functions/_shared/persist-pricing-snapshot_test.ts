@@ -2,7 +2,7 @@
  * Mocked Stripe + Supabase for `persistPricingSnapshot` (verify/reconcile-style path).
  *
  * Prerequisites: Deno 2, `--config supabase/functions/deno.json`.
- * Run: `npm run test:pricing-snapshot:deno`
+ * Run: `pnpm run test:pricing-snapshot:deno`
  */
 import { assertEquals } from 'https://deno.land/std@0.190.0/testing/asserts.ts';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';

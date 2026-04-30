@@ -13,7 +13,7 @@
  *
  * **Prerequisites:** Deno ≥ 2 (`node scripts/assert-deno-v2.mjs` parity with other Edge helpers).
  *
- * Run (repository root): `npm run test:create-admin-user`
+ * Run (repository root): `pnpm run test:create-admin-user`
  *
  * @searchTags deno-test, create-admin-user, mock-supabase, rbac, super-admin
  *

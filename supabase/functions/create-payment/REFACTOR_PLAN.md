@@ -15,7 +15,7 @@ This plan is designed to be **testable**, **reversible**, **stable**, and **docu
 | 4     | **Done** | + `lib/stripe-session.ts` (`buildCheckoutSessionCreateParams`, shipping prefill)                     |
 | 4c    | **Done** | `lib/orders.ts` — shipping payload, VIP threshold, pending order insert, line items, VIP invoke      |
 | 4d    | **Done** | `lib/stripe-customer.ts`, `lib/auth-user.ts` — customer id lookup, optional JWT user                 |
-| 5     | **Done** | Zod + `lib/errors.ts` (422 mapping); `lib/*_test.ts` + `npm run test:create-payment`; `DATA_FLOW.md` |
+| 5     | **Done** | Zod + `lib/errors.ts` (422 mapping); `lib/*_test.ts` + `pnpm run test:create-payment`; `DATA_FLOW.md` |
 
 **Module map**
 
@@ -50,7 +50,7 @@ create-payment/
 cd supabase/functions && deno check create-payment/index.ts --config deno.json --lock deno.lock --frozen && deno lint create-payment/ --config deno.json && deno test create-payment/ --config deno.json --lock deno.lock --frozen
 ```
 
-GitHub: workflow **Deno create-payment** (same branch triggers as root **CI**). Locally from repo root: `npm run verify:create-payment`.
+GitHub: workflow **Deno create-payment** (same branch triggers as root **CI**). Locally from repo root: `pnpm run verify:create-payment`.
 
 ---
 

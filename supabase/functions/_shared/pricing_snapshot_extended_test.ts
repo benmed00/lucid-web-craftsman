@@ -2,7 +2,7 @@
  * Extra mapping cases: JPY zero-decimal, anonymized Stripe-shaped JSON, line-count sanity.
  *
  * Prerequisites: Deno 2; `--allow-read` for `fixtures/stripe_checkout_session_anonymized.json`; `--config supabase/functions/deno.json`.
- * Run: `npm run test:pricing-snapshot:deno`
+ * Run: `pnpm run test:pricing-snapshot:deno`
  */
 import { assertEquals } from 'https://deno.land/std@0.190.0/testing/asserts.ts';
 

@@ -1,9 +1,9 @@
 /**
  * Contact page smoke test (Vitest + jsdom).
  *
- * Prerequisites: `npm run test:unit` or `npx vitest run src/pages/Contact.test.tsx`.
+ * Prerequisites: `pnpm run test:unit` or `npx vitest run src/pages/Contact.test.tsx`.
  * Mocks below: SEO (helmet provider not in jsdom tree), network, lazy map.
- * E2E: `npm run e2e:contact`.
+ * E2E: `pnpm run e2e:contact`.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';

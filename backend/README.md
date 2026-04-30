@@ -6,19 +6,19 @@ Enterprise-grade mock API server for development and staging. Provides products,
 
 ## Quick Start
 
-**From project root** (recommended; `npm install` at root runs postinstall for backend):
+**From project root** (recommended — [`pnpm-workspace.yaml`](../pnpm-workspace.yaml) includes this package; **`pnpm install`** installs SPA + backend together):
 
 ```bash
-npm install
-npm run start:api
+pnpm install
+pnpm run start:api
 ```
 
-**Or from backend folder**:
+**Or from backend folder** (standalone; rarely needed):
 
 ```bash
 cd backend
-npm install
-npm start
+pnpm install
+pnpm start
 ```
 
 Server runs at `http://localhost:3001` by default.

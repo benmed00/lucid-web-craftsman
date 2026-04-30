@@ -37,7 +37,7 @@ breaking existing rows.
   - `supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts`
   - `supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts`
 - Vitest (SPA Zod schema): `src/lib/checkout/pricingSnapshot.test.ts`
-- Combined script: `npm run test:pricing-snapshot`
+- Combined script: `pnpm run test:pricing-snapshot`
 
 ---
 

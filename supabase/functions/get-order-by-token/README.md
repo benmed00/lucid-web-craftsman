@@ -28,7 +28,7 @@ sole auth gate.
 | **Env vars**       | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `INVOICE_SIGNING_SECRET`                                                                                                                            |
 | **Tests**          | **55 passing** — 35 handler-layer + 5 Postgres store + 3 composite store + 5 whitelists + 7 labels (rate-limit tests now live in `_shared/rate-limit/`, shared with `order-confirmation-lookup`) |
 | **E2E**            | `cypress/e2e/get_order_by_token_mocked_spec.ts` — stubs both edge functions end-to-end                                                                                                           |
-| **OpenAPI**        | `openapi.fragment.json` picked up by `npm run openapi:edge-functions`                                                                                                                            |
+| **OpenAPI**        | `openapi.fragment.json` picked up by `pnpm run openapi:edge-functions`                                                                                                                            |
 | **Deploy**         | not bundled; `supabase functions deploy get-order-by-token`                                                                                                                                      |
 
 ---
@@ -244,7 +244,7 @@ deno test --config supabase/functions/deno.json --allow-env \
 ### End-to-end (Cypress)
 
 ```bash
-npm run e2e:ci -- --spec cypress/e2e/get_order_by_token_mocked_spec.ts
+pnpm run e2e:ci -- --spec cypress/e2e/get_order_by_token_mocked_spec.ts
 ```
 
 The spec (`cypress/e2e/get_order_by_token_mocked_spec.ts`) stubs
@@ -375,7 +375,7 @@ Totals across all five tiers for surfaces owned by this function:
 
 ### Open — likely worth doing
 
-- [ ] **Add `verify:get-order-by-token` npm script** (lint + check + test),
+- [ ] **Add `verify:get-order-by-token` script** (`package.json` — lint + check + test),
       mirroring `verify:create-payment`. Should cover
       `get-order-by-token/` and both `_shared/` helper test files.
 - [ ] **Wire the Cypress spec into a CI job** (PR-gated) — the spec is
@@ -400,7 +400,7 @@ supabase/functions/get-order-by-token/
 ├── index.ts                          thin Deno.serve wrapper (env + composite store wiring + delegate)
 ├── handler.ts                        exported handleRequest + schemas (whitelists re-exported from _shared)
 ├── index_test.ts                     35 handler-layer tests
-├── openapi.fragment.json             merged by npm run openapi:edge-functions
+├── openapi.fragment.json             merged by pnpm run openapi:edge-functions
 ├── diagram.mmd                       Mermaid source for the data-flow diagram
 ├── diagram.png                       rendered version (embedded by this README)
 ├── diagram.svg                       SVG alternate (zooms cleaner)

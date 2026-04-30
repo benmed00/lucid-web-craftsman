@@ -2,7 +2,7 @@
  * Vitest: Zod schema for persisted pricing_snapshot v1 (aligned with Deno golden fixture).
  *
  * Prerequisites: none (fixtures read from repo root).
- * Run: `npm run test:pricing-snapshot` or `npx vitest run src/lib/checkout/pricingSnapshot.test.ts`
+ * Run: `pnpm run test:pricing-snapshot` or `npx vitest run src/lib/checkout/pricingSnapshot.test.ts`
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';

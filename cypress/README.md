@@ -79,7 +79,7 @@ When a spec or manual run fails on the network step, check the failing URL (DevT
 
 Full triage steps: [docs/PLATFORM.md — Diagnosing API and database failures](../docs/PLATFORM.md#diagnosing-api-and-database-failures). For **`cy.intercept`** against an Edge URL, see [`e2e/contact_form_spec.js`](e2e/contact_form_spec.js) (`submit-contact`).
 
-**Automated layer hints after a failed run:** `pnpm run e2e:ci`, `e2e:checkout`, `e2e:contact`, and **`e2e:ci:shard`** use [`scripts/e2e-servers-and-test.mjs`](../scripts/e2e-servers-and-test.mjs) or [`scripts/cypress-e2e-shard.mjs`](../scripts/cypress-e2e-shard.mjs) to start the stack. On Cypress **exit failure**, the wrapper runs [`scripts/report-e2e-http-failures.mjs`](../scripts/report-e2e-http-failures.mjs), which classifies HTTP **4xx/5xx** captured during **failed** tests ([`support/networkFailureCapture.ts`](support/networkFailureCapture.ts), `cypress/diagnostics/http-failures.json`, gitignored). Assertions/timeouts without HTTP errors still need manual inspection. Plain `npx cypress run` (without those wrappers) does not invoke the report automatically — run `node scripts/report-e2e-http-failures.mjs` yourself after a failure if needed.
+**Automated stack (CI-style):** `pnpm run e2e:ci`, **`e2e:checkout`**, **`e2e:contact`**, and **`e2e:ci:smoke`** start the mock API and Vite via **`start-server-and-test`** (see **`package.json`**). **`pnpm run e2e:ci:shard`** uses [`scripts/cypress-e2e-shard.mjs`](../scripts/cypress-e2e-shard.mjs) with the same pattern and respects **`scripts/lib/e2e-port.mjs`** for the SPA probe URL.
 
 ## Repository layout
 

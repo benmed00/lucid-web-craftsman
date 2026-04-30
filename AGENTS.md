@@ -20,7 +20,7 @@
 
 Start the mock API first (`pnpm run start:api &`), then start the frontend (`pnpm run dev`). The Vite dev server runs on port **8080** and proxies `/api` to the mock API.
 
-**Dev port & Cypress (single contract):** Default app origin is **`http://127.0.0.1:8080`**. `vite.config.ts` **`strictPort`** and `cypress.config.ts` **`baseUrl`** follow **`VITE_DEV_SERVER_PORT`** when set (see `scripts/lib/e2e-port.mjs` and `scripts/e2e-servers-and-test.mjs`). Use **`CYPRESS_BASE_URL`** for preview/deploy targets. If **8080** is taken (often **PEMHTTPD** / Apache on Windows), either stop that service as Administrator or set **`VITE_DEV_SERVER_PORT`** to a free port for `e2e:ci` / `pnpm run dev`. Details: [`cypress/README.md`](cypress/README.md) (Dev port contract).
+**Dev port & Cypress (single contract):** Default app origin is **`http://127.0.0.1:8080`**. `vite.config.ts` **`strictPort`** and `cypress.config.ts` **`baseUrl`** follow **`VITE_DEV_SERVER_PORT`** when set (see **`scripts/lib/e2e-port.mjs`**, consumed by **`e2e:ci:shard`**; **`e2e:ci`** / **`e2e:checkout`** / **`e2e:contact`** / **`e2e:ci:smoke`** probe **`127.0.0.1:8080/contact`** via **`start-server-and-test`** in **`package.json`** unless you align those scripts with **`e2e-port.mjs`**). Use **`CYPRESS_BASE_URL`** for preview/deploy targets. If **8080** is taken (often **PEMHTTPD** / Apache on Windows), either stop that service as Administrator or set **`VITE_DEV_SERVER_PORT`** to a free port for `e2e:ci` / `pnpm run dev`. Details: [`cypress/README.md`](cypress/README.md) (Dev port contract).
 
 ### Key commands
 

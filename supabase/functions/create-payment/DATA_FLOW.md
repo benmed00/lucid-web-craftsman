@@ -233,8 +233,8 @@ Central mapping: `lib/errors.ts` (`messageFromUnknownError`, `isClientFacingVali
 
 ## CI and lockfile
 
-- **GitHub Actions:** `.github/workflows/deno-create-payment.yml` runs on **push** and **pull_request** for the same branch allowlist as `.github/workflows/ci.yml`. `deno check` and `deno test` run **without** `--lock --frozen` so CI matches local `npm run verify:create-payment`. (A committed Deno 2 **lockfile v5** broke older Supabase CLI Docker bundlers; import versions stay pinned in `deno.json` / per-function `deno.json`.)
-- **Local parity before a PR:** `npm run verify:create-payment` from the repo root.
+- **GitHub Actions:** `.github/workflows/deno-create-payment.yml` runs on **push** and **pull_request** for the same branch allowlist as `.github/workflows/ci.yml`. `deno check` and `deno test` run **without** `--lock --frozen` so CI matches local `pnpm run verify:create-payment`. (A committed Deno 2 **lockfile v5** broke older Supabase CLI Docker bundlers; import versions stay pinned in `deno.json` / per-function `deno.json`.)
+- **Local parity before a PR:** `pnpm run verify:create-payment` from the repo root.
 - **After changing `deno.json` imports or versions:** run `deno cache supabase/functions/create-payment/index.ts --config supabase/functions/deno.json` locally to confirm resolution; optional: regenerate a lockfile for your own reproducibility (do not commit v5 if your deploy pipeline uses an older bundler).
 
 ## Manual smoke (not in CI)
@@ -245,7 +245,7 @@ Central mapping: `lib/errors.ts` (`messageFromUnknownError`, `isClientFacingVali
 
 - When changing Zod rules, update `lib/checkout-schema_test.ts` and this table.
 - When adding new client fields, prefer `.passthrough()` on nested objects unless you need strict validation.
-- Quick tests from repo root: `npm run test:create-payment`. Stricter pre-PR gate: `npm run verify:create-payment`.
+- Quick tests from repo root: `pnpm run test:create-payment`. Stricter pre-PR gate: `pnpm run verify:create-payment`.
 
 ## See also
 

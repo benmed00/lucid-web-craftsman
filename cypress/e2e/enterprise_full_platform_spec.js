@@ -5,7 +5,7 @@
  * redirections, network activities, browser caching, service worker, macro environment.
  *
  * Run against deploy preview:
- *   CYPRESS_BASE_URL=https://deploy-preview-4--benyakoub.netlify.app npm run e2e:run
+ *   CYPRESS_BASE_URL=https://deploy-preview-4--benyakoub.netlify.app pnpm run e2e:run
  *
  * Tags: @enterprise @smoke @regression
  */

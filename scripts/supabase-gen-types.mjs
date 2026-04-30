@@ -3,7 +3,7 @@
  * project, then format it with the repo's Prettier config.
  *
  * Without the Prettier pass the generator emits no semicolons and double
- * quotes, which fails `npm run format:check` on every CI run.
+ * quotes, which fails `pnpm run format:check` on every CI run.
  *
  * Prerequisites (one-time):
  *   - Deno-less: just `npx supabase` works.
@@ -12,7 +12,7 @@
  *     `--linked` resolves to the right project.
  *
  * Usage:
- *   npm run supabase:types:gen
+ *   pnpm run supabase:types:gen
  *
  * Override the schema with SUPABASE_GEN_TYPES_SCHEMA (default: public).
  *
