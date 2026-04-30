@@ -1,0 +1,83 @@
+project_id = "xcvlijchkmhjonhfildm"
+
+[functions.create-payment]
+verify_jwt = false
+
+[functions.verify-payment]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+
+[functions.send-order-notification-improved]
+verify_jwt = false
+
+[functions.check-promo-alerts]
+verify_jwt = false
+
+[functions.send-order-confirmation]
+verify_jwt = false
+
+[functions.send-shipping-notification]
+verify_jwt = false
+
+[functions.send-delivery-confirmation]
+verify_jwt = false
+
+[functions.send-cancellation-email]
+verify_jwt = false
+
+[functions.process-scheduled-emails]
+verify_jwt = false
+
+[functions.send-vip-order-notification]
+verify_jwt = false
+
+[functions.security-alert-notification]
+verify_jwt = false
+
+[functions.carrier-webhook]
+verify_jwt = false
+
+[functions.create-paypal-payment]
+verify_jwt = false
+
+[functions.verify-paypal-payment]
+verify_jwt = false
+
+[functions.send-abandoned-cart-email]
+verify_jwt = false
+
+[functions.generate-sitemap]
+verify_jwt = false
+
+[functions.send-newsletter-welcome]
+verify_jwt = false
+
+[functions.order-lookup]
+verify_jwt = false
+
+[functions.stripe-session-display]
+verify_jwt = false
+
+[functions.reconcile-payment]
+verify_jwt = false
+
+[functions.cleanup-pending-orders]
+verify_jwt = false
+
+[functions.sign-order-token]
+verify_jwt = false
+
+[functions.get-order-by-token]
+verify_jwt = false
+
+[functions.order-confirmation-lookup]
+verify_jwt = false
+
+# Operator-facing monitoring endpoint. Handler enforces service-role or
+# rotating monitor-token auth; verify_jwt=false disables gateway JWT check
+# so schedulers using only the anon apikey + handler token are accepted.
+[functions.monitor-payment-events]
+verify_jwt = false

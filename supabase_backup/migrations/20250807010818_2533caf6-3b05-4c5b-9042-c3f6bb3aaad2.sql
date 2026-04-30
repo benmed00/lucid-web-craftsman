@@ -1,3 +1,5 @@
+-- File_name 20250807010818_2533caf6-3b05-4c5b-9042-c3f6bb3aaad2.sql
+
 -- Fix admin authentication security issues
 -- Update admin_users table to work with Supabase auth
 -- Remove password_hash since we'll use Supabase auth instead
@@ -38,6 +40,22 @@ FOR UPDATE
 USING (auth.uid() = user_id);
 
 -- Allow authenticated users to insert their admin profile
+-- Clean existing policies
+DROP POLICY IF EXISTS "Admin users can view their own data" ON public.admin_users;
+DROP POLICY IF EXISTS "Admin users can update their own data" ON public.admin_users;
+DROP POLICY IF EXISTS "Users can create admin profile" ON public.admin_users;
+
+-- Recreate policies safely
+CREATE POLICY "Admin users can view their own data" 
+ON public.admin_users 
+FOR SELECT 
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Admin users can update their own data" 
+ON public.admin_users 
+FOR UPDATE 
+USING (auth.uid() = user_id);
+
 CREATE POLICY "Users can create admin profile" 
 ON public.admin_users 
 FOR INSERT 

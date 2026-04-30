@@ -7,8 +7,21 @@ ALTER TABLE public.admin_users
 ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
 
 -- Make user_id unique to ensure one admin record per auth user
-ALTER TABLE public.admin_users 
-ADD CONSTRAINT IF NOT EXISTS admin_users_user_id_unique UNIQUE (user_id);
+-- ALTER TABLE public.admin_users 
+-- ADD CONSTRAINT IF NOT EXISTS admin_users_user_id_unique UNIQUE (user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 
+    FROM pg_constraint c
+    JOIN pg_namespace n ON n.oid = c.connamespace
+    WHERE c.conname = 'admin_users_user_id_unique'
+      AND n.nspname = 'public'
+  ) THEN
+    ALTER TABLE public.admin_users 
+    ADD CONSTRAINT admin_users_user_id_unique UNIQUE (user_id);
+  END IF;
+END $$;
 
 -- Drop password_hash column as it's insecure and unnecessary with Supabase auth
 ALTER TABLE public.admin_users 
@@ -30,6 +43,8 @@ FOR UPDATE
 USING (auth.uid() = user_id);
 
 -- Allow authenticated users to insert their admin profile
+DROP POLICY IF EXISTS "Users can create admin profile" ON public.admin_users;
+
 CREATE POLICY "Users can create admin profile" 
 ON public.admin_users 
 FOR INSERT 
