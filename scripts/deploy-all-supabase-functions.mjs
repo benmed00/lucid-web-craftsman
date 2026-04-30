@@ -2,10 +2,10 @@
  * Deploy every Edge Function under supabase/functions that has index.ts.
  * Skips _shared and non-directories. Runs `supabase functions deploy <name>` sequentially.
  *
- * Usage (repo root): npm run deploy:functions:all
+ * Usage (repo root): pnpm run deploy:functions:all
  * Requires: supabase link, supabase login, network.
  *
- * The npm script runs `check:edge-functions:bundling` (cross-function import rules,
+ * The pnpm script runs `check:edge-functions:bundling` (cross-function import rules,
  * no Deno) before this file — this script does not duplicate that check.
  */
 import { execSync } from 'child_process';

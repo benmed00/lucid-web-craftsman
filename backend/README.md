@@ -77,13 +77,15 @@ From project root:
 
 ```bash
 # Terminal 1: Start mock API
-npm run start:api
+pnpm run start:api
 
-# Terminal 2: Start Vite dev server (proxies /api to backend)
-npm run dev
+# Terminal 2: Start Vite dev server (proxies /api and /health to backend)
+pnpm run dev
 ```
 
-The root `vite.config.ts` proxies `/api` to `http://localhost:3001` during development.
+The root [`vite.config.ts`](../vite.config.ts) proxies **`/api`** and **`/health`** to `http://localhost:3001` during **`pnpm run dev`**. The same proxies apply to **`pnpm run preview`** (after **`pnpm run build`**): the mock must still be running on **3001** for any flow that uses those paths.
+
+If you are unsure whether a failure is the mock, Supabase PostgREST, or an Edge Function, see [docs/PLATFORM.md — Diagnosing API and database failures](../docs/PLATFORM.md#diagnosing-api-and-database-failures).
 
 ## License
 

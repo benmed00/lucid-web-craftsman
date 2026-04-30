@@ -2,7 +2,7 @@
  * Diff local supabase/migrations/*.sql version prefixes vs linked
  * supabase_migrations.schema_migrations.
  *
- * Usage (repo root): npm run supabase:migration:diff
+ * Usage (repo root): pnpm run supabase:migration:diff
  *
  * Writes gitignored scripts/.migration-local-only-versions.txt (one version per line).
  * PowerShell batch repair:

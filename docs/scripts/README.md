@@ -17,11 +17,11 @@ Companion to the **`package.json`** command catalog in [scripts/README.md](../..
 - **No `deno check --json`**: structured “issues” in reports come from a **regex parser** of stderr (`parseDenoErrors`). If Deno’s message format changes, parsing may miss lines. The **authoritative** failure text is always **`denoCheck.rawOutput`** on each function in **`--report-json`** output; HTML reports embed unparsed stderr when the heuristic returns nothing.
 - **Import maps / remote bundler**: the script validates **repo layout + `deno.json`**, not every detail of Supabase’s hosted resolver.
 
-### npm entry points
+### pnpm entry points
 
 | Script                                 | Deno?            | Typical use                                                                         |
 | -------------------------------------- | ---------------- | ----------------------------------------------------------------------------------- |
-| `check:edge-functions:bundling`        | No (`--no-deno`) | Fast import-graph check; part of **`npm run validate`**.                            |
+| `check:edge-functions:bundling`        | No (`--no-deno`) | Fast import-graph check; part of **`pnpm run validate`**.                            |
 | `check:edge-functions:bundling:full`   | Yes              | Full `deno check` on every function; **root CI** runs this after Deno is installed. |
 | `check:edge-functions:bundling:report` | No               | Same as default + writes JSON / HTML / compact error files under `reports/`.        |
 | `check:edge-functions:bundling:ci`     | No               | Compact JSON on stdout for piping.                                                  |
@@ -30,12 +30,12 @@ See the **file header** in the script for **`--baseline`**, **`--filter-status`*
 
 ## Bulk deploy — Edge Functions
 
-- **`npm run deploy:functions:all`** runs **`check:edge-functions:bundling`** (import rules only, no Deno) **before** [`scripts/deploy-all-supabase-functions.mjs`](../../scripts/deploy-all-supabase-functions.mjs). The deploy script **does not** repeat that check.
+- **`pnpm run deploy:functions:all`** runs **`check:edge-functions:bundling`** (import rules only, no Deno) **before** [`scripts/deploy-all-supabase-functions.mjs`](../../scripts/deploy-all-supabase-functions.mjs). The deploy script **does not** repeat that check.
 - The deploy script lists every `supabase/functions/<name>/` directory with an **`index.ts`**, skips **`_shared`**, and runs **`supabase functions deploy <name>`** in order. Requires **`supabase link`**, login, and network.
 
 ## Other scripts (summary)
 
-**OpenAPI / Postman drift checks**, **Cypress sharding**, and **backend postinstall** are unchanged in purpose; see the table in [scripts/README.md](../../scripts/README.md) and [STANDARDS.md](../STANDARDS.md) for required verification commands.
+**OpenAPI / Postman drift checks** and **Cypress sharding**: see [scripts/README.md](../../scripts/README.md) and [STANDARDS.md](../STANDARDS.md). The mock API (`backend/`) is a **pnpm workspace** package; **`pnpm install`** at the repo root installs it with the SPA.
 
 ## When to update this doc
 

@@ -15,19 +15,19 @@ Postman Desktop may create `.postman/` or `postman/postman/` here; those paths a
 From the repository root:
 
 ```bash
-npm run postman:collection
+pnpm run postman:collection
 ```
 
 Drift check:
 
 ```bash
-npm run postman:collection:check
+pnpm run postman:collection:check
 ```
 
 Regenerate OpenAPI + Postman together:
 
 ```bash
-npm run api:artifacts
+pnpm run api:artifacts
 ```
 
 **Documentation:** [STANDARDS.md — API artifacts](../docs/STANDARDS.md) · [Documentation index](../docs/README.md).

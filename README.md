@@ -140,7 +140,7 @@ _Page de contact et informations institutionnelles_
 ### Prérequis
 
 - **Node.js** >= 18.0.0
-- **npm** >= 8.0.0 ou **yarn** >= 1.22.0
+- [**pnpm**](https://pnpm.io/) >= 9 (enable [Corepack](https://nodejs.org/api/corepack.html): `corepack enable`, then **`pnpm`** follows **`package.json`** **`packageManager`**)
 - **Git** pour le contrôle de version
 
 ### Installation Locale
@@ -150,8 +150,8 @@ _Page de contact et informations institutionnelles_
 git clone https://github.com/votre-username/rif-raw-straw.git
 cd rif-raw-straw
 
-# Installer les dépendances
-npm install
+# Installer les dépendances (voir pnpm-workspace.yaml : SPA + backend mock)
+pnpm install
 
 # Configurer les variables d'environnement
 cp .env.example .env
@@ -159,10 +159,10 @@ cp .env.example .env
 # Éditer .env avec vos clés (Supabase, Stripe, etc.)
 
 # Démarrer le serveur de développement
-npm run dev
+pnpm run dev
 
 # Optionnel : Mock API pour produits/posts (autre terminal)
-npm run start:api
+pnpm run start:api
 ```
 
 ### Variables d'Environnement
@@ -212,7 +212,7 @@ rif-raw-straw/
 │   └── 📄 main.tsx             # Point d'entrée de l'application
 ├── 📁 cypress/                 # Tests E2E (specs, support) — voir cypress/README.md
 ├── 📁 docs/                    # Index: docs/README.md (platform, standards, E2E matrix)
-├── 📁 scripts/                 # Scripts npm (OpenAPI, Postman, Cypress shard…) — scripts/README.md
+├── 📁 scripts/                 # Scripts outils (OpenAPI, Postman, Cypress shard…) — scripts/README.md
 ├── 📁 openapi/                 # OpenAPI généré (Edge Functions) — openapi/README.md
 ├── 📁 postman/                 # Collection Postman générée — postman/README.md
 ├── 📁 supabase/                # Migrations, config, Edge Functions — supabase/README.md
@@ -269,25 +269,25 @@ logoLink: 'main-logo';
 
 ```bash
 # Tests unitaires
-npm run test
+pnpm run test
 
 # Tests des Edge Functions Supabase
-npm run test:edge-functions
+pnpm run test:edge-functions
 
 # Tests avec couverture
-npm run coverage
+pnpm run coverage
 
 # Tests e2e (Cypress — serveur déjà démarré : API mock 3001 + Vite 8080)
-npm run e2e:run
+pnpm run e2e:run
 # ou en mode interactif
-npm run e2e:open
+pnpm run e2e:open
 # smoke / régression (tags @cypress/grep)
-npm run e2e:smoke
-npm run e2e:regression
+pnpm run e2e:smoke
+pnpm run e2e:regression
 
 # Même chose qu’en CI : démarre l’API mock + Vite puis lance Cypress
-npm run e2e:ci
-npm run e2e:ci:smoke
+pnpm run e2e:ci
+pnpm run e2e:ci:smoke
 ```
 
 ### Tests pricing-snapshot (Deno)
@@ -296,7 +296,7 @@ Le contrat de **pricing snapshot** (mapping Stripe → snapshot v1 stocké en DB
 
 **Prérequis :**
 
-- **Deno v2** sur le `PATH` (même version que `npm run verify:create-payment`). Vérifier avec `deno --version`.
+- **Deno v2** sur le `PATH` (même version que `pnpm run verify:create-payment`). Vérifier avec `deno --version`.
 - Aucune variable d'environnement, clé Supabase ni accès réseau requis — les tests sont 100 % offline et exécutent uniquement la logique de mapping.
 - Le script utilise `--allow-env --allow-read=. --no-check --config supabase/functions/deno.json` (lecture des fixtures JSON + import du schéma Zod côté `src/` ; pas de typecheck Deno, pas de lockfile gelé) pour rester aligné avec le bundler hosté de Supabase. **`node scripts/assert-deno-v2.mjs`** échoue vite si Deno n’est pas en v2.
 
@@ -327,16 +327,16 @@ rg -n 'Deno\.env|process\.env|fetch\(' \
 Et pour confirmer que la suite passe avec un environnement totalement vide :
 
 ```bash
-env -i PATH="$PATH" HOME="$HOME" npm run test:pricing-snapshot:deno
+env -i PATH="$PATH" HOME="$HOME" pnpm run test:pricing-snapshot:deno
 ```
 
 **Lancer uniquement les tests pricing snapshot :**
 
 ```bash
-npm run test:pricing-snapshot:deno
+pnpm run test:pricing-snapshot:deno
 ```
 
-Fichiers Deno inclus dans **`npm run test:pricing-snapshot:deno`** :
+Fichiers Deno inclus dans **`pnpm run test:pricing-snapshot:deno`** :
 
 - `supabase/functions/_shared/pricing-snapshot_test.ts` — 17 tests (devises, totaux, mapping de lignes, valeurs manquantes, quantités négatives, arrondis, libellés shipping).
 - `supabase/functions/_shared/pricing_snapshot_golden_test.ts` — 1 test (`pricing_snapshot_v1.golden.json` + schéma Zod partagé avec le SPA).
@@ -356,7 +356,7 @@ ok | 26 passed | 0 failed (XXms)
 - **Une seule ligne `running N tests from ./<path>` par fichier**, dans l'ordre où Deno les charge (ici `stripe-webhook/lib/...` puis `_shared/...`). L'ordre peut varier selon la version de Deno mais reste stable d'un run à l'autre sur la même machine.
 - **Un bloc par test** : `<nom du test> ... ok (Xms)`. Les durées entre parenthèses sont **non-déterministes** : la plupart affichent `(0ms)`, certains atteignent quelques `ms` (vu jusqu'à `(25ms)` localement) selon la charge CPU, le cache disque, et la première compilation TypeScript de Deno. C'est pourquoi la doc note historiquement `(XXms)` à la place — n'importe quel entier ≥ 0 suivi de `ms` est valide.
 - **Échec d'un test** : la ligne devient `<nom> ... FAILED (Xms)` avec un encart `failures:` listant les tests cassés au-dessus du résumé.
-- **Ligne de résumé finale** : précédée d'**une ligne vide**, toujours en **dernière position** de la sortie de `deno test`, au format `ok | <passed> passed | <failed> failed (<total>ms)`. Elle apparaît **après** tous les blocs `running ... from ...` (et non pas une fois par fichier). Pour **`npm run test:pricing-snapshot:deno`**, total Deno attendu (agrégé sur tous les fichiers listés ci-dessus) : **`26 passed | 0 failed`** à date — ajuster ce nombre si vous ajoutez/supprimez des `Deno.test`. Pour **`npm run test:pricing-snapshot`**, la même suite Deno est suivie de Vitest (`src/lib/checkout/pricingSnapshot.test.ts`). Exit code `0` si tout passe ; sinon **`FAILED | …`** avec exit code `1`, ce qui bloque le job **Deno create-payment** ([`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml)).
+- **Ligne de résumé finale** : précédée d'**une ligne vide**, toujours en **dernière position** de la sortie de `deno test`, au format `ok | <passed> passed | <failed> failed (<total>ms)`. Elle apparaît **après** tous les blocs `running ... from ...` (et non pas une fois par fichier). Pour **`pnpm run test:pricing-snapshot:deno`**, total Deno attendu (agrégé sur tous les fichiers listés ci-dessus) : **`26 passed | 0 failed`** à date — ajuster ce nombre si vous ajoutez/supprimez des `Deno.test`. Pour **`pnpm run test:pricing-snapshot`**, la même suite Deno est suivie de Vitest (`src/lib/checkout/pricingSnapshot.test.ts`). Exit code `0` si tout passe ; sinon **`FAILED | …`** avec exit code `1`, ce qui bloque le job **Deno create-payment** ([`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml)).
 
 **Inspecter les exécutions CI (lien direct) :**
 
@@ -366,39 +366,39 @@ ok | 26 passed | 0 failed (XXms)
 - 🔍 **Job + étape précis** : sur n'importe quel run ouvert, le bloc qui exécute la suite pricing snapshot s'appelle `deno → Deno test checkout pricing helpers` (logs accessibles à l'URL `…/actions/runs/<run_id>/job/<job_id>#step:7:1`). Cliquer sur le numéro d'étape recopie un lien permanent vers la ligne en erreur — utile à coller dans une PR.
 - 📦 **Recherche par PR** : sur l'onglet "Checks" d'une pull request, le check s'appelle exactement `Deno create-payment / deno`. Cliquer dessus ouvre le run + le job déjà déroulé sur l'étape qui a échoué.
 
-> ⚠️ **Note de couverture** : en CI, après **`Assert Deno v2 for pricing helpers`**, l'étape **`Deno test checkout pricing helpers`** exécute les six fichiers Deno listés ci-dessus avec **`--allow-env`**, **`--allow-read`** sur la racine du dépôt, **`--no-check`**, et **`--config deno.json`** (voir [`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml)). **`npm run test:pricing-snapshot`** enchaîne cette même suite puis **Vitest** (`src/lib/checkout/pricingSnapshot.test.ts`, incluant validation du fichier **`pricing_snapshot_v1.golden.json`**). **`npm run test:pricing-snapshot:deno`** correspond à la partie Deno uniquement (sans Vitest).
+> ⚠️ **Note de couverture** : en CI, après **`Assert Deno v2 for pricing helpers`**, l'étape **`Deno test checkout pricing helpers`** exécute les six fichiers Deno listés ci-dessus avec **`--allow-env`**, **`--allow-read`** sur la racine du dépôt, **`--no-check`**, et **`--config deno.json`** (voir [`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml)). **`pnpm run test:pricing-snapshot`** enchaîne cette même suite puis **Vitest** (`src/lib/checkout/pricingSnapshot.test.ts`, incluant validation du fichier **`pricing_snapshot_v1.golden.json`**). **`pnpm run test:pricing-snapshot:deno`** correspond à la partie Deno uniquement (sans Vitest).
 
 - **Téléchargements** : au tout premier run sur une machine vierge, Deno log `Download https://deno.land/std@0.190.0/...` au-dessus de la sortie (mise en cache locale). Les runs suivants n'affichent plus ces lignes — l'absence ou la présence n'affecte ni le format du résumé ni l'exit code.
 - **Pas de couleurs ANSI en CI / pipe** : Deno détecte qu'il n'écrit pas dans un TTY et omet automatiquement les codes couleur ; le format texte ci-dessus reste identique.
 
-Pour la suite complète **Deno (mapping + helpers email) + Vitest (Zod client)** : `npm run test:pricing-snapshot`.
+Pour la suite complète **Deno (mapping + helpers email) + Vitest (Zod client)** : `pnpm run test:pricing-snapshot`.
 
 #### Dépannage : `deno` introuvable ou version incompatible
 
-| Symptôme (sortie de `npm run test:pricing-snapshot:deno`)                                 | Cause probable                                                                                                  | Correctif                                                                                                                                                                                                                                                                                                                                        |
+| Symptôme (sortie de `pnpm run test:pricing-snapshot:deno`)                                 | Cause probable                                                                                                  | Correctif                                                                                                                                                                                                                                                                                                                                        |
 | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `sh: 1: deno: not found` ou `'deno' is not recognized as an internal or external command` | Deno n'est pas installé ou pas dans le `PATH` du shell où `npm` tourne.                                         | Installer Deno **v2** : `curl -fsSL https://deno.land/install.sh \| sh` (Linux/macOS) ou `irm https://deno.land/install.ps1 \| iex` (Windows PowerShell). Puis ajouter `~/.deno/bin` au `PATH` (`export PATH="$HOME/.deno/bin:$PATH"` dans `~/.bashrc` / `~/.zshrc`) et **rouvrir le terminal**.                                                 |
-| `deno --version` affiche `1.x.x` au lieu de `2.x.x`                                       | Version trop ancienne (le projet exige Deno 2 — même contrainte que `npm run verify:create-payment`).           | Mettre à jour : `deno upgrade` (auto-update vers la dernière stable). Pour épingler explicitement la v2 : `deno upgrade --version 2.x` ou réinstaller avec `DENO_INSTALL=$HOME/.deno sh -c "$(curl -fsSL https://deno.land/install.sh)"`.                                                                                                        |
+| `deno --version` affiche `1.x.x` au lieu de `2.x.x`                                       | Version trop ancienne (le projet exige Deno 2 — même contrainte que `pnpm run verify:create-payment`).           | Mettre à jour : `deno upgrade` (auto-update vers la dernière stable). Pour épingler explicitement la v2 : `deno upgrade --version 2.x` ou réinstaller avec `DENO_INSTALL=$HOME/.deno sh -c "$(curl -fsSL https://deno.land/install.sh)"`.                                                                                                        |
 | `error: Unsupported lockfile version '5'`                                                 | Un vieux Deno (1.x) tente de lire `deno.lock` v5 généré par Deno 2.                                             | Mêmes correctifs que la ligne précédente — passer en Deno 2. Le lockfile racine (`deno.lock`) est intentionnellement v5 ; le bundler hosté de Supabase, lui, ne le lit pas (raisons documentées dans `AGENTS.md`).                                                                                                                               |
 | `error: Module not found "https://deno.land/std@0.190.0/..."` au premier run              | Tout premier run sur la machine, pas de cache Deno + accès réseau bloqué (proxy d'entreprise, machine offline). | Lancer **une fois** avec accès réseau pour pré-remplir le cache : `deno cache supabase/functions/_shared/pricing-snapshot_test.ts supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts`. Les runs suivants sont 100 % offline (voir checklist ci-dessus). Derrière un proxy : exporter `HTTPS_PROXY` / `HTTP_PROXY` avant la commande. |
-| `error: The module's source code could not be parsed` ou erreurs de typecheck Deno        | `deno test` fait un typecheck par défaut sur des fichiers que le bundler Supabase ne typecheck pas.             | Le script npm passe déjà `--no-check` ; si vous lancez `deno test` à la main, **ajouter `--no-check`** : `deno test --allow-env --no-check supabase/functions/_shared/pricing-snapshot_test.ts`.                                                                                                                                                 |
-| `error: Uncaught (in promise) PermissionDenied: Requires env access`                      | Vous lancez `deno test` à la main sans `--allow-env`.                                                           | Toujours utiliser `--allow-env` (présent dans le script npm — certains modules std déclenchent la permission même sans `Deno.env.get`).                                                                                                                                                                                                          |
+| `error: The module's source code could not be parsed` ou erreurs de typecheck Deno        | `deno test` fait un typecheck par défaut sur des fichiers que le bundler Supabase ne typecheck pas.             | Le script pnpm passe déjà `--no-check` ; si vous lancez `deno test` à la main, **ajouter `--no-check`** : `deno test --allow-env --no-check supabase/functions/_shared/pricing-snapshot_test.ts`.                                                                                                                                                 |
+| `error: Uncaught (in promise) PermissionDenied: Requires env access`                      | Vous lancez `deno test` à la main sans `--allow-env`.                                                           | Toujours utiliser `--allow-env` (présent dans le script **`pnpm run test:pricing-snapshot:deno`** — certains modules std déclenchent la permission même sans `Deno.env.get`).                                                                                                                                                                                                          |
 | `Expected Deno 2.x` ou message **`[assert-deno-v2]`**                                     | Le pré-script **`node scripts/assert-deno-v2.mjs`** a détecté Deno 1.x ou l’absence de `deno`.                  | Installer / mettre à jour vers Deno **2.x** (`deno upgrade`).                                                                                                                                                                                                                                                                                    |
-| `Requires read access` lors des tests avec fixtures                                       | `deno test` sans **`--allow-read`** alors que les tests lisent `fixtures/*.json` ou `src/`.                     | Utiliser la commande **`npm run test:pricing-snapshot:deno`** telle quelle (elle inclut **`--allow-read=.`**).                                                                                                                                                                                                                                   |
-| Sur Windows : `'npm' is not recognized` après installation Deno                           | Conflit de `PATH` ou shell mal rouvert.                                                                         | Vérifier que `node`, `npm` **et** `deno` sont tous trois trouvables : `node -v && npm -v && deno --version`. Si seul `deno` manque, ré-éxecuter le bloc `Add-Content $PROFILE '$env:Path += ";$env:USERPROFILE\.deno\bin"'` puis relancer PowerShell.                                                                                            |
+| `Requires read access` lors des tests avec fixtures                                       | `deno test` sans **`--allow-read`** alors que les tests lisent `fixtures/*.json` ou `src/`.                     | Utiliser la commande **`pnpm run test:pricing-snapshot:deno`** telle quelle (elle inclut **`--allow-read=.`**).                                                                                                                                                                                                                                   |
+| Sur Windows : **`pnpm`** introuvable ou `PATH` incomplet après installation Deno                           | Conflit de `PATH` ou shell mal rouvert.                                                                         | Vérifier que `node`, **`pnpm`** **et** `deno` sont trouvables : `node -v && pnpm -v && deno --version`. Si seul `deno` manque, ré-exécuter le bloc PowerShell Deno puis relancer PowerShell.                                                                                            |
 
 **Vérification rapide de la stack avant de relancer :**
 
 ```bash
-node -v && npm -v && deno --version
-# Attendu (au minimum) : node v18+, npm v9+, deno 2.x.x
+node -v && pnpm -v && deno --version
+# Attendu (au minimum) : node v18+, pnpm v9+, deno 2.x.x
 ```
 
 Si tout est conforme et que le test échoue toujours, voir la section [Inspecter les exécutions CI (lien direct)](#inspecter-les-exécutions-ci-lien-direct) ci-dessus pour comparer la sortie locale avec un run vert connu sur `main`.
 
 #### Mettre à jour ou régénérer les fixtures pricing snapshot
 
-> **TL;DR** — Il n'existe **pas** de pipeline auto de régénération au sens Cypress/Jest (`__snapshots__/`, `--update-snapshots`). Les valeurs attendues dans les tests TypeScript sont des littéraux ou des fichiers JSON versionnés à la main (`supabase/functions/_shared/fixtures/*.json`), puis vérifiés en relançant `npm run test:pricing-snapshot:deno`.
+> **TL;DR** — Il n'existe **pas** de pipeline auto de régénération au sens Cypress/Jest (`__snapshots__/`, `--update-snapshots`). Les valeurs attendues dans les tests TypeScript sont des littéraux ou des fichiers JSON versionnés à la main (`supabase/functions/_shared/fixtures/*.json`), puis vérifiés en relançant `pnpm run test:pricing-snapshot:deno`.
 
 **Où vivent les fixtures :**
 
@@ -422,10 +422,10 @@ Si tout est conforme et que le test échoue toujours, voir la section [Inspecter
 
    ```bash
    # Relance toute la suite, doit afficher: ok | 20 passed | 0 failed (Xms)
-   npm run test:pricing-snapshot:deno
+   pnpm run test:pricing-snapshot:deno
 
    # Variante Vitest (Zod côté client) — utile si la forme du snapshot change.
-   npm run test:pricing-snapshot
+   pnpm run test:pricing-snapshot
    ```
 
 5. **Cibler un seul test** pendant l'itération (Deno supporte le filtre `--filter`) :
@@ -434,14 +434,14 @@ Si tout est conforme et que le test échoue toujours, voir la section [Inspecter
      --filter "currency is normalized to lowercase" \
      supabase/functions/_shared/pricing-snapshot_test.ts
    ```
-6. **Mettre à jour le compteur dans la doc** — la section « Sortie attendue » ci-dessus mentionne **`26 passed`** pour **`npm run test:pricing-snapshot:deno`** (état du dépôt à maintenir à jour). Si vous ajoutez/supprimez un test, ajustez ce total dans la doc en conséquence.
+6. **Mettre à jour le compteur dans la doc** — la section « Sortie attendue » ci-dessus mentionne **`26 passed`** pour **`pnpm run test:pricing-snapshot:deno`** (état du dépôt à maintenir à jour). Si vous ajoutez/supprimez un test, ajustez ce total dans la doc en conséquence.
 
 **Si la forme du snapshot v1 change (champ ajouté / renommé / supprimé) :**
 
 1. **Bumper la version** (`v1` ⇒ `v2`) dans `pricing-snapshot.ts` selon les règles de [`PRICING_SNAPSHOT.md`](supabase/functions/_shared/PRICING_SNAPSHOT.md) — un changement breaking ne doit **jamais** réutiliser `v1`, sinon les snapshots persistés en DB deviennent invalides à la lecture.
 2. Mettre à jour **tous** les `assertEquals` en parallèle dans les deux fichiers `*_test.ts`.
 3. Mettre à jour le schéma Zod côté client (`src/lib/checkout/pricingSnapshot.ts`) + son test Vitest associé.
-4. Relancer `npm run test:pricing-snapshot` (Deno + Vitest combinés) — doit passer en intégralité avant ouverture de PR.
+4. Relancer `pnpm run test:pricing-snapshot` (Deno + Vitest combinés) — doit passer en intégralité avant ouverture de PR.
 
 **Anti-patterns à éviter :**
 
@@ -464,21 +464,22 @@ Pour les scénarios avec authentification réelle, copier `cypress.env.example.j
 ### Vérification TypeScript (monorepo)
 
 ```bash
-npm run type:check   # App + Vite config + Cypress
-npm run validate     # lint + format + typecheck + tests unitaires
+pnpm run type:check   # App + Vite config + Cypress
+pnpm run validate     # lint + format + typecheck + bundling + Vitest (**toutes** les specs ; voir [docs/STANDARDS.md](docs/STANDARDS.md#validate-vs-testunit-vs-root-github-ci))
+pnpm run test:unit    # Vitest comme CI : exclut `rls-e2e.test.ts` + `rls-quick-validation.test.ts` uniquement
 ```
 
 ### Linting & Formatage
 
 ```bash
 # Vérification du code
-npm run lint
+pnpm run lint
 
 # Correction automatique (lint)
-npm run lint:fix
+pnpm run lint:fix
 
 # Formatage Prettier
-npm run format
+pnpm run format
 ```
 
 ## 🚢 Déploiement
@@ -493,10 +494,10 @@ npm run format
 
 ```bash
 # Build de production
-npm run build
+pnpm run build
 
 # Prévisualisation du build
-npm run preview
+pnpm run preview
 
 # Déploiement sur Vercel
 vercel --prod

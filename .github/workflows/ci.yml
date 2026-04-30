@@ -22,20 +22,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: npm run lint -- --max-warnings 9999
+        run: pnpm run lint -- --max-warnings 9999
 
       - name: Format check
-        run: npm run format:check
+        run: pnpm run format:check
 
       - name: Setup Deno (edge functions — full bundling check)
         uses: denoland/setup-deno@v2
@@ -43,22 +47,22 @@ jobs:
           deno-version: v2.x
 
       - name: Edge functions bundling check (Deno)
-        run: npm run check:edge-functions:bundling:full
+        run: pnpm run check:edge-functions:bundling:full
 
       - name: OpenAPI spec drift check
-        run: npm run openapi:edge-functions:check
+        run: pnpm run openapi:edge-functions:check
 
       - name: Postman collection drift check
-        run: npm run postman:collection:check
+        run: pnpm run postman:collection:check
 
       - name: Typecheck
-        run: npm run type:check
+        run: pnpm run type:check
 
       - name: Unit tests
-        run: npm run test:unit
+        run: pnpm run test:unit
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
         env:
           VITE_SUPABASE_URL: https://test.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: test-anon-key-for-ci

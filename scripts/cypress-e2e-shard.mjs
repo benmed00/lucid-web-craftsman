@@ -6,7 +6,7 @@
  *   CYPRESS_SHARD        — 1-based shard index (default: 1)
  *   CYPRESS_SHARD_TOTAL  — number of shards (default: 1 = run full suite, no --spec)
  *
- * Delegates to start-server-and-test like npm run e2e:ci.
+ * Delegates to start-server-and-test like pnpm run e2e:ci.
  */
 import { execSync } from 'node:child_process';
 import { readdirSync, statSync } from 'node:fs';
@@ -69,7 +69,7 @@ const specArg = specList.join(',');
 const cypressCmd = total > 1 ? `cypress run --spec ${specArg}` : 'cypress run';
 
 // One shell string so Windows cmd / PowerShell parse the last argument like npm scripts do.
-const fullCmd = `npx start-server-and-test "npm run start:api" http-get://localhost:3001 "npm run dev:e2e" http-get://${E2E_PROBE_URL.replace(/^https?:\/\//, '')} "${cypressCmd.replace(/"/g, '\\"')}"`;
+const fullCmd = `npx start-server-and-test "pnpm run start:api" http-get://localhost:3001 "pnpm run dev:e2e" http-get://${E2E_PROBE_URL.replace(/^https?:\/\//, '')} "${cypressCmd.replace(/"/g, '\\"')}"`;
 
 try {
   execSync(fullCmd, {

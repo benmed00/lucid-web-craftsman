@@ -7,13 +7,13 @@ The file **`supabase-edge-functions.json`** in this directory is **generated**. 
 From the repository root:
 
 ```bash
-npm run openapi:edge-functions
+pnpm run openapi:edge-functions
 ```
 
 CI-style drift check (regenerates then fails if `git diff` is non-empty):
 
 ```bash
-npm run openapi:edge-functions:check
+pnpm run openapi:edge-functions:check
 ```
 
 Per-function detail can be extended via `supabase/functions/<function-name>/openapi.fragment.json`.

@@ -16,6 +16,11 @@ lerna-debug.log*
 # Dependencies and build output
 node_modules
 dist
+
+# Lockfile discipline: use pnpm only (pnpm-lock.yaml is committed)
+/package-lock.json
+**/package-lock.json
+
 dist-ssr
 *.local
 
@@ -29,6 +34,7 @@ cypress.env.json
 cypress/screenshots/
 cypress/videos/
 cypress/downloads/
+cypress/diagnostics/
 
 # Editor and IDE
 .vscode/*

@@ -1,6 +1,6 @@
 /**
  * Regenerates Postman collection and fails if postman/Lucid-Web-Craftsman.postman_collection.json would change.
- * Usage: npm run postman:collection:check
+ * Usage: pnpm run postman:collection:check
  */
 
 import { spawnSync } from 'child_process';
@@ -32,7 +32,7 @@ if (diff.status === 0) {
 }
 if (diff.status === 1) {
   console.error(
-    `Drift in ${COLLECTION}: run npm run postman:collection and commit the result.`
+    `Drift in ${COLLECTION}: run pnpm run postman:collection and commit the result.`
   );
   process.exit(1);
 }
