@@ -54,5 +54,54 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: node scripts/assert-deno-v2.mjs
 
+      - name: Guard — no env vars / network in pricing-snapshot tests
+        working-directory: ${{ github.workspace }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILES=(
+            supabase/functions/_shared/pricing-snapshot_test.ts
+            supabase/functions/_shared/pricing_snapshot_golden_test.ts
+            supabase/functions/_shared/pricing_snapshot_extended_test.ts
+            supabase/functions/_shared/persist-pricing-snapshot_test.ts
+            supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts
+            supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts
+          )
+          for f in "${FILES[@]}"; do
+            if [[ ! -f "$f" ]]; then
+              echo "::error file=$f::Test file missing — update the workflow file list."
+              exit 1
+            fi
+          done
+
+          # ripgrep is preinstalled on ubuntu-latest runners.
+          ENV_PATTERN='Deno\.env\.(get|toObject|has|set|delete)\b|process\.env\b'
+          NET_PATTERN='\bfetch\s*\(|\bnew\s+(XMLHttpRequest|WebSocket|EventSource)\b|Deno\.(connect|connectTls|listen|serve|serveHttp)\b'
+
+          fail=0
+          echo "▌ Scanning for env-var reads…"
+          if rg -n --no-heading -e "$ENV_PATTERN" "${FILES[@]}"; then
+            echo "::error::Pricing-snapshot tests must not read env vars (Deno.env / process.env). Move config into the helper under test or pass it explicitly."
+            fail=1
+          else
+            echo "  ✓ no Deno.env / process.env reads"
+          fi
+
+          echo "▌ Scanning for network calls…"
+          if rg -n --no-heading -e "$NET_PATTERN" "${FILES[@]}"; then
+            echo "::error::Pricing-snapshot tests must stay 100% offline — no fetch/XHR/WebSocket/Deno.connect/serve. Stub the input as an in-memory literal instead."
+            fail=1
+          else
+            echo "  ✓ no fetch / XHR / WebSocket / Deno.connect|serve"
+          fi
+
+          if [[ "$fail" -ne 0 ]]; then
+            echo ""
+            echo "Pricing-snapshot tests are run without --allow-net and (locally) under \`env -i\`."
+            echo "See: scripts/verify-pricing-snapshot-offline.mjs and README \"Préparer le cache Deno\"."
+            exit 1
+          fi
+          echo "✓ Guard passed — safe to run pricing-snapshot tests offline."
+
       - name: Deno test checkout pricing helpers
         run: deno test --allow-env --allow-read=${{ github.workspace }} --no-check --config deno.json _shared/pricing-snapshot_test.ts _shared/pricing_snapshot_golden_test.ts _shared/pricing_snapshot_extended_test.ts _shared/persist-pricing-snapshot_test.ts _shared/confirm-order_test.ts stripe-webhook/lib/pricing-snapshot_test.ts send-order-confirmation/_lib/email-pricing-from-db_test.ts

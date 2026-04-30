@@ -330,6 +330,31 @@ Et pour confirmer que la suite passe avec un environnement totalement vide :
 env -i PATH="$PATH" HOME="$HOME" pnpm run test:pricing-snapshot:deno
 ```
 
+**👉 Commande tout-en-un — vérifier qu'aucune variable d'environnement n'est requise :**
+
+```bash
+npm run verify:pricing-snapshot:offline
+```
+
+Ce script ([`scripts/verify-pricing-snapshot-offline.mjs`](scripts/verify-pricing-snapshot-offline.mjs)) :
+
+1. Audite statiquement les 6 fichiers de test avec `rg` → échoue si un seul `Deno.env.*` ou `process.env.*` est trouvé.
+2. Re-spawne `deno test --cached-only --allow-read=. --no-check` (sans `--allow-env`, sans `--allow-net`) sous `env -i` (POSIX) ou un env minimal (Windows).
+3. Imprime un résumé `✓ pass / ✗ fail / ! warn` et sort en code `0` si tout est vert, `1` sinon — utilisable en pre-commit, audit, ou CI.
+
+Sortie attendue (extrait) :
+
+```text
+▌ Static audit — no env-var reads in test files
+  ✓ no Deno.env / process.env in test files  — 0 matches across 6 files
+▌ Runtime — `env -i` + `--cached-only` (no env, no network)
+  ✓ deno test (no --allow-env, no --allow-net, --cached-only)  — 26 passed in 842 ms
+▌ Summary
+  3 passed  ·  0 failed  ·  0 warnings
+✓ pricing-snapshot suite is provably offline & env-free
+```
+
+
 **Lancer uniquement les tests pricing snapshot :**
 
 ```bash
@@ -372,6 +397,83 @@ ok | 26 passed | 0 failed (XXms)
 - **Pas de couleurs ANSI en CI / pipe** : Deno détecte qu'il n'écrit pas dans un TTY et omet automatiquement les codes couleur ; le format texte ci-dessus reste identique.
 
 Pour la suite complète **Deno (mapping + helpers email) + Vitest (Zod client)** : `pnpm run test:pricing-snapshot`.
+
+#### Préparer le cache Deno pour des runs 100 % hors-ligne
+
+Deno télécharge ses dépendances (`https://deno.land/std@…`, `npm:` et `jsr:` via la map d'imports `supabase/functions/deno.json`) **au premier run**, puis les sert depuis le cache local (`$DENO_DIR`, par défaut `~/.cache/deno` sous Linux/macOS, `%LOCALAPPDATA%\deno` sous Windows). Une fois ce cache amorcé, **`npm run test:pricing-snapshot:deno`** s'exécute sans aucun accès réseau — utile en avion, derrière un proxy strict, ou en CI air-gapped.
+
+**Étape 1 — Premier run en ligne (amorçage du cache) :**
+
+```bash
+# Pré-télécharge tous les modules importés par les tests Deno listés dans le script npm,
+# en réutilisant la même map d'imports que le test runner.
+deno cache --config supabase/functions/deno.json \
+  supabase/functions/_shared/pricing-snapshot_test.ts \
+  supabase/functions/_shared/pricing_snapshot_golden_test.ts \
+  supabase/functions/_shared/pricing_snapshot_extended_test.ts \
+  supabase/functions/_shared/persist-pricing-snapshot_test.ts \
+  supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts \
+  supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts
+```
+
+Sortie attendue (la première fois) : une série de lignes `Download https://deno.land/std@0.190.0/...` puis `Download https://jsr.io/@std/assert/...`, sans erreur. Si `deno cache` se termine sans `error:`, le cache est prêt.
+
+> Derrière un proxy d'entreprise : exporter `HTTPS_PROXY` / `HTTP_PROXY` (et au besoin `DENO_CERT=/chemin/ca-bundle.pem`) **avant** la commande `deno cache`. Ces variables ne sont **pas** nécessaires pour les runs offline ultérieurs.
+
+**Étape 2 — Vérifier que tout passe hors-ligne :**
+
+```bash
+# Force Deno à n'utiliser que le cache local — échoue si un module manque encore.
+DENO_OFFLINE=1 npm run test:pricing-snapshot:deno
+# (équivalent manuel : deno test --cached-only --allow-env --allow-read=. --no-check ... )
+```
+
+Sortie attendue : strictement la même que décrite dans **Sortie attendue** plus haut (`ok | 26 passed | 0 failed (XXms)`), **sans** aucune ligne `Download ...`. Si vous voyez `error: Specifier not found in cache`, retournez à l'étape 1 avec une connexion : un fichier de test a probablement été ajouté et importe un nouveau module.
+
+**Étape 3 (optionnelle) — Geler le cache pour le partager / l'archiver :**
+
+```bash
+# Localiser le cache pour le sauvegarder ou le monter dans une image Docker / runner CI air-gapped.
+deno info | grep -i "DENO_DIR"
+# Exemple : DENO_DIR location: /home/dev/.cache/deno
+tar czf deno-cache.tgz -C "$(deno info --json | jq -r '.denoDir')" .
+```
+
+Sur un runner CI offline, restaurer ensuite ce tarball dans `$DENO_DIR` **avant** d'exécuter `npm run test:pricing-snapshot:deno` (qui passe déjà `--no-check` et n'a besoin d'aucun secret — voir la **Checklist offline / sans secrets** ci-dessus).
+
+#### Anatomie des flags `deno test` utilisés
+
+La commande exacte derrière **`npm run test:pricing-snapshot:deno`** est :
+
+```bash
+deno test \
+  --allow-env \
+  --allow-read=. \
+  --no-check \
+  --config supabase/functions/deno.json \
+  supabase/functions/_shared/pricing-snapshot_test.ts \
+  …  # (6 fichiers au total)
+```
+
+**Aucun** des flags suivants n'est passé : `--allow-net`, `--allow-write`, `--allow-run`, `--allow-sys`, `--allow-ffi`, `--unstable`. Deno applique son modèle « deny-by-default » : toute tentative de réseau, écriture disque, sous-process, etc. provoque immédiatement `PermissionDenied`. C'est cette absence — pas une assertion explicite — qui **garantit** que les tests sont offline et hermétiques.
+
+| Flag                                       | Pourquoi présent                                                                                                                                                                                                                                                                                            | Ce qu'il garantit (et ce qu'il **n'**accorde **pas**)                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--allow-env`                              | Filet de sécurité pour des modules standard (`@std/assert`, `@std/testing/...`) qui peuvent lire `NO_COLOR`, `CI`, `DENO_NO_PROMPT`, `TERM` pour ajuster leur sortie. **Aucun** test du dossier `pricing-snapshot` n'appelle `Deno.env.get(...)` (vérifié par `npm run verify:pricing-snapshot:offline` + le job CI **« Guard — no env vars / network »**, voir [`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml)). | Permet à Deno de **lire** des variables d'environnement si elles existent. **Ne rend aucune variable obligatoire** : la commande tourne identiquement sous `env -i …` (variables effacées). Concrètement : pas besoin de `SUPABASE_URL`, `STRIPE_SECRET_KEY`, `BREVO_*`, etc. — aucun secret ni `.env` n'est jamais ouvert.                                                                                                       |
+| `--allow-read=.`                           | Les tests importent des fixtures JSON (`supabase/functions/_shared/fixtures/*.json`) et le schéma Zod côté SPA (`src/lib/checkout/pricingSnapshotSchema.ts`). Sans ce flag, l'import Deno échoue avec `Requires read access`.                                                                                | Lecture **limitée à la racine du dépôt** (le `.` = `cwd` au lancement). Aucun chemin hors-projet n'est lisible (ex. `~/.aws/credentials`, `/etc/passwd`). Pas d'accès **écriture** : impossible de modifier un fichier, donc pas de pollution du worktree pendant les tests.                                                                                                                                                       |
+| `--no-check`                               | Le bundler hosté de Supabase ne fait **pas** de typecheck Deno à l'exécution ; on s'aligne dessus pour éviter qu'un test passe localement (typecheck strict) puis casse en prod. Évite aussi le téléchargement de `lib.deno.d.ts` au premier run, ce qui rendrait le **vrai** premier run impossible offline. | **Aucun** typecheck TypeScript pendant le test (les erreurs de types ne font pas échouer la suite). Les bugs de types sont attrapés ailleurs : `npm run type:check` (Vitest/SPA) et `npm run deno:check:create-payment` (Deno strict, fichiers prod uniquement). N'affecte ni les permissions ni la sécurité — c'est purement une optim de vitesse + portabilité bundler.                                                          |
+| `--config supabase/functions/deno.json`    | Fournit la map d'imports partagée (`@std/assert` → JSR, `npm:@supabase/supabase-js@2`, etc.) pour que les `import` des fichiers de test résolvent les **mêmes** versions que les Edge Functions déployées.                                                                                                  | Garantit la reproductibilité entre local, CI, et prod. **Ne** charge **pas** `deno.lock` racine (volontairement absent de `supabase/functions/`) — le bundler Supabase ne sait pas lire un lockfile v5, voir AGENTS.md.                                                                                                                                                                                                            |
+| _(absent)_ `--allow-net`                   | Jamais passé. Si un test ajoutait `fetch(...)`, `Deno.connect(...)`, un `WebSocket`, etc., il échouerait avec `PermissionDenied: Requires net access`. Le job CI **Guard** refuse aussi tout commit qui introduirait ces patterns dans les fichiers de test.                                                | **Garantie offline** : impossible que la suite contacte un serveur, un CDN, ou Supabase. Les fixtures sont des littéraux TS / JSON in-memory (voir section **Mettre à jour ou régénérer les fixtures**).                                                                                                                                                                                                                          |
+| _(absent)_ `--allow-write` / `--allow-run` / `--allow-sys` / `--allow-ffi` | Jamais passés. Toute tentative d'écrire un fichier, lancer un sous-process, lire `Deno.hostname()`/`Deno.osRelease()`, ou charger une lib native échoue.                                                                                                                                                    | **Hermétisme** : la suite ne laisse aucune trace sur disque (logs, fichiers temporaires, snapshots auto-régénérés). Pas de `Deno.run('git ...')` ou équivalent qui dépendrait de l'environnement hôte.                                                                                                                                                                                                                            |
+
+**Conséquences directes pour la CI / l'offline :**
+
+- **Aucun secret nécessaire** : aucun job, aucun runner, aucun PR contributor n'a besoin de `STRIPE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `BREVO_API_KEY`, etc. pour exécuter cette suite. Idéal pour les forks et les PR externes (où les secrets GitHub Actions sont masqués).
+- **Reproductibilité bit-à-bit** : `env -i deno test ...` (sous Linux/macOS) produit la même sortie que sur le runner GitHub. Si la commande passe en local, elle passe en CI — et inversement.
+- **Air-gapped friendly** : combiné avec le cache Deno pré-amorcé (voir **Préparer le cache Deno pour des runs 100 % hors-ligne** ci-dessus), la suite tourne sur un runner sans accès Internet.
+- **Vérification automatisée** : `npm run verify:pricing-snapshot:offline` rejoue cette commande sous `env -i` + `--cached-only` et imprime un résumé pass/fail — utile en pre-commit ou lors d'un audit.
+
+> Si vous **devez** ajouter un test qui consomme une variable d'environnement ou qui parle à un service réel, **ne le mettez pas** dans les six fichiers listés ci-dessus : créez un nouveau test dans `supabase/functions/<feature>/` et un script npm dédié. Sinon le job **Guard** de [`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml) bloquera le merge.
 
 #### Dépannage : `deno` introuvable ou version incompatible
 
