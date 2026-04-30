@@ -330,6 +330,31 @@ Et pour confirmer que la suite passe avec un environnement totalement vide :
 env -i PATH="$PATH" HOME="$HOME" npm run test:pricing-snapshot:deno
 ```
 
+**👉 Commande tout-en-un — vérifier qu'aucune variable d'environnement n'est requise :**
+
+```bash
+npm run verify:pricing-snapshot:offline
+```
+
+Ce script ([`scripts/verify-pricing-snapshot-offline.mjs`](scripts/verify-pricing-snapshot-offline.mjs)) :
+
+1. Audite statiquement les 6 fichiers de test avec `rg` → échoue si un seul `Deno.env.*` ou `process.env.*` est trouvé.
+2. Re-spawne `deno test --cached-only --allow-read=. --no-check` (sans `--allow-env`, sans `--allow-net`) sous `env -i` (POSIX) ou un env minimal (Windows).
+3. Imprime un résumé `✓ pass / ✗ fail / ! warn` et sort en code `0` si tout est vert, `1` sinon — utilisable en pre-commit, audit, ou CI.
+
+Sortie attendue (extrait) :
+
+```text
+▌ Static audit — no env-var reads in test files
+  ✓ no Deno.env / process.env in test files  — 0 matches across 6 files
+▌ Runtime — `env -i` + `--cached-only` (no env, no network)
+  ✓ deno test (no --allow-env, no --allow-net, --cached-only)  — 26 passed in 842 ms
+▌ Summary
+  3 passed  ·  0 failed  ·  0 warnings
+✓ pricing-snapshot suite is provably offline & env-free
+```
+
+
 **Lancer uniquement les tests pricing snapshot :**
 
 ```bash
