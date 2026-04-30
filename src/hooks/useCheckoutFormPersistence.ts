@@ -22,7 +22,7 @@ import {
   safeRemoveItem,
   StorageTTL,
 } from '@/lib/storage/safeStorage';
-import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
+import { useOptimizedAuth } from '@/context/AuthContext';
 import {
   resolveCartSyncPolicy,
   isElevatedStorefrontUser,

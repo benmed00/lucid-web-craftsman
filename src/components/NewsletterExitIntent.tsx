@@ -9,7 +9,7 @@ import {
 import NewsletterSubscription from '@/components/NewsletterSubscription';
 import { useTranslation } from 'react-i18next';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
+import { useOptimizedAuth } from '@/context/AuthContext';
 
 const STORAGE_KEY = 'newsletter_exit_intent_dismissed';
 const SUBSCRIBED_KEY = 'newsletter_subscribed';

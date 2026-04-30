@@ -4,7 +4,7 @@
  * Create, edit, delete and manage blog posts from the admin dashboard.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   deleteBlogPostById,
@@ -59,10 +59,18 @@ import {
   Calendar,
   Search,
   Filter,
+  Loader2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import BlogEditor from '@/components/admin/BlogEditor';
+
+const BlogEditor = lazy(() => import('@/components/admin/BlogEditor'));
+
+const blogEditorFallback = (
+  <div className="flex min-h-[240px] items-center justify-center p-8">
+    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+  </div>
+);
 
 interface BlogPost {
   id: string;
@@ -311,18 +319,20 @@ export default function AdminBlog() {
               Nouvel article
             </Button>
           </DialogTrigger>
-          <BlogEditor
-            formData={formData}
-            setFormData={setFormData}
-            tagsInput={tagsInput}
-            setTagsInput={setTagsInput}
-            onSubmit={handleSubmit}
-            onCancel={() => setIsCreateDialogOpen(false)}
-            isSubmitting={createMutation.isPending}
-            isValid={isFormValid}
-            mode="create"
-            generateSlug={generateSlug}
-          />
+          <Suspense fallback={blogEditorFallback}>
+            <BlogEditor
+              formData={formData}
+              setFormData={setFormData}
+              tagsInput={tagsInput}
+              setTagsInput={setTagsInput}
+              onSubmit={handleSubmit}
+              onCancel={() => setIsCreateDialogOpen(false)}
+              isSubmitting={createMutation.isPending}
+              isValid={isFormValid}
+              mode="create"
+              generateSlug={generateSlug}
+            />
+          </Suspense>
         </Dialog>
       </div>
 
@@ -506,19 +516,21 @@ export default function AdminBlog() {
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
-                            <BlogEditor
-                              formData={formData}
-                              setFormData={setFormData}
-                              tagsInput={tagsInput}
-                              setTagsInput={setTagsInput}
-                              onSubmit={handleSubmit}
-                              onCancel={() => setEditingPost(null)}
-                              isSubmitting={updateMutation.isPending}
-                              isValid={isFormValid}
-                              mode="edit"
-                              generateSlug={generateSlug}
-                              editingPostId={post.id}
-                            />
+                            <Suspense fallback={blogEditorFallback}>
+                              <BlogEditor
+                                formData={formData}
+                                setFormData={setFormData}
+                                tagsInput={tagsInput}
+                                setTagsInput={setTagsInput}
+                                onSubmit={handleSubmit}
+                                onCancel={() => setEditingPost(null)}
+                                isSubmitting={updateMutation.isPending}
+                                isValid={isFormValid}
+                                mode="edit"
+                                generateSlug={generateSlug}
+                                editingPostId={post.id}
+                              />
+                            </Suspense>
                           </Dialog>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>

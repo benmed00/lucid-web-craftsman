@@ -6,7 +6,7 @@ import {
   incrementReviewHelpfulCount,
   insertProductReview,
 } from '@/services/reviewsApi';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
 export interface Review {

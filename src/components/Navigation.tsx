@@ -3,7 +3,7 @@ import { Leaf, Menu, X } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCartUI } from '@/hooks/useCartUI';
 import { useState, useCallback, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { useWishlist } from '@/hooks/useWishlist';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';

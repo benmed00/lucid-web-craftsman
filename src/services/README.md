@@ -14,7 +14,7 @@ Reusable **API and integration** code for the SPA: Supabase (PostgREST, auth, st
 - `*Api.ts` — feature or domain surface
 - `admin*Api.ts` — dashboard
 - `*Service.ts` — mixed or legacy helpers
-- `api.ts` — `apiClient` + `/api` mock routes
+- `apiClient` — [`src/lib/api/apiClient.ts`](../src/lib/api/apiClient.ts); use for relative **`/api/*`** calls while Vite proxies to the mock (see [docs/PLATFORM.md — Diagnosing API…](../docs/PLATFORM.md#diagnosing-api-and-database-failures))
 
 Prefer extending a module here (then hooks / TanStack Query) over scattering `supabase.from(...)` in components.
 

@@ -3,7 +3,7 @@
 // No longer queries admin_users table for authorization
 
 import { useMemo } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { canAdmin, logAccessDenied } from '@/lib/rbac';
 
 export interface AdminUser {

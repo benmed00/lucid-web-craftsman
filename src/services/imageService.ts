@@ -111,6 +111,9 @@ class ImageService {
 
     return new Promise((resolve) => {
       const img = new Image();
+      if (normalizedSrc.includes('supabase.co/storage')) {
+        img.crossOrigin = 'anonymous';
+      }
       const timeout = setTimeout(() => {
         img.onload = null;
         img.onerror = null;

@@ -162,6 +162,7 @@ Cypress.Commands.add('resetDatabase', () => {
 /**
  * Log in via /auth and cache the session with cy.session().
  * Set CUSTOMER_EMAIL / CUSTOMER_PASSWORD (or ADMIN_*) in Cypress env.
+ * Prefers `data-testid` selectors from Auth.tsx; legacy #signin-* fallbacks included.
  */
 Cypress.Commands.add('loginAs', (role: 'customer' | 'admin' = 'customer') => {
   const email = Cypress.env(`${role.toUpperCase()}_EMAIL`) as string;
@@ -170,11 +171,18 @@ Cypress.Commands.add('loginAs', (role: 'customer' | 'admin' = 'customer') => {
     [role, email],
     () => {
       cy.visit('/auth');
-      cy.get('#signin-email').clear().type(email);
-      cy.get('#signin-password').clear().type(password, { log: false });
-      cy.get('button[type="submit"]')
-        .contains(/se connecter|sign in/i)
-        .click();
+      cy.get('[data-testid="auth-form"]', { timeout: 15000 })
+        .filter(':visible')
+        .first()
+        .within(() => {
+          cy.get('[data-testid="auth-email"], #auth-email, #signin-email')
+            .clear()
+            .type(email);
+          cy.get(
+            '[data-testid="auth-password"], #auth-password, #signin-password'
+          ).type(password, { log: false });
+          cy.get('[data-testid="auth-submit"]').click();
+        });
       cy.url().should('not.include', '/auth');
     },
     {

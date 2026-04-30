@@ -5,7 +5,7 @@ import { ReviewsOverview } from './ReviewsOverview';
 import { ReviewsList } from './ReviewsList';
 import { ReviewForm } from './ReviewForm';
 import { useReviews } from '@/hooks/useReviews';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 
 interface ProductReviewsProps {

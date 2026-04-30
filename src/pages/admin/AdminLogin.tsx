@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Eye, EyeOff, Lock, Mail, Leaf } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useCsrfToken } from '@/hooks/useCsrfToken';
 import {

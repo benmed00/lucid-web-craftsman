@@ -200,6 +200,13 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(
       }
     };
 
+    const displaySrc = generateSafeImageUrl(currentSrc);
+    const imgCrossOrigin: 'anonymous' | undefined =
+      displaySrc.startsWith('https://') &&
+      displaySrc.includes('supabase.co/storage')
+        ? 'anonymous'
+        : undefined;
+
     return (
       <div
         className={cn(
@@ -237,7 +244,7 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(
           {/* Fallback img element with safe URL generation */}
           <img
             ref={ref}
-            src={generateSafeImageUrl(currentSrc)}
+            src={displaySrc}
             alt={alt}
             sizes={sizes}
             className={cn(
@@ -259,6 +266,7 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(
             // React doesn't recognize camelCase 'fetchPriority' and warns
             {...(category === 'hero' ? { fetchpriority: 'high' } : {})}
             {...props}
+            crossOrigin={imgCrossOrigin ?? props.crossOrigin}
           />
         </picture>
       </div>

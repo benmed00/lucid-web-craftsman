@@ -73,6 +73,7 @@
     "supabase:db:query": "npx --yes supabase@2.90.0 db query --linked --agent=no",
     "supabase:migration:list": "npx --yes supabase@2.90.0 migration list --linked --agent=no -o pretty",
     "supabase:migration:diff": "node scripts/migration-local-remote-diff.mjs",
+    "verify:guest-token-rpc": "node scripts/verify-guest-token-rpc.mjs",
     "supabase:types:gen": "node scripts/supabase-gen-types.mjs",
     "test:edge-functions": "vitest run src/tests/edge-functions.test.ts src/tests/edge-functions-carrier-mappings.test.ts",
     "test:unit": "vitest run --exclude \"**/rls-e2e.test.ts\" --exclude \"**/rls-quick-validation.test.ts\"",

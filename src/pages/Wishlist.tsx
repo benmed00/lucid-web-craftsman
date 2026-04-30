@@ -14,7 +14,7 @@ import { RemainingSlots } from '@/components/ui/RemainingSlots';
 
 import PageFooter from '@/components/PageFooter';
 import { useWishlist } from '@/hooks/useWishlist';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { ProductService } from '@/services/productService';
 import { useCart, useCurrency } from '@/stores';
 import { useBusinessRules } from '@/hooks/useBusinessRules';

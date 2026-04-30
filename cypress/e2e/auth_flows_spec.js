@@ -4,6 +4,10 @@
  * Uses cy.loginAs() via cy.session() so session is cached across tests.
  * Requires env vars: CUSTOMER_EMAIL, CUSTOMER_PASSWORD
  *
+ * Selectors (see src/pages/Auth.tsx): **prefer `[data-testid="auth-*"]`** on the main
+ * form (`auth-form`, `auth-submit`, `auth-toggle-signup`). Legacy `#signin-*` / `#signup-*`
+ * remain as fallbacks for older deployments.
+ *
  * Tags: @auth @smoke @regression
  */
 
@@ -11,41 +15,67 @@ const AUTH_URL = '/auth';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-// Auth.tsx uses a unified form with IDs #auth-email / #auth-password /
+/** Primary form anchor — avoids resolving the wrong form when a duplicate exists (e.g. mobile menu). */
+const AUTH_FORM_SELECTOR = '[data-testid="auth-form"]';
+const AUTH_SUBMIT_SELECTOR = '[data-testid="auth-submit"]';
+// Auth.tsx uses a unified form with data-testids and IDs #auth-email / #auth-password /
 // #auth-name / #auth-confirm-password. Selectors below keep legacy
 // #signin-* / #signup-* as fallbacks so the spec tolerates both shapes.
-const SIGNIN_EMAIL_SELECTOR = '#auth-email, #signin-email';
-const SIGNIN_PASSWORD_SELECTOR = '#auth-password, #signin-password';
+const SIGNIN_EMAIL_SELECTOR =
+  '[data-testid="auth-email"], #auth-email, #signin-email';
+const SIGNIN_PASSWORD_SELECTOR =
+  '[data-testid="auth-password"], #auth-password, #signin-password';
 const SIGNUP_NAME_SELECTOR =
-  '#auth-name, #signup-name, [name="name"][id*="signup"]';
+  '[data-testid="auth-name"], #auth-name, #signup-name, [name="name"][id*="signup"]';
 const SIGNUP_EMAIL_SELECTOR =
-  '#auth-email, #signup-email, [name="email"][id*="signup"]';
-const SIGNUP_PASSWORD_SELECTOR = '#auth-password, #signup-password';
+  '[data-testid="auth-email"], #auth-email, #signup-email, [name="email"][id*="signup"]';
+const SIGNUP_PASSWORD_SELECTOR =
+  '[data-testid="auth-password"], #auth-password, #signup-password';
 const SIGNUP_CONFIRM_SELECTOR =
-  '#auth-confirm-password, #confirm-password, [name="confirm-password"]';
+  '[data-testid="auth-confirm-password"], #auth-confirm-password, #confirm-password, [name="confirm-password"]';
 
 function fillSignInForm(email, password) {
-  cy.get(SIGNIN_EMAIL_SELECTOR).first().clear().type(email);
+  cy.get(SIGNIN_EMAIL_SELECTOR).filter(':visible').first().clear().type(email);
   cy.get(SIGNIN_PASSWORD_SELECTOR)
+    .filter(':visible')
     .first()
     .clear()
     .type(password, { log: false });
+}
+
+function submitAuthForm() {
+  cy.get(AUTH_FORM_SELECTOR)
+    .filter(':visible')
+    .first()
+    .within(() => {
+      cy.get(AUTH_SUBMIT_SELECTOR).click();
+    });
 }
 
 function fillSignUpForm(email, password, fullName) {
-  cy.get(SIGNUP_NAME_SELECTOR).first().clear().type(fullName);
-  cy.get(SIGNUP_EMAIL_SELECTOR).first().clear().type(email);
+  cy.get(SIGNUP_NAME_SELECTOR)
+    .filter(':visible')
+    .first()
+    .clear()
+    .type(fullName);
+  cy.get(SIGNUP_EMAIL_SELECTOR).filter(':visible').first().clear().type(email);
   cy.get(SIGNUP_PASSWORD_SELECTOR)
+    .filter(':visible')
     .first()
     .clear()
     .type(password, { log: false });
 }
 
-// Open sign-up. New Auth.tsx uses a bottom toggle button ("Créer un compte" /
-// "Sign up"); fall back to the old outer tablist for older revisions.
+// Open sign-up. New Auth.tsx uses `[data-testid="auth-toggle-signup"]`; fall back to
+// label text then the old outer tablist.
 function openSignUp() {
   cy.get('body').then(($body) => {
     if ($body.find('#auth-name, #signup-name').length) return;
+    const testIdToggle = $body.find('[data-testid="auth-toggle-signup"]');
+    if (testIdToggle.length) {
+      cy.wrap(testIdToggle.first()).click();
+      return;
+    }
     const toggle = $body.find(
       'button:contains("Créer un compte"), button:contains("Sign up")'
     );
@@ -69,27 +99,34 @@ describe('Auth: Sign In @auth @smoke', () => {
   });
 
   it('renders the sign-in form with required fields', () => {
-    cy.get(SIGNIN_EMAIL_SELECTOR).first().should('be.visible');
-    cy.get(SIGNIN_PASSWORD_SELECTOR).first().should('be.visible');
-    // Scope to the auth form (mobile menu also has a visually-hidden form on
-    // this route); assert on the single submit button there, not its text,
-    // since the CTA label comes from i18n and can fall back to the key in CI.
+    cy.get(AUTH_FORM_SELECTOR).should('be.visible');
     cy.get(SIGNIN_EMAIL_SELECTOR)
-      .first()
-      .parents('form')
-      .find('button[type="submit"]')
+      .filter(':visible')
       .first()
       .should('be.visible');
+    cy.get(SIGNIN_PASSWORD_SELECTOR)
+      .filter(':visible')
+      .first()
+      .should('be.visible');
+    cy.get(AUTH_FORM_SELECTOR)
+      .filter(':visible')
+      .first()
+      .within(() => {
+        cy.get(AUTH_SUBMIT_SELECTOR).should('be.visible');
+      });
   });
 
   it('shows validation error for empty email submission', () => {
-    cy.get(SIGNIN_PASSWORD_SELECTOR).first().type('somepassword');
-    cy.get(SIGNIN_EMAIL_SELECTOR)
+    cy.get(SIGNIN_PASSWORD_SELECTOR)
+      .filter(':visible')
       .first()
-      .parents('form')
-      .find('button[type="submit"]')
+      .type('somepassword');
+    cy.get(AUTH_FORM_SELECTOR)
+      .filter(':visible')
       .first()
-      .click();
+      .within(() => {
+        cy.get(AUTH_SUBMIT_SELECTOR).click();
+      });
     // Either HTML5 validation or custom error
     cy.get(
       `${SIGNIN_EMAIL_SELECTOR.split(',')
@@ -100,12 +137,7 @@ describe('Auth: Sign In @auth @smoke', () => {
 
   it('shows error for incorrect credentials', () => {
     fillSignInForm('not-a-real-user@example.com', 'WrongPassword123!');
-    cy.get(SIGNIN_EMAIL_SELECTOR)
-      .first()
-      .parents('form')
-      .find('button[type="submit"]')
-      .first()
-      .click();
+    submitAuthForm();
     cy.contains(
       /mot de passe incorrect|invalid|identifiants|connexion échouée|email ou mot de passe/i,
       { timeout: 8000 }
@@ -114,6 +146,7 @@ describe('Auth: Sign In @auth @smoke', () => {
 
   it('password field masks input', () => {
     cy.get(SIGNIN_PASSWORD_SELECTOR)
+      .filter(':visible')
       .first()
       .should('have.attr', 'type', 'password');
   });
@@ -140,12 +173,7 @@ describe('Auth: Sign In @auth @smoke', () => {
     }
 
     fillSignInForm(email, password);
-    cy.get(SIGNIN_EMAIL_SELECTOR)
-      .first()
-      .parents('form')
-      .find('button[type="submit"]')
-      .first()
-      .click();
+    submitAuthForm();
 
     cy.url({ timeout: 10000 }).should('not.include', '/auth');
   });

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useReviews } from '@/hooks/useReviews';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { uploadReviewPhoto } from '@/services/reviewsApi';
 import { toast } from 'sonner';

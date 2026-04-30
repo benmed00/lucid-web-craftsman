@@ -111,6 +111,20 @@ export default tseslint.config(
     },
   },
 
+  // Gradual typing: explicit `any` in app sources (not unit tests).
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: [
+      '**/*.{test,spec}.{ts,tsx}',
+      'src/tests/**',
+      '**/*.integration.{ts,tsx}',
+      'src/vite-env.d.ts',
+    ],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'warn',
+    },
+  },
+
   // Test files: unused bindings are common in mocks and assertions
   {
     files: ['src/tests/**/*.{ts,tsx}', '**/*.{test,spec}.{ts,tsx}'],
@@ -125,12 +139,10 @@ export default tseslint.config(
     ignores: [
       '**/*.{test,spec}.{ts,tsx}',
       // Grandfathered from main's token-based OrderConfirmation / Artisans /
-      // Logout / ABThemeManager — each still reads supabase directly. Track
-      // these as follow-up in the admin services refactor instead of blocking
-      // every merge from main.
+      // ABThemeManager — each still reads supabase directly. Track these as
+      // follow-up in the admin services refactor instead of blocking every merge.
       'src/components/admin/ABThemeManager.tsx',
       'src/pages/Artisans.tsx',
-      'src/pages/Logout.tsx',
       'src/pages/OrderConfirmation.tsx',
     ],
     rules: {
@@ -149,9 +161,9 @@ export default tseslint.config(
     },
   },
 
-  // Supabase Edge Functions run on Deno with their own typecheck config; the
-  // Node-side ESLint resolver cannot see Deno std / npm: imports, so
-  // @ts-nocheck / @ts-ignore pragmas are the practical escape hatch here.
+  // Supabase Edge Functions run on Deno with their own typecheck config; Node's
+  // ESLint resolver cannot see Deno std / npm: imports easily, so @ts-expect-error,
+  // @ts-ignore, or @ts-nocheck may appear when unavoidable — ban-ts-comment stays off.
   {
     files: ['supabase/functions/**/*.{ts,tsx}'],
     rules: {

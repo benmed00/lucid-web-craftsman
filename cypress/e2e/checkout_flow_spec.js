@@ -29,6 +29,9 @@ describe('Checkout Flow @smoke @regression', () => {
     cy.addCatalogLineAndOpenCartSpa();
     cy.get('#main-content #cart-checkout-button').should('be.visible').click();
     cy.url().should('include', '/checkout');
+    cy.get('[data-testid="checkout-page-main"]', { timeout: 25000 }).should(
+      'be.visible'
+    );
   });
 
   it('should fill personal info and advance to shipping', () => {
@@ -71,6 +74,38 @@ describe('Checkout Flow @smoke @regression', () => {
 
     // Payment step: card option (#card) or payment title/options text
     cy.contains(/visa|mastercard|paiement sécurisé|secure payment/i, {
+      timeout: 15000,
+    }).should('be.visible');
+    cy.get('[data-testid="checkout-page-main"]').should('be.visible');
+  });
+
+  it('shows mobile sticky pay control at payment step on narrow viewport', () => {
+    cy.viewport(390, 844);
+    cy.addCatalogLineAndOpenCheckoutStep1();
+    cy.get('#firstName').clear().type('Jean');
+    cy.get('#lastName').clear().type('Dupont');
+    cy.get('#email').clear().type('jean.dupont@test.com');
+    cy.get('#phone').clear().type('+33612345678');
+    cy.get('fieldset')
+      .find('button')
+      .contains(/livraison|shipping|suivant|next|continuer/i)
+      .should('be.visible')
+      .click();
+
+    cy.get('#address', { timeout: 15000 }).should('be.visible');
+    cy.get('#address').type('12 Rue de la Paix');
+    cy.get('#postalCode').type('75001');
+    cy.get('#city').type('Paris');
+
+    cy.get('[data-testid="checkout-continue-to-payment"]')
+      .filter(':visible')
+      .click();
+
+    cy.contains(/visa|mastercard|paiement sécurisé|secure payment/i, {
+      timeout: 15000,
+    }).should('be.visible');
+
+    cy.get('[data-testid="checkout-pay-mobile"]', {
       timeout: 15000,
     }).should('be.visible');
   });

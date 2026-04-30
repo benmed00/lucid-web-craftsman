@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
+import { useOptimizedAuth } from '@/context/AuthContext';
 import { getBusinessRules } from '@/hooks/useBusinessRules';
 import {
   resolveCartSyncPolicy,

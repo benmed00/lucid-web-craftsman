@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,7 +57,8 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import PromoCodeStats from '@/components/admin/PromoCodeStats';
+
+const PromoCodeStats = lazy(() => import('@/components/admin/PromoCodeStats'));
 import PromoCodeExport from '@/components/admin/PromoCodeExport';
 import PromoAlertChecker from '@/components/admin/PromoAlertChecker';
 
@@ -604,7 +605,15 @@ const AdminPromoCodes = () => {
         </TabsList>
 
         <TabsContent value="stats" className="space-y-6">
-          <PromoCodeStats coupons={coupons} />
+          <Suspense
+            fallback={
+              <div className="flex min-h-[200px] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            }
+          >
+            <PromoCodeStats coupons={coupons} />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="list" className="space-y-6">

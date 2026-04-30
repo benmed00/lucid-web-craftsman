@@ -26,7 +26,7 @@ import Maintenance from './pages/Maintenance';
 
 // Helper for resilient lazy loading with retry and reload fallback
 const lazyWithRetry = (
-  importFn: () => Promise<{ default: React.ComponentType<any> }>
+  importFn: () => Promise<{ default: React.ComponentType<object> }>
 ) => {
   return lazy(async () => {
     try {

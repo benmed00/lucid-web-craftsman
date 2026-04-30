@@ -3,16 +3,17 @@
  *
  * Build tool for React (SWC), Vitest, and dev server.
  * - base: '/' (Lovable preview compatible)
- * - Dev server: port 8080, proxies /api and /health to json-server (3001);
- *   /frankfurter-api → api.frankfurter.dev (no browser CORS on the public API)
+ * - Dev + preview: proxies `/api` and `/health` to json-server (3001); dev port defaults 8080
+ *   (`VITE_DEV_SERVER_PORT`). Start the mock API locally when using those paths.
+ * - `/frankfurter-api` → api.frankfurter.dev (no browser CORS on the public API)
  * - Test: jsdom, globals, setupTests.ts
  *
  * E2E port contract (keep in sync with cypress.config.ts baseUrl + package.json e2e:*):
- * start-server-and-test waits on http://127.0.0.1:8080/contact (SPA route) so a stray
- * listener on 8080 that only serves `/` does not look “ready”, and the probe host matches
- * Cypress baseUrl (loopback IPv4). The dev server uses
- * strictPort so we never silently bind to 8081/8082 when 8080 is taken (that mismatch
- * caused cy.visit ECONNREFUSED). Override the app origin with CYPRESS_BASE_URL if needed.
+ * start-server-and-test waits on `http://127.0.0.1:<port>/contact` (SPA route; default port
+ * **8080**) so a stray listener that only serves `/` does not look “ready”, and the probe
+ * host matches Cypress baseUrl (loopback IPv4). `strictPort` fails fast if the requested port
+ * is taken. Use **`VITE_DEV_SERVER_PORT`** (see `scripts/lib/e2e-port.mjs`) when 8080 is busy
+ * (e.g. Apache); use **`CYPRESS_BASE_URL`** for preview/staging origins only.
  *
  * Dev `server.host` must bind IPv4 explicitly (`0.0.0.0`): with only `'::'` or some `true`
  * defaults, Node on Windows can listen on IPv6 while another process (e.g. Apache) holds
@@ -32,6 +33,12 @@ import react from '@vitejs/plugin-react-swc';
 const pkgVersion = JSON.parse(
   readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
 ).version as string;
+
+/** Keeps Cypress + start-server-and-test SPA probe aligned (see scripts/lib/e2e-port.mjs). */
+const devServerPort = Number.parseInt(
+  process.env.VITE_DEV_SERVER_PORT ?? '8080',
+  10
+);
 
 // ==========================================================================
 // Optional Lovable component tagger
@@ -57,12 +64,12 @@ export default defineConfig(({ mode }) => ({
   },
 
   // ==========================================================================
-  // Dev server — must stay on 8080 for Cypress (see file header: E2E port contract)
+  // Dev server — default port 8080; override with `VITE_DEV_SERVER_PORT` (must match Cypress)
   // ==========================================================================
   server: {
     host: '0.0.0.0',
-    port: 8080,
-    // Fail if 8080 is taken (don’t silently use 8082 — Cypress baseUrl stays :8080)
+    port: devServerPort,
+    // Fail if the requested port is taken (don’t silently use 8082 — Cypress must match)
     strictPort: true,
     proxy: {
       '/frankfurter-api': {
@@ -96,6 +103,8 @@ export default defineConfig(({ mode }) => ({
         secure: true,
         rewrite: (p) => p.replace(/^\/frankfurter-api/, ''),
       },
+      '/api': { target: 'http://localhost:3001', changeOrigin: true },
+      '/health': { target: 'http://localhost:3001', changeOrigin: true },
     },
   },
 
@@ -126,7 +135,7 @@ export default defineConfig(({ mode }) => ({
     setupFiles: './src/tests/setupTests.ts',
     css: true,
     // Do not set `test.api` here: a fixed port makes `vitest run` fail when 24678 is
-    // taken (e.g. `npm run test:ui`). UI uses loopback + 24678 via `test:ui` in package.json.
+    // taken (e.g. `pnpm run test:ui`). UI uses loopback + 24678 via `test:ui` in package.json.
   },
 
   // ==========================================================================

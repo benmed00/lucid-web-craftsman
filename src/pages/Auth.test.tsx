@@ -10,7 +10,7 @@ import Auth from './Auth';
 const signInSpy = vi.fn().mockResolvedValue({ user: null, session: null });
 const signUpSpy = vi.fn().mockResolvedValue({ user: null, session: null });
 
-vi.mock('@/hooks/useOptimizedAuth', () => ({
+vi.mock('@/context/AuthContext', () => ({
   useOptimizedAuth: () => ({
     user: null,
     session: null,

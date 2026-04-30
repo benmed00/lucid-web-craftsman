@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/context/AuthContext';
 
 // Typed audit log details - extend as needed for specific actions
 export interface AuditLogDetails {

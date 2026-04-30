@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { AB_SESSION_KEY } from '@/lib/abThemeConstants';
 import { useUIStyleStore, type UIStyle } from '@/stores/uiStyleStore';
-
-const AB_SESSION_KEY = 'rif-ab-theme-variant';
 
 interface ABThemeTest {
   id: string;
@@ -84,29 +83,4 @@ export function useABThemeTest() {
       ? sessionStorage.getItem(AB_SESSION_KEY)
       : null) as 'a' | 'b' | null,
   };
-}
-
-/**
- * Call this to track a conversion event for the active A/B test.
- */
-export async function trackABConversion(
-  counterType: 'add_to_cart' | 'checkout'
-) {
-  const variant = sessionStorage.getItem(AB_SESSION_KEY) as 'a' | 'b' | null;
-  if (!variant) return;
-
-  const { data } = await supabase
-    .from('ab_theme_tests')
-    .select('id')
-    .eq('is_active', true)
-    .limit(1)
-    .maybeSingle();
-
-  if (data?.id) {
-    await supabase.rpc('increment_ab_counter', {
-      test_id: data.id,
-      variant,
-      counter_type: counterType,
-    });
-  }
 }

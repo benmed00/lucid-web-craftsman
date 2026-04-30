@@ -147,12 +147,36 @@ export function useGuestSession() {
 
         setSession(updatedSession);
       } else {
-        // Create new guest session with server-signed token
+        const persistUnsigned = () => {
+          const newSession: GuestSession = {
+            guestId: generateUUID(),
+            createdAt: Date.now(),
+            device: createDeviceMetadata(),
+          };
+          safeSetItem(GUEST_SESSION_KEY, newSession, {
+            storage: 'localStorage',
+            ttl: StorageTTL.MONTH,
+          });
+          setSession(newSession);
+        };
+
         try {
-          const { data: tokenData } = await supabase.rpc('create_guest_token');
+          const { data: tokenData, error: rpcError } = await supabase.rpc(
+            'create_guest_token'
+          );
+          if (rpcError) {
+            if (import.meta.env.DEV) {
+              console.warn(
+                '[useGuestSession] create_guest_token:',
+                rpcError.message
+              );
+            }
+          }
           const td = tokenData as Record<string, string> | null;
-          const guestId = td?.guest_id || generateUUID();
-          const signature = td?.signature || undefined;
+          const guestId =
+            !rpcError && td?.guest_id ? td.guest_id : generateUUID();
+          const signature =
+            !rpcError && td?.signature ? td.signature : undefined;
 
           const newSession: GuestSession = {
             guestId,
@@ -168,19 +192,7 @@ export function useGuestSession() {
 
           setSession(newSession);
         } catch {
-          // Fallback to unsigned session if RPC fails
-          const newSession: GuestSession = {
-            guestId: generateUUID(),
-            createdAt: Date.now(),
-            device: createDeviceMetadata(),
-          };
-
-          safeSetItem(GUEST_SESSION_KEY, newSession, {
-            storage: 'localStorage',
-            ttl: StorageTTL.MONTH,
-          });
-
-          setSession(newSession);
+          persistUnsigned();
         }
       }
 

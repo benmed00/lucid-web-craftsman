@@ -1,6 +1,9 @@
 /**
  * Checkout page smoke tests — Vitest — data-testid contracts on early-return branches.
- * Full funnel remains covered by Cypress (`e2e:checkout`).
+ *
+ * `useCheckoutPage` is intentionally mocked here: this file only asserts static selector
+ * contracts when the hook returns controlled shapes. Full checkout funnel behavior stays
+ * covered by Cypress (`e2e:checkout`) and Integration-style runs against the real hook.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';

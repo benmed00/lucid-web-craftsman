@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
+import { useOptimizedAuth } from '@/context/AuthContext';
 import { useCsrfToken } from '@/hooks/useCsrfToken';
 import { Eye, EyeOff, CheckCircle2, ArrowLeft } from 'lucide-react';
 import {
@@ -15,7 +15,8 @@ import {
 } from '@/utils/xssProtection';
 import { createRateLimiter } from '@/utils/validation';
 import { OTPAuthFlow } from '@/components/auth/OTPAuthFlow';
-import authHeroImg from '@/assets/auth-hero.jpg';
+import authHeroWebp from '@/assets/auth-hero.webp';
+import authHeroJpg from '@/assets/auth-hero.jpg';
 
 const authRateLimiter = createRateLimiter(5, 15 * 60 * 1000);
 
@@ -69,10 +70,11 @@ export default function Auth() {
         title: t('auth:messages.loggedIn'),
         description: t('auth:messages.welcome'),
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: t('auth:errors.invalidCredentials'),
-        description: error.message,
+        description:
+          error instanceof Error ? error.message : String(error ?? ''),
         variant: 'destructive',
       });
     } finally {
@@ -133,10 +135,11 @@ export default function Auth() {
           description: t('auth:messages.welcome'),
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: t('auth:errors.networkError'),
-        description: error.message,
+        description:
+          error instanceof Error ? error.message : String(error ?? ''),
         variant: 'destructive',
       });
     } finally {
@@ -188,16 +191,19 @@ export default function Auth() {
     <div className="min-h-screen bg-[hsl(var(--background))] flex flex-col lg:flex-row">
       {/* ═══ LEFT — Visual storytelling (hidden on mobile) ═══ */}
       <div className="hidden lg:flex lg:w-[48%] xl:w-[45%] relative overflow-hidden">
-        <img
-          src={authHeroImg}
-          alt={
-            isFr
-              ? 'Artisanat marocain en paille naturelle'
-              : 'Moroccan handmade straw craftsmanship'
-          }
-          className="absolute inset-0 w-full h-full object-cover"
-          loading="eager"
-        />
+        <picture className="absolute inset-0 block">
+          <source srcSet={authHeroWebp} type="image/webp" />
+          <img
+            src={authHeroJpg}
+            alt={
+              isFr
+                ? 'Artisanat marocain en paille naturelle'
+                : 'Moroccan handmade straw craftsmanship'
+            }
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="eager"
+          />
+        </picture>
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
         {/* Floating cart reservation card */}

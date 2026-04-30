@@ -9,7 +9,7 @@ vi.mock('@/hooks/useCartUI', () => ({
   useCartUI: () => ({ itemCount: 0 }),
 }));
 
-vi.mock('@/hooks/useAuth', () => ({
+vi.mock('@/context/AuthContext', () => ({
   useAuth: () => ({ user: null, isLoading: false, signOut: vi.fn() }),
 }));
 

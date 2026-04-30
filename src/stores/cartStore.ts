@@ -154,7 +154,7 @@ export const useCartStore = create<CartState>()(
             get().triggerSave();
 
             // A/B conversion tracking (fire-and-forget)
-            import('@/hooks/useABThemeTest')
+            import('@/lib/abThemeConversion')
               .then(({ trackABConversion }) => trackABConversion('add_to_cart'))
               .catch(() => {});
           },
