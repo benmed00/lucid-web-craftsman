@@ -382,6 +382,52 @@ ok | 26 passed | 0 failed (XXms)
 - **Échec d'un test** : la ligne devient `<nom> ... FAILED (Xms)` avec un encart `failures:` listant les tests cassés au-dessus du résumé.
 - **Ligne de résumé finale** : précédée d'**une ligne vide**, toujours en **dernière position** de la sortie de `deno test`, au format `ok | <passed> passed | <failed> failed (<total>ms)`. Elle apparaît **après** tous les blocs `running ... from ...` (et non pas une fois par fichier). Pour **`pnpm run test:pricing-snapshot:deno`**, total Deno attendu (agrégé sur tous les fichiers listés ci-dessus) : **`26 passed | 0 failed`** à date — ajuster ce nombre si vous ajoutez/supprimez des `Deno.test`. Pour **`pnpm run test:pricing-snapshot`**, la même suite Deno est suivie de Vitest (`src/lib/checkout/pricingSnapshot.test.ts`). Exit code `0` si tout passe ; sinon **`FAILED | …`** avec exit code `1`, ce qui bloque le job **Deno create-payment** ([`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml)).
 
+**Exemple de sortie en cas d'échec** — si on casse volontairement une assertion (par exemple `assertEquals(snap.currency, 'usd')` au lieu de `'eur'` dans `_shared/pricing-snapshot_test.ts > currency is normalized to lowercase`), la sortie devient :
+
+```text
+running 17 tests from ./supabase/functions/_shared/pricing-snapshot_test.ts
+currency is normalized to lowercase ... FAILED (3ms)
+defaults currency to eur when missing ... ok (0ms)
+total_details fields map to discount/shipping/tax ... ok (1ms)
+... (14 autres tests ok)
+running 2 tests from ./supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts
+buildPricingSnapshotV1FromStripe maps Stripe totals and lines ... ok (0ms)
+isShippingLineDescription detects French shipping row ... ok (0ms)
+... (autres fichiers identiques)
+
+ ERRORS
+
+currency is normalized to lowercase => ./supabase/functions/_shared/pricing-snapshot_test.ts:10:6
+error: AssertionError: Values are not equal.
+
+
+    [Diff] Actual / Expected
+
+
+-   eur
++   usd
+
+  throw new AssertionError(message);
+        ^
+    at assertEquals (https://deno.land/std@0.190.0/testing/asserts.ts:...)
+    at file:///.../supabase/functions/_shared/pricing-snapshot_test.ts:17:3
+
+ FAILURES
+
+currency is normalized to lowercase => ./supabase/functions/_shared/pricing-snapshot_test.ts:10:6
+
+FAILED | 25 passed | 1 failed (912ms)
+
+error: Test failed
+```
+
+**Ce qui change vs. la sortie verte :**
+
+- Le test cassé passe de `... ok (Xms)` à **`... FAILED (Xms)`** — seul ce test est marqué, les autres restent `ok`.
+- Deux nouveaux blocs apparaissent **avant** la ligne de résumé : **`ERRORS`** (stack trace + diff `assertEquals`) puis **`FAILURES`** (liste compacte `<nom> => <fichier>:<ligne>:<col>`, copier-coller-friendly pour ouvrir directement la ligne fautive).
+- La ligne de résumé finale passe de **`ok | 26 passed | 0 failed (XXms)`** à **`FAILED | 25 passed | 1 failed (XXms)`** : le préfixe **`ok`** devient **`FAILED`** et le compteur `failed` reflète le nombre exact de tests cassés.
+- Une dernière ligne **`error: Test failed`** est imprimée par Deno après le résumé, et le **process sort en exit code `1`** — ce qui fait échouer `pnpm run test:pricing-snapshot:deno`, `npm run verify:pricing-snapshot:offline`, et l'étape **`Deno test checkout pricing helpers`** dans le workflow CI.
+
 **Inspecter les exécutions CI (lien direct) :**
 
 - 📊 **Tous les runs du workflow** : [github.com/benmed00/lucid-web-craftsman/actions/workflows/deno-create-payment.yml](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/deno-create-payment.yml) — filtrable par branche, statut, acteur. Le badge tout en haut du README pointe au même endroit.
