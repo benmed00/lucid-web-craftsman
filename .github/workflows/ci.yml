@@ -36,7 +36,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: pnpm run lint -- --max-warnings 9999
+        run: pnpm run lint
 
       - name: Format check
         run: pnpm run format:check
