@@ -9,6 +9,35 @@ import {
 
 export type CreatePaymentBody = Record<string, unknown>;
 
+type CreatePaymentResponseBody = {
+  url?: string;
+  error?: string;
+  error_type?: string;
+};
+
+/** Prefer server JSON `error` when invoke returns non-2xx (avoids generic "non-2xx" only). */
+export function normalizeCreatePaymentInvokeResult(
+  result: EdgeInvokeResult<CreatePaymentResponseBody>
+): EdgeInvokeResult<{ url?: string }> {
+  const { data, error } = result;
+  if (!error) {
+    return { data: data as { url?: string } | null, error: null };
+  }
+  const serverMsg =
+    data &&
+    typeof data === 'object' &&
+    data !== null &&
+    'error' in data &&
+    typeof (data as CreatePaymentResponseBody).error === 'string'
+      ? String((data as CreatePaymentResponseBody).error).trim()
+      : '';
+  const msg =
+    serverMsg ||
+    (error instanceof Error ? error.message : String(error)) ||
+    'Payment request failed';
+  return { data: null, error: new Error(msg) };
+}
+
 export function isRetryablePaymentInvokeError(err: Error | null): boolean {
   if (!err) return false;
   const msg = err.message || '';
@@ -36,12 +65,15 @@ export async function createPaymentSessionWithRetry(
   return retryWithBackoff(
     async () => {
       const result = await invokeCreatePaymentEdge(functionName, body, headers);
-      if (result.error) {
-        if (isRetryablePaymentInvokeError(result.error as Error)) {
-          throw result.error;
+      const normalized = normalizeCreatePaymentInvokeResult(
+        result as EdgeInvokeResult<CreatePaymentResponseBody>
+      );
+      if (normalized.error) {
+        if (isRetryablePaymentInvokeError(normalized.error)) {
+          throw normalized.error;
         }
       }
-      return result;
+      return normalized;
     },
     {
       maxAttempts,

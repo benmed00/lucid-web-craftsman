@@ -593,7 +593,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       });
       if (error) throw error;
-      return { data, error };
+      // signInWithOtp data.messageId may be string; narrowed Auth typings expect null-only in some builds
+      return { data, error: null } as AuthOtpResponse;
     },
     []
   );

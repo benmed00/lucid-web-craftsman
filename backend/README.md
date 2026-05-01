@@ -6,19 +6,19 @@ Enterprise-grade mock API server for development and staging. Provides products,
 
 ## Quick Start
 
-**From project root** (recommended; `npm install` at root runs postinstall for backend):
+**From project root** (recommended — [`pnpm-workspace.yaml`](../pnpm-workspace.yaml) includes this package; **`pnpm install`** installs SPA + backend together):
 
 ```bash
-npm install
-npm run start:api
+pnpm install
+pnpm run start:api
 ```
 
-**Or from backend folder**:
+**Or from backend folder** (standalone; rarely needed):
 
 ```bash
 cd backend
-npm install
-npm start
+pnpm install
+pnpm start
 ```
 
 Server runs at `http://localhost:3001` by default.
@@ -77,13 +77,15 @@ From project root:
 
 ```bash
 # Terminal 1: Start mock API
-npm run start:api
+pnpm run start:api
 
-# Terminal 2: Start Vite dev server (proxies /api to backend)
-npm run dev
+# Terminal 2: Start Vite dev server (proxies /api and /health to backend)
+pnpm run dev
 ```
 
-The root `vite.config.ts` proxies `/api` to `http://localhost:3001` during development.
+The root [`vite.config.ts`](../vite.config.ts) proxies **`/api`** and **`/health`** to `http://localhost:3001` during **`pnpm run dev`**. The same proxies apply to **`pnpm run preview`** (after **`pnpm run build`**): the mock must still be running on **3001** for any flow that uses those paths.
+
+If you are unsure whether a failure is the mock, Supabase PostgREST, or an Edge Function, see [docs/PLATFORM.md — Diagnosing API and database failures](../docs/PLATFORM.md#diagnosing-api-and-database-failures).
 
 ## License
 

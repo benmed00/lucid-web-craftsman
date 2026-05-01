@@ -1,5 +1,6 @@
 // Enhanced Order Service with integrated product, customer, coupon and payment management
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import type { OrderStatus } from '@/types/order.types';
 
 // ==================== Order Service Types ====================
@@ -413,7 +414,7 @@ export async function processRefund(
 
     const { error: updateError } = await supabase
       .from('orders')
-      .update(updateData)
+      .update(updateData as Database['public']['Tables']['orders']['Update'])
       .eq('id', orderId);
 
     if (updateError) throw updateError;

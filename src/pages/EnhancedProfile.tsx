@@ -28,7 +28,7 @@ import { PersonalInfo } from '@/components/profile/PersonalInfo';
 import { PreferencesSettings } from '@/components/profile/PreferencesSettings';
 import { OrderHistory } from '@/components/profile/OrderHistory';
 import { LoyaltyProgram } from '@/components/profile/LoyaltyProgram';
-import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
+import { useOptimizedAuth } from '@/context/AuthContext';
 import { EnhancedProfileManager } from '@/components/profile/EnhancedProfileManager';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';

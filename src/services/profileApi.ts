@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import type { User } from '@supabase/supabase-js';
 
 export async function fetchAuthUserOrNull(): Promise<User | null> {
@@ -24,7 +25,7 @@ export async function updateProfileReturnRow(
 ) {
   const { data, error } = await supabase
     .from('profiles')
-    .update(patch)
+    .update(patch as Database['public']['Tables']['profiles']['Update'])
     .eq('id', userId)
     .select()
     .single();
@@ -112,7 +113,7 @@ export async function updateProfileFields(
 ): Promise<void> {
   const { error } = await supabase
     .from('profiles')
-    .update(fields)
+    .update(fields as Database['public']['Tables']['profiles']['Update'])
     .eq('id', userId);
   if (error) throw error;
 }

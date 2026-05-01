@@ -107,6 +107,49 @@ Cypress.Commands.add('stubElevatedStorefrontRpcs', () => {
 });
 
 Cypress.Commands.add('stubProductsCatalog', () => {
+  // Detail page: translationService#getProductWithTranslation hits this BEFORE `products?id=eq.N`.
+  // Without a stub, CI uses VITE_SUPABASE_URL (dummy host) — requests hang until fetch timeout → skeleton never clears.
+  cy.intercept('GET', '**/rest/v1/product_translations*', (req) => {
+    const url = decodeURIComponent(req.url);
+    const pidMatch = /[&?]product_id=eq\.(\d+)/.exec(url);
+    const localeMatch = /[&?]locale=eq\.([^&]+)/.exec(url);
+    const pid = pidMatch ? Number(pidMatch[1]) : NaN;
+    const locale = localeMatch ? localeMatch[1] : '';
+
+    const row =
+      Number.isFinite(pid) && pid > 0
+        ? (productsCatalogSmoke.find((r) => r.id === pid) ??
+          productsCatalogSmoke[0])
+        : productsCatalogSmoke[0];
+    const translations = row.product_translations as
+      | Array<Record<string, unknown>>
+      | undefined;
+    const match =
+      translations?.find((t) => String(t.locale) === locale) ??
+      translations?.[0] ??
+      null;
+
+    if (match) {
+      req.reply({
+        statusCode: 200,
+        body: { product_id: row.id, ...match },
+      });
+      return;
+    }
+
+    // Mirrors PostgREST for `.single()` when there are zero rows (fast fallback to base columns).
+    req.reply({
+      statusCode: 406,
+      headers: { 'content-type': 'application/json; charset=utf-8' },
+      body: {
+        code: 'PGRST116',
+        details: 'The result contains 0 rows',
+        hint: null,
+        message: 'JSON object requested, multiple (or no) rows returned',
+      },
+    });
+  }).as('productTranslationsSmoke');
+
   cy.intercept('GET', '**/rest/v1/products*', (req) => {
     const url = req.url;
     // List query from getProductsWithTranslations — embeds product_translations in select=
@@ -162,6 +205,7 @@ Cypress.Commands.add('resetDatabase', () => {
 /**
  * Log in via /auth and cache the session with cy.session().
  * Set CUSTOMER_EMAIL / CUSTOMER_PASSWORD (or ADMIN_*) in Cypress env.
+ * Prefers `data-testid` selectors from Auth.tsx; legacy #signin-* fallbacks included.
  */
 Cypress.Commands.add('loginAs', (role: 'customer' | 'admin' = 'customer') => {
   const email = Cypress.env(`${role.toUpperCase()}_EMAIL`) as string;
@@ -170,11 +214,18 @@ Cypress.Commands.add('loginAs', (role: 'customer' | 'admin' = 'customer') => {
     [role, email],
     () => {
       cy.visit('/auth');
-      cy.get('#signin-email').clear().type(email);
-      cy.get('#signin-password').clear().type(password, { log: false });
-      cy.get('button[type="submit"]')
-        .contains(/se connecter|sign in/i)
-        .click();
+      cy.get('[data-testid="auth-form"]', { timeout: 15000 })
+        .filter(':visible')
+        .first()
+        .within(() => {
+          cy.get('[data-testid="auth-email"], #auth-email, #signin-email')
+            .clear()
+            .type(email);
+          cy.get(
+            '[data-testid="auth-password"], #auth-password, #signin-password'
+          ).type(password, { log: false });
+          cy.get('[data-testid="auth-submit"]').click();
+        });
       cy.url().should('not.include', '/auth');
     },
     {

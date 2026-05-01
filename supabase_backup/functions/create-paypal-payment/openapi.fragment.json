@@ -1,0 +1,31 @@
+{
+  "summary": "Create PayPal order from verified cart",
+  "requestBody": {
+    "required": true,
+    "content": {
+      "application/json": {
+        "schema": {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "customerInfo": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "discount": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
 export async function fetchUserPreferencesRow(userId: string) {
   const { data, error } = await supabase
@@ -39,7 +40,9 @@ export async function updateUserPreferencesByRowId(
 ) {
   const { data, error } = await supabase
     .from('user_preferences')
-    .update(updates)
+    .update(
+      updates as Database['public']['Tables']['user_preferences']['Update']
+    )
     .eq('id', rowId)
     .select()
     .single();

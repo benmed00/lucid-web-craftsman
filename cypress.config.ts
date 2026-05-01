@@ -4,8 +4,9 @@
  * Uses @cypress/grep for tagged specs: @smoke (critical path), @regression (full suite).
  * All specs live under cypress/e2e/ (TypeScript or JavaScript).
  *
- * Port contract: baseUrl defaults to http://127.0.0.1:8080 — same host as Vite (vite.config.ts
- * server.port + strictPort) and as start-server-and-test’s http-get probe. Using loopback IPv4
+ * Port contract: baseUrl defaults to http://127.0.0.1:<port> (<port> from `VITE_DEV_SERVER_PORT`
+ * or 8080) — same origin as Vite (vite.config.ts server.port + strictPort) and as
+ * start-server-and-test’s http-get probe. Using loopback IPv4
  * avoids Windows “localhost” splitting (IPv6 vs IPv4) where the probe sees 200 but Electron’s
  * cy.visit sees another listener and 404. Override with CYPRESS_BASE_URL when needed.
  *
@@ -14,9 +15,23 @@
  */
 
 import { defineConfig } from 'cypress';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+/** Match default Vite origin when only `VITE_DEV_SERVER_PORT` differs from 8080. */
+function defaultAppOrigin(): string {
+  const raw = process.env.VITE_DEV_SERVER_PORT;
+  if (raw !== undefined && /^\d+$/.test(raw)) {
+    return `http://127.0.0.1:${raw}`;
+  }
+  return 'http://127.0.0.1:8080';
+}
 
 export default defineConfig({
   // allowCypressEnv must stay true: @cypress/grep uses Cypress.env('grep') internally
@@ -27,8 +42,8 @@ export default defineConfig({
 
     supportFile: 'cypress/support/index.ts',
 
-    // App origin — same loopback IP as package.json e2e http-get probes; see file header
-    baseUrl: process.env.CYPRESS_BASE_URL ?? 'http://127.0.0.1:8080',
+    // App origin — same loopback IP as package.json / e2e-servers-and-test probes; see file header
+    baseUrl: process.env.CYPRESS_BASE_URL ?? defaultAppOrigin(),
 
     viewportWidth: 1280,
     viewportHeight: 720,
@@ -47,6 +62,45 @@ export default defineConfig({
     },
 
     setupNodeEvents(on, config) {
+      const httpErrors: { url: string; status: number }[] = [];
+
+      on('before:run', () => {
+        httpErrors.length = 0;
+      });
+
+      on('task', {
+        recordHttpFailures(rows: { url: string; status: number }[]) {
+          httpErrors.push(...rows);
+          return null;
+        },
+      });
+
+      on('after:run', async (results) => {
+        const failed = results?.totalFailed ?? 0;
+        if (failed === 0) {
+          return;
+        }
+        const out = join(
+          __dirname,
+          'cypress',
+          'diagnostics',
+          'http-failures.json'
+        );
+        await mkdir(dirname(out), { recursive: true });
+        await writeFile(
+          out,
+          JSON.stringify(
+            {
+              failedTests: failed,
+              totalTests: results?.totalTests,
+              httpErrors,
+            },
+            null,
+            2
+          )
+        );
+      });
+
       // CI: GitHub Actions can pass CYPRESS_ADMIN_* / CYPRESS_CUSTOMER_* repo secrets;
       // merge into Cypress.env() so specs keep using ADMIN_EMAIL, CUSTOMER_EMAIL, etc.
       const mergeFromProcess = (key: string, value: string | undefined) => {

@@ -1,6 +1,6 @@
 /**
  * Regenerates OpenAPI and fails if openapi/supabase-edge-functions.json would change.
- * Usage: npm run openapi:edge-functions:check
+ * Usage: pnpm run openapi:edge-functions:check
  */
 
 import { spawnSync } from 'child_process';
@@ -32,7 +32,7 @@ if (diff.status === 0) {
 }
 if (diff.status === 1) {
   console.error(
-    `Drift in ${SPEC}: run npm run openapi:edge-functions and commit the result.`
+    `Drift in ${SPEC}: run pnpm run openapi:edge-functions and commit the result.`
   );
   process.exit(1);
 }

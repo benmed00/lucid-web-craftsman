@@ -1,5 +1,5 @@
-# Typecheck, lint, and test the create-payment edge function (no frozen lockfile:
-# Supabase CLI Docker bundler uses an older Deno that cannot read Deno 2 lockfile v5).
+# Typecheck, lint, and test the create-payment edge function, plus create-admin-user.
+# (Single job to avoid duplicating Deno setup; keep branch filters aligned with `ci.yml`.)
 # Branch filters: keep in sync with `.github/workflows/ci.yml`.
 name: Deno create-payment
 
@@ -40,6 +40,15 @@ jobs:
 
       - name: Deno test
         run: deno test create-payment/ --config deno.json --allow-env
+
+      - name: Deno check (create-admin-user)
+        run: deno check create-admin-user/index.ts --config deno.json
+
+      - name: Deno lint (create-admin-user)
+        run: deno lint create-admin-user/ --config deno.json
+
+      - name: Deno test (create-admin-user)
+        run: deno test create-admin-user/handler_test.ts --config deno.json --allow-env
 
       - name: Assert Deno v2 for pricing helpers
         working-directory: ${{ github.workspace }}
@@ -95,4 +104,4 @@ jobs:
           echo "✓ Guard passed — safe to run pricing-snapshot tests offline."
 
       - name: Deno test checkout pricing helpers
-        run: deno test --allow-env --allow-read=${{ github.workspace }} --no-check --config deno.json _shared/pricing-snapshot_test.ts _shared/pricing_snapshot_golden_test.ts _shared/pricing_snapshot_extended_test.ts _shared/persist-pricing-snapshot_test.ts stripe-webhook/lib/pricing-snapshot_test.ts send-order-confirmation/_lib/email-pricing-from-db_test.ts
+        run: deno test --allow-env --allow-read=${{ github.workspace }} --no-check --config deno.json _shared/pricing-snapshot_test.ts _shared/pricing_snapshot_golden_test.ts _shared/pricing_snapshot_extended_test.ts _shared/persist-pricing-snapshot_test.ts _shared/confirm-order_test.ts stripe-webhook/lib/pricing-snapshot_test.ts send-order-confirmation/_lib/email-pricing-from-db_test.ts

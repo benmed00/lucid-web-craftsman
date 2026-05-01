@@ -6,16 +6,16 @@ Inventaire des **routes** SPA (pour aligner les specs avec `App.tsx`) : **[`docs
 
 ## Scripts utiles
 
-| Script                   | Rôle                                                                                                                                             |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `npm run e2e:ci`         | Mock API (3001) + Vite (8080) + **toute** la suite `cypress run`                                                                                 |
-| `npm run e2e:ci:shard`   | Idem + **decoupe les fichiers** `cypress/e2e/*` selon `CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL` (utilisé par le job **e2e-full** en CI).           |
-| `npm run e2e:ci:smoke`   | Idem + **`@smoke` uniquement** (utilisé par le workflow GitHub Actions)                                                                          |
-| `npm run e2e:smoke`      | Déjà sous Vite/API lancés : `cypress run --env grep=@smoke`                                                                                      |
-| `npm run e2e:regression` | Tests tagués `@regression`                                                                                                                       |
-| `npm run e2e:checkout`   | Mock API + Vite + **checkout** : `checkout_flow_spec`, `checkout_persistence_spec`, `checkout_db_hydration_spec` (rehydratation PostgREST stub). |
-| `npm run e2e:contact`    | Mock API + Vite + **`contact_form_spec.js`** uniquement (éviter `cypress run` seul sans SPA sur **8080**).                                       |
-| `npm run type:check`     | `tsc` sur app, Vite config, Cypress                                                                                                              |
+| Script                    | Rôle                                                                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm run e2e:ci`         | Mock API (3001) + Vite (8080) + **toute** la suite `cypress run`                                                                                 |
+| `pnpm run e2e:ci:shard`   | Idem + **decoupe les fichiers** `cypress/e2e/*` selon `CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL` (utilisé par le job **e2e-full** en CI).           |
+| `pnpm run e2e:ci:smoke`   | Idem + **`@smoke` uniquement** (utilisé par le workflow GitHub Actions)                                                                          |
+| `pnpm run e2e:smoke`      | Déjà sous Vite/API lancés : `cypress run --env grep=@smoke`                                                                                      |
+| `pnpm run e2e:regression` | Tests tagués `@regression`                                                                                                                       |
+| `pnpm run e2e:checkout`   | Mock API + Vite + **checkout** : `checkout_flow_spec`, `checkout_persistence_spec`, `checkout_db_hydration_spec` (rehydratation PostgREST stub). |
+| `pnpm run e2e:contact`    | Mock API + Vite + **`contact_form_spec.js`** uniquement (éviter `cypress run` seul sans SPA sur **8080**).                                       |
+| `pnpm run type:check`     | `tsc` sur app, Vite config, Cypress                                                                                                              |
 
 Variables optionnelles : copier `cypress.env.example.json` → `cypress.env.json` pour `CUSTOMER_*`, `ADMIN_*`, `DB_RESET_*`.
 
@@ -25,7 +25,9 @@ Variables optionnelles : copier `cypress.env.example.json` → `cypress.env.json
 
 ### CI GitHub Actions (`.github/workflows/e2e.yml`)
 
-Le workflow **[`ci.yml`](../.github/workflows/ci.yml)** (lint, format, `type:check`, tests unitaires, build) **ne lance pas Cypress** ; les E2E sont dans **`e2e.yml`** uniquement.
+Le workflow **[`ci.yml`](../.github/workflows/ci.yml)** recouvre **la plupart** des contrôles locaux (lint, format, `type:check`, tests unitaires, bundling), mais les **tests unitaires CI** utilisent **`pnpm run test:unit`** (Vitest **sans** [`rls-e2e.test.ts`](../src/tests/rls-e2e.test.ts) ni [`rls-quick-validation.test.ts`](../src/tests/rls-quick-validation.test.ts)), alors que **`pnpm run validate`** lance **tout** Vitest — voir [STANDARDS.md — validate vs test:unit](STANDARDS.md#validate-vs-testunit-vs-root-github-ci). **Sans** Cypress, **sans** Deno dans le job racine (Deno : workflows séparés). Les E2E sont dans **`e2e.yml`** uniquement.
+
+Sur **pull request vers `main`**, **`e2e-smoke`** (`@smoke` seulement) est la boucle E2E principale ; la suite **`full`** (tous specs + shards) tourne au **cron hebdomadaire** et en **`workflow_dispatch`** — une régression non taguée `@smoke` peut n’être vue qu’à ce moment-là.
 
 **Concurrence :** `cancel-in-progress` est activé sur **`e2e.yml`** et sur **`ci.yml`** (nouvelle exécution sur la même branche annule la précédente pour ce workflow).
 
@@ -38,17 +40,17 @@ Secrets repo **optionnels** (jobs **smoke** et **full**) pour éviter les skips 
 
 ### Checklist avant release (recommandé)
 
-1. `npm run validate` (lint, format, `type:check`, tests unitaires) — **sans** Cypress.
-2. `npm run e2e:ci` en local avec `cypress.env.json` à jour si vous comptez sur des parcours authentifiés.
+1. `pnpm run validate` (lint, format, `type:check`, **Vitest complet**, bundling) — **sans** Cypress. **Diffère** des tests unitaires **CI** (`test:unit`) — [STANDARDS.md](STANDARDS.md#validate-vs-testunit-vs-root-github-ci).
+2. `pnpm run e2e:ci` en local avec `cypress.env.json` à jour si vous comptez sur des parcours authentifiés.
 3. Sur GitHub : Actions → **E2E** → **Run workflow** — choisir **`suite: full`** (ou **`smoke`** pour un run rapide), ou s’appuyer sur le **`schedule`** hebdomadaire.
 
 ### Quand utiliser quel script (W10)
 
-| Script / grep                              | Rôle                                                                                                                                                                                                                                     |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`npm run e2e:ci`** / **`e2e:ci:shard`**  | Suite **complète** locale ou CI (tous les fichiers `cypress/e2e/*`, éventuellement découpée par shard en **e2e-full**).                                                                                                                  |
-| **`npm run e2e:ci:smoke`** / `grep=@smoke` | Sous-ensemble **@smoke** sur PR/push — **source principale** de fumée rapide.                                                                                                                                                            |
-| **`npm run e2e:enterprise`**               | **Un seul fichier** : [`enterprise_full_platform_spec.js`](../cypress/e2e/enterprise_full_platform_spec.js), souvent avec `CYPRESS_BASE_URL` = preview déployé — macro routes / DOM / blog stub, **sans** refaire tout le détail métier. |
+| Script / grep                               | Rôle                                                                                                                                                                                                                                     |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`pnpm run e2e:ci`** / **`e2e:ci:shard`**  | Suite **complète** locale ou CI (tous les fichiers `cypress/e2e/*`, éventuellement découpée par shard en **e2e-full**).                                                                                                                  |
+| **`pnpm run e2e:ci:smoke`** / `grep=@smoke` | Sous-ensemble **@smoke** sur PR/push — **source principale** de fumée rapide.                                                                                                                                                            |
+| **`pnpm run e2e:enterprise`**               | **Un seul fichier** : [`enterprise_full_platform_spec.js`](../cypress/e2e/enterprise_full_platform_spec.js), souvent avec `CYPRESS_BASE_URL` = preview déployé — macro routes / DOM / blog stub, **sans** refaire tout le détail métier. |
 
 ### Propriété des parcours (éviter la duplication)
 

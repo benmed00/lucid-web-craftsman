@@ -21,7 +21,7 @@ import {
   Send,
   Shield,
 } from 'lucide-react';
-import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
+import { useOptimizedAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import {
   validateAndSanitizeEmail,

@@ -1,5 +1,5 @@
 /**
- * Vitest (`npm run test:unit` or `npx vitest run src/services/supabasePublishableKey.test.ts`).
+ * Vitest (`pnpm run test:unit` or `npx vitest run src/services/supabasePublishableKey.test.ts`).
  * Keeps `@/services/supabasePublishableKey` aligned with `resolvedSupabasePublishableKey`
  * from the integration client (Edge `apikey` header).
  */

@@ -4,14 +4,14 @@ This document describes how the application is structured and how **checkout, pa
 
 ## Runtime layout
 
-| Layer                                | Role                                                                                                                                                 |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Vite SPA** (`src/`)                | React 18, React Router, TanStack Query, Tailwind + shadcn-style UI.                                                                                  |
-| **Mock API** (`backend/`, port 3001) | Dev/staging: Express + json-server for products, posts, cart, orders. Vite proxies `/api` and `/health`.                                             |
-| **Supabase**                         | Auth, Postgres (RLS), Realtime, Storage, Edge Functions. Client: `src/integrations/supabase/client.ts` (env vars with safe fallbacks for local use). |
-| **Stripe**                           | Checkout Sessions; webhooks update `orders` / `payments` on the server.                                                                              |
+| Layer                                | Role                                                                                                                                                                                                            |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Vite SPA** (`src/`)                | React 18, React Router, TanStack Query, Tailwind + shadcn-style UI.                                                                                                                                             |
+| **Mock API** (`backend/`, port 3001) | Local dev: Express + json-server for products, posts, cart, orders. **`pnpm run dev`** and **`pnpm run preview`** proxy `/api` and `/health` here; start **`pnpm run start:api`** when exercising those routes. |
+| **Supabase**                         | Auth, Postgres (RLS), Realtime, Storage, Edge Functions. Client: `src/integrations/supabase/client.ts` (env vars with safe fallbacks for local use).                                                            |
+| **Stripe**                           | Checkout Sessions; webhooks update `orders` / `payments` on the server.                                                                                                                                         |
 
-**Dev contract:** Vite uses **port 8080** with `strictPort: true` so Cypress and `start-server-and-test` always hit the same origin. See [AGENTS.md](../AGENTS.md) and [cypress/README.md](../cypress/README.md).
+**Dev contract:** Default app origin is **`http://127.0.0.1:8080`** with `strictPort: true`. Use **`VITE_DEV_SERVER_PORT`** when 8080 is busy (see `scripts/lib/e2e-port.mjs`). Cypress **`baseUrl`** and the SPA probe must match that port unless you set **`CYPRESS_BASE_URL`**. See [AGENTS.md](../AGENTS.md) and [cypress/README.md](../cypress/README.md).
 
 ## Source tree (high level)
 
@@ -44,12 +44,12 @@ src/
 
 All reusable **backend access** from the SPA should go through **`src/services/`** so pages and components stay thin.
 
-| Pattern                                                         | Role                                                                         |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| **`admin*Api.ts`, `authApi.ts`, `*Api.ts`**                     | Supabase queries/RPC/storage/Edge `invoke` for a feature or admin area.      |
-| **`supabaseFunctionsApi.ts`**                                   | Shared `functions.invoke` helper and named wrappers (e.g. `translate-tag`).  |
-| **`api.ts`**, **`apiClient`**                                   | Mock **`/api/*`**: Vite proxies to json-server (dev catalog/blog, etc.).     |
-| **`checkoutApi.ts` / `checkoutService.ts` / `orderService.ts`** | Checkout and orders: Edge Functions, session display, and related PostgREST. |
+| Pattern                                                                     | Role                                                                                                                                                                                                                      |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`admin*Api.ts`, `authApi.ts`, `*Api.ts`**                                 | Supabase queries/RPC/storage/Edge `invoke` for a feature or admin area.                                                                                                                                                   |
+| **`supabaseFunctionsApi.ts`**                                               | Shared `functions.invoke` helper and named wrappers (e.g. `translate-tag`).                                                                                                                                               |
+| **`apiClient`** ([`src/lib/api/apiClient.ts`](../src/lib/api/apiClient.ts)) | Relative **`/api/*`** and **`/health`**: Vite **dev** and **preview** proxy to json-server (**3001**). Prefer Supabase/`mockApiService` for storefront catalog; reserve this for contact-adjacent or legacy HTTP callers. |
+| **`checkoutApi.ts` / `checkoutService.ts` / `orderService.ts`**             | Checkout and orders: Edge Functions, session display, and related PostgREST.                                                                                                                                              |
 
 **Admin dashboard:** Modules such as `adminOrdersApi.ts` run with the **logged-in user’s JWT**; access is enforced by **RLS** plus **`ProtectedAdminRoute`**. Never add a service-role key in this folder. Prefer **`admin*Api.ts`** for new dashboard data access; pair with `useQuery` / `useMutation` in hooks under `src/hooks/` or colocated admin hooks.
 
@@ -62,6 +62,33 @@ Folder readme: [`src/services/README.md`](../src/services/README.md).
 ### Configuration and security headers
 
 - CSP and service URLs: `src/config/app.config.ts` (source of truth), aligned with `public/_headers` and `index.html` meta fallback when you add new origins.
+
+## Diagnosing API and database failures
+
+Use this when something “backend or database” fails — the stack is **split** (mock HTTP, Supabase PostgREST, Edge Functions). Narrow the layer before changing code or migrations.
+
+### 1. Capture the symptom
+
+- Full failing **URL** (or path + origin).
+- **HTTP status** (and response body snippet if JSON).
+- **Supabase client:** `error.code`, `error.message`, and **table** / RPC name.
+- **Edge Function:** function name, **`/functions/v1/...`** response, and dashboard logs if available.
+
+### 2. Classify the layer
+
+| What you see                                                        | Layer               | Typical cause                                                                                             |
+| ------------------------------------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------- |
+| Browser calls same-origin **`/api/...`** or **`/health`** and fails | **Mock API**        | **`pnpm run start:api`** not running; or dev/preview proxy misconfigured (mock listens on **3001**).      |
+| **`*.supabase.co/rest/v1/...`** errors                              | **PostgREST / RLS** | Missing or wrong JWT; guest headers; **RLS** policy (e.g. **`42501`**).                                   |
+| **`*.supabase.co/functions/v1/...`** errors                         | **Edge Function**   | Deploy/version; secrets; CORS; request body validation.                                                   |
+| Checkout / order return broken but catalog loads                    | **Edge + webhooks** | `create-payment`, **`stripe-webhook`**, **`order-lookup`** — see **Checkout and payment return** (below). |
+
+### 3. Common fixes (targeted)
+
+1. **`/api` errors in dev or preview** — Start **`pnpm run start:api`** and confirm **http://localhost:3001/health** responds.
+2. **E2E `ECONNREFUSED` / wrong app** — Align **`VITE_DEV_SERVER_PORT`**, Cypress **`baseUrl`**, and `scripts/lib/e2e-port.mjs` (or set **`CYPRESS_BASE_URL`** for deployed previews).
+3. **RLS / permission denied** — Capture **`error.code`** and the **policy/table** name; verify session and guest id behavior in `src/integrations/supabase/client.ts` comments.
+4. **Production hardening** — See [security checklist](security/supabase-production-security-checklist.md) for keys and RLS expectations.
 
 ## Checkout and payment return
 

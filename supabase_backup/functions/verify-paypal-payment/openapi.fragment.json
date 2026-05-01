@@ -1,0 +1,33 @@
+{
+  "summary": "Verify PayPal order capture vs Supabase order",
+  "requestBody": {
+    "required": true,
+    "content": {
+      "application/json": {
+        "schema": {
+          "type": "object",
+          "required": ["paypal_order_id", "order_id"],
+          "properties": {
+            "paypal_order_id": { "type": "string" },
+            "order_id": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "responses": {
+    "200": {
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "401": {
+      "description": "Unauthorized"
+    }
+  }
+}

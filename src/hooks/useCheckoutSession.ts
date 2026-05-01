@@ -14,7 +14,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useGuestSession } from '@/hooks/useGuestSession';
-import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
+import { useOptimizedAuth } from '@/context/AuthContext';
 import { retryWithBackoffSilent } from '@/lib/retryWithBackoff';
 import {
   resolveCartSyncPolicy,

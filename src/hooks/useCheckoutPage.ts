@@ -14,7 +14,7 @@ import { useCurrency } from '@/stores/currencyStore';
 import { useCsrfToken } from '@/hooks/useCsrfToken';
 import { useBusinessRules } from '@/hooks/useBusinessRules';
 import { useGuestSession } from '@/hooks/useGuestSession';
-import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
+import { useOptimizedAuth } from '@/context/AuthContext';
 import {
   validateCustomerInfo,
   validateShippingAddress,
@@ -516,7 +516,7 @@ export function useCheckoutPage() {
       setPaymentError(null);
 
       // A/B conversion tracking (fire-and-forget)
-      import('@/hooks/useABThemeTest')
+      import('@/lib/abThemeConversion')
         .then(({ trackABConversion }) => trackABConversion('checkout'))
         .catch(() => {});
       if (honeypot) {
@@ -633,14 +633,10 @@ export function useCheckoutPage() {
         const errorMsg = error.message || '';
         if (errorMsg.includes('rate limit') || errorMsg.includes('429')) {
           toast.error(t('errors.rateLimited'));
-        } else if (
-          errorMsg.includes('stock') ||
-          errorMsg.includes('indisponible') ||
-          errorMsg.includes('insuffisant')
-        ) {
+        } else if (errorMsg.trim()) {
           toast.error(errorMsg);
         } else {
-          throw new Error(errorMsg);
+          toast.error(t('errors.paymentFailed'));
         }
         setIsProcessing(false);
         return;

@@ -3,6 +3,7 @@
  * Keep components/hooks free of direct `supabase` usage for these operations.
  */
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
 export type CheckoutSessionRow = Record<string, unknown> & {
   id: string;
@@ -96,7 +97,7 @@ export async function insertCheckoutSession(
 ): Promise<{ id: string } | null> {
   const { data, error } = await supabase
     .from('checkout_sessions')
-    .insert(row)
+    .insert(row as Database['public']['Tables']['checkout_sessions']['Insert'])
     .select('id')
     .single();
   if (error) throw error;

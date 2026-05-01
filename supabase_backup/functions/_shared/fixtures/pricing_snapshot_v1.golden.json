@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "currency": "eur",
+  "source": "stripe_checkout_session",
+  "stripe_session_id": "cs_golden_fixture_anonymized",
+  "subtotal_minor": 6200,
+  "discount_minor": 100,
+  "shipping_minor": 500,
+  "tax_minor": 200,
+  "total_minor": 6800,
+  "lines": [
+    {
+      "description": "Sac artisanal",
+      "quantity": 2,
+      "unit_minor": 3000,
+      "line_total_minor": 6000
+    },
+    {
+      "description": "Frais de livraison",
+      "quantity": 1,
+      "unit_minor": 500,
+      "line_total_minor": 500
+    }
+  ],
+  "finalized_at": "2024-06-01T12:00:00.000Z"
+}

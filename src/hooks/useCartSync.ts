@@ -369,7 +369,7 @@ export function useCartSyncListeners(
     // Auth state listener
     const {
       data: { subscription },
-    } = onAuthStateChange((event, session) => {
+    } = onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         onAuthChange(session.user.id);
       } else if (event === 'SIGNED_OUT') {

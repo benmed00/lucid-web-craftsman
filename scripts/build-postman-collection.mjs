@@ -112,7 +112,7 @@ function main() {
   const mockApi = {
     name: 'Mock API (local)',
     description:
-      'Run `npm run start:api` (port 3001). See [backend/server.cjs](backend/server.cjs). Use saved examples for Postman Mock Server.',
+      'Run `pnpm run start:api` (port 3001). See [backend/server.cjs](backend/server.cjs). Use saved examples for Postman Mock Server.',
     item: [
       mockItem('Root', 'GET', `${B}/`, {
         desc: 'Service banner and endpoint list.',
@@ -479,7 +479,7 @@ function main() {
     info: {
       name: 'Lucid Web Craftsman',
       description:
-        'Mock API (dev) + Supabase Edge Functions.\n\n- **OpenAPI:** `openapi/supabase-edge-functions.json` (run `npm run openapi:edge-functions`).\n- **Secrets:** use `postman/Lucid-Web-Craftsman.local.postman_environment.json` (gitignored); copy from `.example`.\n- **Mocks:** enable saved examples on Mock API folder → Create Mock Server in Postman.',
+        'Mock API (dev) + Supabase Edge Functions.\n\n- **OpenAPI:** `openapi/supabase-edge-functions.json` (run `pnpm run openapi:edge-functions`).\n- **Secrets:** use `postman/Lucid-Web-Craftsman.local.postman_environment.json` (gitignored); copy from `.example`.\n- **Mocks:** enable saved examples on Mock API folder → Create Mock Server in Postman.',
       schema:
         'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
     },

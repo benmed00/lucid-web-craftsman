@@ -29,7 +29,7 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import UIStyleSwitcher from '@/components/admin/UIStyleSwitcher';
 
