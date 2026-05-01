@@ -76,6 +76,16 @@ verify_jwt = false
 [functions.order-confirmation-lookup]
 verify_jwt = false
 
+# Invoice generation: auth handled in-handler via signed HMAC token (guests),
+# Authorization Bearer (owner/admin), or x-guest-id match. The gateway must
+# NOT require a JWT, otherwise guests with only an order_access/invoice_access
+# token receive 401 before the handler runs.
+[functions.generate-invoice]
+verify_jwt = false
+
+[functions.sign-invoice-token]
+verify_jwt = false
+
 # Operator-facing monitoring endpoint. Handler enforces service-role or
 # rotating monitor-token auth; verify_jwt=false disables gateway JWT check
 # so schedulers using only the anon apikey + handler token are accepted.
