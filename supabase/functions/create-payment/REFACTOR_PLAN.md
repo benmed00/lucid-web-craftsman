@@ -6,15 +6,15 @@ This plan is designed to be **testable**, **reversible**, **stable**, and **docu
 
 ### Progress & layout (living)
 
-| Phase | Status   | Notes                                                                                                |
-| ----- | -------- | ---------------------------------------------------------------------------------------------------- |
-| 0     | Done     | Plan + `AGENTS.md` pointer                                                                           |
-| 1     | **Done** | `types.ts` — domain + Supabase result helpers                                                        |
-| 2     | **Done** | `constants.ts` — CORS, rate limits, cart max, Stripe min/shipping cents, origins, `getValidOrigin`   |
-| 3     | **Done** | `lib/rate-limit.ts`, `lib/security.ts`                                                               |
-| 4     | **Done** | + `lib/stripe-session.ts` (`buildCheckoutSessionCreateParams`, shipping prefill)                     |
-| 4c    | **Done** | `lib/orders.ts` — shipping payload, VIP threshold, pending order insert, line items, VIP invoke      |
-| 4d    | **Done** | `lib/stripe-customer.ts`, `lib/auth-user.ts` — customer id lookup, optional JWT user                 |
+| Phase | Status   | Notes                                                                                                 |
+| ----- | -------- | ----------------------------------------------------------------------------------------------------- |
+| 0     | Done     | Plan + `AGENTS.md` pointer                                                                            |
+| 1     | **Done** | `types.ts` — domain + Supabase result helpers                                                         |
+| 2     | **Done** | `constants.ts` — CORS, rate limits, cart max, Stripe min/shipping cents, origins, `getValidOrigin`    |
+| 3     | **Done** | `lib/rate-limit.ts`, `lib/security.ts`                                                                |
+| 4     | **Done** | + `lib/stripe-session.ts` (`buildCheckoutSessionCreateParams`, shipping prefill)                      |
+| 4c    | **Done** | `lib/orders.ts` — shipping payload, VIP threshold, pending order insert, line items, VIP invoke       |
+| 4d    | **Done** | `lib/stripe-customer.ts`, `lib/auth-user.ts` — customer id lookup, optional JWT user                  |
 | 5     | **Done** | Zod + `lib/errors.ts` (422 mapping); `lib/*_test.ts` + `pnpm run test:create-payment`; `DATA_FLOW.md` |
 
 **Module map**

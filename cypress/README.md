@@ -17,8 +17,8 @@ Ce dossier regroupe les **tests E2E navigateur** (Cypress). Index documentation 
 
 **Scripts fréquents** (racine du dépôt) :
 
-| Commande               | Usage                                                                                                                        |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Commande                | Usage                                                                                                                        |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `pnpm run e2e:ci`       | Lance API mock + Vite + **toute** la suite Cypress.                                                                          |
 | `pnpm run e2e:ci:shard` | Comme `e2e:ci`, mais **un sous-ensemble de fichiers** specs (`CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL`) — job **e2e-full** CI. |
 | `pnpm run e2e:ci:smoke` | Idem, filtré **`@smoke`** (aligné sur la CI PR).                                                                             |
@@ -134,8 +134,8 @@ Then run Cypress using the pnpm scripts below.
 
 Commands are defined in the root [`../package.json`](../package.json). Common entries:
 
-| Script                   | Description                                                                                                                                                   |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Script                    | Description                                                                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pnpm run e2e:open`       | Interactive Cypress UI.                                                                                                                                       |
 | `pnpm run e2e:run`        | Headless run of all specs (expects app already running).                                                                                                      |
 | `pnpm run e2e:smoke`      | Headless; only `@smoke` (requires servers running).                                                                                                           |

@@ -6,8 +6,8 @@ Inventaire des **routes** SPA (pour aligner les specs avec `App.tsx`) : **[`docs
 
 ## Scripts utiles
 
-| Script                   | Rôle                                                                                                                                             |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Script                    | Rôle                                                                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `pnpm run e2e:ci`         | Mock API (3001) + Vite (8080) + **toute** la suite `cypress run`                                                                                 |
 | `pnpm run e2e:ci:shard`   | Idem + **decoupe les fichiers** `cypress/e2e/*` selon `CYPRESS_SHARD` / `CYPRESS_SHARD_TOTAL` (utilisé par le job **e2e-full** en CI).           |
 | `pnpm run e2e:ci:smoke`   | Idem + **`@smoke` uniquement** (utilisé par le workflow GitHub Actions)                                                                          |
@@ -46,8 +46,8 @@ Secrets repo **optionnels** (jobs **smoke** et **full**) pour éviter les skips 
 
 ### Quand utiliser quel script (W10)
 
-| Script / grep                              | Rôle                                                                                                                                                                                                                                     |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Script / grep                               | Rôle                                                                                                                                                                                                                                     |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`pnpm run e2e:ci`** / **`e2e:ci:shard`**  | Suite **complète** locale ou CI (tous les fichiers `cypress/e2e/*`, éventuellement découpée par shard en **e2e-full**).                                                                                                                  |
 | **`pnpm run e2e:ci:smoke`** / `grep=@smoke` | Sous-ensemble **@smoke** sur PR/push — **source principale** de fumée rapide.                                                                                                                                                            |
 | **`pnpm run e2e:enterprise`**               | **Un seul fichier** : [`enterprise_full_platform_spec.js`](../cypress/e2e/enterprise_full_platform_spec.js), souvent avec `CYPRESS_BASE_URL` = preview déployé — macro routes / DOM / blog stub, **sans** refaire tout le détail métier. |

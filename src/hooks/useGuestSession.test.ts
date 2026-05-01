@@ -63,7 +63,9 @@ describe('useGuestSession', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     rpcMock.mockResolvedValue({
       data: null,
-      error: { message: 'Could not find the function public.create_guest_token' },
+      error: {
+        message: 'Could not find the function public.create_guest_token',
+      },
     });
 
     const { result } = renderHook(() => useGuestSession());

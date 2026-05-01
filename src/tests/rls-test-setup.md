@@ -151,11 +151,11 @@ Add to your GitHub Actions workflow:
 
 **[`rls-e2e.test.ts`](./rls-e2e.test.ts)** and **[`rls-quick-validation.test.ts`](./rls-quick-validation.test.ts)** use **`describe.skipIf(!isRealSupabase)`**: with placeholder **`VITE_SUPABASE_*`** in **`.env`**, the guarded blocks **do not execute** Row Level assertions.
 
-| Context                                                                              | Meaning                                                                                                                                                                                           |
-| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`pnpm run validate`** / **`pnpm run test`** (full Vitest)                            | Loads these files — **`skipIf`** applies; green runs **do not prove** live RLS.                                                                                                                   |
+| Context                                                                               | Meaning                                                                                                                                                                                           |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`pnpm run validate`** / **`pnpm run test`** (full Vitest)                           | Loads these files — **`skipIf`** applies; green runs **do not prove** live RLS.                                                                                                                   |
 | **`pnpm run test:unit`** / [.github/workflows/ci.yml](../../.github/workflows/ci.yml) | **Omits** these two paths ([`package.json`](../../package.json)); CI never runs those suites. **[`rls-policies.test.ts`](./rls-policies.test.ts)** (**offline expectation matrix**) **does** run. |
-| **Prove RLS locally**                                                                | Real project + accounts (sections above): **`npx vitest run src/tests/rls-e2e.test.ts`**.                                                                                                         |
+| **Prove RLS locally**                                                                 | Real project + accounts (sections above): **`npx vitest run src/tests/rls-e2e.test.ts`**.                                                                                                         |
 
 Optional future **scheduled** workflow with secrets; until then **[`TECH_DEBT.md`](../../docs/TECH_DEBT.md)** (Vitest skips).
 

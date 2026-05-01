@@ -4,12 +4,12 @@ This document describes how the application is structured and how **checkout, pa
 
 ## Runtime layout
 
-| Layer                                | Role                                                                                                                                                                                                         |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Vite SPA** (`src/`)                | React 18, React Router, TanStack Query, Tailwind + shadcn-style UI.                                                                                                                                          |
+| Layer                                | Role                                                                                                                                                                                                            |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Vite SPA** (`src/`)                | React 18, React Router, TanStack Query, Tailwind + shadcn-style UI.                                                                                                                                             |
 | **Mock API** (`backend/`, port 3001) | Local dev: Express + json-server for products, posts, cart, orders. **`pnpm run dev`** and **`pnpm run preview`** proxy `/api` and `/health` here; start **`pnpm run start:api`** when exercising those routes. |
-| **Supabase**                         | Auth, Postgres (RLS), Realtime, Storage, Edge Functions. Client: `src/integrations/supabase/client.ts` (env vars with safe fallbacks for local use).                                                         |
-| **Stripe**                           | Checkout Sessions; webhooks update `orders` / `payments` on the server.                                                                                                                                      |
+| **Supabase**                         | Auth, Postgres (RLS), Realtime, Storage, Edge Functions. Client: `src/integrations/supabase/client.ts` (env vars with safe fallbacks for local use).                                                            |
+| **Stripe**                           | Checkout Sessions; webhooks update `orders` / `payments` on the server.                                                                                                                                         |
 
 **Dev contract:** Default app origin is **`http://127.0.0.1:8080`** with `strictPort: true`. Use **`VITE_DEV_SERVER_PORT`** when 8080 is busy (see `scripts/lib/e2e-port.mjs`). Cypress **`baseUrl`** and the SPA probe must match that port unless you set **`CYPRESS_BASE_URL`**. See [AGENTS.md](../AGENTS.md) and [cypress/README.md](../cypress/README.md).
 
@@ -78,7 +78,7 @@ Use this when something “backend or database” fails — the stack is **split
 
 | What you see                                                        | Layer               | Typical cause                                                                                             |
 | ------------------------------------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------- |
-| Browser calls same-origin **`/api/...`** or **`/health`** and fails | **Mock API**        | **`pnpm run start:api`** not running; or dev/preview proxy misconfigured (mock listens on **3001**).       |
+| Browser calls same-origin **`/api/...`** or **`/health`** and fails | **Mock API**        | **`pnpm run start:api`** not running; or dev/preview proxy misconfigured (mock listens on **3001**).      |
 | **`*.supabase.co/rest/v1/...`** errors                              | **PostgREST / RLS** | Missing or wrong JWT; guest headers; **RLS** policy (e.g. **`42501`**).                                   |
 | **`*.supabase.co/functions/v1/...`** errors                         | **Edge Function**   | Deploy/version; secrets; CORS; request body validation.                                                   |
 | Checkout / order return broken but catalog loads                    | **Edge + webhooks** | `create-payment`, **`stripe-webhook`**, **`order-lookup`** — see **Checkout and payment return** (below). |

@@ -21,7 +21,7 @@ Companion to the **`package.json`** command catalog in [scripts/README.md](../..
 
 | Script                                 | Deno?            | Typical use                                                                         |
 | -------------------------------------- | ---------------- | ----------------------------------------------------------------------------------- |
-| `check:edge-functions:bundling`        | No (`--no-deno`) | Fast import-graph check; part of **`pnpm run validate`**.                            |
+| `check:edge-functions:bundling`        | No (`--no-deno`) | Fast import-graph check; part of **`pnpm run validate`**.                           |
 | `check:edge-functions:bundling:full`   | Yes              | Full `deno check` on every function; **root CI** runs this after Deno is installed. |
 | `check:edge-functions:bundling:report` | No               | Same as default + writes JSON / HTML / compact error files under `reports/`.        |
 | `check:edge-functions:bundling:ci`     | No               | Compact JSON on stdout for piping.                                                  |

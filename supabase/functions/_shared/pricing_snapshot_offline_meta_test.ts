@@ -52,7 +52,9 @@ function strippedEnv(): Record<string, string> {
   return env;
 }
 
-async function runDeno(args: string[]): Promise<{ code: number; stdout: string; stderr: string }> {
+async function runDeno(
+  args: string[]
+): Promise<{ code: number; stdout: string; stderr: string }> {
   const cmd = new Deno.Command('deno', {
     args,
     env: strippedEnv(),
@@ -84,15 +86,21 @@ Deno.test(
       console.error('--- stdout ---\n' + stdout);
       console.error('--- stderr ---\n' + stderr);
     }
-    assertEquals(code, 0, 'pricing-snapshot suite must pass without --allow-env / --allow-net');
+    assertEquals(
+      code,
+      0,
+      'pricing-snapshot suite must pass without --allow-env / --allow-net'
+    );
 
     // Deno final summary: "ok | N passed | 0 failed (XXms)"
-    const summary = stdout.match(/^(ok|FAILED)\s*\|\s*(\d+)\s+passed\s*\|\s*(\d+)\s+failed/m);
+    const summary = stdout.match(
+      /^(ok|FAILED)\s*\|\s*(\d+)\s+passed\s*\|\s*(\d+)\s+failed/m
+    );
     assert(summary, `could not find Deno summary line in stdout:\n${stdout}`);
     assertEquals(summary![1], 'ok');
     assertEquals(summary![3], '0', 'no test must fail');
     assert(Number(summary![2]) > 0, 'at least one test should run');
-  },
+  }
 );
 
 Deno.test(
@@ -115,20 +123,28 @@ Deno.test(
       if (/Specifier not found in cache|cached only/i.test(stderr)) {
         throw new Error(
           'Deno cache not warm. Run once online:\n' +
-            '  deno cache --config ' + DENO_CONFIG + ' \\\n' +
-            '    ' + PRICING_TEST_FILES.join(' \\\n    '),
+            '  deno cache --config ' +
+            DENO_CONFIG +
+            ' \\\n' +
+            '    ' +
+            PRICING_TEST_FILES.join(' \\\n    ')
         );
       }
     }
-    assertEquals(code, 0, 'pricing-snapshot suite must pass with --cached-only');
-  },
+    assertEquals(
+      code,
+      0,
+      'pricing-snapshot suite must pass with --cached-only'
+    );
+  }
 );
 
 Deno.test(
-  "negative control — `fetch()` is denied without --allow-net (Deno security model sanity check)",
+  'negative control — `fetch()` is denied without --allow-net (Deno security model sanity check)',
   async () => {
     // Inline TS source executed via `deno eval` under stripped env + no --allow-net.
-    const src = `try { await fetch("https://example.com"); console.log("FETCH_OK"); } ` +
+    const src =
+      `try { await fetch("https://example.com"); console.log("FETCH_OK"); } ` +
       `catch (e) { console.log("FETCH_DENIED:" + (e as Error).name); }`;
 
     const cmd = new Deno.Command('deno', {
@@ -153,17 +169,25 @@ Deno.test(
     assert(
       denied,
       'fetch() should be blocked without --allow-net.\n' +
-        `exit=${out.code}\nstdout=${stdout}\nstderr=${stderr}`,
+        `exit=${out.code}\nstdout=${stdout}\nstderr=${stderr}`
     );
     // Belt-and-suspenders: explicitly forbid the success marker.
-    assert(!/FETCH_OK/.test(stdout), 'fetch() unexpectedly succeeded — Deno permission model broken?');
+    assert(
+      !/FETCH_OK/.test(stdout),
+      'fetch() unexpectedly succeeded — Deno permission model broken?'
+    );
     assertStringIncludes(
       stdout + stderr,
       // Any of these substrings proves the denial path was exercised.
       // Pick the first that matches to keep the assertion specific.
-      [/Requires net access/i, /PermissionDenied/i, /NotCapable/i, /FETCH_DENIED:/i].find((re) =>
-        re.test(stdout + stderr),
-      )!.source.replace(/\\/g, ''),
+      [
+        /Requires net access/i,
+        /PermissionDenied/i,
+        /NotCapable/i,
+        /FETCH_DENIED:/i,
+      ]
+        .find((re) => re.test(stdout + stderr))!
+        .source.replace(/\\/g, '')
     );
-  },
+  }
 );

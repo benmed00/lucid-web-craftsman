@@ -28,7 +28,7 @@ sole auth gate.
 | **Env vars**       | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `INVOICE_SIGNING_SECRET`                                                                                                                            |
 | **Tests**          | **55 passing** — 35 handler-layer + 5 Postgres store + 3 composite store + 5 whitelists + 7 labels (rate-limit tests now live in `_shared/rate-limit/`, shared with `order-confirmation-lookup`) |
 | **E2E**            | `cypress/e2e/get_order_by_token_mocked_spec.ts` — stubs both edge functions end-to-end                                                                                                           |
-| **OpenAPI**        | `openapi.fragment.json` picked up by `pnpm run openapi:edge-functions`                                                                                                                            |
+| **OpenAPI**        | `openapi.fragment.json` picked up by `pnpm run openapi:edge-functions`                                                                                                                           |
 | **Deploy**         | not bundled; `supabase functions deploy get-order-by-token`                                                                                                                                      |
 
 ---

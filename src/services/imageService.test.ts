@@ -22,6 +22,7 @@ describe('imageService.checkImage', () => {
         onerror: (() => void) | null = null;
         private _src = '';
         constructor() {
+          // eslint-disable-next-line @typescript-eslint/no-this-alias -- test mock: expose instance for expect()
           lastInstance = this;
         }
         set src(v: string) {

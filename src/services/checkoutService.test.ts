@@ -29,7 +29,9 @@ describe('normalizeCreatePaymentInvokeResult', () => {
     };
     const out = normalizeCreatePaymentInvokeResult(input);
     expect(out.error).toBeNull();
-    expect(out.data).toEqual({ url: 'https://checkout.stripe.com/c/pay/cs_123' });
+    expect(out.data).toEqual({
+      url: 'https://checkout.stripe.com/c/pay/cs_123',
+    });
   });
 
   it('uses data.error when invoke error is present (422 body)', () => {

@@ -161,9 +161,8 @@ export function useGuestSession() {
         };
 
         try {
-          const { data: tokenData, error: rpcError } = await supabase.rpc(
-            'create_guest_token'
-          );
+          const { data: tokenData, error: rpcError } =
+            await supabase.rpc('create_guest_token');
           if (rpcError) {
             if (import.meta.env.DEV) {
               console.warn(
