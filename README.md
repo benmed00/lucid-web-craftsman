@@ -467,6 +467,82 @@ deno cache --config supabase/functions/deno.json \
 
 Sortie attendue (la première fois) : une série de lignes `Download https://deno.land/std@0.190.0/...` puis `Download https://jsr.io/@std/assert/...`, sans erreur. Si `deno cache` se termine sans `error:`, le cache est prêt.
 
+##### Configurer un proxy HTTP/HTTPS (réseau d'entreprise, runner restreint)
+
+Si la machine n'a pas d'accès Internet direct, **toutes les requêtes sortantes de Deno** (`deno cache`, `deno test` sans `--cached-only`, `deno info`) doivent passer par le proxy. Deno respecte les variables standard `HTTP_PROXY`, `HTTPS_PROXY` et `NO_PROXY` (insensibles à la casse) — aucun flag CLI dédié.
+
+**Linux / macOS (bash, zsh) :**
+
+```bash
+# Proxy non authentifié
+export HTTP_PROXY="http://proxy.corp.local:8080"
+export HTTPS_PROXY="http://proxy.corp.local:8080"
+# Hôtes à NE PAS faire passer par le proxy (loopback, registres internes, jsr/deno mirrors locaux)
+export NO_PROXY="localhost,127.0.0.1,::1,.corp.local"
+
+# Proxy authentifié (URL-encoder les caractères spéciaux du mot de passe : @ → %40, : → %3A, # → %23)
+export HTTPS_PROXY="http://alice:s%40cret@proxy.corp.local:8080"
+
+# Bundle CA d'entreprise (TLS interception type Zscaler / Netskope / Bluecoat)
+export DENO_CERT="/etc/ssl/certs/corp-ca-bundle.pem"
+
+# Puis amorcer le cache (Étape 1 ci-dessus) :
+deno cache --config supabase/functions/deno.json \
+  supabase/functions/_shared/pricing-snapshot_test.ts \
+  supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts \
+  supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts
+```
+
+**Windows — PowerShell :**
+
+```powershell
+$env:HTTP_PROXY  = "http://proxy.corp.local:8080"
+$env:HTTPS_PROXY = "http://proxy.corp.local:8080"
+$env:NO_PROXY    = "localhost,127.0.0.1,::1,.corp.local"
+$env:DENO_CERT   = "C:\ProgramData\corp\ca-bundle.pem"   # optionnel (TLS intercept)
+
+deno cache --config supabase\functions\deno.json `
+  supabase\functions\_shared\pricing-snapshot_test.ts `
+  supabase\functions\stripe-webhook\lib\pricing-snapshot_test.ts
+```
+
+**Windows — cmd.exe :**
+
+```bat
+set HTTP_PROXY=http://proxy.corp.local:8080
+set HTTPS_PROXY=http://proxy.corp.local:8080
+set NO_PROXY=localhost,127.0.0.1,::1,.corp.local
+set DENO_CERT=C:\ProgramData\corp\ca-bundle.pem
+
+deno cache --config supabase\functions\deno.json supabase\functions\_shared\pricing-snapshot_test.ts
+```
+
+**Persister la configuration (recommandé pour CI / runners self-hosted) :**
+
+| Cible                 | Fichier / commande                                                                                                                                                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shell utilisateur     | Ajouter les `export` ci-dessus à `~/.bashrc`, `~/.zshrc` ou `~/.profile`.                                                                                                                                                                                     |
+| GitHub Actions runner | Définir `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, `DENO_CERT` dans **Settings → Secrets and variables → Actions → Variables** (puis `env:` au niveau du workflow ou du job dans [`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml)). |
+| Docker / image CI     | `ENV HTTP_PROXY=…` + `ENV HTTPS_PROXY=…` + `COPY corp-ca.pem /etc/ssl/certs/` + `ENV DENO_CERT=/etc/ssl/certs/corp-ca.pem` dans le `Dockerfile`.                                                                                                              |
+| systemd service       | `Environment=HTTPS_PROXY=…` dans la section `[Service]` du unit file.                                                                                                                                                                                          |
+
+**Vérifier rapidement que le proxy fonctionne (avant de lancer la suite complète) :**
+
+```bash
+# Doit afficher la version Deno + la liste des registries résolus, sans erreur réseau.
+deno info https://deno.land/std@0.190.0/testing/asserts.ts
+# Doit retourner 200 OK via le proxy.
+curl -sS -o /dev/null -w "%{http_code}\n" https://jsr.io/@std/assert/meta.json
+```
+
+**Pièges courants :**
+
+- **Mot de passe avec `@` / `:` / `#`** dans `HTTPS_PROXY` → Deno parse l'URL et casse silencieusement. URL-encoder (`@` → `%40`, `:` → `%3A`, `#` → `%23`).
+- **Certificat racine corporate non installé** → erreur `error sending request ... invalid peer certificate: UnknownIssuer`. Pointer `DENO_CERT` vers le bundle CA (ou ajouter le CA au truststore système — sous Linux : `/usr/local/share/ca-certificates/` + `update-ca-certificates`).
+- **`NO_PROXY` ignoré** pour des hôtes à 1 segment (`registry-internal`) → utiliser le FQDN ou un suffixe avec point initial (`.corp.local`).
+- **Variables exportées dans un sous-shell uniquement** → si `deno cache` semble ignorer le proxy, vérifier avec `env | grep -i proxy` que les vars sont bien dans l'environnement courant.
+- **Runs `--cached-only` / offline** : une fois le cache amorcé, **désactiver** `HTTP_PROXY` / `HTTPS_PROXY` n'a aucun impact — Deno ne sort plus sur le réseau (vérifié par `npm run verify:pricing-snapshot:offline`).
+
 > Derrière un proxy d'entreprise : exporter `HTTPS_PROXY` / `HTTP_PROXY` (et au besoin `DENO_CERT=/chemin/ca-bundle.pem`) **avant** la commande `deno cache`. Ces variables ne sont **pas** nécessaires pour les runs offline ultérieurs.
 
 **Étape 2 — Vérifier que tout passe hors-ligne :**
