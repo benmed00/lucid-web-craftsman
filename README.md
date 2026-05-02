@@ -398,6 +398,7 @@ isShippingLineDescription detects French shipping row ... ok (0ms)
  ERRORS
 
 currency is normalized to lowercase => ./supabase/functions/_shared/pricing-snapshot_test.ts:10:6
+                                       ↳ permalink: https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/_shared/pricing-snapshot_test.ts#L10
 error: AssertionError: Values are not equal.
 
 
@@ -415,6 +416,7 @@ error: AssertionError: Values are not equal.
  FAILURES
 
 currency is normalized to lowercase => ./supabase/functions/_shared/pricing-snapshot_test.ts:10:6
+                                       ↳ permalink: https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/_shared/pricing-snapshot_test.ts#L10
 
 FAILED | 25 passed | 1 failed (912ms)
 
@@ -424,7 +426,9 @@ error: Test failed
 **Ce qui change vs. la sortie verte :**
 
 - Le test cassé passe de `... ok (Xms)` à **`... FAILED (Xms)`** — seul ce test est marqué, les autres restent `ok`.
-- Deux nouveaux blocs apparaissent **avant** la ligne de résumé : **`ERRORS`** (stack trace + diff `assertEquals`) puis **`FAILURES`** (liste compacte `<nom> => <fichier>:<ligne>:<col>`, copier-coller-friendly pour ouvrir directement la ligne fautive).
+- Deux nouveaux blocs apparaissent **avant** la ligne de résumé : **`ERRORS`** (stack trace + diff `assertEquals`) puis **`FAILURES`** (liste compacte `<nom> => <fichier>:<ligne>:<col>`, copier-coller-friendly pour ouvrir directement la ligne fautive). **Permaliens GitHub vers les deux fichiers de tests Deno couverts par cette section** (à `main` — épingler à un SHA pour un lien immuable) :
+  - `_shared/pricing-snapshot_test.ts` → assertion cassée ligne 10 : [#L10](https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/_shared/pricing-snapshot_test.ts#L10) (range : [#L10-L22](https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/_shared/pricing-snapshot_test.ts#L10-L22)).
+  - `stripe-webhook/lib/pricing-snapshot_test.ts` → premier `Deno.test` ligne 7 : [#L7](https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts#L7) ; second test ligne 41 : [#L41](https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts#L41).
 - La ligne de résumé finale passe de **`ok | 26 passed | 0 failed (XXms)`** à **`FAILED | 25 passed | 1 failed (XXms)`** : le préfixe **`ok`** devient **`FAILED`** et le compteur `failed` reflète le nombre exact de tests cassés.
 - Une dernière ligne **`error: Test failed`** est imprimée par Deno après le résumé, et le **process sort en exit code `1`** — ce qui fait échouer `pnpm run test:pricing-snapshot:deno`, `npm run verify:pricing-snapshot:offline`, et l'étape **`Deno test checkout pricing helpers`** dans le workflow CI.
 
