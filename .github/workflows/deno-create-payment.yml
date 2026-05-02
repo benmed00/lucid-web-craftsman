@@ -78,30 +78,101 @@ jobs:
           ENV_PATTERN='Deno\.env\.(get|toObject|has|set|delete)\b|process\.env\b'
           NET_PATTERN='\bfetch\s*\(|\bnew\s+(XMLHttpRequest|WebSocket|EventSource)\b|Deno\.(connect|connectTls|listen|serve|serveHttp)\b'
 
+          # Build a Markdown report of every offending match. Uploaded as an
+          # artifact on failure so reviewers can jump to file:line without
+          # re-running the workflow locally. Path is consumed by the
+          # `actions/upload-artifact` step below (and by the job summary).
+          REPORT="${{ github.workspace }}/pricing-snapshot-guard-report.md"
+          mkdir -p "$(dirname "$REPORT")"
+          {
+            echo "# pricing-snapshot offline guard — match report"
+            echo ""
+            echo "- Workflow: \`${{ github.workflow }}\` · run [\`${{ github.run_id }}\`](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+            echo "- Commit: \`${{ github.sha }}\`"
+            echo "- Generated: $(date -u +%FT%TZ)"
+            echo ""
+            echo "Files scanned (${#FILES[@]}):"
+            for f in "${FILES[@]}"; do echo "- \`$f\`"; done
+            echo ""
+          } > "$REPORT"
+
           fail=0
+
+          render_section() {
+            # $1 = title, $2 = pattern, $3 = remediation
+            local title="$1" pattern="$2" remedy="$3"
+            local matches
+            matches="$(rg -n --no-heading -e "$pattern" "${FILES[@]}" || true)"
+            {
+              echo "## $title"
+              echo ""
+              if [[ -z "$matches" ]]; then
+                echo "_No matches — ✓ clean._"
+                echo ""
+                return 0
+              fi
+              echo "Pattern: \`$pattern\`"
+              echo ""
+              echo "| File | Line | Match |"
+              echo "| --- | ---: | --- |"
+              while IFS= read -r line; do
+                # rg output: path:line:content
+                local path lineno content
+                path="${line%%:*}"
+                local rest="${line#*:}"
+                lineno="${rest%%:*}"
+                content="${rest#*:}"
+                # Escape pipes in code cell.
+                content="${content//|/\\|}"
+                echo "| [\`$path\`](${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/$path#L$lineno) | $lineno | \`$content\` |"
+              done <<< "$matches"
+              echo ""
+              echo "**Fix:** $remedy"
+              echo ""
+            } >> "$REPORT"
+            return 1
+          }
+
           echo "▌ Scanning for env-var reads…"
-          if rg -n --no-heading -e "$ENV_PATTERN" "${FILES[@]}"; then
-            echo "::error::Pricing-snapshot tests must not read env vars (Deno.env / process.env). Move config into the helper under test or pass it explicitly."
-            fail=1
-          else
+          if render_section "Env-var reads (Deno.env / process.env)" "$ENV_PATTERN" \
+            "Move config into the helper under test or pass it explicitly. Pricing-snapshot tests run without \`--allow-env\` locally (\`env -i\`)."; then
             echo "  ✓ no Deno.env / process.env reads"
+          else
+            echo "::error::Pricing-snapshot tests must not read env vars (Deno.env / process.env). See artifact pricing-snapshot-guard-report."
+            fail=1
           fi
 
           echo "▌ Scanning for network calls…"
-          if rg -n --no-heading -e "$NET_PATTERN" "${FILES[@]}"; then
-            echo "::error::Pricing-snapshot tests must stay 100% offline — no fetch/XHR/WebSocket/Deno.connect/serve. Stub the input as an in-memory literal instead."
-            fail=1
-          else
+          if render_section "Network calls (fetch / XHR / WebSocket / Deno.connect|serve)" "$NET_PATTERN" \
+            "Stub the input as an in-memory literal instead. Pricing-snapshot tests run without \`--allow-net\`."; then
             echo "  ✓ no fetch / XHR / WebSocket / Deno.connect|serve"
+          else
+            echo "::error::Pricing-snapshot tests must stay 100% offline. See artifact pricing-snapshot-guard-report."
+            fail=1
+          fi
+
+          # Mirror the report into the GitHub job summary for one-click visibility.
+          if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+            cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"
           fi
 
           if [[ "$fail" -ne 0 ]]; then
             echo ""
             echo "Pricing-snapshot tests are run without --allow-net and (locally) under \`env -i\`."
             echo "See: scripts/verify-pricing-snapshot-offline.mjs and README \"Préparer le cache Deno\"."
+            echo "Full match report: $REPORT (also uploaded as artifact 'pricing-snapshot-guard-report')."
             exit 1
           fi
           echo "✓ Guard passed — safe to run pricing-snapshot tests offline."
+
+      - name: Upload guard match report (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pricing-snapshot-guard-report
+          path: pricing-snapshot-guard-report.md
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Deno test checkout pricing helpers
         run: deno test --allow-env --allow-read=${{ github.workspace }} --no-check --config deno.json _shared/pricing-snapshot_test.ts _shared/pricing_snapshot_golden_test.ts _shared/pricing_snapshot_extended_test.ts _shared/persist-pricing-snapshot_test.ts _shared/confirm-order_test.ts stripe-webhook/lib/pricing-snapshot_test.ts send-order-confirmation/_lib/email-pricing-from-db_test.ts
