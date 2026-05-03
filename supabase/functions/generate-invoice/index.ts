@@ -319,9 +319,26 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS')
     return new Response(null, { headers: corsHeaders });
 
+  const reqId = crypto.randomUUID().slice(0, 8);
+  const startedAt = Date.now();
+  console.log('[generate-invoice][req]', reqId, 'incoming', {
+    method: req.method,
+    url: req.url,
+    hasAuth: !!req.headers.get('Authorization'),
+    hasApikey: !!req.headers.get('apikey'),
+    hasGuest: !!req.headers.get('x-guest-id'),
+    origin: req.headers.get('origin'),
+    ua: req.headers.get('user-agent')?.slice(0, 80),
+  });
+
   try {
     const body = await req.json().catch(() => ({}));
-    const orderId = await authorize(req, body);
+    console.log('[generate-invoice][req]', reqId, 'body', {
+      hasOrderId: !!body.order_id,
+      hasToken: !!body.token,
+    });
+    const orderId = await authorize(req, body, reqId);
+    console.log('[generate-invoice][req]', reqId, 'authorized', { orderId });
 
     // Idempotency — return existing snapshot if present
     const { data: existing } = await admin
@@ -331,6 +348,10 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (existing) {
+      console.log('[generate-invoice][req]', reqId, 'cached hit', {
+        invoice_number: existing.invoice_number,
+        ms: Date.now() - startedAt,
+      });
       return jsonResponse({
         invoice_number: existing.invoice_number,
         html: existing.html,
@@ -351,13 +372,16 @@ Deno.serve(async (req) => {
     });
 
     if (insertErr && !insertErr.message.includes('duplicate')) {
-      console.error('[generate-invoice] [step5] insert failed', insertErr);
+      console.error('[generate-invoice][req]', reqId, '[step5] insert failed', insertErr);
     } else {
-      console.log('[generate-invoice] [step5] snapshot saved', {
+      console.log('[generate-invoice][req]', reqId, '[step5] snapshot saved', {
         invoice_number: data.invoice_number,
       });
     }
 
+    console.log('[generate-invoice][req]', reqId, 'done', {
+      ms: Date.now() - startedAt,
+    });
     return jsonResponse({
       invoice_number: data.invoice_number,
       html,
@@ -371,7 +395,11 @@ Deno.serve(async (req) => {
         : message === 'Unauthorized'
           ? 401
           : 500;
-    console.error('[generate-invoice]', message);
+    console.error('[generate-invoice][req]', reqId, 'error', {
+      status,
+      message,
+      ms: Date.now() - startedAt,
+    });
     return jsonResponse({ error: message }, status);
   }
 });
