@@ -526,14 +526,42 @@ deno cache --config supabase\functions\deno.json supabase\functions\_shared\pric
 | Docker / image CI     | `ENV HTTP_PROXY=…` + `ENV HTTPS_PROXY=…` + `COPY corp-ca.pem /etc/ssl/certs/` + `ENV DENO_CERT=/etc/ssl/certs/corp-ca.pem` dans le `Dockerfile`.                                                                                                              |
 | systemd service       | `Environment=HTTPS_PROXY=…` dans la section `[Service]` du unit file.                                                                                                                                                                                          |
 
-**Vérifier rapidement que le proxy fonctionne (avant de lancer la suite complète) :**
+**Vérification automatisée (commande unique — proxy + CA corporate) :**
+
+Copier-coller ce bloc dans un shell **après** avoir exporté `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` (et `DENO_CERT` si besoin). Il enchaîne 4 contrôles et sort en erreur (`exit 1`) au premier échec — pratique pour scripter la validation d'un runner ou poster le résultat dans un ticket support réseau.
 
 ```bash
-# Doit afficher la version Deno + la liste des registries résolus, sans erreur réseau.
-deno info https://deno.land/std@0.190.0/testing/asserts.ts
-# Doit retourner 200 OK via le proxy.
-curl -sS -o /dev/null -w "%{http_code}\n" https://jsr.io/@std/assert/meta.json
+# bash / zsh / Git-Bash — un seul bloc, exit code != 0 si un check échoue.
+set -euo pipefail
+echo "── 1/4 ─ Variables d'environnement"
+env | grep -iE '^(https?_proxy|no_proxy|deno_cert)=' || { echo "❌ Aucune variable proxy exportée"; exit 1; }
+
+echo "── 2/4 ─ curl HTTPS via proxy + CA (registry JSR)"
+curl -fsS -o /dev/null -w "  HTTP %{http_code} en %{time_total}s via %{proxy_used_url:-direct}\n" \
+  ${DENO_CERT:+--cacert "$DENO_CERT"} https://jsr.io/@std/assert/meta.json
+
+echo "── 3/4 ─ curl HTTPS deno.land (chaîne TLS différente de jsr.io)"
+curl -fsS -o /dev/null -w "  HTTP %{http_code}\n" \
+  ${DENO_CERT:+--cacert "$DENO_CERT"} https://deno.land/std@0.224.0/assert/mod.ts
+
+echo "── 4/4 ─ deno info (résolution + téléchargement réel via le proxy)"
+deno info https://deno.land/std@0.224.0/assert/mod.ts >/dev/null
+
+echo "✅ Proxy + CA corporate opérationnels — prêt pour 'npm run test:pricing-snapshot'."
 ```
+
+Sous **PowerShell** (équivalent une-ligne) :
+
+```powershell
+$ErrorActionPreference = "Stop"
+Get-ChildItem Env: | Where-Object Name -Match '^(HTTPS?_PROXY|NO_PROXY|DENO_CERT)$'
+curl.exe -fsS -o NUL -w "HTTP %{http_code}`n" https://jsr.io/@std/assert/meta.json
+curl.exe -fsS -o NUL -w "HTTP %{http_code}`n" https://deno.land/std@0.224.0/assert/mod.ts
+deno info https://deno.land/std@0.224.0/assert/mod.ts | Out-Null
+Write-Host "OK proxy + CA"
+```
+
+> Les deux URLs (`jsr.io` et `deno.land`) sont vérifiées séparément car elles utilisent des chaînes de certification différentes — un CA corporate mal configuré peut faire passer l'une et bloquer l'autre.
 
 **Pièges courants :**
 
