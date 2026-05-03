@@ -50,18 +50,45 @@ function buildInvoiceNumber(orderId: string, createdAt: string): string {
 
 async function authorize(
   req: Request,
-  body: { order_id?: string; token?: string }
+  body: { order_id?: string; token?: string },
+  reqId: string
 ): Promise<string> {
+  const hasToken = !!body.token;
+  const hasAuth = !!req.headers.get('Authorization');
+  const hasGuest = !!req.headers.get('x-guest-id');
+  console.log('[generate-invoice][auth]', reqId, 'inputs', {
+    order_id: body.order_id ?? null,
+    hasToken,
+    tokenLen: body.token?.length ?? 0,
+    hasAuth,
+    hasGuest,
+  });
+
   // 1) Signed token wins (works for guests + email links)
   if (body.token) {
-    const tokenOrderId = await verifyToken(body.token);
-    if (body.order_id && body.order_id !== tokenOrderId) {
-      throw new Error('Token does not match order_id');
+    try {
+      const tokenOrderId = await verifyToken(body.token);
+      console.log('[generate-invoice][auth]', reqId, 'token verified', {
+        tokenOrderId,
+        bodyOrderId: body.order_id ?? null,
+      });
+      if (body.order_id && body.order_id !== tokenOrderId) {
+        console.warn('[generate-invoice][auth]', reqId, 'token/order mismatch');
+        throw new Error('Token does not match order_id');
+      }
+      return tokenOrderId;
+    } catch (e) {
+      console.warn('[generate-invoice][auth]', reqId, 'token verify failed', {
+        error: e instanceof Error ? e.message : String(e),
+      });
+      throw new Error('Unauthorized');
     }
-    return tokenOrderId;
   }
 
-  if (!body.order_id) throw new Error('Missing order_id');
+  if (!body.order_id) {
+    console.warn('[generate-invoice][auth]', reqId, 'missing order_id (no token)');
+    throw new Error('Missing order_id');
+  }
 
   // 2) Authenticated user — check ownership or admin
   const authHeader = req.headers.get('Authorization');
@@ -75,19 +102,33 @@ async function authorize(
     );
     const {
       data: { user },
+      error: userErr,
     } = await userClient.auth.getUser();
+    if (userErr) {
+      console.warn('[generate-invoice][auth]', reqId, 'getUser error', {
+        error: userErr.message,
+      });
+    }
     if (user) {
       const { data: order } = await admin
         .from('orders')
         .select('user_id, metadata')
         .eq('id', body.order_id)
         .maybeSingle();
+      console.log('[generate-invoice][auth]', reqId, 'auth user check', {
+        userId: user.id,
+        orderUserId: order?.user_id ?? null,
+        ownerMatch: order?.user_id === user.id,
+      });
       if (order?.user_id === user.id) return body.order_id;
 
       const { data: isAdmin } = await admin.rpc('is_admin_user', {
         user_uuid: user.id,
       });
+      console.log('[generate-invoice][auth]', reqId, 'admin check', { isAdmin });
       if (isAdmin) return body.order_id;
+    } else {
+      console.warn('[generate-invoice][auth]', reqId, 'auth header present but no user resolved');
     }
   }
 
@@ -100,14 +141,23 @@ async function authorize(
       .eq('id', body.order_id)
       .maybeSingle();
     const orderGuestId = jsonToRecord(order?.metadata).guest_id;
-    if (
+    const match =
       typeof orderGuestId === 'string' &&
       orderGuestId.length > 0 &&
-      orderGuestId === guestId
-    )
-      return body.order_id;
+      orderGuestId === guestId;
+    console.log('[generate-invoice][auth]', reqId, 'guest check', {
+      providedGuestLen: guestId.length,
+      orderHasGuest: typeof orderGuestId === 'string' && orderGuestId.length > 0,
+      match,
+    });
+    if (match) return body.order_id;
   }
 
+  console.warn('[generate-invoice][auth]', reqId, 'all paths failed → 401', {
+    hasToken,
+    hasAuth,
+    hasGuest,
+  });
   throw new Error('Unauthorized');
 }
 
