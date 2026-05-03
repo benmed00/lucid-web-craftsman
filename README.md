@@ -398,7 +398,7 @@ isShippingLineDescription detects French shipping row ... ok (0ms)
  ERRORS
 
 currency is normalized to lowercase => ./supabase/functions/_shared/pricing-snapshot_test.ts:10:6
-                                       ↳ permalink: https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/_shared/pricing-snapshot_test.ts#L10
+permalink: https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/_shared/pricing-snapshot_test.ts#L10
 error: AssertionError: Values are not equal.
 
 
@@ -416,7 +416,7 @@ error: AssertionError: Values are not equal.
  FAILURES
 
 currency is normalized to lowercase => ./supabase/functions/_shared/pricing-snapshot_test.ts:10:6
-                                       ↳ permalink: https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/_shared/pricing-snapshot_test.ts#L10
+permalink: https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/_shared/pricing-snapshot_test.ts#L10
 
 FAILED | 25 passed | 1 failed (912ms)
 
