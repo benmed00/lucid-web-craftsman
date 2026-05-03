@@ -9,7 +9,7 @@
  * fresh `order_access` token. Do not pass the invoice `invoice_access`
  * token — get-order-by-token accepts only `order_access`.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import {
   Loader2,
@@ -17,8 +17,11 @@ import {
   Printer,
   ArrowLeft,
   ShoppingBag,
+  RefreshCw,
+  Lock,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { fetchInvoice, InvoiceError } from '@/lib/invoice/generateInvoice';
@@ -32,34 +35,84 @@ const InvoicePage = () => {
 
   const [html, setHtml] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorStatus, setErrorStatus] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retrying, setRetrying] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const triggeredRef = useRef(false);
 
   const shortId = (orderId || '').slice(-8).toUpperCase();
 
-  useEffect(() => {
-    if (!orderId || triggeredRef.current) return;
-    triggeredRef.current = true;
-    let cancelled = false;
-    (async () => {
+  const isAuthError = errorStatus === 401 || errorStatus === 403;
+
+  const friendlyMessage = useCallback(
+    (status: number | null, raw: string | null): string => {
+      if (status === 401 || status === 403) {
+        return t('invoicePage.errorAuth', {
+          defaultValue:
+            'Accès à cette facture refusé. Le lien a peut-être expiré ou ne vous appartient pas. Connectez-vous ou utilisez le lien envoyé par email, puis réessayez.',
+        });
+      }
+      if (status === 404) {
+        return t('invoicePage.errorNotFound', {
+          defaultValue: 'Facture introuvable pour cette commande.',
+        });
+      }
+      if (status && status >= 500) {
+        return t('invoicePage.errorServer', {
+          defaultValue:
+            'Le service de facturation est momentanément indisponible. Merci de réessayer dans quelques instants.',
+        });
+      }
+      return raw || t('invoicePage.errorGeneric');
+    },
+    [t]
+  );
+
+  const load = useCallback(
+    async (isRetry = false) => {
+      if (!orderId) return;
+      if (isRetry) setRetrying(true);
+      else setLoading(true);
+      setError(null);
+      setErrorStatus(null);
       try {
         const { html } = await fetchInvoice(orderId, token);
-        if (cancelled) return;
         setHtml(html);
+        if (isRetry) {
+          toast.success(
+            t('invoicePage.retrySuccess', {
+              defaultValue: 'Facture chargée avec succès.',
+            })
+          );
+        }
       } catch (e) {
-        if (cancelled) return;
-        setError(
-          e instanceof InvoiceError ? e.message : t('invoicePage.errorGeneric')
+        const status = e instanceof InvoiceError ? (e.status ?? null) : null;
+        const raw = e instanceof Error ? e.message : null;
+        const msg = friendlyMessage(status, raw);
+        setErrorStatus(status);
+        setError(msg);
+        toast.error(
+          status === 401 || status === 403
+            ? t('invoicePage.toastAuthTitle', {
+                defaultValue: 'Accès refusé à la facture',
+              })
+            : t('invoicePage.toastErrorTitle', {
+                defaultValue: 'Échec de génération de la facture',
+              }),
+          { description: msg }
         );
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
+        setRetrying(false);
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [orderId, token]);
+    },
+    [orderId, token, friendlyMessage, t]
+  );
+
+  useEffect(() => {
+    void load(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId]);
 
   // Auto-print when ?print=1 and iframe is ready
   useEffect(() => {
@@ -102,11 +155,23 @@ const InvoicePage = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-card border border-border rounded-2xl shadow-lg p-8 text-center">
-          <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
-            <AlertTriangle className="w-7 h-7 text-destructive" />
+          <div
+            className={`w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center ${
+              isAuthError ? 'bg-amber-500/10' : 'bg-destructive/10'
+            }`}
+          >
+            {isAuthError ? (
+              <Lock className="w-7 h-7 text-amber-600" />
+            ) : (
+              <AlertTriangle className="w-7 h-7 text-destructive" />
+            )}
           </div>
           <h1 className="font-serif text-2xl text-foreground mb-2">
-            {t('invoicePage.unavailableTitle')}
+            {isAuthError
+              ? t('invoicePage.unauthorizedTitle', {
+                  defaultValue: 'Accès à la facture refusé',
+                })
+              : t('invoicePage.unavailableTitle')}
           </h1>
           <p className="text-sm text-muted-foreground mb-1">
             {t('invoicePage.orderLine')}{' '}
@@ -114,17 +179,50 @@ const InvoicePage = () => {
               #{shortId}
             </span>
           </p>
-          <p className="text-sm text-destructive mt-4 mb-6">
+          {errorStatus && (
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground/70 mt-1">
+              {t('invoicePage.errorCode', {
+                defaultValue: 'Code',
+              })}
+              : {errorStatus}
+            </p>
+          )}
+          <p
+            className={`text-sm mt-4 mb-6 ${
+              isAuthError ? 'text-foreground/80' : 'text-destructive'
+            }`}
+          >
             {error || t('invoicePage.noContent')}
           </p>
           <div className="flex flex-col sm:flex-row gap-2 justify-center">
             <Button
-              onClick={() => window.location.reload()}
-              variant="outline"
+              onClick={() => void load(true)}
+              disabled={retrying}
               size="sm"
+              className="gap-2"
             >
-              {t('invoicePage.retry')}
+              {retrying ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <RefreshCw className="w-4 h-4" />
+              )}
+              {retrying
+                ? t('invoicePage.retrying', {
+                    defaultValue: 'Nouvelle tentative…',
+                  })
+                : t('invoicePage.retry')}
             </Button>
+            {isAuthError && (
+              <Button asChild variant="outline" size="sm">
+                <Link
+                  to={`/auth?redirect=${encodeURIComponent(`/invoice/${orderId ?? ''}`)}`}
+                >
+                  {t('invoicePage.signIn', {
+                    defaultValue: 'Se connecter',
+                  })}
+                </Link>
+              </Button>
+            )}
             <Button asChild variant="secondary" size="sm">
               <Link to="/contact">{t('invoicePage.contactSupport')}</Link>
             </Button>
