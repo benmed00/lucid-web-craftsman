@@ -13,7 +13,13 @@ import { supabaseFunctionsV1BaseUrl } from '@/lib/invoice/supabaseFunctionsBaseU
 
 const FUNCTIONS_URL = supabaseFunctionsV1BaseUrl();
 
-export class InvoiceError extends Error {}
+export class InvoiceError extends Error {
+  status?: number;
+  constructor(message: string, status?: number) {
+    super(message);
+    this.status = status;
+  }
+}
 
 export interface InvoiceResponse {
   invoice_number: string;
