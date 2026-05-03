@@ -58,7 +58,7 @@ export async function fetchInvoice(
     const err = await res
       .json()
       .catch(() => ({ error: 'Failed to generate invoice' }));
-    throw new InvoiceError(err.error || `HTTP ${res.status}`);
+    throw new InvoiceError(err.error || `HTTP ${res.status}`, res.status);
   }
   return res.json();
 }
