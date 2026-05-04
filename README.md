@@ -632,7 +632,103 @@ tar czf deno-cache.tgz -C "$(deno info --json | jq -r '.denoDir')" .
 
 Sur un runner CI offline, restaurer ensuite ce tarball dans `$DENO_DIR` **avant** d'exécuter `npm run test:pricing-snapshot:deno` (qui passe déjà `--no-check` et n'a besoin d'aucun secret — voir la **Checklist offline / sans secrets** ci-dessus).
 
-#### Anatomie des flags `deno test` utilisés
+#### Exemple GitHub Actions : runner derrière un proxy d'entreprise
+
+Workflow minimal qui configure le proxy + le CA corporate **avant** `deno cache` puis `deno test`. Les valeurs (`HTTP_PROXY`, CA bundle…) sont stockées en **secrets** ou **variables** du dépôt — jamais en clair dans le YAML.
+
+> **À adapter :** remplacer les noms de secrets par les vôtres (`secrets.CORP_HTTP_PROXY`, `secrets.CORP_CA_BUNDLE_B64`, `vars.CORP_NO_PROXY`). Le CA est passé en **base64** pour préserver les retours à la ligne.
+
+```yaml
+# .github/workflows/deno-tests-behind-proxy.yml
+name: Deno tests (corporate proxy)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: self-hosted # ou ubuntu-latest si le proxy est joignable depuis GitHub-hosted
+    env:
+      # Proxy : URL-encoder @ : # dans le mot de passe (@ → %40, : → %3A, # → %23)
+      HTTP_PROXY: ${{ secrets.CORP_HTTP_PROXY }}
+      HTTPS_PROXY: ${{ secrets.CORP_HTTP_PROXY }}
+      # Hôtes joignables en direct (FQDN ou suffixe avec point initial)
+      NO_PROXY: ${{ vars.CORP_NO_PROXY }} # ex: "localhost,127.0.0.1,.corp.local,registry-internal.corp.local"
+      # Forcer Deno à utiliser le bundle CA corporate (sinon: UnknownIssuer)
+      DENO_CERT: ${{ github.workspace }}/.ci/corp-ca-bundle.pem
+      # Cache Deno local au workspace (facilite la mise en cache GHA)
+      DENO_DIR: ${{ github.workspace }}/.deno-cache
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Décoder le CA corporate (depuis secret base64)
+        run: |
+          mkdir -p .ci
+          echo "${{ secrets.CORP_CA_BUNDLE_B64 }}" | base64 -d > "$DENO_CERT"
+          # Sanity check : le fichier doit commencer par -----BEGIN CERTIFICATE-----
+          head -1 "$DENO_CERT" | grep -q "BEGIN CERTIFICATE" || { echo "::error::CA bundle invalide"; exit 1; }
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Vérifier la connectivité via le proxy (fail-fast)
+        run: |
+          echo "── Proxy en place ? ──"
+          test -n "$HTTPS_PROXY" || { echo "::error::HTTPS_PROXY manquant"; exit 1; }
+          test -f "$DENO_CERT"   || { echo "::error::DENO_CERT introuvable"; exit 1; }
+          echo "── curl HTTPS via proxy + CA ──"
+          curl -fsS --cacert "$DENO_CERT" https://jsr.io/@std/assert/meta.json >/dev/null
+          curl -fsS --cacert "$DENO_CERT" https://deno.land/std@0.224.0/assert/mod.ts >/dev/null
+
+      - name: Restaurer le cache Deno
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.DENO_DIR }}
+          key: deno-${{ runner.os }}-${{ hashFiles('supabase/functions/deno.json', 'supabase/functions/**/deno.lock') }}
+          restore-keys: |
+            deno-${{ runner.os }}-
+
+      - name: Amorcer le cache (deno cache via proxy)
+        run: |
+          deno cache \
+            --config supabase/functions/deno.json \
+            supabase/functions/_shared/pricing-snapshot_test.ts
+
+      - name: Exécuter les tests Deno
+        run: |
+          deno test \
+            --allow-env \
+            --allow-read=. \
+            --no-check \
+            --config supabase/functions/deno.json \
+            supabase/functions/_shared/pricing-snapshot_test.ts
+
+      # Optionnel : seconde passe offline pour prouver que rien ne fuit sur le réseau
+      - name: Re-run offline (DENO_OFFLINE=1, sans proxy)
+        env:
+          DENO_OFFLINE: '1'
+          HTTP_PROXY: ''
+          HTTPS_PROXY: ''
+        run: |
+          deno test \
+            --allow-env --allow-read=. --no-check \
+            --config supabase/functions/deno.json \
+            supabase/functions/_shared/pricing-snapshot_test.ts
+```
+
+**Points clés :**
+
+- `env:` est défini au **niveau du job** → chaque step hérite des variables sans `export` manuel.
+- Le **CA corporate** est stocké en `secrets.CORP_CA_BUNDLE_B64` (base64 du `.pem`), décodé dans `${{ github.workspace }}/.ci/` (effacé à la fin du job).
+- L'étape **« Vérifier la connectivité »** échoue **avant** `deno cache` si le proxy/CA est mal configuré → message d'erreur clair plutôt qu'un `UnknownIssuer` cryptique 30 s plus tard.
+- `actions/cache@v4` réutilise `$DENO_DIR` entre runs → après le premier amorçage, `deno cache` devient quasi-instantané et **`deno test`** peut tourner offline.
+- L'étape finale **offline** (`DENO_OFFLINE=1`, proxy vidé) prouve qu'aucun nouveau téléchargement n'est nécessaire — voir **Basculer entre mode connecté et offline** ci-dessus.
+
+
 
 La commande exacte derrière **`npm run test:pricing-snapshot:deno`** est :
 
