@@ -563,6 +563,44 @@ Write-Host "OK proxy + CA"
 
 > Les deux URLs (`jsr.io` et `deno.land`) sont vérifiées séparément car elles utilisent des chaînes de certification différentes — un CA corporate mal configuré peut faire passer l'une et bloquer l'autre.
 
+#### Basculer entre mode connecté (proxy) et mode offline (cache)
+
+Les deux modes utilisent **le même cache** (`$DENO_DIR`). La seule différence : Deno a-t-il le droit de sortir sur le réseau pour combler un manque ?
+
+| Mode | Quand l'utiliser | Variables à définir | Variables à **désactiver** | Commande type |
+| --- | --- | --- | --- | --- |
+| **Connecté (proxy)** | Première installation, ajout d'un nouveau test/import, mise à jour d'une dépendance `std@x.y.z` | `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, `DENO_CERT` (si CA corporate) | `DENO_OFFLINE` | `npm run test:pricing-snapshot:deno` (amorce le cache) |
+| **Offline (cache)** | CI air-gapped, runs répétés, validation que rien ne fuit sur le réseau | `DENO_OFFLINE=1` | `HTTP_PROXY`, `HTTPS_PROXY` *(facultatif — ignorés en offline, mais à retirer pour éviter la confusion)* | `DENO_OFFLINE=1 npm run test:pricing-snapshot:deno` |
+
+**Procédure de bascule :**
+
+1. **Connecté → Offline :** lancer une fois la commande en mode connecté (les lignes `Download https://...` doivent apparaître), puis relancer avec `DENO_OFFLINE=1`. Aucune ligne `Download` ne doit s'afficher.
+2. **Offline → Connecté :** `unset DENO_OFFLINE` (PowerShell : `Remove-Item Env:DENO_OFFLINE`), exporter à nouveau `HTTPS_PROXY` / `DENO_CERT`, relancer.
+
+```bash
+# Bash : bascule rapide vers offline pour valider qu'aucun module ne manque
+unset HTTP_PROXY HTTPS_PROXY
+DENO_OFFLINE=1 npm run test:pricing-snapshot:deno
+```
+
+```powershell
+# PowerShell : équivalent
+Remove-Item Env:HTTP_PROXY, Env:HTTPS_PROXY -ErrorAction SilentlyContinue
+$env:DENO_OFFLINE = "1"
+npm run test:pricing-snapshot:deno
+```
+
+**Quoi vérifier dans les logs :**
+
+| Mode attendu | Signe que **tout va bien** | Signe que **ça ne va pas** | Action |
+| --- | --- | --- | --- |
+| Connecté | Lignes `Download https://deno.land/...` ou `Download https://jsr.io/...` puis `ok | N passed` | `error sending request ... UnknownIssuer` / `tcp connect error` / `error trying to connect` | CA manquant (`DENO_CERT`) ou proxy non exporté — revoir l'**étape 1** ci-dessus |
+| Connecté | *Aucune* ligne `Download` (cache déjà chaud) | Suite passe quand même `ok` | Normal — relancer avec `DENO_OFFLINE=1` pour confirmer que le cache suffit |
+| Offline | *Aucune* ligne `Download`, suite `ok | N passed | 0 failed` | `error: Specifier not found in cache: "https://..."` | Un nouvel import a été ajouté — repasser **temporairement** en mode connecté pour amorcer le cache, puis revenir offline |
+| Offline | — | Lignes `Download https://...` malgré `DENO_OFFLINE=1` | `DENO_OFFLINE` non exporté dans le shell courant — vérifier avec `env | grep DENO_OFFLINE` (PowerShell : `Get-ChildItem Env:DENO_OFFLINE`) |
+
+> **Règle simple :** si vous voyez `Download` en mode offline, ou `UnknownIssuer` en mode connecté, **arrêtez** et corrigez l'environnement avant de toucher au code de test.
+
 **Pièges courants :**
 
 - **Mot de passe avec `@` / `:` / `#`** dans `HTTPS_PROXY` → Deno parse l'URL et casse silencieusement. URL-encoder (`@` → `%40`, `:` → `%3A`, `#` → `%23`).
