@@ -728,6 +728,125 @@ jobs:
 - `actions/cache@v4` réutilise `$DENO_DIR` entre runs → après le premier amorçage, `deno cache` devient quasi-instantané et **`deno test`** peut tourner offline.
 - L'étape finale **offline** (`DENO_OFFLINE=1`, proxy vidé) prouve qu'aucun nouveau téléchargement n'est nécessaire — voir **Basculer entre mode connecté et offline** ci-dessus.
 
+#### Exemple Docker / docker-compose : conteneur Deno derrière un proxy d'entreprise
+
+Utile pour les runners CI conteneurisés (GitLab CI, Jenkins, Drone…) ou pour reproduire localement le comportement d'un environnement air-gapped + proxy. Deux fichiers : un **`Dockerfile`** qui installe le CA corporate au niveau OS **et** Deno, et un **`docker-compose.yml`** qui injecte les variables d'environnement + monte le cache Deno comme volume.
+
+> **À adapter :** placer le bundle CA dans `./.ci/corp-ca-bundle.pem` (gitignored — ne **jamais** commiter le PEM). Les valeurs proxy viennent d'un fichier `.env` local (gitignored, voir plus bas).
+
+**`Dockerfile` :**
+
+```dockerfile
+# syntax=docker/dockerfile:1.7
+FROM denoland/deno:2.1.4
+
+# 1. Installer le CA corporate au niveau OS (sinon apt/curl/git échouent en TLS)
+COPY .ci/corp-ca-bundle.pem /usr/local/share/ca-certificates/corp-ca-bundle.crt
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+ && update-ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+# 2. Pointer Deno vers le même bundle (variable lue par Deno au runtime)
+ENV DENO_CERT=/usr/local/share/ca-certificates/corp-ca-bundle.crt
+
+# 3. Cache Deno dans un dossier connu (monté en volume par compose)
+ENV DENO_DIR=/deno-cache
+RUN mkdir -p "$DENO_DIR"
+
+WORKDIR /workspace
+
+# 4. Pré-amorcer le cache au build (les variables proxy sont passées en --build-arg)
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+ENV HTTP_PROXY=$HTTP_PROXY HTTPS_PROXY=$HTTPS_PROXY NO_PROXY=$NO_PROXY
+
+COPY supabase/functions/deno.json supabase/functions/deno.json
+COPY supabase/functions/_shared supabase/functions/_shared
+RUN deno cache \
+      --config supabase/functions/deno.json \
+      supabase/functions/_shared/pricing-snapshot_test.ts
+
+# 5. Le reste du code est monté en volume par compose (itération rapide)
+CMD ["deno", "test", \
+     "--allow-env", "--allow-read=.", "--no-check", \
+     "--config", "supabase/functions/deno.json", \
+     "supabase/functions/_shared/pricing-snapshot_test.ts"]
+```
+
+**`docker-compose.yml` :**
+
+```yaml
+services:
+  deno-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Passés au build pour pré-amorcer le cache (RUN deno cache)
+        HTTP_PROXY: ${CORP_HTTP_PROXY}
+        HTTPS_PROXY: ${CORP_HTTP_PROXY}
+        NO_PROXY: ${CORP_NO_PROXY}
+    environment:
+      # Passés au runtime (deno test) — utiles si un test ajoute un import à chaud
+      HTTP_PROXY: ${CORP_HTTP_PROXY}
+      HTTPS_PROXY: ${CORP_HTTP_PROXY}
+      NO_PROXY: ${CORP_NO_PROXY}
+      # DENO_CERT et DENO_DIR sont déjà fixés dans le Dockerfile
+    volumes:
+      # Code source monté pour itérer sans rebuild
+      - ./:/workspace:ro
+      # Cache Deno persisté entre runs (équivalent du actions/cache@v4)
+      - deno-cache:/deno-cache
+      # CA corporate (lu au build, mais re-monté pour debug rapide)
+      - ./.ci/corp-ca-bundle.pem:/usr/local/share/ca-certificates/corp-ca-bundle.crt:ro
+
+  # Service jumeau qui rejoue la suite OFFLINE (preuve d'hermétisme)
+  deno-tests-offline:
+    extends: deno-tests
+    environment:
+      DENO_OFFLINE: '1'
+      HTTP_PROXY: ''
+      HTTPS_PROXY: ''
+    depends_on:
+      deno-tests:
+        condition: service_completed_successfully
+
+volumes:
+  deno-cache:
+```
+
+**`.env` (à créer localement, gitignored) :**
+
+```bash
+# URL-encoder @ : # dans le mot de passe (@ → %40, : → %3A, # → %23)
+CORP_HTTP_PROXY=http://user:pass@proxy.corp.local:8080
+CORP_NO_PROXY=localhost,127.0.0.1,.corp.local,registry-internal.corp.local
+```
+
+**Utilisation :**
+
+```bash
+# 1. Build + run de la suite (en ligne, via proxy)
+docker compose --env-file .env up --build deno-tests
+
+# 2. Re-run offline pour valider que le cache suffit (depends_on fait l'enchaînement)
+docker compose --env-file .env up deno-tests-offline
+
+# 3. Shell interactif pour debug (le cache est déjà chaud)
+docker compose --env-file .env run --rm deno-tests bash
+```
+
+**Points clés :**
+
+- **CA installé deux fois** : au niveau OS (`update-ca-certificates` → `apt`, `curl`, `git`) **et** via `DENO_CERT` (Deno utilise sa propre stack TLS Rust qui n'hérite **pas** automatiquement du truststore système).
+- **Variables proxy en `ARG` + `ENV`** : `ARG` sert au `RUN deno cache` au build ; `ENV` sert au `deno test` au runtime. Sans les deux, le cache se construit mais un import ajouté à chaud échoue en TLS.
+- **`.ci/corp-ca-bundle.pem` doit être dans `.gitignore` et `.dockerignore`** — sauf l'entrée explicite dans le `Dockerfile` qui le `COPY`. Idem pour `.env`.
+- **Volume `deno-cache`** : nommé (pas un bind mount) → persiste entre `docker compose down` et `up` sans dépendre du chemin hôte. Pour repartir de zéro : `docker compose down -v`.
+- **Service `deno-tests-offline`** : `extends:` réutilise toute la config, surcharge juste `DENO_OFFLINE=1` et vide le proxy. Si ce service échoue avec `Specifier not found in cache`, c'est qu'un import a été ajouté sans rebuild — relancer `docker compose build deno-tests`.
+- **CI multi-stage** : pour un pipeline Drone/GitLab, exécuter `docker compose run --rm deno-tests` (one-shot, exit code propagé) plutôt que `up` (qui ne propage pas l'exit code par défaut sans `--exit-code-from`).
+
+
 
 
 La commande exacte derrière **`npm run test:pricing-snapshot:deno`** est :
