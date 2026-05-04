@@ -609,6 +609,60 @@ npm run test:pricing-snapshot:deno
 - **Variables exportées dans un sous-shell uniquement** → si `deno cache` semble ignorer le proxy, vérifier avec `env | grep -i proxy` que les vars sont bien dans l'environnement courant.
 - **Runs `--cached-only` / offline** : une fois le cache amorcé, **désactiver** `HTTP_PROXY` / `HTTPS_PROXY` n'a aucun impact — Deno ne sort plus sur le réseau (vérifié par `npm run verify:pricing-snapshot:offline`).
 
+##### Checklist : `UnknownIssuer` (CA / certificat)
+
+Symptôme exact dans la sortie de `deno cache` ou `deno test` :
+
+```
+error sending request for url (https://deno.land/std@0.224.0/...): client error (Connect):
+  invalid peer certificate: UnknownIssuer
+```
+
+Vérifier dans cet ordre — la **première** case qui échoue est la cause :
+
+- [ ] **`DENO_CERT` est défini** : `echo "$DENO_CERT"` (PowerShell : `$env:DENO_CERT`) doit imprimer un chemin **non vide**. Si vide → l'exporter : `export DENO_CERT=/chemin/ca-bundle.pem`.
+- [ ] **Le fichier existe et est lisible** : `test -r "$DENO_CERT" && echo OK` (PowerShell : `Test-Path $env:DENO_CERT`). Sinon → corriger le chemin (chemin **absolu** recommandé, pas `~/...` qui n'est pas expansé partout).
+- [ ] **Le bundle est au format PEM** : `head -1 "$DENO_CERT"` doit imprimer `-----BEGIN CERTIFICATE-----`. Si c'est du DER binaire → convertir : `openssl x509 -inform der -in corp-ca.cer -out corp-ca-bundle.pem`.
+- [ ] **Le bundle contient le bon CA** : `openssl x509 -in "$DENO_CERT" -noout -subject -issuer` doit afficher l'autorité corporate (ex. `subject=CN=Corp Root CA`). Si c'est un cert feuille (Subject = `*.deno.land`) → demander le **CA racine** à l'équipe sécurité, pas le cert du proxy.
+- [ ] **curl avec le même CA passe** : `curl -fsS --cacert "$DENO_CERT" https://deno.land/std@0.224.0/assert/mod.ts >/dev/null && echo OK`. Si curl passe mais Deno échoue → mauvais binaire Deno (vérifier avec `which deno` qu'on n'utilise pas un Deno empaqueté snap/brew qui ignore `DENO_CERT`).
+- [ ] **`SSL_CERT_FILE` ne court-circuite pas** : si `SSL_CERT_FILE` est défini avec un autre chemin, **Deno l'utilise en priorité** sur `DENO_CERT`. Vérifier `env | grep -i cert` et nettoyer.
+- [ ] **(Docker uniquement)** Le CA est aussi dans le truststore OS : `update-ca-certificates` a bien tourné dans le `Dockerfile` (apt + `/usr/local/share/ca-certificates/*.crt`). Sinon `apt`, `git clone`, `curl` sans `--cacert` échouent même si Deno passe.
+
+**Solution de dernier recours (à éviter en prod / CI partagé)** : `deno cache --unsafely-ignore-certificate-errors=deno.land,jsr.io ...` — désactive la vérif TLS pour ces hôtes. **Ne jamais** committer un script qui utilise ce flag : un MITM passerait inaperçu.
+
+##### Checklist : parsing d'URL `HTTPS_PROXY` (mot de passe avec `@` `:` `#` `/`)
+
+Symptôme : `deno cache` semble ignorer le proxy (timeout direct, ou `tcp connect error: Connection refused`), **alors que `curl -x "$HTTPS_PROXY"` fonctionne**. Deno utilise le crate Rust `hyper-proxy` qui parse l'URL strictement selon RFC 3986 — un caractère non encodé dans le mot de passe **casse silencieusement** le parse et la variable est **ignorée**.
+
+Vérifier dans cet ordre :
+
+- [ ] **Afficher la valeur exacte** : `echo "$HTTPS_PROXY"` (ne pas faire `echo $HTTPS_PROXY` sans guillemets — le shell mange les caractères spéciaux). Compter manuellement les `@` : il doit y en avoir **exactement un**, juste avant l'host.
+- [ ] **Encoder le mot de passe** : tout caractère parmi `@ : / # ? & % +` dans le password doit être **percent-encoded**. Table de correspondance :
+
+  | Caractère | Encodé | Caractère | Encodé |
+  | --------- | ------ | --------- | ------ |
+  | `@`       | `%40`  | `#`       | `%23`  |
+  | `:`       | `%3A`  | `?`       | `%3F`  |
+  | `/`       | `%2F`  | `&`       | `%26`  |
+  | `%`       | `%25`  | `+`       | `%2B`  |
+
+  Exemple : password `P@ss:w0rd#1` → `P%40ss%3Aw0rd%231`. URL finale : `http://user:P%40ss%3Aw0rd%231@proxy.corp.local:8080`.
+
+- [ ] **Encoder en une commande** :
+  - Bash : `python3 -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' 'P@ss:w0rd#1'`
+  - PowerShell : `[System.Web.HttpUtility]::UrlEncode('P@ss:w0rd#1')` (charger `Add-Type -AssemblyName System.Web` si besoin).
+- [ ] **Pas d'espace ni de saut de ligne caché** : `printf '%s' "$HTTPS_PROXY" | od -c | tail` ne doit montrer aucun `\n`, `\r` ou ` ` (espace) avant la fin. Si `HTTPS_PROXY` vient d'un secret CI copié-collé depuis un PDF, `\r` final est fréquent → `export HTTPS_PROXY="${HTTPS_PROXY//$'\r'/}"`.
+- [ ] **Cohérence majuscules/minuscules** : Deno lit `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` (insensible à la casse), mais `curl` lit aussi `http_proxy`, `https_proxy`. Si vous mélangez, exporter **les deux casses** pour éviter les divergences entre les checks `curl` et le run `deno`.
+- [ ] **Tester le parse côté Deno** : un mini script révèle l'erreur de parse sans noyer la sortie :
+  ```bash
+  deno eval --allow-env 'console.log(new URL(Deno.env.get("HTTPS_PROXY") ?? ""))'
+  # → si Deno imprime une URL avec username/password séparés, le parse est OK.
+  # → si TypeError: Invalid URL, le mot de passe contient un caractère non encodé.
+  ```
+- [ ] **Vérifier que la requête sort bien par le proxy** : `deno eval --allow-net --allow-env 'await fetch("https://deno.land/std@0.224.0/version.ts").then(r => console.log(r.status))'`. Sur le proxy, ouvrir les logs (`/var/log/squid/access.log` ou équivalent) — la requête doit apparaître. Si elle n'apparaît pas → `HTTPS_PROXY` est bien ignoré (revoir l'encodage).
+
+**Solution rapide (sans toucher au mot de passe)** : si l'authentification proxy supporte **NTLM/Kerberos** ou un **token bearer**, demander à l'équipe sécurité un proxy `http://proxy.corp.local:8080` **sans** credentials inline + un agent local (`cntlm`, `px-proxy`) qui injecte l'auth. Deno parle alors à `127.0.0.1:3128` sans aucun caractère spécial.
+
 > Derrière un proxy d'entreprise : exporter `HTTPS_PROXY` / `HTTP_PROXY` (et au besoin `DENO_CERT=/chemin/ca-bundle.pem`) **avant** la commande `deno cache`. Ces variables ne sont **pas** nécessaires pour les runs offline ultérieurs.
 
 **Étape 2 — Vérifier que tout passe hors-ligne :**
