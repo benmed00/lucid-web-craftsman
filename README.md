@@ -533,11 +533,21 @@ Copier-coller ce bloc dans un shell **après** avoir exporté `HTTP_PROXY` / `HT
 ```bash
 # bash / zsh / Git-Bash — un seul bloc, exit code != 0 si un check échoue.
 set -euo pipefail
+
+# ── Versions & URLs paramétrables (override via env, défauts ci-dessous) ──
+: "${DENO_STD_VERSION:=0.224.0}"
+: "${DENO_STD_HOST:=deno.land}"
+: "${JSR_HOST:=jsr.io}"
+: "${JSR_PROBE_PATH:=/@std/assert/meta.json}"
+DENO_STD_URL="https://${DENO_STD_HOST}/std@${DENO_STD_VERSION}/assert/mod.ts"
+JSR_URL="https://${JSR_HOST}${JSR_PROBE_PATH}"
+
 echo "── 1/5 ─ Variables d'environnement"
+echo "  DENO_STD_VERSION=$DENO_STD_VERSION  JSR_URL=$JSR_URL  DENO_STD_URL=$DENO_STD_URL"
 env | grep -iE '^(https?_proxy|no_proxy|deno_cert)=' || { echo "❌ Aucune variable proxy exportée"; exit 1; }
 
 echo "── 2/5 ─ Résolution DNS (court-circuite le proxy — confirme que les hôtes existent)"
-for host in jsr.io deno.land; do
+for host in "$JSR_HOST" "$DENO_STD_HOST"; do
   if command -v dig >/dev/null 2>&1; then
     dig +short +time=3 +tries=1 "$host" | grep -Eq '^[0-9a-fA-F.:]+$' \
       || { echo "❌ DNS KO pour $host (dig) — vérifier /etc/resolv.conf ou le DNS interne"; exit 1; }
@@ -550,33 +560,47 @@ done
 
 echo "── 3/5 ─ curl HTTPS via proxy + CA (registry JSR)"
 curl -fsS -o /dev/null -w "  HTTP %{http_code} en %{time_total}s via %{proxy_used_url:-direct}\n" \
-  ${DENO_CERT:+--cacert "$DENO_CERT"} https://jsr.io/@std/assert/meta.json
+  ${DENO_CERT:+--cacert "$DENO_CERT"} "$JSR_URL"
 
 echo "── 4/5 ─ curl HTTPS deno.land (chaîne TLS différente de jsr.io)"
 curl -fsS -o /dev/null -w "  HTTP %{http_code}\n" \
-  ${DENO_CERT:+--cacert "$DENO_CERT"} https://deno.land/std@0.224.0/assert/mod.ts
+  ${DENO_CERT:+--cacert "$DENO_CERT"} "$DENO_STD_URL"
 
 echo "── 5/5 ─ deno info (résolution + téléchargement réel via le proxy)"
-deno info https://deno.land/std@0.224.0/assert/mod.ts >/dev/null
+deno info "$DENO_STD_URL" >/dev/null
 
 echo "✅ Proxy + CA corporate opérationnels — prêt pour 'npm run test:pricing-snapshot'."
 ```
+
+> **Override en une ligne** (sans toucher au README) :
+> ```bash
+> DENO_STD_VERSION=0.225.0 JSR_HOST=jsr.io bash verify-proxy.sh
+> ```
+> Pratique en CI : poser ces variables au niveau du job (`env:` GitHub Actions, `variables:` GitLab CI) pour bumper la version `std` sans rééditer le script.
 
 Sous **PowerShell** (équivalent une-ligne) :
 
 ```powershell
 $ErrorActionPreference = "Stop"
+# Versions & URLs paramétrables (override via $env:DENO_STD_VERSION etc.)
+if (-not $env:DENO_STD_VERSION) { $env:DENO_STD_VERSION = "0.224.0" }
+if (-not $env:DENO_STD_HOST)    { $env:DENO_STD_HOST    = "deno.land" }
+if (-not $env:JSR_HOST)         { $env:JSR_HOST         = "jsr.io" }
+if (-not $env:JSR_PROBE_PATH)   { $env:JSR_PROBE_PATH   = "/@std/assert/meta.json" }
+$denoStdUrl = "https://$($env:DENO_STD_HOST)/std@$($env:DENO_STD_VERSION)/assert/mod.ts"
+$jsrUrl     = "https://$($env:JSR_HOST)$($env:JSR_PROBE_PATH)"
+
 Get-ChildItem Env: | Where-Object Name -Match '^(HTTPS?_PROXY|NO_PROXY|DENO_CERT)$'
-foreach ($h in 'jsr.io','deno.land') {
+foreach ($h in $env:JSR_HOST, $env:DENO_STD_HOST) {
   if (-not (Resolve-DnsName -Name $h -Type A -QuickTimeout -ErrorAction SilentlyContinue)) {
     throw "DNS KO pour $h (Resolve-DnsName) — vérifier le résolveur Windows"
   }
   Write-Host "  OK DNS $h"
 }
-curl.exe -fsS -o NUL -w "HTTP %{http_code}`n" https://jsr.io/@std/assert/meta.json
-curl.exe -fsS -o NUL -w "HTTP %{http_code}`n" https://deno.land/std@0.224.0/assert/mod.ts
-deno info https://deno.land/std@0.224.0/assert/mod.ts | Out-Null
-Write-Host "OK proxy + CA"
+curl.exe -fsS -o NUL -w "HTTP %{http_code}`n" $jsrUrl
+curl.exe -fsS -o NUL -w "HTTP %{http_code}`n" $denoStdUrl
+deno info $denoStdUrl | Out-Null
+Write-Host "OK proxy + CA ($env:DENO_STD_VERSION)"
 ```
 
 > Le check DNS est volontairement placé **avant** `curl` et `deno info` : si la résolution échoue, le proxy renvoie typiquement un `502 Bad Gateway` ou un timeout opaque qui ressemble à un problème de CA — alors qu'il s'agit en réalité d'un DNS interne mal configuré ou d'un split-horizon qui ne couvre pas `jsr.io` / `deno.land`. `dig` / `nslookup` court-circuitent le proxy et donnent un diagnostic sans ambiguïté.
