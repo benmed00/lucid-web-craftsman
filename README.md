@@ -533,18 +533,30 @@ Copier-coller ce bloc dans un shell **après** avoir exporté `HTTP_PROXY` / `HT
 ```bash
 # bash / zsh / Git-Bash — un seul bloc, exit code != 0 si un check échoue.
 set -euo pipefail
-echo "── 1/4 ─ Variables d'environnement"
+echo "── 1/5 ─ Variables d'environnement"
 env | grep -iE '^(https?_proxy|no_proxy|deno_cert)=' || { echo "❌ Aucune variable proxy exportée"; exit 1; }
 
-echo "── 2/4 ─ curl HTTPS via proxy + CA (registry JSR)"
+echo "── 2/5 ─ Résolution DNS (court-circuite le proxy — confirme que les hôtes existent)"
+for host in jsr.io deno.land; do
+  if command -v dig >/dev/null 2>&1; then
+    dig +short +time=3 +tries=1 "$host" | grep -Eq '^[0-9a-fA-F.:]+$' \
+      || { echo "❌ DNS KO pour $host (dig) — vérifier /etc/resolv.conf ou le DNS interne"; exit 1; }
+  else
+    nslookup "$host" >/dev/null 2>&1 \
+      || { echo "❌ DNS KO pour $host (nslookup)"; exit 1; }
+  fi
+  echo "  ✓ $host résolu"
+done
+
+echo "── 3/5 ─ curl HTTPS via proxy + CA (registry JSR)"
 curl -fsS -o /dev/null -w "  HTTP %{http_code} en %{time_total}s via %{proxy_used_url:-direct}\n" \
   ${DENO_CERT:+--cacert "$DENO_CERT"} https://jsr.io/@std/assert/meta.json
 
-echo "── 3/4 ─ curl HTTPS deno.land (chaîne TLS différente de jsr.io)"
+echo "── 4/5 ─ curl HTTPS deno.land (chaîne TLS différente de jsr.io)"
 curl -fsS -o /dev/null -w "  HTTP %{http_code}\n" \
   ${DENO_CERT:+--cacert "$DENO_CERT"} https://deno.land/std@0.224.0/assert/mod.ts
 
-echo "── 4/4 ─ deno info (résolution + téléchargement réel via le proxy)"
+echo "── 5/5 ─ deno info (résolution + téléchargement réel via le proxy)"
 deno info https://deno.land/std@0.224.0/assert/mod.ts >/dev/null
 
 echo "✅ Proxy + CA corporate opérationnels — prêt pour 'npm run test:pricing-snapshot'."
@@ -555,11 +567,19 @@ Sous **PowerShell** (équivalent une-ligne) :
 ```powershell
 $ErrorActionPreference = "Stop"
 Get-ChildItem Env: | Where-Object Name -Match '^(HTTPS?_PROXY|NO_PROXY|DENO_CERT)$'
+foreach ($h in 'jsr.io','deno.land') {
+  if (-not (Resolve-DnsName -Name $h -Type A -QuickTimeout -ErrorAction SilentlyContinue)) {
+    throw "DNS KO pour $h (Resolve-DnsName) — vérifier le résolveur Windows"
+  }
+  Write-Host "  OK DNS $h"
+}
 curl.exe -fsS -o NUL -w "HTTP %{http_code}`n" https://jsr.io/@std/assert/meta.json
 curl.exe -fsS -o NUL -w "HTTP %{http_code}`n" https://deno.land/std@0.224.0/assert/mod.ts
 deno info https://deno.land/std@0.224.0/assert/mod.ts | Out-Null
 Write-Host "OK proxy + CA"
 ```
+
+> Le check DNS est volontairement placé **avant** `curl` et `deno info` : si la résolution échoue, le proxy renvoie typiquement un `502 Bad Gateway` ou un timeout opaque qui ressemble à un problème de CA — alors qu'il s'agit en réalité d'un DNS interne mal configuré ou d'un split-horizon qui ne couvre pas `jsr.io` / `deno.land`. `dig` / `nslookup` court-circuitent le proxy et donnent un diagnostic sans ambiguïté.
 
 > Les deux URLs (`jsr.io` et `deno.land`) sont vérifiées séparément car elles utilisent des chaînes de certification différentes — un CA corporate mal configuré peut faire passer l'une et bloquer l'autre.
 
