@@ -672,6 +672,47 @@ npm run test:pricing-snapshot:deno
 
 > **Règle simple :** si vous voyez `Download` en mode offline, ou `UnknownIssuer` en mode connecté, **arrêtez** et corrigez l'environnement avant de toucher au code de test.
 
+##### Checklist « lecture des logs » — patterns à grep et causes probables
+
+À utiliser en triant la sortie de `deno cache`, `deno test`, `deno info` ou du job CI. Les patterns sont volontairement écrits en regex `grep -E` pour être copiables tels quels.
+
+| # | Pattern (`grep -Ei`) | Où | Cause probable | Action |
+| --- | --- | --- | --- | --- |
+| 1 | `^Download https://(deno\.land\|jsr\.io\|esm\.sh)/` | stdout `deno cache` / `deno test` | Téléchargement réseau effectué — **normal** en mode connecté, **anormal** en mode offline | Si offline : `DENO_OFFLINE` n'est pas exporté **OU** un nouvel import a été ajouté → réamorcer le cache |
+| 2 | `invalid peer certificate: UnknownIssuer` | stderr | CA corporate absent du truststore Deno | `export DENO_CERT=/chemin/corp-ca-bundle.pem` (PEM, pas DER) — voir [Checklist `UnknownIssuer`](#checklist--unknownissuer-ca--certificat) |
+| 3 | `error sending request .* (tcp connect error\|error trying to connect)` | stderr | Proxy non joignable / port bloqué / DNS KO sur l'host du proxy | `curl -v $HTTPS_PROXY` ; vérifier DNS interne ; `ping proxy.corp.local` |
+| 4 | `Specifier not found in cache: "https?://[^"]+"` | stderr `deno test --cached-only` ou `DENO_OFFLINE=1` | Import ajouté/modifié non présent dans `$DENO_DIR` | Repasser **temporairement** en connecté : `unset DENO_OFFLINE && deno cache <fichier>`, puis revalider offline |
+| 5 | `error: Import '.*' failed: 403 Forbidden` | stderr | Proxy intercepte mais bloque le domaine (allow-list) | Demander whitelist `deno.land`, `jsr.io`, `cdn.jsdelivr.net` au support réseau |
+| 6 | `407 Proxy Authentication Required` (HTTP code dans `verify-proxy-ca.json`) | rapport JSON | Mot de passe proxy manquant ou mal encodé | URL-encoder `@`→`%40`, `:`→`%3A`, `#`→`%23` dans `HTTPS_PROXY` |
+| 7 | `relative import path .* not prefixed with` | stderr `deno check` | Import local cassé — **pas** un souci proxy | Corriger le chemin du `import` ; ne pas toucher à l'env |
+| 8 | `error: Module not found "npm:.*"` | stderr | `nodeModulesDir` ou registry npm bloqué | Vérifier `deno.json` + autoriser `registry.npmjs.org` au proxy |
+| 9 | `Blocking waiting for file lock on .* deno\.lock` | stderr (intermittent) | Deux process Deno en parallèle sur le même `$DENO_DIR` | Sérialiser (ne pas paralléliser `deno cache` dans matrix CI) |
+| 10 | `^ok \| \d+ passed \| 0 failed` | stdout `deno test` | ✅ Tout va bien | — |
+
+**Commande one-liner pour scanner un log CI :**
+
+```bash
+# Imprime, pour chaque pattern, le nombre d'occurrences + la 1ʳᵉ ligne matchée.
+patterns=(
+  '^Download https://'
+  'UnknownIssuer'
+  'tcp connect error|error trying to connect'
+  'Specifier not found in cache'
+  '403 Forbidden'
+  '407 Proxy Authentication Required'
+  'Module not found "npm:'
+  'Blocking waiting for file lock'
+)
+for p in "${patterns[@]}"; do
+  n=$(grep -Ec "$p" ci.log || true)
+  [ "$n" -gt 0 ] && printf '⚠ [%2d×] %-45s | %s\n' "$n" "$p" "$(grep -Em1 "$p" ci.log)"
+done
+```
+
+> **Règle d'or de triage** : pattern **2/3/6** → problème **réseau/CA** (ne pas toucher au code) ; pattern **4/7/8** → problème **dépendances/imports** (corriger le repo) ; pattern **1 en offline** ou **9** → problème de **configuration du runner**.
+
+
+
 **Pièges courants :**
 
 - **Mot de passe avec `@` / `:` / `#`** dans `HTTPS_PROXY` → Deno parse l'URL et casse silencieusement. URL-encoder (`@` → `%40`, `:` → `%3A`, `#` → `%23`).
