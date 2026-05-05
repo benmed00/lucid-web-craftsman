@@ -567,11 +567,19 @@ Sous **PowerShell** (équivalent une-ligne) :
 ```powershell
 $ErrorActionPreference = "Stop"
 Get-ChildItem Env: | Where-Object Name -Match '^(HTTPS?_PROXY|NO_PROXY|DENO_CERT)$'
+foreach ($h in 'jsr.io','deno.land') {
+  if (-not (Resolve-DnsName -Name $h -Type A -QuickTimeout -ErrorAction SilentlyContinue)) {
+    throw "DNS KO pour $h (Resolve-DnsName) — vérifier le résolveur Windows"
+  }
+  Write-Host "  OK DNS $h"
+}
 curl.exe -fsS -o NUL -w "HTTP %{http_code}`n" https://jsr.io/@std/assert/meta.json
 curl.exe -fsS -o NUL -w "HTTP %{http_code}`n" https://deno.land/std@0.224.0/assert/mod.ts
 deno info https://deno.land/std@0.224.0/assert/mod.ts | Out-Null
 Write-Host "OK proxy + CA"
 ```
+
+> Le check DNS est volontairement placé **avant** `curl` et `deno info` : si la résolution échoue, le proxy renvoie typiquement un `502 Bad Gateway` ou un timeout opaque qui ressemble à un problème de CA — alors qu'il s'agit en réalité d'un DNS interne mal configuré ou d'un split-horizon qui ne couvre pas `jsr.io` / `deno.land`. `dig` / `nslookup` court-circuitent le proxy et donnent un diagnostic sans ambiguïté.
 
 > Les deux URLs (`jsr.io` et `deno.land`) sont vérifiées séparément car elles utilisent des chaînes de certification différentes — un CA corporate mal configuré peut faire passer l'une et bloquer l'autre.
 
