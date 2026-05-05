@@ -530,6 +530,24 @@ deno cache --config supabase\functions\deno.json supabase\functions\_shared\pric
 
 Copier-coller ce bloc dans un shell **après** avoir exporté `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` (et `DENO_CERT` si besoin). Il enchaîne 4 contrôles et sort en erreur (`exit 1`) au premier échec — pratique pour scripter la validation d'un runner ou poster le résultat dans un ticket support réseau.
 
+> 💡 **Script CI prêt à l'emploi** : [`scripts/verify-proxy-ca.sh`](scripts/verify-proxy-ca.sh) reprend exactement les 5 étapes ci-dessous avec codes de sortie distincts (1 = vars, 2 = DNS, 3 = curl, 4 = deno) et masquage des mots de passe inline. À appeler en première étape d'un job CI :
+>
+> ```yaml
+> # .github/workflows/<n'importe>.yml — avant 'deno cache' / 'pnpm install' / 'deno test'
+> - name: Verify corporate proxy + CA
+>   run: ./scripts/verify-proxy-ca.sh
+>   env:
+>     HTTP_PROXY:  ${{ vars.CORP_HTTP_PROXY }}
+>     HTTPS_PROXY: ${{ vars.CORP_HTTPS_PROXY }}
+>     NO_PROXY:    ${{ vars.CORP_NO_PROXY }}
+>     DENO_CERT:   ${{ github.workspace }}/.ci/corp-ca-bundle.pem
+>     DENO_STD_VERSION: "0.224.0"   # override pour bumper sans toucher au script
+> ```
+>
+> Le script saute proprement `deno info` si Deno n'est pas encore installé sur le runner (`SKIP_DENO_INFO=1` ou binaire absent), donc il peut tourner **avant** l'étape `setup-deno`.
+
+
+
 ```bash
 # bash / zsh / Git-Bash — un seul bloc, exit code != 0 si un check échoue.
 set -euo pipefail
