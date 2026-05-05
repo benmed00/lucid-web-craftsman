@@ -545,6 +545,15 @@ Copier-coller ce bloc dans un shell **après** avoir exporté `HTTP_PROXY` / `HT
 > ```
 >
 > Le script saute proprement `deno info` si Deno n'est pas encore installé sur le runner (`SKIP_DENO_INFO=1` ou binaire absent), donc il peut tourner **avant** l'étape `setup-deno`.
+>
+> **Sortie structurée pour le support réseau** : `--json` (stdout) ou `--json-file=path/report.json` produit un rapport `verify-proxy-ca/v1` avec, pour chacun des 5 checks, son `id`, son statut (`true` / `false` / `null` si sauté), et — pour les étapes `curl_*` — l'URL testée, le **HTTP code**, `time_total_s`, `curl_exit` et le message d'erreur. Le champ racine `failed_step` indique précisément lequel a bloqué (`env`, `dns`, `curl_jsr`, `curl_deno`, `deno_info`).
+>
+> ```bash
+> ./scripts/verify-proxy-ca.sh --json-file=verify-proxy-ca.json || \
+>   { jq '{ok, failed_step, checks: [.checks[] | {id, ok, http_code}]}' verify-proxy-ca.json; exit 1; }
+> ```
+>
+> En CI, attacher ce JSON comme artefact (`actions/upload-artifact`) facilite l'ouverture d'un ticket réseau : tout est dans un seul fichier (config, vars détectées, HTTP codes par hôte).
 
 
 
