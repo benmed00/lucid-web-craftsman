@@ -94,6 +94,8 @@ Use this when something “backend or database” fails — the stack is **split
 
 **Trust model:** Stripe webhooks are the **source of truth** for payment state. The UI after redirect is read-oriented.
 
+**Production troubleshooting** (webhook signature `whsec`, Brevo IP 401, `email_logs`, renvoi `send-order-confirmation`, déploiement `verify_jwt`) : [CHECKOUT-PROD-RUNBOOK.md](./CHECKOUT-PROD-RUNBOOK.md).
+
 ```text
 User pays (Stripe Checkout)
   → stripe-webhook (Edge) updates Supabase orders / payments
@@ -136,7 +138,7 @@ User pays (Stripe Checkout)
 
 Hooks involved: `useCartSync`, `useCheckoutFormPersistence`, `useCheckoutResume`, `useCheckoutSession`, and `AuthContext` cleanup (including `clearCheckoutContextState`). Storage allowlisting: `src/lib/storage/safeStorage.ts`, `StorageGuard.ts`.
 
-**Tests:** `src/lib/cart/cartSyncPolicy.test.ts`, `src/lib/checkout/checkoutStorageKeys.test.ts`, `src/lib/invoice/generateInvoice.requestOrderToken.test.ts`, `src/lib/security/forbiddenOrderRestFetchGuard.test.ts`; E2E: `cypress/e2e/elevated_storefront_spec.ts` (requires `ADMIN_*` or `CUSTOMER_*` in `cypress.env.json`).
+**Tests:** `src/lib/cart/cartSyncPolicy.test.ts`, `src/lib/checkout/checkoutStorageKeys.test.ts`, `src/lib/invoice/generateInvoice.requestOrderToken.test.ts`, `src/lib/invoice/generateInvoice.fetchInvoice.test.ts`, `src/lib/security/forbiddenOrderRestFetchGuard.test.ts`; Deno `supabase/functions/_shared/confirm-order_test.ts` (`sendConfirmationEmail` + `confirmOrderFromStripe`); E2E: `cypress/e2e/elevated_storefront_spec.ts` (requires `ADMIN_*` or `CUSTOMER_*` in `cypress.env.json`).
 
 ## Known residual risks (honest)
 

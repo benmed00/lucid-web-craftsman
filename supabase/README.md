@@ -27,4 +27,5 @@ If `migration list` or `db push` fails with **password authentication failed for
 ## Related
 
 - SPA env vars: root `.env.example` (`VITE_SUPABASE_*`).
+- **Production checkout / webhook / e-mail troubleshooting:** [docs/CHECKOUT-PROD-RUNBOOK.md](../docs/CHECKOUT-PROD-RUNBOOK.md).
 - Contract artifacts: [`openapi/`](../openapi/), [`postman/`](../postman/) — regenerate from repo root (`pnpm run api:artifacts`); see [STANDARDS.md](../docs/STANDARDS.md).
