@@ -382,6 +382,56 @@ ok | 26 passed | 0 failed (XXms)
 - **Échec d'un test** : la ligne devient `<nom> ... FAILED (Xms)` avec un encart `failures:` listant les tests cassés au-dessus du résumé.
 - **Ligne de résumé finale** : précédée d'**une ligne vide**, toujours en **dernière position** de la sortie de `deno test`, au format `ok | <passed> passed | <failed> failed (<total>ms)`. Elle apparaît **après** tous les blocs `running ... from ...` (et non pas une fois par fichier). Pour **`pnpm run test:pricing-snapshot:deno`**, total Deno attendu (agrégé sur tous les fichiers listés ci-dessus) : **`26 passed | 0 failed`** à date — ajuster ce nombre si vous ajoutez/supprimez des `Deno.test`. Pour **`pnpm run test:pricing-snapshot`**, la même suite Deno est suivie de Vitest (`src/lib/checkout/pricingSnapshot.test.ts`). Exit code `0` si tout passe ; sinon **`FAILED | …`** avec exit code `1`, ce qui bloque le job **Deno create-payment** ([`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml)).
 
+**Exemple de sortie en cas d'échec** — si on casse volontairement une assertion (par exemple `assertEquals(snap.currency, 'usd')` au lieu de `'eur'` dans `_shared/pricing-snapshot_test.ts > currency is normalized to lowercase`), la sortie devient :
+
+```text
+running 17 tests from ./supabase/functions/_shared/pricing-snapshot_test.ts
+currency is normalized to lowercase ... FAILED (3ms)
+defaults currency to eur when missing ... ok (0ms)
+total_details fields map to discount/shipping/tax ... ok (1ms)
+... (14 autres tests ok)
+running 2 tests from ./supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts
+buildPricingSnapshotV1FromStripe maps Stripe totals and lines ... ok (0ms)
+isShippingLineDescription detects French shipping row ... ok (0ms)
+... (autres fichiers identiques)
+
+ ERRORS
+
+currency is normalized to lowercase => ./supabase/functions/_shared/pricing-snapshot_test.ts:10:6
+permalink: https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/_shared/pricing-snapshot_test.ts#L10
+error: AssertionError: Values are not equal.
+
+
+    [Diff] Actual / Expected
+
+
+-   eur
++   usd
+
+  throw new AssertionError(message);
+        ^
+    at assertEquals (https://deno.land/std@0.190.0/testing/asserts.ts:...)
+    at file:///.../supabase/functions/_shared/pricing-snapshot_test.ts:17:3
+
+ FAILURES
+
+currency is normalized to lowercase => ./supabase/functions/_shared/pricing-snapshot_test.ts:10:6
+permalink: https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/_shared/pricing-snapshot_test.ts#L10
+
+FAILED | 25 passed | 1 failed (912ms)
+
+error: Test failed
+```
+
+**Ce qui change vs. la sortie verte :**
+
+- Le test cassé passe de `... ok (Xms)` à **`... FAILED (Xms)`** — seul ce test est marqué, les autres restent `ok`.
+- Deux nouveaux blocs apparaissent **avant** la ligne de résumé : **`ERRORS`** (stack trace + diff `assertEquals`) puis **`FAILURES`** (liste compacte `<nom> => <fichier>:<ligne>:<col>`, copier-coller-friendly pour ouvrir directement la ligne fautive). **Permaliens GitHub vers les deux fichiers de tests Deno couverts par cette section** (à `main` — épingler à un SHA pour un lien immuable) :
+  - `_shared/pricing-snapshot_test.ts` → assertion cassée ligne 10 : [#L10](https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/_shared/pricing-snapshot_test.ts#L10) (range : [#L10-L22](https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/_shared/pricing-snapshot_test.ts#L10-L22)).
+  - `stripe-webhook/lib/pricing-snapshot_test.ts` → premier `Deno.test` ligne 7 : [#L7](https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts#L7) ; second test ligne 41 : [#L41](https://github.com/benmed00/lucid-web-craftsman/blob/main/supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts#L41).
+- La ligne de résumé finale passe de **`ok | 26 passed | 0 failed (XXms)`** à **`FAILED | 25 passed | 1 failed (XXms)`** : le préfixe **`ok`** devient **`FAILED`** et le compteur `failed` reflète le nombre exact de tests cassés.
+- Une dernière ligne **`error: Test failed`** est imprimée par Deno après le résumé, et le **process sort en exit code `1`** — ce qui fait échouer `pnpm run test:pricing-snapshot:deno`, `npm run verify:pricing-snapshot:offline`, et l'étape **`Deno test checkout pricing helpers`** dans le workflow CI.
+
 **Inspecter les exécutions CI (lien direct) :**
 
 - 📊 **Tous les runs du workflow** : [github.com/benmed00/lucid-web-craftsman/actions/workflows/deno-create-payment.yml](https://github.com/benmed00/lucid-web-craftsman/actions/workflows/deno-create-payment.yml) — filtrable par branche, statut, acteur. Le badge tout en haut du README pointe au même endroit.
@@ -417,6 +467,314 @@ deno cache --config supabase/functions/deno.json \
 
 Sortie attendue (la première fois) : une série de lignes `Download https://deno.land/std@0.190.0/...` puis `Download https://jsr.io/@std/assert/...`, sans erreur. Si `deno cache` se termine sans `error:`, le cache est prêt.
 
+##### Configurer un proxy HTTP/HTTPS (réseau d'entreprise, runner restreint)
+
+Si la machine n'a pas d'accès Internet direct, **toutes les requêtes sortantes de Deno** (`deno cache`, `deno test` sans `--cached-only`, `deno info`) doivent passer par le proxy. Deno respecte les variables standard `HTTP_PROXY`, `HTTPS_PROXY` et `NO_PROXY` (insensibles à la casse) — aucun flag CLI dédié.
+
+**Linux / macOS (bash, zsh) :**
+
+```bash
+# Proxy non authentifié
+export HTTP_PROXY="http://proxy.corp.local:8080"
+export HTTPS_PROXY="http://proxy.corp.local:8080"
+# Hôtes à NE PAS faire passer par le proxy (loopback, registres internes, jsr/deno mirrors locaux)
+export NO_PROXY="localhost,127.0.0.1,::1,.corp.local"
+
+# Proxy authentifié (URL-encoder les caractères spéciaux du mot de passe : @ → %40, : → %3A, # → %23)
+export HTTPS_PROXY="http://alice:s%40cret@proxy.corp.local:8080"
+
+# Bundle CA d'entreprise (TLS interception type Zscaler / Netskope / Bluecoat)
+export DENO_CERT="/etc/ssl/certs/corp-ca-bundle.pem"
+
+# Puis amorcer le cache (Étape 1 ci-dessus) :
+deno cache --config supabase/functions/deno.json \
+  supabase/functions/_shared/pricing-snapshot_test.ts \
+  supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts \
+  supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts
+```
+
+**Windows — PowerShell :**
+
+```powershell
+$env:HTTP_PROXY  = "http://proxy.corp.local:8080"
+$env:HTTPS_PROXY = "http://proxy.corp.local:8080"
+$env:NO_PROXY    = "localhost,127.0.0.1,::1,.corp.local"
+$env:DENO_CERT   = "C:\ProgramData\corp\ca-bundle.pem"   # optionnel (TLS intercept)
+
+deno cache --config supabase\functions\deno.json `
+  supabase\functions\_shared\pricing-snapshot_test.ts `
+  supabase\functions\stripe-webhook\lib\pricing-snapshot_test.ts
+```
+
+**Windows — cmd.exe :**
+
+```bat
+set HTTP_PROXY=http://proxy.corp.local:8080
+set HTTPS_PROXY=http://proxy.corp.local:8080
+set NO_PROXY=localhost,127.0.0.1,::1,.corp.local
+set DENO_CERT=C:\ProgramData\corp\ca-bundle.pem
+
+deno cache --config supabase\functions\deno.json supabase\functions\_shared\pricing-snapshot_test.ts
+```
+
+**Persister la configuration (recommandé pour CI / runners self-hosted) :**
+
+| Cible                 | Fichier / commande                                                                                                                                                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shell utilisateur     | Ajouter les `export` ci-dessus à `~/.bashrc`, `~/.zshrc` ou `~/.profile`.                                                                                                                                                                                     |
+| GitHub Actions runner | Définir `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, `DENO_CERT` dans **Settings → Secrets and variables → Actions → Variables** (puis `env:` au niveau du workflow ou du job dans [`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml)). |
+| Docker / image CI     | `ENV HTTP_PROXY=…` + `ENV HTTPS_PROXY=…` + `COPY corp-ca.pem /etc/ssl/certs/` + `ENV DENO_CERT=/etc/ssl/certs/corp-ca.pem` dans le `Dockerfile`.                                                                                                              |
+| systemd service       | `Environment=HTTPS_PROXY=…` dans la section `[Service]` du unit file.                                                                                                                                                                                          |
+
+**Vérification automatisée (commande unique — proxy + CA corporate) :**
+
+Copier-coller ce bloc dans un shell **après** avoir exporté `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` (et `DENO_CERT` si besoin). Il enchaîne 4 contrôles et sort en erreur (`exit 1`) au premier échec — pratique pour scripter la validation d'un runner ou poster le résultat dans un ticket support réseau.
+
+> 💡 **Script CI prêt à l'emploi** : [`scripts/verify-proxy-ca.sh`](scripts/verify-proxy-ca.sh) reprend exactement les 5 étapes ci-dessous avec codes de sortie distincts (1 = vars, 2 = DNS, 3 = curl, 4 = deno) et masquage des mots de passe inline. À appeler en première étape d'un job CI :
+>
+> ```yaml
+> # .github/workflows/<n'importe>.yml — avant 'deno cache' / 'pnpm install' / 'deno test'
+> - name: Verify corporate proxy + CA
+>   run: ./scripts/verify-proxy-ca.sh
+>   env:
+>     HTTP_PROXY:  ${{ vars.CORP_HTTP_PROXY }}
+>     HTTPS_PROXY: ${{ vars.CORP_HTTPS_PROXY }}
+>     NO_PROXY:    ${{ vars.CORP_NO_PROXY }}
+>     DENO_CERT:   ${{ github.workspace }}/.ci/corp-ca-bundle.pem
+>     DENO_STD_VERSION: "0.224.0"   # override pour bumper sans toucher au script
+> ```
+>
+> Le script saute proprement `deno info` si Deno n'est pas encore installé sur le runner (`SKIP_DENO_INFO=1` ou binaire absent), donc il peut tourner **avant** l'étape `setup-deno`.
+>
+> **Sortie structurée pour le support réseau** : `--json` (stdout) ou `--json-file=path/report.json` produit un rapport `verify-proxy-ca/v1` avec, pour chacun des 5 checks, son `id`, son statut (`true` / `false` / `null` si sauté), et — pour les étapes `curl_*` — l'URL testée, le **HTTP code**, `time_total_s`, `curl_exit` et le message d'erreur. Le champ racine `failed_step` indique précisément lequel a bloqué (`env`, `dns`, `curl_jsr`, `curl_deno`, `deno_info`).
+>
+> ```bash
+> ./scripts/verify-proxy-ca.sh --json-file=verify-proxy-ca.json || \
+>   { jq '{ok, failed_step, checks: [.checks[] | {id, ok, http_code}]}' verify-proxy-ca.json; exit 1; }
+> ```
+>
+> En CI, attacher ce JSON comme artefact (`actions/upload-artifact`) facilite l'ouverture d'un ticket réseau : tout est dans un seul fichier (config, vars détectées, HTTP codes par hôte).
+
+
+
+```bash
+# bash / zsh / Git-Bash — un seul bloc, exit code != 0 si un check échoue.
+set -euo pipefail
+
+# ── Versions & URLs paramétrables (override via env, défauts ci-dessous) ──
+: "${DENO_STD_VERSION:=0.224.0}"
+: "${DENO_STD_HOST:=deno.land}"
+: "${JSR_HOST:=jsr.io}"
+: "${JSR_PROBE_PATH:=/@std/assert/meta.json}"
+DENO_STD_URL="https://${DENO_STD_HOST}/std@${DENO_STD_VERSION}/assert/mod.ts"
+JSR_URL="https://${JSR_HOST}${JSR_PROBE_PATH}"
+
+echo "── 1/5 ─ Variables d'environnement"
+echo "  DENO_STD_VERSION=$DENO_STD_VERSION  JSR_URL=$JSR_URL  DENO_STD_URL=$DENO_STD_URL"
+env | grep -iE '^(https?_proxy|no_proxy|deno_cert)=' || { echo "❌ Aucune variable proxy exportée"; exit 1; }
+
+echo "── 2/5 ─ Résolution DNS (court-circuite le proxy — confirme que les hôtes existent)"
+for host in "$JSR_HOST" "$DENO_STD_HOST"; do
+  if command -v dig >/dev/null 2>&1; then
+    dig +short +time=3 +tries=1 "$host" | grep -Eq '^[0-9a-fA-F.:]+$' \
+      || { echo "❌ DNS KO pour $host (dig) — vérifier /etc/resolv.conf ou le DNS interne"; exit 1; }
+  else
+    nslookup "$host" >/dev/null 2>&1 \
+      || { echo "❌ DNS KO pour $host (nslookup)"; exit 1; }
+  fi
+  echo "  ✓ $host résolu"
+done
+
+echo "── 3/5 ─ curl HTTPS via proxy + CA (registry JSR)"
+curl -fsS -o /dev/null -w "  HTTP %{http_code} en %{time_total}s via %{proxy_used_url:-direct}\n" \
+  ${DENO_CERT:+--cacert "$DENO_CERT"} "$JSR_URL"
+
+echo "── 4/5 ─ curl HTTPS deno.land (chaîne TLS différente de jsr.io)"
+curl -fsS -o /dev/null -w "  HTTP %{http_code}\n" \
+  ${DENO_CERT:+--cacert "$DENO_CERT"} "$DENO_STD_URL"
+
+echo "── 5/5 ─ deno info (résolution + téléchargement réel via le proxy)"
+deno info "$DENO_STD_URL" >/dev/null
+
+echo "✅ Proxy + CA corporate opérationnels — prêt pour 'npm run test:pricing-snapshot'."
+```
+
+> **Override en une ligne** (sans toucher au README) :
+> ```bash
+> DENO_STD_VERSION=0.225.0 JSR_HOST=jsr.io bash verify-proxy.sh
+> ```
+> Pratique en CI : poser ces variables au niveau du job (`env:` GitHub Actions, `variables:` GitLab CI) pour bumper la version `std` sans rééditer le script.
+
+Sous **PowerShell** (équivalent une-ligne) :
+
+```powershell
+$ErrorActionPreference = "Stop"
+# Versions & URLs paramétrables (override via $env:DENO_STD_VERSION etc.)
+if (-not $env:DENO_STD_VERSION) { $env:DENO_STD_VERSION = "0.224.0" }
+if (-not $env:DENO_STD_HOST)    { $env:DENO_STD_HOST    = "deno.land" }
+if (-not $env:JSR_HOST)         { $env:JSR_HOST         = "jsr.io" }
+if (-not $env:JSR_PROBE_PATH)   { $env:JSR_PROBE_PATH   = "/@std/assert/meta.json" }
+$denoStdUrl = "https://$($env:DENO_STD_HOST)/std@$($env:DENO_STD_VERSION)/assert/mod.ts"
+$jsrUrl     = "https://$($env:JSR_HOST)$($env:JSR_PROBE_PATH)"
+
+Get-ChildItem Env: | Where-Object Name -Match '^(HTTPS?_PROXY|NO_PROXY|DENO_CERT)$'
+foreach ($h in $env:JSR_HOST, $env:DENO_STD_HOST) {
+  if (-not (Resolve-DnsName -Name $h -Type A -QuickTimeout -ErrorAction SilentlyContinue)) {
+    throw "DNS KO pour $h (Resolve-DnsName) — vérifier le résolveur Windows"
+  }
+  Write-Host "  OK DNS $h"
+}
+curl.exe -fsS -o NUL -w "HTTP %{http_code}`n" $jsrUrl
+curl.exe -fsS -o NUL -w "HTTP %{http_code}`n" $denoStdUrl
+deno info $denoStdUrl | Out-Null
+Write-Host "OK proxy + CA ($env:DENO_STD_VERSION)"
+```
+
+> Le check DNS est volontairement placé **avant** `curl` et `deno info` : si la résolution échoue, le proxy renvoie typiquement un `502 Bad Gateway` ou un timeout opaque qui ressemble à un problème de CA — alors qu'il s'agit en réalité d'un DNS interne mal configuré ou d'un split-horizon qui ne couvre pas `jsr.io` / `deno.land`. `dig` / `nslookup` court-circuitent le proxy et donnent un diagnostic sans ambiguïté.
+
+> Les deux URLs (`jsr.io` et `deno.land`) sont vérifiées séparément car elles utilisent des chaînes de certification différentes — un CA corporate mal configuré peut faire passer l'une et bloquer l'autre.
+
+#### Basculer entre mode connecté (proxy) et mode offline (cache)
+
+Les deux modes utilisent **le même cache** (`$DENO_DIR`). La seule différence : Deno a-t-il le droit de sortir sur le réseau pour combler un manque ?
+
+| Mode | Quand l'utiliser | Variables à définir | Variables à **désactiver** | Commande type |
+| --- | --- | --- | --- | --- |
+| **Connecté (proxy)** | Première installation, ajout d'un nouveau test/import, mise à jour d'une dépendance `std@x.y.z` | `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, `DENO_CERT` (si CA corporate) | `DENO_OFFLINE` | `npm run test:pricing-snapshot:deno` (amorce le cache) |
+| **Offline (cache)** | CI air-gapped, runs répétés, validation que rien ne fuit sur le réseau | `DENO_OFFLINE=1` | `HTTP_PROXY`, `HTTPS_PROXY` *(facultatif — ignorés en offline, mais à retirer pour éviter la confusion)* | `DENO_OFFLINE=1 npm run test:pricing-snapshot:deno` |
+
+**Procédure de bascule :**
+
+1. **Connecté → Offline :** lancer une fois la commande en mode connecté (les lignes `Download https://...` doivent apparaître), puis relancer avec `DENO_OFFLINE=1`. Aucune ligne `Download` ne doit s'afficher.
+2. **Offline → Connecté :** `unset DENO_OFFLINE` (PowerShell : `Remove-Item Env:DENO_OFFLINE`), exporter à nouveau `HTTPS_PROXY` / `DENO_CERT`, relancer.
+
+```bash
+# Bash : bascule rapide vers offline pour valider qu'aucun module ne manque
+unset HTTP_PROXY HTTPS_PROXY
+DENO_OFFLINE=1 npm run test:pricing-snapshot:deno
+```
+
+```powershell
+# PowerShell : équivalent
+Remove-Item Env:HTTP_PROXY, Env:HTTPS_PROXY -ErrorAction SilentlyContinue
+$env:DENO_OFFLINE = "1"
+npm run test:pricing-snapshot:deno
+```
+
+**Quoi vérifier dans les logs :**
+
+| Mode attendu | Signe que **tout va bien** | Signe que **ça ne va pas** | Action |
+| --- | --- | --- | --- |
+| Connecté | Lignes `Download https://deno.land/...` ou `Download https://jsr.io/...` puis `ok | N passed` | `error sending request ... UnknownIssuer` / `tcp connect error` / `error trying to connect` | CA manquant (`DENO_CERT`) ou proxy non exporté — revoir l'**étape 1** ci-dessus |
+| Connecté | *Aucune* ligne `Download` (cache déjà chaud) | Suite passe quand même `ok` | Normal — relancer avec `DENO_OFFLINE=1` pour confirmer que le cache suffit |
+| Offline | *Aucune* ligne `Download`, suite `ok | N passed | 0 failed` | `error: Specifier not found in cache: "https://..."` | Un nouvel import a été ajouté — repasser **temporairement** en mode connecté pour amorcer le cache, puis revenir offline |
+| Offline | — | Lignes `Download https://...` malgré `DENO_OFFLINE=1` | `DENO_OFFLINE` non exporté dans le shell courant — vérifier avec `env | grep DENO_OFFLINE` (PowerShell : `Get-ChildItem Env:DENO_OFFLINE`) |
+
+> **Règle simple :** si vous voyez `Download` en mode offline, ou `UnknownIssuer` en mode connecté, **arrêtez** et corrigez l'environnement avant de toucher au code de test.
+
+##### Checklist « lecture des logs » — patterns à grep et causes probables
+
+À utiliser en triant la sortie de `deno cache`, `deno test`, `deno info` ou du job CI. Les patterns sont volontairement écrits en regex `grep -E` pour être copiables tels quels.
+
+| # | Pattern (`grep -Ei`) | Où | Cause probable | Action |
+| --- | --- | --- | --- | --- |
+| 1 | `^Download https://(deno\.land\|jsr\.io\|esm\.sh)/` | stdout `deno cache` / `deno test` | Téléchargement réseau effectué — **normal** en mode connecté, **anormal** en mode offline | Si offline : `DENO_OFFLINE` n'est pas exporté **OU** un nouvel import a été ajouté → réamorcer le cache |
+| 2 | `invalid peer certificate: UnknownIssuer` | stderr | CA corporate absent du truststore Deno | `export DENO_CERT=/chemin/corp-ca-bundle.pem` (PEM, pas DER) — voir [Checklist `UnknownIssuer`](#checklist--unknownissuer-ca--certificat) |
+| 3 | `error sending request .* (tcp connect error\|error trying to connect)` | stderr | Proxy non joignable / port bloqué / DNS KO sur l'host du proxy | `curl -v $HTTPS_PROXY` ; vérifier DNS interne ; `ping proxy.corp.local` |
+| 4 | `Specifier not found in cache: "https?://[^"]+"` | stderr `deno test --cached-only` ou `DENO_OFFLINE=1` | Import ajouté/modifié non présent dans `$DENO_DIR` | Repasser **temporairement** en connecté : `unset DENO_OFFLINE && deno cache <fichier>`, puis revalider offline |
+| 5 | `error: Import '.*' failed: 403 Forbidden` | stderr | Proxy intercepte mais bloque le domaine (allow-list) | Demander whitelist `deno.land`, `jsr.io`, `cdn.jsdelivr.net` au support réseau |
+| 6 | `407 Proxy Authentication Required` (HTTP code dans `verify-proxy-ca.json`) | rapport JSON | Mot de passe proxy manquant ou mal encodé | URL-encoder `@`→`%40`, `:`→`%3A`, `#`→`%23` dans `HTTPS_PROXY` |
+| 7 | `relative import path .* not prefixed with` | stderr `deno check` | Import local cassé — **pas** un souci proxy | Corriger le chemin du `import` ; ne pas toucher à l'env |
+| 8 | `error: Module not found "npm:.*"` | stderr | `nodeModulesDir` ou registry npm bloqué | Vérifier `deno.json` + autoriser `registry.npmjs.org` au proxy |
+| 9 | `Blocking waiting for file lock on .* deno\.lock` | stderr (intermittent) | Deux process Deno en parallèle sur le même `$DENO_DIR` | Sérialiser (ne pas paralléliser `deno cache` dans matrix CI) |
+| 10 | `^ok \| \d+ passed \| 0 failed` | stdout `deno test` | ✅ Tout va bien | — |
+
+**Commande one-liner pour scanner un log CI :**
+
+```bash
+# Imprime, pour chaque pattern, le nombre d'occurrences + la 1ʳᵉ ligne matchée.
+patterns=(
+  '^Download https://'
+  'UnknownIssuer'
+  'tcp connect error|error trying to connect'
+  'Specifier not found in cache'
+  '403 Forbidden'
+  '407 Proxy Authentication Required'
+  'Module not found "npm:'
+  'Blocking waiting for file lock'
+)
+for p in "${patterns[@]}"; do
+  n=$(grep -Ec "$p" ci.log || true)
+  [ "$n" -gt 0 ] && printf '⚠ [%2d×] %-45s | %s\n' "$n" "$p" "$(grep -Em1 "$p" ci.log)"
+done
+```
+
+> **Règle d'or de triage** : pattern **2/3/6** → problème **réseau/CA** (ne pas toucher au code) ; pattern **4/7/8** → problème **dépendances/imports** (corriger le repo) ; pattern **1 en offline** ou **9** → problème de **configuration du runner**.
+
+
+
+**Pièges courants :**
+
+- **Mot de passe avec `@` / `:` / `#`** dans `HTTPS_PROXY` → Deno parse l'URL et casse silencieusement. URL-encoder (`@` → `%40`, `:` → `%3A`, `#` → `%23`).
+- **Certificat racine corporate non installé** → erreur `error sending request ... invalid peer certificate: UnknownIssuer`. Pointer `DENO_CERT` vers le bundle CA (ou ajouter le CA au truststore système — sous Linux : `/usr/local/share/ca-certificates/` + `update-ca-certificates`).
+- **`NO_PROXY` ignoré** pour des hôtes à 1 segment (`registry-internal`) → utiliser le FQDN ou un suffixe avec point initial (`.corp.local`).
+- **Variables exportées dans un sous-shell uniquement** → si `deno cache` semble ignorer le proxy, vérifier avec `env | grep -i proxy` que les vars sont bien dans l'environnement courant.
+- **Runs `--cached-only` / offline** : une fois le cache amorcé, **désactiver** `HTTP_PROXY` / `HTTPS_PROXY` n'a aucun impact — Deno ne sort plus sur le réseau (vérifié par `npm run verify:pricing-snapshot:offline`).
+
+##### Checklist : `UnknownIssuer` (CA / certificat)
+
+Symptôme exact dans la sortie de `deno cache` ou `deno test` :
+
+```
+error sending request for url (https://deno.land/std@0.224.0/...): client error (Connect):
+  invalid peer certificate: UnknownIssuer
+```
+
+Vérifier dans cet ordre — la **première** case qui échoue est la cause :
+
+- [ ] **`DENO_CERT` est défini** : `echo "$DENO_CERT"` (PowerShell : `$env:DENO_CERT`) doit imprimer un chemin **non vide**. Si vide → l'exporter : `export DENO_CERT=/chemin/ca-bundle.pem`.
+- [ ] **Le fichier existe et est lisible** : `test -r "$DENO_CERT" && echo OK` (PowerShell : `Test-Path $env:DENO_CERT`). Sinon → corriger le chemin (chemin **absolu** recommandé, pas `~/...` qui n'est pas expansé partout).
+- [ ] **Le bundle est au format PEM** : `head -1 "$DENO_CERT"` doit imprimer `-----BEGIN CERTIFICATE-----`. Si c'est du DER binaire → convertir : `openssl x509 -inform der -in corp-ca.cer -out corp-ca-bundle.pem`.
+- [ ] **Le bundle contient le bon CA** : `openssl x509 -in "$DENO_CERT" -noout -subject -issuer` doit afficher l'autorité corporate (ex. `subject=CN=Corp Root CA`). Si c'est un cert feuille (Subject = `*.deno.land`) → demander le **CA racine** à l'équipe sécurité, pas le cert du proxy.
+- [ ] **curl avec le même CA passe** : `curl -fsS --cacert "$DENO_CERT" https://deno.land/std@0.224.0/assert/mod.ts >/dev/null && echo OK`. Si curl passe mais Deno échoue → mauvais binaire Deno (vérifier avec `which deno` qu'on n'utilise pas un Deno empaqueté snap/brew qui ignore `DENO_CERT`).
+- [ ] **`SSL_CERT_FILE` ne court-circuite pas** : si `SSL_CERT_FILE` est défini avec un autre chemin, **Deno l'utilise en priorité** sur `DENO_CERT`. Vérifier `env | grep -i cert` et nettoyer.
+- [ ] **(Docker uniquement)** Le CA est aussi dans le truststore OS : `update-ca-certificates` a bien tourné dans le `Dockerfile` (apt + `/usr/local/share/ca-certificates/*.crt`). Sinon `apt`, `git clone`, `curl` sans `--cacert` échouent même si Deno passe.
+
+**Solution de dernier recours (à éviter en prod / CI partagé)** : `deno cache --unsafely-ignore-certificate-errors=deno.land,jsr.io ...` — désactive la vérif TLS pour ces hôtes. **Ne jamais** committer un script qui utilise ce flag : un MITM passerait inaperçu.
+
+##### Checklist : parsing d'URL `HTTPS_PROXY` (mot de passe avec `@` `:` `#` `/`)
+
+Symptôme : `deno cache` semble ignorer le proxy (timeout direct, ou `tcp connect error: Connection refused`), **alors que `curl -x "$HTTPS_PROXY"` fonctionne**. Deno utilise le crate Rust `hyper-proxy` qui parse l'URL strictement selon RFC 3986 — un caractère non encodé dans le mot de passe **casse silencieusement** le parse et la variable est **ignorée**.
+
+Vérifier dans cet ordre :
+
+- [ ] **Afficher la valeur exacte** : `echo "$HTTPS_PROXY"` (ne pas faire `echo $HTTPS_PROXY` sans guillemets — le shell mange les caractères spéciaux). Compter manuellement les `@` : il doit y en avoir **exactement un**, juste avant l'host.
+- [ ] **Encoder le mot de passe** : tout caractère parmi `@ : / # ? & % +` dans le password doit être **percent-encoded**. Table de correspondance :
+
+  | Caractère | Encodé | Caractère | Encodé |
+  | --------- | ------ | --------- | ------ |
+  | `@`       | `%40`  | `#`       | `%23`  |
+  | `:`       | `%3A`  | `?`       | `%3F`  |
+  | `/`       | `%2F`  | `&`       | `%26`  |
+  | `%`       | `%25`  | `+`       | `%2B`  |
+
+  Exemple : password `P@ss:w0rd#1` → `P%40ss%3Aw0rd%231`. URL finale : `http://user:P%40ss%3Aw0rd%231@proxy.corp.local:8080`.
+
+- [ ] **Encoder en une commande** :
+  - Bash : `python3 -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' 'P@ss:w0rd#1'`
+  - PowerShell : `[System.Web.HttpUtility]::UrlEncode('P@ss:w0rd#1')` (charger `Add-Type -AssemblyName System.Web` si besoin).
+- [ ] **Pas d'espace ni de saut de ligne caché** : `printf '%s' "$HTTPS_PROXY" | od -c | tail` ne doit montrer aucun `\n`, `\r` ou ` ` (espace) avant la fin. Si `HTTPS_PROXY` vient d'un secret CI copié-collé depuis un PDF, `\r` final est fréquent → `export HTTPS_PROXY="${HTTPS_PROXY//$'\r'/}"`.
+- [ ] **Cohérence majuscules/minuscules** : Deno lit `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` (insensible à la casse), mais `curl` lit aussi `http_proxy`, `https_proxy`. Si vous mélangez, exporter **les deux casses** pour éviter les divergences entre les checks `curl` et le run `deno`.
+- [ ] **Tester le parse côté Deno** : un mini script révèle l'erreur de parse sans noyer la sortie :
+  ```bash
+  deno eval --allow-env 'console.log(new URL(Deno.env.get("HTTPS_PROXY") ?? ""))'
+  # → si Deno imprime une URL avec username/password séparés, le parse est OK.
+  # → si TypeError: Invalid URL, le mot de passe contient un caractère non encodé.
+  ```
+- [ ] **Vérifier que la requête sort bien par le proxy** : `deno eval --allow-net --allow-env 'await fetch("https://deno.land/std@0.224.0/version.ts").then(r => console.log(r.status))'`. Sur le proxy, ouvrir les logs (`/var/log/squid/access.log` ou équivalent) — la requête doit apparaître. Si elle n'apparaît pas → `HTTPS_PROXY` est bien ignoré (revoir l'encodage).
+
+**Solution rapide (sans toucher au mot de passe)** : si l'authentification proxy supporte **NTLM/Kerberos** ou un **token bearer**, demander à l'équipe sécurité un proxy `http://proxy.corp.local:8080` **sans** credentials inline + un agent local (`cntlm`, `px-proxy`) qui injecte l'auth. Deno parle alors à `127.0.0.1:3128` sans aucun caractère spécial.
+
 > Derrière un proxy d'entreprise : exporter `HTTPS_PROXY` / `HTTP_PROXY` (et au besoin `DENO_CERT=/chemin/ca-bundle.pem`) **avant** la commande `deno cache`. Ces variables ne sont **pas** nécessaires pour les runs offline ultérieurs.
 
 **Étape 2 — Vérifier que tout passe hors-ligne :**
@@ -440,7 +798,222 @@ tar czf deno-cache.tgz -C "$(deno info --json | jq -r '.denoDir')" .
 
 Sur un runner CI offline, restaurer ensuite ce tarball dans `$DENO_DIR` **avant** d'exécuter `npm run test:pricing-snapshot:deno` (qui passe déjà `--no-check` et n'a besoin d'aucun secret — voir la **Checklist offline / sans secrets** ci-dessus).
 
-#### Anatomie des flags `deno test` utilisés
+#### Exemple GitHub Actions : runner derrière un proxy d'entreprise
+
+Workflow minimal qui configure le proxy + le CA corporate **avant** `deno cache` puis `deno test`. Les valeurs (`HTTP_PROXY`, CA bundle…) sont stockées en **secrets** ou **variables** du dépôt — jamais en clair dans le YAML.
+
+> **À adapter :** remplacer les noms de secrets par les vôtres (`secrets.CORP_HTTP_PROXY`, `secrets.CORP_CA_BUNDLE_B64`, `vars.CORP_NO_PROXY`). Le CA est passé en **base64** pour préserver les retours à la ligne.
+
+```yaml
+# .github/workflows/deno-tests-behind-proxy.yml
+name: Deno tests (corporate proxy)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: self-hosted # ou ubuntu-latest si le proxy est joignable depuis GitHub-hosted
+    env:
+      # Proxy : URL-encoder @ : # dans le mot de passe (@ → %40, : → %3A, # → %23)
+      HTTP_PROXY: ${{ secrets.CORP_HTTP_PROXY }}
+      HTTPS_PROXY: ${{ secrets.CORP_HTTP_PROXY }}
+      # Hôtes joignables en direct (FQDN ou suffixe avec point initial)
+      NO_PROXY: ${{ vars.CORP_NO_PROXY }} # ex: "localhost,127.0.0.1,.corp.local,registry-internal.corp.local"
+      # Forcer Deno à utiliser le bundle CA corporate (sinon: UnknownIssuer)
+      DENO_CERT: ${{ github.workspace }}/.ci/corp-ca-bundle.pem
+      # Cache Deno local au workspace (facilite la mise en cache GHA)
+      DENO_DIR: ${{ github.workspace }}/.deno-cache
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Décoder le CA corporate (depuis secret base64)
+        run: |
+          mkdir -p .ci
+          echo "${{ secrets.CORP_CA_BUNDLE_B64 }}" | base64 -d > "$DENO_CERT"
+          # Sanity check : le fichier doit commencer par -----BEGIN CERTIFICATE-----
+          head -1 "$DENO_CERT" | grep -q "BEGIN CERTIFICATE" || { echo "::error::CA bundle invalide"; exit 1; }
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Vérifier la connectivité via le proxy (fail-fast)
+        run: |
+          echo "── Proxy en place ? ──"
+          test -n "$HTTPS_PROXY" || { echo "::error::HTTPS_PROXY manquant"; exit 1; }
+          test -f "$DENO_CERT"   || { echo "::error::DENO_CERT introuvable"; exit 1; }
+          echo "── curl HTTPS via proxy + CA ──"
+          curl -fsS --cacert "$DENO_CERT" https://jsr.io/@std/assert/meta.json >/dev/null
+          curl -fsS --cacert "$DENO_CERT" https://deno.land/std@0.224.0/assert/mod.ts >/dev/null
+
+      - name: Restaurer le cache Deno
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.DENO_DIR }}
+          key: deno-${{ runner.os }}-${{ hashFiles('supabase/functions/deno.json', 'supabase/functions/**/deno.lock') }}
+          restore-keys: |
+            deno-${{ runner.os }}-
+
+      - name: Amorcer le cache (deno cache via proxy)
+        run: |
+          deno cache \
+            --config supabase/functions/deno.json \
+            supabase/functions/_shared/pricing-snapshot_test.ts
+
+      - name: Exécuter les tests Deno
+        run: |
+          deno test \
+            --allow-env \
+            --allow-read=. \
+            --no-check \
+            --config supabase/functions/deno.json \
+            supabase/functions/_shared/pricing-snapshot_test.ts
+
+      # Optionnel : seconde passe offline pour prouver que rien ne fuit sur le réseau
+      - name: Re-run offline (DENO_OFFLINE=1, sans proxy)
+        env:
+          DENO_OFFLINE: '1'
+          HTTP_PROXY: ''
+          HTTPS_PROXY: ''
+        run: |
+          deno test \
+            --allow-env --allow-read=. --no-check \
+            --config supabase/functions/deno.json \
+            supabase/functions/_shared/pricing-snapshot_test.ts
+```
+
+**Points clés :**
+
+- `env:` est défini au **niveau du job** → chaque step hérite des variables sans `export` manuel.
+- Le **CA corporate** est stocké en `secrets.CORP_CA_BUNDLE_B64` (base64 du `.pem`), décodé dans `${{ github.workspace }}/.ci/` (effacé à la fin du job).
+- L'étape **« Vérifier la connectivité »** échoue **avant** `deno cache` si le proxy/CA est mal configuré → message d'erreur clair plutôt qu'un `UnknownIssuer` cryptique 30 s plus tard.
+- `actions/cache@v4` réutilise `$DENO_DIR` entre runs → après le premier amorçage, `deno cache` devient quasi-instantané et **`deno test`** peut tourner offline.
+- L'étape finale **offline** (`DENO_OFFLINE=1`, proxy vidé) prouve qu'aucun nouveau téléchargement n'est nécessaire — voir **Basculer entre mode connecté et offline** ci-dessus.
+
+#### Exemple Docker / docker-compose : conteneur Deno derrière un proxy d'entreprise
+
+Utile pour les runners CI conteneurisés (GitLab CI, Jenkins, Drone…) ou pour reproduire localement le comportement d'un environnement air-gapped + proxy. Deux fichiers : un **`Dockerfile`** qui installe le CA corporate au niveau OS **et** Deno, et un **`docker-compose.yml`** qui injecte les variables d'environnement + monte le cache Deno comme volume.
+
+> **À adapter :** placer le bundle CA dans `./.ci/corp-ca-bundle.pem` (gitignored — ne **jamais** commiter le PEM). Les valeurs proxy viennent d'un fichier `.env` local (gitignored, voir plus bas).
+
+**`Dockerfile` :**
+
+```dockerfile
+# syntax=docker/dockerfile:1.7
+FROM denoland/deno:2.1.4
+
+# 1. Installer le CA corporate au niveau OS (sinon apt/curl/git échouent en TLS)
+COPY .ci/corp-ca-bundle.pem /usr/local/share/ca-certificates/corp-ca-bundle.crt
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+ && update-ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+# 2. Pointer Deno vers le même bundle (variable lue par Deno au runtime)
+ENV DENO_CERT=/usr/local/share/ca-certificates/corp-ca-bundle.crt
+
+# 3. Cache Deno dans un dossier connu (monté en volume par compose)
+ENV DENO_DIR=/deno-cache
+RUN mkdir -p "$DENO_DIR"
+
+WORKDIR /workspace
+
+# 4. Pré-amorcer le cache au build (les variables proxy sont passées en --build-arg)
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+ENV HTTP_PROXY=$HTTP_PROXY HTTPS_PROXY=$HTTPS_PROXY NO_PROXY=$NO_PROXY
+
+COPY supabase/functions/deno.json supabase/functions/deno.json
+COPY supabase/functions/_shared supabase/functions/_shared
+RUN deno cache \
+      --config supabase/functions/deno.json \
+      supabase/functions/_shared/pricing-snapshot_test.ts
+
+# 5. Le reste du code est monté en volume par compose (itération rapide)
+CMD ["deno", "test", \
+     "--allow-env", "--allow-read=.", "--no-check", \
+     "--config", "supabase/functions/deno.json", \
+     "supabase/functions/_shared/pricing-snapshot_test.ts"]
+```
+
+**`docker-compose.yml` :**
+
+```yaml
+services:
+  deno-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Passés au build pour pré-amorcer le cache (RUN deno cache)
+        HTTP_PROXY: ${CORP_HTTP_PROXY}
+        HTTPS_PROXY: ${CORP_HTTP_PROXY}
+        NO_PROXY: ${CORP_NO_PROXY}
+    environment:
+      # Passés au runtime (deno test) — utiles si un test ajoute un import à chaud
+      HTTP_PROXY: ${CORP_HTTP_PROXY}
+      HTTPS_PROXY: ${CORP_HTTP_PROXY}
+      NO_PROXY: ${CORP_NO_PROXY}
+      # DENO_CERT et DENO_DIR sont déjà fixés dans le Dockerfile
+    volumes:
+      # Code source monté pour itérer sans rebuild
+      - ./:/workspace:ro
+      # Cache Deno persisté entre runs (équivalent du actions/cache@v4)
+      - deno-cache:/deno-cache
+      # CA corporate (lu au build, mais re-monté pour debug rapide)
+      - ./.ci/corp-ca-bundle.pem:/usr/local/share/ca-certificates/corp-ca-bundle.crt:ro
+
+  # Service jumeau qui rejoue la suite OFFLINE (preuve d'hermétisme)
+  deno-tests-offline:
+    extends: deno-tests
+    environment:
+      DENO_OFFLINE: '1'
+      HTTP_PROXY: ''
+      HTTPS_PROXY: ''
+    depends_on:
+      deno-tests:
+        condition: service_completed_successfully
+
+volumes:
+  deno-cache:
+```
+
+**`.env` (à créer localement, gitignored) :**
+
+```bash
+# URL-encoder @ : # dans le mot de passe (@ → %40, : → %3A, # → %23)
+CORP_HTTP_PROXY=http://user:pass@proxy.corp.local:8080
+CORP_NO_PROXY=localhost,127.0.0.1,.corp.local,registry-internal.corp.local
+```
+
+**Utilisation :**
+
+```bash
+# 1. Build + run de la suite (en ligne, via proxy)
+docker compose --env-file .env up --build deno-tests
+
+# 2. Re-run offline pour valider que le cache suffit (depends_on fait l'enchaînement)
+docker compose --env-file .env up deno-tests-offline
+
+# 3. Shell interactif pour debug (le cache est déjà chaud)
+docker compose --env-file .env run --rm deno-tests bash
+```
+
+**Points clés :**
+
+- **CA installé deux fois** : au niveau OS (`update-ca-certificates` → `apt`, `curl`, `git`) **et** via `DENO_CERT` (Deno utilise sa propre stack TLS Rust qui n'hérite **pas** automatiquement du truststore système).
+- **Variables proxy en `ARG` + `ENV`** : `ARG` sert au `RUN deno cache` au build ; `ENV` sert au `deno test` au runtime. Sans les deux, le cache se construit mais un import ajouté à chaud échoue en TLS.
+- **`.ci/corp-ca-bundle.pem` doit être dans `.gitignore` et `.dockerignore`** — sauf l'entrée explicite dans le `Dockerfile` qui le `COPY`. Idem pour `.env`.
+- **Volume `deno-cache`** : nommé (pas un bind mount) → persiste entre `docker compose down` et `up` sans dépendre du chemin hôte. Pour repartir de zéro : `docker compose down -v`.
+- **Service `deno-tests-offline`** : `extends:` réutilise toute la config, surcharge juste `DENO_OFFLINE=1` et vide le proxy. Si ce service échoue avec `Specifier not found in cache`, c'est qu'un import a été ajouté sans rebuild — relancer `docker compose build deno-tests`.
+- **CI multi-stage** : pour un pipeline Drone/GitLab, exécuter `docker compose run --rm deno-tests` (one-shot, exit code propagé) plutôt que `up` (qui ne propage pas l'exit code par défaut sans `--exit-code-from`).
+
+
+
 
 La commande exacte derrière **`npm run test:pricing-snapshot:deno`** est :
 
