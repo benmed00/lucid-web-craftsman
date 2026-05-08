@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 
 interface OptimizedImageProps
@@ -49,51 +49,57 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const observerRef = useRef<IntersectionObserver>();
 
   // Generate WebP source if enabled
-  const generateWebPSrc = (originalSrc: string): string => {
-    if (!webp || originalSrc.includes('.webp')) return originalSrc;
+  const generateWebPSrc = useCallback(
+    (originalSrc: string): string => {
+      if (!webp || originalSrc.includes('.webp')) return originalSrc;
 
-    // For Supabase storage URLs: only transform when using the render endpoint
-    if (originalSrc.includes('supabase.co')) {
-      const isRenderEndpoint = originalSrc.includes('/render/image/');
-      if (!isRenderEndpoint) {
-        // Do not append params to /object URLs to avoid 400 responses
-        return originalSrc;
+      // For Supabase storage URLs: only transform when using the render endpoint
+      if (originalSrc.includes('supabase.co')) {
+        const isRenderEndpoint = originalSrc.includes('/render/image/');
+        if (!isRenderEndpoint) {
+          // Do not append params to /object URLs to avoid 400 responses
+          return originalSrc;
+        }
+        const url = new URL(originalSrc);
+        url.searchParams.set('format', 'webp');
+        if (quality) url.searchParams.set('quality', quality.toString());
+        if (width) url.searchParams.set('width', width.toString());
+        if (height) url.searchParams.set('height', height.toString());
+        return url.toString();
       }
-      const url = new URL(originalSrc);
-      url.searchParams.set('format', 'webp');
-      if (quality) url.searchParams.set('quality', quality.toString());
-      if (width) url.searchParams.set('width', width.toString());
-      if (height) url.searchParams.set('height', height.toString());
-      return url.toString();
-    }
 
-    // For local assets, don't auto-convert to webp since files may not exist
-    // Return original to prevent 404 errors from missing webp files
-    return originalSrc;
-  };
+      // For local assets, don't auto-convert to webp since files may not exist
+      // Return original to prevent 404 errors from missing webp files
+      return originalSrc;
+    },
+    [webp, quality, width, height]
+  );
 
   // Generate optimized src with dimensions and quality
-  const generateOptimizedSrc = (originalSrc: string): string => {
-    // Handle relative URLs - keep them as-is for better browser caching
-    if (originalSrc.startsWith('/assets/')) {
-      return originalSrc;
-    }
-
-    if (originalSrc.includes('supabase.co')) {
-      const isRenderEndpoint = originalSrc.includes('/render/image/');
-      if (!isRenderEndpoint) {
-        // Do not modify /object URLs to prevent 400 errors
+  const generateOptimizedSrc = useCallback(
+    (originalSrc: string): string => {
+      // Handle relative URLs - keep them as-is for better browser caching
+      if (originalSrc.startsWith('/assets/')) {
         return originalSrc;
       }
-      const url = new URL(originalSrc);
-      if (quality && quality !== 85)
-        url.searchParams.set('quality', quality.toString());
-      if (width) url.searchParams.set('width', width.toString());
-      if (height) url.searchParams.set('height', height.toString());
-      return url.toString();
-    }
-    return originalSrc;
-  };
+
+      if (originalSrc.includes('supabase.co')) {
+        const isRenderEndpoint = originalSrc.includes('/render/image/');
+        if (!isRenderEndpoint) {
+          // Do not modify /object URLs to prevent 400 errors
+          return originalSrc;
+        }
+        const url = new URL(originalSrc);
+        if (quality && quality !== 85)
+          url.searchParams.set('quality', quality.toString());
+        if (width) url.searchParams.set('width', width.toString());
+        if (height) url.searchParams.set('height', height.toString());
+        return url.toString();
+      }
+      return originalSrc;
+    },
+    [quality, width, height]
+  );
 
   // Set up intersection observer for lazy loading
   useEffect(() => {
@@ -164,7 +170,17 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     };
 
     loadImage();
-  }, [isInView, src, webp, quality, width, height, fallback]);
+  }, [
+    isInView,
+    src,
+    webp,
+    quality,
+    width,
+    height,
+    fallback,
+    generateOptimizedSrc,
+    generateWebPSrc,
+  ]);
 
   // Check if image exists and is loadable
   const checkImageExists = (imgSrc: string): Promise<void> => {

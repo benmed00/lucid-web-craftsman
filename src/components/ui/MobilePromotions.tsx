@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Percent, Clock, Gift, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,47 +36,49 @@ export const MobilePromotions = ({
   const isMobile = useIsMobile();
   const { formatPrice } = useCurrency();
 
-  const mockPromotions: Promotion[] = [
-    {
-      id: '1',
-      type: 'flash_sale',
-      title: 'Vente Flash Mobile',
-      description: '20% de réduction pour les commandes mobiles',
-      code: 'MOBILE20',
-      discount: 20,
-      minAmount: 50,
-      expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
-      isActive: true,
-      isLimited: true,
-      remainingUses: 15,
-      totalUses: 50,
-    },
-    {
-      id: '2',
-      type: 'free_shipping',
-      title: 'Livraison Gratuite',
-      description: 'Plus que 15€ pour la livraison gratuite',
-      minAmount: 75,
-      isActive: cartTotal < 75,
-    },
-    {
-      id: '3',
-      type: 'gift',
-      title: 'Cadeau Offert',
-      description: 'Un marque-page artisanal offert dès 100€',
-      minAmount: 100,
-      isActive: true,
-    },
-    {
-      id: '4',
-      type: 'discount',
-      title: 'Première Commande',
-      description: '15% de réduction sur votre première commande',
-      code: 'BIENVENUE15',
-      discount: 15,
-      isActive: true,
-    },
-  ];
+  const mockPromotions = useMemo((): Promotion[] => {
+    return [
+      {
+        id: '1',
+        type: 'flash_sale',
+        title: 'Vente Flash Mobile',
+        description: '20% de réduction pour les commandes mobiles',
+        code: 'MOBILE20',
+        discount: 20,
+        minAmount: 50,
+        expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
+        isActive: true,
+        isLimited: true,
+        remainingUses: 15,
+        totalUses: 50,
+      },
+      {
+        id: '2',
+        type: 'free_shipping',
+        title: 'Livraison Gratuite',
+        description: 'Plus que 15€ pour la livraison gratuite',
+        minAmount: 75,
+        isActive: cartTotal < 75,
+      },
+      {
+        id: '3',
+        type: 'gift',
+        title: 'Cadeau Offert',
+        description: 'Un marque-page artisanal offert dès 100€',
+        minAmount: 100,
+        isActive: true,
+      },
+      {
+        id: '4',
+        type: 'discount',
+        title: 'Première Commande',
+        description: '15% de réduction sur votre première commande',
+        code: 'BIENVENUE15',
+        discount: 15,
+        isActive: true,
+      },
+    ];
+  }, [cartTotal]);
 
   useEffect(() => {
     // Filter promotions based on conditions
@@ -90,7 +92,7 @@ export const MobilePromotions = ({
     });
 
     setActivePromotions(filtered);
-  }, [cartTotal]);
+  }, [cartTotal, mockPromotions]);
 
   useEffect(() => {
     // Update countdown timers

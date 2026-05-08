@@ -64,7 +64,7 @@ export const ProductQuickView = ({
       setImageLoading(true);
       setShowImageZoom(false);
     }
-  }, [isOpen, product?.id]);
+  }, [isOpen, product]);
 
   const normalizeImage = (url?: string) => {
     if (!url) return '/assets/images/handmade_products.webp';

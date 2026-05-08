@@ -44,15 +44,15 @@ export const usePerformanceMonitor = () => {
 
   useEffect(() => {
     const startTime = performance.now();
+    const metrics = metricsRef.current;
 
     return () => {
       const endTime = performance.now();
       const renderTime = endTime - startTime;
 
-      metricsRef.current.renderCount++;
-      metricsRef.current.averageRenderTime =
-        (metricsRef.current.averageRenderTime + renderTime) / 2;
-      metricsRef.current.lastRenderTime = renderTime;
+      metrics.renderCount++;
+      metrics.averageRenderTime = (metrics.averageRenderTime + renderTime) / 2;
+      metrics.lastRenderTime = renderTime;
     };
   });
 
@@ -73,6 +73,7 @@ export const useOptimizedScroll = (
 ) => {
   const throttledCallback = useMemo(
     () => throttle((scrollY: number) => callback(scrollY), 16), // ~60fps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deps array forwarded from caller for throttle identity
     deps
   );
 
@@ -98,6 +99,7 @@ export const useOptimizedResize = (
       debounce((width: number, height: number) => {
         callback(width, height);
       }, 150),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deps array forwarded from caller for debounce identity
     deps
   );
 

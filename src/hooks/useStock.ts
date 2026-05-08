@@ -54,6 +54,7 @@ export function useStock(
   const [error, setError] = useState<string | null>(null);
 
   const { productId, productIds, enabled = true } = options;
+  const productIdsSerialized = productIds?.join(',') ?? '';
 
   useEffect(() => {
     if (!enabled) return;
@@ -89,7 +90,7 @@ export function useStock(
     }, 50); // Small debounce delay
 
     return () => clearTimeout(timeoutId);
-  }, [productId, productIds?.join(','), enabled]); // Use join for stable dependency
+  }, [productId, productIds, productIdsSerialized, enabled]);
 
   const canOrderQuantity = async (productId: number, quantity: number) => {
     try {

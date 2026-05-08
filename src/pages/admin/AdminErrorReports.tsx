@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -103,26 +103,25 @@ const AdminErrorReports: React.FC = () => {
   // Available tags for filtering
   const [availableTags, setAvailableTags] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchErrorReports();
-    }
-  }, [isAuthenticated]);
+  const calculateStats = useCallback((reportsData: ErrorReport[]) => {
+    const next = {
+      total: reportsData.length,
+      open: reportsData.filter((r) => r.status === 'open').length,
+      inProgress: reportsData.filter((r) => r.status === 'in_progress').length,
+      resolved: reportsData.filter((r) => r.status === 'resolved').length,
+      critical: reportsData.filter((r) => r.severity === 'critical').length,
+      high: reportsData.filter((r) => r.severity === 'high').length,
+    };
+    setStats(next);
+  }, []);
 
-  useEffect(() => {
-    filterReports();
-  }, [
-    reports,
-    statusFilter,
-    priorityFilter,
-    severityFilter,
-    errorTypeFilter,
-    searchQuery,
-    tagFilter,
-    screenshotFilter,
-  ]);
+  const extractAvailableTags = useCallback((reportsData: ErrorReport[]) => {
+    const allTags = reportsData.flatMap((report) => report.tags || []);
+    const uniqueTags = Array.from(new Set(allTags));
+    setAvailableTags(uniqueTags);
+  }, []);
 
-  const fetchErrorReports = async () => {
+  const fetchErrorReports = useCallback(async () => {
     try {
       setLoading(true);
       const data = await fetchSupportErrorReportsAll();
@@ -135,27 +134,9 @@ const AdminErrorReports: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [calculateStats, extractAvailableTags]);
 
-  const calculateStats = (reportsData: ErrorReport[]) => {
-    const stats = {
-      total: reportsData.length,
-      open: reportsData.filter((r) => r.status === 'open').length,
-      inProgress: reportsData.filter((r) => r.status === 'in_progress').length,
-      resolved: reportsData.filter((r) => r.status === 'resolved').length,
-      critical: reportsData.filter((r) => r.severity === 'critical').length,
-      high: reportsData.filter((r) => r.severity === 'high').length,
-    };
-    setStats(stats);
-  };
-
-  const extractAvailableTags = (reportsData: ErrorReport[]) => {
-    const allTags = reportsData.flatMap((report) => report.tags || []);
-    const uniqueTags = Array.from(new Set(allTags));
-    setAvailableTags(uniqueTags);
-  };
-
-  const filterReports = () => {
+  const filterReports = useCallback(() => {
     let filtered = [...reports];
 
     // Status filter
@@ -212,7 +193,26 @@ const AdminErrorReports: React.FC = () => {
     }
 
     setFilteredReports(filtered);
-  };
+  }, [
+    reports,
+    statusFilter,
+    priorityFilter,
+    severityFilter,
+    errorTypeFilter,
+    searchQuery,
+    tagFilter,
+    screenshotFilter,
+  ]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchErrorReports();
+    }
+  }, [isAuthenticated, fetchErrorReports]);
+
+  useEffect(() => {
+    filterReports();
+  }, [filterReports]);
 
   const updateReportStatus = async (reportId: string, status: string) => {
     try {

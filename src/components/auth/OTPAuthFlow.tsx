@@ -113,6 +113,7 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
     maxAttempts,
     signInWithOtp,
     resetPassword,
+    timeLeft,
   ]);
 
   const handleVerifyOTP = useCallback(async () => {

@@ -247,18 +247,21 @@ export function useCheckoutPage() {
         setPaymentMethod((prev) => (prev === 'cod' ? 'card' : prev));
       }
     },
-    []
+    [setFormData, setFormErrors, setPaymentMethod]
   );
 
-  const handleFieldChange = useCallback((field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    // Auto-reset COD if postal code changes to non-eligible
-    if (field === 'postalCode') {
-      setPaymentMethod((prev) =>
-        prev === 'cod' && !isEligibleForCOD(value) ? 'card' : prev
-      );
-    }
-  }, []);
+  const handleFieldChange = useCallback(
+    (field: string, value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      // Auto-reset COD if postal code changes to non-eligible
+      if (field === 'postalCode') {
+        setPaymentMethod((prev) =>
+          prev === 'cod' && !isEligibleForCOD(value) ? 'card' : prev
+        );
+      }
+    },
+    [setFormData, setPaymentMethod]
+  );
 
   const handleClearError = useCallback(
     (field: string) =>
@@ -497,6 +500,11 @@ export function useCheckoutPage() {
     shipping,
     total,
     t,
+    setFormData,
+    setCompletedSteps,
+    setStep,
+    setPromoCode,
+    setPromoError,
   ]);
 
   const handleEditStep = useCallback(

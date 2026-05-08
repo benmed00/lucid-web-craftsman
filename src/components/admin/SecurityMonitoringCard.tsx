@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -61,7 +61,7 @@ export const SecurityMonitoringCard = () => {
   });
   const { toast } = useToast();
 
-  const fetchSecurityEvents = async () => {
+  const fetchSecurityEvents = useCallback(async () => {
     try {
       const data = await fetchSecurityEventsRecent(50);
 
@@ -87,9 +87,9 @@ export const SecurityMonitoringCard = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [toast]);
 
-  const fetchAuditLogs = async () => {
+  const fetchAuditLogs = useCallback(async () => {
     try {
       const data = await fetchAuditLogsRecent(100);
       setAuditLogs((data || []) as AuditLog[]);
@@ -101,7 +101,7 @@ export const SecurityMonitoringCard = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [toast]);
 
   const resolveSecurityEvent = async (eventId: string) => {
     try {
@@ -143,7 +143,7 @@ export const SecurityMonitoringCard = () => {
       unsubSec();
       unsubAudit();
     };
-  }, []);
+  }, [fetchAuditLogs, fetchSecurityEvents]);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {

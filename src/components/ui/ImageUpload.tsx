@@ -33,17 +33,20 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const validateFile = (file: File): string | null => {
-    if (!acceptedTypes.includes(file.type)) {
-      return `Type de fichier non supporté. Formats acceptés: ${acceptedTypes.map((t) => t.split('/')[1]).join(', ')}`;
-    }
+  const validateFile = useCallback(
+    (file: File): string | null => {
+      if (!acceptedTypes.includes(file.type)) {
+        return `Type de fichier non supporté. Formats acceptés: ${acceptedTypes.map((t) => t.split('/')[1]).join(', ')}`;
+      }
 
-    if (file.size > maxSizeMB * 1024 * 1024) {
-      return `Fichier trop volumineux. Taille maximum: ${maxSizeMB}MB`;
-    }
+      if (file.size > maxSizeMB * 1024 * 1024) {
+        return `Fichier trop volumineux. Taille maximum: ${maxSizeMB}MB`;
+      }
 
-    return null;
-  };
+      return null;
+    },
+    [acceptedTypes, maxSizeMB]
+  );
 
   const handleFileSelect = useCallback(
     async (file: File) => {
@@ -77,7 +80,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         setIsUploading(false);
       }
     },
-    [onImageUpload, previewUrl, maxSizeMB, acceptedTypes]
+    [onImageUpload, previewUrl, validateFile]
   );
 
   const handleDrop = useCallback(

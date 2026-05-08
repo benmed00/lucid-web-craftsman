@@ -120,7 +120,7 @@ export function usePromoCode({
 
       return { isValid: true };
     },
-    [subtotal]
+    [subtotal, formatPrice]
   );
 
   // Validate and apply promo code
@@ -192,7 +192,7 @@ export function usePromoCode({
     } finally {
       setIsValidating(false);
     }
-  }, [promoCode, validateCouponData]);
+  }, [promoCode, validateCouponData, setPromoCode]);
 
   // Remove applied coupon
   const remove = useCallback(() => {

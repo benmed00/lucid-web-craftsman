@@ -45,8 +45,8 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // Many effects intentionally omit deps (e.g. mount-only, stable callbacks); audit before tightening.
-      'react-hooks/exhaustive-deps': 'off',
+      // Document intentional suppressions inline — see docs/TECH_DEBT.md
+      'react-hooks/exhaustive-deps': 'error',
       // shadcn/ui and contexts export helpers/hooks next to components; Fast Refresh still works in practice.
       'react-refresh/only-export-components': 'off',
       '@typescript-eslint/no-unused-vars': 'off',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -83,7 +83,7 @@ const OrderHistory = () => {
 
   const dateLocale = i18n.language === 'fr' ? fr : enUS;
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
@@ -101,13 +101,13 @@ const OrderHistory = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, t]);
 
   useEffect(() => {
     if (!authLoading) {
       fetchOrders();
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, fetchOrders]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<

@@ -16,6 +16,17 @@ Tracked items supersede tacit carve-outs — each should eventually get an owner
 
 Prefer new code through [`src/services/`](src/services/README.md) and shared hooks (`AuthContext`).
 
+## ESLint `react-hooks/exhaustive-deps`
+
+[`eslint.config.js`](../eslint.config.js) enforces **`react-hooks/exhaustive-deps`** at **`error`**. Hooks must list the values from the component scope that their effect/callback reads (see [React docs — Hooks](https://react.dev/reference/rules/rules-of-hooks)).
+
+**Policy:**
+
+- Prefer **fixing** dependency arrays (`useCallback` / `useMemo` for stable handlers, functional `setState` updates when merging state, module-level constants for static lists).
+- Use **`eslint-disable-next-line react-hooks/exhaustive-deps`** only with a **short comment** explaining why (e.g. forwarded dependency list in a generic hook, mount-only timer). Do not disable project-wide.
+
+**Baseline (May 2026):** rule was previously **`off`**; warnings were triaged and the rule was raised to **`error`** after clearing the backlog.
+
 ## Vitest skips (RLS and related suites)
 
 **Live Supabase RLS suites** ([`src/tests/rls-e2e.test.ts`](../src/tests/rls-e2e.test.ts), [`rls-quick-validation.test.ts`](../src/tests/rls-quick-validation.test.ts)) use **`describe.skipIf(!isRealSupabase)`**. When **`VITE_*`** URLs/keys look like **placeholder `.env`** stubs (“test.supabase.co”, fake anon key), those suites **do not run** against a DB — **`pnpm run test`** / **`pnpm run validate`** can still be **green** without proving Row Level Security.

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Star, ThumbsUp, Flag, User, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -54,24 +54,7 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
     ratingDistribution: [0, 0, 0, 0, 0], // 1-5 stars
   });
 
-  useEffect(() => {
-    fetchReviews();
-  }, [productId]);
-
-  const fetchReviews = async () => {
-    try {
-      const data = await fetchApprovedReviewsForProduct(productId);
-
-      setReviews((data as Review[]) || []);
-      calculateStats((data as Review[]) || []);
-    } catch (error) {
-      // Silent error handling for production
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateStats = (reviewsData: Review[]) => {
+  const calculateStats = useCallback((reviewsData: Review[]) => {
     const total = reviewsData.length;
     if (total === 0) {
       setStats({
@@ -95,7 +78,24 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
       totalReviews: total,
       ratingDistribution: distribution,
     });
-  };
+  }, []);
+
+  const fetchReviews = useCallback(async () => {
+    try {
+      const data = await fetchApprovedReviewsForProduct(productId);
+
+      setReviews((data as Review[]) || []);
+      calculateStats((data as Review[]) || []);
+    } catch (error) {
+      // Silent error handling for production
+    } finally {
+      setLoading(false);
+    }
+  }, [productId, calculateStats]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();

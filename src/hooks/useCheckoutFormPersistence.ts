@@ -82,6 +82,8 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
   const { user } = useOptimizedAuth();
   const [formData, setFormData] = useState<CheckoutFormData>(EMPTY_FORM);
   const [isLoading, setIsLoading] = useState(true);
+  const isLoadingRef = useRef(isLoading);
+  isLoadingRef.current = isLoading;
   const [savedStep, setSavedStep] = useState(1);
   const [savedCompletedSteps, setSavedCompletedSteps] = useState<number[]>([]);
   const [savedCoupon, setSavedCoupon] = useState<SavedCoupon | null>(null);
@@ -100,7 +102,7 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
 
     // Safety timeout: never block checkout for more than 3 seconds
     const safetyTimeout = setTimeout(() => {
-      if (isLoading) {
+      if (isLoadingRef.current) {
         console.warn(
           '[useCheckoutFormPersistence] Loading timed out, rendering form'
         );

@@ -65,7 +65,7 @@ export function useBatchStock({
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [productIdsKey, enabled]);
+  }, [productIds, productIdsKey, enabled]);
 
   return { stockMap, loading, error };
 }

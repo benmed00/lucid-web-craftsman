@@ -17,11 +17,11 @@ import { disableServiceWorkerForCriticalFlow } from '@/utils/cacheOptimization';
 
 const Checkout = () => {
   const c = useCheckoutPage();
-  const { t: tCheckout, i18n } = useTranslation('checkout');
+  const { t: tCheckout } = useTranslation('checkout');
   const checkoutSeoKeywords = useMemo(() => {
     const raw = tCheckout('seo.checkoutKeywords', { returnObjects: true });
     return Array.isArray(raw) ? (raw as string[]) : [];
-  }, [tCheckout, i18n.language]);
+  }, [tCheckout]);
 
   useEffect(() => {
     disableServiceWorkerForCriticalFlow().catch(() => {

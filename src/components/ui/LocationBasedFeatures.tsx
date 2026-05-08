@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MapPin, Navigation, Loader2, Store, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +23,55 @@ interface StoreLocation {
   isOpen: boolean;
 }
 
+const MOCK_STORES: StoreLocation[] = [
+  {
+    id: '1',
+    name: 'Boutique Rif Raw Straw - Centre',
+    address: '123 Rue Mohammed V, Rabat',
+    distance: 2.3,
+    phone: '+212 537 123456',
+    hours: '9h00 - 19h00',
+    isOpen: true,
+  },
+  {
+    id: '2',
+    name: 'Boutique Rif Raw Straw - Agdal',
+    address: '45 Avenue Hassan II, Agdal',
+    distance: 4.1,
+    phone: '+212 537 654321',
+    hours: '10h00 - 20h00',
+    isOpen: true,
+  },
+  {
+    id: '3',
+    name: 'Partenaire - Artisanat du Maroc',
+    address: '78 Boulevard Al Hansali, Hay Riad',
+    distance: 6.8,
+    phone: '+212 537 987654',
+    hours: '9h30 - 18h30',
+    isOpen: false,
+  },
+];
+
+function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 export const LocationBasedFeatures = ({
   onLocationChange,
 }: LocationBasedFeaturesProps) => {
@@ -33,35 +82,35 @@ export const LocationBasedFeatures = ({
   const [deliveryEstimate, setDeliveryEstimate] = useState<string | null>(null);
   const [locationDenied, setLocationDenied] = useState(false);
 
-  const mockStores: StoreLocation[] = [
-    {
-      id: '1',
-      name: 'Boutique Rif Raw Straw - Centre',
-      address: '123 Rue Mohammed V, Rabat',
-      distance: 2.3,
-      phone: '+212 537 123456',
-      hours: '9h00 - 19h00',
-      isOpen: true,
+  const updateLocationBasedFeatures = useCallback(
+    (position: GeolocationPosition) => {
+      // Calculate distances to stores and sort by proximity
+      const storesWithDistance = MOCK_STORES.map((store) => ({
+        ...store,
+        distance: calculateDistance(
+          position.coords.latitude,
+          position.coords.longitude,
+          33.9716, // Mock store coordinates
+          -6.8498
+        ),
+      })).sort((a, b) => (a.distance || 0) - (b.distance || 0));
+
+      setNearbyStores(storesWithDistance);
+
+      // Estimate delivery time based on distance to nearest store
+      const nearestStore = storesWithDistance[0];
+      if (nearestStore && nearestStore.distance) {
+        if (nearestStore.distance < 5) {
+          setDeliveryEstimate('Livraison sous 2-3h');
+        } else if (nearestStore.distance < 15) {
+          setDeliveryEstimate('Livraison sous 24h');
+        } else {
+          setDeliveryEstimate('Livraison sous 2-3 jours');
+        }
+      }
     },
-    {
-      id: '2',
-      name: 'Boutique Rif Raw Straw - Agdal',
-      address: '45 Avenue Hassan II, Agdal',
-      distance: 4.1,
-      phone: '+212 537 654321',
-      hours: '10h00 - 20h00',
-      isOpen: true,
-    },
-    {
-      id: '3',
-      name: 'Partenaire - Artisanat du Maroc',
-      address: '78 Boulevard Al Hansali, Hay Riad',
-      distance: 6.8,
-      phone: '+212 537 987654',
-      hours: '9h30 - 18h30',
-      isOpen: false,
-    },
-  ];
+    []
+  );
 
   useEffect(() => {
     // Auto-detect location if user has previously allowed it
@@ -71,7 +120,7 @@ export const LocationBasedFeatures = ({
       setCurrentLocation(location);
       updateLocationBasedFeatures(location);
     }
-  }, []);
+  }, [updateLocationBasedFeatures]);
 
   const requestLocation = async () => {
     if (!navigator.geolocation) {
@@ -146,35 +195,6 @@ export const LocationBasedFeatures = ({
     );
   };
 
-  const updateLocationBasedFeatures = (position: GeolocationPosition) => {
-    // Calculate distances to stores and sort by proximity
-    const storesWithDistance = mockStores
-      .map((store) => ({
-        ...store,
-        distance: calculateDistance(
-          position.coords.latitude,
-          position.coords.longitude,
-          33.9716, // Mock store coordinates
-          -6.8498
-        ),
-      }))
-      .sort((a, b) => (a.distance || 0) - (b.distance || 0));
-
-    setNearbyStores(storesWithDistance);
-
-    // Estimate delivery time based on distance to nearest store
-    const nearestStore = storesWithDistance[0];
-    if (nearestStore && nearestStore.distance) {
-      if (nearestStore.distance < 5) {
-        setDeliveryEstimate('Livraison sous 2-3h');
-      } else if (nearestStore.distance < 15) {
-        setDeliveryEstimate('Livraison sous 24h');
-      } else {
-        setDeliveryEstimate('Livraison sous 2-3 jours');
-      }
-    }
-  };
-
   const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
     try {
       // In a real app, use a geocoding service like Google Maps API
@@ -184,25 +204,6 @@ export const LocationBasedFeatures = ({
       console.error('Reverse geocoding failed:', error);
       return 'Localisation inconnue';
     }
-  };
-
-  const calculateDistance = (
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number => {
-    const R = 6371; // Earth's radius in km
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
   };
 
   return (

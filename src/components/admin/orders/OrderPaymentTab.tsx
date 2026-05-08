@@ -1,6 +1,6 @@
 // Order Payment Details and Refund Management Tab
 // Shows Stripe payment details, errors, and enables admin refunds
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -158,7 +158,7 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
   const [isProcessingRefund, setIsProcessingRefund] = useState(false);
   const queryClient = useQueryClient();
 
-  const fetchPayment = async () => {
+  const fetchPayment = useCallback(async () => {
     setIsLoading(true);
     try {
       // Get local payment data
@@ -193,11 +193,11 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [orderId]);
 
   useEffect(() => {
     fetchPayment();
-  }, [orderId]);
+  }, [fetchPayment]);
 
   const handleRefund = async () => {
     if (!refundAmount || parseFloat(refundAmount) <= 0) {

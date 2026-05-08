@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { heroImageService, HeroImageData } from '@/services/heroImageService';
 
 const HERO_CACHE_KEY = 'rif_hero_image_cache';
@@ -43,6 +43,8 @@ function persistHeroImage(data: HeroImageData): void {
 export const useHeroImage = () => {
   const [heroImageData, setHeroImageData] =
     useState<HeroImageData>(getInitialHeroImage);
+  const heroImageUrlRef = useRef(heroImageData.imageUrl);
+  heroImageUrlRef.current = heroImageData.imageUrl;
   // Start as NOT loading — we show the cached/default image immediately.
   // The Supabase fetch is deferred to avoid competing with product queries.
   const [isLoading, _setIsLoading] = useState(false);
@@ -62,7 +64,7 @@ export const useHeroImage = () => {
         if (cancelled) return;
 
         // Only update if different from current (avoid flash)
-        if (data.imageUrl !== heroImageData.imageUrl) {
+        if (data.imageUrl !== heroImageUrlRef.current) {
           setHeroImageData(data);
         }
         persistHeroImage(data);

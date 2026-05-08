@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -61,16 +61,19 @@ export default function EnhancedProfile() {
   const isProfileLoading = !isInitialized;
 
   // Derive active tab from URL hash
-  const getTabFromHash = (): ProfileTab => {
+  const getTabFromHash = useCallback((): ProfileTab => {
     const hash = location.hash.replace('#', '') as ProfileTab;
     return VALID_TABS.includes(hash) ? hash : 'overview';
-  };
-  const [activeTab, setActiveTab] = useState<ProfileTab>(getTabFromHash);
+  }, [location.hash]);
+  const [activeTab, setActiveTab] = useState<ProfileTab>(() => {
+    const hash = window.location.hash.replace('#', '') as ProfileTab;
+    return VALID_TABS.includes(hash) ? hash : 'overview';
+  });
 
   // Sync tab with URL hash
   useEffect(() => {
     setActiveTab(getTabFromHash());
-  }, [location.hash]);
+  }, [getTabFromHash]);
 
   const handleTabChange = (tab: string) => {
     const validTab = tab as ProfileTab;

@@ -519,12 +519,12 @@ deno cache --config supabase\functions\deno.json supabase\functions\_shared\pric
 
 **Persister la configuration (recommandé pour CI / runners self-hosted) :**
 
-| Cible                 | Fichier / commande                                                                                                                                                                                                                                            |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Shell utilisateur     | Ajouter les `export` ci-dessus à `~/.bashrc`, `~/.zshrc` ou `~/.profile`.                                                                                                                                                                                     |
+| Cible                 | Fichier / commande                                                                                                                                                                                                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shell utilisateur     | Ajouter les `export` ci-dessus à `~/.bashrc`, `~/.zshrc` ou `~/.profile`.                                                                                                                                                                                                 |
 | GitHub Actions runner | Définir `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, `DENO_CERT` dans **Settings → Secrets and variables → Actions → Variables** (puis `env:` au niveau du workflow ou du job dans [`.github/workflows/deno-create-payment.yml`](.github/workflows/deno-create-payment.yml)). |
-| Docker / image CI     | `ENV HTTP_PROXY=…` + `ENV HTTPS_PROXY=…` + `COPY corp-ca.pem /etc/ssl/certs/` + `ENV DENO_CERT=/etc/ssl/certs/corp-ca.pem` dans le `Dockerfile`.                                                                                                              |
-| systemd service       | `Environment=HTTPS_PROXY=…` dans la section `[Service]` du unit file.                                                                                                                                                                                          |
+| Docker / image CI     | `ENV HTTP_PROXY=…` + `ENV HTTPS_PROXY=…` + `COPY corp-ca.pem /etc/ssl/certs/` + `ENV DENO_CERT=/etc/ssl/certs/corp-ca.pem` dans le `Dockerfile`.                                                                                                                          |
+| systemd service       | `Environment=HTTPS_PROXY=…` dans la section `[Service]` du unit file.                                                                                                                                                                                                     |
 
 **Vérification automatisée (commande unique — proxy + CA corporate) :**
 
@@ -537,11 +537,11 @@ Copier-coller ce bloc dans un shell **après** avoir exporté `HTTP_PROXY` / `HT
 > - name: Verify corporate proxy + CA
 >   run: ./scripts/verify-proxy-ca.sh
 >   env:
->     HTTP_PROXY:  ${{ vars.CORP_HTTP_PROXY }}
+>     HTTP_PROXY: ${{ vars.CORP_HTTP_PROXY }}
 >     HTTPS_PROXY: ${{ vars.CORP_HTTPS_PROXY }}
->     NO_PROXY:    ${{ vars.CORP_NO_PROXY }}
->     DENO_CERT:   ${{ github.workspace }}/.ci/corp-ca-bundle.pem
->     DENO_STD_VERSION: "0.224.0"   # override pour bumper sans toucher au script
+>     NO_PROXY: ${{ vars.CORP_NO_PROXY }}
+>     DENO_CERT: ${{ github.workspace }}/.ci/corp-ca-bundle.pem
+>     DENO_STD_VERSION: '0.224.0' # override pour bumper sans toucher au script
 > ```
 >
 > Le script saute proprement `deno info` si Deno n'est pas encore installé sur le runner (`SKIP_DENO_INFO=1` ou binaire absent), donc il peut tourner **avant** l'étape `setup-deno`.
@@ -554,8 +554,6 @@ Copier-coller ce bloc dans un shell **après** avoir exporté `HTTP_PROXY` / `HT
 > ```
 >
 > En CI, attacher ce JSON comme artefact (`actions/upload-artifact`) facilite l'ouverture d'un ticket réseau : tout est dans un seul fichier (config, vars détectées, HTTP codes par hôte).
-
-
 
 ```bash
 # bash / zsh / Git-Bash — un seul bloc, exit code != 0 si un check échoue.
@@ -600,9 +598,11 @@ echo "✅ Proxy + CA corporate opérationnels — prêt pour 'npm run test:prici
 ```
 
 > **Override en une ligne** (sans toucher au README) :
+>
 > ```bash
 > DENO_STD_VERSION=0.225.0 JSR_HOST=jsr.io bash verify-proxy.sh
 > ```
+>
 > Pratique en CI : poser ces variables au niveau du job (`env:` GitHub Actions, `variables:` GitLab CI) pour bumper la version `std` sans rééditer le script.
 
 Sous **PowerShell** (équivalent une-ligne) :
@@ -638,10 +638,10 @@ Write-Host "OK proxy + CA ($env:DENO_STD_VERSION)"
 
 Les deux modes utilisent **le même cache** (`$DENO_DIR`). La seule différence : Deno a-t-il le droit de sortir sur le réseau pour combler un manque ?
 
-| Mode | Quand l'utiliser | Variables à définir | Variables à **désactiver** | Commande type |
-| --- | --- | --- | --- | --- |
-| **Connecté (proxy)** | Première installation, ajout d'un nouveau test/import, mise à jour d'une dépendance `std@x.y.z` | `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, `DENO_CERT` (si CA corporate) | `DENO_OFFLINE` | `npm run test:pricing-snapshot:deno` (amorce le cache) |
-| **Offline (cache)** | CI air-gapped, runs répétés, validation que rien ne fuit sur le réseau | `DENO_OFFLINE=1` | `HTTP_PROXY`, `HTTPS_PROXY` *(facultatif — ignorés en offline, mais à retirer pour éviter la confusion)* | `DENO_OFFLINE=1 npm run test:pricing-snapshot:deno` |
+| Mode                 | Quand l'utiliser                                                                                | Variables à définir                                                    | Variables à **désactiver**                                                                               | Commande type                                          |
+| -------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **Connecté (proxy)** | Première installation, ajout d'un nouveau test/import, mise à jour d'une dépendance `std@x.y.z` | `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, `DENO_CERT` (si CA corporate) | `DENO_OFFLINE`                                                                                           | `npm run test:pricing-snapshot:deno` (amorce le cache) |
+| **Offline (cache)**  | CI air-gapped, runs répétés, validation que rien ne fuit sur le réseau                          | `DENO_OFFLINE=1`                                                       | `HTTP_PROXY`, `HTTPS_PROXY` _(facultatif — ignorés en offline, mais à retirer pour éviter la confusion)_ | `DENO_OFFLINE=1 npm run test:pricing-snapshot:deno`    |
 
 **Procédure de bascule :**
 
@@ -663,12 +663,12 @@ npm run test:pricing-snapshot:deno
 
 **Quoi vérifier dans les logs :**
 
-| Mode attendu | Signe que **tout va bien** | Signe que **ça ne va pas** | Action |
-| --- | --- | --- | --- |
-| Connecté | Lignes `Download https://deno.land/...` ou `Download https://jsr.io/...` puis `ok | N passed` | `error sending request ... UnknownIssuer` / `tcp connect error` / `error trying to connect` | CA manquant (`DENO_CERT`) ou proxy non exporté — revoir l'**étape 1** ci-dessus |
-| Connecté | *Aucune* ligne `Download` (cache déjà chaud) | Suite passe quand même `ok` | Normal — relancer avec `DENO_OFFLINE=1` pour confirmer que le cache suffit |
-| Offline | *Aucune* ligne `Download`, suite `ok | N passed | 0 failed` | `error: Specifier not found in cache: "https://..."` | Un nouvel import a été ajouté — repasser **temporairement** en mode connecté pour amorcer le cache, puis revenir offline |
-| Offline | — | Lignes `Download https://...` malgré `DENO_OFFLINE=1` | `DENO_OFFLINE` non exporté dans le shell courant — vérifier avec `env | grep DENO_OFFLINE` (PowerShell : `Get-ChildItem Env:DENO_OFFLINE`) |
+| Mode attendu | Signe que **tout va bien**                                                        | Signe que **ça ne va pas**                            | Action                                                                                      |
+| ------------ | --------------------------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Connecté     | Lignes `Download https://deno.land/...` ou `Download https://jsr.io/...` puis `ok | N passed`                                             | `error sending request ... UnknownIssuer` / `tcp connect error` / `error trying to connect` | CA manquant (`DENO_CERT`) ou proxy non exporté — revoir l'**étape 1** ci-dessus |
+| Connecté     | _Aucune_ ligne `Download` (cache déjà chaud)                                      | Suite passe quand même `ok`                           | Normal — relancer avec `DENO_OFFLINE=1` pour confirmer que le cache suffit                  |
+| Offline      | _Aucune_ ligne `Download`, suite `ok                                              | N passed                                              | 0 failed`                                                                                   | `error: Specifier not found in cache: "https://..."`                            | Un nouvel import a été ajouté — repasser **temporairement** en mode connecté pour amorcer le cache, puis revenir offline |
+| Offline      | —                                                                                 | Lignes `Download https://...` malgré `DENO_OFFLINE=1` | `DENO_OFFLINE` non exporté dans le shell courant — vérifier avec `env                       | grep DENO_OFFLINE`(PowerShell :`Get-ChildItem Env:DENO_OFFLINE`)                |
 
 > **Règle simple :** si vous voyez `Download` en mode offline, ou `UnknownIssuer` en mode connecté, **arrêtez** et corrigez l'environnement avant de toucher au code de test.
 
@@ -676,18 +676,18 @@ npm run test:pricing-snapshot:deno
 
 À utiliser en triant la sortie de `deno cache`, `deno test`, `deno info` ou du job CI. Les patterns sont volontairement écrits en regex `grep -E` pour être copiables tels quels.
 
-| # | Pattern (`grep -Ei`) | Où | Cause probable | Action |
-| --- | --- | --- | --- | --- |
-| 1 | `^Download https://(deno\.land\|jsr\.io\|esm\.sh)/` | stdout `deno cache` / `deno test` | Téléchargement réseau effectué — **normal** en mode connecté, **anormal** en mode offline | Si offline : `DENO_OFFLINE` n'est pas exporté **OU** un nouvel import a été ajouté → réamorcer le cache |
-| 2 | `invalid peer certificate: UnknownIssuer` | stderr | CA corporate absent du truststore Deno | `export DENO_CERT=/chemin/corp-ca-bundle.pem` (PEM, pas DER) — voir [Checklist `UnknownIssuer`](#checklist--unknownissuer-ca--certificat) |
-| 3 | `error sending request .* (tcp connect error\|error trying to connect)` | stderr | Proxy non joignable / port bloqué / DNS KO sur l'host du proxy | `curl -v $HTTPS_PROXY` ; vérifier DNS interne ; `ping proxy.corp.local` |
-| 4 | `Specifier not found in cache: "https?://[^"]+"` | stderr `deno test --cached-only` ou `DENO_OFFLINE=1` | Import ajouté/modifié non présent dans `$DENO_DIR` | Repasser **temporairement** en connecté : `unset DENO_OFFLINE && deno cache <fichier>`, puis revalider offline |
-| 5 | `error: Import '.*' failed: 403 Forbidden` | stderr | Proxy intercepte mais bloque le domaine (allow-list) | Demander whitelist `deno.land`, `jsr.io`, `cdn.jsdelivr.net` au support réseau |
-| 6 | `407 Proxy Authentication Required` (HTTP code dans `verify-proxy-ca.json`) | rapport JSON | Mot de passe proxy manquant ou mal encodé | URL-encoder `@`→`%40`, `:`→`%3A`, `#`→`%23` dans `HTTPS_PROXY` |
-| 7 | `relative import path .* not prefixed with` | stderr `deno check` | Import local cassé — **pas** un souci proxy | Corriger le chemin du `import` ; ne pas toucher à l'env |
-| 8 | `error: Module not found "npm:.*"` | stderr | `nodeModulesDir` ou registry npm bloqué | Vérifier `deno.json` + autoriser `registry.npmjs.org` au proxy |
-| 9 | `Blocking waiting for file lock on .* deno\.lock` | stderr (intermittent) | Deux process Deno en parallèle sur le même `$DENO_DIR` | Sérialiser (ne pas paralléliser `deno cache` dans matrix CI) |
-| 10 | `^ok \| \d+ passed \| 0 failed` | stdout `deno test` | ✅ Tout va bien | — |
+| #   | Pattern (`grep -Ei`)                                                        | Où                                                   | Cause probable                                                                            | Action                                                                                                                                    |
+| --- | --------------------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `^Download https://(deno\.land\|jsr\.io\|esm\.sh)/`                         | stdout `deno cache` / `deno test`                    | Téléchargement réseau effectué — **normal** en mode connecté, **anormal** en mode offline | Si offline : `DENO_OFFLINE` n'est pas exporté **OU** un nouvel import a été ajouté → réamorcer le cache                                   |
+| 2   | `invalid peer certificate: UnknownIssuer`                                   | stderr                                               | CA corporate absent du truststore Deno                                                    | `export DENO_CERT=/chemin/corp-ca-bundle.pem` (PEM, pas DER) — voir [Checklist `UnknownIssuer`](#checklist--unknownissuer-ca--certificat) |
+| 3   | `error sending request .* (tcp connect error\|error trying to connect)`     | stderr                                               | Proxy non joignable / port bloqué / DNS KO sur l'host du proxy                            | `curl -v $HTTPS_PROXY` ; vérifier DNS interne ; `ping proxy.corp.local`                                                                   |
+| 4   | `Specifier not found in cache: "https?://[^"]+"`                            | stderr `deno test --cached-only` ou `DENO_OFFLINE=1` | Import ajouté/modifié non présent dans `$DENO_DIR`                                        | Repasser **temporairement** en connecté : `unset DENO_OFFLINE && deno cache <fichier>`, puis revalider offline                            |
+| 5   | `error: Import '.*' failed: 403 Forbidden`                                  | stderr                                               | Proxy intercepte mais bloque le domaine (allow-list)                                      | Demander whitelist `deno.land`, `jsr.io`, `cdn.jsdelivr.net` au support réseau                                                            |
+| 6   | `407 Proxy Authentication Required` (HTTP code dans `verify-proxy-ca.json`) | rapport JSON                                         | Mot de passe proxy manquant ou mal encodé                                                 | URL-encoder `@`→`%40`, `:`→`%3A`, `#`→`%23` dans `HTTPS_PROXY`                                                                            |
+| 7   | `relative import path .* not prefixed with`                                 | stderr `deno check`                                  | Import local cassé — **pas** un souci proxy                                               | Corriger le chemin du `import` ; ne pas toucher à l'env                                                                                   |
+| 8   | `error: Module not found "npm:.*"`                                          | stderr                                               | `nodeModulesDir` ou registry npm bloqué                                                   | Vérifier `deno.json` + autoriser `registry.npmjs.org` au proxy                                                                            |
+| 9   | `Blocking waiting for file lock on .* deno\.lock`                           | stderr (intermittent)                                | Deux process Deno en parallèle sur le même `$DENO_DIR`                                    | Sérialiser (ne pas paralléliser `deno cache` dans matrix CI)                                                                              |
+| 10  | `^ok \| \d+ passed \| 0 failed`                                             | stdout `deno test`                                   | ✅ Tout va bien                                                                           | —                                                                                                                                         |
 
 **Commande one-liner pour scanner un log CI :**
 
@@ -710,8 +710,6 @@ done
 ```
 
 > **Règle d'or de triage** : pattern **2/3/6** → problème **réseau/CA** (ne pas toucher au code) ; pattern **4/7/8** → problème **dépendances/imports** (corriger le repo) ; pattern **1 en offline** ou **9** → problème de **configuration du runner**.
-
-
 
 **Pièges courants :**
 
@@ -1011,9 +1009,6 @@ docker compose --env-file .env run --rm deno-tests bash
 - **Volume `deno-cache`** : nommé (pas un bind mount) → persiste entre `docker compose down` et `up` sans dépendre du chemin hôte. Pour repartir de zéro : `docker compose down -v`.
 - **Service `deno-tests-offline`** : `extends:` réutilise toute la config, surcharge juste `DENO_OFFLINE=1` et vide le proxy. Si ce service échoue avec `Specifier not found in cache`, c'est qu'un import a été ajouté sans rebuild — relancer `docker compose build deno-tests`.
 - **CI multi-stage** : pour un pipeline Drone/GitLab, exécuter `docker compose run --rm deno-tests` (one-shot, exit code propagé) plutôt que `up` (qui ne propage pas l'exit code par défaut sans `--exit-code-from`).
-
-
-
 
 La commande exacte derrière **`npm run test:pricing-snapshot:deno`** est :
 

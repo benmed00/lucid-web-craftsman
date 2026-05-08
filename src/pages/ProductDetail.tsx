@@ -111,7 +111,7 @@ const ProductDetail: React.FC = () => {
       sanitizeHtmlContent(product.details).then(setSanitizedDetails);
       sanitizeHtmlContent(product.care).then(setSanitizedCare);
     }
-  }, [product?.details, product?.care]);
+  }, [product]);
 
   // Refs
   const thumbnailsRef = useRef<HTMLDivElement>(null);
