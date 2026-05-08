@@ -157,9 +157,22 @@ function checkoutExtraOriginsFromEnv(): string[] {
     });
 }
 
+/** Lovable preview / production hosts (`*.lovable.app`) for Stripe return URLs */
+function isHttpsLovableAppOrigin(origin: string): boolean {
+  try {
+    const u: URL = new URL(origin);
+    if (u.protocol !== 'https:') return false;
+    const h: string = u.hostname;
+    return h === 'lovable.app' || h.endsWith('.lovable.app');
+  } catch {
+    return false;
+  }
+}
+
 function isAllowedCheckoutOrigin(candidate: string): boolean {
   return (
     _ALLOWED_ORIGINS.includes(candidate) ||
+    isHttpsLovableAppOrigin(candidate) ||
     isLocalDevOrigin(candidate) ||
     isPrivateLanHttpOrigin(candidate) ||
     checkoutExtraOriginsFromEnv().includes(candidate)

@@ -511,7 +511,7 @@ export async function sendConfirmationEmail(
 
     const shippingAddr = readShippingForEmail(input.shippingAddress);
 
-    await fetch(
+    const sendRes = await fetch(
       `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-order-confirmation`,
       {
         method: 'POST',
@@ -545,6 +545,13 @@ export async function sendConfirmationEmail(
         }),
       }
     );
+
+    if (!sendRes.ok) {
+      const snippet = (await sendRes.text()).slice(0, 800);
+      throw new Error(
+        `send-order-confirmation HTTP ${sendRes.status}: ${snippet}`
+      );
+    }
 
     console.log(
       `[CONFIRM-ORDER][${input.source}] Confirmation email triggered`

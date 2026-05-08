@@ -40,6 +40,19 @@ Deno.test('getValidOrigin: 10.0.0.0/8 http', () => {
   );
 });
 
+Deno.test('getValidOrigin: HTTPS *.lovable.app preview host', () => {
+  assertEquals(
+    getValidOrigin(
+      new Request('http://x', {
+        headers: {
+          Origin: 'https://preview--rif-raw-straw.lovable.app',
+        },
+      })
+    ),
+    'https://preview--rif-raw-straw.lovable.app'
+  );
+});
+
 Deno.test(
   'getValidOrigin: CHECKOUT_EXTRA_ORIGINS allows ngrok-style host',
   () => {

@@ -49,8 +49,9 @@ export const checkoutRequestSchema = z
   .object({
     items: z.array(checkoutCartItemSchema).min(1).max(MAX_CART_ITEMS),
     customerInfo: customerInfoSchema.optional(),
-    discount: discountSchema.optional(),
-    guestSession: guestSessionSchema.optional(),
+    /** SPA sends explicit `null` when no promo / guest metadata — treat like absent */
+    discount: discountSchema.nullish(),
+    guestSession: guestSessionSchema.nullish(),
     paymentMethod: z.enum(['card', 'paypal', 'cod']).optional().default('card'),
   })
   .strip();
