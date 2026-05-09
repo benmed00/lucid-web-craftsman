@@ -102,6 +102,8 @@
     "postman:collection": "node scripts/build-postman-collection.mjs",
     "postman:collection:check": "node scripts/postman-collection-check.mjs",
     "api:artifacts": "pnpm run openapi:edge-functions && pnpm run postman:collection",
+    "docs:typedoc": "typedoc",
+    "ci:local": "pnpm run lint && pnpm run format:check && pnpm run check:edge-functions:bundling:full && pnpm run openapi:edge-functions:check && pnpm run postman:collection:check && pnpm run type:check && pnpm run test:unit && cross-env VITE_SUPABASE_URL=https://test.supabase.co VITE_SUPABASE_PUBLISHABLE_KEY=test-anon-key-for-ci pnpm run build",
     "prepare": "husky"
   },
   "dependencies": {
@@ -214,6 +216,7 @@
     "prettier": "^3.5.3",
     "start-server-and-test": "^2.1.5",
     "tailwindcss": "^3.4.11",
+    "typedoc": "0.27.9",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1",
