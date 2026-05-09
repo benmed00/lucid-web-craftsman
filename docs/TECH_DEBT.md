@@ -40,7 +40,22 @@ Prefer new code through [`src/services/`](src/services/README.md) and shared hoo
 
 ## ESLint `@typescript-eslint/no-explicit-any` (SPA)
 
-Production app sources enforce **`warn`** on explicit **`any`** for the `src/**/*.{ts,tsx}` scope carved in [`eslint.config.js`](../eslint.config.js) (skips `**/*.{test,spec}.{ts,tsx}`, `src/tests/**`, `**/*.integration.{ts,tsx}`, `src/vite-env.d.ts`). Suppress sparingly (`unknown`, generics, narrowing) instead of drifting new **`any`**.
+Production app sources enforce **`error`** on explicit **`any`** for the `src/**/*.{ts,tsx}` scope in [`eslint.config.js`](../eslint.config.js) (skips `**/*.{test,spec}.{ts,tsx}`, `src/tests/**`, `**/*.integration.{ts,tsx}`, `src/vite-env.d.ts`). Prefer `unknown`, generics, and narrowing instead of new **`any`**.
+
+**Vendor pixel bootstraps:** [`src/lib/tracking/pixels.ts`](../src/lib/tracking/pixels.ts) keeps Meta/TikTok IIFE snippets under **`eslint-disable @typescript-eslint/no-explicit-any`** (third-party dynamic `fbq` / `ttq` shapes). Do not copy that pattern elsewhere.
+
+## RPC validation (staging / prod smoke)
+
+After client changes to `supabase.rpc` payloads, confirm PostgREST behavior against a real project (staging first):
+
+| RPC                         | What to verify                                                                                                                                                                                           |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`update_order_status`**   | Transition with **`p_reason_code` / `p_reason_message` / `p_actor_user_id` omitted** (or `undefined` in JS → keys omitted): history row should show **NULL** where expected; no 400 from UUID/text cast. |
+| **`resolve_order_anomaly`** | Resolve from an **authenticated** admin session: **`p_resolved_by`** must be a real **`auth.users` UUID** (never empty string).                                                                          |
+
+Local guard: [`src/services/adminOrdersApi.resolveAnomaly.test.ts`](../src/services/adminOrdersApi.resolveAnomaly.test.ts) asserts blank `resolvedBy` never calls RPC.
+
+Automated optional probe (real Supabase): [`src/tests/rpc-postgrest-smoke.test.ts`](../src/tests/rpc-postgrest-smoke.test.ts) — `pnpm run test:rpc-smoke`; GitHub [`.github/workflows/rpc-postgrest-smoke.yml`](../.github/workflows/rpc-postgrest-smoke.yml) (`workflow_dispatch`).
 
 ## Supabase Edge Functions (`ban-ts-comment`)
 

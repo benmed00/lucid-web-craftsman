@@ -133,6 +133,12 @@ The test suite will output a report like:
 
 ## CI/CD Integration
 
+### PostgREST RPC smoke (manual)
+
+Repository workflow **[`.github/workflows/rpc-postgrest-smoke.yml`](../../.github/workflows/rpc-postgrest-smoke.yml)** (`workflow_dispatch` only). Add secrets: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `TEST_ADMIN_EMAIL`, `TEST_ADMIN_PASSWORD`, `TEST_RPC_SMOKE_ORDER_ID`. Optional run inputs: mutate (`update_order_status`), `anomaly_id` (`resolve_order_anomaly`).
+
+### RLS E2E
+
 Add to your GitHub Actions workflow:
 
 ```yaml
@@ -151,11 +157,12 @@ Add to your GitHub Actions workflow:
 
 **[`rls-e2e.test.ts`](./rls-e2e.test.ts)** and **[`rls-quick-validation.test.ts`](./rls-quick-validation.test.ts)** use **`describe.skipIf(!isRealSupabase)`**: with placeholder **`VITE_SUPABASE_*`** in **`.env`**, the guarded blocks **do not execute** Row Level assertions.
 
-| Context                                                                               | Meaning                                                                                                                                                                                           |
-| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`pnpm run validate`** / **`pnpm run test`** (full Vitest)                           | Loads these files — **`skipIf`** applies; green runs **do not prove** live RLS.                                                                                                                   |
-| **`pnpm run test:unit`** / [.github/workflows/ci.yml](../../.github/workflows/ci.yml) | **Omits** these two paths ([`package.json`](../../package.json)); CI never runs those suites. **[`rls-policies.test.ts`](./rls-policies.test.ts)** (**offline expectation matrix**) **does** run. |
-| **Prove RLS locally**                                                                 | Real project + accounts (sections above): **`npx vitest run src/tests/rls-e2e.test.ts`**.                                                                                                         |
+| Context                                                                               | Meaning                                                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`pnpm run validate`** / **`pnpm run test`** (full Vitest)                           | Loads these files — **`skipIf`** applies; green runs **do not prove** live RLS.                                                                                                                                                                                                           |
+| **`pnpm run test:unit`** / [.github/workflows/ci.yml](../../.github/workflows/ci.yml) | **Omits** `rls-e2e` / `rls-quick-validation` / **[`rpc-postgrest-smoke.test.ts`](./rpc-postgrest-smoke.test.ts)** ([`package.json`](../../package.json)); CI never runs those suites. **[`rls-policies.test.ts`](./rls-policies.test.ts)** (**offline expectation matrix**) **does** run. |
+| **Prove RLS locally**                                                                 | Real project + accounts (sections above): **`npx vitest run src/tests/rls-e2e.test.ts`**.                                                                                                                                                                                                 |
+| **PostgREST RPC smoke** (admin RPCs + optional DB writes)                             | Real project + `TEST_RPC_SMOKE=1` + order UUID — see **[`rpc-postgrest-smoke.test.ts`](./rpc-postgrest-smoke.test.ts)**; run **`pnpm run test:rpc-smoke`** (still set `TEST_ADMIN_*`, `TEST_RPC_SMOKE_ORDER_ID`, and real `VITE_SUPABASE_*`).                                             |
 
 Optional future **scheduled** workflow with secrets; until then **[`TECH_DEBT.md`](../../docs/TECH_DEBT.md)** (Vitest skips).
 

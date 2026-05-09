@@ -218,13 +218,18 @@ export async function rpcUpdateOrderStatus(args: {
 
 export async function rpcResolveOrderAnomaly(args: {
   anomalyId: string;
-  resolvedBy: string | undefined;
+  /** Authenticated admin user id (UUID). Required: SQL `p_resolved_by` has no DEFAULT. */
+  resolvedBy: string;
   resolutionNotes: string;
   resolutionAction?: string | null;
 }) {
+  const resolver = args.resolvedBy.trim();
+  if (!resolver) {
+    throw new Error('resolvedBy (UUID) is required for resolve_order_anomaly');
+  }
   return supabase.rpc('resolve_order_anomaly', {
     p_anomaly_id: args.anomalyId,
-    p_resolved_by: args.resolvedBy ?? '',
+    p_resolved_by: resolver,
     p_resolution_notes: args.resolutionNotes,
     p_resolution_action: args.resolutionAction ?? undefined,
   });

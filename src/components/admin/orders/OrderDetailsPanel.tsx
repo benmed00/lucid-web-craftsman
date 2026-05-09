@@ -646,10 +646,10 @@ export function OrderDetailsPanel({
                         </p>
                         {typeof snapshot?.sku === 'string' &&
                           snapshot.sku.length > 0 && (
-                          <p className="text-xs text-muted-foreground font-mono">
-                            SKU: {snapshot.sku}
-                          </p>
-                        )}
+                            <p className="text-xs text-muted-foreground font-mono">
+                              SKU: {snapshot.sku}
+                            </p>
+                          )}
                       </div>
 
                       <div className="text-right">

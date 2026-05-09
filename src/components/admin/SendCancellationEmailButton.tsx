@@ -72,7 +72,8 @@ export const SendCancellationEmailButton = ({
     setSending(true);
     try {
       const items = orderItems.map((item) => ({
-        name: parseSnapshotForCancellation(item.product_snapshot).name || 'Produit',
+        name:
+          parseSnapshotForCancellation(item.product_snapshot).name || 'Produit',
         quantity: item.quantity,
         price: item.total_price,
       }));

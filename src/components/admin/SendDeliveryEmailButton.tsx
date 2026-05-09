@@ -155,8 +155,7 @@ export const SendDeliveryEmailButton = ({
             <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
               {orderItems.map((item, index) => (
                 <li key={index}>
-                  ✓{' '}
-                  {parseSnapshotName(item.product_snapshot) || 'Produit'} ×{' '}
+                  ✓ {parseSnapshotName(item.product_snapshot) || 'Produit'} ×{' '}
                   {item.quantity}
                 </li>
               ))}

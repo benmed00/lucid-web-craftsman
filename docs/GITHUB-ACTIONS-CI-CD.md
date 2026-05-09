@@ -26,17 +26,19 @@ This document **concludes** the CI/CD audit work for this repo: workflow invento
 | [.github/workflows/e2e.yml](../.github/workflows/e2e.yml)                                       | E2E                    |
 | [.github/workflows/deno-create-payment.yml](../.github/workflows/deno-create-payment.yml)       | Deno create-payment    |
 | [.github/workflows/monitor-payment-events.yml](../.github/workflows/monitor-payment-events.yml) | Monitor payment events |
+| [.github/workflows/rpc-postgrest-smoke.yml](../.github/workflows/rpc-postgrest-smoke.yml)       | PostgREST RPC smoke    |
 
-There are no other workflow YAML files under `.github/workflows/`.
+All workflow YAML files under `.github/workflows/` are listed above.
 
 ### Complexity (design load)
 
-| Workflow                   | Complexity  | Notes                                                                                                                                           |
-| -------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| **CI**                     | Medium–high | Single job, many sequential steps: install → lint → format → Deno bundling → OpenAPI/Postman drift → typecheck → unit tests → build.            |
-| **E2E**                    | High        | Cypress + dev stack; full suite uses 2 shards (`fail-fast: false`). PR/push automation only when **`main`** is the branch involved (see below). |
-| **Deno create-payment**    | Medium–high | `deno check/lint/test` for create-payment and create-admin-user, pricing-snapshot guard, bundled helper tests.                                  |
-| **Monitor payment events** | Low         | `curl` + `jq`; cron every **5 minutes** → ~**8 640** runs/month (30-day month: `12×24×30`). Baseline Actions load independent of PRs.           |
+| Workflow                   | Complexity  | Notes                                                                                                                                                                                                                            |
+| -------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **CI**                     | Medium–high | Single job, many sequential steps: install → lint → format → Deno bundling → OpenAPI/Postman drift → typecheck → unit tests → build.                                                                                             |
+| **E2E**                    | High        | Cypress + dev stack; full suite uses 2 shards (`fail-fast: false`). PR/push automation only when **`main`** is the branch involved (see below).                                                                                  |
+| **Deno create-payment**    | Medium–high | `deno check/lint/test` for create-payment and create-admin-user, pricing-snapshot guard, bundled helper tests.                                                                                                                   |
+| **Monitor payment events** | Low         | `curl` + `jq`; cron every **5 minutes** → ~**8 640** runs/month (30-day month: `12×24×30`). Baseline Actions load independent of PRs.                                                                                            |
+| **PostgREST RPC smoke**    | Low         | **`workflow_dispatch` only** — Vitest [`rpc-postgrest-smoke.test.ts`](../src/tests/rpc-postgrest-smoke.test.ts) against a real project; optional inputs for DB writes. Requires repository secrets (see workflow file comments). |
 
 ---
 
@@ -96,6 +98,7 @@ GitHub: `pull_request.branches` / `push.branches` are the **base branch** (for P
 | **E2E**                 | Artifact name: `cypress-screenshots-smoke` vs `cypress-screenshots-full-shard-N`.           |
 | **Deno create-payment** | Job **Summary** and artifact `pricing-snapshot-guard-report`.                               |
 | **Monitor**             | Supabase function logs / `payment_events_critical`; workflow logs for `severity` / `count`. |
+| **PostgREST RPC smoke** | Vitest log: admin sign-in, RPC errors, skipped tests when inputs unset.                     |
 
 ### Speed vs reliability
 

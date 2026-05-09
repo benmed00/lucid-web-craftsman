@@ -139,19 +139,25 @@ export function useOrderStats() {
 
       const stats: OrderStats = {
         total: data.length,
-        pending_payment: data.filter((o) =>
-          o.order_status != null &&
-          ['created', 'payment_pending'].includes(o.order_status)
+        pending_payment: data.filter(
+          (o) =>
+            o.order_status != null &&
+            ['created', 'payment_pending'].includes(o.order_status)
         ).length,
-        processing: data.filter((o) =>
-          o.order_status != null &&
-          ['paid', 'validation_in_progress', 'validated', 'preparing'].includes(
-            o.order_status
-          )
+        processing: data.filter(
+          (o) =>
+            o.order_status != null &&
+            [
+              'paid',
+              'validation_in_progress',
+              'validated',
+              'preparing',
+            ].includes(o.order_status)
         ).length,
-        shipped: data.filter((o) =>
-          o.order_status != null &&
-          ['shipped', 'in_transit'].includes(o.order_status)
+        shipped: data.filter(
+          (o) =>
+            o.order_status != null &&
+            ['shipped', 'in_transit'].includes(o.order_status)
         ).length,
         delivered: data.filter((o) => o.order_status === 'delivered').length,
         anomalies: data.filter((o) => o.has_anomaly).length,
@@ -241,9 +247,14 @@ export function useResolveAnomaly() {
       resolutionAction?: string;
     }) => {
       const user = await fetchAuthUserOrNull();
+      if (!user?.id) {
+        throw new Error(
+          'Connexion requise pour résoudre une anomalie (identifiant admin manquant).'
+        );
+      }
       const { data, error } = await rpcResolveOrderAnomaly({
         anomalyId,
-        resolvedBy: user?.id,
+        resolvedBy: user.id,
         resolutionNotes,
         resolutionAction: resolutionAction || null,
       });

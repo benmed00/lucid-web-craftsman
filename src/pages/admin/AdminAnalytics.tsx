@@ -148,12 +148,10 @@ const AdminAnalytics = () => {
           .reduce((sum, order) => sum + (order.amount || 0), 0) / 100;
 
       const currentOrderCount = (currentOrders || []).filter(
-        (order) =>
-          order.status != null && paidStatuses.includes(order.status)
+        (order) => order.status != null && paidStatuses.includes(order.status)
       ).length;
       const previousOrderCount = (previousOrders || []).filter(
-        (order) =>
-          order.status != null && paidStatuses.includes(order.status)
+        (order) => order.status != null && paidStatuses.includes(order.status)
       ).length;
 
       const uniqueCurrentCustomers = new Set(

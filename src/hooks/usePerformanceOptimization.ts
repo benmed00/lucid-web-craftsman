@@ -21,7 +21,10 @@ const debounce = <A extends unknown[]>(
   return debouncedFn;
 };
 
-const throttle = <A extends unknown[]>(fn: (...args: A) => void, ms: number) => {
+const throttle = <A extends unknown[]>(
+  fn: (...args: A) => void,
+  ms: number
+) => {
   let timer: NodeJS.Timeout | null = null;
   const throttledFn = (...args: A) => {
     if (!timer) {
