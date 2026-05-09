@@ -26,6 +26,7 @@ import { fetchCustomerOrdersDetailed } from '@/services/orderService';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { formatPrice } from '@/lib/stripe';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -365,7 +366,7 @@ export function OrderHistory({ user }: OrderHistoryProps) {
               Vous n'avez pas encore passé de commande.
             </p>
             <Button asChild>
-              <a href="/products">Découvrir nos produits</a>
+              <Link to="/products">Découvrir nos produits</Link>
             </Button>
           </div>
         </CardContent>

@@ -10,7 +10,7 @@
  * For direct order_id links, we redirect immediately.
  */
 import { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { invokeOrderLookup } from '@/services/checkoutApi';
@@ -86,9 +86,9 @@ const PaymentSuccess = () => {
           <p className="text-muted-foreground mb-4">
             {t('paymentSuccess.legacyRoute.orderNotFoundBody')}
           </p>
-          <a href="/contact" className="text-primary underline">
+          <Link to="/contact" className="text-primary underline">
             {t('paymentSuccess.legacyRoute.contactSupport')}
-          </a>
+          </Link>
         </div>
       </div>
     );

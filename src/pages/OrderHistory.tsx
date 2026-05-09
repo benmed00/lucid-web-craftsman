@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { fetchCustomerOrdersDetailed } from '@/services/orderService';
 
@@ -224,7 +224,7 @@ const OrderHistory = () => {
                   {t('orders.empty.description')}
                 </p>
                 <Button asChild className="bg-primary hover:bg-primary/90">
-                  <a href="/products">{t('orders.empty.cta')}</a>
+                  <Link to="/products">{t('orders.empty.cta')}</Link>
                 </Button>
               </CardContent>
             </Card>
