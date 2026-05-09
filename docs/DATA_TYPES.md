@@ -10,6 +10,10 @@ This document is the map for **canonical types** and **critical commerce flows**
 | [**TYPEDOC.md**](./TYPEDOC.md)                  | Generate **searchable HTML** for domain + contracts + `order.types` (`pnpm run docs:typedoc` → `docs/generated/typedoc/index.html`). |
 | [`src/types/README.md`](../src/types/README.md) | Entry point from the codebase.                                                                                                       |
 
+## TypeScript compiler (`strict`)
+
+`tsconfig.app.json` and the root `tsconfig.json` use **`strict: true`** (including `strictNullChecks`). Treat Supabase **`Row`** fields as **`T | null`** when columns are nullable; the storefront **`Product`** interface and several admin view models intentionally allow `| null` on optional fields so assignments from query results type-check without unsafe casts.
+
 ## Layer 1 — Generated database types
 
 | Artifact                                                                      | Role                                                                                                       |

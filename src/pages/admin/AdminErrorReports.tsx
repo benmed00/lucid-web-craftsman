@@ -49,23 +49,23 @@ import type { Json } from '@/integrations/supabase/types';
 
 interface ErrorReport {
   id: string;
-  user_id?: string;
+  user_id?: string | null;
   email: string;
   error_type: string;
   description: string;
-  status: string;
-  priority: string;
-  severity: string;
-  tags: string[];
-  page_url?: string;
-  user_agent?: string;
+  status: string | null;
+  priority: string | null;
+  severity: string | null;
+  tags: string[] | null;
+  page_url?: string | null;
+  user_agent?: string | null;
   browser_info?: Json;
-  screenshot_url?: string;
-  assigned_to?: string;
-  resolution_notes?: string;
-  created_at: string;
-  updated_at: string;
-  resolved_at?: string;
+  screenshot_url?: string | null;
+  assigned_to?: string | null;
+  resolution_notes?: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  resolved_at?: string | null;
 }
 
 const AdminErrorReports: React.FC = () => {
@@ -251,8 +251,8 @@ const AdminErrorReports: React.FC = () => {
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
+  const getSeverityColor = (severity: string | null) => {
+    switch (severity ?? '') {
       case 'critical':
         return 'bg-status-error';
       case 'high':
@@ -266,8 +266,8 @@ const AdminErrorReports: React.FC = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
+  const getStatusIcon = (status: string | null) => {
+    switch (status ?? '') {
       case 'open':
         return <AlertCircle className="h-4 w-4 text-status-error" />;
       case 'in_progress':
@@ -279,7 +279,8 @@ const AdminErrorReports: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (dateString == null || dateString === '') return '—';
     return new Date(dateString).toLocaleDateString('fr-FR', {
       year: 'numeric',
       month: 'short',
@@ -629,7 +630,7 @@ const AdminErrorReports: React.FC = () => {
                         </Button>
 
                         <Select
-                          value={report.status}
+                          value={report.status ?? 'open'}
                           onValueChange={(value) =>
                             updateReportStatus(report.id, value)
                           }
@@ -834,7 +835,7 @@ const AdminErrorReports: React.FC = () => {
                 <div>
                   <h4 className="font-medium mb-2">Status Management</h4>
                   <Select
-                    value={selectedReport.status}
+                    value={selectedReport.status ?? 'open'}
                     onValueChange={(value) =>
                       updateReportStatus(selectedReport.id, value)
                     }

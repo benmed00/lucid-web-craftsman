@@ -186,8 +186,11 @@ class MainThreadOptimizer {
 
     const id = `task_${++this.taskCounter}`;
 
-    return new Promise((resolve, reject) => {
-      this.pendingTasks.set(id, { resolve, reject });
+    return new Promise<T>((resolve, reject) => {
+      this.pendingTasks.set(id, {
+        resolve: (value: unknown) => resolve(value as T),
+        reject,
+      });
 
       this.worker!.postMessage({
         type,

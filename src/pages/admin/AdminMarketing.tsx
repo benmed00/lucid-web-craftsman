@@ -34,8 +34,8 @@ import { toast } from 'sonner';
 interface NewsletterSubscription {
   id: string;
   email: string;
-  status: string;
-  created_at: string;
+  status: string | null;
+  created_at: string | null;
   source: string | null;
   tags: string[] | null;
 }
@@ -46,12 +46,12 @@ interface DiscountCoupon {
   type: string;
   value: number;
   minimum_order_amount: number | null;
-  valid_from: string;
+  valid_from: string | null;
   valid_until: string | null;
-  usage_count: number;
+  usage_count: number | null;
   usage_limit: number | null;
-  is_active: boolean;
-  created_at: string;
+  is_active: boolean | null;
+  created_at: string | null;
 }
 
 interface CustomerSegment {

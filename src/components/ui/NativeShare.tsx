@@ -98,7 +98,7 @@ export const NativeShare = ({
 
         <div className="space-y-3 py-4">
           {/* Native Share Button */}
-          {navigator.share && (
+          {typeof navigator.share === 'function' && (
             <Button
               onClick={handleNativeShare}
               disabled={isSharing}

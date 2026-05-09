@@ -39,11 +39,11 @@ export const heroImageService = {
 
       return {
         id: data.id,
-        imageUrl: data.image_url,
-        altText: data.alt_text,
-        title: data.title,
-        subtitle: data.subtitle,
-        isActive: data.is_active,
+        imageUrl: data.image_url ?? '',
+        altText: data.alt_text ?? '',
+        title: data.title ?? '',
+        subtitle: data.subtitle ?? '',
+        isActive: data.is_active ?? undefined,
       };
     } catch (error) {
       console.error('Error getting hero image data:', error);
@@ -110,11 +110,11 @@ export const heroImageService = {
 
       return {
         id: newData.id,
-        imageUrl: newData.image_url,
-        altText: newData.alt_text,
-        title: newData.title,
-        subtitle: newData.subtitle,
-        isActive: newData.is_active,
+        imageUrl: newData.image_url ?? '',
+        altText: newData.alt_text ?? '',
+        title: newData.title ?? '',
+        subtitle: newData.subtitle ?? '',
+        isActive: newData.is_active ?? undefined,
       };
     } catch (error) {
       console.error('Error saving hero image data:', error);
@@ -152,11 +152,11 @@ export const heroImageService = {
 
       return {
         id: updatedData.id,
-        imageUrl: updatedData.image_url,
-        altText: updatedData.alt_text,
-        title: updatedData.title,
-        subtitle: updatedData.subtitle,
-        isActive: updatedData.is_active,
+        imageUrl: updatedData.image_url ?? '',
+        altText: updatedData.alt_text ?? '',
+        title: updatedData.title ?? '',
+        subtitle: updatedData.subtitle ?? '',
+        isActive: updatedData.is_active ?? undefined,
       };
     } catch (error) {
       console.error('Error updating hero image data:', error);

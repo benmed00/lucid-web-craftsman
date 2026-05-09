@@ -95,8 +95,8 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
     Array<{
       id: string;
       created_at: string;
-      amount: number;
-      order_status: string;
+      amount: number | null;
+      order_status: string | null;
     }>
   >([]);
 
@@ -459,7 +459,7 @@ export function OrderCustomerTab({ orderId }: OrderCustomerTabProps) {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      {(order.amount / 100).toFixed(2)} €
+                      {((order.amount ?? 0) / 100).toFixed(2)} €
                     </p>
                     <Badge variant="outline" className="text-xs">
                       {order.order_status}

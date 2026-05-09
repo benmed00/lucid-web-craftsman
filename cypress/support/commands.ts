@@ -13,7 +13,8 @@ type MockScenario =
 
 // Tab key press for keyboard navigation tests (uses cypress-real-events)
 Cypress.Commands.add('tab', { prevSubject: ['optional'] }, (_subject) => {
-  return cy.realPress('Tab');
+  // Chainable<void> is not assignable to Chainable<unknown> under strict Cypress typings.
+  return cy.realPress('Tab') as Cypress.Chainable<unknown>;
 });
 
 Cypress.Commands.add('addProductToCart', (options?: { productId?: number }) => {

@@ -92,16 +92,16 @@ export function FraudAssessmentPanel({ orderId }: FraudAssessmentPanelProps) {
 
       return {
         id: data.id,
-        order_id: data.order_id,
+        order_id: data.order_id ?? '',
         total_score: data.total_score,
         risk_level: data.risk_level as FraudAssessment['risk_level'],
         auto_action: data.auto_action as FraudAssessment['auto_action'],
         triggered_rules: triggeredRules,
-        manual_override: data.manual_override,
+        manual_override: data.manual_override ?? false,
         override_by: data.override_by,
         override_reason: data.override_reason,
         override_at: data.override_at,
-        created_at: data.created_at,
+        created_at: data.created_at ?? '',
       } satisfies FraudAssessment;
     },
     enabled: !!orderId,

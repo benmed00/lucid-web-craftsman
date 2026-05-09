@@ -116,6 +116,8 @@ export async function requestOrderToken(orderId: string): Promise<string> {
       (err as { error?: string }).error || `sign-order-token HTTP ${res.status}`
     );
   }
+
+  throw new InvoiceError('sign-order-token: max retries exceeded');
 }
 
 export interface OrderByTokenResponse {

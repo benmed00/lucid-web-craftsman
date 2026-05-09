@@ -27,14 +27,14 @@ import { useCurrency } from '@/stores/currencyStore';
 
 interface Order {
   id: string;
-  user_id: string;
-  amount: number;
-  status: string;
-  currency: string;
+  user_id: string | null;
+  amount: number | null;
+  status: string | null;
+  currency: string | null;
   created_at: string;
   profiles?: {
-    full_name: string;
-  };
+    full_name: string | null;
+  } | null;
 }
 
 interface DashboardStats {
@@ -164,8 +164,8 @@ const AdminDashboard = () => {
     return `Il y a ${diffInDays} jour${diffInDays > 1 ? 's' : ''}`;
   };
 
-  const getStatusColor = (status: string): string => {
-    switch (status) {
+  const getStatusColor = (status: string | null): string => {
+    switch (status ?? '') {
       case 'pending':
         return 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20';
       case 'processing':

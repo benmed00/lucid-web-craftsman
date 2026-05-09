@@ -75,12 +75,12 @@ export const MobilePaymentButtons = ({
 
       const session = new ApplePaySession(3, paymentRequest);
 
-      session.onvalidatemerchant = async (_event) => {
+      session.onvalidatemerchant = async (_event: unknown) => {
         // In production, validate merchant with your server
         // Merchant validation handled silently
       };
 
-      session.onpaymentauthorized = (_event) => {
+      session.onpaymentauthorized = (_event: unknown) => {
         // Process payment with your backend
         // Payment processing handled silently
 

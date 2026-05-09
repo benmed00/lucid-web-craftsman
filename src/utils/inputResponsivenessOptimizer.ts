@@ -180,7 +180,7 @@ class InputResponsivenessOptimizer {
       return React.createElement(Component, props);
     });
 
-    return OptimizedComponent as React.ComponentType<P>;
+    return OptimizedComponent as unknown as React.ComponentType<P>;
   }
 }
 

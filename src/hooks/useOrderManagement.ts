@@ -110,9 +110,10 @@ export function useOrderAnomalies(
   return useQuery({
     queryKey: ['order-anomalies', orderId, unresolvedOnly],
     queryFn: async () => {
+      if (orderId == null || orderId === '') return [];
       return fetchOrderAnomaliesRows(orderId, unresolvedOnly);
     },
-    enabled: orderId !== '',
+    enabled: orderId != null && orderId !== '',
   });
 }
 
@@ -139,14 +140,17 @@ export function useOrderStats() {
       const stats: OrderStats = {
         total: data.length,
         pending_payment: data.filter((o) =>
+          o.order_status != null &&
           ['created', 'payment_pending'].includes(o.order_status)
         ).length,
         processing: data.filter((o) =>
+          o.order_status != null &&
           ['paid', 'validation_in_progress', 'validated', 'preparing'].includes(
             o.order_status
           )
         ).length,
         shipped: data.filter((o) =>
+          o.order_status != null &&
           ['shipped', 'in_transit'].includes(o.order_status)
         ).length,
         delivered: data.filter((o) => o.order_status === 'delivered').length,

@@ -644,9 +644,10 @@ export function OrderDetailsPanel({
                           Qté: {item.quantity} ×{' '}
                           {Number(item.unit_price).toFixed(2)} €
                         </p>
-                        {snapshot?.sku && (
+                        {typeof snapshot?.sku === 'string' &&
+                          snapshot.sku.length > 0 && (
                           <p className="text-xs text-muted-foreground font-mono">
-                            SKU: {snapshot.sku as string}
+                            SKU: {snapshot.sku}
                           </p>
                         )}
                       </div>

@@ -48,7 +48,9 @@ export const VoiceSearch = ({
       setIsListening(true);
     };
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: {
+      results: ArrayLike<{ 0: { transcript: string } }>;
+    }) => {
       const transcript = event.results[0][0].transcript;
       setQuery(transcript);
       onSearch(transcript);
@@ -59,7 +61,7 @@ export const VoiceSearch = ({
       });
     };
 
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: { error: string }) => {
       console.error('Speech recognition error:', event.error);
 
       let errorMessage = 'Erreur de reconnaissance vocale';

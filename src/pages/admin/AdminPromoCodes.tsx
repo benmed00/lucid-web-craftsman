@@ -71,12 +71,12 @@ interface DiscountCoupon {
   maximum_discount_amount: number | null;
   valid_from: string | null;
   valid_until: string | null;
-  is_active: boolean;
+  is_active: boolean | null;
   usage_limit: number | null;
-  usage_count: number;
+  usage_count: number | null;
   per_user_limit: number | null;
-  includes_free_shipping: boolean;
-  created_at: string;
+  includes_free_shipping: boolean | null;
+  created_at: string | null;
 }
 
 interface FreeShippingSettings {
@@ -192,8 +192,8 @@ const AdminPromoCodes = () => {
       valid_until: coupon.valid_until ? coupon.valid_until.split('T')[0] : '',
       usage_limit: coupon.usage_limit?.toString() || '',
       per_user_limit: coupon.per_user_limit?.toString() || '1',
-      includes_free_shipping: coupon.includes_free_shipping || false,
-      is_active: coupon.is_active,
+      includes_free_shipping: coupon.includes_free_shipping ?? false,
+      is_active: coupon.is_active ?? true,
     });
     setIsDialogOpen(true);
   };
@@ -326,7 +326,10 @@ const AdminPromoCodes = () => {
       return <Badge variant="outline">Planifié</Badge>;
     }
 
-    if (coupon.usage_limit && coupon.usage_count >= coupon.usage_limit) {
+    if (
+      coupon.usage_limit != null &&
+      (coupon.usage_count ?? 0) >= coupon.usage_limit
+    ) {
       return <Badge variant="destructive">Limite atteinte</Badge>;
     }
 
@@ -848,7 +851,7 @@ const AdminPromoCodes = () => {
                               onClick={() => toggleCouponStatus(coupon)}
                             >
                               <Switch
-                                checked={coupon.is_active}
+                                checked={coupon.is_active ?? false}
                                 className="pointer-events-none"
                               />
                             </Button>

@@ -16,12 +16,16 @@ import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
 import { formatUnknownError } from '@/lib/errors/AppError';
 
+function parseSnapshotName(raw: unknown): string | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const name = (raw as Record<string, unknown>).name;
+  return typeof name === 'string' ? name : undefined;
+}
+
 interface SendDeliveryEmailButtonProps {
   orderId: string;
   orderItems: Array<{
-    product_snapshot?: {
-      name?: string;
-    };
+    product_snapshot?: unknown;
     quantity: number;
   }>;
   onEmailSent?: () => void;
@@ -57,7 +61,7 @@ export const SendDeliveryEmailButton = ({
     setSending(true);
     try {
       const items = orderItems.map((item) => ({
-        name: item.product_snapshot?.name || 'Produit',
+        name: parseSnapshotName(item.product_snapshot) || 'Produit',
         quantity: item.quantity,
       }));
 
@@ -151,7 +155,9 @@ export const SendDeliveryEmailButton = ({
             <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
               {orderItems.map((item, index) => (
                 <li key={index}>
-                  ✓ {item.product_snapshot?.name || 'Produit'} × {item.quantity}
+                  ✓{' '}
+                  {parseSnapshotName(item.product_snapshot) || 'Produit'} ×{' '}
+                  {item.quantity}
                 </li>
               ))}
             </ul>

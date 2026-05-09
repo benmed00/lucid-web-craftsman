@@ -205,7 +205,7 @@ export async function getOrderCouponUsage(
       .rpc('validate_coupon_code', { p_code: metadata.coupon_code as string })
       .maybeSingle();
 
-    if (couponError) return null;
+    if (couponError || !coupon) return null;
 
     return {
       id: coupon.id,
@@ -262,7 +262,10 @@ export async function validateCouponForOrder(
     }
 
     // Check usage limit
-    if (coupon.usage_limit && coupon.usage_count >= coupon.usage_limit) {
+    if (
+      coupon.usage_limit != null &&
+      (coupon.usage_count ?? 0) >= coupon.usage_limit
+    ) {
       return {
         valid: false,
         discount: 0,
@@ -481,9 +484,9 @@ export async function bulkUpdateOrderStatus(
         p_order_id: orderId,
         p_new_status: newStatus,
         p_actor: 'admin',
-        p_actor_user_id: userId,
-        p_reason_code: null,
-        p_reason_message: reasonMessage || null,
+        p_actor_user_id: userId ?? undefined,
+        p_reason_code: undefined,
+        p_reason_message: reasonMessage ?? undefined,
         p_metadata: {},
       });
 

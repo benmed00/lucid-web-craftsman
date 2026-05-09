@@ -8,9 +8,12 @@ import {
 } from 'react';
 
 // Enhanced debounce and throttle with cancel functionality
-const debounce = (fn: (...args: unknown[]) => void, ms: number) => {
+const debounce = <A extends unknown[]>(
+  fn: (...args: A) => void,
+  ms: number
+) => {
   let timer: NodeJS.Timeout;
-  const debouncedFn = (...args: unknown[]) => {
+  const debouncedFn = (...args: A) => {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), ms);
   };
@@ -18,9 +21,9 @@ const debounce = (fn: (...args: unknown[]) => void, ms: number) => {
   return debouncedFn;
 };
 
-const throttle = (fn: (...args: unknown[]) => void, ms: number) => {
+const throttle = <A extends unknown[]>(fn: (...args: A) => void, ms: number) => {
   let timer: NodeJS.Timeout | null = null;
-  const throttledFn = (...args: unknown[]) => {
+  const throttledFn = (...args: A) => {
     if (!timer) {
       timer = setTimeout(() => {
         timer = null;

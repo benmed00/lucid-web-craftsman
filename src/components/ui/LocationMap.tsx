@@ -24,6 +24,7 @@ const LocationMap = ({
   const [isClient, setIsClient] = useState(false);
 
   const handleGetDirections = () => {
+    if (latitude == null || longitude == null) return;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -35,7 +36,15 @@ const LocationMap = ({
 
   // Initialize Leaflet map directly (bypassing react-leaflet context issues)
   useEffect(() => {
-    if (!isClient || !mapContainerRef.current || mapInstanceRef.current) return;
+    if (
+      !isClient ||
+      latitude == null ||
+      longitude == null ||
+      !mapContainerRef.current ||
+      mapInstanceRef.current
+    ) {
+      return;
+    }
 
     // Create the map instance
     const map = L.map(mapContainerRef.current, {
@@ -104,6 +113,21 @@ const LocationMap = ({
         >
           <span className="text-muted-foreground">
             Chargement de la carte...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (latitude == null || longitude == null) {
+    return (
+      <div className={`relative ${className}`}>
+        <div
+          className="h-full w-full rounded-lg bg-muted flex items-center justify-center"
+          style={{ minHeight: '400px' }}
+        >
+          <span className="text-muted-foreground">
+            Coordonnées non disponibles
           </span>
         </div>
       </div>

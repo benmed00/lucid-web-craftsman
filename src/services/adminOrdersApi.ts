@@ -210,8 +210,8 @@ export async function rpcUpdateOrderStatus(args: {
     p_new_status: args.newStatus,
     p_actor: 'admin',
     p_actor_user_id: args.actorUserId,
-    p_reason_code: args.reasonCode || null,
-    p_reason_message: args.reasonMessage || null,
+    p_reason_code: args.reasonCode,
+    p_reason_message: args.reasonMessage,
     p_metadata: {},
   });
 }
@@ -224,9 +224,9 @@ export async function rpcResolveOrderAnomaly(args: {
 }) {
   return supabase.rpc('resolve_order_anomaly', {
     p_anomaly_id: args.anomalyId,
-    p_resolved_by: args.resolvedBy,
+    p_resolved_by: args.resolvedBy ?? '',
     p_resolution_notes: args.resolutionNotes,
-    p_resolution_action: args.resolutionAction || null,
+    p_resolution_action: args.resolutionAction ?? undefined,
   });
 }
 

@@ -407,8 +407,9 @@ export const useCartStore = create<CartState>()(
               }
 
               // Async product loading — deferred, non-blocking
-              if (state?.items?.length > 0) {
-                const itemsNeedingProducts = state.items.filter(
+              const rehydratedItems = state?.items;
+              if (rehydratedItems && rehydratedItems.length > 0) {
+                const itemsNeedingProducts = rehydratedItems.filter(
                   (item) => !item.product
                 );
 

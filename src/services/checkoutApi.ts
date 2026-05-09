@@ -162,7 +162,7 @@ export async function invokeCreatePaymentEdge(
   headers: Record<string, string>
 ): Promise<EdgeInvokeResult<CreatePaymentInvokeBody>> {
   const { data, error } = await supabase.functions.invoke(functionName, {
-    body,
+    body: body as Record<string, unknown>,
     headers,
   });
   if (error) {

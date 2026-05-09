@@ -133,30 +133,38 @@ const AdminAnalytics = () => {
 
       const currentRevenue =
         (currentOrders || [])
-          .filter((order) => paidStatuses.includes(order.status))
+          .filter(
+            (order) =>
+              order.status != null && paidStatuses.includes(order.status)
+          )
           .reduce((sum, order) => sum + (order.amount || 0), 0) / 100;
 
       const previousRevenue =
         (previousOrders || [])
-          .filter((order) => paidStatuses.includes(order.status))
+          .filter(
+            (order) =>
+              order.status != null && paidStatuses.includes(order.status)
+          )
           .reduce((sum, order) => sum + (order.amount || 0), 0) / 100;
 
-      const currentOrderCount = (currentOrders || []).filter((order) =>
-        paidStatuses.includes(order.status)
+      const currentOrderCount = (currentOrders || []).filter(
+        (order) =>
+          order.status != null && paidStatuses.includes(order.status)
       ).length;
-      const previousOrderCount = (previousOrders || []).filter((order) =>
-        paidStatuses.includes(order.status)
+      const previousOrderCount = (previousOrders || []).filter(
+        (order) =>
+          order.status != null && paidStatuses.includes(order.status)
       ).length;
 
       const uniqueCurrentCustomers = new Set(
-        (currentOrders || [])
-          .filter((order) => order.user_id)
-          .map((order) => order.user_id)
+        (currentOrders || []).flatMap((order) =>
+          order.user_id ? [order.user_id] : []
+        )
       ).size;
       const uniquePreviousCustomers = new Set(
-        (previousOrders || [])
-          .filter((order) => order.user_id)
-          .map((order) => order.user_id)
+        (previousOrders || []).flatMap((order) =>
+          order.user_id ? [order.user_id] : []
+        )
       ).size;
 
       const currentAvgOrder =
@@ -192,7 +200,11 @@ const AdminAnalytics = () => {
       > = {};
 
       (currentOrders || []).forEach((order) => {
-        if (paidStatuses.includes(order.status) && order.order_items) {
+        if (
+          order.status != null &&
+          paidStatuses.includes(order.status) &&
+          order.order_items
+        ) {
           order.order_items.forEach((item: AnalyticsOrderItemRow) => {
             const snap = item.product_snapshot;
             const productName =
@@ -225,7 +237,11 @@ const AdminAnalytics = () => {
       let totalSales = 0;
 
       (currentOrders || []).forEach((order) => {
-        if (paidStatuses.includes(order.status) && order.order_items) {
+        if (
+          order.status != null &&
+          paidStatuses.includes(order.status) &&
+          order.order_items
+        ) {
           order.order_items.forEach((item: AnalyticsOrderItemRow) => {
             const snap = item.product_snapshot;
             const category =

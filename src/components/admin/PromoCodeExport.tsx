@@ -14,12 +14,12 @@ interface DiscountCoupon {
   maximum_discount_amount: number | null;
   valid_from: string | null;
   valid_until: string | null;
-  is_active: boolean;
+  is_active: boolean | null;
   usage_limit: number | null;
-  usage_count: number;
+  usage_count: number | null;
   per_user_limit: number | null;
-  includes_free_shipping: boolean;
-  created_at: string;
+  includes_free_shipping: boolean | null;
+  created_at: string | null;
 }
 
 interface PromoCodeExportProps {
@@ -42,7 +42,10 @@ const PromoCodeExport = ({ coupons }: PromoCodeExportProps) => {
       return 'Expiré';
     if (coupon.valid_from && new Date(coupon.valid_from) > now)
       return 'Planifié';
-    if (coupon.usage_limit && coupon.usage_count >= coupon.usage_limit)
+    if (
+      coupon.usage_limit != null &&
+      (coupon.usage_count ?? 0) >= coupon.usage_limit
+    )
       return 'Limite atteinte';
     return 'Actif';
   };

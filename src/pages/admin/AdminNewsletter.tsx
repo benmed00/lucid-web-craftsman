@@ -51,9 +51,9 @@ interface NewsletterStats {
 interface Subscriber {
   id: string;
   email: string;
-  status: string;
+  status: string | null;
   source: string | null;
-  created_at: string;
+  created_at: string | null;
   unsubscribed_at: string | null;
 }
 
@@ -112,7 +112,9 @@ const AdminNewsletter = () => {
         total: allSubs.length,
         active: allSubs.filter((s) => s.status === 'active').length,
         unsubscribed: allSubs.filter((s) => s.status === 'unsubscribed').length,
-        thisMonth: allSubs.filter((s) => s.created_at >= monthStart).length,
+        thisMonth: allSubs.filter(
+          (s) => (s.created_at ?? '') >= monthStart
+        ).length,
       });
 
       // Fetch abandoned cart count
@@ -349,9 +351,13 @@ const AdminNewsletter = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {format(new Date(sub.created_at), 'dd MMM yyyy', {
-                          locale: fr,
-                        })}
+                        {format(
+                          new Date(sub.created_at ?? 0),
+                          'dd MMM yyyy',
+                          {
+                            locale: fr,
+                          }
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
