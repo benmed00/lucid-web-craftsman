@@ -4,9 +4,17 @@
  * IMPORTANT: This interface uses snake_case to match Supabase database schema.
  * All field names should match the database column names exactly.
  *
+ * Canonical **persisted** row type is {@link ProductRow} (`src/types/domain/product.ts`).
+ * This interface stays intentionally loose so mocks, translations, and fixtures do not need
+ * every generated column present at compile time.
+ *
  * For any legacy code using camelCase (artisanStory, new, related),
  * use the normalizeProduct() helper from productService.ts
  */
+import type { ProductRow } from '@/types/domain/product';
+
+export type { ProductRow };
+
 export interface Product {
   // Core fields (required)
   id: number;

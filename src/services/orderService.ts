@@ -1,7 +1,7 @@
 // Enhanced Order Service with integrated product, customer, coupon and payment management
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
-import type { OrderStatus } from '@/types/order.types';
+import type { OrderStatus } from '@/types/domain/order';
 
 // ==================== Order Service Types ====================
 

@@ -1,47 +1,42 @@
+/**
+ * Order **management and UI** types: aggregates, customer views, and config maps.
+ *
+ * @remarks
+ * Persisted rows and enums live in {@link OrderRow}, {@link OrderStatus}, etc. from
+ * `@/types/domain/order` (re-exported below). Do not confuse {@link Order} with {@link OrderRow}.
+ *
+ * @module order.types
+ */
 // Order Management System Types
 // Production-grade type definitions for order lifecycle
+//
+// Enums and table rows: sourced from `src/types/domain/order.ts` (generated
+// `Database` types) so literals cannot drift from Postgres.
 
-export type OrderStatus =
-  | 'created'
-  | 'payment_pending'
-  | 'payment_failed'
-  | 'paid'
-  | 'validation_in_progress'
-  | 'validated'
-  | 'preparing'
-  | 'shipped'
-  | 'in_transit'
-  | 'delivered'
-  | 'delivery_failed'
-  | 'partially_delivered'
-  | 'return_requested'
-  | 'returned'
-  | 'refunded'
-  | 'partially_refunded'
-  | 'cancelled'
-  | 'archived';
+import type {
+  AdminOrderPermission,
+  AnomalySeverity,
+  AnomalyType,
+  OrderStatus,
+  StatusChangeActor,
+} from '@/types/domain/order';
 
-export type AnomalyType =
-  | 'payment'
-  | 'stock'
-  | 'delivery'
-  | 'fraud'
-  | 'technical'
-  | 'customer'
-  | 'carrier';
+export type {
+  AdminOrderPermission,
+  AnomalySeverity,
+  AnomalyType,
+  OrderStatus,
+  StatusChangeActor,
+  OrderRow,
+  OrderItemRow,
+  OrderInsert,
+  OrderUpdate,
+} from '@/types/domain/order';
 
-export type AnomalySeverity = 'low' | 'medium' | 'high' | 'critical';
-
-export type StatusChangeActor =
-  | 'system'
-  | 'admin'
-  | 'customer'
-  | 'webhook'
-  | 'scheduler';
-
-export type AdminOrderPermission = 'read_only' | 'operations' | 'full_access';
-
-// Order entity with full lifecycle support
+/**
+ * Admin / lifecycle **aggregate** view — not identical to {@link OrderRow}
+ * (extra fields, stricter JSON shapes). For raw DB rows use `OrderRow`.
+ */
 export interface Order {
   id: string;
   user_id: string | null;
