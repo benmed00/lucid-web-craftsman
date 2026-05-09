@@ -2,6 +2,8 @@
 
 How we keep the codebase consistent, testable, and safe to ship. Command details also appear in [AGENTS.md](../AGENTS.md) and [package.json](../package.json).
 
+**GitHub Actions** (workflows, KPI snapshot, branch filters): [GITHUB-ACTIONS-CI-CD.md](./GITHUB-ACTIONS-CI-CD.md).
+
 ## Quality gates (local / CI)
 
 | Step                     | Command                                     | Notes                                                                                                                                                                                                                                                                                                                                                                                                               |
@@ -65,6 +67,8 @@ Do not push **payments or admin edge** work with a **dirty git index** on those 
 ## Verifications (local, before PR)
 
 Run these when you change code. Root **[`ci.yml`](.github/workflows/ci.yml)** runs lint, format, typecheck, **`test:unit`**, and build — **not** the identical command string as **`pnpm run validate`** (validate uses full Vitest; CI uses `test:unit`). Align with the table [above](#validate-vs-testunit-vs-root-github-ci).
+
+**CI parity in one shot:** [`LOCAL_CI.md`](./LOCAL_CI.md) · `pnpm run ci:local` (includes OpenAPI/Postman drift checks and CI-like `VITE_*` build env).
 
 | Step                | Command                 | Role                                                                                                                                                          |
 | ------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |

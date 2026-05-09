@@ -2,6 +2,8 @@
 
 Guide opérationnel (commandes, CI, secrets, dépannage) : **[`cypress/README.md`](../cypress/README.md)**.
 
+Inventaire GitHub Actions, métriques et politique de branches : **[`GITHUB-ACTIONS-CI-CD.md`](./GITHUB-ACTIONS-CI-CD.md)**.
+
 Inventaire des **routes** SPA (pour aligner les specs avec `App.tsx`) : **[`docs/PLATFORM.md`](./PLATFORM.md)** · index doc : **[`docs/README.md`](./README.md)**.
 
 ## Scripts utiles
