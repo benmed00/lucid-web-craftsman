@@ -26,7 +26,10 @@ import {
   useCheckoutSession,
   type CartItemSnapshot,
 } from '@/hooks/useCheckoutSession';
-import { useCheckoutFormPersistence } from '@/hooks/useCheckoutFormPersistence';
+import {
+  useCheckoutFormPersistence,
+  type SavedCoupon,
+} from '@/hooks/useCheckoutFormPersistence';
 import { type TFunction } from 'i18next';
 import { isEligibleForCOD } from '@/utils/shipping';
 
@@ -94,7 +97,7 @@ type CheckoutPageFormPersistenceSlice = Pick<
 export interface DiscountCoupon {
   id: string;
   code: string;
-  type: string;
+  type: 'percentage' | 'fixed';
   value: number;
   minimum_order_amount: number | null;
   maximum_discount_amount: number | null;
@@ -165,9 +168,7 @@ export function useCheckoutPage() {
 
   // Promo state
   const [promoCode, setPromoCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(
-    null
-  );
+  const [appliedCoupon, setAppliedCoupon] = useState<SavedCoupon | null>(null);
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
   const [promoError, setPromoError] = useState('');
 
@@ -354,9 +355,29 @@ export function useCheckoutPage() {
         return;
       }
 
-      const coupon = row as unknown as DiscountCoupon;
+      const rawType = row.type;
+      if (rawType !== 'percentage' && rawType !== 'fixed') {
+        setPromoError(t('promo.invalid'));
+        return;
+      }
+
+      const coupon: SavedCoupon = {
+        id: String(row.id ?? ''),
+        code: String(row.code ?? ''),
+        type: rawType,
+        value: Number(row.value),
+        minimum_order_amount:
+          typeof row.minimum_order_amount === 'number'
+            ? row.minimum_order_amount
+            : null,
+        maximum_discount_amount:
+          typeof row.maximum_discount_amount === 'number'
+            ? row.maximum_discount_amount
+            : null,
+        includes_free_shipping: Boolean(row.includes_free_shipping),
+      };
       setAppliedCoupon(coupon);
-      saveCoupon(coupon as any);
+      saveCoupon(coupon);
       setPromoCode('');
       toast.success(t('promo.applied'));
 

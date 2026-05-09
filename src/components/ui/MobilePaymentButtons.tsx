@@ -23,18 +23,13 @@ export const MobilePaymentButtons = ({
 
   useEffect(() => {
     // Check Apple Pay availability
-    if (
-      (window as any).ApplePaySession &&
-      (window as any).ApplePaySession.canMakePayments()
-    ) {
+    if (window.ApplePaySession && window.ApplePaySession.canMakePayments()) {
       setIsApplePayAvailable(true);
     }
 
     // Check Google Pay availability
-    if ((window as any).google?.payments?.api) {
-      const paymentsClient = new (
-        window as any
-      ).google.payments.api.PaymentsClient({
+    if (window.google?.payments?.api) {
+      const paymentsClient = new window.google.payments.api.PaymentsClient({
         environment: 'TEST', // Change to 'PRODUCTION' for live
       });
 

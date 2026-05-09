@@ -9,7 +9,7 @@ import { useCallback, useRef, useEffect } from 'react';
  * Returns a stable callback that always calls the latest version of the function
  * without causing re-renders when the function changes
  */
-export function useStableCallback<T extends (...args: any[]) => any>(
+export function useStableCallback<T extends (...args: never[]) => unknown>(
   callback: T
 ): T {
   const callbackRef = useRef<T>(callback);
@@ -50,7 +50,7 @@ export function useStableValue<T>(
 /**
  * Creates a debounced version of a callback
  */
-export function useDebouncedCallback<T extends (...args: any[]) => any>(
+export function useDebouncedCallback<T extends (...args: never[]) => unknown>(
   callback: T,
   delay: number
 ): T {
@@ -85,7 +85,7 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
 /**
  * Creates a throttled version of a callback
  */
-export function useThrottledCallback<T extends (...args: any[]) => any>(
+export function useThrottledCallback<T extends (...args: never[]) => unknown>(
   callback: T,
   delay: number
 ): T {

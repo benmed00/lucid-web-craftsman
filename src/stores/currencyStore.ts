@@ -210,12 +210,22 @@ export const useCurrencyStore = create<CurrencyState>()(
         name: 'currency-storage',
         version: 1,
         partialize: (state) => ({ currency: state.currency }),
-        migrate: (persisted: any, version: number) => {
+        migrate: (persisted: unknown, version: number) => {
           try {
             if (version < 1) {
-              const currency = persisted?.currency;
-              if (currency && ['EUR', 'USD', 'GBP', 'MAD'].includes(currency)) {
-                return { currency };
+              if (
+                persisted !== null &&
+                typeof persisted === 'object' &&
+                !Array.isArray(persisted)
+              ) {
+                const currency = (persisted as Record<string, unknown>)
+                  .currency;
+                if (
+                  typeof currency === 'string' &&
+                  ['EUR', 'USD', 'GBP', 'MAD'].includes(currency)
+                ) {
+                  return { currency };
+                }
               }
               return { currency: 'EUR' };
             }

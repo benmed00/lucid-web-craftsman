@@ -16,6 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { XCircle, Send, Loader2 } from 'lucide-react';
 import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 import { useCurrency } from '@/stores/currencyStore';
 
 interface SendCancellationEmailButtonProps {
@@ -95,9 +96,9 @@ export const SendCancellationEmailButton = ({
       } else {
         throw new Error(data?.error || 'Erreur inconnue');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending email:', error);
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     } finally {
       setSending(false);
     }

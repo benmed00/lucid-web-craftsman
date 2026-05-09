@@ -23,6 +23,7 @@ import {
 import { Plus, Save } from 'lucide-react';
 import { insertAdminProductRow } from '@/services/adminProductsApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 import { ProductImageManager } from './ProductImageManager';
 
 interface ProductFormData {
@@ -91,7 +92,10 @@ export const ProductFormWithImages = ({
     images: [],
   });
 
-  const handleInputChange = (field: keyof ProductFormData, value: any) => {
+  const handleInputChange = (
+    field: keyof ProductFormData,
+    value: ProductFormData[keyof ProductFormData]
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -173,9 +177,11 @@ export const ProductFormWithImages = ({
 
       setOpen(false);
       onProductAdded();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating product:', error);
-      toast.error(`Erreur lors de la création du produit: ${error.message}`);
+      toast.error(
+        `Erreur lors de la création du produit: ${formatUnknownError(error)}`
+      );
     } finally {
       setLoading(false);
     }

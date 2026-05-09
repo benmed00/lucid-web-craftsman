@@ -246,9 +246,16 @@ const AdminPromoCodes = () => {
       setIsDialogOpen(false);
       resetForm();
       fetchCoupons();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving coupon:', error);
-      if (error.code === '23505') {
+      const pgCode =
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        typeof (error as { code: unknown }).code === 'string'
+          ? (error as { code: string }).code
+          : undefined;
+      if (pgCode === '23505') {
         toast.error('Ce code existe déjà');
       } else {
         toast.error('Erreur lors de la sauvegarde');

@@ -45,6 +45,7 @@ import {
 } from '@/services/errorReportsApi';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from 'sonner';
+import type { Json } from '@/integrations/supabase/types';
 
 interface ErrorReport {
   id: string;
@@ -58,7 +59,7 @@ interface ErrorReport {
   tags: string[];
   page_url?: string;
   user_agent?: string;
-  browser_info?: any;
+  browser_info?: Json;
   screenshot_url?: string;
   assigned_to?: string;
   resolution_notes?: string;

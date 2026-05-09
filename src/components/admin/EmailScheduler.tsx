@@ -55,6 +55,7 @@ import {
 import type { Json } from '@/integrations/supabase/types';
 import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 import { format, addHours, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -65,7 +66,7 @@ interface ScheduledEmail {
   recipient_name: string | null;
   scheduled_for: string;
   status: string;
-  email_data: any;
+  email_data: Json;
   error_message: string | null;
   sent_at: string | null;
   created_at: string;
@@ -96,7 +97,7 @@ const EmailScheduler: React.FC = () => {
     try {
       const data = await fetchScheduledEmailsOrdered();
       setScheduledEmails(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching scheduled emails:', error);
       toast.error('Erreur lors du chargement');
     } finally {
@@ -134,9 +135,9 @@ const EmailScheduler: React.FC = () => {
       setFormName('');
       setFormScheduledFor('');
       fetchScheduledEmails();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error scheduling email:', error);
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     } finally {
       setSubmitting(false);
     }
@@ -147,8 +148,8 @@ const EmailScheduler: React.FC = () => {
       await cancelScheduledEmailById(id);
       toast.success('Email annulé');
       fetchScheduledEmails();
-    } catch (error: any) {
-      toast.error(`Erreur: ${error.message}`);
+    } catch (error: unknown) {
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     }
   };
 
@@ -167,9 +168,9 @@ const EmailScheduler: React.FC = () => {
         toast.info('Aucun email à traiter');
       }
       fetchScheduledEmails();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error processing emails:', error);
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     } finally {
       setProcessing(false);
     }

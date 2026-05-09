@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 import {
   Shield,
   AlertTriangle,
@@ -44,7 +45,7 @@ interface SecurityAlert {
   source_ip: string | null;
   user_id: string | null;
   user_email: string | null;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   is_resolved: boolean;
   resolved_at: string | null;
   resolution_notes: string | null;
@@ -120,8 +121,8 @@ export const SecurityAlertsCard: React.FC = () => {
       }
       refetch();
     },
-    onError: (error: any) => {
-      toast.error(`Erreur: ${error.message}`);
+    onError: (error: unknown) => {
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     },
   });
 
@@ -137,8 +138,8 @@ export const SecurityAlertsCard: React.FC = () => {
       setSelectedAlert(null);
       setResolutionNotes('');
       queryClient.invalidateQueries({ queryKey: ['security-alerts'] });
-    } catch (error: any) {
-      toast.error(`Erreur: ${error.message}`);
+    } catch (error: unknown) {
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     } finally {
       setIsResolving(false);
     }

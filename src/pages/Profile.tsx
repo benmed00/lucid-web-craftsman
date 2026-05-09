@@ -23,6 +23,7 @@ import {
   upsertProfileAvatarUrl,
   upsertProfileRow,
 } from '@/services/profileApi';
+import { formatUnknownError } from '@/lib/errors/AppError';
 import { User, Mail, Calendar } from 'lucide-react';
 import ImageUpload from '@/components/ui/ImageUpload';
 import {
@@ -93,11 +94,12 @@ export default function Profile() {
         title: 'Profil mis à jour',
         description: 'Vos informations ont été sauvegardées avec succès.',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Erreur',
         description:
-          error.message || "Une erreur s'est produite lors de la mise à jour",
+          formatUnknownError(error) ||
+          "Une erreur s'est produite lors de la mise à jour",
         variant: 'destructive',
       });
     } finally {
@@ -142,11 +144,12 @@ export default function Profile() {
         title: 'Compte supprimé',
         description: 'Votre compte a été supprimé avec succès.',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Erreur',
         description:
-          error.message || "Une erreur s'est produite lors de la suppression",
+          formatUnknownError(error) ||
+          "Une erreur s'est produite lors de la suppression",
         variant: 'destructive',
       });
     } finally {

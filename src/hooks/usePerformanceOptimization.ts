@@ -1,4 +1,11 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  type DependencyList,
+} from 'react';
 
 // Enhanced debounce and throttle with cancel functionality
 const debounce = (fn: (...args: unknown[]) => void, ms: number) => {
@@ -69,7 +76,7 @@ export const usePerformanceMonitor = () => {
 // Optimized scroll handling
 export const useOptimizedScroll = (
   callback: (scrollY: number) => void,
-  deps: any[] = []
+  deps: DependencyList = []
 ) => {
   const throttledCallback = useMemo(
     () => throttle((scrollY: number) => callback(scrollY), 16), // ~60fps
@@ -92,7 +99,7 @@ export const useOptimizedScroll = (
 // Optimized resize handling
 export const useOptimizedResize = (
   callback: (width: number, height: number) => void,
-  deps: any[] = []
+  deps: DependencyList = []
 ) => {
   const debouncedCallback = useMemo(
     () =>

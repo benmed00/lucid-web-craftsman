@@ -46,9 +46,13 @@ const PaymentSuccess = () => {
           const { data, error: fnError } = await invokeOrderLookup({
             session_id: sessionId,
           });
-          const row = data as { found?: boolean; order_id?: string } | null;
 
-          if (fnError || !row?.found || !row?.order_id) {
+          if (
+            fnError ||
+            !data ||
+            data.found !== true ||
+            typeof data.order_id !== 'string'
+          ) {
             // order-lookup failed: we do not navigate without a real order_id (token flow needs it)
             console.warn(
               '[PaymentSuccess] Could not resolve session_id to order_id',
@@ -59,7 +63,7 @@ const PaymentSuccess = () => {
           }
 
           navigate(
-            `/order-confirmation?order_id=${encodeURIComponent(row.order_id)}`,
+            `/order-confirmation?order_id=${encodeURIComponent(data.order_id)}`,
             { replace: true }
           );
         } catch {

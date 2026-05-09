@@ -65,7 +65,7 @@ interface MarketingData {
   newsletters: NewsletterSubscription[];
   coupons: DiscountCoupon[];
   segments: CustomerSegment[];
-  campaigns: any[];
+  campaigns: unknown[];
 }
 
 const AdminMarketing = () => {

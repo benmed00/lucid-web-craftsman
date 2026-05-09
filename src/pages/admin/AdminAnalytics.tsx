@@ -38,6 +38,15 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useCurrency } from '@/stores/currencyStore';
+import type { Json } from '@/integrations/supabase/types';
+
+/** Joined `order_items` row shape used for product / category rollups */
+interface AnalyticsOrderItemRow {
+  quantity: number;
+  total_price: number;
+  product_id?: number | null;
+  product_snapshot?: Json;
+}
 
 interface AnalyticsData {
   overview: {
@@ -184,9 +193,15 @@ const AdminAnalytics = () => {
 
       (currentOrders || []).forEach((order) => {
         if (paidStatuses.includes(order.status) && order.order_items) {
-          order.order_items.forEach((item: any) => {
+          order.order_items.forEach((item: AnalyticsOrderItemRow) => {
+            const snap = item.product_snapshot;
             const productName =
-              item.product_snapshot?.name || `Produit ${item.product_id}`;
+              (snap &&
+              typeof snap === 'object' &&
+              !Array.isArray(snap) &&
+              typeof (snap as Record<string, Json>).name === 'string'
+                ? String((snap as Record<string, Json>).name)
+                : null) || `Produit ${item.product_id}`;
             if (!productSales[productName]) {
               productSales[productName] = {
                 name: productName,
@@ -211,8 +226,15 @@ const AdminAnalytics = () => {
 
       (currentOrders || []).forEach((order) => {
         if (paidStatuses.includes(order.status) && order.order_items) {
-          order.order_items.forEach((item: any) => {
-            const category = item.product_snapshot?.category || 'Autre';
+          order.order_items.forEach((item: AnalyticsOrderItemRow) => {
+            const snap = item.product_snapshot;
+            const category =
+              snap &&
+              typeof snap === 'object' &&
+              !Array.isArray(snap) &&
+              typeof (snap as Record<string, Json>).category === 'string'
+                ? String((snap as Record<string, Json>).category)
+                : 'Autre';
             categorySales[category] =
               (categorySales[category] || 0) + item.quantity;
             totalSales += item.quantity;

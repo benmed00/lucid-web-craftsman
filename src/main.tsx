@@ -99,7 +99,7 @@ if (!window.__PERF_OPTIMIZED__) {
 }
 
 // ============= 4. Render =============
-if (!(window as any).__LOVABLE_LOGOUT) {
+if (!window.__LOVABLE_LOGOUT) {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <HelmetProvider>

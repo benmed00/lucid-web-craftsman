@@ -27,6 +27,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { formatPrice } from '@/lib/stripe';
 import { useQuery } from '@tanstack/react-query';
+import type { Json } from '@/integrations/supabase/types';
 
 interface StatusHistoryEntry {
   id: string;
@@ -50,14 +51,14 @@ interface Order {
   carrier: string | null;
   estimated_delivery: string | null;
   actual_delivery: string | null;
-  shipping_address: any;
+  shipping_address: Json | null;
   payment_method: string | null;
   order_items: Array<{
     id: string;
     quantity: number;
     unit_price: number;
     total_price: number;
-    product_snapshot: any;
+    product_snapshot: Json | null;
   }>;
   order_status_history: StatusHistoryEntry[];
 }
@@ -193,15 +194,26 @@ function getStatusConfig(status: string) {
   );
 }
 
-function ShippingAddressBlock({ address }: { address: any }) {
-  if (!address) return null;
+function strField(v: unknown): string {
+  return typeof v === 'string' ? v : '';
+}
 
-  const line1 = address.address_line1 || address.address || address.line1 || '';
-  const line2 = address.address_line2 || address.line2 || '';
-  const city = address.city || '';
-  const postalCode = address.postal_code || address.zip || '';
-  const country = address.country || '';
-  const name = address.name || address.full_name || '';
+function ShippingAddressBlock({ address }: { address: Json | null }) {
+  if (!address || typeof address !== 'object' || Array.isArray(address)) {
+    return null;
+  }
+  const addr = address as Record<string, unknown>;
+
+  const line1 =
+    strField(addr.address_line1) ||
+    strField(addr.address) ||
+    strField(addr.line1) ||
+    '';
+  const line2 = strField(addr.address_line2) || strField(addr.line2) || '';
+  const city = strField(addr.city);
+  const postalCode = strField(addr.postal_code) || strField(addr.zip) || '';
+  const country = strField(addr.country);
+  const name = strField(addr.name) || strField(addr.full_name) || '';
 
   if (!line1 && !city) return null;
 
@@ -289,7 +301,8 @@ function OrderItemsList({ items }: { items: Order['order_items'] }) {
         >
           <div className="flex-1 min-w-0">
             <span className="text-foreground truncate block">
-              {item.product_snapshot?.name || 'Produit'}
+              {(item.product_snapshot as { name?: string } | null)?.name ||
+                'Produit'}
             </span>
             <span className="text-xs text-muted-foreground">
               {formatPrice(item.unit_price ?? 0)} × {item.quantity}

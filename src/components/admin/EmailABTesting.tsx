@@ -44,8 +44,13 @@ import {
   updateEmailAbTestById,
 } from '@/services/adminEmailAbTestsApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
+import type { Database } from '@/integrations/supabase/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+
+type EmailAbTestUpdate =
+  Database['public']['Tables']['email_ab_tests']['Update'];
 
 interface ABTest {
   id: string;
@@ -89,7 +94,7 @@ const EmailABTesting: React.FC = () => {
     try {
       const data = await fetchEmailAbTestsRecent(20);
       setAbTests(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching A/B tests:', error);
       toast.error('Erreur lors du chargement');
     } finally {
@@ -122,9 +127,9 @@ const EmailABTesting: React.FC = () => {
       setDialogOpen(false);
       resetForm();
       fetchABTests();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating A/B test:', error);
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     } finally {
       setSubmitting(false);
     }
@@ -140,7 +145,7 @@ const EmailABTesting: React.FC = () => {
 
   const updateTestStatus = async (id: string, status: string) => {
     try {
-      const updateData: any = { status };
+      const updateData: EmailAbTestUpdate = { status };
       if (status === 'completed') {
         updateData.completed_at = new Date().toISOString();
       }
@@ -148,8 +153,8 @@ const EmailABTesting: React.FC = () => {
       await updateEmailAbTestById(id, updateData);
       toast.success(`Test ${status === 'active' ? 'activé' : 'terminé'}`);
       fetchABTests();
-    } catch (error: any) {
-      toast.error(`Erreur: ${error.message}`);
+    } catch (error: unknown) {
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     }
   };
 
@@ -162,8 +167,8 @@ const EmailABTesting: React.FC = () => {
       });
       toast.success(`Variante ${winner.toUpperCase()} déclarée gagnante`);
       fetchABTests();
-    } catch (error: any) {
-      toast.error(`Erreur: ${error.message}`);
+    } catch (error: unknown) {
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     }
   };
 

@@ -37,6 +37,7 @@ import {
 } from '@/services/newsletterApi';
 import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -154,7 +155,7 @@ const AdminNewsletter = () => {
         pending,
         byTemplate,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching newsletter data:', err);
       toast.error('Erreur lors du chargement des données');
     } finally {
@@ -175,8 +176,8 @@ const AdminNewsletter = () => {
       if (error) throw error;
       toast.success(`${data?.processed || 0} email(s) de relance envoyé(s)`);
       fetchData();
-    } catch (err: any) {
-      toast.error(`Erreur: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Erreur: ${formatUnknownError(err)}`);
     } finally {
       setSendingAbandonedEmails(false);
     }

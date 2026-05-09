@@ -87,7 +87,7 @@ export default function EnhancedProfile() {
 
   // Don't auto-redirect — show a friendly "login required" message instead
 
-  const handleProfileUpdate = async (_updatedProfile?: any) => {
+  const handleProfileUpdate = async (_updatedProfile?: unknown) => {
     // Refresh profile from AuthContext (single source of truth)
     await refreshProfile();
   };
@@ -101,7 +101,7 @@ export default function EnhancedProfile() {
       await signOut();
       navigate('/auth');
       toast.success(t('profile.messages.deleteSuccess'));
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting account:', error);
       toast.error(t('profile.messages.deleteError'));
     }
@@ -111,7 +111,7 @@ export default function EnhancedProfile() {
     try {
       await signOut();
       navigate('/auth');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error signing out:', error);
       toast.error(t('profile.messages.signOutError'));
     }

@@ -128,7 +128,12 @@ export const heroImageService = {
     data: Partial<HeroImageData>
   ): Promise<HeroImageData> => {
     try {
-      const updateData: any = {};
+      const updateData: {
+        image_url?: string;
+        alt_text?: string;
+        title?: string;
+        subtitle?: string;
+      } = {};
       if (data.imageUrl) updateData.image_url = data.imageUrl;
       if (data.altText) updateData.alt_text = data.altText;
       if (data.title) updateData.title = data.title;

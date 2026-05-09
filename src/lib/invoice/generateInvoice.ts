@@ -5,6 +5,7 @@
  * The frontend NEVER builds an invoice from local state.
  * The frontend NEVER uses blob: URLs — HTML is rendered in-route via iframe.
  */
+import type { Json } from '@/integrations/supabase/types';
 import {
   supabase,
   resolvedSupabasePublishableKey,
@@ -125,8 +126,8 @@ export interface OrderByTokenResponse {
     amount: number;
     currency: string;
     created_at: string;
-    shipping_address: any;
-    metadata: any;
+    shipping_address: Json | null;
+    metadata: Json | null;
     payment_method?: string;
     user_id?: string | null;
     /**
@@ -144,7 +145,7 @@ export interface OrderByTokenResponse {
     quantity: number;
     unit_price: number;
     total_price: number;
-    product_snapshot: any;
+    product_snapshot: Json | null;
     product_id?: number | null;
   }>;
 }

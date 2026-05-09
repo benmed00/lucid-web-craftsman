@@ -58,7 +58,7 @@ interface LoyaltyReward {
   description: string;
   points_cost: number;
   reward_type: string;
-  reward_value: any;
+  reward_value: unknown;
   min_tier: string;
   is_active: boolean;
   usage_count: number;
@@ -171,7 +171,7 @@ export function LoyaltyProgram({ user }: LoyaltyProgramProps) {
       toast.success(`Récompense "${reward.name}" échangée avec succès!`);
       // Invalidate cache so data refreshes
       queryClient.invalidateQueries({ queryKey: ['loyalty', user.id] });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error redeeming reward:', error);
       toast.error("Erreur lors de l'échange de la récompense");
     } finally {

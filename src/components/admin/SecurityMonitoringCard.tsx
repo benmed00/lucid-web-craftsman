@@ -25,6 +25,7 @@ import {
   subscribeSecurityEventsAll,
 } from '@/services/adminSecurityMonitoringApi';
 import { useToast } from '@/hooks/use-toast';
+import type { Json } from '@/integrations/supabase/types';
 
 interface SecurityEvent {
   id: string;
@@ -32,7 +33,7 @@ interface SecurityEvent {
   severity: string;
   user_id?: string;
   ip_address: string | null;
-  event_data: any;
+  event_data: Json;
   detected_at: string;
   resolved_at?: string | null;
 }
@@ -45,8 +46,8 @@ interface AuditLog {
   resource_id?: string | null;
   ip_address: string | null;
   created_at: string;
-  old_values?: any;
-  new_values?: any;
+  old_values?: Json;
+  new_values?: Json;
 }
 
 export const SecurityMonitoringCard = () => {

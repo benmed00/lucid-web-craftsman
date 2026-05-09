@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Truck, Send, Loader2 } from 'lucide-react';
 import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 
 interface SendShippingEmailButtonProps {
   orderId: string;
@@ -94,9 +95,9 @@ export const SendShippingEmailButton = ({
       } else {
         throw new Error(data?.error || 'Erreur inconnue');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending shipping email:', error);
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     } finally {
       setSending(false);
     }

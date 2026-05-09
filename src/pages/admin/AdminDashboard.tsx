@@ -48,6 +48,12 @@ interface DashboardStats {
   lowStockProducts: number;
 }
 
+interface DashboardActivityItem {
+  type: string;
+  message: string;
+  time: string;
+}
+
 const AdminDashboard = () => {
   const { formatPrice } = useCurrency();
   const [_products, setProducts] = useState<Product[]>([]);
@@ -62,7 +68,9 @@ const AdminDashboard = () => {
     totalCustomers: 0,
     lowStockProducts: 0,
   });
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<DashboardActivityItem[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
 
   const loadDashboardData = useCallback(async () => {
@@ -106,7 +114,7 @@ const AdminDashboard = () => {
       });
 
       // Generate recent activity from real data
-      const activities = [];
+      const activities: DashboardActivityItem[] = [];
 
       // Recent orders
       ordersData.slice(0, 3).forEach((order) => {

@@ -121,7 +121,18 @@ export default tseslint.config(
       'src/vite-env.d.ts',
     ],
     rules: {
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
+    },
+  },
+
+  // New typing layers: disallow explicit `any` (baseline is clean here).
+  {
+    files: [
+      'src/types/domain/**/*.{ts,tsx}',
+      'src/types/contracts/**/*.{ts,tsx}',
+    ],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
 

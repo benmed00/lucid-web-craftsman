@@ -33,7 +33,7 @@ interface Profile {
 interface PersonalInfoProps {
   user: User;
   profile: Profile | null;
-  onProfileUpdate: (updatedProfile?: any) => void;
+  onProfileUpdate: (updatedProfile?: Partial<Profile>) => void;
 }
 
 export function PersonalInfo({
@@ -101,7 +101,7 @@ export function PersonalInfo({
 
       onProfileUpdate();
       toast.success('Adresse mise à jour avec succès');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating address:', error);
       toast.error("Erreur lors de la mise à jour de l'adresse");
     } finally {
@@ -133,7 +133,7 @@ export function PersonalInfo({
 
       onProfileUpdate();
       toast.success('Liens sociaux mis à jour avec succès');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating social links:', error);
       toast.error('Erreur lors de la mise à jour des liens sociaux');
     } finally {

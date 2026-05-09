@@ -52,6 +52,12 @@ import { SendDeliveryEmailButton } from '@/components/admin/SendDeliveryEmailBut
 import { SendCancellationEmailButton } from '@/components/admin/SendCancellationEmailButton';
 import { usePagination } from '@/hooks/usePagination';
 import TablePagination from '@/components/admin/TablePagination';
+/** Serialized product blob on `order_items` (Supabase JSON). */
+interface OrderProductSnapshot {
+  name?: string;
+  images?: string[];
+  price?: number;
+}
 
 interface OrderItem {
   id: string;
@@ -59,7 +65,11 @@ interface OrderItem {
   quantity: number;
   unit_price: number;
   total_price: number;
-  product_snapshot: any;
+  product_snapshot: OrderProductSnapshot | null;
+}
+
+interface OrderPaymentRow {
+  status?: string;
 }
 
 interface Order {
@@ -72,7 +82,7 @@ interface Order {
   created_at: string;
   updated_at: string;
   order_items: OrderItem[];
-  payments?: any[];
+  payments?: OrderPaymentRow[];
 }
 
 const AdminOrders = () => {

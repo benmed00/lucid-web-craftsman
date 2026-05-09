@@ -53,6 +53,7 @@ export function initMetaPixel(): void {
   );
   /* eslint-enable */
 
+  if (typeof window.fbq !== 'function') return;
   window.fbq('init', config.metaPixelId);
   window.fbq('track', 'PageView');
 }
@@ -261,10 +262,17 @@ export function trackPurchase(params: {
 }
 
 // ─── Global type augmentation ────────────────────────────────────
+type MetaPixelFn = (...args: unknown[]) => void;
+
+type TikTokPixelAPI = {
+  track: (event: string, params?: Record<string, unknown>) => void;
+  page: () => void;
+} & Record<string, unknown>;
+
 declare global {
   interface Window {
-    fbq: any;
-    _fbq: any;
-    ttq: any;
+    fbq?: MetaPixelFn;
+    _fbq?: MetaPixelFn;
+    ttq?: TikTokPixelAPI;
   }
 }

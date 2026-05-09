@@ -42,9 +42,9 @@ class InputResponsivenessOptimizer {
 
     return new Promise<void>((resolve) => {
       // Use scheduler.postTask if available (Chrome 94+)
-      if ('scheduler' in window && 'postTask' in (window as any).scheduler) {
+      if (window.scheduler?.postTask) {
         const priority = options.priority || 'user-visible';
-        (window as any).scheduler.postTask(
+        window.scheduler.postTask(
           () => {
             this.isYielding = false;
             this.startTask();

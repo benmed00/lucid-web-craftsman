@@ -20,6 +20,7 @@ import {
 import { TestTube } from 'lucide-react';
 import { updateOrderLegacyStatusColumnOnly } from '@/services/adminOrdersApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 
 export const ManualTestOrderStatus = () => {
   const [open, setOpen] = useState(false);
@@ -45,9 +46,9 @@ export const ManualTestOrderStatus = () => {
       setOrderId('');
       setNewStatus('');
       setOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating order status:', error);
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     } finally {
       setLoading(false);
     }

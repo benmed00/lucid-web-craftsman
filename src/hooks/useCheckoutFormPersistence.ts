@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   fetchCheckoutFormSnapshotByGuestId,
   fetchCheckoutFormSnapshotByUserId,
+  type CheckoutFormHydrationSnapshot,
 } from '@/services/checkoutApi';
 import {
   fetchDefaultShippingAddress,
@@ -158,7 +159,7 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
               null;
           }
 
-          let dbSession: any = null;
+          let dbSession: CheckoutFormHydrationSnapshot | null = null;
 
           if (userId && !elevated) {
             dbSession = await fetchCheckoutFormSnapshotByUserId(userId);
@@ -167,8 +168,21 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
           }
 
           if (dbSession) {
-            const pi = dbSession.personal_info as any;
-            const si = dbSession.shipping_info as any;
+            type PiJson = {
+              first_name?: string;
+              last_name?: string;
+              email?: string;
+              phone?: string;
+            };
+            type SiJson = {
+              address_line1?: string;
+              address_line2?: string;
+              postal_code?: string;
+              city?: string;
+              country?: string;
+            };
+            const pi = dbSession.personal_info as PiJson | null;
+            const si = dbSession.shipping_info as SiJson | null;
 
             // Validate personal info before hydrating — reject empty/invalid data
             if (
@@ -202,9 +216,11 @@ export function useCheckoutFormPersistence(): UseCheckoutFormPersistenceReturn {
               loadedData.addressComplement = si.address_line2 || '';
               loadedData.postalCode = si.postal_code || '';
               loadedData.city = si.city || '';
-              const validCountries = ['FR', 'BE', 'CH', 'MC', 'LU'];
-              loadedData.country = validCountries.includes(si.country)
-                ? si.country
+              const validCountries = ['FR', 'BE', 'CH', 'MC', 'LU'] as const;
+              loadedData.country = validCountries.includes(
+                si.country as (typeof validCountries)[number]
+              )
+                ? (si.country as CheckoutFormData['country'])
                 : 'FR';
             } else if (si) {
               console.warn(

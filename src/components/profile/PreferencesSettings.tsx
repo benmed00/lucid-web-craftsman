@@ -51,7 +51,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
     try {
       const data = await upsertDefaultUserPreferences(user.id);
       setPreferences(data as UserPreferences);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating default preferences:', error);
       toast.error('Erreur lors de la création des préférences par défaut');
     }
@@ -73,7 +73,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
       } else {
         setPreferences(data as UserPreferences);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading preferences:', error);
       setLoadError(true);
     }
@@ -95,7 +95,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
 
       setPreferences(data as UserPreferences);
       toast.success('Préférences mises à jour');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating preferences:', error);
       toast.error('Erreur lors de la mise à jour des préférences');
     } finally {

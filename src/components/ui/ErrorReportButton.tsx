@@ -136,7 +136,7 @@ export const ErrorReportButton = () => {
       setForm({ email: '', description: '', errorType: 'bug_report' });
       removeScreenshot();
       setIsOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting report:', error);
       toast.error(t('report.error'));
     } finally {

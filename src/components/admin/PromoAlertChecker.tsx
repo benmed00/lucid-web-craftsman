@@ -57,7 +57,7 @@ const PromoAlertChecker = () => {
       } else {
         toast.success('Aucune alerte détectée');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error checking alerts:', error);
       toast.error('Erreur lors de la vérification');
     } finally {

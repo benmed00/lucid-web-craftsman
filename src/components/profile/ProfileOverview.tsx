@@ -24,6 +24,7 @@ import {
   uploadAvatarObject,
 } from '@/services/profileApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -54,7 +55,7 @@ interface Profile {
 interface ProfileOverviewProps {
   user: User;
   profile: Profile | null;
-  onProfileUpdate: (updatedProfile?: any) => void;
+  onProfileUpdate: (updatedProfile?: Partial<Profile>) => void;
 }
 
 export function ProfileOverview({
@@ -130,9 +131,11 @@ export function ProfileOverview({
       onProfileUpdate();
       setIsEditing(false);
       toast.success('Profil mis à jour avec succès');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating profile:', error);
-      toast.error(error.message || 'Erreur lors de la mise à jour du profil');
+      toast.error(
+        formatUnknownError(error) || 'Erreur lors de la mise à jour du profil'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -159,9 +162,11 @@ export function ProfileOverview({
       onProfileUpdate();
 
       toast.success('Avatar mis à jour avec succès');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading avatar:', error);
-      toast.error(error.message || "Erreur lors du téléchargement de l'avatar");
+      toast.error(
+        formatUnknownError(error) || "Erreur lors du téléchargement de l'avatar"
+      );
     }
   };
 
@@ -172,7 +177,7 @@ export function ProfileOverview({
       onProfileUpdate();
 
       toast.success('Avatar supprimé avec succès');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error removing avatar:', error);
       toast.error("Erreur lors de la suppression de l'avatar");
     }

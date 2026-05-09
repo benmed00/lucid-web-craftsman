@@ -27,7 +27,8 @@ export class StockService {
     string,
     { data: Record<number, StockInfo>; timestamp: number }
   >();
-  private pendingRequests = new Map<string, Promise<any>>();
+  private pendingSingle = new Map<string, Promise<StockInfo | null>>();
+  private pendingMulti = new Map<string, Promise<Record<number, StockInfo>>>();
   private readonly CACHE_DURATION = 30000; // 30 seconds
 
   static getInstance(): StockService {
@@ -62,13 +63,13 @@ export class StockService {
     }
 
     // Check for pending request
-    if (this.pendingRequests.has(cacheKey)) {
-      return await this.pendingRequests.get(cacheKey);
+    if (this.pendingSingle.has(cacheKey)) {
+      return await this.pendingSingle.get(cacheKey)!;
     }
 
     // Create new request
     const requestPromise = this.fetchSingleStockInfo(productId);
-    this.pendingRequests.set(cacheKey, requestPromise);
+    this.pendingSingle.set(cacheKey, requestPromise);
 
     try {
       const result = await requestPromise;
@@ -81,7 +82,7 @@ export class StockService {
       return result;
     } finally {
       // Clean up pending request
-      this.pendingRequests.delete(cacheKey);
+      this.pendingSingle.delete(cacheKey);
     }
   }
 
@@ -124,13 +125,13 @@ export class StockService {
     }
 
     // Check for pending request
-    if (this.pendingRequests.has(cacheKey)) {
-      return await this.pendingRequests.get(cacheKey);
+    if (this.pendingMulti.has(cacheKey)) {
+      return await this.pendingMulti.get(cacheKey)!;
     }
 
     // Create new request
     const requestPromise = this.fetchMultipleStockInfo(productIds);
-    this.pendingRequests.set(cacheKey, requestPromise);
+    this.pendingMulti.set(cacheKey, requestPromise);
 
     try {
       const result = await requestPromise;
@@ -141,7 +142,7 @@ export class StockService {
       return result;
     } finally {
       // Clean up pending request
-      this.pendingRequests.delete(cacheKey);
+      this.pendingMulti.delete(cacheKey);
     }
   }
 
@@ -385,7 +386,8 @@ export class StockService {
   public clearCache(): void {
     this.cache.clear();
     this.multiCache.clear();
-    this.pendingRequests.clear();
+    this.pendingSingle.clear();
+    this.pendingMulti.clear();
   }
 
   /**

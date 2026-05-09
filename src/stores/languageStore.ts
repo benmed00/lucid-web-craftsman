@@ -51,12 +51,21 @@ export const useLanguageStore = create<LanguageState>()(
       name: 'language-storage',
       version: 1,
       partialize: (state) => ({ locale: state.locale }),
-      migrate: (persisted: any, version: number) => {
+      migrate: (persisted: unknown, version: number) => {
         try {
           if (version < 1) {
-            const locale = persisted?.locale;
-            if (locale && supportedLanguages.includes(locale)) {
-              return { locale };
+            if (
+              persisted !== null &&
+              typeof persisted === 'object' &&
+              !Array.isArray(persisted)
+            ) {
+              const locale = (persisted as Record<string, unknown>).locale;
+              if (
+                typeof locale === 'string' &&
+                (supportedLanguages as readonly string[]).includes(locale)
+              ) {
+                return { locale: locale as SupportedLanguage };
+              }
             }
             return { locale: 'fr' };
           }

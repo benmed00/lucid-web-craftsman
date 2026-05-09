@@ -48,9 +48,11 @@ import {
   FlaskConical,
   Calendar,
 } from 'lucide-react';
+import type { Json } from '@/integrations/supabase/types';
 import { fetchEmailLogsAdmin } from '@/services/adminEmailLogsApi';
 import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 import { format, subDays, startOfDay, eachDayOfInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import EmailScheduler from '@/components/admin/EmailScheduler';
@@ -68,7 +70,7 @@ interface EmailTemplate {
   icon: React.ElementType;
   color: string;
   bgColor: string;
-  testData: any;
+  testData: Record<string, unknown>;
   previewFields: string[];
 }
 
@@ -80,7 +82,7 @@ interface EmailLog {
   order_id: string | null;
   status: string;
   error_message: string | null;
-  metadata: any;
+  metadata: Json | null;
   sent_at: string | null;
   created_at: string;
 }
@@ -331,7 +333,7 @@ const AdminEmailTesting = () => {
     try {
       const data = await fetchEmailLogsAdmin(100);
       setEmailLogs(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching email logs:', error);
       toast.error('Erreur lors du chargement des logs');
     } finally {
@@ -373,9 +375,9 @@ const AdminEmailTesting = () => {
       } else {
         throw new Error('Aucune prévisualisation générée');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error generating preview:', error);
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     } finally {
       setPreviewStates((prev) => ({ ...prev, [template.id]: false }));
     }
@@ -410,9 +412,9 @@ const AdminEmailTesting = () => {
       } else {
         throw new Error(data?.error || 'Erreur inconnue');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending test email:', error);
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     } finally {
       setSendingStates((prev) => ({ ...prev, [template.id]: false }));
     }
@@ -463,9 +465,9 @@ const AdminEmailTesting = () => {
       } else {
         throw new Error(data?.error || 'Erreur inconnue');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error retrying email:', error);
-      toast.error(`Erreur lors du renvoi: ${error.message}`);
+      toast.error(`Erreur lors du renvoi: ${formatUnknownError(error)}`);
     } finally {
       setRetryingStates((prev) => ({ ...prev, [log.id]: false }));
     }
