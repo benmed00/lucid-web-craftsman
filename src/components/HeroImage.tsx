@@ -24,6 +24,8 @@ const HeroImage = () => {
             preload={true}
             showLoadingSpinner={false}
             showRetryButton={false}
+            width={800}
+            height={1000}
           />
         </div>
 
@@ -60,6 +62,8 @@ const HeroImage = () => {
           preload={true}
           showLoadingSpinner={true}
           showRetryButton={false}
+          width={800}
+          height={1000}
         />
       </div>
 
