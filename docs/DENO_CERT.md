@@ -196,8 +196,54 @@ commande `deno`.
 
 ---
 
-## 5. Liens
+## 5. CI air-gapped (job offline)
+
+Pour **prouver** que la suite Deno tourne sans réseau (utile en environnement
+restreint et pour détecter les régressions qui ré-introduisent un fetch
+distant), un exemple de workflow est fourni :
+
+→ [`.github/workflows/deno-offline.yml.example`](../.github/workflows/deno-offline.yml.example)
+
+Principes appliqués :
+
+1. **`env -i`** — l'étape de test repart d'un environnement **vide** : pas de
+   `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, `DENO_CERT`, ni `DENO_AUTH_TOKENS`.
+   Seuls `PATH`, `HOME` et `DENO_DIR` sont ré-injectés.
+2. **`DENO_OFFLINE=1`** + **`deno test --cached-only`** — Deno refuse tout
+   fetch ; il échoue immédiatement si une dépendance n'est pas déjà dans le
+   cache `DENO_DIR`.
+3. **Cache pré-hydraté obligatoire** — `DENO_DIR` est restauré depuis un
+   artifact ou `actions/cache`. Si vide, le job échoue avant même de lancer
+   les tests (message clair : « hydrate le cache »).
+4. **Scan post-mortem des logs** — `rg` cherche les patterns réseau interdits
+   (`Download https?://`, `error sending request`, `tcp connect error`,
+   `dns error`, `UnknownIssuer`, `Network is unreachable`, …). Toute occurrence
+   fait échouer le job, même si `deno test` est sorti avec `0`.
+5. **Artifact log** — la sortie complète est uploadée (`deno-offline-log`)
+   pour audit/support.
+
+Pour activer le job dans le repo, copiez le fichier en retirant le suffixe
+`.example` :
+
+```bash
+cp .github/workflows/deno-offline.yml.example .github/workflows/deno-offline.yml
+```
+
+Adaptez la liste des fichiers de test passés à `deno test` selon votre scope
+(par défaut : pricing-snapshot helpers, alignés avec
+[`scripts/verify-pricing-snapshot-offline.mjs`](../scripts/verify-pricing-snapshot-offline.mjs)).
+
+> 💡 **Hydrater le cache** : avant ce job, prévoyez une étape (ou un job amont)
+> qui exécute `deno cache --config supabase/functions/deno.json <fichiers>`
+> avec accès réseau, puis publie `DENO_DIR` via `actions/cache` ou
+> `actions/upload-artifact`.
+
+---
+
+## 6. Liens
 
 - [`scripts/verify-proxy-ca.sh`](../scripts/verify-proxy-ca.sh) — validation automatisée
+- [`.github/workflows/deno-offline.yml.example`](../.github/workflows/deno-offline.yml.example) — job CI air-gapped
 - [Deno — Proxies & TLS](https://docs.deno.com/runtime/reference/cli/install/#proxies)
+- [Deno — `--cached-only` & `DENO_OFFLINE`](https://docs.deno.com/runtime/reference/cli/run/#--cached-only)
 - [`AGENTS.md`](../AGENTS.md) — section *Cursor Cloud specific instructions*
