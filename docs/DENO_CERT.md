@@ -240,7 +240,112 @@ Adaptez la liste des fichiers de test passés à `deno test` selon votre scope
 
 ---
 
-## 6. Liens
+## 6. Identifier et partager `$DENO_DIR` (parité CI ⇄ local)
+
+Pour que **`scripts/deno-mode-toggle.sh offline`** et le job
+[`deno-offline.yml`](../.github/workflows/deno-offline.yml.example) servent
+exactement le même cache que vos runs locaux, il faut s'assurer que **la
+valeur de `DENO_DIR` est identique** (ou au moins équivalente en contenu) des
+deux côtés.
+
+### 6.1 Identifier la valeur effective
+
+Deno utilise, par ordre de priorité :
+
+1. La variable d'environnement **`DENO_DIR`** si elle est définie,
+2. Sinon un répertoire par défaut dépendant de l'OS.
+
+```bash
+# Valeur effective utilisée par Deno (résout les défauts par OS)
+deno info | grep -E '^DENO_DIR'
+
+# Variable explicitement exportée dans votre shell (peut être vide)
+echo "DENO_DIR=${DENO_DIR:-<unset → defaults>}"
+
+# Taille et contenu de premier niveau
+DD="$(deno info | awk -F': ' '/^DENO_DIR/{print $2}')"
+du -sh "$DD" && ls "$DD"
+```
+
+Défauts par OS (si `DENO_DIR` n'est pas exportée) :
+
+| OS              | Chemin par défaut                                            |
+| --------------- | ------------------------------------------------------------ |
+| Linux / WSL     | `~/.cache/deno`                                              |
+| macOS           | `~/Library/Caches/deno`                                      |
+| Windows         | `%LOCALAPPDATA%\deno` (`C:\Users\<u>\AppData\Local\deno`)    |
+
+> ⚠️ **Piège fréquent :** en local vous utilisez le défaut OS, en CI le job
+> exporte `DENO_DIR=$GITHUB_WORKSPACE/.deno-cache`. Les deux caches existent
+> mais ne contiennent pas la même chose → divergence silencieuse.
+> **Règle :** exporter `DENO_DIR` explicitement des deux côtés, vers un chemin
+> **dans le repo** (ex. `./.deno-cache`) — pas dans `~/.cache`.
+
+### 6.2 Partager le cache (export / import)
+
+```bash
+# Empaqueter le cache local pour le pousser en CI ou à un collègue
+tar -C "$(dirname "$DENO_DIR")" -czf deno-cache.tgz "$(basename "$DENO_DIR")"
+sha256sum deno-cache.tgz   # à communiquer pour vérif d'intégrité
+
+# Restaurer côté destinataire (CI ou autre poste)
+mkdir -p ./.deno-cache
+tar -C . -xzf deno-cache.tgz
+export DENO_DIR="$(pwd)/.deno-cache"
+```
+
+En GitHub Actions, le partage se fait via **`actions/cache`** avec une clé
+déterministe à partir des fichiers de config :
+
+```yaml
+- uses: actions/cache@v4
+  with:
+    path: ${{ env.DENO_DIR }}
+    key: deno-cache-v1-${{ runner.os }}-${{ hashFiles('supabase/functions/**/deno.json', 'deno.lock') }}
+    restore-keys: deno-cache-v1-${{ runner.os }}-
+```
+
+**Règles d'or pour la clé de cache :**
+
+- Inclure **`runner.os`** (un cache Linux n'est pas valide sur macOS/Windows).
+- Inclure le **hash de tous les `deno.json` + `deno.lock`** : si une
+  dépendance bouge, on invalide.
+- Versionner avec un préfixe (`v1`, `v2`) pour pouvoir invalider à la main.
+
+### 6.3 Checklist parité CI ⇄ local
+
+Avant de conclure « ça marche en local mais pas en CI » (ou l'inverse),
+vérifier les **4 invariants** suivants — exécuter les mêmes commandes des
+deux côtés et comparer :
+
+| # | Invariant                              | Commande                                                                                   |
+| - | -------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 1 | Version Deno identique                 | `deno --version`                                                                           |
+| 2 | `DENO_DIR` au même endroit *(relatif au repo)* | `deno info \| grep DENO_DIR`                                                       |
+| 3 | Mêmes `deno.json` + `deno.lock`        | `git status supabase/functions/**/deno.json deno.lock` (doit être propre)                  |
+| 4 | Empreinte du cache identique           | `find "$DENO_DIR" -type f -name '*.metadata.json' \| sort \| xargs sha256sum \| sha256sum` |
+
+L'invariant **4** produit une empreinte unique du cache (toutes les metadata
+JSON de Deno triées + hashées). Si CI et local renvoient le **même hash**,
+les caches sont équivalents.
+
+> 💡 Le script [`scripts/deno-mode-toggle.sh verify-cache`](../scripts/deno-mode-toggle.sh)
+> automatise une partie : il confirme qu'aucun téléchargement n'a eu lieu en
+> mode offline et que chaque host fetché en mode online a bien un répertoire
+> dans `DENO_DIR`.
+
+### 6.4 Symptômes de désynchronisation
+
+| Symptôme en CI                                       | Cause probable                                                           |
+| ---------------------------------------------------- | ------------------------------------------------------------------------ |
+| `error: Module not found` (alors que ça passe local) | `deno.lock` modifié sans rejouer `deno cache`                            |
+| `Specifier not found in cache`                       | Cache CI restauré depuis une clé périmée                                 |
+| Hash invariant #4 différent                          | Versions Deno différentes, ou cache local pollué par d'autres projets    |
+| `deno test` télécharge en CI mais pas en local       | `DENO_DIR` non exporté en CI → utilise `~/.cache/deno` (vide)            |
+
+---
+
+## 7. Liens
 
 - [`scripts/verify-proxy-ca.sh`](../scripts/verify-proxy-ca.sh) — validation automatisée
 - [`.github/workflows/deno-offline.yml.example`](../.github/workflows/deno-offline.yml.example) — job CI air-gapped
