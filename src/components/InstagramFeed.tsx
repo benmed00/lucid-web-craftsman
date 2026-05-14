@@ -122,7 +122,9 @@ const InstagramFeed = () => {
       {instagramPosts.map((post) => (
         <a
           key={post.id}
-          href="#"
+          href={post.link ?? 'https://www.instagram.com/'}
+          target="_blank"
+          rel="noopener noreferrer"
           className="block relative group overflow-hidden rounded-lg aspect-square touch-manipulation hover:shadow-lg transition-all duration-300"
         >
           <ImageWithFallback
