@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import SEOHelmet from '@/components/seo/SEOHelmet';
+import { Helmet } from 'react-helmet-async';
 import {
   Mail,
   MapPin,
