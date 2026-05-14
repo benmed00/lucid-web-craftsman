@@ -1,0 +1,218 @@
+# Rules registry
+
+Single index of every category of **rule** that governs this repo or its runtime behavior: code-quality gates, CI/CD, architectural import constraints, runtime security headers, configurable storefront knobs, client validation schemas, server-side authority (Edge + Postgres + RLS), and the external services we integrate against.
+
+This file is **navigation-only**: each row points at the authoritative source (config file, hook, migration, function) rather than copying its contents. For **behavior** detail (schemas, edge cases, UI effects), see [BUSINESS_LOGIC_AND_EDGE_CASES.md](./BUSINESS_LOGIC_AND_EDGE_CASES.md).
+
+**Maintenance**: when you add a new ESLint rule, CI gate, `app_settings` key, Edge limit, or major validation path, add or update a row here. When behavioral branches multiply, extend the companion file instead.
+
+**Columns in §§ 1–10:** **Status** — `enforced` (tooling or CI blocks regressions), `advisory` (documentation / external norm only), `grandfathered` (explicit carve-out in [TECH_DEBT.md](./TECH_DEBT.md)), `planned` (no automated gate in-repo yet). **Tests** — the script, Vitest file, or workflow that guards the row (`pnpm run …`, `ci.yml` job), or `—`.
+
+## Contents
+
+1. [Repo quality gates (lint, format, commits, hooks)](#1-repo-quality-gates-lint-format-commits-hooks)
+2. [CI / automation gates](#2-ci--automation-gates)
+3. [SPA layering & import constraints](#3-spa-layering--import-constraints)
+4. [Runtime app configuration (browser)](#4-runtime-app-configuration-browser)
+5. [Configurable storefront rules (DB-backed)](#5-configurable-storefront-rules-db-backed)
+6. [Client validation modules (Zod + sanitization)](#6-client-validation-modules-zod--sanitization)
+7. [Server authority (Supabase Edge Functions)](#7-server-authority-supabase-edge-functions)
+8. [Database policy (Postgres + RLS)](#8-database-policy-postgres--rls)
+9. [API contracts & artifacts](#9-api-contracts--artifacts)
+10. [Local vs production HTTP & dev environment](#10-local-vs-production-http--dev-environment)
+11. [Cross-cutting documentation index](#11-cross-cutting-documentation-index)
+12. [External references (consolidated)](#12-external-references-consolidated)
+
+---
+
+## 1. Repo quality gates (lint, format, commits, hooks)
+
+| Rule | Technology | Primary file | Notes | Status | Tests |
+| --- | --- | --- | --- | --- | --- |
+| Flat ESLint config, TypeScript + React + a11y + unused-imports | **ESLint 9** + `typescript-eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `eslint-plugin-jsx-a11y`, `eslint-plugin-unused-imports` | [`eslint.config.js`](../eslint.config.js) | Prettier applied last via `eslint-config-prettier`. | enforced | `pnpm run lint` (`ci.yml`) |
+| `no-restricted-imports` — block raw Supabase client from leaf UI | ESLint | [`eslint.config.js`](../eslint.config.js) (lines around `'no-restricted-imports'`) | Forbids `@/integrations/supabase/client` in `src/pages/**` and `src/components/**`; **grandfathered** files listed in [TECH_DEBT.md — ESLint grandfathered imports](./TECH_DEBT.md#eslint-grandfathered-imports-spa). | grandfathered | `pnpm run lint`; carve-outs in [TECH_DEBT.md](./TECH_DEBT.md) |
+| `react-hooks/exhaustive-deps` at `error` | ESLint | [`eslint.config.js`](../eslint.config.js) | Policy & disable convention: [TECH_DEBT.md — `react-hooks/exhaustive-deps`](./TECH_DEBT.md#eslint-react-hooksexhaustive-deps). | enforced | `pnpm run lint` |
+| `@typescript-eslint/no-explicit-any` scoped to `src/**` (excludes tests, `*.integration.*`, `vite-env.d.ts`) and to `src/types/{domain,contracts}/**` | ESLint | [`eslint.config.js`](../eslint.config.js) | Vendor pixel bootstraps exempt; budget = `--max-warnings 0` at root lint. See [TECH_DEBT.md — `no-explicit-any`](./TECH_DEBT.md#eslint-typescript-eslintno-explicit-any-spa). | enforced | `pnpm run lint` |
+| `@typescript-eslint/ban-ts-comment` **off** for Edge functions only | ESLint | [`eslint.config.js`](../eslint.config.js) (final scope block) | Rationale: Node-based ESLint cannot resolve Deno `npm:` / `https:` imports — [TECH_DEBT.md — Supabase Edge Functions](./TECH_DEBT.md#supabase-edge-functions-ban-ts-comment). | enforced | `pnpm run lint` |
+| Prettier formatting | **Prettier 3** | [`.prettierrc.json`](../.prettierrc.json) | `endOfLine: "lf"`, single quotes, `printWidth: 80`, `trailingComma: "es5"`. `pnpm run format` / `format:check`. | enforced | `pnpm run format:check` (`ci.yml`) |
+| Conventional Commits + forbidden generic subjects | **Commitlint** (`@commitlint/config-conventional`) | [`commitlint.config.mjs`](../commitlint.config.mjs) | Rejects subjects like `Changes`, `WIP`, `update`, `save plan`, `...`. | enforced | Husky `commit-msg` · [`commitlint.config.mjs`](../commitlint.config.mjs) |
+| Pre-commit / commit-msg | **Husky** | [`.husky/`](../.husky/) | Runs Commitlint on `commit-msg`; bypass only with `git commit --no-verify`. | enforced | Husky hook (local; not in `ci.yml`) |
+| External reference: TypeScript-ESLint rule docs | — | — | https://typescript-eslint.io/rules/ | advisory | — |
+| External reference: React Hooks rules | — | — | https://react.dev/reference/rules/rules-of-hooks | advisory | — |
+| External reference: Conventional Commits | — | — | https://www.conventionalcommits.org/ | advisory | — |
+
+---
+
+## 2. CI / automation gates
+
+| Rule | Technology | Primary file(s) | Notes | Status | Tests |
+| --- | --- | --- | --- | --- | --- |
+| Root CI (lint, format check, edge-function bundling, OpenAPI/Postman drift, typecheck, `test:unit`, build) | **GitHub Actions** + Node 20 + pnpm 9 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | Local mirror: `pnpm run ci:local` — see [LOCAL_CI.md](./LOCAL_CI.md). | enforced | `ci.yml`; `pnpm run ci:local` |
+| Cypress E2E (smoke on PR/push, full sharded on schedule / `workflow_dispatch`) | **GitHub Actions** + Cypress 15 | [`.github/workflows/e2e.yml`](../.github/workflows/e2e.yml) | Inventory & KPIs: [GITHUB-ACTIONS-CI-CD.md](./GITHUB-ACTIONS-CI-CD.md); scope: [E2E-COVERAGE.md](./E2E-COVERAGE.md). | enforced | `e2e.yml`; `pnpm run e2e:ci:smoke` locally |
+| Deno check/lint/test for `create-payment`, `create-admin-user`, pricing snapshot helpers | **GitHub Actions** + Deno 2 | [`.github/workflows/deno-create-payment.yml`](../.github/workflows/deno-create-payment.yml) | Local: `pnpm run verify:create-payment` / `verify:create-admin-user` / `test:pricing-snapshot`. | enforced | `deno-create-payment.yml`; `pnpm run verify:create-payment` |
+| Scheduled monitor for payment-event drift | **GitHub Actions** | [`.github/workflows/monitor-payment-events.yml`](../.github/workflows/monitor-payment-events.yml) | Cadence & fallback: [GITHUB-ACTIONS-CI-CD.md](./GITHUB-ACTIONS-CI-CD.md). | enforced | `monitor-payment-events.yml` |
+| Opt-in RPC PostgREST smoke (real Supabase) | **GitHub Actions** (`workflow_dispatch`) + Vitest | [`.github/workflows/rpc-postgrest-smoke.yml`](../.github/workflows/rpc-postgrest-smoke.yml), [`src/tests/rpc-postgrest-smoke.test.ts`](../src/tests/rpc-postgrest-smoke.test.ts) | Requires `TEST_RPC_SMOKE=1`, `VITE_SUPABASE_*`, admin credentials, `TEST_RPC_SMOKE_ORDER_ID`. | planned | `pnpm run test:rpc-smoke` (manual / workflow_dispatch) |
+| OpenAPI bundle drift check | **Node script** | [`openapi/`](../openapi/), [`scripts/`](../scripts/) | `pnpm run openapi:edge-functions:check`. | enforced | `openapi:edge-functions:check` (`ci.yml`) |
+| Postman collection drift check | **Node script** | [`postman/`](../postman/), [`scripts/`](../scripts/) | `pnpm run postman:collection:check`. Both refreshed by `pnpm run api:artifacts`. | enforced | `postman:collection:check` (`ci.yml`) |
+| Docs link + auto-block drift | **Node script** | [`scripts/check-doc-links.mjs`](../scripts/check-doc-links.mjs), [`scripts/gen-docs.mjs`](../scripts/gen-docs.mjs) | `pnpm run docs:check-links`, `pnpm run docs:gen:check`. | enforced | `ci.yml` steps after Postman check |
+| Edge-function bundling check (Deno 2) | **Node + Deno** | [`scripts/check-edge-functions-bundling.mjs`](../scripts/check-edge-functions-bundling.mjs) | `pnpm run check:edge-functions:bundling:full`. | enforced | `ci.yml` Deno step |
+| Test-runtime contract: which tests are part of `validate` / `test:unit` / `ci.yml` | **Vitest** | [`package.json`](../package.json) scripts, [STANDARDS.md](./STANDARDS.md) | See [STANDARDS.md — validate vs test:unit vs root GitHub CI](./STANDARDS.md#validate-vs-testunit-vs-root-github-ci). | advisory | `pnpm run test:unit`; [STANDARDS.md](./STANDARDS.md) |
+
+---
+
+## 3. SPA layering & import constraints
+
+| Rule | Technology | Primary file(s) | Notes | Status | Tests |
+| --- | --- | --- | --- | --- | --- |
+| Supabase access only through `src/services/*` (and shared hooks/context) | ESLint `no-restricted-imports` | [`eslint.config.js`](../eslint.config.js), [`src/services/README.md`](../src/services/README.md) | Browser key only — never the service role. | enforced | `pnpm run lint` |
+| Services naming convention (`*Api.ts`, `admin*Api.ts`, `*Service.ts`, `apiClient`) | Convention | [`src/services/README.md`](../src/services/README.md) | Realtime channel naming `lwc-*` documented there too. | advisory | — |
+| Cart server sync goes through `cartSyncService.persistUserCartLinesViaRpc` | Convention | [`src/services/README.md`](../src/services/README.md), [`src/services/cartSyncService.ts`](../src/services/cartSyncService.ts) | Keeps `cartServerQueryKeys` consistent. | advisory | Code review |
+| Generated DB types | `supabase-js` types | [`scripts/supabase-gen-types.mjs`](../scripts/supabase-gen-types.mjs), [`src/integrations/supabase/types`](../src/integrations/supabase/) | Refreshed against the live Supabase project. | enforced | `pnpm run type:check` (`ci.yml`) |
+| Typing layers (domain ↔ contracts ↔ DB) | TypeScript + Zod | [`src/types/`](../src/types/), [DATA_TYPES.md](./DATA_TYPES.md), [TYPES_INDEX.md](./TYPES_INDEX.md) | | advisory | [DATA_TYPES.md](./DATA_TYPES.md) |
+
+---
+
+## 4. Runtime app configuration (browser)
+
+| Rule | Technology | Primary file | Notes | Status | Tests |
+| --- | --- | --- | --- | --- | --- |
+| Content Security Policy (`script-src`, `connect-src`, `frame-src`, etc.) | CSP header / `<meta>` | [`src/config/app.config.ts`](../src/config/app.config.ts) (`CSP_CONFIG`, `generateCSPString`) | Allowlists Supabase host (resolved from `VITE_SUPABASE_URL`), Stripe, Frankfurter, Sentry, Lovable; `img-src https:` is a documented broad fallback ([TECH_DEBT.md — CSP](./TECH_DEBT.md#content-security-policy-csp)). | enforced | Runtime bundle + [TECH_DEBT.md](./TECH_DEBT.md) CSP notes |
+| External service origins (Supabase / Stripe / Frankfurter / Fonts / Sentry / Lovable) | Constants | [`src/config/app.config.ts`](../src/config/app.config.ts) (`EXTERNAL_SERVICES`) | Used by CSP and proxy logic. | enforced | `pnpm run type:check` |
+| Frankfurter dev proxy (`/frankfurter-api`) | Vite proxy | [`vite.config.ts`](../vite.config.ts), [`src/config/app.config.ts`](../src/config/app.config.ts) (`frankfurterApiBase`) | Avoids CORS in dev/preview; Vitest uses the real URL. | enforced | `pnpm run dev` / E2E probes |
+| TanStack Query defaults | TanStack Query | [`src/config/app.config.ts`](../src/config/app.config.ts) (`QUERY_CONFIG`) | `staleTime 5min`, `gcTime 10min`, `networkMode: 'offlineFirst'`. | enforced | Consumption in SPA (no dedicated unit gate) |
+| Cart defaults (constant baseline before DB overrides) | Constants | [`src/config/app.config.ts`](../src/config/app.config.ts) (`CART_DEFAULTS`) | Overlaps with runtime business rules — see section 5. | advisory | Compare with `DEFAULT_BUSINESS_RULES` ([BUSINESS_LOGIC § 1](./BUSINESS_LOGIC_AND_EDGE_CASES.md#1-business-rules-businessrules)) |
+| Performance & cache constants | Constants | [`src/config/app.config.ts`](../src/config/app.config.ts) (`PERFORMANCE_CONFIG`, `CACHE_CONFIG`) | | advisory | — |
+| Feature flags | Constants | [`src/config/app.config.ts`](../src/config/app.config.ts) (`FEATURES`) | PWA, push, offline, dev tools, perf monitoring. | advisory | — |
+| External reference: CSP | — | — | https://developer.mozilla.org/docs/Web/HTTP/CSP | advisory | — |
+
+---
+
+## 5. Configurable storefront rules (DB-backed)
+
+| Rule surface | Technology | Primary file(s) | Notes | Status | Tests |
+| --- | --- | --- | --- | --- | --- |
+| `BusinessRules` shape + in-code defaults | TypeScript | [`src/hooks/useBusinessRules.ts`](../src/hooks/useBusinessRules.ts) (`DEFAULT_BUSINESS_RULES`, `BusinessRules`) | Sections: `cart`, `wishlist`, `checkout`, `contact`. Detail & UI effects: [BUSINESS_LOGIC_AND_EDGE_CASES.md — Business rules](./BUSINESS_LOGIC_AND_EDGE_CASES.md#1-business-rules-businessrules). | enforced | `pnpm run docs:gen:check` (auto JSON block); [`useBusinessRules.test.ts`](../src/hooks/useBusinessRules.test.ts) if present |
+| Runtime fetch + cache + refetch | React hook | [`src/hooks/useBusinessRules.ts`](../src/hooks/useBusinessRules.ts) (`useBusinessRules`, `initializeBusinessRules`, `clearBusinessRulesCache`, `getBusinessRules`) | Module-level cache (`cachedRules`) + in-flight `fetchPromise` guard. | enforced | Hook tests / E2E admin paths |
+| DB source of truth | Supabase Postgres | `app_settings` table, key `business_rules`; service: [`src/services/appSettingsApi.ts`](../src/services/appSettingsApi.ts) | Audit log on update via [`auditLogsApi`](../src/services/auditLogsApi.ts). | enforced | RLS + integration behaviour ([BUSINESS_LOGIC § 9](./BUSINESS_LOGIC_AND_EDGE_CASES.md#9-auth-sessions-csrf)) |
+| Admin editor UI | React + shadcn | [`src/components/admin/BusinessRulesConfig.tsx`](../src/components/admin/BusinessRulesConfig.tsx) | Inserts / updates `app_settings`, writes an audit row, clears the hook cache. | enforced | Admin E2E when secrets set |
+| Free-shipping threshold (separate `app_settings` key) | Supabase Postgres | [`fetchFreeShippingThresholdSetting`](../src/services/checkoutApi.ts) used in [`src/hooks/useCheckoutPage.ts`](../src/hooks/useCheckoutPage.ts) | Defaults to `{ amount: 100, enabled: true }` if missing. | enforced | Checkout E2E (`checkout_flow_spec.js`) subset |
+
+---
+
+## 6. Client validation modules (Zod + sanitization)
+
+| Rule | Technology | Primary file | Notes | Status | Tests |
+| --- | --- | --- | --- | --- | --- |
+| Checkout customer / shipping / full-form / promo schemas | **Zod** | [`src/utils/checkoutValidation.ts`](../src/utils/checkoutValidation.ts) | Exports `customerInfoSchema`, `shippingAddressSchema`, `checkoutFormSchema`, `promoCodeSchema`, `validate*` helpers. Detailed spec: [BUSINESS_LOGIC_AND_EDGE_CASES.md — Checkout validation](./BUSINESS_LOGIC_AND_EDGE_CASES.md#4-checkout-validation). | enforced | `pnpm run docs:gen:check`; Vitest tests importing checkout validation |
+| XSS / dangerous-pattern detection + sanitization | Plain TS | [`src/utils/xssProtection.ts`](../src/utils/xssProtection.ts), `containsDangerousPatterns` / `sanitizeUserInput` referenced in [`src/utils/checkoutValidation.ts`](../src/utils/checkoutValidation.ts) | Applied as Zod `.refine` + `.transform`. | enforced | Same as checkout validation tests |
+| Checkout session draft validation (hydration safety) | Plain TS | [`src/utils/checkoutSessionValidation.ts`](../src/utils/checkoutSessionValidation.ts) (used by [`useCheckoutFormPersistence`](../src/hooks/useCheckoutFormPersistence.ts)) | Guards `isValidPersonalInfo` / `isValidShippingInfo`. | enforced | [`useCheckoutFormPersistence`](../src/hooks/useCheckoutFormPersistence.ts) tests if present |
+| Edge invoke response parsing (browser side) | **Zod** | [`src/types/contracts/edge-invoke-responses.ts`](../src/types/contracts/edge-invoke-responses.ts), [`src/types/contracts/index.ts`](../src/types/contracts/index.ts) | Used by [`src/services/checkoutService.ts`](../src/services/checkoutService.ts) to normalize Edge JSON. | enforced | [`checkoutService.test.ts`](../src/services/checkoutService.test.ts) |
+| Pricing snapshot Zod schemas (client mirror) | **Zod** | `src/lib/checkout/pricingSnapshotSchema.ts`, `src/lib/checkout/pricingSnapshot.test.ts` (via `pnpm run test:pricing-snapshot`) | Server contract: [PRICING_SNAPSHOT.md](../supabase/functions/_shared/PRICING_SNAPSHOT.md). | enforced | `pnpm run test:pricing-snapshot` |
+| External reference: Zod | — | — | https://zod.dev/ | advisory | — |
+
+---
+
+## 7. Server authority (Supabase Edge Functions)
+
+| Surface | Technology | Primary file(s) | Notes | Status | Tests |
+| --- | --- | --- | --- | --- | --- |
+| Edge runtime + shared imports | **Deno 2** | [`supabase/functions/deno.json`](../supabase/functions/deno.json) | Maps `@std/*`, `npm:@supabase/supabase-js@2`, `npm:stripe@18.5.0`, `npm:zod@3.23.8`. | enforced | `pnpm run verify:create-payment`; `check:edge-functions:bundling:full` |
+| Function families inventory | — | [`supabase/functions/README.md`](../supabase/functions/README.md), [TECH_MAP.md](./TECH_MAP.md) (function-families table) | Payments, orders, emails, admin/ops, utilities. | advisory | — |
+| Authoritative payment-session creation | Deno + Stripe SDK | [`supabase/functions/create-payment/`](../supabase/functions/create-payment/) | Data path: [DATA_FLOW.md](../supabase/functions/create-payment/DATA_FLOW.md); refactor map: [REFACTOR_PLAN.md](../supabase/functions/create-payment/REFACTOR_PLAN.md). | enforced | Deno tests under `create-payment/`; `pnpm run docs:gen:check` (constants table) |
+| Cart / shipping / Stripe / CORS / origin constants | Deno | [`supabase/functions/create-payment/constants.ts`](../supabase/functions/create-payment/constants.ts) | `MAX_CART_ITEMS = 50`, `STRIPE_MINIMUM_CENTS = 50`, `SHIPPING_COST_CENTS = 695`, `RATE_LIMIT_WINDOW_MS = 5*60_000`, `MAX_PAYMENT_ATTEMPTS = 3`, `CHECKOUT_VALIDATION_ERROR_PREFIX`. | enforced | `pnpm run docs:gen:check` |
+| Stripe return-URL allowlist | Deno | [`supabase/functions/create-payment/constants.ts`](../supabase/functions/create-payment/constants.ts) (`_ALLOWED_ORIGINS`, `getValidOrigin`) | Includes `https://*.lovable.app`, localhost / loopback, RFC1918 LAN, and `CHECKOUT_EXTRA_ORIGINS` env. | enforced | Deno tests touching `getValidOrigin` |
+| Pricing snapshot contract (versioning + invariants) | Deno + Zod | [`supabase/functions/_shared/PRICING_SNAPSHOT.md`](../supabase/functions/_shared/PRICING_SNAPSHOT.md), [`_shared/pricing-snapshot.ts`](../supabase/functions/_shared/pricing-snapshot.ts) | Read before evolving the snapshot shape. Test: `pnpm run test:pricing-snapshot`. | enforced | `pnpm run test:pricing-snapshot` |
+| Shared rate-limit / order-money / payment-method label / invoice helpers | Deno | [`supabase/functions/_shared/`](../supabase/functions/_shared/) | E.g. `rate-limit/`, `order-money.ts`, `payment-method-label.ts`, `invoice/`, `confirm-order.ts`. | enforced | Deno tests under `_shared/` |
+| Stripe webhook + reconcile | Deno | [`supabase/functions/stripe-webhook/`](../supabase/functions/stripe-webhook/), [`reconcile-payment/`](../supabase/functions/reconcile-payment/) | Verifies Stripe signatures, drives order state. Production ops: [CHECKOUT-PROD-RUNBOOK.md](./CHECKOUT-PROD-RUNBOOK.md). | enforced | Deno tests in function dirs; manual Stripe dashboard |
+| Order lookup / token signing | Deno | [`order-lookup/`](../supabase/functions/order-lookup/), [`order-confirmation-lookup/`](../supabase/functions/order-confirmation-lookup/), [`get-order-by-token/`](../supabase/functions/get-order-by-token/), [`sign-order-token/`](../supabase/functions/sign-order-token/), [`sign-invoice-token/`](../supabase/functions/sign-invoice-token/) | Used by post-payment SPA pages. | enforced | E2E payment-return specs subset |
+| Contact / newsletter / sitemap / tag translation utilities | Deno | [`submit-contact/`](../supabase/functions/submit-contact/), [`send-newsletter-welcome/`](../supabase/functions/send-newsletter-welcome/), [`generate-sitemap/`](../supabase/functions/generate-sitemap/), [`translate-tag/`](../supabase/functions/translate-tag/) | | enforced | `pnpm run e2e:contact` (contact); others manual |
+| External reference: Supabase Edge Functions | — | — | https://supabase.com/docs/guides/functions | advisory | — |
+| External reference: Deno 2 | — | — | https://docs.deno.com/runtime/ | advisory | — |
+| External reference: Stripe API | — | — | https://stripe.com/docs/api | advisory | — |
+
+---
+
+## 8. Database policy (Postgres + RLS)
+
+| Rule | Technology | Primary file(s) | Notes | Status | Tests |
+| --- | --- | --- | --- | --- | --- |
+| Schema migrations | **Supabase CLI** + Postgres | [`supabase/migrations/`](../supabase/migrations/) | Apply via `npx supabase@…`. | enforced | Review + deploy playbook |
+| Row Level Security policies | Postgres RLS | [`supabase/migrations/`](../supabase/migrations/) | Browser always uses the **publishable / anon** key; admin enforcement is RLS + [`ProtectedAdminRoute`](../src/components/) (router guard). | enforced | [`src/tests/rls-policies.test.ts`](../src/tests/rls-policies.test.ts) (`test:unit`) |
+| Offline policy matrix (Vitest) | Vitest | [`src/tests/rls-policies.test.ts`](../src/tests/rls-policies.test.ts) | Runs in `test:unit` and `ci.yml`. | enforced | `pnpm run test:unit` |
+| Live RLS suites (skipped unless real Supabase URL/keys) | Vitest | [`src/tests/rls-e2e.test.ts`](../src/tests/rls-e2e.test.ts), [`src/tests/rls-quick-validation.test.ts`](../src/tests/rls-quick-validation.test.ts), [`src/tests/rls-test-setup.md`](../src/tests/rls-test-setup.md) | Setup notes & skip behavior: [TECH_DEBT.md — Vitest skips (RLS …)](./TECH_DEBT.md#vitest-skips-rls-and-related-suites). | planned | Opt-in local / future workflow |
+| RPC payload safety (`update_order_status`, `resolve_order_anomaly`) | PostgREST + Vitest guard | [`src/services/adminOrdersApi.resolveAnomaly.test.ts`](../src/services/adminOrdersApi.resolveAnomaly.test.ts), [`src/tests/rpc-postgrest-smoke.test.ts`](../src/tests/rpc-postgrest-smoke.test.ts) | Manual smoke: `pnpm run test:rpc-smoke` ([TECH_DEBT.md — RPC validation](./TECH_DEBT.md#rpc-validation-staging--prod-smoke)). | enforced | `adminOrdersApi.resolveAnomaly.test.ts`; optional `test:rpc-smoke` |
+| External reference: Postgres RLS | — | — | https://supabase.com/docs/guides/database/postgres/row-level-security | advisory | — |
+
+---
+
+## 9. API contracts & artifacts
+
+| Rule | Technology | Primary file(s) | Notes | Status | Tests |
+| --- | --- | --- | --- | --- | --- |
+| OpenAPI bundle for Edge | Custom Node generator | [`openapi/README.md`](../openapi/README.md), [`openapi/supabase-edge-functions.json`](../openapi/supabase-edge-functions.json), per-function `openapi.fragment.json` | Regenerate: `pnpm run openapi:edge-functions`; drift gate: `…:check`. | enforced | `openapi:edge-functions:check` (`ci.yml`) |
+| Postman collection + environments | Custom Node generator | [`postman/README.md`](../postman/README.md), [`postman/Lucid-Web-Craftsman.postman_collection.json`](../postman/Lucid-Web-Craftsman.postman_collection.json) | Regenerate: `pnpm run postman:collection`; deterministic health timestamp. | enforced | `postman:collection:check` (`ci.yml`) |
+| Combined refresh | `pnpm run api:artifacts` | [`package.json`](../package.json) | Used in CI drift checks. | advisory | `pnpm run api:artifacts` |
+| External reference: OpenAPI 3 | — | — | https://swagger.io/specification/ | advisory | — |
+| External reference: Postman | — | — | https://learning.postman.com/docs/getting-started/introduction/ | advisory | — |
+
+---
+
+## 10. Local vs production HTTP & dev environment
+
+| Rule | Technology | Primary file(s) | Notes | Status | Tests |
+| --- | --- | --- | --- | --- | --- |
+| Single dev-port contract (`127.0.0.1:8080`, `strictPort`) | Vite + Cypress | [`vite.config.ts`](../vite.config.ts), [`cypress.config.ts`](../cypress.config.ts), [`scripts/lib/e2e-port.mjs`](../scripts/lib/e2e-port.mjs), [`cypress/README.md`](../cypress/README.md) | Vite proxies `/api`, `/health`, `/frankfurter-api`. | enforced | `pnpm run lint:e2e-port`; `e2e:*` scripts |
+| Mock API (Express + json-server, port 3001) | Node | [`backend/server.cjs`](../backend/server.cjs), [`backend/README.md`](../backend/README.md) | Hardened with `helmet`, `cors`, `express-rate-limit`. | enforced | E2E `start-server-and-test` stack |
+| Workspaces (root + `backend/`) | pnpm 9 | [`pnpm-workspace.yaml`](../pnpm-workspace.yaml), [`.npmrc`](../.npmrc) | `legacy-peer-deps=true`. | enforced | `pnpm install` in CI |
+| Cypress credentials & secrets contract | Cypress + GitHub Secrets | [`cypress.env.example.json`](../cypress.env.example.json), [`cypress/README.md`](../cypress/README.md) | Secrets: `CYPRESS_CUSTOMER_*`, `CYPRESS_ADMIN_*`. | advisory | Skipped in CI when secrets unset |
+| `.env` fallbacks | Vite import.meta.env | [`src/integrations/supabase/client.ts`](../src/integrations/supabase/) | Hardcoded fallback URL + publishable key for SPA when env is absent. | enforced | Build-time `VITE_*` in `ci.yml` |
+
+---
+
+## 11. Cross-cutting documentation index
+
+| Topic | Primary references |
+| --- | --- |
+| Behavioral deep-dive (schemas / edge cases / UI effects) | [BUSINESS_LOGIC_AND_EDGE_CASES.md](./BUSINESS_LOGIC_AND_EDGE_CASES.md) |
+| Secondary domains (wishlist, loyalty, uploads, a11y, perf budgets) | [BUSINESS_LOGIC_AND_EDGE_CASES.md — § 12](./BUSINESS_LOGIC_AND_EDGE_CASES.md#12-secondary-domains-wishlist-loyalty-newsletter-images-ab--themes-a11y-perf) |
+| Auth, guest sessions, CSRF | [BUSINESS_LOGIC_AND_EDGE_CASES.md — Auth, sessions, CSRF](./BUSINESS_LOGIC_AND_EDGE_CASES.md#9-auth-sessions-csrf) — covers `useOptimizedAuth`, `useGuestSession`, `useCsrfToken`, and the elevated-storefront-user policy. |
+| End-to-end system shape | [PLATFORM.md](./PLATFORM.md), [TECH_MAP.md](./TECH_MAP.md), [README.md](./README.md) |
+| Diagnosing API or DB issues | [PLATFORM.md — Diagnosing API and database failures](./PLATFORM.md#diagnosing-api-and-database-failures) |
+| Standards & gates | [STANDARDS.md](./STANDARDS.md), [LOCAL_CI.md](./LOCAL_CI.md), [AGENTS.md](../AGENTS.md) |
+| Active tech-debt carve-outs | [TECH_DEBT.md](./TECH_DEBT.md) |
+| Edge functions deep dives | [`supabase/functions/README.md`](../supabase/functions/README.md), [`create-payment/DATA_FLOW.md`](../supabase/functions/create-payment/DATA_FLOW.md), [`_shared/PRICING_SNAPSHOT.md`](../supabase/functions/_shared/PRICING_SNAPSHOT.md) |
+| Typing layers | [DATA_TYPES.md](./DATA_TYPES.md), [TYPES_INDEX.md](./TYPES_INDEX.md), [TYPEDOC.md](./TYPEDOC.md) |
+| E2E scope | [E2E-COVERAGE.md](./E2E-COVERAGE.md), [`cypress/README.md`](../cypress/README.md) |
+| Production ops (Stripe / Brevo / webhook) | [CHECKOUT-PROD-RUNBOOK.md](./CHECKOUT-PROD-RUNBOOK.md) |
+| CI/CD inventory & KPIs | [GITHUB-ACTIONS-CI-CD.md](./GITHUB-ACTIONS-CI-CD.md) |
+
+---
+
+## 12. External references (consolidated)
+
+| Area | URL |
+| --- | --- |
+| React | https://react.dev/ |
+| React Router v6 | https://reactrouter.com/en/main |
+| TanStack Query v5 | https://tanstack.com/query/latest |
+| Zustand | https://zustand.docs.pmnd.rs/ |
+| Vite | https://vitejs.dev/ |
+| Tailwind CSS 3 | https://tailwindcss.com/docs |
+| shadcn/ui (Radix) | https://ui.shadcn.com/ |
+| Zod | https://zod.dev/ |
+| TypeScript-ESLint | https://typescript-eslint.io/ |
+| Prettier | https://prettier.io/docs/en/ |
+| Commitlint / Conventional Commits | https://commitlint.js.org/ · https://www.conventionalcommits.org/ |
+| Husky | https://typicode.github.io/husky/ |
+| Supabase (Database / Auth / Edge / RLS) | https://supabase.com/docs |
+| Deno 2 | https://docs.deno.com/runtime/ |
+| Stripe Checkout / Payment Intents / Webhooks | https://stripe.com/docs/payments/checkout · https://stripe.com/docs/webhooks |
+| PayPal Checkout | https://developer.paypal.com/docs/checkout/ |
+| Brevo (transactional email) | https://developers.brevo.com/ |
+| Frankfurter FX API | https://www.frankfurter.dev/ |
+| Content Security Policy | https://developer.mozilla.org/docs/Web/HTTP/CSP |
+| Cypress | https://docs.cypress.io/ |
+| Vitest | https://vitest.dev/ |
+| OpenAPI 3 | https://swagger.io/specification/ |
+| Postman | https://learning.postman.com/docs/getting-started/introduction/ |
+| GitHub Actions | https://docs.github.com/actions |
