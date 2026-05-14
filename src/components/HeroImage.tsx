@@ -17,13 +17,17 @@ const HeroImage = () => {
         <div className="bg-muted" style={{ aspectRatio: '4 / 5' }}>
           {/* Show default image immediately to optimize LCP */}
           <HeroImageComponent
-            src="/assets/images/home_page_image.webp"
+            src="/assets/images/home_page_image-1024.webp"
+            srcSet="/assets/images/home_page_image-480.webp 480w, /assets/images/home_page_image-768.webp 768w, /assets/images/home_page_image-1024.webp 1024w, /assets/images/home_page_image-1280.webp 1280w, /assets/images/home_page_image-1600.webp 1600w"
+            sizes="(min-width: 1024px) 50vw, 100vw"
             alt={t('home.heroImage.alt')}
             className="object-cover w-full h-full rounded-lg"
             fallbackText={t('home.heroImage.fallback')}
             preload={true}
             showLoadingSpinner={false}
             showRetryButton={false}
+            width={800}
+            height={1000}
           />
         </div>
 
@@ -60,6 +64,8 @@ const HeroImage = () => {
           preload={true}
           showLoadingSpinner={true}
           showRetryButton={false}
+          width={800}
+          height={1000}
         />
       </div>
 

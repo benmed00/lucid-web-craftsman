@@ -1,0 +1,22 @@
+# Rif Raw Straw
+
+> Sacs et chapeaux artisanaux fabriqués à la main dans les montagnes du Rif au Maroc, à partir de fibres naturelles et selon des techniques berbères traditionnelles.
+
+Rif Raw Straw est une marque d'artisanat berbère qui collabore directement avec des artisans marocains pour proposer des pièces durables, en série limitée, faites à la main (délai de production typique : 7 à 10 jours).
+
+## Pages
+
+- [Accueil](/): Présentation de la marque et collection mise en avant.
+- [Boutique](/products): Catalogue complet des sacs et chapeaux artisanaux.
+- [À propos](/about): Mission, valeurs et engagement éco-responsable.
+- [Notre histoire](/story): Origine de la marque et lien avec les artisans du Rif.
+- [Blog](/blog): Histoires d'artisans, techniques de tressage, inspiration.
+- [Contact](/contact): Formulaire de contact et coordonnées.
+- [FAQ](/faq): Réponses sur la livraison, le paiement, les retours.
+- [Livraison](/shipping): Délais et zones de livraison.
+- [Retours](/returns): Politique et procédure de retour.
+
+## Optional
+
+- [CGV](/cgv): Conditions générales de vente.
+- [Mentions légales](/terms): Mentions légales et politique de confidentialité.

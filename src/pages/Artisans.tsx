@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Clock, Quote, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PageFooter from '@/components/PageFooter';
+import SEOHelmet from '@/components/seo/SEOHelmet';
 
 type ArtisanView = {
   id: string;
@@ -127,6 +128,21 @@ const ArtisansPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHelmet
+        title="Artisans du Rif – Tisserandes & Savoir-faire | Rif Raw Straw"
+        description="Rencontrez les artisanes du Rif marocain qui tissent à la main chaque chapeau Rif Raw Straw : portraits, techniques ancestrales et savoir-faire transmis de génération en génération."
+        keywords={[
+          'artisans',
+          'tisserandes',
+          'rif',
+          'maroc',
+          'savoir-faire',
+          'artisanat berbère',
+          'chapeaux faits main',
+        ]}
+        url="/artisans"
+        type="website"
+      />
       {/* ═══════════════════════════════════════════════════════
           HERO — Full-screen immersive
       ═══════════════════════════════════════════════════════ */}

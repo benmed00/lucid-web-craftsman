@@ -1,10 +1,32 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Helmet } from 'react-helmet-async';
 import PageFooter from '@/components/PageFooter';
 import SEOHelmet from '@/components/seo/SEOHelmet';
 
 const FAQ = () => {
   const { t } = useTranslation(['pages', 'common']);
+
+  const faqEntries = [
+    { q: t('pages:faq.shipping.q'), a: t('pages:faq.shipping.a') },
+    { q: t('pages:faq.tracking.q'), a: t('pages:faq.tracking.a') },
+    { q: t('pages:faq.payment.q'), a: t('pages:faq.payment.a') },
+    { q: t('pages:faq.modification.q'), a: t('pages:faq.modification.a') },
+    {
+      q: t('pages:faq.returns.q'),
+      a: `${t('pages:faq.returns.a.prefix')} ${t('pages:faq.returns.a.linkText')} ${t('pages:faq.returns.a.suffix')}`,
+    },
+  ];
+
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqEntries.map((e) => ({
+      '@type': 'Question',
+      name: e.q,
+      acceptedAnswer: { '@type': 'Answer', text: e.a },
+    })),
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -22,6 +44,9 @@ const FAQ = () => {
         url="/faq"
         type="website"
       />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+      </Helmet>
 
       <main className="flex-1 container mx-auto px-4 py-12">
         <h1 className="text-3xl font-serif font-semibold text-primary mb-8">

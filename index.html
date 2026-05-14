@@ -16,11 +16,11 @@
       content="
       default-src 'self';
       manifest-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://cdn.gpteng.co https://m.stripe.network https://connect.facebook.net https://analytics.tiktok.com blob:;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://cdn.gpteng.co https://m.stripe.network https://connect.facebook.net https://analytics.tiktok.com https://www.googletagmanager.com https://www.google-analytics.com blob:;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       img-src 'self' data: blob: https: http:;
       font-src 'self' https://fonts.gstatic.com data:;
-      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://js.stripe.com https://m.stripe.network https://*.sentry.io https://cdn.gpteng.co https://*.lovable.app https://*.lovableproject.com https://lovable.dev https://api.exchangerate.host https://api.frankfurter.app https://api.frankfurter.dev https://www.facebook.com https://analytics.tiktok.com;
+      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://js.stripe.com https://m.stripe.network https://*.sentry.io https://cdn.gpteng.co https://*.lovable.app https://*.lovableproject.com https://lovable.dev https://api.exchangerate.host https://api.frankfurter.app https://api.frankfurter.dev https://www.facebook.com https://analytics.tiktok.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net;
       frame-src 'self' https://js.stripe.com https://hooks.stripe.com;
       object-src 'none';
       base-uri 'self';
@@ -49,6 +49,21 @@
     <link rel="dns-prefetch" href="//js.stripe.com" />
     <link rel="dns-prefetch" href="//m.stripe.network" />
     <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- LCP boost: preload the homepage hero image so it starts downloading
+         before the JS bundle parses the <img> tag. Uses responsive variants
+         so mobile only fetches the small WebP (~23 KB) instead of 1.5 MB. -->
+    <link
+      rel="preload"
+      as="image"
+      href="/assets/images/home_page_image-1024.webp"
+      imagesrcset="/assets/images/home_page_image-480.webp 480w, /assets/images/home_page_image-768.webp 768w, /assets/images/home_page_image-1024.webp 1024w, /assets/images/home_page_image-1280.webp 1280w, /assets/images/home_page_image-1600.webp 1600w"
+      imagesizes="(min-width: 1024px) 50vw, 100vw"
+      type="image/webp"
+      fetchpriority="high"
+    />
 
     <!-- Typography: Playfair Display (headings) + Inter (body) -->
     <link
@@ -78,6 +93,19 @@
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/favicon.png" type="image/png" />
 
+    <meta name="google-site-verification" content="6T1d52GvWn_pFrasTE_RO6xJZRMGvypdt8wVAlAoDeU" />
+    <meta name="google-site-verification" content="e-00lPp3RIcHAoPE_P4WRsIhualKmb60Br31QvtA7r8" />
+
+    <!-- Google Analytics 4 (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6NHTQM6594"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-6NHTQM6594', { anonymize_ip: true });
+      gtag('config', 'G-XMBWSC4CSJ', { anonymize_ip: true });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XMBWSC4CSJ"></script>
     <title>Rif Raw Straw - Artisanat Berbère Authentique</title>
     <meta
       name="description"
@@ -98,11 +126,12 @@
       content="Découvrez notre collection unique d'accessoires berbères, confectionnés à la main par des artisans passionnés."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/assets/images/home_page_image.webp" />
+    <meta property="og:image" content="https://rif-raw-straw.lovable.app/assets/images/home_page_image.webp" />
+    <meta property="og:url" content="https://rif-raw-straw.lovable.app/" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@rifrawstraw" />
-    <meta name="twitter:image" content="/assets/images/home_page_image.webp" />
+    <meta name="twitter:image" content="https://rif-raw-straw.lovable.app/assets/images/home_page_image.webp" />
   </head>
 
   <body>

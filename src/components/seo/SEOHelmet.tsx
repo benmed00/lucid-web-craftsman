@@ -56,7 +56,7 @@ const SEOHelmet = ({
           'durable',
           'traditionnel',
         ];
-  const siteUrl = 'https://rifrawstraw.lovable.app';
+  const siteUrl = 'https://rif-raw-straw.lovable.app';
   const fullUrl = url ? `${siteUrl}${url}` : siteUrl;
   const fullImageUrl = image.startsWith('http') ? image : `${siteUrl}${image}`;
 

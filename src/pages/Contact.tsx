@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import SEOHelmet from '@/components/seo/SEOHelmet';
+import { Helmet } from 'react-helmet-async';
 import {
   Mail,
   MapPin,
@@ -189,6 +190,40 @@ const Contact = () => {
         url="/contact"
         type="website"
       />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'LocalBusiness',
+            name: 'Rif Raw Straw',
+            url: 'https://rif-raw-straw.lovable.app/contact',
+            image: 'https://rif-raw-straw.lovable.app/favicon.png',
+            telephone: '+33 6 00 00 00 00',
+            email: 'contact@rif-elegance.com',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: 'Loire-Atlantique',
+              addressLocality: 'Nantes',
+              postalCode: '44000',
+              addressCountry: 'FR',
+            },
+            openingHoursSpecification: [
+              {
+                '@type': 'OpeningHoursSpecification',
+                dayOfWeek: [
+                  'Monday',
+                  'Tuesday',
+                  'Wednesday',
+                  'Thursday',
+                  'Friday',
+                ],
+                opens: '09:00',
+                closes: '18:00',
+              },
+            ],
+          })}
+        </script>
+      </Helmet>
 
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-20">
