@@ -13,3 +13,6 @@ export const E2E_PORT = Number.parseInt(
   10
 );
 export const E2E_PROBE_URL = `http://${E2E_HOST}:${E2E_PORT}/contact`;
+
+/** `start-server-and-test` resource string (http-get probe on SPA `/contact`). */
+export const E2E_HTTP_GET_PROBE = `http-get://${E2E_HOST}:${E2E_PORT}/contact`;
