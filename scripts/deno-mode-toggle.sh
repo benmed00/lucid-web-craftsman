@@ -66,7 +66,7 @@ LOG_OFFLINE="$LOG_DIR/offline-$TS.log"
 # ── Helpers ──────────────────────────────────────────────────────────────────
 log()  { printf '\033[1;36m[deno-toggle]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[deno-toggle]\033[0m %s\n' "$*" >&2; }
-die()  { printf '\033[1;31m[deno-toggle]\033[0m %s\n' "$*" >&2; exit "${2:-1}"; }
+die()  { printf '\033[1;31m[deno-toggle]\033[0m %s\n' "$1" >&2; exit "${2:-1}"; }
 
 require_deno() {
   command -v deno >/dev/null 2>&1 || die "deno introuvable dans le PATH" 1
