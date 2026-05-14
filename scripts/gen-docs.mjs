@@ -18,12 +18,16 @@
  * so the values cannot drift from the running code. Only literals + small
  * arithmetic (`5 * 60 * 1000`) are supported on the value side; this matches
  * what the targeted constants actually use today.
+ *
+ * After regenerating blocks, the markdown file is run through Prettier (same
+ * as `pnpm run format`) so `docs:gen:check` stays aligned with `format:check`.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
+import prettier from 'prettier';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -331,6 +335,10 @@ const BLOCKS = [
   },
 ];
 
+async function formatMarkdown(doc) {
+  return prettier.format(doc, { filepath: TARGET_DOC });
+}
+
 function replaceBlock(doc, name, body) {
   const begin = `<!-- BEGIN auto:${name} -->`;
   const end = `<!-- END auto:${name} -->`;
@@ -346,7 +354,7 @@ function replaceBlock(doc, name, body) {
   return `${before}${body}${after}`;
 }
 
-function main() {
+async function main() {
   const args = new Set(process.argv.slice(2));
   const mode = args.has('--check') ? 'check' : 'write';
   let doc = fs.readFileSync(TARGET_DOC, 'utf8');
@@ -355,8 +363,11 @@ function main() {
     const body = block.generate();
     doc = replaceBlock(doc, block.name, body);
   }
+  const formattedDoc = await formatMarkdown(doc);
+  const formattedOriginal = await formatMarkdown(original);
+
   if (mode === 'check') {
-    if (doc !== original) {
+    if (formattedDoc !== formattedOriginal) {
       process.stderr.write(
         'docs:gen drift detected. Run `pnpm run docs:gen` to update the auto-managed blocks.\n'
       );
@@ -367,8 +378,9 @@ function main() {
     );
     return;
   }
-  if (doc !== original) {
-    fs.writeFileSync(TARGET_DOC, doc, 'utf8');
+
+  if (formattedDoc !== formattedOriginal) {
+    fs.writeFileSync(TARGET_DOC, formattedDoc, 'utf8');
     process.stdout.write(`docs:gen wrote ${BLOCKS.length} block(s)\n`);
   } else {
     process.stdout.write(
@@ -377,4 +389,7 @@ function main() {
   }
 }
 
-main();
+main().catch((err) => {
+  process.stderr.write(`${err?.stack || err}\n`);
+  process.exit(1);
+});
