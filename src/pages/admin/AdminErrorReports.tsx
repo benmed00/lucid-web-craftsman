@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -388,10 +389,16 @@ const AdminErrorReports: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Search</label>
+              <Label
+                htmlFor="error-reports-search"
+                className="text-sm font-medium mb-2 block"
+              >
+                Search
+              </Label>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
+                  id="error-reports-search"
                   placeholder="Search reports..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -401,9 +408,14 @@ const AdminErrorReports: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Status</label>
+              <Label
+                htmlFor="error-reports-status"
+                className="text-sm font-medium mb-2 block"
+              >
+                Status
+              </Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
+                <SelectTrigger id="error-reports-status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -416,9 +428,14 @@ const AdminErrorReports: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Priority</label>
+              <Label
+                htmlFor="error-reports-priority"
+                className="text-sm font-medium mb-2 block"
+              >
+                Priority
+              </Label>
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger>
+                <SelectTrigger id="error-reports-priority">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -431,9 +448,14 @@ const AdminErrorReports: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Severity</label>
+              <Label
+                htmlFor="error-reports-severity"
+                className="text-sm font-medium mb-2 block"
+              >
+                Severity
+              </Label>
               <Select value={severityFilter} onValueChange={setSeverityFilter}>
-                <SelectTrigger>
+                <SelectTrigger id="error-reports-severity">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -449,14 +471,17 @@ const AdminErrorReports: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">
+              <Label
+                htmlFor="error-reports-type"
+                className="text-sm font-medium mb-2 block"
+              >
                 Error Type
-              </label>
+              </Label>
               <Select
                 value={errorTypeFilter}
                 onValueChange={setErrorTypeFilter}
               >
-                <SelectTrigger>
+                <SelectTrigger id="error-reports-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -471,9 +496,14 @@ const AdminErrorReports: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Tags</label>
+              <Label
+                htmlFor="error-reports-tags"
+                className="text-sm font-medium mb-2 block"
+              >
+                Tags
+              </Label>
               <Select value={tagFilter} onValueChange={setTagFilter}>
-                <SelectTrigger>
+                <SelectTrigger id="error-reports-tags">
                   <SelectValue placeholder="Filter by tag" />
                 </SelectTrigger>
                 <SelectContent>
@@ -488,15 +518,18 @@ const AdminErrorReports: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block flex items-center gap-2">
-                <Image className="h-4 w-4" />
+              <Label
+                htmlFor="error-reports-screenshot"
+                className="text-sm font-medium mb-2 block flex items-center gap-2"
+              >
+                <Image className="h-4 w-4" aria-hidden />
                 Screenshot
-              </label>
+              </Label>
               <Select
                 value={screenshotFilter}
                 onValueChange={setScreenshotFilter}
               >
-                <SelectTrigger>
+                <SelectTrigger id="error-reports-screenshot">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -807,10 +840,14 @@ const AdminErrorReports: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">
+                    <Label
+                      htmlFor="error-reports-add-tags"
+                      className="text-sm font-medium mb-2 block"
+                    >
                       Add Tags (comma separated)
-                    </label>
+                    </Label>
                     <Input
+                      id="error-reports-add-tags"
                       placeholder="bug, ui, mobile..."
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {

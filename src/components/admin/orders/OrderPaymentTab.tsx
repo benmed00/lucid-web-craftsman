@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -216,7 +217,10 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
       const result = await processRefund(orderId, amountCents, refundReason);
 
       if (result.success) {
-        toast.success(result.message);
+        toast.success(result.message, {
+          description:
+            'Aucun appel à l’API Stripe depuis cette app — complétez le remboursement carte dans Stripe si ce n’est pas déjà fait.',
+        });
         setRefundAmount('');
         setRefundReason('');
         fetchPayment();
@@ -495,8 +499,21 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
           {maxRefundable > 0 && (
             <>
               <Separator />
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Remboursement carte non automatisé</AlertTitle>
+                <AlertDescription>
+                  Ce formulaire met à jour uniquement l’historique interne de la
+                  commande (statut et métadonnées). Il ne débite pas la carte :
+                  utilisez le tableau de bord Stripe pour le remboursement réel,
+                  puis gardez cet enregistrement pour la cohérence avec votre
+                  base.
+                </AlertDescription>
+              </Alert>
               <div className="space-y-3">
-                <h4 className="text-sm font-medium">Nouveau remboursement</h4>
+                <h4 className="text-sm font-medium">
+                  Nouveau remboursement (suivi interne)
+                </h4>
                 <div className="grid md:grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="refund-amount" className="text-xs">
@@ -546,28 +563,30 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
                         }
                       >
                         <RefreshCw className="h-3 w-3 mr-2" />
-                        {isProcessingRefund ? 'Traitement...' : 'Rembourser'}
+                        {isProcessingRefund
+                          ? 'Traitement...'
+                          : 'Enregistrer le suivi'}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>
-                          Confirmer le remboursement
+                          Confirmer l’enregistrement interne
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                          Vous allez rembourser{' '}
-                          <strong>{refundAmount} €</strong> au client.
-                          <br />
-                          Raison: {refundReason}
-                          <br />
-                          <br />
-                          Cette action est irréversible.
+                          Enregistrer <strong>{refundAmount} €</strong> dans
+                          l’historique de cette commande (raison :{' '}
+                          {refundReason}). Aucun transfert Stripe n’est
+                          déclenché depuis cette interface — effectuez le
+                          remboursement réel dans Stripe si nécessaire. La mise
+                          à jour en base peut être corrigée manuellement par un
+                          administrateur en cas d’erreur.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Annuler</AlertDialogCancel>
                         <AlertDialogAction onClick={handleRefund}>
-                          Confirmer le remboursement
+                          Enregistrer
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -575,9 +594,8 @@ export function OrderPaymentTab({ orderId }: OrderPaymentTabProps) {
                 </div>
 
                 <p className="text-xs text-muted-foreground">
-                  Note: Le remboursement est enregistré localement. Pour
-                  exécuter le remboursement via Stripe, utilisez le tableau de
-                  bord Stripe.
+                  Pour le débit carte, ouvrez « Ouvrir Stripe » ci-dessus après
+                  avoir enregistré le suivi interne.
                 </p>
               </div>
             </>

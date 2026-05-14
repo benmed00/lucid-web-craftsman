@@ -51,6 +51,14 @@ export interface RefundRecord {
   stripe_refund_id: string | null;
 }
 
+/** Client-visible outcome for {@link processRefund} (metadata-only until Stripe Refunds API exists). */
+export interface ProcessRefundResult {
+  success: boolean;
+  message: string;
+  /** Always true until Stripe Refunds API is wired (e.g. Edge Function + service role). */
+  metadataOnly: true;
+}
+
 export interface ProductStockInfo {
   product_id: number;
   product_name: string;
@@ -344,11 +352,15 @@ export async function getOrderPaymentDetails(
   }
 }
 
+/**
+ * Records refund intent on the order (`metadata.refund_history`) and may update `order_status`.
+ * Does **not** call Stripe — execute the actual card refund in the Stripe Dashboard (or add an Edge Function).
+ */
 export async function processRefund(
   orderId: string,
   amount: number,
   reason: string
-): Promise<{ success: boolean; message: string }> {
+): Promise<ProcessRefundResult> {
   try {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) throw new Error('Not authenticated');
@@ -373,23 +385,25 @@ export async function processRefund(
       return {
         success: false,
         message: 'Le montant du remboursement doit être positif',
+        metadataOnly: true,
       };
     }
     if (totalRefunded + amount > orderAmount) {
       return {
         success: false,
         message: 'Le montant du remboursement dépasse le total de la commande',
+        metadataOnly: true,
       };
     }
 
-    // Create refund record
+    // Internal bookkeeping only until Stripe Refund API is integrated server-side
     const refundRecord: RefundRecord = {
       id: crypto.randomUUID(),
       amount,
       reason,
       processed_by: userId,
       processed_at: new Date().toISOString(),
-      stripe_refund_id: null, // Would be set by actual Stripe integration
+      stripe_refund_id: null,
     };
 
     const newRefundHistory = [...existingRefunds, refundRecord];
@@ -424,14 +438,16 @@ export async function processRefund(
 
     return {
       success: true,
+      metadataOnly: true,
       message: isFullRefund
-        ? 'Remboursement complet effectué'
-        : 'Remboursement partiel effectué',
+        ? 'Enregistrement interne : commande marquée remboursée — effectuez le remboursement carte dans Stripe.'
+        : 'Enregistrement interne : remboursement partiel noté — effectuez le remboursement carte dans Stripe.',
     };
   } catch (error) {
     console.error('Error processing refund:', error);
     return {
       success: false,
+      metadataOnly: true,
       message: 'Erreur lors du traitement du remboursement',
     };
   }

@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { formatUnknownError } from '@/lib/errors/AppError';
 import {
@@ -362,10 +363,14 @@ export const SecurityAlertsCard: React.FC = () => {
 
               {!selectedAlert.is_resolved && (
                 <div>
-                  <label className="text-sm font-medium">
+                  <Label
+                    htmlFor="security-alert-resolution-notes"
+                    className="text-sm font-medium"
+                  >
                     Notes de résolution:
-                  </label>
+                  </Label>
                   <Textarea
+                    id="security-alert-resolution-notes"
                     value={resolutionNotes}
                     onChange={(e) => setResolutionNotes(e.target.value)}
                     placeholder="Décrivez les actions prises pour résoudre cette alerte..."
