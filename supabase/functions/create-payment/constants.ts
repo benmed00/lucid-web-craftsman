@@ -17,6 +17,7 @@
  * | [`../../../docs/README.md`](../../../docs/README.md) | Repo doc index |
  * | [`../../../docs/PLATFORM.md`](../../../docs/PLATFORM.md) | SPA checkout/payment return, client ↔ Edge boundaries |
  * | [`../../../docs/STANDARDS.md`](../../../docs/STANDARDS.md) | `verify:create-payment`, API artifacts |
+ * | [`../../../docs/BUSINESS_LOGIC_AND_EDGE_CASES.md`](../../../docs/BUSINESS_LOGIC_AND_EDGE_CASES.md#5-payment-session-creation-client--edge) | Client ↔ Edge payment guards; § 5.2 constants mirror |
  * | [`../../../AGENTS.md`](../../../AGENTS.md) | Agent runbook: Deno verify commands |
  *
  * ## Related source (imports this module)
