@@ -53,11 +53,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
     <!-- LCP boost: preload the homepage hero image so it starts downloading
-         before the JS bundle parses the <img> tag. -->
+         before the JS bundle parses the <img> tag. Uses responsive variants
+         so mobile only fetches the small WebP (~23 KB) instead of 1.5 MB. -->
     <link
       rel="preload"
       as="image"
-      href="/assets/images/home_page_image.webp"
+      href="/assets/images/home_page_image-1024.webp"
+      imagesrcset="/assets/images/home_page_image-480.webp 480w, /assets/images/home_page_image-768.webp 768w, /assets/images/home_page_image-1024.webp 1024w, /assets/images/home_page_image-1280.webp 1280w, /assets/images/home_page_image-1600.webp 1600w"
+      imagesizes="(min-width: 1024px) 50vw, 100vw"
       type="image/webp"
       fetchpriority="high"
     />
