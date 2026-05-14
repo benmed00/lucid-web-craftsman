@@ -18,8 +18,14 @@ interface FakeMql extends MediaQueryList {
 
 function stubMatchMedia(initialMatches: boolean): FakeMql {
   const listeners: Listener[] = [];
+  let matches = initialMatches;
   const mql: FakeMql = {
-    matches: initialMatches,
+    get matches() {
+      return matches;
+    },
+    set matches(v: boolean) {
+      matches = v;
+    },
     media: '(max-width: 767px)',
     onchange: null,
     addEventListener: (_evt: string, cb: Listener) => listeners.push(cb),
@@ -33,10 +39,10 @@ function stubMatchMedia(initialMatches: boolean): FakeMql {
       if (i >= 0) listeners.splice(i, 1);
     },
     dispatchEvent: () => true,
-    __triggerChange(matches: boolean) {
-      this.matches = matches;
+    __triggerChange(next: boolean) {
+      matches = next;
       listeners.forEach((cb) =>
-        cb({ matches } as unknown as MediaQueryListEvent)
+        cb({ matches: next } as unknown as MediaQueryListEvent)
       );
     },
   } as unknown as FakeMql;

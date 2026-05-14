@@ -36,8 +36,9 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 vi.mock('@/stores/uiStyleStore', () => ({
-  useUIStyleStore: (selector: (s: { setUIStyle: typeof setUIStyle }) => unknown) =>
-    selector({ setUIStyle }),
+  useUIStyleStore: (
+    selector: (s: { setUIStyle: typeof setUIStyle }) => unknown
+  ) => selector({ setUIStyle }),
 }));
 
 import { useABThemeTest } from './useABThemeTest';

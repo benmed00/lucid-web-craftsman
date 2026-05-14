@@ -19,8 +19,7 @@ const { fetchAppSettingValueByKey, subscribeAppSettingByKey } = vi.hoisted(
 vi.mock('@/services/appSettingsApi', () => ({
   fetchAppSettingValueByKey: (...a: unknown[]) =>
     fetchAppSettingValueByKey(...a),
-  subscribeAppSettingByKey: (...a: unknown[]) =>
-    subscribeAppSettingByKey(...a),
+  subscribeAppSettingByKey: (...a: unknown[]) => subscribeAppSettingByKey(...a),
 }));
 
 import { useMaintenanceMode } from './useMaintenanceMode';

@@ -50,9 +50,7 @@ describe('usePullToRefresh', () => {
   it('triggers onRefresh when pulled past the threshold', async () => {
     const onRefresh = vi.fn().mockResolvedValue(undefined);
     const ref = React.createRef<Handle>();
-    const { getByTestId } = render(
-      <Harness ref={ref} onRefresh={onRefresh} />
-    );
+    const { getByTestId } = render(<Harness ref={ref} onRefresh={onRefresh} />);
     const container = getByTestId('container');
 
     // Separate act() blocks so React commits setCanPull(true) before touchmove

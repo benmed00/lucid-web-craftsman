@@ -64,9 +64,7 @@ describe('useProductFilters', () => {
       wrapper: makeWrapper(),
     });
     act(() => result.current.updateFilters({ sortBy: 'price-desc' }));
-    expect(result.current.filteredProducts.map((p) => p.id)).toEqual([
-      2, 3, 1,
-    ]);
+    expect(result.current.filteredProducts.map((p) => p.id)).toEqual([2, 3, 1]);
   });
 
   it('matches search query against name / description / category', () => {

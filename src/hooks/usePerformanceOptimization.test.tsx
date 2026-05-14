@@ -57,12 +57,21 @@ describe('useOptimizedResize', () => {
     renderHook(() => useOptimizedResize(cb, []));
 
     act(() => {
-      Object.defineProperty(window, 'innerWidth', { value: 1000, configurable: true });
-      Object.defineProperty(window, 'innerHeight', { value: 800, configurable: true });
+      Object.defineProperty(window, 'innerWidth', {
+        value: 1000,
+        configurable: true,
+      });
+      Object.defineProperty(window, 'innerHeight', {
+        value: 800,
+        configurable: true,
+      });
       window.dispatchEvent(new Event('resize'));
     });
     act(() => {
-      Object.defineProperty(window, 'innerWidth', { value: 1200, configurable: true });
+      Object.defineProperty(window, 'innerWidth', {
+        value: 1200,
+        configurable: true,
+      });
       window.dispatchEvent(new Event('resize'));
     });
 
@@ -76,9 +85,7 @@ describe('useOptimizedResize', () => {
 describe('useVirtualScrolling', () => {
   it('computes the visible window for a tall list', () => {
     const items = Array.from({ length: 1000 }, (_, i) => i);
-    const { result } = renderHook(() =>
-      useVirtualScrolling(items, 20, 200, 5)
-    );
+    const { result } = renderHook(() => useVirtualScrolling(items, 20, 200, 5));
 
     expect(result.current.totalHeight).toBe(20000);
     expect(result.current.offsetY).toBe(0);
@@ -88,9 +95,7 @@ describe('useVirtualScrolling', () => {
 
   it('shifts the window after a scroll event', () => {
     const items = Array.from({ length: 1000 }, (_, i) => i);
-    const { result } = renderHook(() =>
-      useVirtualScrolling(items, 20, 200, 0)
-    );
+    const { result } = renderHook(() => useVirtualScrolling(items, 20, 200, 0));
 
     act(() => {
       result.current.handleScroll({

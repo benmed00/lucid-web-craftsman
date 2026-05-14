@@ -106,9 +106,7 @@ describe('useDebouncedCallback', () => {
 
   it('clears the pending timer on unmount', () => {
     const fn = vi.fn();
-    const { result, unmount } = renderHook(() =>
-      useDebouncedCallback(fn, 100)
-    );
+    const { result, unmount } = renderHook(() => useDebouncedCallback(fn, 100));
 
     (result.current as () => void)();
     unmount();

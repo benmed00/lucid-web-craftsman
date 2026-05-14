@@ -23,7 +23,9 @@ const {
 } = vi.hoisted(() => ({
   useAuthMock: vi.fn(),
   fetchWishlistForUser: vi.fn(),
-  subscribeWishlistChanges: vi.fn(() => 'ch-mock'),
+  subscribeWishlistChanges: vi.fn(
+    (_userId: string, _onEvent: () => void) => 'ch-mock'
+  ),
   removeWishlistChannel: vi.fn(),
   insertWishlistItem: vi.fn(),
   deleteWishlistItem: vi.fn(),
@@ -62,11 +64,15 @@ vi.mock('@/hooks/useBusinessRules', () => ({
 }));
 
 vi.mock('@/services/wishlistApi', () => ({
-  fetchWishlistForUser: (...a: unknown[]) => fetchWishlistForUser(...a),
-  subscribeWishlistChanges: (...a: unknown[]) => subscribeWishlistChanges(...a),
-  removeWishlistChannel: (...a: unknown[]) => removeWishlistChannel(...a),
-  insertWishlistItem: (...a: unknown[]) => insertWishlistItem(...a),
-  deleteWishlistItem: (...a: unknown[]) => deleteWishlistItem(...a),
+  fetchWishlistForUser: (userId: string) => fetchWishlistForUser(userId),
+  subscribeWishlistChanges: (userId: string, onEvent: () => void) =>
+    subscribeWishlistChanges(userId, onEvent),
+  removeWishlistChannel: (channel: unknown) =>
+    removeWishlistChannel(channel as never),
+  insertWishlistItem: (userId: string, productId: number) =>
+    insertWishlistItem(userId, productId),
+  deleteWishlistItem: (userId: string, productId: number) =>
+    deleteWishlistItem(userId, productId),
 }));
 
 vi.mock('sonner', () => ({
@@ -93,7 +99,9 @@ function makeWrapper() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  useAuthMock.mockReturnValue({ user: { id: 'user-wl-1', email: 'u@test.com' } });
+  useAuthMock.mockReturnValue({
+    user: { id: 'user-wl-1', email: 'u@test.com' },
+  });
   fetchWishlistForUser.mockResolvedValue([]);
 });
 

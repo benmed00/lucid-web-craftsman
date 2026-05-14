@@ -28,7 +28,8 @@ const {
 }));
 
 vi.mock('@/services/translationService', () => ({
-  getProductWithTranslation: (...a: unknown[]) => getProductWithTranslation(...a),
+  getProductWithTranslation: (...a: unknown[]) =>
+    getProductWithTranslation(...a),
   getProductsWithTranslations: (...a: unknown[]) =>
     getProductsWithTranslations(...a),
   getBlogPostWithTranslation: (...a: unknown[]) =>

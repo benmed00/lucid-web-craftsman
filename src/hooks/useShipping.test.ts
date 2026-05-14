@@ -8,15 +8,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
-const {
-  calculateShipping,
-  getShippingZones,
-  isNantesMetropole,
-} = vi.hoisted(() => ({
-  calculateShipping: vi.fn(),
-  getShippingZones: vi.fn(),
-  isNantesMetropole: vi.fn(),
-}));
+const { calculateShipping, getShippingZones, isNantesMetropole } = vi.hoisted(
+  () => ({
+    calculateShipping: vi.fn(),
+    getShippingZones: vi.fn(),
+    isNantesMetropole: vi.fn(),
+  })
+);
 
 vi.mock('@/services/shippingService', () => ({
   shippingService: {
@@ -117,9 +115,7 @@ describe('useShipping', () => {
     const consoleErr = vi.spyOn(console, 'error').mockImplementation(() => {});
     calculateShipping.mockRejectedValue(new Error('boom'));
 
-    const { result } = renderHook(() =>
-      useShipping({ postalCode: '75001' })
-    );
+    const { result } = renderHook(() => useShipping({ postalCode: '75001' }));
     await waitFor(() => expect(result.current.error).toBe('boom'));
     expect(result.current.calculation).toBeNull();
     consoleErr.mockRestore();

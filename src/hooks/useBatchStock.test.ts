@@ -32,8 +32,9 @@ describe('useBatchStock', () => {
 
   it('returns an empty map when productIds is empty', () => {
     const emptyIds: number[] = [];
-    const { result } = renderHook(({ productIds }) =>
-      useBatchStock({ productIds }), { initialProps: { productIds: emptyIds } }
+    const { result } = renderHook(
+      ({ productIds }) => useBatchStock({ productIds }),
+      { initialProps: { productIds: emptyIds } }
     );
     expect(result.current.stockMap).toEqual({});
     expect(result.current.loading).toBe(false);

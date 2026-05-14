@@ -31,8 +31,7 @@ const {
 vi.mock('@/services/reviewsApi', () => ({
   fetchApprovedReviewsForProduct: (...a: unknown[]) =>
     fetchApprovedReviewsForProduct(...a),
-  fetchReviewHelpfulCount: (...a: unknown[]) =>
-    fetchReviewHelpfulCount(...a),
+  fetchReviewHelpfulCount: (...a: unknown[]) => fetchReviewHelpfulCount(...a),
   fetchUserReviewForProduct: (...a: unknown[]) =>
     fetchUserReviewForProduct(...a),
   incrementReviewHelpfulCount: (...a: unknown[]) =>

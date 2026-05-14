@@ -73,9 +73,7 @@ describe('useAdvancedProductFilters', () => {
       () => useAdvancedProductFilters({ products, enableAnalytics: false }),
       { wrapper: makeWrapper() }
     );
-    act(() =>
-      result.current.updateFilters({ category: ['hats'], rating: 4 })
-    );
+    act(() => result.current.updateFilters({ category: ['hats'], rating: 4 }));
     expect(result.current.activeFiltersCount).toBeGreaterThan(0);
     act(() => result.current.resetFilters());
     expect(result.current.activeFiltersCount).toBe(0);

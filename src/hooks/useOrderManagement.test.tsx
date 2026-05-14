@@ -111,12 +111,14 @@ describe('useOrders', () => {
   it('queries admin orders with filters', async () => {
     fetchAdminOrdersFiltered.mockResolvedValue([{ id: 'o1' }]);
 
-    const { result } = renderHook(() => useOrders({ status: 'paid' }), {
+    const { result } = renderHook(() => useOrders({ status: ['paid'] }), {
       wrapper: makeWrapper(),
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([{ id: 'o1' }]);
-    expect(fetchAdminOrdersFiltered).toHaveBeenCalledWith({ status: 'paid' });
+    expect(fetchAdminOrdersFiltered).toHaveBeenCalledWith({
+      status: ['paid'],
+    });
   });
 });
 
@@ -172,10 +174,18 @@ describe('useOrderHistory + useOrderAnomalies + useValidTransitions', () => {
 describe('useOrderStats', () => {
   it('aggregates the projection rows into KPI buckets', async () => {
     fetchOrderStatsProjectionRows.mockResolvedValue([
-      { order_status: 'created', has_anomaly: false, requires_attention: false },
+      {
+        order_status: 'created',
+        has_anomaly: false,
+        requires_attention: false,
+      },
       { order_status: 'paid', has_anomaly: false, requires_attention: false },
       { order_status: 'shipped', has_anomaly: true, requires_attention: false },
-      { order_status: 'delivered', has_anomaly: false, requires_attention: true },
+      {
+        order_status: 'delivered',
+        has_anomaly: false,
+        requires_attention: true,
+      },
     ]);
 
     const { result } = renderHook(() => useOrderStats(), {

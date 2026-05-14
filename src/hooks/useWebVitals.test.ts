@@ -23,9 +23,7 @@ describe('useWebVitals', () => {
       value: 'complete',
       configurable: true,
     });
-    const spy = vi
-      .spyOn(performance, 'getEntriesByType')
-      .mockReturnValue([]);
+    const spy = vi.spyOn(performance, 'getEntriesByType').mockReturnValue([]);
     const { unmount } = renderHook(() => useWebVitals());
     await waitFor(
       () => {

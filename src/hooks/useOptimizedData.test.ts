@@ -56,9 +56,7 @@ describe('useOptimizedQuery', () => {
     await act(async () => {
       await result.current.refetch();
     });
-    await waitFor(() =>
-      expect(result.current.data).toEqual({ ok: false })
-    );
+    await waitFor(() => expect(result.current.data).toEqual({ ok: false }));
   });
 });
 
@@ -86,7 +84,9 @@ describe('useOptimizedOrders', () => {
     fetchUserOrdersWithShipmentsAndItems.mockResolvedValue([{ id: 'o1' }]);
     const { result } = renderHook(() => useOptimizedOrders('user-99'));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(fetchUserOrdersWithShipmentsAndItems).toHaveBeenCalledWith('user-99');
+    expect(fetchUserOrdersWithShipmentsAndItems).toHaveBeenCalledWith(
+      'user-99'
+    );
     expect(result.current.data).toEqual([{ id: 'o1' }]);
   });
 });

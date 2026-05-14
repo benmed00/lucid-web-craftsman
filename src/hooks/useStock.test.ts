@@ -50,7 +50,13 @@ describe('useStock', () => {
   });
 
   it('fetches single-product stock after the 50 ms debounce', async () => {
-    const info = { available: 5, isLow: false, isOutOfStock: false, canOrder: true, maxQuantity: 5 };
+    const info = {
+      available: 5,
+      isLow: false,
+      isOutOfStock: false,
+      canOrder: true,
+      maxQuantity: 5,
+    };
     getStockInfo.mockResolvedValue(info);
 
     const { result } = renderHook(() => useStock({ productId: 7 }));
@@ -68,8 +74,20 @@ describe('useStock', () => {
 
   it('fetches batched stock info when productIds is provided', async () => {
     const map = {
-      1: { available: 3, isLow: false, isOutOfStock: false, canOrder: true, maxQuantity: 3 },
-      2: { available: 0, isLow: false, isOutOfStock: true, canOrder: false, maxQuantity: 0 },
+      1: {
+        available: 3,
+        isLow: false,
+        isOutOfStock: false,
+        canOrder: true,
+        maxQuantity: 3,
+      },
+      2: {
+        available: 0,
+        isLow: false,
+        isOutOfStock: true,
+        canOrder: false,
+        maxQuantity: 0,
+      },
     };
     getMultipleStockInfo.mockResolvedValue(map);
 

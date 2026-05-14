@@ -5,7 +5,7 @@
  * Run: npx vitest run src/hooks/useCsrfToken.test.ts
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useCsrfToken } from './useCsrfToken';
 
@@ -47,9 +47,7 @@ describe('useCsrfToken', () => {
     );
 
     const { result } = renderHook(() => useCsrfToken());
-    await waitFor(() =>
-      expect(result.current.csrfToken).toBe('stored-token')
-    );
+    await waitFor(() => expect(result.current.csrfToken).toBe('stored-token'));
     expect(result.current.csrfNonce).toBe('stored-nonce');
   });
 

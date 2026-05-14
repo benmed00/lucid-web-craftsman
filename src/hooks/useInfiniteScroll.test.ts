@@ -14,7 +14,10 @@ class FakeIntersectionObserver {
   observe = vi.fn();
   unobserve = vi.fn();
   disconnect = vi.fn();
-  constructor(_cb: IntersectionObserverCallback, _opts?: IntersectionObserverInit) {}
+  constructor(
+    _cb: IntersectionObserverCallback,
+    _opts?: IntersectionObserverInit
+  ) {}
   takeRecords(): IntersectionObserverEntry[] {
     return [];
   }

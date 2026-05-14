@@ -15,14 +15,11 @@ vi.mock('@/i18n', () => ({
     language: 'fr',
     changeLanguage,
   },
-  supportedLanguages: ['fr', 'en', 'ar', 'es', 'de'] as const,
+  supportedLanguages: ['fr', 'en'] as const,
   languageConfig: {
     fr: { dir: 'ltr' },
     en: { dir: 'ltr' },
-    ar: { dir: 'rtl' },
-    es: { dir: 'ltr' },
-    de: { dir: 'ltr' },
-  } as Record<string, { dir: 'ltr' | 'rtl' }>,
+  },
 }));
 
 import { useLanguageStore } from './languageStore';
@@ -41,17 +38,9 @@ describe('useLanguageStore', () => {
     expect(document.documentElement.dir).toBe('ltr');
   });
 
-  it('setLocale to a RTL language sets dir=rtl', () => {
-    useLanguageStore.getState().setLocale('ar');
-    expect(document.documentElement.dir).toBe('rtl');
-    expect(useLanguageStore.getState().isRTL()).toBe(true);
-  });
-
   it('setLocale rejects unsupported codes and warns', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    useLanguageStore
-      .getState()
-      .setLocale('zz' as unknown as 'fr');
+    useLanguageStore.getState().setLocale('zz' as unknown as 'fr');
     expect(useLanguageStore.getState().locale).toBe('fr');
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();

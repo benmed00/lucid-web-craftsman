@@ -44,9 +44,7 @@ describe('useCompanySettings', () => {
     expect(result.current.settings.address.city).toBe('Rabat');
     expect(result.current.settings.address.country).toBe('Morocco');
     expect(result.current.settings.address.postalCode).toBe('44400');
-    expect(result.current.settings.openingHours.sunday).toBe(
-      'Dimanche: Fermé'
-    );
+    expect(result.current.settings.openingHours.sunday).toBe('Dimanche: Fermé');
   });
 
   it('falls back to defaults on service error', async () => {

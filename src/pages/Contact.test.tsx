@@ -9,6 +9,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import Contact from './Contact';
 
 vi.mock('@/hooks/useCompanySettings', () => ({
@@ -94,9 +95,11 @@ describe('Contact page', () => {
 
   it('renders hero, form fields, submit control, and map section', async () => {
     render(
-      <MemoryRouter future={futureFlags}>
-        <Contact />
-      </MemoryRouter>
+      <HelmetProvider>
+        <MemoryRouter future={futureFlags}>
+          <Contact />
+        </MemoryRouter>
+      </HelmetProvider>
     );
 
     expect(

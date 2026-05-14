@@ -33,9 +33,7 @@ describe('useProfileActions', () => {
       email: 't@test.com',
     });
 
-    const { result } = renderHook(() =>
-      useProfileActions('u1', setProfile)
-    );
+    const { result } = renderHook(() => useProfileActions('u1', setProfile));
 
     await act(async () => {
       await result.current.loadUserProfile('u1');
@@ -51,9 +49,7 @@ describe('useProfileActions', () => {
     const setProfile = vi.fn();
     fetchProfileFullById.mockResolvedValue({ id: 'u2', full_name: 'Cached' });
 
-    const { result } = renderHook(() =>
-      useProfileActions('u2', setProfile)
-    );
+    const { result } = renderHook(() => useProfileActions('u2', setProfile));
 
     await act(async () => {
       await result.current.loadUserProfile('u2');

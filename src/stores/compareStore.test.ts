@@ -35,8 +35,6 @@ describe('useCompareStore', () => {
   it('addItem accepts up to 3 products and rejects duplicates and overflow', () => {
     const { result } = renderHook(() => useCompareStore());
 
-    expect(act(() => useCompareStore.getState().addItem(product(1)))).not
-      .toThrow;
     act(() => {
       useCompareStore.getState().addItem(product(1));
       useCompareStore.getState().addItem(product(2));

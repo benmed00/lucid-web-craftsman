@@ -73,7 +73,9 @@ describe('useDebouncedCartSave', () => {
   });
 
   it('persists to safe storage for guests after delay', async () => {
-    const spy = vi.spyOn(safeStorage, 'safeSetItem').mockImplementation(() => {});
+    const spy = vi
+      .spyOn(safeStorage, 'safeSetItem')
+      .mockImplementation(() => true);
     const items: CartItem[] = [
       {
         id: 1,
