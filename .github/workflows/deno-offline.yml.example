@@ -1,0 +1,128 @@
+name: Deno offline (air-gapped)
+
+# Job de garde "air-gapped" : prouve que les tests Deno tournent SANS réseau.
+# - DENO_OFFLINE=1 force Deno à n'utiliser QUE le cache local (DENO_DIR).
+# - --cached-only (ceinture + bretelles) refuse tout fetch distant.
+# - env -i vide l'environnement : pas de HTTP_PROXY, pas de DENO_CERT, rien.
+# - On capture stdout/stderr + on scanne a posteriori toute trace réseau.
+#
+# Si l'un de ces signaux apparaît dans les logs, le job échoue :
+#   - "Download https?://..."          (Deno tente un fetch)
+#   - "error sending request"          (échec réseau réel)
+#   - "Network is unreachable" / "dns error" / "tcp connect error"
+#
+# Pré-requis : le cache Deno doit être pré-hydraté et committé OU restauré
+# depuis un artifact (voir scripts/verify-pricing-snapshot-offline.mjs).
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deno-offline-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deno-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      # Cache Deno embarqué dans le repo (ou restauré via actions/cache).
+      DENO_DIR: ${{ github.workspace }}/.deno-cache
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      # Optionnel : restaurer un cache pré-hydraté depuis une étape amont.
+      # - uses: actions/cache@v4
+      #   with:
+      #     path: ${{ env.DENO_DIR }}
+      #     key: deno-cache-${{ hashFiles('supabase/functions/**/deno.json', 'deno.lock') }}
+
+      - name: Vérifier la présence du cache Deno
+        run: |
+          set -euo pipefail
+          if [[ ! -d "$DENO_DIR" ]] || [[ -z "$(ls -A "$DENO_DIR" 2>/dev/null)" ]]; then
+            echo "::error::DENO_DIR vide ($DENO_DIR). Hydrate le cache avant ce job."
+            exit 1
+          fi
+          echo "✓ Cache Deno présent ($(du -sh "$DENO_DIR" | cut -f1))"
+
+      - name: Run Deno tests in offline mode
+        id: offline_run
+        shell: bash
+        run: |
+          set -uo pipefail
+          LOG="${RUNNER_TEMP}/deno-offline.log"
+
+          # env -i : on repart d'un environnement VIDE.
+          # On ré-injecte UNIQUEMENT ce qui est strictement nécessaire :
+          #   - PATH (pour trouver deno)
+          #   - HOME (Deno y écrit des metadata)
+          #   - DENO_DIR (cache pré-hydraté)
+          #   - DENO_OFFLINE=1 (refuse tout fetch)
+          # Pas de HTTP_PROXY, HTTPS_PROXY, NO_PROXY, DENO_CERT, DENO_AUTH_TOKENS.
+          set +e
+          env -i \
+            PATH="$PATH" \
+            HOME="$HOME" \
+            DENO_DIR="$DENO_DIR" \
+            DENO_OFFLINE=1 \
+            deno test \
+              --cached-only \
+              --no-check \
+              --config supabase/functions/deno.json \
+              supabase/functions/_shared/pricing-snapshot_test.ts \
+              supabase/functions/_shared/pricing_snapshot_golden_test.ts \
+              supabase/functions/_shared/pricing_snapshot_extended_test.ts \
+              supabase/functions/_shared/persist-pricing-snapshot_test.ts \
+              supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts \
+              supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts \
+              2>&1 | tee "$LOG"
+          DENO_RC=${PIPESTATUS[0]}
+          set -e
+
+          echo "deno_rc=$DENO_RC" >> "$GITHUB_OUTPUT"
+          echo "log=$LOG"        >> "$GITHUB_OUTPUT"
+
+          if [[ "$DENO_RC" -ne 0 ]]; then
+            echo "::error::Deno a échoué en mode offline (exit $DENO_RC)."
+            exit "$DENO_RC"
+          fi
+
+      - name: Scan logs for network attempts
+        shell: bash
+        run: |
+          set -euo pipefail
+          LOG="${{ steps.offline_run.outputs.log }}"
+
+          # Patterns réseau interdits (Deno + erreurs OS/TLS courantes).
+          PATTERN='Download https?://|error sending request|error trying to connect|Network is unreachable|tcp connect error|dns error|UnknownIssuer|invalid peer certificate|Connection refused|Temporary failure in name resolution'
+
+          if rg -n --no-heading -e "$PATTERN" "$LOG"; then
+            echo ""
+            echo "::error::Tentative réseau détectée pendant un job air-gapped."
+            echo "→ Hydrate le cache Deno (DENO_DIR) ou retire la dépendance distante."
+            exit 1
+          fi
+          echo "✓ Aucune trace réseau dans les logs — air-gapped OK."
+
+      - name: Upload offline log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deno-offline-log
+          path: ${{ steps.offline_run.outputs.log }}
+          if-no-files-found: ignore
+          retention-days: 14
