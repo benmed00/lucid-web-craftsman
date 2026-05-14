@@ -1,6 +1,9 @@
 /**
  * Centralized Application Configuration
  * Single source of truth for all app settings, CSP, and environment config
+ *
+ * @see docs/RULES_REGISTRY.md#4-runtime-app-configuration-browser
+ * @see docs/BUSINESS_LOGIC_AND_EDGE_CASES.md#103-currency--fx
  */
 
 // Environment detection
@@ -43,6 +46,27 @@ export const EXTERNAL_SERVICES = {
   },
 } as const;
 
+/** HTTPS origin for Supabase (uses `VITE_SUPABASE_URL` when set, else baked fallback). */
+export function getSupabaseHttpOrigin(): string {
+  const raw = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  if (raw?.trim()) {
+    try {
+      return new URL(raw.trim()).origin;
+    } catch {
+      /* fall through */
+    }
+  }
+  return new URL(EXTERNAL_SERVICES.supabase.url).origin;
+}
+
+/** WebSocket origin for Supabase Realtime. */
+export function getSupabaseWsOrigin(): string {
+  return getSupabaseHttpOrigin().replace(/^https:/i, 'wss:');
+}
+
+const SUPABASE_HTTP_ORIGIN = getSupabaseHttpOrigin();
+const SUPABASE_WS_ORIGIN = getSupabaseWsOrigin();
+
 /**
  * Frankfurter does not send Access-Control-Allow-Origin; Vite dev/preview proxies
  * `/frankfurter-api` to avoid browser CORS. Vitest uses the real URL (Node fetch).
@@ -67,6 +91,9 @@ export function frankfurterApiBase(): string {
 }
 
 // Content Security Policy configuration
+//
+// Long-term: tighten script-src by replacing 'unsafe-inline' / 'unsafe-eval' with nonces or hashes
+// generated at build time and injected into index.html (Vite + Stripe embed constraints need validation).
 export const CSP_CONFIG = {
   'default-src': ["'self'"],
   'script-src': [
@@ -79,12 +106,21 @@ export const CSP_CONFIG = {
     'blob:',
   ],
   'style-src': ["'self'", "'unsafe-inline'", EXTERNAL_SERVICES.fonts.google],
-  'img-src': ["'self'", 'data:', 'blob:', 'https:', 'http:'],
+  // No blanket http:; https: retained for arbitrary product/media URLs from CMS — narrow when inventory is fixed.
+  'img-src': [
+    "'self'",
+    'data:',
+    'blob:',
+    SUPABASE_HTTP_ORIGIN,
+    EXTERNAL_SERVICES.lovable.cdn,
+    EXTERNAL_SERVICES.fonts.gstatic,
+    'https:',
+  ],
   'font-src': ["'self'", EXTERNAL_SERVICES.fonts.gstatic, 'data:'],
   'connect-src': [
     "'self'",
-    'https://*.supabase.co',
-    'wss://*.supabase.co',
+    SUPABASE_HTTP_ORIGIN,
+    SUPABASE_WS_ORIGIN,
     EXTERNAL_SERVICES.stripe.api,
     EXTERNAL_SERVICES.stripe.js,
     EXTERNAL_SERVICES.stripe.network,
