@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://rifrawstraw.lovable.app/sitemap.xml
+Sitemap: https://rif-raw-straw.lovable.app/sitemap.xml
 
 # Crawl-delay for respectful crawling
 Crawl-delay: 1
