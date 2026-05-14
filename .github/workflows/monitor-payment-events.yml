@@ -1,4 +1,4 @@
-# Polls monitor-payment-events every 5 minutes (10-minute lookback window).
+# Polls monitor-payment-events on a 15-minute schedule (10-minute lookback window in the function query).
 # Requires repo secrets: SUPABASE_URL, SUPABASE_ANON_KEY, MONITOR_PAYMENT_EVENTS_TOKEN
 # (set MONITOR_PAYMENT_EVENTS_TOKEN in Supabase Function secrets to match).
 name: Monitor payment events
@@ -9,7 +9,8 @@ concurrency:
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    # Was */5 (~8.7k runs/mo); 15m reduces Actions noise while keeping a timely probe window.
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 permissions:
