@@ -16,11 +16,11 @@
       content="
       default-src 'self';
       manifest-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://cdn.gpteng.co https://m.stripe.network https://connect.facebook.net https://analytics.tiktok.com blob:;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://cdn.gpteng.co https://m.stripe.network https://connect.facebook.net https://analytics.tiktok.com https://www.googletagmanager.com https://www.google-analytics.com blob:;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       img-src 'self' data: blob: https: http:;
       font-src 'self' https://fonts.gstatic.com data:;
-      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://js.stripe.com https://m.stripe.network https://*.sentry.io https://cdn.gpteng.co https://*.lovable.app https://*.lovableproject.com https://lovable.dev https://api.exchangerate.host https://api.frankfurter.app https://api.frankfurter.dev https://www.facebook.com https://analytics.tiktok.com;
+      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://js.stripe.com https://m.stripe.network https://*.sentry.io https://cdn.gpteng.co https://*.lovable.app https://*.lovableproject.com https://lovable.dev https://api.exchangerate.host https://api.frankfurter.app https://api.frankfurter.dev https://www.facebook.com https://analytics.tiktok.com https://www.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net;
       frame-src 'self' https://js.stripe.com https://hooks.stripe.com;
       object-src 'none';
       base-uri 'self';
@@ -79,6 +79,15 @@
     <link rel="icon" href="/favicon.png" type="image/png" />
 
     <meta name="google-site-verification" content="6T1d52GvWn_pFrasTE_RO6xJZRMGvypdt8wVAlAoDeU" />
+
+    <!-- Google Analytics 4 (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6NHTQM6594"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-6NHTQM6594', { anonymize_ip: true });
+    </script>
     <title>Rif Raw Straw - Artisanat Berbère Authentique</title>
     <meta
       name="description"
