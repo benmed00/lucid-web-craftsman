@@ -109,6 +109,16 @@
     "docs:gen:check": "node scripts/gen-docs.mjs --check",
     "docs:typedoc": "typedoc",
     "ci:local": "pnpm run lint && pnpm run format:check && pnpm run check:edge-functions:bundling:full && pnpm run openapi:edge-functions:check && pnpm run postman:collection:check && pnpm run type:check && pnpm run test:unit && cross-env VITE_SUPABASE_URL=https://test.supabase.co VITE_SUPABASE_PUBLISHABLE_KEY=test-anon-key-for-ci pnpm run build",
+    "pr:enterprise": "node scripts/run-gh-enterprise.mjs",
+    "pr:enterprise:labels": "node scripts/run-gh-enterprise.mjs labels",
+    "pr:enterprise:labels:sh": "bash docs/gh-labels-enterprise-pr.sh",
+    "pr:enterprise:labels:ps1": "powershell.exe -ExecutionPolicy Bypass -NoProfile -File docs/gh-labels-enterprise-pr.ps1",
+    "pr:enterprise:issues": "node scripts/run-gh-enterprise.mjs issues",
+    "pr:enterprise:issues:sh": "bash docs/gh-issues-enterprise-platform.sh",
+    "pr:enterprise:issues:ps1": "powershell.exe -ExecutionPolicy Bypass -NoProfile -File docs/gh-issues-enterprise-platform.ps1",
+    "pr:enterprise:issues:dry": "node scripts/run-gh-enterprise.mjs issues --dry",
+    "pr:enterprise:issues:dry:sh": "cross-env DRY_RUN=1 bash docs/gh-issues-enterprise-platform.sh",
+    "pr:enterprise:issues:dry:ps1": "powershell.exe -ExecutionPolicy Bypass -NoProfile -File docs/gh-issues-enterprise-platform.ps1 -DryRun",
     "prepare": "husky"
   },
   "dependencies": {

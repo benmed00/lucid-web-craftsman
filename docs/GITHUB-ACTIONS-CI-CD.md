@@ -16,6 +16,18 @@ This document **concludes** the CI/CD audit work for this repo: workflow invento
 - [ ] Retired long-lived branches are removed from [ci.yml](../.github/workflows/ci.yml) / [deno-create-payment.yml](../.github/workflows/deno-create-payment.yml).
 - [ ] Optional YAML widenings (CI/E2E bases, Monitor cron) are either **rejected** or tracked as **separate PRs** with KPI before/after.
 
+### Closure plan implementation (`implement_ci_cd_audit_closure`)
+
+**Recorded in-repo (automation pass):**
+
+- [x] This file is the **single** workflow inventory + KPI methodology reference (Cursor plan Markdown is not the product).
+- [x] **Metrics snapshot** below refreshed from `gh run list` against default branch `benmed00/lucid-web-craftsman`.
+- [x] **Refresh cadence:** update the snapshot table and **Last refreshed** after **every** `.github/workflows/*.yml` edit, else at least **monthly**.
+- [x] **Actions minutes:** not queried from the API here — see [KPIs](#kpis--baseline-targets-and-regression-ceilings) row (**org owners**: GitHub Billing / usage UI).
+- [x] **Optional workflow YAML:** no branch widenings and no Monitor cron change in this pass — remains **deferred** until maintainers decide (same table as [Optional workflow YAML changes](#optional-workflow-yaml-changes-deferred-policy)).
+
+Leave the three **Team sign-off** boxes above for humans to tick after review.
+
 ---
 
 ## Workflow inventory
@@ -136,25 +148,27 @@ GitHub: `pull_request.branches` / `push.branches` are the **base branch** (for P
 
 Repo-defined triggers and behavior:
 
-| Workflow                | Triggers                                                                 | Jobs                       | Secrets                         | Artifacts on failure            |
-| ----------------------- | ------------------------------------------------------------------------ | -------------------------- | ------------------------------- | ------------------------------- |
-| **CI**                  | `push`/`pull_request` on the three allowlisted branches                  | 1 job                      | None in YAML                    | None                            |
-| **E2E**                 | `push`/`pull_request` on **main** only; `workflow_dispatch`; weekly full | Smoke 1 job; full 2 shards | `CYPRESS_*` ×4                  | Cypress screenshots             |
-| **Deno create-payment** | Same branches as CI                                                      | 1 job                      | None                            | `pricing-snapshot-guard-report` |
-| **Monitor**             | Cron `*/5 * * * *`; `workflow_dispatch`                                  | 1 job                      | Supabase URL/key, monitor token | None                            |
+| Workflow                | Triggers                                                                                           | Jobs                       | Secrets                            | Artifacts on failure            |
+| ----------------------- | -------------------------------------------------------------------------------------------------- | -------------------------- | ---------------------------------- | ------------------------------- |
+| **CI**                  | `push`/`pull_request` on the three allowlisted branches                                            | 1 job                      | None in YAML                       | None                            |
+| **E2E**                 | `push`/`pull_request` on **main** only; `workflow_dispatch`; weekly full                           | Smoke 1 job; full 2 shards | `CYPRESS_*` ×4                     | Cypress screenshots             |
+| **Deno create-payment** | Same branches as CI                                                                                | 1 job                      | None                               | `pricing-snapshot-guard-report` |
+| **Monitor**             | Cron `*/5 * * * *`; `workflow_dispatch`                                                            | 1 job                      | Supabase URL/key, monitor token    | None                            |
+| **PostgREST RPC smoke** | `workflow_dispatch` only ([rpc-postgrest-smoke.yml](../.github/workflows/rpc-postgrest-smoke.yml)) | 1 job                      | Repo secrets per workflow comments | Vitest logs / artifacts         |
 
 ### Snapshot: last 30 runs per workflow (GitHub API via `gh`)
 
-**Last refreshed:** 2026-05-09 (closure pass; re-run the commands below to update). **Repo:** `benmed00/lucid-web-craftsman` · **Window:** last 30 completed workflow runs per file (`gh run list`).
+**Last refreshed:** 2026-05-14. **Repo:** `benmed00/lucid-web-craftsman` (default branch) · **Window:** last 30 completed workflow runs per file (`gh run list`).
 
-| Workflow                   | Success | Failure | Cancelled | Fail % (fail / (fail+success)) | Median duration (all runs) | Median duration (success only) | P90 duration (success only) |
-| -------------------------- | ------- | ------- | --------- | ------------------------------ | -------------------------- | ------------------------------ | --------------------------- |
-| **CI**                     | 7       | 21      | 2         | **75%**                        | ~0.8 min                   | ~2.3 min                       | ~2.5 min                    |
-| **E2E**                    | 12      | 4       | 14        | **25%**                        | ~2.4 min                   | ~8.3 min                       | ~8.6 min                    |
-| **Deno create-payment**    | 30      | 0       | 0         | **0%**                         | ~0.4 min                   | ~0.4 min                       | ~0.6 min                    |
-| **Monitor payment events** | 30      | 0       | 0         | **0%**                         | ~0.2 min                   | ~0.2 min                       | ~0.3 min                    |
+| Workflow                   | Success | Failure | Cancelled | Fail % (fail / (fail+success))                                                                       | Median duration (all runs) | Median duration (success only) | P90 duration (success only) |
+| -------------------------- | ------- | ------- | --------- | ---------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------ | --------------------------- |
+| **CI**                     | 0       | 29      | 1         | **100%**                                                                                             | ~0.75 min                  | —                              | —                           |
+| **E2E**                    | 5       | 1       | 24        | **16.7%**                                                                                            | ~3.6 min                   | ~8.6 min                       | ~8.6 min                    |
+| **Deno create-payment**    | 29      | 0       | 1         | **0%**                                                                                               | ~0.4 min                   | ~0.4 min                       | ~0.53 min                   |
+| **Monitor payment events** | 30      | 0       | 0         | **0%**                                                                                               | ~0.2 min                   | ~0.2 min                       | ~0.23 min                   |
+| **PostgREST RPC smoke**    | —       | —       | —         | _(no workflow on default branch in GitHub — file may be only on newer commits; refresh after merge)_ | —                          | —                              | —                           |
 
-**Interpretation:** Short **median wall time on failing CI** runs usually means **fail-fast** (early step). Use **success-only** duration as “typical green CI” (~2.3 min in this snapshot). **E2E** has many **cancelled** runs (concurrency `cancel-in-progress`); fail % is over non-cancelled outcomes only.
+**Interpretation:** CI **median ~0.75 min** on failing runs = **fail-fast** (typically **Format check** or lint). Recent default-branch sample run **`25862081205`** still failed at **`Format check`** until Prettier-fixed commits are merged and runs turn green again. **E2E**: many **cancelled** runs; fail % excludes cancelled outcomes.
 
 **Refresh locally:**
 
@@ -163,7 +177,7 @@ Repo-defined triggers and behavior:
 gh run list --workflow ci.yml --limit 30 --json conclusion,startedAt,updatedAt
 ```
 
-Repeat for `e2e.yml`, `deno-create-payment.yml`, `monitor-payment-events.yml`.
+Repeat for `e2e.yml`, `deno-create-payment.yml`, `monitor-payment-events.yml`, and `rpc-postgrest-smoke.yml` once that workflow exists on the default branch.
 
 ### CI failure triage (sampled)
 
@@ -173,9 +187,13 @@ For **`benmed00/lucid-web-craftsman`**, run **`25406442354`** (failed **2026-05-
 
 **Cadence:** After fixing formatting on default branch, re-sample **`gh run list --workflow ci.yml`** and update the [snapshot table](#snapshot-last-30-runs-per-workflow-github-api-via-gh)—fail % should drop once greens outnumber historic reds.
 
+**Update 2026-05-14:** Latest sampled run **`25862081205`** also failed at **`Format check`** — merge branches that include formatted docs/sources, then refresh the snapshot.
+
 ---
 
 ## Optional workflow YAML changes (deferred policy)
+
+**This closure pass:** no edits to [.github/workflows/ci.yml](../.github/workflows/ci.yml), [e2e.yml](../.github/workflows/e2e.yml), or [monitor-payment-events.yml](../.github/workflows/monitor-payment-events.yml). Widenings remain **policy-only** below.
 
 The audit **does not require** edits to `.github/workflows/*.yml`. Implement only via **focused PRs** after explicit decision:
 
@@ -214,18 +232,25 @@ Record any YAML change in a PR that updates **this file’s KPI snapshot** after
 
 Replace **snapshot** rows after each workflow change. **Plafonds** trigger review or revert per team process.
 
-| Metric                            | Window   | Baseline (snapshot 2026-05-09)                                              | Target (after a deliberate change)      | Max acceptable regression            |
-| --------------------------------- | -------- | --------------------------------------------------------------------------- | --------------------------------------- | ------------------------------------ |
-| Median CI duration (success only) | 30 runs  | ~2.3 min                                                                    | e.g. −10% vs new baseline               | +15% vs baseline                     |
-| P90 CI duration (success only)    | 30 runs  | ~2.5 min                                                                    | Improve or hold                         | +20% vs baseline                     |
-| CI fail % (excl. cancelled)       | 30 runs  | **75%**                                                                     | Reduce toward org target (e.g. &lt;10%) | +5 pts absolute vs post-fix baseline |
-| Median E2E smoke (success only)   | 30 runs  | ~8.3 min                                                                    | Hold or −10%                            | +25%                                 |
-| E2E fail % (excl. cancelled)      | 30 runs  | **25%**                                                                     | Reduce flake / infra noise              | +5 pts or “3 flakes/week” policy     |
-| Deno workflow fail %              | 30 runs  | 0%                                                                          | ≤ baseline                              | +3 pts (stricter: any sustained red) |
-| Monitor runs/month                | calendar | ~8 640 @ 5 min                                                              | Lower only if SLO allows                | N/A — track **max detection delay**  |
-| Actions minutes (org billing)     | month    | TBD — record once from GitHub **Settings → Billing → Minutes** (org owners) | e.g. −10–20% if optimizing              | +10% if goal was reduction           |
+| Metric                            | Window   | Baseline (snapshot 2026-05-14)                                                                                                                                                                       | Target (after a deliberate change)   | Max acceptable regression            |
+| --------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------ |
+| Median CI duration (success only) | 30 runs  | _No successes in window — unblock Format check then re-sample_                                                                                                                                       | e.g. −10% vs new baseline            | +15% vs baseline                     |
+| P90 CI duration (success only)    | 30 runs  | _N/A until CI green again_                                                                                                                                                                           | Improve or hold                      | +20% vs baseline                     |
+| CI fail % (excl. cancelled)       | 30 runs  | **100%** (0 success / 29 failure in sample)                                                                                                                                                          | Reduce toward org target (under 10%) | +5 pts absolute vs post-fix baseline |
+| Median E2E smoke (success only)   | 30 runs  | ~8.6 min                                                                                                                                                                                             | Hold or −10%                         | +25%                                 |
+| E2E fail % (excl. cancelled)      | 30 runs  | **16.7%**                                                                                                                                                                                            | Reduce flake / infra noise           | +5 pts or “3 flakes/week” policy     |
+| Deno workflow fail %              | 30 runs  | 0%                                                                                                                                                                                                   | ≤ baseline                           | +3 pts (stricter: any sustained red) |
+| Monitor runs/month                | calendar | ~8 640 @ 5 min                                                                                                                                                                                       | Lower only if SLO allows             | N/A — track **max detection delay**  |
+| Actions minutes (org billing)     | month    | **Not stored in-repo** — org owners: **GitHub → Settings → Billing → Plans and usage** (or org billing) → **Actions** usage; optionally paste monthly total into internal notes — not committed here | e.g. −10–20% if optimizing           | +10% if goal was reduction           |
 
 **Decision rule (recommended):** If **two** of: median CI (success), CI fail %, E2E smoke fail % breach their ceiling over the agreed window → **fallback** (revert or corrective PR).
+
+### Definition of done (closure checklist)
+
+- [ ] **Team sign-off** — tick the three items in the **Team sign-off checklist** at the top of this doc once reviewed.
+- [ ] **CI trending green** — default branch passes **Format check** and later steps; re-sample fail % vs **100%** window above.
+- [ ] **Metrics** — **Last refreshed** updated after merges or monthly (this pass set **2026-05-14**).
+- [ ] **Actions minutes** — optional numeric note from Billing maintained outside git or internal wiki only.
 
 ---
 
@@ -257,12 +282,13 @@ Replace **snapshot** rows after each workflow change. **Plafonds** trigger revie
 
 ## Change impact — surface and blast radius
 
-| File                         | Who is affected                     | Blast radius                                     |
-| ---------------------------- | ----------------------------------- | ------------------------------------------------ |
-| `ci.yml`                     | All merges gated by CI              | High                                             |
-| `e2e.yml`                    | Release confidence / UI regressions | Medium–high                                      |
-| `deno-create-payment.yml`    | Edge/pricing paths                  | Medium                                           |
-| `monitor-payment-events.yml` | Ops alerting (not app compile)      | Low on code; **high** if alerts are wrong/missed |
+| File                         | Who is affected                     | Blast radius                                      |
+| ---------------------------- | ----------------------------------- | ------------------------------------------------- |
+| `ci.yml`                     | All merges gated by CI              | High                                              |
+| `e2e.yml`                    | Release confidence / UI regressions | Medium–high                                       |
+| `deno-create-payment.yml`    | Edge/pricing paths                  | Medium                                            |
+| `monitor-payment-events.yml` | Ops alerting (not app compile)      | Low on code; **high** if alerts are wrong/missed  |
+| `rpc-postgrest-smoke.yml`    | Manual RPC smoke testers            | Low frequency; secrets / real DB if misconfigured |
 
 ---
 
