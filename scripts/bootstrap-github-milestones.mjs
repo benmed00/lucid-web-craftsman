@@ -44,7 +44,12 @@ function ghApi(args, input) {
 }
 
 function listMilestones(repo) {
-  const r = ghApi([`repos/${repo}/milestones`, '--paginate']);
+  const r = ghApi([
+    `repos/${repo}/milestones`,
+    '--paginate',
+    '-f',
+    'state=all',
+  ]);
   return JSON.parse(r.stdout || '[]');
 }
 
