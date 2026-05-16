@@ -15,8 +15,9 @@ import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 // they read `Deno.env` at import time.
 Deno.env.set('INVOICE_SIGNING_SECRET', 'test-secret-for-unit-tests');
 
-const { signOrderToken, signToken, verifyTokenPayload } =
-  await import('../_shared/invoice/token.ts');
+const { signOrderToken, signToken, verifyTokenPayload } = await import(
+  '../_shared/invoice/token.ts'
+);
 const {
   handleRequest,
   ORDER_SELECT,
@@ -28,8 +29,9 @@ const {
   pickPublicOrderMetadata,
   pickPublicShippingAddress,
 } = await import('./handler.ts');
-const { __resetRateLimitStore } =
-  await import('../_shared/rate-limit/rate-limit.ts');
+const { __resetRateLimitStore } = await import(
+  '../_shared/rate-limit/rate-limit.ts'
+);
 
 // ---------------------------------------------------------------------------
 // Token layer (pre-existing coverage — kept as-is)

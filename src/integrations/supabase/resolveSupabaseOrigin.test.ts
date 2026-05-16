@@ -14,8 +14,9 @@ describe('resolveSupabaseOrigin', () => {
 
   it('uses fallback when VITE_SUPABASE_URL is empty', async () => {
     vi.stubEnv('VITE_SUPABASE_URL', '');
-    const { resolveSupabaseOrigin, SUPABASE_ORIGIN_FALLBACK } =
-      await import('./resolveSupabaseOrigin');
+    const { resolveSupabaseOrigin, SUPABASE_ORIGIN_FALLBACK } = await import(
+      './resolveSupabaseOrigin'
+    );
     expect(resolveSupabaseOrigin()).toBe(SUPABASE_ORIGIN_FALLBACK);
   });
 });

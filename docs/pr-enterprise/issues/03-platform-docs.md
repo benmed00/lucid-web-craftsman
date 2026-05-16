@@ -44,7 +44,7 @@ flowchart TB
 | [CLIENT_VS_SERVER_RULES.md](../../CLIENT_VS_SERVER_RULES.md)               | Short checklist | Trust boundaries for money path                            |
 | [HOOKS.md](../../HOOKS.md)                                                 | 300+            | Every hook module + test status                            |
 | [GITHUB-ACTIONS-CI-CD.md](../../GITHUB-ACTIONS-CI-CD.md)                   | 300+            | Workflow inventory                                         |
-| [TECH_MAP.md](../../TECH_MAP.md)                                           | New cartography | SPA ↔ Edge ↔ Postgres diagram                              |
+| [TECH_MAP.md](../../TECH_MAP.md)                                           | New cartography | SPA ↔ Edge ↔ Postgres diagram                            |
 
 ---
 

@@ -8,10 +8,8 @@ import { ImageCategory } from '@/types/image.types';
  * This component replaces ALL image usage across the application
  * Provides consistent loading, error handling, and fallback behavior
  */
-interface GlobalImageProps extends Omit<
-  React.ImgHTMLAttributes<HTMLImageElement>,
-  'src' | 'alt'
-> {
+interface GlobalImageProps
+  extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src' | 'alt'> {
   src: string;
   alt: string;
   category?: ImageCategory;

@@ -31,20 +31,24 @@ describe('supabaseFunctionsBaseUrl', () => {
   it('invoice origin matches resolveSupabaseOrigin (same host as Supabase client)', async () => {
     vi.stubEnv('VITE_SUPABASE_URL', 'https://drift-guard.supabase.co/');
     vi.resetModules();
-    const { resolveSupabaseOrigin } =
-      await import('@/integrations/supabase/resolveSupabaseOrigin');
-    const { supabaseOriginForEdgeFunctions } =
-      await import('./supabaseFunctionsBaseUrl');
+    const { resolveSupabaseOrigin } = await import(
+      '@/integrations/supabase/resolveSupabaseOrigin'
+    );
+    const { supabaseOriginForEdgeFunctions } = await import(
+      './supabaseFunctionsBaseUrl'
+    );
     expect(supabaseOriginForEdgeFunctions()).toBe(resolveSupabaseOrigin());
   });
 
   it('same alignment when VITE_SUPABASE_URL is empty', async () => {
     vi.stubEnv('VITE_SUPABASE_URL', '');
     vi.resetModules();
-    const { resolveSupabaseOrigin } =
-      await import('@/integrations/supabase/resolveSupabaseOrigin');
-    const { supabaseOriginForEdgeFunctions } =
-      await import('./supabaseFunctionsBaseUrl');
+    const { resolveSupabaseOrigin } = await import(
+      '@/integrations/supabase/resolveSupabaseOrigin'
+    );
+    const { supabaseOriginForEdgeFunctions } = await import(
+      './supabaseFunctionsBaseUrl'
+    );
     expect(supabaseOriginForEdgeFunctions()).toBe(resolveSupabaseOrigin());
   });
 });
