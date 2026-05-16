@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/milestones.yml'
       - 'scripts/bootstrap-github-milestones.mjs'
+      - 'scripts/apply-pr47-issue-metadata.mjs'
       - 'scripts/lib/parse-milestones-yml.mjs'
       - '.github/workflows/bootstrap-milestones.yml'
   workflow_dispatch:
@@ -25,6 +26,7 @@ on:
 permissions:
   contents: read
   issues: write
+  pull-requests: write
 
 concurrency:
   group: bootstrap-milestones
@@ -54,6 +56,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/bootstrap-github-milestones.mjs
+
+      - name: Apply PR47 labels, PR milestone, close duplicate issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/apply-pr47-issue-metadata.mjs
 
       - name: Sync milestone epics to GitHub Project
         if: >-

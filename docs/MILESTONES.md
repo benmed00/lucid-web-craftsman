@@ -29,10 +29,27 @@ node scripts/bootstrap-github-milestones.mjs
 
 ---
 
+## Tracking model (issues, milestones, project, PR)
+
+| Entity | What it is | How it links |
+| ------ | ---------- | ------------ |
+| **Milestone (M0–M8)** | Repo goal with due date (Issues → Milestones) | Many **issues** (and optionally a **PR**) share one milestone |
+| **Delivery issue** | Actionable task (#25–#46, #55–#58) | Has **milestone** field; may appear on **Project #6** with Target date |
+| **Epic issue** | Umbrella issue (e.g. #58) | Same milestone as its slice; **Related to** on PR; not auto-closed unless listed in `Closes` |
+| **Pull request** | Code delivery | `Closes #…` closes work issues on merge; set **PR milestone** in sidebar (not only in the description table) |
+| **Project #6** | Portfolio board | Filters delivery (`-label:catalog/*`) vs catalog inventory (`label:catalog/*`) |
+
+**PR #47 (follow-up):** closes #55–#57; related to epic #58; intended **PR milestone M0**. Canonical issues #55–#58; close duplicates #48–#54 after merge. Automation: `node scripts/apply-pr47-issue-metadata.mjs` (also runs in **Bootstrap milestones** workflow after `milestones.yml` changes on `main`).
+
+---
+
 ## Issue mapping (delivery board)
 
 | Issue              | Milestone |
 | ------------------ | --------- |
+| #58 (epic)         | M0        |
+| #55, #56           | M0        |
+| #57                | M1        |
 | #46                | M0        |
 | #36, #35, #37      | M1        |
 | #40, #44, #32, #33 | M2        |
