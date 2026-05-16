@@ -1,0 +1,73 @@
+# Create repository milestones (M0–M8) and optionally sync milestone epics to Project v2.
+name: Bootstrap milestones
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_number:
+        description: GitHub Project number (e.g. 6)
+        required: true
+        default: '6'
+        type: string
+      sync_project_epics:
+        description: Sync milestone epic issues to Project v2
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: bootstrap-milestones
+  cancel-in-progress: false
+
+jobs:
+  milestones:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create repository milestones and assign issues
+        run: node scripts/bootstrap-github-milestones.mjs
+
+      - name: Sync milestone epics to GitHub Project
+        if: inputs.sync_project_epics
+        env:
+          PROJECT_NUMBER: ${{ inputs.project_number }}
+          GITHUB_PROJECT_OWNER: benmed00
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/sync-github-project.mjs --milestones-only
+
+  project-fields:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure Project date fields exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          PN="${{ inputs.project_number }}"
+          OWNER="benmed00"
+          for name in "Target date" "Start date"; do
+            if gh project field-list "$PN" --owner "$OWNER" --format json \
+              | jq -e --arg n "$name" '.fields[] | select(.name == $n)' >/dev/null; then
+              echo "Field already exists: $name"
+            else
+              echo "Creating field: $name"
+              gh project field-create "$PN" --owner "$OWNER" --name "$name" --data-type "DATE"
+            fi
+          done

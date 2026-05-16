@@ -63,18 +63,10 @@ function createOrUpdateMilestone(repo, def, existingByTitle) {
       console.log(`[dry-run] update milestone #${existing.number} ${def.id}`);
       return existing;
     }
-    ghApi([
-      `repos/${repo}/milestones/${existing.number}`,
-      '-X',
-      'PATCH',
-      '-f',
-      `title=${body.title}`,
-      '-f',
-      `description=${body.description}`,
-      '-f',
-      `state=${body.state}`,
-      ...(due ? ['-f', `due_on=${due}`] : []),
-    ]);
+    ghApi(
+      [`repos/${repo}/milestones/${existing.number}`, '-X', 'PATCH', '--input', '-'],
+      JSON.stringify(body)
+    );
     console.log(`Updated milestone #${existing.number} (${def.id})`);
     return existing;
   }
