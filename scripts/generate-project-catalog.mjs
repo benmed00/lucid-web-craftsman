@@ -50,6 +50,11 @@ function git(cmd) {
   }
 }
 
+/** Stable per commit SHA — avoids catalog.json drift on every `project:catalog` run. */
+function catalogGeneratedAt() {
+  return git('git log -1 --format=%cI HEAD') || new Date().toISOString();
+}
+
 function walk(dir, pred) {
   const out = [];
   if (!fs.existsSync(dir)) return out;
@@ -710,7 +715,7 @@ function main() {
   const pkg = readJson(path.join(ROOT, 'package.json'));
 
   const catalog = {
-    generatedAt: new Date().toISOString(),
+    generatedAt: catalogGeneratedAt(),
     repository: {
       name: pkg.name,
       url: pkg.repository?.url || 'https://github.com/benmed00/lucid-web-craftsman',
