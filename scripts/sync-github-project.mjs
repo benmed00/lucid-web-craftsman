@@ -14,6 +14,8 @@ const CATALOG_PATH = path.join(ROOT, '.github', 'project', 'catalog.json');
 
 const dryRun = process.argv.includes('--dry-run');
 const closeRemoved = process.argv.includes('--close-removed');
+const milestonesOnly = process.argv.includes('--milestones-only');
+const catalogOnly = process.argv.includes('--catalog-only');
 
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const projectNumber = process.env.PROJECT_NUMBER;
@@ -102,6 +104,10 @@ async function createIssue(item) {
     `| CI coverage | ${item.ciCoverage} |`,
     `| Doc link | ${item.docLink || '—'} |`,
     `| Health | ${item.health} |`,
+    ...(item.targetDate ? ['', `| Target date | ${item.targetDate} |`] : []),
+    ...(item.linkedIssues?.length
+      ? ['', `| Linked issues | ${item.linkedIssues.map((n) => `#${n}`).join(', ')} |`]
+      : []),
     '',
     '_Auto-managed by `scripts/sync-github-project.mjs`. Do not edit the catalog-id line._',
   ].join('\n');
@@ -179,7 +185,12 @@ async function main() {
   }
 
   const catalog = JSON.parse(fs.readFileSync(CATALOG_PATH, 'utf8'));
-  const inventory = catalog.inventory || [];
+  let inventory = catalog.inventory || [];
+  if (milestonesOnly) {
+    inventory = inventory.filter((i) => i.catalogId?.startsWith('milestone:'));
+  } else if (catalogOnly) {
+    inventory = inventory.filter((i) => !i.catalogId?.startsWith('milestone:'));
+  }
   console.log(`Syncing ${inventory.length} inventory items to ${repoOwner}/${repoName}…`);
 
   if (dryRun) {

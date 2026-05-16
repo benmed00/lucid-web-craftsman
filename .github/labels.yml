@@ -77,6 +77,10 @@
   color: 'b60205'
   description: TECH_DEBT.md tracked item
 
+- name: catalog/milestone
+  color: 'f9d0c4'
+  description: Delivery milestone epic (docs/MILESTONES.md)
+
 - name: verify/validate
   color: '1d76db'
   description: pnpm run validate gate

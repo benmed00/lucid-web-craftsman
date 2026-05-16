@@ -104,6 +104,7 @@
     "api:artifacts": "pnpm run openapi:edge-functions && pnpm run postman:collection",
     "project:catalog": "node scripts/generate-project-catalog.mjs",
     "project:catalog:check": "node scripts/project-catalog-check.mjs",
+    "milestones:bootstrap": "node scripts/bootstrap-github-milestones.mjs",
     "prepare": "husky"
   },
   "dependencies": {

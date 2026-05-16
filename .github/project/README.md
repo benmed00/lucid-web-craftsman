@@ -21,15 +21,15 @@ Note the project number from the URL (`.../projects/<number>`).
 
 Create these single-select or text fields in the Project settings (names must match sync script):
 
-| Field        | Type          | Options                                                                         |
-| ------------ | ------------- | ------------------------------------------------------------------------------- |
-| Area         | Single select | `storefront`, `checkout-payments`, `edge`, `admin`, `infra-ci`, `docs-security` |
-| Layer        | Single select | `spa`, `edge`, `db`, `ci`, `docs`                                               |
-| Item type    | Single select | `script`, `test`, `doc`, `workflow`, `tech-debt`, `git-metric`, `edge-function` |
-| Verification | Text          | e.g. `pnpm run validate`                                                        |
-| CI coverage  | Single select | `none`, `ci.yml`, `e2e-smoke`, `e2e-full`, `deno-workflow`, `manual-only`       |
-| Doc link     | Text          | Relative path in repo                                                           |
-| Health       | Single select | `healthy`, `drift-risk`, `stale`, `debt`                                        |
+| Field        | Type          | Options                                                                                      |
+| ------------ | ------------- | -------------------------------------------------------------------------------------------- |
+| Area         | Single select | `storefront`, `checkout-payments`, `edge`, `admin`, `infra-ci`, `docs-security`              |
+| Layer        | Single select | `spa`, `edge`, `db`, `ci`, `docs`                                                            |
+| Item type    | Single select | `script`, `test`, `doc`, `workflow`, `tech-debt`, `git-metric`, `edge-function`, `milestone` |
+| Verification | Text          | e.g. `pnpm run validate`                                                                     |
+| CI coverage  | Single select | `none`, `ci.yml`, `e2e-smoke`, `e2e-full`, `deno-workflow`, `manual-only`                    |
+| Doc link     | Text          | Relative path in repo                                                                        |
+| Health       | Single select | `healthy`, `drift-risk`, `stale`, `debt`                                                     |
 
 CLI examples (after project exists; replace `<number>`):
 
@@ -39,7 +39,7 @@ gh project field-create <number> --owner benmed00 --name "Area" --data-type "SIN
 gh project field-create <number> --owner benmed00 --name "Layer" --data-type "SINGLE_SELECT" \
   --single-select-options "spa,edge,db,ci,docs"
 gh project field-create <number> --owner benmed00 --name "Item type" --data-type "SINGLE_SELECT" \
-  --single-select-options "script,test,doc,workflow,tech-debt,git-metric,edge-function"
+  --single-select-options "script,test,doc,workflow,tech-debt,git-metric,edge-function,milestone"
 gh project field-create <number> --owner benmed00 --name "Verification" --data-type "TEXT"
 gh project field-create <number> --owner benmed00 --name "CI coverage" --data-type "SINGLE_SELECT" \
   --single-select-options "none,ci.yml,e2e-smoke,e2e-full,deno-workflow,manual-only"
@@ -48,16 +48,46 @@ gh project field-create <number> --owner benmed00 --name "Health" --data-type "S
   --single-select-options "healthy,drift-risk,stale,debt"
 ```
 
-### Recommended views
+### Roadmap and milestones
 
-1. **Board** — Group by **Area**; filter labels `catalog/*`
-2. **Table: Scripts & gates** — Filter `catalog/script`; sort by Verification
-3. **Table: Test matrix** — Filter `catalog/test`
-4. **Table: Documentation** — Filter `catalog/doc`
-5. **Roadmap** — Tech debt + milestones from [docs/CHANGELOG.md](../../docs/CHANGELOG.md)
-6. **Git hygiene** — Filter title contains `Git hygiene` or Health = `drift-risk`
+**Why the Roadmap view looked empty:** `label:catalog/` filters **inventory** rows (scripts/tests), not delivery work. Milestones need **repository milestones** + **Target date** on delivery issues.
 
-Link the Project description to this folder and the dashboard artifact from Actions.
+**1. Repository milestones (Issues → Milestones)**
+
+```bash
+node scripts/bootstrap-github-milestones.mjs
+# node scripts/bootstrap-github-milestones.mjs --dry-run
+```
+
+Source: [`.github/milestones.yml`](../milestones.yml) · narrative: [docs/MILESTONES.md](../../docs/MILESTONES.md)
+
+**2. Project #6 — add date field (required for Roadmap layout)**
+
+```bash
+# Replace 6 with your project number
+gh project field-create 6 --owner benmed00 --name "Target date" --data-type "DATE"
+gh project field-create 6 --owner benmed00 --name "Start date" --data-type "DATE"
+```
+
+In the UI: **Settings → Fields → New field → Date**.
+
+**3. Recommended views**
+
+| View name                   | Layout  | Filter                                                         | Group / sort                          |
+| --------------------------- | ------- | -------------------------------------------------------------- | ------------------------------------- |
+| **Delivery Roadmap**        | Roadmap | `-label:catalog/script -label:catalog/test -label:catalog/doc` | Use **Target date** on issues #25–#46 |
+| **Board — By area**         | Board   | `label:catalog/milestone` OR delivery issues                   | **Area**                              |
+| **Table — Scripts & gates** | Table   | `label:catalog/script`                                         | Verification                          |
+| **Table — Test matrix**     | Table   | `label:catalog/test`                                           | Runner                                |
+| **Table — Documentation**   | Table   | `label:catalog/doc`                                            | Path                                  |
+| **Milestones (epics)**      | Table   | `label:catalog/milestone`                                      | Target date                           |
+| **Git hygiene**             | Table   | title contains `Git hygiene`                                   | Health                                |
+
+**4. Assign Target dates**
+
+Set **Target date** on milestone epic issues (after `sync --milestones-only`) and on delivery issues #25–#46 to match [MILESTONES.md](../../docs/MILESTONES.md) due dates.
+
+Link the Project description to [docs/MILESTONES.md](../../docs/MILESTONES.md) and [PROJECT_CATALOG.md](./PROJECT_CATALOG.md).
 
 ## Labels
 
@@ -87,11 +117,14 @@ Repository secrets / variables:
 | `GITHUB_TOKEN`         | Fine-grained or classic PAT with `repo` + `project` (workflow uses `GITHUB_TOKEN` when sync runs in Actions with elevated permissions) |
 
 ```bash
-# Dry-run (no API writes)
-node scripts/sync-github-project.mjs --dry-run
+# Milestone epics only (~11 issues) — recommended first
+PROJECT_NUMBER=6 node scripts/sync-github-project.mjs --milestones-only
 
-# Live sync (needs GH_TOKEN or GITHUB_TOKEN)
-PROJECT_NUMBER=1 node scripts/sync-github-project.mjs
+# Full platform inventory (~230 issues)
+PROJECT_NUMBER=6 node scripts/sync-github-project.mjs
+
+# Dry-run
+node scripts/sync-github-project.mjs --dry-run --milestones-only
 ```
 
 Sync creates/updates issues titled `[catalog] …` with marker `<!-- catalog-id: … -->` in the body and adds them to the Project.

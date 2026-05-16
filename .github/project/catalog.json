@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-05-16T11:48:37+00:00",
+  "generatedAt": "2026-05-16T11:50:17+00:00",
   "repository": {
     "name": "vite_react_shadcn_ts",
     "url": "https://github.com/benmed00/lucid-web-craftsman.git"
   },
   "git": {
-    "totalCommits": 2320,
+    "totalCommits": 2321,
     "monthly": [
       {
         "month": "2025-05",
@@ -49,7 +49,7 @@
       },
       {
         "month": "2026-05",
-        "count": 112
+        "count": 113
       }
     ],
     "authors": [
@@ -63,7 +63,7 @@
       },
       {
         "name": "Cursor Agent",
-        "count": 34
+        "count": 35
       },
       {
         "name": "google-labs-jules[bot]",
@@ -76,7 +76,7 @@
     ],
     "subjectQuality": {
       "genericCount": 604,
-      "conventionalCount": 159,
+      "conventionalCount": 160,
       "otherCount": 1557,
       "genericPercent": 26,
       "conventionalPercent": 6.9
@@ -770,6 +770,21 @@
       "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run lint:fix",
       "health": "drift-risk"
+    },
+    {
+      "id": "script:milestones:bootstrap",
+      "name": "milestones:bootstrap",
+      "command": "pnpm run milestones:bootstrap",
+      "rawCommand": "node scripts/bootstrap-github-milestones.mjs",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run milestones:bootstrap",
+      "health": "healthy"
     },
     {
       "id": "script:openapi:edge-functions",
@@ -2265,6 +2280,16 @@
       "health": "healthy"
     },
     {
+      "id": "doc:docs/MILESTONES.md",
+      "path": "docs/MILESTONES.md",
+      "title": "Milestones & release train",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
       "id": "doc:docs/PLATFORM.md",
       "path": "docs/PLATFORM.md",
       "title": "Platform behavior",
@@ -2968,6 +2993,118 @@
       "verification": "pnpm run validate"
     }
   ],
+  "milestones": [
+    {
+      "id": "M0",
+      "title": "M0 — Platform catalog & CI governance",
+      "description": "",
+      "dueOn": "2026-05-31",
+      "state": "open",
+      "issues": [46],
+      "area": "infra-ci",
+      "targetDate": "2026-05-31",
+      "status": "open"
+    },
+    {
+      "id": "M1",
+      "title": "M1 — CI/CD parity & smoke contract",
+      "description": "",
+      "dueOn": "2026-06-30",
+      "state": "open",
+      "issues": [36, 35, 37],
+      "area": "infra-ci",
+      "targetDate": "2026-06-30",
+      "status": "open"
+    },
+    {
+      "id": "M2",
+      "title": "M2 — Checkout & payments truth",
+      "description": "",
+      "dueOn": "2026-07-31",
+      "state": "open",
+      "issues": [40, 44, 32, 33],
+      "area": "checkout-payments",
+      "targetDate": "2026-07-31",
+      "status": "open"
+    },
+    {
+      "id": "M3",
+      "title": "M3 — E2E depth & credentials",
+      "description": "",
+      "dueOn": "2026-07-31",
+      "state": "open",
+      "issues": [39],
+      "area": "storefront",
+      "targetDate": "2026-07-31",
+      "status": "open"
+    },
+    {
+      "id": "M4",
+      "title": "M4 — Security & RLS proof",
+      "description": "",
+      "dueOn": "2026-08-31",
+      "state": "open",
+      "issues": [30, 31],
+      "area": "docs-security",
+      "targetDate": "2026-08-31",
+      "status": "open"
+    },
+    {
+      "id": "M5",
+      "title": "M5 — Storefront SEO & performance",
+      "description": "",
+      "dueOn": "2026-05-31",
+      "state": "open",
+      "issues": [43],
+      "area": "storefront",
+      "targetDate": "2026-05-31",
+      "status": "open"
+    },
+    {
+      "id": "M6",
+      "title": "M6 — SPA architecture — services layer",
+      "description": "",
+      "dueOn": "2026-08-31",
+      "state": "open",
+      "issues": [],
+      "area": "storefront",
+      "targetDate": "2026-08-31",
+      "status": "open"
+    },
+    {
+      "id": "M7",
+      "title": "M7 — Types & API contracts",
+      "description": "",
+      "dueOn": "2026-07-31",
+      "state": "open",
+      "issues": [41],
+      "area": "edge",
+      "targetDate": "2026-07-31",
+      "status": "open"
+    },
+    {
+      "id": "M8",
+      "title": "M8 — Docs & agent runbooks",
+      "description": "",
+      "dueOn": "2026-06-30",
+      "state": "open",
+      "issues": [38, 42],
+      "area": "docs-security",
+      "targetDate": "2026-06-30",
+      "status": "open"
+    },
+    {
+      "id": "M-retro-cp",
+      "title": "M-retro — create-payment refactor (phases 0–5)",
+      "description": "",
+      "dueOn": "2026-04-01",
+      "state": "closed",
+      "issues": [],
+      "area": "edge",
+      "targetDate": "2026-04-01",
+      "status": "done"
+    }
+  ],
   "platformAreas": [
     {
       "id": "storefront",
@@ -3072,6 +3209,18 @@
       "docLink": "docs/E2E-COVERAGE.md",
       "health": "healthy",
       "labels": ["catalog/doc", "area/storefront"]
+    },
+    {
+      "catalogId": "doc:docs/MILESTONES.md",
+      "title": "Milestones & release train",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/MILESTONES.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
     },
     {
       "catalogId": "doc:docs/PLATFORM.md",
@@ -3614,6 +3763,126 @@
       "labels": ["catalog/workflow", "area/infra-ci", "verify/validate"]
     },
     {
+      "catalogId": "milestone:M-retro-cp",
+      "title": "M-retro — create-payment refactor (phases 0–5)",
+      "itemType": "milestone",
+      "area": "edge",
+      "layer": "edge",
+      "verification": "docs/MILESTONES.md",
+      "ciCoverage": "none",
+      "docLink": "docs/MILESTONES.md",
+      "health": "healthy",
+      "labels": ["catalog/milestone", "area/edge"]
+    },
+    {
+      "catalogId": "milestone:M0",
+      "title": "M0 — Platform catalog & CI governance",
+      "itemType": "milestone",
+      "area": "infra-ci",
+      "layer": "ci",
+      "verification": "docs/MILESTONES.md",
+      "ciCoverage": "none",
+      "docLink": "docs/MILESTONES.md",
+      "health": "healthy",
+      "labels": ["catalog/milestone", "area/infra-ci"]
+    },
+    {
+      "catalogId": "milestone:M1",
+      "title": "M1 — CI/CD parity & smoke contract",
+      "itemType": "milestone",
+      "area": "infra-ci",
+      "layer": "ci",
+      "verification": "docs/MILESTONES.md",
+      "ciCoverage": "none",
+      "docLink": "docs/MILESTONES.md",
+      "health": "healthy",
+      "labels": ["catalog/milestone", "area/infra-ci"]
+    },
+    {
+      "catalogId": "milestone:M2",
+      "title": "M2 — Checkout & payments truth",
+      "itemType": "milestone",
+      "area": "checkout-payments",
+      "layer": "spa",
+      "verification": "docs/MILESTONES.md",
+      "ciCoverage": "none",
+      "docLink": "docs/MILESTONES.md",
+      "health": "healthy",
+      "labels": ["catalog/milestone", "area/checkout-payments"]
+    },
+    {
+      "catalogId": "milestone:M3",
+      "title": "M3 — E2E depth & credentials",
+      "itemType": "milestone",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "docs/MILESTONES.md",
+      "ciCoverage": "none",
+      "docLink": "docs/MILESTONES.md",
+      "health": "healthy",
+      "labels": ["catalog/milestone", "area/storefront"]
+    },
+    {
+      "catalogId": "milestone:M4",
+      "title": "M4 — Security & RLS proof",
+      "itemType": "milestone",
+      "area": "docs-security",
+      "layer": "spa",
+      "verification": "docs/MILESTONES.md",
+      "ciCoverage": "none",
+      "docLink": "docs/MILESTONES.md",
+      "health": "healthy",
+      "labels": ["catalog/milestone", "area/docs-security"]
+    },
+    {
+      "catalogId": "milestone:M5",
+      "title": "M5 — Storefront SEO & performance",
+      "itemType": "milestone",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "docs/MILESTONES.md",
+      "ciCoverage": "none",
+      "docLink": "docs/MILESTONES.md",
+      "health": "healthy",
+      "labels": ["catalog/milestone", "area/storefront"]
+    },
+    {
+      "catalogId": "milestone:M6",
+      "title": "M6 — SPA architecture — services layer",
+      "itemType": "milestone",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "docs/MILESTONES.md",
+      "ciCoverage": "none",
+      "docLink": "docs/MILESTONES.md",
+      "health": "healthy",
+      "labels": ["catalog/milestone", "area/storefront"]
+    },
+    {
+      "catalogId": "milestone:M7",
+      "title": "M7 — Types & API contracts",
+      "itemType": "milestone",
+      "area": "edge",
+      "layer": "edge",
+      "verification": "docs/MILESTONES.md",
+      "ciCoverage": "none",
+      "docLink": "docs/MILESTONES.md",
+      "health": "healthy",
+      "labels": ["catalog/milestone", "area/edge"]
+    },
+    {
+      "catalogId": "milestone:M8",
+      "title": "M8 — Docs & agent runbooks",
+      "itemType": "milestone",
+      "area": "docs-security",
+      "layer": "spa",
+      "verification": "docs/MILESTONES.md",
+      "ciCoverage": "none",
+      "docLink": "docs/MILESTONES.md",
+      "health": "healthy",
+      "labels": ["catalog/milestone", "area/docs-security"]
+    },
+    {
       "catalogId": "script:api:artifacts",
       "title": "script: api:artifacts",
       "itemType": "script",
@@ -4116,6 +4385,18 @@
       "docLink": "package.json",
       "health": "drift-risk",
       "labels": ["catalog/script", "area/infra-ci"]
+    },
+    {
+      "catalogId": "script:milestones:bootstrap",
+      "title": "script: milestones:bootstrap",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run milestones:bootstrap",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:openapi:edge-functions",

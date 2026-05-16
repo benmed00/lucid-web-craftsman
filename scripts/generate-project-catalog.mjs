@@ -8,6 +8,7 @@ import { execSync, spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { loadMilestones } from './lib/parse-milestones-yml.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -404,6 +405,12 @@ function collectEdgeFunctions() {
     }));
 }
 
+function collectMilestones() {
+  const ymlPath = path.join(ROOT, '.github', 'milestones.yml');
+  if (!fs.existsSync(ymlPath)) return [];
+  return loadMilestones(ymlPath);
+}
+
 function parseTechDebt() {
   const md = fs.readFileSync(path.join(ROOT, 'docs', 'TECH_DEBT.md'), 'utf8');
   const items = [];
@@ -537,6 +544,23 @@ function buildInventory(catalog) {
     });
   }
 
+  for (const ms of catalog.milestones || []) {
+    push({
+      id: `milestone:${ms.id}`,
+      title: ms.title,
+      itemType: 'milestone',
+      area: ms.area,
+      layer: ms.area === 'edge' ? 'edge' : ms.area === 'infra-ci' ? 'ci' : 'spa',
+      verification: 'docs/MILESTONES.md',
+      ciCoverage: 'none',
+      docLink: 'docs/MILESTONES.md',
+      health: ms.state === 'closed' ? 'healthy' : 'healthy',
+      labels: ['catalog/milestone', `area/${ms.area}`],
+      targetDate: ms.targetDate,
+      linkedIssues: ms.issues,
+    });
+  }
+
   return inventory.sort((a, b) => a.catalogId.localeCompare(b.catalogId));
 }
 
@@ -623,6 +647,17 @@ function renderMarkdown(catalog) {
     '| Item | Notes |',
     '| --- | --- |',
     ...catalog.techDebt.map((t) => `| \`${t.file || t.id}\` | ${t.notes} |`),
+    '',
+    '## Milestones (delivery train)',
+    '',
+    'Canonical: [docs/MILESTONES.md](../../docs/MILESTONES.md) · bootstrap: `node scripts/bootstrap-github-milestones.mjs`',
+    '',
+    '| ID | Title | Due | State | Issues |',
+    '| --- | --- | --- | --- | --- |',
+    ...catalog.milestones.map(
+      (m) =>
+        `| ${m.id} | ${m.title} | ${m.dueOn || '—'} | ${m.state} | ${(m.issues || []).join(', ') || '—'} |`
+    ),
     '',
     '## Platform areas',
     '',
@@ -727,6 +762,7 @@ function main() {
     workflows,
     edgeFunctions: collectEdgeFunctions(),
     techDebt: parseTechDebt(),
+    milestones: collectMilestones(),
     platformAreas: PLATFORM_AREAS,
     inventory: [],
   };

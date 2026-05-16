@@ -21,6 +21,7 @@ const STABLE_KEYS = [
   'workflows',
   'edgeFunctions',
   'techDebt',
+  'milestones',
   'platformAreas',
   'inventory',
 ];

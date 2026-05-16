@@ -1,0 +1,98 @@
+# Repository milestones — sync via: node scripts/bootstrap-github-milestones.mjs
+# Canonical narrative: docs/MILESTONES.md
+
+milestones:
+  - id: M0
+    title: 'M0 — Platform catalog & CI governance'
+    description: >-
+      PR #46, project:catalog, labels, GitHub Project #6 inventory, project:catalog:check in CI.
+    due_on: '2026-05-31'
+    state: open
+    issues: [46]
+
+  - id: M1
+    title: 'M1 — CI/CD parity & smoke contract'
+    description: >-
+      ci.yml, e2e.yml, dev port 8080 contract, Deno workflows, air-gapped example.
+    due_on: '2026-06-30'
+    state: open
+    issues: [36, 35, 37]
+
+  - id: M2
+    title: 'M2 — Checkout & payments truth'
+    description: >-
+      create-payment, pricing snapshot, OrderConfirmation services refactor.
+    due_on: '2026-07-31'
+    state: open
+    issues: [40, 44, 32, 33]
+
+  - id: M3
+    title: 'M3 — E2E depth & credentials'
+    description: >-
+      Full Cypress suite, CUSTOMER_* / ADMIN_* secrets, checkout DB hydration specs.
+    due_on: '2026-07-31'
+    state: open
+    issues: [39]
+
+  - id: M4
+    title: 'M4 — Security & RLS proof'
+    description: >-
+      Live RLS Vitest job, security checklist, guest token RPC verification.
+    due_on: '2026-08-31'
+    state: open
+    issues: [30, 31]
+
+  - id: M5
+    title: 'M5 — Storefront SEO & performance'
+    description: >-
+      Hero LCP, GA4/CSP, sitemap, Artisans SEO metadata.
+    due_on: '2026-05-31'
+    state: open
+    issues: [43]
+
+  - id: M6
+    title: 'M6 — SPA architecture — services layer'
+    description: >-
+      Remove grandfathered @/integrations/supabase/client imports from pages/components.
+    due_on: '2026-08-31'
+    state: open
+    issues: []
+
+  - id: M7
+    title: 'M7 — Types & API contracts'
+    description: >-
+      Typed edge invoke, OpenAPI/Postman drift checks, domain modules.
+    due_on: '2026-07-31'
+    state: open
+    issues: [41]
+
+  - id: M8
+    title: 'M8 — Docs & agent runbooks'
+    description: >-
+      Rules registry, TECH_DEBT tickets, CHANGELOG discipline, agent runbooks.
+    due_on: '2026-06-30'
+    state: open
+    issues: [38, 42]
+
+  - id: M-retro-cp
+    title: 'M-retro — create-payment refactor (phases 0–5)'
+    description: >-
+      Completed per supabase/functions/create-payment/REFACTOR_PLAN.md.
+    due_on: '2026-04-01'
+    state: closed
+    issues: []
+
+  - id: M-retro-03
+    title: 'M-retro — 2026-03 release notes'
+    description: >-
+      Admin coupon usage_count, wishlist Realtime channel naming (CHANGELOG 2026-03).
+    due_on: '2026-03-31'
+    state: closed
+    issues: []
+
+# Delivery issues without explicit milestone above (assign to best-fit)
+issue_overrides:
+  - issue: 25
+    milestone_id: M1
+  - issue: 34
+    milestone_id: M2
