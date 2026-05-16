@@ -2,23 +2,20 @@
  * Contact page smoke test (Vitest + jsdom).
  *
  * Prerequisites: `pnpm run test:unit` or `npx vitest run src/pages/Contact.test.tsx`.
- * Mocks below: SEO (helmet provider not in jsdom tree), network, lazy map.
+ * Mocks below: helmet (no provider in jsdom), network, lazy map.
  * E2E: `pnpm run e2e:contact`.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
-import Contact from './Contact';
 
-vi.mock('react-helmet-async', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-helmet-async')>();
-  return {
-    ...actual,
-    Helmet: () => null,
-  };
-});
+vi.mock('react-helmet-async', () => ({
+  Helmet: () => null,
+  HelmetProvider: ({ children }: { children: unknown }) => children,
+}));
+
+import Contact from './Contact';
 
 vi.mock('@/hooks/useCompanySettings', () => ({
   useCompanySettings: () => ({
@@ -103,11 +100,9 @@ describe('Contact page', () => {
 
   it('renders hero, form fields, submit control, and map section', async () => {
     render(
-      <HelmetProvider>
-        <MemoryRouter future={futureFlags}>
-          <Contact />
-        </MemoryRouter>
-      </HelmetProvider>
+      <MemoryRouter future={futureFlags}>
+        <Contact />
+      </MemoryRouter>
     );
 
     expect(
