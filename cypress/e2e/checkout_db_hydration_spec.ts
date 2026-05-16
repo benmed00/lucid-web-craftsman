@@ -7,6 +7,9 @@
  * Tags: @regression
  */
 
+/** Stable guest id when `create_guest_token` is stubbed (valid UUID v4). */
+const E2E_GUEST_ID = 'aaaaaaaa-bbbb-4ccc-bbbb-bbbbbbbbbbbb';
+
 function clearCheckoutStorageKeys(win: Window) {
   const ls = [
     'checkout_form_data',
@@ -23,6 +26,10 @@ function clearCheckoutStorageKeys(win: Window) {
 describe('Checkout DB hydration (guest) @regression', () => {
   it('hydrates personal and shipping fields from stubbed checkout_sessions', () => {
     cy.stubProductsCatalog();
+    cy.intercept('POST', '**/rest/v1/rpc/create_guest_token', {
+      statusCode: 200,
+      body: { guest_id: E2E_GUEST_ID, signature: 'e2e-guest-signature' },
+    });
     cy.intercept('GET', '**/rest/v1/profiles**', { statusCode: 200, body: [] });
     cy.intercept('GET', '**/rest/v1/shipping_addresses**', {
       statusCode: 200,
@@ -48,39 +55,38 @@ describe('Checkout DB hydration (guest) @regression', () => {
     };
 
     cy.intercept('GET', '**/rest/v1/checkout_sessions**', (req) => {
-      const url = req.url;
-      const m = /guest_id=eq\.([^&]+)/.exec(url);
+      const url = decodeURIComponent(req.url);
+      const m = /guest_id=eq\.("?)([^"&]+)\1/.exec(url);
       if (!m) {
-        req.reply({ statusCode: 200, body: [] });
+        // PostgREST object+json for `.maybeSingle()` when no row
+        req.reply({ statusCode: 200, body: null });
         return;
       }
-      const guestId = decodeURIComponent(m[1]);
+      let guestId = decodeURIComponent(m[2]);
       req.reply({
         statusCode: 200,
-        body: [
-          {
-            id: 'e2e-hydrate-session-1',
-            guest_id: guestId,
-            user_id: null,
-            status: 'in_progress',
-            current_step: 1,
-            last_completed_step: 0,
-            personal_info: personal,
-            shipping_info: shipping,
-            promo_code: null,
-            promo_code_valid: null,
-            promo_discount_type: null,
-            promo_discount_value: null,
-            promo_discount_applied: null,
-            promo_free_shipping: false,
-            cart_items: null,
-            subtotal: 0,
-            shipping_cost: 0,
-            total: 0,
-            order_id: null,
-            created_at: new Date().toISOString(),
-          },
-        ],
+        body: {
+          id: 'e2e-hydrate-session-1',
+          guest_id: guestId,
+          user_id: null,
+          status: 'in_progress',
+          current_step: 1,
+          last_completed_step: 0,
+          personal_info: personal,
+          shipping_info: shipping,
+          promo_code: null,
+          promo_code_valid: null,
+          promo_discount_type: null,
+          promo_discount_value: null,
+          promo_discount_applied: null,
+          promo_free_shipping: false,
+          cart_items: null,
+          subtotal: 0,
+          shipping_cost: 0,
+          total: 0,
+          order_id: null,
+          created_at: new Date().toISOString(),
+        },
       });
     }).as('checkoutSessionsHydration');
 
@@ -89,13 +95,21 @@ describe('Checkout DB hydration (guest) @regression', () => {
       timeout: 25000,
     }).should('have.length.at.least', 1);
     cy.addCatalogLineAndOpenCartSpa();
+    cy.window()
+      .its('localStorage')
+      .invoke('getItem', 'guest_session')
+      .should('be.a', 'string')
+      .and('include', E2E_GUEST_ID);
     cy.window().then((win) => {
       clearCheckoutStorageKeys(win);
     });
     cy.get('#main-content #cart-checkout-button').should('be.visible').click();
     cy.wait('@checkoutSessionsHydration');
     cy.waitForCheckoutCustomerStep({ timeout: 20000 });
-    cy.get('#firstName').should('have.value', personal.first_name);
+    cy.get('#firstName', { timeout: 15000 }).should(
+      'have.value',
+      personal.first_name
+    );
     cy.get('#lastName').should('have.value', personal.last_name);
     cy.get('#email').should('have.value', personal.email);
     cy.get('#phone').should('have.value', personal.phone);
