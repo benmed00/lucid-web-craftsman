@@ -37,6 +37,7 @@ jobs:
         run: pnpm run lint
 
       - name: Format check
+        run: pnpm run format
         run: pnpm run format:check
 
       - name: Setup Deno (edge functions — full bundling check)
