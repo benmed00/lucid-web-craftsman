@@ -2,7 +2,7 @@
  * Contact page smoke test (Vitest + jsdom).
  *
  * Prerequisites: `pnpm run test:unit` or `npx vitest run src/pages/Contact.test.tsx`.
- * Mocks below: SEO (helmet provider not in jsdom tree), network, lazy map.
+ * Mocks below: SEOHelmet + react-helmet-async Helmet (JSON-LD), network, lazy map.
  * E2E: `pnpm run e2e:contact`.
  */
 
@@ -82,6 +82,10 @@ vi.mock('@/components/ui/LocationMap', () => ({
 
 vi.mock('@/components/seo/SEOHelmet', () => ({
   default: () => null,
+}));
+
+vi.mock('react-helmet-async', () => ({
+  Helmet: () => null,
 }));
 
 const futureFlags = { v7_startTransition: true, v7_relativeSplatPath: true };
