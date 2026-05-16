@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Mail, Send, Loader2 } from 'lucide-react';
 import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 
 export const TestOrderEmailButton = () => {
   const [open, setOpen] = useState(false);
@@ -75,9 +76,9 @@ export const TestOrderEmailButton = () => {
       } else {
         throw new Error(data?.error || 'Erreur inconnue');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending test email:', error);
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     } finally {
       setSending(false);
     }

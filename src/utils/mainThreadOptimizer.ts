@@ -5,7 +5,7 @@
 
 interface WorkerResponse {
   type: string;
-  result: any;
+  result: unknown;
   id: string;
   error?: string;
 }
@@ -173,7 +173,7 @@ class MainThreadOptimizer {
   /**
    * Execute heavy task in web worker to keep main thread free
    */
-  async executeInWorker<T>(type: string, payload: any): Promise<T> {
+  async executeInWorker<T>(type: string, payload: unknown): Promise<T> {
     // Lazy-init the worker on first use
     if (!this.workerInitialized) {
       this.workerInitialized = true;
@@ -181,13 +181,16 @@ class MainThreadOptimizer {
     }
     if (!this.worker) {
       // Fallback to main thread if worker not available
-      return this.executeOnMainThread(type, payload);
+      return this.executeOnMainThread(type, payload) as T;
     }
 
     const id = `task_${++this.taskCounter}`;
 
-    return new Promise((resolve, reject) => {
-      this.pendingTasks.set(id, { resolve, reject });
+    return new Promise<T>((resolve, reject) => {
+      this.pendingTasks.set(id, {
+        resolve: (value: unknown) => resolve(value as T),
+        reject,
+      });
 
       this.worker!.postMessage({
         type,
@@ -205,24 +208,43 @@ class MainThreadOptimizer {
     });
   }
 
-  private executeOnMainThread(type: string, payload: any): any {
+  private executeOnMainThread(type: string, payload: unknown): unknown {
     // Fallback implementations for main thread
     switch (type) {
-      case 'OPTIMIZE_IMAGE_DATA':
+      case 'OPTIMIZE_IMAGE_DATA': {
+        const p =
+          payload && typeof payload === 'object' && !Array.isArray(payload)
+            ? (payload as Record<string, unknown>)
+            : {};
+        const width = typeof p.width === 'number' ? p.width : 0;
+        const height = typeof p.height === 'number' ? p.height : 0;
         return {
-          optimizedSize: Math.floor(payload.width * payload.height * 0.8),
+          optimizedSize: Math.floor(width * height * 0.8),
           recommendedFormat: 'webp',
           compressionRatio: 0.2,
         };
+      }
       case 'PROCESS_PRODUCT_DATA':
-        return payload.map((product: any) => ({
-          ...product,
-          searchableText: (
-            product.name +
-            ' ' +
-            product.description
-          ).toLowerCase(),
-        }));
+        if (!Array.isArray(payload)) {
+          return payload;
+        }
+        return payload.map((product: unknown) => {
+          if (
+            !product ||
+            typeof product !== 'object' ||
+            Array.isArray(product)
+          ) {
+            return product;
+          }
+          const rec = product as Record<string, unknown>;
+          const name = typeof rec.name === 'string' ? rec.name : '';
+          const description =
+            typeof rec.description === 'string' ? rec.description : '';
+          return {
+            ...rec,
+            searchableText: (name + ' ' + description).toLowerCase(),
+          };
+        });
       default:
         return payload;
     }
@@ -232,8 +254,8 @@ class MainThreadOptimizer {
    * Batch multiple tasks to reduce worker overhead
    */
   async executeBatch(
-    tasks: Array<{ type: string; payload: any }>
-  ): Promise<any[]> {
+    tasks: Array<{ type: string; payload: unknown }>
+  ): Promise<unknown[]> {
     const promises = tasks.map((task) =>
       this.executeInWorker(task.type, task.payload)
     );

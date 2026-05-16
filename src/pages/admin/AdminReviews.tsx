@@ -200,7 +200,7 @@ export const AdminReviews = () => {
 
   const pendingReviews = reviews.filter((r) => r.is_approved !== true);
   const approvedReviews = reviews.filter((r) => r.is_approved === true);
-  const reportedReviews = reviews.filter((r) => r.reported_count > 0);
+  const reportedReviews = reviews.filter((r) => (r.reported_count ?? 0) > 0);
 
   if (loading) {
     return (

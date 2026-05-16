@@ -13,7 +13,7 @@ import { readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { E2E_PROBE_URL } from './lib/e2e-port.mjs';
+import { E2E_HTTP_GET_PROBE } from './lib/e2e-port.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
@@ -69,7 +69,7 @@ const specArg = specList.join(',');
 const cypressCmd = total > 1 ? `cypress run --spec ${specArg}` : 'cypress run';
 
 // One shell string so Windows cmd / PowerShell parse the last argument like npm scripts do.
-const fullCmd = `npx start-server-and-test "pnpm run start:api" http-get://localhost:3001 "pnpm run dev:e2e" http-get://${E2E_PROBE_URL.replace(/^https?:\/\//, '')} "${cypressCmd.replace(/"/g, '\\"')}"`;
+const fullCmd = `npx start-server-and-test "pnpm run start:api" http-get://localhost:3001 "pnpm run dev:e2e" ${E2E_HTTP_GET_PROBE} "${cypressCmd.replace(/"/g, '\\"')}"`;
 
 try {
   execSync(fullCmd, {

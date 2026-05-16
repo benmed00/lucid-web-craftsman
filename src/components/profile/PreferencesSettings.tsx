@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,14 +45,19 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
   const [isDarkMode, setIsDarkMode] = useState(
     document.documentElement.classList.contains('dark')
   );
-
-  useEffect(() => {
-    loadPreferences();
-  }, [user.id]);
-
   const [loadError, setLoadError] = useState(false);
 
-  const loadPreferences = async () => {
+  const createDefaultPreferences = useCallback(async () => {
+    try {
+      const data = await upsertDefaultUserPreferences(user.id);
+      setPreferences(data as UserPreferences);
+    } catch (error: unknown) {
+      console.error('Error creating default preferences:', error);
+      toast.error('Erreur lors de la création des préférences par défaut');
+    }
+  }, [user.id]);
+
+  const loadPreferences = useCallback(async () => {
     try {
       let data: Awaited<ReturnType<typeof fetchUserPreferencesRow>> = null;
       try {
@@ -68,21 +73,15 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
       } else {
         setPreferences(data as UserPreferences);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading preferences:', error);
       setLoadError(true);
     }
-  };
+  }, [user.id, createDefaultPreferences]);
 
-  const createDefaultPreferences = async () => {
-    try {
-      const data = await upsertDefaultUserPreferences(user.id);
-      setPreferences(data as UserPreferences);
-    } catch (error: any) {
-      console.error('Error creating default preferences:', error);
-      toast.error('Erreur lors de la création des préférences par défaut');
-    }
-  };
+  useEffect(() => {
+    loadPreferences();
+  }, [loadPreferences]);
 
   const updatePreferences = async (updates: Partial<UserPreferences>) => {
     if (!preferences) return;
@@ -96,7 +95,7 @@ export function PreferencesSettings({ user }: PreferencesSettingsProps) {
 
       setPreferences(data as UserPreferences);
       toast.success('Préférences mises à jour');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating preferences:', error);
       toast.error('Erreur lors de la mise à jour des préférences');
     } finally {

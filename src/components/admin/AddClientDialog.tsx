@@ -18,6 +18,7 @@ import {
   uploadPublicAvatarForNewClient,
 } from '@/services/adminUsersApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface AddClientDialogProps {
@@ -112,9 +113,11 @@ export const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
       setAvatarPreview(null);
       setOpen(false);
       onClientAdded();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating client:', error);
-      toast.error(`Erreur lors de la création du client: ${error.message}`);
+      toast.error(
+        `Erreur lors de la création du client: ${formatUnknownError(error)}`
+      );
     } finally {
       setLoading(false);
     }

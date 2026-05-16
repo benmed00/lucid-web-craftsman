@@ -16,16 +16,25 @@ import { Switch } from '@/components/ui/switch';
 import { XCircle, Send, Loader2 } from 'lucide-react';
 import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 import { useCurrency } from '@/stores/currencyStore';
+
+function parseSnapshotForCancellation(raw: unknown): {
+  name?: string;
+  price?: number;
+} {
+  if (!raw || typeof raw !== 'object') return {};
+  const o = raw as Record<string, unknown>;
+  const name = typeof o.name === 'string' ? o.name : undefined;
+  const price = typeof o.price === 'number' ? o.price : undefined;
+  return { name, price };
+}
 
 interface SendCancellationEmailButtonProps {
   orderId: string;
   orderAmount: number;
   orderItems: Array<{
-    product_snapshot?: {
-      name?: string;
-      price?: number;
-    };
+    product_snapshot?: unknown;
     quantity: number;
     total_price: number;
   }>;
@@ -63,7 +72,8 @@ export const SendCancellationEmailButton = ({
     setSending(true);
     try {
       const items = orderItems.map((item) => ({
-        name: item.product_snapshot?.name || 'Produit',
+        name:
+          parseSnapshotForCancellation(item.product_snapshot).name || 'Produit',
         quantity: item.quantity,
         price: item.total_price,
       }));
@@ -95,9 +105,9 @@ export const SendCancellationEmailButton = ({
       } else {
         throw new Error(data?.error || 'Erreur inconnue');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending email:', error);
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     } finally {
       setSending(false);
     }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,14 +27,14 @@ import { useCurrency } from '@/stores/currencyStore';
 
 interface Order {
   id: string;
-  user_id: string;
-  amount: number;
-  status: string;
-  currency: string;
+  user_id: string | null;
+  amount: number | null;
+  status: string | null;
+  currency: string | null;
   created_at: string;
   profiles?: {
-    full_name: string;
-  };
+    full_name: string | null;
+  } | null;
 }
 
 interface DashboardStats {
@@ -46,6 +46,12 @@ interface DashboardStats {
   avgOrderValue: number;
   totalCustomers: number;
   lowStockProducts: number;
+}
+
+interface DashboardActivityItem {
+  type: string;
+  message: string;
+  time: string;
 }
 
 const AdminDashboard = () => {
@@ -62,86 +68,88 @@ const AdminDashboard = () => {
     totalCustomers: 0,
     lowStockProducts: 0,
   });
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<DashboardActivityItem[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        // Load products
-        const productData = await ProductService.getAllProducts();
-        setProducts(productData);
+  const loadDashboardData = useCallback(async () => {
+    try {
+      // Load products
+      const productData = await ProductService.getAllProducts();
+      setProducts(productData);
 
-        const ordersData = await fetchRecentOrdersWithProfilesForDashboard(10);
-        setOrders(ordersData);
+      const ordersData = await fetchRecentOrdersWithProfilesForDashboard(10);
+      setOrders(ordersData);
 
-        const customerCount = await fetchProfilesExactCount();
+      const customerCount = await fetchProfilesExactCount();
 
-        // Calculate statistics
-        const totalProducts = productData.length;
-        const activeProducts = productData.filter(
-          (p) => p.is_active !== false
-        ).length;
-        const lowStockProducts = productData.filter(
-          (p) => (p.stock_quantity || 0) <= (p.min_stock_level || 5)
-        ).length;
-        const totalOrders = ordersData.length;
-        const pendingOrders = ordersData.filter(
-          (o) => o.status === 'pending'
-        ).length;
-        const totalRevenue = ordersData.reduce(
-          (sum, order) => sum + (order.amount ?? 0) / 100,
-          0
-        );
-        const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+      // Calculate statistics
+      const totalProducts = productData.length;
+      const activeProducts = productData.filter(
+        (p) => p.is_active !== false
+      ).length;
+      const lowStockProducts = productData.filter(
+        (p) => (p.stock_quantity || 0) <= (p.min_stock_level || 5)
+      ).length;
+      const totalOrders = ordersData.length;
+      const pendingOrders = ordersData.filter(
+        (o) => o.status === 'pending'
+      ).length;
+      const totalRevenue = ordersData.reduce(
+        (sum, order) => sum + (order.amount ?? 0) / 100,
+        0
+      );
+      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-        setStats({
-          totalProducts,
-          activeProducts,
-          totalOrders,
-          pendingOrders,
-          totalRevenue,
-          avgOrderValue,
-          totalCustomers: customerCount || 0,
-          lowStockProducts,
+      setStats({
+        totalProducts,
+        activeProducts,
+        totalOrders,
+        pendingOrders,
+        totalRevenue,
+        avgOrderValue,
+        totalCustomers: customerCount || 0,
+        lowStockProducts,
+      });
+
+      // Generate recent activity from real data
+      const activities: DashboardActivityItem[] = [];
+
+      // Recent orders
+      ordersData.slice(0, 3).forEach((order) => {
+        activities.push({
+          type: 'order',
+          message: `Nouvelle commande #${order.id.slice(-8)} de ${formatPrice((order.amount ?? 0) / 100)}`,
+          time: formatTimeAgo(order.created_at),
         });
+      });
 
-        // Generate recent activity from real data
-        const activities = [];
-
-        // Recent orders
-        ordersData.slice(0, 3).forEach((order) => {
+      // Low stock products
+      productData
+        .filter((p) => (p.stock_quantity || 0) <= (p.min_stock_level || 5))
+        .slice(0, 2)
+        .forEach((product) => {
+          const stock = product.stock_quantity || 0;
           activities.push({
-            type: 'order',
-            message: `Nouvelle commande #${order.id.slice(-8)} de ${formatPrice((order.amount ?? 0) / 100)}`,
-            time: formatTimeAgo(order.created_at),
+            type: 'product',
+            message: `Stock faible: ${product.name} (${stock} restant${stock > 1 ? 's' : ''})`,
+            time: 'Il y a 1h',
           });
         });
 
-        // Low stock products
-        productData
-          .filter((p) => (p.stock_quantity || 0) <= (p.min_stock_level || 5))
-          .slice(0, 2)
-          .forEach((product) => {
-            const stock = product.stock_quantity || 0;
-            activities.push({
-              type: 'product',
-              message: `Stock faible: ${product.name} (${stock} restant${stock > 1 ? 's' : ''})`,
-              time: 'Il y a 1h',
-            });
-          });
+      setRecentActivity(activities.slice(0, 5));
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+      toast.error('Erreur lors du chargement des données du tableau de bord');
+    } finally {
+      setLoading(false);
+    }
+  }, [formatPrice]);
 
-        setRecentActivity(activities.slice(0, 5));
-      } catch (error) {
-        console.error('Erreur lors du chargement des données:', error);
-        toast.error('Erreur lors du chargement des données du tableau de bord');
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [loadDashboardData]);
 
   const formatTimeAgo = (dateString: string): string => {
     const now = new Date();
@@ -156,8 +164,8 @@ const AdminDashboard = () => {
     return `Il y a ${diffInDays} jour${diffInDays > 1 ? 's' : ''}`;
   };
 
-  const getStatusColor = (status: string): string => {
-    switch (status) {
+  const getStatusColor = (status: string | null): string => {
+    switch (status ?? '') {
       case 'pending':
         return 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20';
       case 'processing':

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import PageFooter from '@/components/PageFooter';
@@ -84,12 +85,12 @@ const FAQ = () => {
             </h2>
             <p className="text-muted-foreground">
               {t('pages:faq.returns.a.prefix')}{' '}
-              <a
-                href="/returns"
+              <Link
+                to="/returns"
                 className="text-primary underline hover:text-primary/80"
               >
                 {t('pages:faq.returns.a.linkText')}
-              </a>{' '}
+              </Link>{' '}
               {t('pages:faq.returns.a.suffix')}
             </p>
           </div>

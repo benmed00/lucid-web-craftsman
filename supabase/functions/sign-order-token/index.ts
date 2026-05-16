@@ -4,7 +4,7 @@
  * No auth required: the order_id UUID is itself unguessable, and the token
  * is short-lived. Returns 404 if order doesn't exist (avoids token-as-oracle).
  */
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from '@supabase/supabase-js';
 import { signOrderToken } from '../_shared/invoice/token.ts';
 
 const corsHeaders = {

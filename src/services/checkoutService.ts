@@ -3,33 +3,35 @@
  */
 import { retryWithBackoff } from '@/lib/retryWithBackoff';
 import {
+  parseCreatePaymentInvokeBody,
+  type CreatePaymentInvokeBody,
+} from '@/types/contracts/edge-invoke-responses';
+import {
   invokeCreatePaymentEdge,
   type EdgeInvokeResult,
 } from '@/services/checkoutApi';
 
 export type CreatePaymentBody = Record<string, unknown>;
 
-type CreatePaymentResponseBody = {
-  url?: string;
-  error?: string;
-  error_type?: string;
-};
-
 /** Prefer server JSON `error` when invoke returns non-2xx (avoids generic "non-2xx" only). */
 export function normalizeCreatePaymentInvokeResult(
-  result: EdgeInvokeResult<CreatePaymentResponseBody>
+  result: EdgeInvokeResult<CreatePaymentInvokeBody | null>
 ): EdgeInvokeResult<{ url?: string }> {
   const { data, error } = result;
   if (!error) {
-    return { data: data as { url?: string } | null, error: null };
+    const parsed =
+      data !== null && data !== undefined
+        ? parseCreatePaymentInvokeBody(data)
+        : null;
+    return { data: parsed ? { url: parsed.url } : null, error: null };
   }
   const serverMsg =
     data &&
     typeof data === 'object' &&
     data !== null &&
     'error' in data &&
-    typeof (data as CreatePaymentResponseBody).error === 'string'
-      ? String((data as CreatePaymentResponseBody).error).trim()
+    typeof (data as CreatePaymentInvokeBody).error === 'string'
+      ? String((data as CreatePaymentInvokeBody).error).trim()
       : '';
   const msg =
     serverMsg ||
@@ -66,7 +68,7 @@ export async function createPaymentSessionWithRetry(
     async () => {
       const result = await invokeCreatePaymentEdge(functionName, body, headers);
       const normalized = normalizeCreatePaymentInvokeResult(
-        result as EdgeInvokeResult<CreatePaymentResponseBody>
+        result as EdgeInvokeResult<CreatePaymentInvokeBody | null>
       );
       if (normalized.error) {
         if (isRetryablePaymentInvokeError(normalized.error)) {

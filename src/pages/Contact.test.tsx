@@ -9,6 +9,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+
+vi.mock('react-helmet-async', () => ({
+  Helmet: () => null,
+  HelmetProvider: ({ children }: { children: unknown }) => children,
+}));
+
 import Contact from './Contact';
 
 vi.mock('@/hooks/useCompanySettings', () => ({
@@ -82,10 +88,6 @@ vi.mock('@/components/ui/LocationMap', () => ({
 
 vi.mock('@/components/seo/SEOHelmet', () => ({
   default: () => null,
-}));
-
-vi.mock('react-helmet-async', () => ({
-  Helmet: () => null,
 }));
 
 const futureFlags = { v7_startTransition: true, v7_relativeSplatPath: true };

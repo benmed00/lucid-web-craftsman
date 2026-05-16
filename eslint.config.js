@@ -45,8 +45,8 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // Many effects intentionally omit deps (e.g. mount-only, stable callbacks); audit before tightening.
-      'react-hooks/exhaustive-deps': 'off',
+      // Document intentional suppressions inline — see docs/TECH_DEBT.md
+      'react-hooks/exhaustive-deps': 'error',
       // shadcn/ui and contexts export helpers/hooks next to components; Fast Refresh still works in practice.
       'react-refresh/only-export-components': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
@@ -81,11 +81,12 @@ export default tseslint.config(
       'jsx-a11y/click-events-have-key-events': 'off',
       'jsx-a11y/no-static-element-interactions': 'off',
       'jsx-a11y/no-noninteractive-element-interactions': 'off',
-      'jsx-a11y/label-has-associated-control': 'off',
+      // Incremental a11y: fix warnings over time (see docs/TECH_DEBT.md).
+      'jsx-a11y/label-has-associated-control': 'warn',
       'jsx-a11y/no-noninteractive-tabindex': 'off',
       'jsx-a11y/heading-has-content': 'off',
       'jsx-a11y/img-redundant-alt': 'off',
-      'jsx-a11y/anchor-is-valid': 'off',
+      'jsx-a11y/anchor-is-valid': 'warn',
       'jsx-a11y/no-autofocus': 'off',
       'jsx-a11y/anchor-has-content': 'off',
       'jsx-a11y/no-redundant-roles': 'off',
@@ -121,7 +122,18 @@ export default tseslint.config(
       'src/vite-env.d.ts',
     ],
     rules: {
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
+    },
+  },
+
+  // New typing layers: disallow explicit `any` (baseline is clean here).
+  {
+    files: [
+      'src/types/domain/**/*.{ts,tsx}',
+      'src/types/contracts/**/*.{ts,tsx}',
+    ],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
 
@@ -136,15 +148,7 @@ export default tseslint.config(
   // Leaf UI: Supabase client only via src/services (and AuthContext).
   {
     files: ['src/pages/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}'],
-    ignores: [
-      '**/*.{test,spec}.{ts,tsx}',
-      // Grandfathered from main's token-based OrderConfirmation / Artisans /
-      // ABThemeManager — each still reads supabase directly. Track these as
-      // follow-up in the admin services refactor instead of blocking every merge.
-      'src/components/admin/ABThemeManager.tsx',
-      'src/pages/Artisans.tsx',
-      'src/pages/OrderConfirmation.tsx',
-    ],
+    ignores: ['**/*.{test,spec}.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',

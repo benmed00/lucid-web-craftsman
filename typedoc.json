@@ -1,0 +1,22 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "Type catalog (domain & contracts)",
+  "entryPoints": [
+    "src/types/domain/index.ts",
+    "src/types/contracts/index.ts",
+    "src/types/order.types.ts"
+  ],
+  "entryPointStrategy": "resolve",
+  "tsconfig": "tsconfig.typedoc.json",
+  "out": "docs/generated/typedoc",
+  "readme": "docs/TYPEDOC_README.md",
+  "searchInComments": true,
+  "navigationLinks": {
+    "Repository": "https://github.com/benmed00/lucid-web-craftsman"
+  },
+  "sort": ["source-order"],
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "skipErrorChecking": true
+}

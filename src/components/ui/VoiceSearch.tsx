@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+/// <reference lib="dom" />
+import { useState, useRef, useEffect } from 'react';
 import { Search, X, Mic, MicOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,68 +19,79 @@ export const VoiceSearch = ({
   const [query, setQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<InstanceType<
+    NonNullable<
+      typeof window.SpeechRecognition | typeof window.webkitSpeechRecognition
+    >
+  > | null>(null);
 
   // Initialize speech recognition
-  useState(() => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition ||
-        (window as any).webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-
-      const recognition = recognitionRef.current;
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = 'fr-FR';
-
-      recognition.onstart = () => {
-        setIsListening(true);
-      };
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setQuery(transcript);
-        onSearch(transcript);
-
-        toast({
-          title: 'Recherche vocale',
-          description: `Recherche pour: "${transcript}"`,
-        });
-      };
-
-      recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-
-        let errorMessage = 'Erreur de reconnaissance vocale';
-        switch (event.error) {
-          case 'no-speech':
-            errorMessage = 'Aucun son détecté. Essayez de parler plus fort.';
-            break;
-          case 'audio-capture':
-            errorMessage = 'Microphone non disponible.';
-            break;
-          case 'not-allowed':
-            errorMessage = 'Permission microphone refusée.';
-            break;
-        }
-
-        toast({
-          title: 'Erreur vocale',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-
-        setIsListening(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      setIsSupported(true);
+  useEffect(() => {
+    if (
+      !('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)
+    ) {
+      return;
     }
-  });
+    const SpeechRecognitionCtor =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognitionCtor) {
+      return;
+    }
+    recognitionRef.current = new SpeechRecognitionCtor();
+
+    const recognition = recognitionRef.current;
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'fr-FR';
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event: {
+      results: ArrayLike<{ 0: { transcript: string } }>;
+    }) => {
+      const transcript = event.results[0][0].transcript;
+      setQuery(transcript);
+      onSearch(transcript);
+
+      toast({
+        title: 'Recherche vocale',
+        description: `Recherche pour: "${transcript}"`,
+      });
+    };
+
+    recognition.onerror = (event: { error: string }) => {
+      console.error('Speech recognition error:', event.error);
+
+      let errorMessage = 'Erreur de reconnaissance vocale';
+      switch (event.error) {
+        case 'no-speech':
+          errorMessage = 'Aucun son détecté. Essayez de parler plus fort.';
+          break;
+        case 'audio-capture':
+          errorMessage = 'Microphone non disponible.';
+          break;
+        case 'not-allowed':
+          errorMessage = 'Permission microphone refusée.';
+          break;
+      }
+
+      toast({
+        title: 'Erreur vocale',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    setIsSupported(true);
+  }, [onSearch]);
 
   const startListening = async () => {
     if (!recognitionRef.current || isListening) return;

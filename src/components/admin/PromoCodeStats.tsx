@@ -31,10 +31,10 @@ interface DiscountCoupon {
   code: string;
   type: string;
   value: number;
-  usage_count: number;
-  is_active: boolean;
-  includes_free_shipping: boolean;
-  created_at: string;
+  usage_count: number | null;
+  is_active: boolean | null;
+  includes_free_shipping: boolean | null;
+  created_at: string | null;
   valid_from: string | null;
   valid_until: string | null;
 }
@@ -118,6 +118,7 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
     return last30Days.map((day) => {
       const dayStart = startOfDay(day);
       const count = coupons.filter((coupon) => {
+        if (coupon.created_at == null) return false;
         const createdAt = startOfDay(parseISO(coupon.created_at));
         return createdAt.getTime() === dayStart.getTime();
       }).length;
@@ -230,6 +231,7 @@ const PromoCodeStats = ({ coupons }: PromoCodeStatsProps) => {
             <div className="text-2xl font-bold">
               {
                 coupons.filter((c) => {
+                  if (c.created_at == null) return false;
                   const created = new Date(c.created_at);
                   return created >= subDays(new Date(), 30);
                 }).length

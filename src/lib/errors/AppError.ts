@@ -194,6 +194,13 @@ export function handleError(error: unknown, context?: string): AppError {
   });
 }
 
+/** Human-readable message for caught values (prefer over narrowing `unknown` manually). */
+export function formatUnknownError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return String(error);
+}
+
 // Safe async wrapper
 export async function trySafe<T>(
   fn: () => Promise<T>,

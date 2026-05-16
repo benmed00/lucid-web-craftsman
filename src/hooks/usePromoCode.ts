@@ -90,37 +90,48 @@ export function usePromoCode({
 
   // Validate coupon data against business rules
   const validateCouponData = useCallback(
-    (data: any): CouponValidationResult => {
+    (data: Record<string, unknown>): CouponValidationResult => {
       const now = new Date();
 
-      if (data.valid_from && new Date(data.valid_from) > now) {
+      if (data.valid_from != null && new Date(String(data.valid_from)) > now) {
         return {
           isValid: false,
           error: "Ce code promo n'est pas encore actif",
         };
       }
 
-      if (data.valid_until && new Date(data.valid_until) < now) {
+      if (
+        data.valid_until != null &&
+        new Date(String(data.valid_until)) < now
+      ) {
         return { isValid: false, error: 'Ce code promo a expiré' };
       }
 
-      if (data.usage_limit && data.usage_count >= data.usage_limit) {
+      const usageLimit = Number(data.usage_limit);
+      const usageCount = Number(data.usage_count);
+      if (
+        Number.isFinite(usageLimit) &&
+        usageLimit > 0 &&
+        Number.isFinite(usageCount) &&
+        usageCount >= usageLimit
+      ) {
         return {
           isValid: false,
           error: "Ce code promo a atteint sa limite d'utilisation",
         };
       }
 
-      if (data.minimum_order_amount && subtotal < data.minimum_order_amount) {
+      const minOrd = Number(data.minimum_order_amount);
+      if (Number.isFinite(minOrd) && minOrd > 0 && subtotal < minOrd) {
         return {
           isValid: false,
-          error: `Commande minimum de ${formatPrice(data.minimum_order_amount)} requise`,
+          error: `Commande minimum de ${formatPrice(minOrd)} requise`,
         };
       }
 
       return { isValid: true };
     },
-    [subtotal]
+    [subtotal, formatPrice]
   );
 
   // Validate and apply promo code
@@ -155,7 +166,7 @@ export function usePromoCode({
       }
 
       // Validate coupon against business rules
-      const validation = validateCouponData(data);
+      const validation = validateCouponData(data as Record<string, unknown>);
       if (!validation.isValid) {
         setError(validation.error || 'Code promo invalide');
         return;
@@ -192,7 +203,7 @@ export function usePromoCode({
     } finally {
       setIsValidating(false);
     }
-  }, [promoCode, validateCouponData]);
+  }, [promoCode, validateCouponData, setPromoCode]);
 
   // Remove applied coupon
   const remove = useCallback(() => {

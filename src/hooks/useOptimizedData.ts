@@ -157,7 +157,7 @@ export function useOptimizedQuery<T>(
       currentQueryKey.current = queryKey;
       fetchData();
     }
-  }, [queryKey]); // Only depend on queryKey, not fetchData
+  }, [queryKey, fetchData]);
 
   // Window focus refetch
   useEffect(() => {

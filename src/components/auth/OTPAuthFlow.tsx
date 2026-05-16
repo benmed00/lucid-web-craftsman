@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useOptimizedAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 import {
   validateAndSanitizeEmail,
   validatePhoneNumber,
@@ -99,9 +100,11 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
       setStep('verify');
       setTimeLeft(60); // 1 minute cooldown
       setAttempts((prev) => prev + 1);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('OTP send error:', error);
-      toast.error(error.message || "Erreur lors de l'envoi du code");
+      toast.error(
+        formatUnknownError(error) || "Erreur lors de l'envoi du code"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -113,6 +116,7 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
     maxAttempts,
     signInWithOtp,
     resetPassword,
+    timeLeft,
   ]);
 
   const handleVerifyOTP = useCallback(async () => {
@@ -126,9 +130,9 @@ export const OTPAuthFlow: React.FC<OTPAuthFlowProps> = ({
         toast.success('Authentification réussie !');
         onSuccess?.();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('OTP verify error:', error);
-      toast.error(error.message || 'Code OTP invalide');
+      toast.error(formatUnknownError(error) || 'Code OTP invalide');
     } finally {
       setIsLoading(false);
     }

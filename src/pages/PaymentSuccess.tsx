@@ -10,7 +10,7 @@
  * For direct order_id links, we redirect immediately.
  */
 import { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { invokeOrderLookup } from '@/services/checkoutApi';
@@ -46,9 +46,13 @@ const PaymentSuccess = () => {
           const { data, error: fnError } = await invokeOrderLookup({
             session_id: sessionId,
           });
-          const row = data as { found?: boolean; order_id?: string } | null;
 
-          if (fnError || !row?.found || !row?.order_id) {
+          if (
+            fnError ||
+            !data ||
+            data.found !== true ||
+            typeof data.order_id !== 'string'
+          ) {
             // order-lookup failed: we do not navigate without a real order_id (token flow needs it)
             console.warn(
               '[PaymentSuccess] Could not resolve session_id to order_id',
@@ -59,7 +63,7 @@ const PaymentSuccess = () => {
           }
 
           navigate(
-            `/order-confirmation?order_id=${encodeURIComponent(row.order_id)}`,
+            `/order-confirmation?order_id=${encodeURIComponent(data.order_id)}`,
             { replace: true }
           );
         } catch {
@@ -82,9 +86,9 @@ const PaymentSuccess = () => {
           <p className="text-muted-foreground mb-4">
             {t('paymentSuccess.legacyRoute.orderNotFoundBody')}
           </p>
-          <a href="/contact" className="text-primary underline">
+          <Link to="/contact" className="text-primary underline">
             {t('paymentSuccess.legacyRoute.contactSupport')}
-          </a>
+          </Link>
         </div>
       </div>
     );

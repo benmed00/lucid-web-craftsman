@@ -4,11 +4,8 @@ import type {
   SupabaseClient,
 } from '@supabase/supabase-js';
 
-import type {
-  CheckoutRequestBody,
-  DiscountCouponRow,
-  VerifiedCartItem,
-} from '../types.ts';
+import type { DiscountCouponRow, VerifiedCartItem } from '../types.ts';
+import type { ParsedCheckoutRequest } from './checkout-schema.ts';
 import type { LogStep } from './log.ts';
 
 /** Date window: null bounds mean “no limit” on that side. */
@@ -73,7 +70,7 @@ export type ServerDiscountResult = {
 export async function resolveServerDiscount(
   supabase: SupabaseClient,
   verifiedItems: VerifiedCartItem[],
-  discount: CheckoutRequestBody['discount'],
+  discount: ParsedCheckoutRequest['discount'],
   log: LogStep
 ): Promise<ServerDiscountResult> {
   let discountAmountCents = 0;

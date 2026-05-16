@@ -162,11 +162,15 @@ describe('Partial Failure Isolation', () => {
 
     // Artisans FULFILLED with data
     expect(results[1].status).toBe('fulfilled');
-    expect((results[1] as PromiseFulfilledResult<any>).value).toHaveLength(2);
+    expect(
+      (results[1] as PromiseFulfilledResult<{ id: string }[]>).value
+    ).toHaveLength(2);
 
     // Blog FULFILLED with data
     expect(results[2].status).toBe('fulfilled');
-    expect((results[2] as PromiseFulfilledResult<any>).value).toHaveLength(1);
+    expect(
+      (results[2] as PromiseFulfilledResult<{ id: string }[]>).value
+    ).toHaveLength(1);
   });
 
   it('error state is scoped to products query only', () => {

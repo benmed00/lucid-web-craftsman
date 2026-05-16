@@ -26,6 +26,7 @@ import {
   insertOrderItemsRows,
 } from '@/services/adminOrderUiApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { useCurrency } from '@/stores/currencyStore';
 
@@ -41,10 +42,15 @@ interface AddOrderDialogProps {
   onOrderAdded: () => void;
 }
 
+interface CustomerProfileChoice {
+  id: string;
+  full_name: string | null;
+}
+
 export const AddOrderDialog = ({ onOrderAdded }: AddOrderDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<CustomerProfileChoice[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const { formatPrice } = useCurrency();
@@ -186,10 +192,10 @@ export const AddOrderDialog = ({ onOrderAdded }: AddOrderDialogProps) => {
       setOrderItems([]);
       setOpen(false);
       onOrderAdded();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating order:', error);
       toast.error(
-        `Erreur lors de la création de la commande: ${error.message}`
+        `Erreur lors de la création de la commande: ${formatUnknownError(error)}`
       );
     } finally {
       setLoading(false);

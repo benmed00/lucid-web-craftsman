@@ -1,7 +1,7 @@
 // Enhanced Order Service with integrated product, customer, coupon and payment management
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
-import type { OrderStatus } from '@/types/order.types';
+import type { OrderStatus } from '@/types/domain/order';
 
 // ==================== Order Service Types ====================
 
@@ -49,6 +49,14 @@ export interface RefundRecord {
   processed_by: string;
   processed_at: string;
   stripe_refund_id: string | null;
+}
+
+/** Client-visible outcome for {@link processRefund} (metadata-only until Stripe Refunds API exists). */
+export interface ProcessRefundResult {
+  success: boolean;
+  message: string;
+  /** Always true until Stripe Refunds API is wired (e.g. Edge Function + service role). */
+  metadataOnly: true;
 }
 
 export interface ProductStockInfo {
@@ -205,7 +213,7 @@ export async function getOrderCouponUsage(
       .rpc('validate_coupon_code', { p_code: metadata.coupon_code as string })
       .maybeSingle();
 
-    if (couponError) return null;
+    if (couponError || !coupon) return null;
 
     return {
       id: coupon.id,
@@ -262,7 +270,10 @@ export async function validateCouponForOrder(
     }
 
     // Check usage limit
-    if (coupon.usage_limit && coupon.usage_count >= coupon.usage_limit) {
+    if (
+      coupon.usage_limit != null &&
+      (coupon.usage_count ?? 0) >= coupon.usage_limit
+    ) {
       return {
         valid: false,
         discount: 0,
@@ -341,11 +352,15 @@ export async function getOrderPaymentDetails(
   }
 }
 
+/**
+ * Records refund intent on the order (`metadata.refund_history`) and may update `order_status`.
+ * Does **not** call Stripe — execute the actual card refund in the Stripe Dashboard (or add an Edge Function).
+ */
 export async function processRefund(
   orderId: string,
   amount: number,
   reason: string
-): Promise<{ success: boolean; message: string }> {
+): Promise<ProcessRefundResult> {
   try {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) throw new Error('Not authenticated');
@@ -370,23 +385,25 @@ export async function processRefund(
       return {
         success: false,
         message: 'Le montant du remboursement doit être positif',
+        metadataOnly: true,
       };
     }
     if (totalRefunded + amount > orderAmount) {
       return {
         success: false,
         message: 'Le montant du remboursement dépasse le total de la commande',
+        metadataOnly: true,
       };
     }
 
-    // Create refund record
+    // Internal bookkeeping only until Stripe Refund API is integrated server-side
     const refundRecord: RefundRecord = {
       id: crypto.randomUUID(),
       amount,
       reason,
       processed_by: userId,
       processed_at: new Date().toISOString(),
-      stripe_refund_id: null, // Would be set by actual Stripe integration
+      stripe_refund_id: null,
     };
 
     const newRefundHistory = [...existingRefunds, refundRecord];
@@ -421,14 +438,16 @@ export async function processRefund(
 
     return {
       success: true,
+      metadataOnly: true,
       message: isFullRefund
-        ? 'Remboursement complet effectué'
-        : 'Remboursement partiel effectué',
+        ? 'Enregistrement interne : commande marquée remboursée — effectuez le remboursement carte dans Stripe.'
+        : 'Enregistrement interne : remboursement partiel noté — effectuez le remboursement carte dans Stripe.',
     };
   } catch (error) {
     console.error('Error processing refund:', error);
     return {
       success: false,
+      metadataOnly: true,
       message: 'Erreur lors du traitement du remboursement',
     };
   }
@@ -481,9 +500,9 @@ export async function bulkUpdateOrderStatus(
         p_order_id: orderId,
         p_new_status: newStatus,
         p_actor: 'admin',
-        p_actor_user_id: userId,
-        p_reason_code: null,
-        p_reason_message: reasonMessage || null,
+        p_actor_user_id: userId ?? undefined,
+        p_reason_code: undefined,
+        p_reason_message: reasonMessage ?? undefined,
         p_metadata: {},
       });
 

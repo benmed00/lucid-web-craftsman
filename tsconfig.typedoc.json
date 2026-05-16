@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": false
+  },
+  "include": [
+    "src/types/domain/**/*.ts",
+    "src/types/contracts/**/*.ts",
+    "src/types/order.types.ts"
+  ],
+  "exclude": ["**/*.test.ts", "**/*.spec.ts", "src/types/contracts/*.test.ts"]
+}

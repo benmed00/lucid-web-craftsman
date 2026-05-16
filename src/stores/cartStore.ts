@@ -37,6 +37,17 @@ export type { CartItem, QueueOperation };
 export const MAX_CART_QUANTITY = 10;
 export const HIGH_VALUE_ORDER_THRESHOLD = 1000;
 
+function isPersistedCartPair(
+  item: unknown
+): item is { id: number; quantity: number } {
+  return (
+    typeof item === 'object' &&
+    item !== null &&
+    typeof (item as { id?: unknown }).id === 'number' &&
+    typeof (item as { quantity?: unknown }).quantity === 'number'
+  );
+}
+
 // Get current limits from business rules
 function getCartLimits() {
   const rules = getBusinessRules();
@@ -313,25 +324,26 @@ export const useCartStore = create<CartState>()(
             })),
             offlineQueue: state.offlineQueue,
           }),
-          migrate: (persisted: any, version: number) => {
+          migrate: (persisted: unknown, version: number) => {
             try {
               // v0/v1 → v2: ensure items have correct shape
               if (version < 2) {
-                const state = persisted as any;
-                const items = Array.isArray(state?.items)
-                  ? state.items
-                      .filter(
-                        (item: any) =>
-                          item &&
-                          typeof item.id === 'number' &&
-                          typeof item.quantity === 'number'
-                      )
-                      .map((item: any) => ({
+                if (
+                  persisted !== null &&
+                  typeof persisted === 'object' &&
+                  !Array.isArray(persisted)
+                ) {
+                  const state = persisted as Record<string, unknown>;
+                  const rawItems = state.items;
+                  const items = Array.isArray(rawItems)
+                    ? rawItems.filter(isPersistedCartPair).map((item) => ({
                         id: item.id,
                         quantity: Math.max(1, Math.min(item.quantity, 99)),
                       }))
-                  : [];
-                return { items, offlineQueue: [] };
+                    : [];
+                  return { items, offlineQueue: [] };
+                }
+                return { items: [], offlineQueue: [] };
               }
               return persisted;
             } catch {
@@ -395,8 +407,9 @@ export const useCartStore = create<CartState>()(
               }
 
               // Async product loading — deferred, non-blocking
-              if (state?.items?.length > 0) {
-                const itemsNeedingProducts = state.items.filter(
+              const rehydratedItems = state?.items;
+              if (rehydratedItems && rehydratedItems.length > 0) {
+                const itemsNeedingProducts = rehydratedItems.filter(
                   (item) => !item.product
                 );
 

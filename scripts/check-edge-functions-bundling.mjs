@@ -551,6 +551,8 @@ if (!skipDeno) {
     process.exit(1);
   }
   if (asserted.status !== 0 && asserted.status !== null) {
+    if (asserted.stderr?.trim()) console.error(asserted.stderr.trim());
+    if (asserted.stdout?.trim()) console.error(asserted.stdout.trim());
     process.exit(asserted.status);
   }
 }

@@ -71,6 +71,7 @@ export const useOptimizedComputation = <T,>(
   const [result, setResult] = React.useState<T | undefined>(fallback);
   const [isComputing, setIsComputing] = React.useState(false);
 
+  // Dependencies are forwarded from callers (variable-length list); hook mirrors useEffect(..., deps)
   useEffect(() => {
     if (isComputing) return;
 
@@ -87,6 +88,7 @@ export const useOptimizedComputation = <T,>(
         setIsComputing(false);
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- non-literal dependency list by design (see hook signature)
   }, dependencies);
 
   return result;

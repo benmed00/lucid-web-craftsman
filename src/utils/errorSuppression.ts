@@ -54,7 +54,7 @@ export function setupProductionErrorSuppression() {
   const originalInfo = console.info;
 
   // Override console.warn
-  console.warn = (...args: any[]) => {
+  console.warn = (...args: unknown[]) => {
     const message = args.join(' ');
     const shouldSuppress = suppressedWarnings.some(
       (warning) => warning.level === 'warn' && warning.pattern.test(message)
@@ -66,7 +66,7 @@ export function setupProductionErrorSuppression() {
   };
 
   // Override console.error (be more selective)
-  console.error = (...args: any[]) => {
+  console.error = (...args: unknown[]) => {
     const message = args.join(' ');
     const shouldSuppress = suppressedWarnings.some(
       (warning) => warning.level === 'error' && warning.pattern.test(message)
@@ -78,7 +78,7 @@ export function setupProductionErrorSuppression() {
   };
 
   // Override console.info
-  console.info = (...args: any[]) => {
+  console.info = (...args: unknown[]) => {
     const message = args.join(' ');
     const shouldSuppress = suppressedWarnings.some(
       (warning) => warning.level === 'info' && warning.pattern.test(message)

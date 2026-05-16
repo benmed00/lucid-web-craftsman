@@ -1,6 +1,13 @@
 import { z } from 'zod';
 import { sanitizeUserInput } from './xssProtection';
 
+/**
+ * Checkout Zod schemas — constraints, dangerous-pattern refinements, and UI-facing validation helpers.
+ *
+ * @see docs/BUSINESS_LOGIC_AND_EDGE_CASES.md#4-checkout-validation
+ * @see docs/RULES_REGISTRY.md#6-client-validation-modules-zod--sanitization
+ */
+
 // Regex patterns for validation
 const NAME_REGEX = /^[a-zA-ZÀ-ÿ\s\-'.]+$/;
 const PHONE_REGEX = /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/;

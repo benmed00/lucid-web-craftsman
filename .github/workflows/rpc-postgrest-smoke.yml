@@ -1,0 +1,53 @@
+# Opt-in Vitest suite against a real Supabase project (PostgREST RPC payloads / history).
+# Does not run on push/PR — configure repository secrets, then Actions → Run workflow.
+name: PostgREST RPC smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_mutate:
+        description: Run update_order_status (writes order + order_status_history)
+        type: boolean
+        default: false
+      anomaly_id:
+        description: Optional anomaly UUID for resolve_order_anomaly (writes DB); leave empty to skip
+        type: string
+        default: ''
+
+# Manual probes share one concurrency slot; avoid canceling an in-flight run.
+concurrency:
+  group: rpc-postgrest-smoke
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Required repo secrets: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY,
+      # TEST_ADMIN_EMAIL, TEST_ADMIN_PASSWORD, TEST_RPC_SMOKE_ORDER_ID
+      - name: Vitest RPC smoke
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL }}
+          TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD }}
+          TEST_RPC_SMOKE_ORDER_ID: ${{ secrets.TEST_RPC_SMOKE_ORDER_ID }}
+          TEST_RPC_SMOKE_MUTATE: ${{ inputs.run_mutate && '1' || '' }}
+          TEST_RPC_SMOKE_ANOMALY_ID: ${{ inputs.anomaly_id }}
+        run: pnpm run test:rpc-smoke

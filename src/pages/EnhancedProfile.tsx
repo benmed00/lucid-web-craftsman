@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -61,16 +61,19 @@ export default function EnhancedProfile() {
   const isProfileLoading = !isInitialized;
 
   // Derive active tab from URL hash
-  const getTabFromHash = (): ProfileTab => {
+  const getTabFromHash = useCallback((): ProfileTab => {
     const hash = location.hash.replace('#', '') as ProfileTab;
     return VALID_TABS.includes(hash) ? hash : 'overview';
-  };
-  const [activeTab, setActiveTab] = useState<ProfileTab>(getTabFromHash);
+  }, [location.hash]);
+  const [activeTab, setActiveTab] = useState<ProfileTab>(() => {
+    const hash = window.location.hash.replace('#', '') as ProfileTab;
+    return VALID_TABS.includes(hash) ? hash : 'overview';
+  });
 
   // Sync tab with URL hash
   useEffect(() => {
     setActiveTab(getTabFromHash());
-  }, [location.hash]);
+  }, [getTabFromHash]);
 
   const handleTabChange = (tab: string) => {
     const validTab = tab as ProfileTab;
@@ -84,7 +87,7 @@ export default function EnhancedProfile() {
 
   // Don't auto-redirect — show a friendly "login required" message instead
 
-  const handleProfileUpdate = async (_updatedProfile?: any) => {
+  const handleProfileUpdate = async (_updatedProfile?: unknown) => {
     // Refresh profile from AuthContext (single source of truth)
     await refreshProfile();
   };
@@ -98,7 +101,7 @@ export default function EnhancedProfile() {
       await signOut();
       navigate('/auth');
       toast.success(t('profile.messages.deleteSuccess'));
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting account:', error);
       toast.error(t('profile.messages.deleteError'));
     }
@@ -108,7 +111,7 @@ export default function EnhancedProfile() {
     try {
       await signOut();
       navigate('/auth');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error signing out:', error);
       toast.error(t('profile.messages.signOutError'));
     }

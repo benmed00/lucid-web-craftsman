@@ -46,6 +46,7 @@ export class ShippingService {
       this.zones = data.map((zone) => ({
         ...zone,
         postal_codes: zone.postal_codes as string[],
+        is_active: zone.is_active ?? false,
       }));
     } catch (error) {
       console.error('Error loading shipping zones:', error);

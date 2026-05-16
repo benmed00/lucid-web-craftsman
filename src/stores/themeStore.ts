@@ -70,12 +70,21 @@ export const useThemeStore = create<ThemeState>()(
         name: 'rif-raw-straw-theme',
         version: 1,
         partialize: (state) => ({ theme: state.theme }),
-        migrate: (persisted: any, version: number) => {
+        migrate: (persisted: unknown, version: number) => {
           try {
             if (version < 1) {
-              const theme = persisted?.theme;
-              if (theme && ['light', 'dark', 'system'].includes(theme)) {
-                return { theme };
+              if (
+                persisted !== null &&
+                typeof persisted === 'object' &&
+                !Array.isArray(persisted)
+              ) {
+                const theme = (persisted as Record<string, unknown>).theme;
+                if (
+                  typeof theme === 'string' &&
+                  ['light', 'dark', 'system'].includes(theme)
+                ) {
+                  return { theme };
+                }
               }
               return { theme: 'system' };
             }

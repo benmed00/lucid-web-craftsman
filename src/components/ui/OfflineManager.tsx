@@ -11,7 +11,7 @@ interface OfflineManagerProps {
 export const OfflineManager = ({ children }: OfflineManagerProps) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
-  const [_offlineActions, setOfflineActions] = useState<any[]>([]);
+  const [_offlineActions, setOfflineActions] = useState<unknown[]>([]);
 
   useEffect(() => {
     const handleOnline = () => {

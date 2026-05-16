@@ -28,7 +28,7 @@ interface CartItem {
 interface DiscountCoupon {
   id: string;
   code: string;
-  type: string;
+  type: 'percentage' | 'fixed';
   value: number;
   minimum_order_amount: number | null;
   maximum_discount_amount: number | null;

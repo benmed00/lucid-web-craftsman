@@ -86,3 +86,6 @@ supabase/functions/deno.lock
 supabase/functions/*/deno.lock
 
 reports/
+
+# TypeDoc HTML (run `pnpm run docs:typedoc` locally; optional CI publish)
+docs/generated/

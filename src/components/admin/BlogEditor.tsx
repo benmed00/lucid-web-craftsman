@@ -204,10 +204,11 @@ export default function BlogEditor({
     enabled: mode === 'edit' && !!editingPostId,
   });
 
-  // Load existing translations into state
+  // Load existing translations into state (functional update avoids deps on full translations map)
   useEffect(() => {
-    if (existingTranslations) {
-      const translationMap = { ...translations };
+    if (!existingTranslations) return;
+    setTranslations((prev) => {
+      const translationMap = { ...prev };
       existingTranslations.forEach((trans) => {
         const locale = trans.locale as SupportedLocale;
         if (SUPPORTED_LOCALES.includes(locale)) {
@@ -223,8 +224,8 @@ export default function BlogEditor({
           };
         }
       });
-      setTranslations(translationMap);
-    }
+      return translationMap;
+    });
   }, [existingTranslations]);
 
   // Save translation mutation

@@ -58,8 +58,9 @@ export const useReauthentication = () => {
         const result = await action();
         toast.success(`${actionName} effectuée avec succès`);
         return { success: true, result };
-      } catch (err: any) {
-        const errorMessage = err.message || 'Erreur inconnue';
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Erreur inconnue';
         toast.error(`Échec: ${errorMessage}`);
         return { success: false, error: errorMessage };
       }

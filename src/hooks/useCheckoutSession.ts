@@ -399,7 +399,7 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
         );
       });
     },
-    [queueUpdate, updateSession]
+    [queueUpdate, updateSession, sessionData?.last_completed_step]
   );
 
   // Save shipping info (step 2 complete)
@@ -423,7 +423,7 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
         );
       });
     },
-    [queueUpdate, updateSession]
+    [queueUpdate, updateSession, sessionData?.last_completed_step]
   );
 
   // Save promo code data

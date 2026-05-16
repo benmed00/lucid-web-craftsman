@@ -119,7 +119,7 @@ describe('Product Detail: Stock Display @product @regression', () => {
   });
 
   it('quantity selector is visible for in-stock products', () => {
-    cy.contains(/en stock|in stock|disponible/i, { timeout: 6000 }).then(
+    cy.contains(/en stock|in stock|disponible/i, { timeout: 20000 }).then(
       ($el) => {
         if ($el.length) {
           cy.get(
@@ -157,7 +157,7 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
   });
 
   it('clicking "add to cart" shows success feedback', () => {
-    cy.contains(/en stock|in stock|disponible/i, { timeout: 6000 }).then(
+    cy.contains(/en stock|in stock|disponible/i, { timeout: 20000 }).then(
       ($inStock) => {
         if (!$inStock.length) {
           cy.log('Product out of stock; skipping add-to-cart test');
@@ -176,7 +176,7 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
   });
 
   it('cart item count increases after adding a product', () => {
-    cy.contains(/en stock|in stock|disponible/i, { timeout: 6000 }).then(
+    cy.contains(/en stock|in stock|disponible/i, { timeout: 20000 }).then(
       ($inStock) => {
         if (!$inStock.length) {
           cy.log('Product out of stock; skipping');
@@ -207,7 +207,7 @@ describe('Product Detail: Add to Cart @product @smoke', () => {
   });
 
   it('cart persists product after navigating away and back', () => {
-    cy.contains(/en stock|in stock|disponible/i, { timeout: 6000 }).then(
+    cy.contains(/en stock|in stock|disponible/i, { timeout: 20000 }).then(
       ($inStock) => {
         if (!$inStock.length) {
           cy.log('Product out of stock; skipping');

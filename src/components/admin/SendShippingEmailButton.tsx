@@ -14,14 +14,29 @@ import { Label } from '@/components/ui/label';
 import { Truck, Send, Loader2 } from 'lucide-react';
 import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
+
+type ProductSnapshotEmail = {
+  name?: string;
+  images?: string[];
+};
+
+function parseProductSnapshotForEmail(
+  raw: unknown
+): ProductSnapshotEmail | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const o = raw as Record<string, unknown>;
+  const name = typeof o.name === 'string' ? o.name : undefined;
+  const images = Array.isArray(o.images)
+    ? o.images.filter((x): x is string => typeof x === 'string')
+    : undefined;
+  return { name, images };
+}
 
 interface SendShippingEmailButtonProps {
   orderId: string;
   orderItems: Array<{
-    product_snapshot?: {
-      name?: string;
-      images?: string[];
-    };
+    product_snapshot?: unknown;
     quantity: number;
   }>;
   onEmailSent?: () => void;
@@ -59,11 +74,14 @@ export const SendShippingEmailButton = ({
 
     setSending(true);
     try {
-      const items = orderItems.map((item) => ({
-        name: item.product_snapshot?.name || 'Produit',
-        quantity: item.quantity,
-        image: item.product_snapshot?.images?.[0],
-      }));
+      const items = orderItems.map((item) => {
+        const snap = parseProductSnapshotForEmail(item.product_snapshot);
+        return {
+          name: snap?.name || 'Produit',
+          quantity: item.quantity,
+          image: snap?.images?.[0],
+        };
+      });
 
       const { data, error } = await invokeSupabaseEdgeFunction(
         'send-shipping-notification',
@@ -94,9 +112,9 @@ export const SendShippingEmailButton = ({
       } else {
         throw new Error(data?.error || 'Erreur inconnue');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending shipping email:', error);
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     } finally {
       setSending(false);
     }

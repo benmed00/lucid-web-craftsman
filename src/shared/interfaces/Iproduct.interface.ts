@@ -4,9 +4,17 @@
  * IMPORTANT: This interface uses snake_case to match Supabase database schema.
  * All field names should match the database column names exactly.
  *
+ * Canonical **persisted** row type is {@link ProductRow} (`src/types/domain/product.ts`).
+ * This interface stays intentionally loose so mocks, translations, and fixtures do not need
+ * every generated column present at compile time.
+ *
  * For any legacy code using camelCase (artisanStory, new, related),
  * use the normalizeProduct() helper from productService.ts
  */
+import type { ProductRow } from '@/types/domain/product';
+
+export type { ProductRow };
+
 export interface Product {
   // Core fields (required)
   id: number;
@@ -19,41 +27,41 @@ export interface Product {
   care: string;
   artisan: string;
 
-  // Status flags
-  is_new?: boolean;
-  is_available?: boolean;
-  is_active?: boolean;
-  is_featured?: boolean;
+  // Status flags (DB columns may be NULL)
+  is_new?: boolean | null;
+  is_available?: boolean | null;
+  is_active?: boolean | null;
+  is_featured?: boolean | null;
 
-  // Stock management
-  stock_quantity?: number;
-  min_stock_level?: number;
+  // Stock management (DB columns may be NULL)
+  stock_quantity?: number | null;
+  min_stock_level?: number | null;
 
   // Extended content
-  artisan_story?: string;
-  short_description?: string;
+  artisan_story?: string | null;
+  short_description?: string | null;
 
-  // Related products
-  related_products?: number[];
+  // Related products (DB column may be NULL)
+  related_products?: number[] | null;
 
   // SEO fields
-  slug?: string;
-  seo_title?: string;
-  seo_description?: string;
+  slug?: string | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
 
   // Physical attributes
-  material?: string;
-  color?: string;
-  dimensions_cm?: string;
-  weight_grams?: number;
+  material?: string | null;
+  color?: string | null;
+  dimensions_cm?: string | null;
+  weight_grams?: number | null;
 
   // Rating
-  rating_average?: number;
-  rating_count?: number;
+  rating_average?: number | null;
+  rating_count?: number | null;
 
   // Timestamps
-  created_at?: string;
-  updated_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
 
   // Legacy aliases (deprecated - for backward compatibility only)
   /** @deprecated Use is_new instead */
@@ -61,7 +69,7 @@ export interface Product {
   /** @deprecated Use artisan_story instead */
   artisanStory?: string;
   /** @deprecated Use related_products instead */
-  related?: number[];
+  related?: number[] | null;
 }
 
 /**
@@ -102,9 +110,9 @@ export function normalizeProduct(product: Product): Product {
   return {
     ...product,
     // Populate legacy fields from database fields
-    new: product.is_new,
-    artisanStory: product.artisan_story,
-    related: product.related_products,
+    new: product.is_new ?? undefined,
+    artisanStory: product.artisan_story ?? undefined,
+    related: product.related_products ?? undefined,
   };
 }
 

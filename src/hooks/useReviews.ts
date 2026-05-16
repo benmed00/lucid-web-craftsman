@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   fetchApprovedReviewsForProduct,
   fetchReviewHelpfulCount,
@@ -48,22 +48,7 @@ export const useReviews = (productId?: number) => {
   const [submitting, setSubmitting] = useState(false);
   const { user } = useAuth();
 
-  const fetchReviews = async (productId: number) => {
-    setLoading(true);
-    try {
-      const data = await fetchApprovedReviewsForProduct(productId);
-
-      setReviews(data as Review[]);
-      calculateStats(data as Review[]);
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
-      toast.error('Erreur lors du chargement des avis');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateStats = (reviewsData: Review[]) => {
+  const calculateStats = useCallback((reviewsData: Review[]) => {
     if (reviewsData.length === 0) {
       setStats({
         averageRating: 0,
@@ -100,7 +85,25 @@ export const useReviews = (productId?: number) => {
       totalReviews,
       ratingDistribution,
     });
-  };
+  }, []);
+
+  const fetchReviews = useCallback(
+    async (pid: number) => {
+      setLoading(true);
+      try {
+        const data = await fetchApprovedReviewsForProduct(pid);
+
+        setReviews(data as Review[]);
+        calculateStats(data as Review[]);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+        toast.error('Erreur lors du chargement des avis');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [calculateStats]
+  );
 
   const submitReview = async (reviewData: CreateReviewData) => {
     if (!user) {
@@ -173,7 +176,7 @@ export const useReviews = (productId?: number) => {
     if (productId) {
       fetchReviews(productId);
     }
-  }, [productId]);
+  }, [productId, fetchReviews]);
 
   return {
     reviews,

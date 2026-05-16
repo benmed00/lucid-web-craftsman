@@ -32,9 +32,11 @@ const ADMIN_PROTECTED_PATHS = [
 
 describe('Admin routes — unauthenticated redirect @smoke @regression', () => {
   it('redirects each protected path to /admin/login', () => {
+    // Clear once: per-visit clears force a full Supabase auth cold start each time and can
+    // push this smoke spec past CI budgets when VITE_SUPABASE_URL is a non-project host.
+    cy.clearCookies();
+    cy.clearLocalStorage();
     ADMIN_PROTECTED_PATHS.forEach((path) => {
-      cy.clearCookies();
-      cy.clearLocalStorage();
       cy.visit(path);
       cy.url({ timeout: 25000 }).should('include', '/admin/login');
     });

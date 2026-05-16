@@ -87,8 +87,8 @@ class TaskScheduler {
 
       if (this.taskQueue.length > 0) {
         // Use scheduler.postTask if available for better FID
-        if ('scheduler' in window && (window as any).scheduler?.postTask) {
-          (window as any).scheduler.postTask(runTasksInFrame, {
+        if (window.scheduler?.postTask) {
+          window.scheduler.postTask(runTasksInFrame, {
             priority: 'user-visible',
           });
         } else if (typeof MessageChannel !== 'undefined') {

@@ -17,6 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 interface NewsletterSubscriptionProps {
@@ -196,12 +197,12 @@ const NewsletterSubscription = ({
                 className="text-xs leading-relaxed cursor-pointer text-muted-foreground"
               >
                 {t('newsletter.consentText')}{' '}
-                <a
-                  href="/privacy"
+                <Link
+                  to="/terms-of-service"
                   className="underline hover:no-underline text-primary"
                 >
                   {t('newsletter.privacyPolicy')}
-                </a>
+                </Link>
                 .
               </Label>
             </div>

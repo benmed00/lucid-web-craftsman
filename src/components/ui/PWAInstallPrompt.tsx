@@ -9,11 +9,18 @@ interface PWAInstallPromptProps {
   onDismiss?: () => void;
 }
 
+/** Shape used by Chromium `beforeinstallprompt` (not always in lib.dom). */
+type BeforeInstallPromptLike = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: string }>;
+};
+
 export const PWAInstallPrompt = ({
   onInstall,
   onDismiss,
 }: PWAInstallPromptProps) => {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptLike | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -24,7 +31,7 @@ export const PWAInstallPrompt = ({
     const isStandalone = window.matchMedia(
       '(display-mode: standalone)'
     ).matches;
-    const isIOSStandalone = (window.navigator as any).standalone === true;
+    const isIOSStandalone = window.navigator.standalone === true;
 
     if (isStandalone || isIOSStandalone) {
       setIsInstalled(true);
@@ -35,7 +42,7 @@ export const PWAInstallPrompt = ({
     const handleBeforeInstallPrompt = (e: Event) => {
       console.log('PWA: beforeinstallprompt event fired');
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptLike);
       setIsInstallable(true);
 
       // Show prompt after a delay (better UX)

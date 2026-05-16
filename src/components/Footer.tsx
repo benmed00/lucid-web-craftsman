@@ -1,4 +1,5 @@
 import { Leaf, Shield, Truck, RotateCcw } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { ErrorReportButton } from './ui/ErrorReportButton';
 import { PaymentIcons } from './conversion/TrustBadges';
 import { useTranslation } from 'react-i18next';
@@ -29,29 +30,29 @@ const Footer = () => {
             </h3>
             <ul className="space-y-1.5 sm:space-y-2">
               <li>
-                <a
-                  href="/products"
+                <Link
+                  to="/products"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.allProductsAria')}
                 >
                   {t('footer.allProducts')}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/products?category=Sacs"
+                <Link
+                  to="/products?category=Sacs"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                 >
                   {t('footer.bags')}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/products?category=Chapeaux"
+                <Link
+                  to="/products?category=Chapeaux"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                 >
                   {t('footer.hats')}
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -62,22 +63,22 @@ const Footer = () => {
             </h3>
             <ul className="space-y-1.5 sm:space-y-2">
               <li>
-                <a
-                  href="/about"
+                <Link
+                  to="/about"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.storyAria')}
                 >
                   {t('footer.story')}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/blog"
+                <Link
+                  to="/blog"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.blogAria')}
                 >
                   {t('nav.blog')}
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -88,58 +89,58 @@ const Footer = () => {
             </h3>
             <ul className="space-y-1.5 sm:space-y-2">
               <li>
-                <a
-                  href="/contact"
+                <Link
+                  to="/contact"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.contactAria')}
                 >
                   {t('nav.contact')}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/shipping"
+                <Link
+                  to="/shipping"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.shippingAria')}
                 >
                   {t('footer.shipping')}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/returns"
+                <Link
+                  to="/returns"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.returnsAria')}
                 >
                   {t('footer.returns')}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/faq"
+                <Link
+                  to="/faq"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.faqAria')}
                 >
                   {t('footer.faq')}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/cgv"
+                <Link
+                  to="/cgv"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.cgvAria')}
                 >
                   {t('footer.cgv')}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/terms-of-service"
+                <Link
+                  to="/terms-of-service"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base block py-1 touch-manipulation"
                   aria-label={t('footer.termsOfServiceAria')}
                 >
                   {t('footer.termsOfService')}
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

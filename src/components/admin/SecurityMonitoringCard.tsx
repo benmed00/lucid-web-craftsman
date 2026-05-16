@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -25,6 +25,7 @@ import {
   subscribeSecurityEventsAll,
 } from '@/services/adminSecurityMonitoringApi';
 import { useToast } from '@/hooks/use-toast';
+import type { Json } from '@/integrations/supabase/types';
 
 interface SecurityEvent {
   id: string;
@@ -32,7 +33,7 @@ interface SecurityEvent {
   severity: string;
   user_id?: string;
   ip_address: string | null;
-  event_data: any;
+  event_data: Json;
   detected_at: string;
   resolved_at?: string | null;
 }
@@ -45,8 +46,8 @@ interface AuditLog {
   resource_id?: string | null;
   ip_address: string | null;
   created_at: string;
-  old_values?: any;
-  new_values?: any;
+  old_values?: Json;
+  new_values?: Json;
 }
 
 export const SecurityMonitoringCard = () => {
@@ -61,7 +62,7 @@ export const SecurityMonitoringCard = () => {
   });
   const { toast } = useToast();
 
-  const fetchSecurityEvents = async () => {
+  const fetchSecurityEvents = useCallback(async () => {
     try {
       const data = await fetchSecurityEventsRecent(50);
 
@@ -87,9 +88,9 @@ export const SecurityMonitoringCard = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [toast]);
 
-  const fetchAuditLogs = async () => {
+  const fetchAuditLogs = useCallback(async () => {
     try {
       const data = await fetchAuditLogsRecent(100);
       setAuditLogs((data || []) as AuditLog[]);
@@ -101,7 +102,7 @@ export const SecurityMonitoringCard = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [toast]);
 
   const resolveSecurityEvent = async (eventId: string) => {
     try {
@@ -143,7 +144,7 @@ export const SecurityMonitoringCard = () => {
       unsubSec();
       unsubAudit();
     };
-  }, []);
+  }, [fetchAuditLogs, fetchSecurityEvents]);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {

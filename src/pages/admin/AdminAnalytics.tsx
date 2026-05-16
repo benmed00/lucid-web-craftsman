@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -38,6 +38,15 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useCurrency } from '@/stores/currencyStore';
+import type { Json } from '@/integrations/supabase/types';
+
+/** Joined `order_items` row shape used for product / category rollups */
+interface AnalyticsOrderItemRow {
+  quantity: number;
+  total_price: number;
+  product_id?: number | null;
+  product_snapshot?: Json;
+}
 
 interface AnalyticsData {
   overview: {
@@ -75,11 +84,7 @@ const AdminAnalytics = () => {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [timeRange]);
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -128,30 +133,36 @@ const AdminAnalytics = () => {
 
       const currentRevenue =
         (currentOrders || [])
-          .filter((order) => paidStatuses.includes(order.status))
+          .filter(
+            (order) =>
+              order.status != null && paidStatuses.includes(order.status)
+          )
           .reduce((sum, order) => sum + (order.amount || 0), 0) / 100;
 
       const previousRevenue =
         (previousOrders || [])
-          .filter((order) => paidStatuses.includes(order.status))
+          .filter(
+            (order) =>
+              order.status != null && paidStatuses.includes(order.status)
+          )
           .reduce((sum, order) => sum + (order.amount || 0), 0) / 100;
 
-      const currentOrderCount = (currentOrders || []).filter((order) =>
-        paidStatuses.includes(order.status)
+      const currentOrderCount = (currentOrders || []).filter(
+        (order) => order.status != null && paidStatuses.includes(order.status)
       ).length;
-      const previousOrderCount = (previousOrders || []).filter((order) =>
-        paidStatuses.includes(order.status)
+      const previousOrderCount = (previousOrders || []).filter(
+        (order) => order.status != null && paidStatuses.includes(order.status)
       ).length;
 
       const uniqueCurrentCustomers = new Set(
-        (currentOrders || [])
-          .filter((order) => order.user_id)
-          .map((order) => order.user_id)
+        (currentOrders || []).flatMap((order) =>
+          order.user_id ? [order.user_id] : []
+        )
       ).size;
       const uniquePreviousCustomers = new Set(
-        (previousOrders || [])
-          .filter((order) => order.user_id)
-          .map((order) => order.user_id)
+        (previousOrders || []).flatMap((order) =>
+          order.user_id ? [order.user_id] : []
+        )
       ).size;
 
       const currentAvgOrder =
@@ -187,10 +198,20 @@ const AdminAnalytics = () => {
       > = {};
 
       (currentOrders || []).forEach((order) => {
-        if (paidStatuses.includes(order.status) && order.order_items) {
-          order.order_items.forEach((item: any) => {
+        if (
+          order.status != null &&
+          paidStatuses.includes(order.status) &&
+          order.order_items
+        ) {
+          order.order_items.forEach((item: AnalyticsOrderItemRow) => {
+            const snap = item.product_snapshot;
             const productName =
-              item.product_snapshot?.name || `Produit ${item.product_id}`;
+              (snap &&
+              typeof snap === 'object' &&
+              !Array.isArray(snap) &&
+              typeof (snap as Record<string, Json>).name === 'string'
+                ? String((snap as Record<string, Json>).name)
+                : null) || `Produit ${item.product_id}`;
             if (!productSales[productName]) {
               productSales[productName] = {
                 name: productName,
@@ -214,9 +235,20 @@ const AdminAnalytics = () => {
       let totalSales = 0;
 
       (currentOrders || []).forEach((order) => {
-        if (paidStatuses.includes(order.status) && order.order_items) {
-          order.order_items.forEach((item: any) => {
-            const category = item.product_snapshot?.category || 'Autre';
+        if (
+          order.status != null &&
+          paidStatuses.includes(order.status) &&
+          order.order_items
+        ) {
+          order.order_items.forEach((item: AnalyticsOrderItemRow) => {
+            const snap = item.product_snapshot;
+            const category =
+              snap &&
+              typeof snap === 'object' &&
+              !Array.isArray(snap) &&
+              typeof (snap as Record<string, Json>).category === 'string'
+                ? String((snap as Record<string, Json>).category)
+                : 'Autre';
             categorySales[category] =
               (categorySales[category] || 0) + item.quantity;
             totalSales += item.quantity;
@@ -298,7 +330,11 @@ const AdminAnalytics = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
 
   const getGrowthColor = (growth: number) => {
     return growth >= 0 ? 'text-success' : 'text-destructive';

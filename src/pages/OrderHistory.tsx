@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { fetchCustomerOrdersDetailed } from '@/services/orderService';
 
@@ -33,6 +33,11 @@ import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useCurrency } from '@/stores/currencyStore';
+import type { Json } from '@/integrations/supabase/types';
+
+function jsonStr(v: Json | undefined): string {
+  return typeof v === 'string' ? v : '';
+}
 
 interface OrderItem {
   id: string;
@@ -40,7 +45,7 @@ interface OrderItem {
   quantity: number;
   unit_price: number;
   total_price: number;
-  product_snapshot: any;
+  product_snapshot: Json | null;
 }
 
 interface StatusHistoryEntry {
@@ -64,7 +69,7 @@ interface Order {
   carrier: string | null;
   estimated_delivery: string | null;
   actual_delivery: string | null;
-  shipping_address: any;
+  shipping_address: Json | null;
   payment_method: string | null;
   created_at: string;
   updated_at: string;
@@ -83,7 +88,7 @@ const OrderHistory = () => {
 
   const dateLocale = i18n.language === 'fr' ? fr : enUS;
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
@@ -101,13 +106,13 @@ const OrderHistory = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, t]);
 
   useEffect(() => {
     if (!authLoading) {
       fetchOrders();
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, fetchOrders]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<
@@ -219,7 +224,7 @@ const OrderHistory = () => {
                   {t('orders.empty.description')}
                 </p>
                 <Button asChild className="bg-primary hover:bg-primary/90">
-                  <a href="/products">{t('orders.empty.cta')}</a>
+                  <Link to="/products">{t('orders.empty.cta')}</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -357,14 +362,32 @@ const OrderHistory = () => {
                               {/* Shipping address */}
                               {selectedOrder.shipping_address &&
                                 (() => {
-                                  const addr = selectedOrder.shipping_address;
+                                  const raw = selectedOrder.shipping_address;
+                                  if (
+                                    raw === null ||
+                                    typeof raw !== 'object' ||
+                                    Array.isArray(raw)
+                                  ) {
+                                    return null;
+                                  }
+                                  const addr = raw as Record<string, Json>;
                                   const line1 =
-                                    addr.address_line1 ||
-                                    addr.address ||
-                                    addr.line1 ||
+                                    jsonStr(addr.address_line1) ||
+                                    jsonStr(addr.address) ||
+                                    jsonStr(addr.line1) ||
                                     '';
-                                  const city = addr.city || '';
+                                  const city = jsonStr(addr.city);
                                   if (!line1 && !city) return null;
+                                  const recipient =
+                                    jsonStr(addr.name) ||
+                                    jsonStr(addr.full_name);
+                                  const line2 =
+                                    jsonStr(addr.address_line2) ||
+                                    jsonStr(addr.line2);
+                                  const postal =
+                                    jsonStr(addr.postal_code) ||
+                                    jsonStr(addr.zip);
+                                  const country = jsonStr(addr.country);
                                   return (
                                     <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
                                       <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
@@ -372,25 +395,22 @@ const OrderHistory = () => {
                                         <p className="font-medium text-foreground mb-0.5">
                                           Adresse de livraison
                                         </p>
-                                        {(addr.name || addr.full_name) && (
+                                        {recipient ? (
                                           <p className="text-muted-foreground">
-                                            {addr.name || addr.full_name}
+                                            {recipient}
                                           </p>
-                                        )}
+                                        ) : null}
                                         <p className="text-muted-foreground">
                                           {line1}
                                         </p>
-                                        {(addr.address_line2 || addr.line2) && (
+                                        {line2 ? (
                                           <p className="text-muted-foreground">
-                                            {addr.address_line2 || addr.line2}
+                                            {line2}
                                           </p>
-                                        )}
+                                        ) : null}
                                         <p className="text-muted-foreground">
-                                          {addr.postal_code || addr.zip || ''}{' '}
-                                          {city}
-                                          {addr.country
-                                            ? `, ${addr.country}`
-                                            : ''}
+                                          {postal} {city}
+                                          {country ? `, ${country}` : ''}
                                         </p>
                                       </div>
                                     </div>
@@ -410,7 +430,11 @@ const OrderHistory = () => {
                                     >
                                       <div className="flex-1">
                                         <div className="font-medium text-foreground">
-                                          {item.product_snapshot?.name ||
+                                          {(
+                                            item.product_snapshot as {
+                                              name?: string;
+                                            } | null
+                                          )?.name ||
                                             t('orders.details.product')}
                                         </div>
                                         <div className="text-sm text-muted-foreground mt-1">

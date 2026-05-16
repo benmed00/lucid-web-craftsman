@@ -1,11 +1,9 @@
 import { lazy, Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// No global Window extension needed - use type assertion below
-
 const getStripePublicKey = (): string => {
   return (
-    (typeof window !== 'undefined' && (window as any).STRIPE_PUBLIC_KEY) ||
+    (typeof window !== 'undefined' && window.STRIPE_PUBLIC_KEY) ||
     'pk_test_placeholder'
   );
 };

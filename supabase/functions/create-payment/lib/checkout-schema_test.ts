@@ -16,6 +16,19 @@ Deno.test('parseCheckoutRequestBody: accepts minimal valid payload', () => {
 });
 
 Deno.test(
+  'parseCheckoutRequestBody: accepts explicit null discount and guestSession',
+  () => {
+    const parsed = parseCheckoutRequestBody({
+      items: [{ product: { id: 1 }, quantity: 1 }],
+      discount: null,
+      guestSession: null,
+    } as Record<string, unknown>);
+    assertEquals(parsed.discount ?? null, null);
+    assertEquals(parsed.guestSession ?? null, null);
+  }
+);
+
+Deno.test(
   'parseCheckoutRequestBody: coerces string product id and quantity',
   () => {
     const parsed = parseCheckoutRequestBody({

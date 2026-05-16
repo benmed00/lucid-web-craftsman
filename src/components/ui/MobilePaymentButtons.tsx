@@ -23,18 +23,13 @@ export const MobilePaymentButtons = ({
 
   useEffect(() => {
     // Check Apple Pay availability
-    if (
-      (window as any).ApplePaySession &&
-      (window as any).ApplePaySession.canMakePayments()
-    ) {
+    if (window.ApplePaySession && window.ApplePaySession.canMakePayments()) {
       setIsApplePayAvailable(true);
     }
 
     // Check Google Pay availability
-    if ((window as any).google?.payments?.api) {
-      const paymentsClient = new (
-        window as any
-      ).google.payments.api.PaymentsClient({
+    if (window.google?.payments?.api) {
+      const paymentsClient = new window.google.payments.api.PaymentsClient({
         environment: 'TEST', // Change to 'PRODUCTION' for live
       });
 
@@ -80,12 +75,12 @@ export const MobilePaymentButtons = ({
 
       const session = new ApplePaySession(3, paymentRequest);
 
-      session.onvalidatemerchant = async (_event) => {
+      session.onvalidatemerchant = async (_event: unknown) => {
         // In production, validate merchant with your server
         // Merchant validation handled silently
       };
 
-      session.onpaymentauthorized = (_event) => {
+      session.onpaymentauthorized = (_event: unknown) => {
         // Process payment with your backend
         // Payment processing handled silently
 
@@ -111,7 +106,14 @@ export const MobilePaymentButtons = ({
     setIsProcessing('google');
 
     try {
-      const paymentsClient = new google.payments.api.PaymentsClient({
+      const apiLayer = google.payments?.api;
+      if (!apiLayer) {
+        onPaymentError('Erreur Google Pay: API indisponible');
+        setIsProcessing(null);
+        return;
+      }
+
+      const paymentsClient = new apiLayer.PaymentsClient({
         environment: 'TEST',
       });
 

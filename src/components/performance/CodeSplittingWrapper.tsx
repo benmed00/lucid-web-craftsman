@@ -120,7 +120,7 @@ const CodeSplittingWrapper: React.FC<CodeSplittingWrapperProps> = ({
 };
 
 // HOC for creating lazy components with better error handling
-export const createLazyComponent = <T extends Record<string, any>>(
+export const createLazyComponent = <T extends Record<string, unknown>>(
   importFn: () => Promise<{ default: React.ComponentType<T> }>,
   componentName: string = 'Component'
 ) => {
@@ -152,7 +152,7 @@ export const createLazyComponent = <T extends Record<string, any>>(
 };
 
 // Preload component function for better UX
-export const preloadComponent = (importFn: () => Promise<any>) => {
+export const preloadComponent = (importFn: () => Promise<unknown>) => {
   // Start loading the component
   const componentPromise = importFn();
 

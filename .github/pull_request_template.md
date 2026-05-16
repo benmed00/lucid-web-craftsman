@@ -9,3 +9,4 @@
 - [ ] If this PR changes **Edge Functions contracts**: ran **`pnpm run api:artifacts`** / **`openapi:edge-functions:check`** where applicable.
 - [ ] If this PR changes **scripts, docs, tests, or workflows** in the catalog: ran **`pnpm run project:catalog`** and committed `.github/project/catalog.json` + `PROJECT_CATALOG.md` when needed.
 - [ ] **`supabase/functions` / Deno:** ran **`pnpm run verify:create-payment`**, **`pnpm run test:pricing-snapshot`**, or **`pnpm run verify:create-admin-user`** when relevant paths changed.
+- [ ] **Rules / business-logic docs:** if this PR touches a rule surface indexed in [`docs/RULES_REGISTRY.md`](../docs/RULES_REGISTRY.md) sections **1–10**, update [`docs/RULES_REGISTRY.md`](../docs/RULES_REGISTRY.md) and/or [`docs/BUSINESS_LOGIC_AND_EDGE_CASES.md`](../docs/BUSINESS_LOGIC_AND_EDGE_CASES.md) in the same change — or add a one-line note in the PR description: `docs: not applicable because …`.

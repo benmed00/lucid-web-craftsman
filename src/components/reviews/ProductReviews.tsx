@@ -7,6 +7,7 @@ import { ReviewForm } from './ReviewForm';
 import { useReviews } from '@/hooks/useReviews';
 import { useAuth } from '@/context/AuthContext';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
+import type { ProductReviewRow } from '@/services/reviewsApi';
 
 interface ProductReviewsProps {
   product: Product;
@@ -15,7 +16,7 @@ interface ProductReviewsProps {
 
 export const ProductReviews = ({ product, className }: ProductReviewsProps) => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [userReview, setUserReview] = useState(null);
+  const [userReview, setUserReview] = useState<ProductReviewRow | null>(null);
   const { reviews, stats, loading, markHelpful, getUserReview, refetch } =
     useReviews(product.id);
   const { user } = useAuth();

@@ -8,7 +8,10 @@ import { assertEquals } from 'https://deno.land/std@0.190.0/testing/asserts.ts';
 import type Stripe from 'https://esm.sh/stripe@18.5.0';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
-import { confirmOrderFromStripe } from './confirm-order.ts';
+import {
+  confirmOrderFromStripe,
+  sendConfirmationEmail,
+} from './confirm-order.ts';
 
 function mockStripe(opts?: {
   lineItemsThrow?: boolean;
@@ -305,5 +308,191 @@ Deno.test(
     assertEquals(r.confirmed, true);
     assertEquals(r.alreadyProcessed, true);
     assertEquals(inserts.filter((i) => i.table === 'payments').length, 0);
+  }
+);
+
+const baseSendEmailInput = {
+  orderId: '00000000-0000-0000-0000-000000000099',
+  customerEmail: 'buyer@example.com',
+  customerName: 'Buyer Test',
+  orderItems: [{ product_id: 42, quantity: 1, unit_price: 6200 }],
+  orderAmount: 6200,
+  currency: 'eur',
+  shippingAddress: null as null,
+  source: 'unit_test',
+};
+
+function createSupabaseForSendEmail(opts: { alreadySent?: boolean }) {
+  return {
+    from(table: string) {
+      if (table === 'email_logs') {
+        return {
+          select(_cols?: string) {
+            return {
+              eq(_c: string, _v: unknown) {
+                return {
+                  eq(_c2: string, _v2: unknown) {
+                    return {
+                      eq(_c3: string, _v3: unknown) {
+                        return {
+                          maybeSingle: async () => ({
+                            data: opts.alreadySent ? { id: 'log-1' } : null,
+                            error: null,
+                          }),
+                        };
+                      },
+                    };
+                  },
+                };
+              },
+            };
+          },
+        };
+      }
+      if (table === 'products') {
+        return {
+          select(_cols?: string) {
+            return {
+              in(_col: string, _ids: number[]) {
+                return Promise.resolve({
+                  data: [
+                    {
+                      id: 42,
+                      name: 'Test product',
+                      images: [] as string[],
+                      price: 62,
+                    },
+                  ],
+                  error: null,
+                });
+              },
+            };
+          },
+        };
+      }
+      return {};
+    },
+  } as unknown as SupabaseClient;
+}
+
+Deno.test(
+  'sendConfirmationEmail skips fetch when order-confirmation already sent',
+  async () => {
+    const prevUrl = Deno.env.get('SUPABASE_URL');
+    const prevKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    Deno.env.set('SUPABASE_URL', 'https://unit.supabase.co');
+    Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', 'svc-unit-key');
+
+    let fetchCalls = 0;
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = (() => {
+      fetchCalls++;
+      return Promise.resolve(new Response('{}', { status: 200 }));
+    }) as typeof fetch;
+
+    try {
+      await sendConfirmationEmail(
+        createSupabaseForSendEmail({ alreadySent: true }),
+        baseSendEmailInput
+      );
+      assertEquals(fetchCalls, 0);
+    } finally {
+      globalThis.fetch = origFetch;
+      if (prevUrl === undefined) Deno.env.delete('SUPABASE_URL');
+      else Deno.env.set('SUPABASE_URL', prevUrl);
+      if (prevKey === undefined) Deno.env.delete('SUPABASE_SERVICE_ROLE_KEY');
+      else Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', prevKey);
+    }
+  }
+);
+
+Deno.test(
+  'sendConfirmationEmail POSTs to send-order-confirmation with service role on success',
+  async () => {
+    const prevUrl = Deno.env.get('SUPABASE_URL');
+    const prevKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    Deno.env.set('SUPABASE_URL', 'https://unit.supabase.co');
+    Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', 'svc-unit-key');
+
+    let capturedUrl = '';
+    let capturedInit: RequestInit | undefined;
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+      capturedUrl =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.href
+            : (input as Request).url;
+      capturedInit = init;
+      return Promise.resolve(
+        new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      );
+    }) as typeof fetch;
+
+    try {
+      await sendConfirmationEmail(
+        createSupabaseForSendEmail({ alreadySent: false }),
+        baseSendEmailInput
+      );
+      assertEquals(
+        capturedUrl,
+        'https://unit.supabase.co/functions/v1/send-order-confirmation'
+      );
+      const headers = capturedInit?.headers as Record<string, string>;
+      assertEquals(headers['Authorization'], 'Bearer svc-unit-key');
+      assertEquals(headers['Content-Type'], 'application/json');
+      const body = JSON.parse(capturedInit?.body as string) as {
+        orderId: string;
+        customerEmail: string;
+      };
+      assertEquals(body.orderId, baseSendEmailInput.orderId);
+      assertEquals(body.customerEmail, baseSendEmailInput.customerEmail);
+    } finally {
+      globalThis.fetch = origFetch;
+      if (prevUrl === undefined) Deno.env.delete('SUPABASE_URL');
+      else Deno.env.set('SUPABASE_URL', prevUrl);
+      if (prevKey === undefined) Deno.env.delete('SUPABASE_SERVICE_ROLE_KEY');
+      else Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', prevKey);
+    }
+  }
+);
+
+Deno.test(
+  'sendConfirmationEmail does not throw when send-order-confirmation returns non-OK',
+  async () => {
+    const prevUrl = Deno.env.get('SUPABASE_URL');
+    const prevKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    Deno.env.set('SUPABASE_URL', 'https://unit.supabase.co');
+    Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', 'svc-unit-key');
+
+    let fetchCalls = 0;
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = (() => {
+      fetchCalls++;
+      return Promise.resolve(
+        new Response('upstream error', {
+          status: 502,
+          statusText: 'Bad Gateway',
+        })
+      );
+    }) as typeof fetch;
+
+    try {
+      await sendConfirmationEmail(
+        createSupabaseForSendEmail({ alreadySent: false }),
+        baseSendEmailInput
+      );
+      assertEquals(fetchCalls, 1);
+    } finally {
+      globalThis.fetch = origFetch;
+      if (prevUrl === undefined) Deno.env.delete('SUPABASE_URL');
+      else Deno.env.set('SUPABASE_URL', prevUrl);
+      if (prevKey === undefined) Deno.env.delete('SUPABASE_SERVICE_ROLE_KEY');
+      else Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', prevKey);
+    }
   }
 );

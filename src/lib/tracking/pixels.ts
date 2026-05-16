@@ -29,7 +29,7 @@ export function initMetaPixel(): void {
   if (metaInitialized || !config.metaPixelId) return;
   metaInitialized = true;
 
-  /* eslint-disable */
+  /* eslint-disable @typescript-eslint/no-explicit-any, prefer-spread, prefer-rest-params -- Meta fbevents vendor IIFE (arguments/apply); see docs/TECH_DEBT.md */
   (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
     if (f.fbq) return;
     n = f.fbq = function () {
@@ -51,8 +51,9 @@ export function initMetaPixel(): void {
     'script',
     'https://connect.facebook.net/en_US/fbevents.js'
   );
-  /* eslint-enable */
+  /* eslint-enable @typescript-eslint/no-explicit-any, prefer-spread, prefer-rest-params */
 
+  if (typeof window.fbq !== 'function') return;
   window.fbq('init', config.metaPixelId);
   window.fbq('track', 'PageView');
 }
@@ -61,7 +62,7 @@ export function initTikTokPixel(): void {
   if (tiktokInitialized || !config.tiktokPixelId) return;
   tiktokInitialized = true;
 
-  /* eslint-disable */
+  /* eslint-disable @typescript-eslint/no-explicit-any, prefer-rest-params -- TikTok pixel vendor IIFE; see docs/TECH_DEBT.md */
   (function (w: any, d: any, t: any) {
     w.TiktokAnalyticsObject = t;
     const ttq = (w[t] = w[t] || []);
@@ -114,7 +115,7 @@ export function initTikTokPixel(): void {
     ttq.load(config.tiktokPixelId);
     ttq.page();
   })(window, document, 'ttq');
-  /* eslint-enable */
+  /* eslint-enable @typescript-eslint/no-explicit-any, prefer-rest-params */
 }
 
 /** Initialize all configured pixels. Call once on app mount. */
@@ -261,10 +262,17 @@ export function trackPurchase(params: {
 }
 
 // ─── Global type augmentation ────────────────────────────────────
+type MetaPixelFn = (...args: unknown[]) => void;
+
+type TikTokPixelAPI = {
+  track: (event: string, params?: Record<string, unknown>) => void;
+  page: () => void;
+} & Record<string, unknown>;
+
 declare global {
   interface Window {
-    fbq: any;
-    _fbq: any;
-    ttq: any;
+    fbq?: MetaPixelFn;
+    _fbq?: MetaPixelFn;
+    ttq?: TikTokPixelAPI;
   }
 }

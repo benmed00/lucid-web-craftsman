@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,12 +17,13 @@ import { useCheckoutPage } from '@/hooks/useCheckoutPage';
 import { disableServiceWorkerForCriticalFlow } from '@/utils/cacheOptimization';
 
 const Checkout = () => {
+  const navigate = useNavigate();
   const c = useCheckoutPage();
-  const { t: tCheckout, i18n } = useTranslation('checkout');
+  const { t: tCheckout } = useTranslation('checkout');
   const checkoutSeoKeywords = useMemo(() => {
     const raw = tCheckout('seo.checkoutKeywords', { returnObjects: true });
     return Array.isArray(raw) ? (raw as string[]) : [];
-  }, [tCheckout, i18n.language]);
+  }, [tCheckout]);
 
   useEffect(() => {
     disableServiceWorkerForCriticalFlow().catch(() => {
@@ -75,10 +77,7 @@ const Checkout = () => {
           </h1>
           <div className="text-center">
             <p className="text-muted-foreground">{c.t('cart.empty')}</p>
-            <Button
-              className="mt-4"
-              onClick={() => (window.location.href = '/products')}
-            >
+            <Button className="mt-4" onClick={() => navigate('/products')}>
               {c.t('cart.continueShopping')}
             </Button>
           </div>

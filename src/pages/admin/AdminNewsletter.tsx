@@ -37,6 +37,7 @@ import {
 } from '@/services/newsletterApi';
 import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -50,9 +51,9 @@ interface NewsletterStats {
 interface Subscriber {
   id: string;
   email: string;
-  status: string;
+  status: string | null;
   source: string | null;
-  created_at: string;
+  created_at: string | null;
   unsubscribed_at: string | null;
 }
 
@@ -111,7 +112,8 @@ const AdminNewsletter = () => {
         total: allSubs.length,
         active: allSubs.filter((s) => s.status === 'active').length,
         unsubscribed: allSubs.filter((s) => s.status === 'unsubscribed').length,
-        thisMonth: allSubs.filter((s) => s.created_at >= monthStart).length,
+        thisMonth: allSubs.filter((s) => (s.created_at ?? '') >= monthStart)
+          .length,
       });
 
       // Fetch abandoned cart count
@@ -154,7 +156,7 @@ const AdminNewsletter = () => {
         pending,
         byTemplate,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching newsletter data:', err);
       toast.error('Erreur lors du chargement des données');
     } finally {
@@ -175,8 +177,8 @@ const AdminNewsletter = () => {
       if (error) throw error;
       toast.success(`${data?.processed || 0} email(s) de relance envoyé(s)`);
       fetchData();
-    } catch (err: any) {
-      toast.error(`Erreur: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Erreur: ${formatUnknownError(err)}`);
     } finally {
       setSendingAbandonedEmails(false);
     }
@@ -348,7 +350,7 @@ const AdminNewsletter = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {format(new Date(sub.created_at), 'dd MMM yyyy', {
+                        {format(new Date(sub.created_at ?? 0), 'dd MMM yyyy', {
                           locale: fr,
                         })}
                       </TableCell>

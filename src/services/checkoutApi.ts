@@ -1,32 +1,41 @@
 /**
  * Typed Supabase access for checkout flow, payment edge functions, and related reads.
  * Keep components/hooks free of direct `supabase` usage for these operations.
+ *
+ * Canonical row types: `@/types/domain/checkout`. Edge JSON bodies: `@/types/contracts`.
  */
 import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
+import type { Json } from '@/integrations/supabase/types';
+import {
+  parseCreatePaymentInvokeBody,
+  parseOrderLookupResponse,
+  parseStripeSessionDisplayResponse,
+  type CreatePaymentInvokeBody,
+  type OrderLookupResponse,
+  type StripeSessionDisplayResponse,
+} from '@/types/contracts/edge-invoke-responses';
+import type {
+  CheckoutSessionInsert,
+  CheckoutSessionRow,
+  CheckoutSessionUpdate,
+} from '@/types/domain/checkout';
 
-export type CheckoutSessionRow = Record<string, unknown> & {
-  id: string;
-  guest_id: string | null;
-  user_id: string | null;
-  current_step: number;
-  last_completed_step: number;
-  status: string;
-  personal_info: unknown;
-  shipping_info: unknown;
-  promo_code: string | null;
-  promo_code_valid: boolean | null;
-  promo_discount_type: string | null;
-  promo_discount_value: number | null;
-  promo_discount_applied: number | null;
-  promo_free_shipping: boolean;
-  cart_items: unknown;
-  subtotal: number | null;
-  shipping_cost: number | null;
-  total: number | null;
-  order_id: string | null;
-  created_at?: string;
-};
+export type { CheckoutSessionRow } from '@/types/domain/checkout';
+
+/** Columns loaded by `CHECKOUT_FORM_HYDRATION_SELECT` for form rehydration. */
+export type CheckoutFormHydrationSnapshot = Pick<
+  CheckoutSessionRow,
+  | 'personal_info'
+  | 'shipping_info'
+  | 'current_step'
+  | 'last_completed_step'
+  | 'promo_code'
+  | 'promo_code_valid'
+  | 'promo_discount_type'
+  | 'promo_discount_value'
+  | 'promo_discount_applied'
+  | 'promo_free_shipping'
+>;
 
 export async function fetchActiveCheckoutSessionByUserId(
   userId: string
@@ -40,7 +49,7 @@ export async function fetchActiveCheckoutSessionByUserId(
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  return (data as CheckoutSessionRow) ?? null;
+  return data ?? null;
 }
 
 const CHECKOUT_FORM_HYDRATION_SELECT =
@@ -49,7 +58,7 @@ const CHECKOUT_FORM_HYDRATION_SELECT =
 /** Lighter row for checkout form rehydration (useCheckoutFormPersistence). */
 export async function fetchCheckoutFormSnapshotByUserId(
   userId: string
-): Promise<Record<string, unknown> | null> {
+): Promise<CheckoutFormHydrationSnapshot | null> {
   const { data, error } = await supabase
     .from('checkout_sessions')
     .select(CHECKOUT_FORM_HYDRATION_SELECT)
@@ -59,12 +68,12 @@ export async function fetchCheckoutFormSnapshotByUserId(
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  return (data as Record<string, unknown>) ?? null;
+  return (data as CheckoutFormHydrationSnapshot | null) ?? null;
 }
 
 export async function fetchCheckoutFormSnapshotByGuestId(
   guestId: string
-): Promise<Record<string, unknown> | null> {
+): Promise<CheckoutFormHydrationSnapshot | null> {
   const { data, error } = await supabase
     .from('checkout_sessions')
     .select(CHECKOUT_FORM_HYDRATION_SELECT)
@@ -74,7 +83,7 @@ export async function fetchCheckoutFormSnapshotByGuestId(
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  return (data as Record<string, unknown>) ?? null;
+  return (data as CheckoutFormHydrationSnapshot | null) ?? null;
 }
 
 export async function fetchActiveCheckoutSessionByGuestId(
@@ -89,15 +98,15 @@ export async function fetchActiveCheckoutSessionByGuestId(
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  return (data as CheckoutSessionRow) ?? null;
+  return data ?? null;
 }
 
 export async function insertCheckoutSession(
-  row: Record<string, unknown>
+  row: CheckoutSessionInsert
 ): Promise<{ id: string } | null> {
   const { data, error } = await supabase
     .from('checkout_sessions')
-    .insert(row as Database['public']['Tables']['checkout_sessions']['Insert'])
+    .insert(row)
     .select('id')
     .single();
   if (error) throw error;
@@ -106,7 +115,7 @@ export async function insertCheckoutSession(
 
 export async function updateCheckoutSessionRow(
   sessionId: string,
-  updates: Record<string, unknown>
+  updates: CheckoutSessionUpdate | Record<string, unknown>
 ): Promise<void> {
   const { error } = await supabase
     .from('checkout_sessions')
@@ -118,9 +127,7 @@ export async function updateCheckoutSessionRow(
   if (error) throw error;
 }
 
-export async function fetchFreeShippingThresholdSetting(): Promise<
-  unknown | null
-> {
+export async function fetchFreeShippingThresholdSetting(): Promise<Json | null> {
   const { data, error } = await supabase
     .from('app_settings')
     .select('setting_value')
@@ -132,7 +139,7 @@ export async function fetchFreeShippingThresholdSetting(): Promise<
 
 export async function validateCouponCodeRpc(
   code: string
-): Promise<unknown | null> {
+): Promise<Json | null> {
   const { data, error } = await supabase
     .rpc('validate_coupon_code', { p_code: code })
     .maybeSingle();
@@ -145,15 +152,32 @@ export type EdgeInvokeResult<T> = {
   error: Error | null;
 };
 
+function toInvokeError(err: unknown): Error {
+  return err instanceof Error ? err : new Error(String(err));
+}
+
 export async function invokeCreatePaymentEdge(
   functionName: 'create-payment' | 'create-paypal-payment',
   body: unknown,
   headers: Record<string, string>
-): Promise<EdgeInvokeResult<{ url?: string }>> {
-  return supabase.functions.invoke(functionName, {
-    body,
+): Promise<EdgeInvokeResult<CreatePaymentInvokeBody>> {
+  const { data, error } = await supabase.functions.invoke(functionName, {
+    body: body as Record<string, unknown>,
     headers,
-  }) as Promise<EdgeInvokeResult<{ url?: string }>>;
+  });
+  if (error) {
+    return {
+      data:
+        data !== null && data !== undefined
+          ? parseCreatePaymentInvokeBody(data)
+          : null,
+      error: toInvokeError(error),
+    };
+  }
+  return {
+    data: parseCreatePaymentInvokeBody(data),
+    error: null,
+  };
 }
 
 export type OrderLookupInvokeBody =
@@ -162,18 +186,43 @@ export type OrderLookupInvokeBody =
 
 export async function invokeOrderLookup(
   body: OrderLookupInvokeBody
-): Promise<EdgeInvokeResult<unknown>> {
-  return supabase.functions.invoke('order-lookup', {
+): Promise<EdgeInvokeResult<OrderLookupResponse>> {
+  const { data, error } = await supabase.functions.invoke('order-lookup', {
     body,
-  }) as Promise<EdgeInvokeResult<unknown>>;
+  });
+  if (error) {
+    return { data: null, error: toInvokeError(error) };
+  }
+  const parsed = parseOrderLookupResponse(data);
+  if (!parsed.ok) {
+    return {
+      data: null,
+      error: new Error('order-lookup returned unexpected JSON shape'),
+    };
+  }
+  return { data: parsed.data, error: null };
 }
 
 export async function invokeStripeSessionDisplay(
   sessionId: string
-): Promise<EdgeInvokeResult<unknown>> {
-  return supabase.functions.invoke('stripe-session-display', {
-    body: { session_id: sessionId },
-  }) as Promise<EdgeInvokeResult<unknown>>;
+): Promise<EdgeInvokeResult<StripeSessionDisplayResponse>> {
+  const { data, error } = await supabase.functions.invoke(
+    'stripe-session-display',
+    {
+      body: { session_id: sessionId },
+    }
+  );
+  if (error) {
+    return { data: null, error: toInvokeError(error) };
+  }
+  const parsed = parseStripeSessionDisplayResponse(data);
+  if (!parsed.ok) {
+    return {
+      data: null,
+      error: new Error('stripe-session-display returned unexpected JSON shape'),
+    };
+  }
+  return { data: parsed.data, error: null };
 }
 
 export async function invokeVerifyPaypalPayment(body: {

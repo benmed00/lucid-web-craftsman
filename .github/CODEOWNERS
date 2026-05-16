@@ -1,0 +1,5 @@
+# Optional code ownership — replace @benmed00 with your maintainer team/handles (must have write access).
+# GitHub requests reviews from matching owners when PRs touch these paths.
+
+/docs/RULES_REGISTRY.md @benmed00
+/docs/BUSINESS_LOGIC_AND_EDGE_CASES.md @benmed00

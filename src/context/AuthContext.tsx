@@ -240,7 +240,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('focus', handleFocus);
       if (roleIntervalRef.current) clearInterval(roleIntervalRef.current);
     };
-  }, [authState.user?.id, loadUserRole]);
+  }, [authState.user, loadUserRole]);
 
   // Initialize auth state
   useEffect(() => {

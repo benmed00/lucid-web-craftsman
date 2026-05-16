@@ -1,9 +1,19 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  type DependencyList,
+} from 'react';
 
 // Enhanced debounce and throttle with cancel functionality
-const debounce = (fn: (...args: unknown[]) => void, ms: number) => {
+const debounce = <A extends unknown[]>(
+  fn: (...args: A) => void,
+  ms: number
+) => {
   let timer: NodeJS.Timeout;
-  const debouncedFn = (...args: unknown[]) => {
+  const debouncedFn = (...args: A) => {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), ms);
   };
@@ -11,9 +21,12 @@ const debounce = (fn: (...args: unknown[]) => void, ms: number) => {
   return debouncedFn;
 };
 
-const throttle = (fn: (...args: unknown[]) => void, ms: number) => {
+const throttle = <A extends unknown[]>(
+  fn: (...args: A) => void,
+  ms: number
+) => {
   let timer: NodeJS.Timeout | null = null;
-  const throttledFn = (...args: unknown[]) => {
+  const throttledFn = (...args: A) => {
     if (!timer) {
       timer = setTimeout(() => {
         timer = null;
@@ -44,15 +57,15 @@ export const usePerformanceMonitor = () => {
 
   useEffect(() => {
     const startTime = performance.now();
+    const metrics = metricsRef.current;
 
     return () => {
       const endTime = performance.now();
       const renderTime = endTime - startTime;
 
-      metricsRef.current.renderCount++;
-      metricsRef.current.averageRenderTime =
-        (metricsRef.current.averageRenderTime + renderTime) / 2;
-      metricsRef.current.lastRenderTime = renderTime;
+      metrics.renderCount++;
+      metrics.averageRenderTime = (metrics.averageRenderTime + renderTime) / 2;
+      metrics.lastRenderTime = renderTime;
     };
   });
 
@@ -69,10 +82,11 @@ export const usePerformanceMonitor = () => {
 // Optimized scroll handling
 export const useOptimizedScroll = (
   callback: (scrollY: number) => void,
-  deps: any[] = []
+  deps: DependencyList = []
 ) => {
   const throttledCallback = useMemo(
     () => throttle((scrollY: number) => callback(scrollY), 16), // ~60fps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deps array forwarded from caller for throttle identity
     deps
   );
 
@@ -91,13 +105,14 @@ export const useOptimizedScroll = (
 // Optimized resize handling
 export const useOptimizedResize = (
   callback: (width: number, height: number) => void,
-  deps: any[] = []
+  deps: DependencyList = []
 ) => {
   const debouncedCallback = useMemo(
     () =>
       debounce((width: number, height: number) => {
         callback(width, height);
       }, 150),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deps array forwarded from caller for debounce identity
     deps
   );
 

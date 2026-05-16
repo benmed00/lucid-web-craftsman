@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -45,26 +46,27 @@ import {
 } from '@/services/errorReportsApi';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from 'sonner';
+import type { Json } from '@/integrations/supabase/types';
 
 interface ErrorReport {
   id: string;
-  user_id?: string;
+  user_id?: string | null;
   email: string;
   error_type: string;
   description: string;
-  status: string;
-  priority: string;
-  severity: string;
-  tags: string[];
-  page_url?: string;
-  user_agent?: string;
-  browser_info?: any;
-  screenshot_url?: string;
-  assigned_to?: string;
-  resolution_notes?: string;
-  created_at: string;
-  updated_at: string;
-  resolved_at?: string;
+  status: string | null;
+  priority: string | null;
+  severity: string | null;
+  tags: string[] | null;
+  page_url?: string | null;
+  user_agent?: string | null;
+  browser_info?: Json;
+  screenshot_url?: string | null;
+  assigned_to?: string | null;
+  resolution_notes?: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  resolved_at?: string | null;
 }
 
 const AdminErrorReports: React.FC = () => {
@@ -103,26 +105,25 @@ const AdminErrorReports: React.FC = () => {
   // Available tags for filtering
   const [availableTags, setAvailableTags] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchErrorReports();
-    }
-  }, [isAuthenticated]);
+  const calculateStats = useCallback((reportsData: ErrorReport[]) => {
+    const next = {
+      total: reportsData.length,
+      open: reportsData.filter((r) => r.status === 'open').length,
+      inProgress: reportsData.filter((r) => r.status === 'in_progress').length,
+      resolved: reportsData.filter((r) => r.status === 'resolved').length,
+      critical: reportsData.filter((r) => r.severity === 'critical').length,
+      high: reportsData.filter((r) => r.severity === 'high').length,
+    };
+    setStats(next);
+  }, []);
 
-  useEffect(() => {
-    filterReports();
-  }, [
-    reports,
-    statusFilter,
-    priorityFilter,
-    severityFilter,
-    errorTypeFilter,
-    searchQuery,
-    tagFilter,
-    screenshotFilter,
-  ]);
+  const extractAvailableTags = useCallback((reportsData: ErrorReport[]) => {
+    const allTags = reportsData.flatMap((report) => report.tags || []);
+    const uniqueTags = Array.from(new Set(allTags));
+    setAvailableTags(uniqueTags);
+  }, []);
 
-  const fetchErrorReports = async () => {
+  const fetchErrorReports = useCallback(async () => {
     try {
       setLoading(true);
       const data = await fetchSupportErrorReportsAll();
@@ -135,27 +136,9 @@ const AdminErrorReports: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [calculateStats, extractAvailableTags]);
 
-  const calculateStats = (reportsData: ErrorReport[]) => {
-    const stats = {
-      total: reportsData.length,
-      open: reportsData.filter((r) => r.status === 'open').length,
-      inProgress: reportsData.filter((r) => r.status === 'in_progress').length,
-      resolved: reportsData.filter((r) => r.status === 'resolved').length,
-      critical: reportsData.filter((r) => r.severity === 'critical').length,
-      high: reportsData.filter((r) => r.severity === 'high').length,
-    };
-    setStats(stats);
-  };
-
-  const extractAvailableTags = (reportsData: ErrorReport[]) => {
-    const allTags = reportsData.flatMap((report) => report.tags || []);
-    const uniqueTags = Array.from(new Set(allTags));
-    setAvailableTags(uniqueTags);
-  };
-
-  const filterReports = () => {
+  const filterReports = useCallback(() => {
     let filtered = [...reports];
 
     // Status filter
@@ -212,7 +195,26 @@ const AdminErrorReports: React.FC = () => {
     }
 
     setFilteredReports(filtered);
-  };
+  }, [
+    reports,
+    statusFilter,
+    priorityFilter,
+    severityFilter,
+    errorTypeFilter,
+    searchQuery,
+    tagFilter,
+    screenshotFilter,
+  ]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchErrorReports();
+    }
+  }, [isAuthenticated, fetchErrorReports]);
+
+  useEffect(() => {
+    filterReports();
+  }, [filterReports]);
 
   const updateReportStatus = async (reportId: string, status: string) => {
     try {
@@ -250,8 +252,8 @@ const AdminErrorReports: React.FC = () => {
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
+  const getSeverityColor = (severity: string | null) => {
+    switch (severity ?? '') {
       case 'critical':
         return 'bg-status-error';
       case 'high':
@@ -265,8 +267,8 @@ const AdminErrorReports: React.FC = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
+  const getStatusIcon = (status: string | null) => {
+    switch (status ?? '') {
       case 'open':
         return <AlertCircle className="h-4 w-4 text-status-error" />;
       case 'in_progress':
@@ -278,7 +280,8 @@ const AdminErrorReports: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (dateString == null || dateString === '') return '—';
     return new Date(dateString).toLocaleDateString('fr-FR', {
       year: 'numeric',
       month: 'short',
@@ -386,10 +389,16 @@ const AdminErrorReports: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Search</label>
+              <Label
+                htmlFor="error-reports-search"
+                className="text-sm font-medium mb-2 block"
+              >
+                Search
+              </Label>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
+                  id="error-reports-search"
                   placeholder="Search reports..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -399,9 +408,14 @@ const AdminErrorReports: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Status</label>
+              <Label
+                htmlFor="error-reports-status"
+                className="text-sm font-medium mb-2 block"
+              >
+                Status
+              </Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
+                <SelectTrigger id="error-reports-status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -414,9 +428,14 @@ const AdminErrorReports: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Priority</label>
+              <Label
+                htmlFor="error-reports-priority"
+                className="text-sm font-medium mb-2 block"
+              >
+                Priority
+              </Label>
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger>
+                <SelectTrigger id="error-reports-priority">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -429,9 +448,14 @@ const AdminErrorReports: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Severity</label>
+              <Label
+                htmlFor="error-reports-severity"
+                className="text-sm font-medium mb-2 block"
+              >
+                Severity
+              </Label>
               <Select value={severityFilter} onValueChange={setSeverityFilter}>
-                <SelectTrigger>
+                <SelectTrigger id="error-reports-severity">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -447,14 +471,17 @@ const AdminErrorReports: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">
+              <Label
+                htmlFor="error-reports-type"
+                className="text-sm font-medium mb-2 block"
+              >
                 Error Type
-              </label>
+              </Label>
               <Select
                 value={errorTypeFilter}
                 onValueChange={setErrorTypeFilter}
               >
-                <SelectTrigger>
+                <SelectTrigger id="error-reports-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -469,9 +496,14 @@ const AdminErrorReports: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Tags</label>
+              <Label
+                htmlFor="error-reports-tags"
+                className="text-sm font-medium mb-2 block"
+              >
+                Tags
+              </Label>
               <Select value={tagFilter} onValueChange={setTagFilter}>
-                <SelectTrigger>
+                <SelectTrigger id="error-reports-tags">
                   <SelectValue placeholder="Filter by tag" />
                 </SelectTrigger>
                 <SelectContent>
@@ -486,15 +518,18 @@ const AdminErrorReports: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block flex items-center gap-2">
-                <Image className="h-4 w-4" />
+              <Label
+                htmlFor="error-reports-screenshot"
+                className="text-sm font-medium mb-2 block flex items-center gap-2"
+              >
+                <Image className="h-4 w-4" aria-hidden />
                 Screenshot
-              </label>
+              </Label>
               <Select
                 value={screenshotFilter}
                 onValueChange={setScreenshotFilter}
               >
-                <SelectTrigger>
+                <SelectTrigger id="error-reports-screenshot">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -628,7 +663,7 @@ const AdminErrorReports: React.FC = () => {
                         </Button>
 
                         <Select
-                          value={report.status}
+                          value={report.status ?? 'open'}
                           onValueChange={(value) =>
                             updateReportStatus(report.id, value)
                           }
@@ -805,10 +840,14 @@ const AdminErrorReports: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">
+                    <Label
+                      htmlFor="error-reports-add-tags"
+                      className="text-sm font-medium mb-2 block"
+                    >
                       Add Tags (comma separated)
-                    </label>
+                    </Label>
                     <Input
+                      id="error-reports-add-tags"
                       placeholder="bug, ui, mobile..."
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
@@ -833,7 +872,7 @@ const AdminErrorReports: React.FC = () => {
                 <div>
                   <h4 className="font-medium mb-2">Status Management</h4>
                   <Select
-                    value={selectedReport.status}
+                    value={selectedReport.status ?? 'open'}
                     onValueChange={(value) =>
                       updateReportStatus(selectedReport.id, value)
                     }

@@ -1,5 +1,8 @@
 // src/hooks/useBusinessRules.ts
 // Hook to load and cache business rules from app_settings
+//
+// @see docs/BUSINESS_LOGIC_AND_EDGE_CASES.md#1-business-rules-businessrules — defaults, merge, UI effects
+// @see docs/RULES_REGISTRY.md#5-configurable-storefront-rules-db-backed — registry row
 
 import { useState, useEffect, useCallback } from 'react';
 import { fetchAppSettingValueByKey } from '@/services/appSettingsApi';

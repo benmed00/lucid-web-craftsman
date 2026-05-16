@@ -66,6 +66,12 @@ async function signInClient(
   return data.user?.id ?? null;
 }
 
+function messageFromUnknown(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  return String(err);
+}
+
 // Test result interface
 interface RLSTestResult {
   table: string;
@@ -99,13 +105,13 @@ class RLSTestRunner {
 
       this.results.push(result);
       return result;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const result: RLSTestResult = {
         table,
         operation: 'SELECT',
         userType,
         allowed: false,
-        error: err.message,
+        error: messageFromUnknown(err),
       };
       this.results.push(result);
       return result;
@@ -116,7 +122,7 @@ class RLSTestRunner {
     client: SupabaseClient,
     table: string,
     userType: string,
-    testData: Record<string, any>
+    testData: Record<string, unknown>
   ): Promise<RLSTestResult> {
     try {
       const { data, error } = await client
@@ -140,13 +146,13 @@ class RLSTestRunner {
 
       this.results.push(result);
       return result;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const result: RLSTestResult = {
         table,
         operation: 'INSERT',
         userType,
         allowed: false,
-        error: err.message,
+        error: messageFromUnknown(err),
       };
       this.results.push(result);
       return result;
@@ -157,8 +163,8 @@ class RLSTestRunner {
     client: SupabaseClient,
     table: string,
     userType: string,
-    filter: Record<string, any>,
-    updateData: Record<string, any>
+    filter: Record<string, unknown>,
+    updateData: Record<string, unknown>
   ): Promise<RLSTestResult> {
     try {
       let query = client.from(table).update(updateData);
@@ -180,13 +186,13 @@ class RLSTestRunner {
 
       this.results.push(result);
       return result;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const result: RLSTestResult = {
         table,
         operation: 'UPDATE',
         userType,
         allowed: false,
-        error: err.message,
+        error: messageFromUnknown(err),
       };
       this.results.push(result);
       return result;
@@ -197,7 +203,7 @@ class RLSTestRunner {
     client: SupabaseClient,
     table: string,
     userType: string,
-    filter: Record<string, any>
+    filter: Record<string, unknown>
   ): Promise<RLSTestResult> {
     try {
       let query = client.from(table).delete();
@@ -219,13 +225,13 @@ class RLSTestRunner {
 
       this.results.push(result);
       return result;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const result: RLSTestResult = {
         table,
         operation: 'DELETE',
         userType,
         allowed: false,
-        error: err.message,
+        error: messageFromUnknown(err),
       };
       this.results.push(result);
       return result;

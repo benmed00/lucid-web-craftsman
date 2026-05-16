@@ -5,6 +5,7 @@
  * The frontend NEVER builds an invoice from local state.
  * The frontend NEVER uses blob: URLs — HTML is rendered in-route via iframe.
  */
+import type { Json } from '@/integrations/supabase/types';
 import {
   supabase,
   resolvedSupabasePublishableKey,
@@ -39,13 +40,13 @@ export async function fetchInvoice(
 
   const {
     data: { session },
-  } = await supabase.auth.getSession(); // for fetchInvoice: optional JWT for owner/admin; guests rely on `token` body
+  } = await supabase.auth.getSession(); // user JWT when logged in; guests still need anon Bearer for the edge gateway
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     apikey: resolvedSupabasePublishableKey,
+    // Gateway JWT check (verify_jwt) requires Authorization; order access for guests is still enforced via body `token` in the function.
+    Authorization: `Bearer ${session?.access_token ?? resolvedSupabasePublishableKey}`,
   };
-  if (session?.access_token)
-    headers.Authorization = `Bearer ${session.access_token}`; // when set, generate-invoice authorizes via RLS/ownership in the function
 
   // x-guest-id removed: post-Stripe guest_id often mismatched browser storage, causing spurious 401/empty data
   const res = await fetch(`${FUNCTIONS_URL}/generate-invoice`, {
@@ -115,6 +116,8 @@ export async function requestOrderToken(orderId: string): Promise<string> {
       (err as { error?: string }).error || `sign-order-token HTTP ${res.status}`
     );
   }
+
+  throw new InvoiceError('sign-order-token: max retries exceeded');
 }
 
 export interface OrderByTokenResponse {
@@ -125,8 +128,8 @@ export interface OrderByTokenResponse {
     amount: number;
     currency: string;
     created_at: string;
-    shipping_address: any;
-    metadata: any;
+    shipping_address: Json | null;
+    metadata: Json | null;
     payment_method?: string;
     user_id?: string | null;
     /**
@@ -144,7 +147,7 @@ export interface OrderByTokenResponse {
     quantity: number;
     unit_price: number;
     total_price: number;
-    product_snapshot: any;
+    product_snapshot: Json | null;
     product_id?: number | null;
   }>;
 }

@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-05-16T11:50:17+00:00",
+  "generatedAt": "2026-05-16T11:40:44+00:00",
   "repository": {
     "name": "vite_react_shadcn_ts",
     "url": "https://github.com/benmed00/lucid-web-craftsman.git"
   },
   "git": {
-    "totalCommits": 2321,
+    "totalCommits": 2363,
     "monthly": [
       {
         "month": "2025-05",
@@ -49,7 +49,7 @@
       },
       {
         "month": "2026-05",
-        "count": 113
+        "count": 155
       }
     ],
     "authors": [
@@ -59,11 +59,11 @@
       },
       {
         "name": "Jacob Son",
-        "count": 195
+        "count": 198
       },
       {
         "name": "Cursor Agent",
-        "count": 35
+        "count": 43
       },
       {
         "name": "google-labs-jules[bot]",
@@ -76,15 +76,15 @@
     ],
     "subjectQuality": {
       "genericCount": 604,
-      "conventionalCount": 160,
+      "conventionalCount": 202,
       "otherCount": 1557,
-      "genericPercent": 26,
-      "conventionalPercent": 6.9
+      "genericPercent": 25.6,
+      "conventionalPercent": 8.5
     },
     "pathChurn": [
       {
         "prefix": "src/",
-        "lastCommitDate": "2026-05-14"
+        "lastCommitDate": "2026-05-16"
       },
       {
         "prefix": "supabase/functions/",
@@ -92,7 +92,7 @@
       },
       {
         "prefix": "cypress/",
-        "lastCommitDate": "2026-05-01"
+        "lastCommitDate": "2026-05-16"
       },
       {
         "prefix": "docs/",
@@ -250,6 +250,21 @@
       "inValidate": false,
       "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run check:edge-functions:bundling:report",
+      "health": "healthy"
+    },
+    {
+      "id": "script:ci:local",
+      "name": "ci:local",
+      "command": "pnpm run ci:local",
+      "rawCommand": "pnpm run lint && pnpm run format:check && pnpm run check:edge-functions:bundling:full && pnpm run openapi:edge-functions:check && pnpm run postman:collection:check && pnpm run docs:check-links && pnpm run docs:gen:check && pnpm run project:catalog:check && pnpm run type:check && pnpm run test:unit && cross-env VITE_SUPABASE_URL=https://test.supabase.co VITE_SUPABASE_PUBLISHABLE_KEY=test-anon-key-for-ci pnpm run build",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run ci:local",
       "health": "healthy"
     },
     {
@@ -508,10 +523,82 @@
       "health": "healthy"
     },
     {
+      "id": "script:docs:check-links",
+      "name": "docs:check-links",
+      "command": "pnpm run docs:check-links",
+      "rawCommand": "node scripts/check-doc-links.mjs",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [
+        {
+          "workflow": "ci.yml",
+          "job": "push",
+          "workflowName": "CI"
+        }
+      ],
+      "ciCoverage": "ci.yml",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run docs:check-links",
+      "health": "healthy"
+    },
+    {
+      "id": "script:docs:gen",
+      "name": "docs:gen",
+      "command": "pnpm run docs:gen",
+      "rawCommand": "node scripts/gen-docs.mjs",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run docs:gen",
+      "health": "healthy"
+    },
+    {
+      "id": "script:docs:gen:check",
+      "name": "docs:gen:check",
+      "command": "pnpm run docs:gen:check",
+      "rawCommand": "node scripts/gen-docs.mjs --check",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [
+        {
+          "workflow": "ci.yml",
+          "job": "push",
+          "workflowName": "CI"
+        }
+      ],
+      "ciCoverage": "ci.yml",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run docs:gen:check",
+      "health": "healthy"
+    },
+    {
+      "id": "script:docs:typedoc",
+      "name": "docs:typedoc",
+      "command": "pnpm run docs:typedoc",
+      "rawCommand": "typedoc",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run docs:typedoc",
+      "health": "healthy"
+    },
+    {
       "id": "script:e2e:checkout",
       "name": "e2e:checkout",
       "command": "pnpm run e2e:checkout",
-      "rawCommand": "start-server-and-test \"pnpm run start:api\" http-get://localhost:3001 \"pnpm run dev:e2e\" http-get://127.0.0.1:8080/contact \"cypress run --spec cypress/e2e/checkout_flow_spec.js,cypress/e2e/checkout_persistence_spec.js,cypress/e2e/checkout_db_hydration_spec.ts\"",
+      "rawCommand": "node scripts/run-e2e-ci.mjs cypress run --spec cypress/e2e/checkout_flow_spec.js,cypress/e2e/checkout_persistence_spec.js,cypress/e2e/checkout_db_hydration_spec.ts",
       "category": "e2e",
       "area": "storefront",
       "layer": "spa",
@@ -526,7 +613,7 @@
       "id": "script:e2e:ci",
       "name": "e2e:ci",
       "command": "pnpm run e2e:ci",
-      "rawCommand": "start-server-and-test \"pnpm run start:api\" http-get://localhost:3001 \"pnpm run dev:e2e\" http-get://127.0.0.1:8080/contact \"cypress run\"",
+      "rawCommand": "node scripts/run-e2e-ci.mjs cypress run",
       "category": "e2e",
       "area": "storefront",
       "layer": "spa",
@@ -562,7 +649,7 @@
       "id": "script:e2e:ci:smoke",
       "name": "e2e:ci:smoke",
       "command": "pnpm run e2e:ci:smoke",
-      "rawCommand": "start-server-and-test \"pnpm run start:api\" http-get://localhost:3001 \"pnpm run dev:e2e\" http-get://127.0.0.1:8080/contact \"cypress run --env grep=@smoke\"",
+      "rawCommand": "node scripts/run-e2e-ci.mjs cypress run --env grep=@smoke",
       "category": "e2e",
       "area": "storefront",
       "layer": "spa",
@@ -583,7 +670,7 @@
       "id": "script:e2e:contact",
       "name": "e2e:contact",
       "command": "pnpm run e2e:contact",
-      "rawCommand": "start-server-and-test \"pnpm run start:api\" http-get://localhost:3001 \"pnpm run dev:e2e\" http-get://127.0.0.1:8080/contact \"cypress run --spec cypress/e2e/contact_form_spec.js\"",
+      "rawCommand": "node scripts/run-e2e-ci.mjs cypress run --spec cypress/e2e/contact_form_spec.js",
       "category": "e2e",
       "area": "storefront",
       "layer": "spa",
@@ -721,10 +808,25 @@
       "health": "healthy"
     },
     {
+      "id": "script:kill",
+      "name": "kill",
+      "command": "pnpm run kill",
+      "rawCommand": "npx --yes kill-port@2.0.1 8080",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run kill",
+      "health": "healthy"
+    },
+    {
       "id": "script:lint",
       "name": "lint",
       "command": "pnpm run lint",
-      "rawCommand": "eslint . --max-warnings 9999",
+      "rawCommand": "eslint . --max-warnings 0",
       "category": "ci-gate",
       "area": "infra-ci",
       "layer": "ci",
@@ -856,6 +958,201 @@
       "inValidate": false,
       "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run postman:collection:check",
+      "health": "healthy"
+    },
+    {
+      "id": "script:pr:enterprise",
+      "name": "pr:enterprise",
+      "command": "pnpm run pr:enterprise",
+      "rawCommand": "node scripts/run-gh-enterprise.mjs",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run pr:enterprise",
+      "health": "healthy"
+    },
+    {
+      "id": "script:pr:enterprise:issues",
+      "name": "pr:enterprise:issues",
+      "command": "pnpm run pr:enterprise:issues",
+      "rawCommand": "node scripts/run-gh-enterprise.mjs issues",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run pr:enterprise:issues",
+      "health": "healthy"
+    },
+    {
+      "id": "script:pr:enterprise:issues:dry",
+      "name": "pr:enterprise:issues:dry",
+      "command": "pnpm run pr:enterprise:issues:dry",
+      "rawCommand": "node scripts/run-gh-enterprise.mjs issues --dry",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run pr:enterprise:issues:dry",
+      "health": "healthy"
+    },
+    {
+      "id": "script:pr:enterprise:issues:dry:ps1",
+      "name": "pr:enterprise:issues:dry:ps1",
+      "command": "pnpm run pr:enterprise:issues:dry:ps1",
+      "rawCommand": "powershell.exe -ExecutionPolicy Bypass -NoProfile -File docs/gh-issues-enterprise-platform.ps1 -DryRun",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run pr:enterprise:issues:dry:ps1",
+      "health": "healthy"
+    },
+    {
+      "id": "script:pr:enterprise:issues:dry:sh",
+      "name": "pr:enterprise:issues:dry:sh",
+      "command": "pnpm run pr:enterprise:issues:dry:sh",
+      "rawCommand": "cross-env DRY_RUN=1 bash docs/gh-issues-enterprise-platform.sh",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run pr:enterprise:issues:dry:sh",
+      "health": "healthy"
+    },
+    {
+      "id": "script:pr:enterprise:issues:ps1",
+      "name": "pr:enterprise:issues:ps1",
+      "command": "pnpm run pr:enterprise:issues:ps1",
+      "rawCommand": "powershell.exe -ExecutionPolicy Bypass -NoProfile -File docs/gh-issues-enterprise-platform.ps1",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run pr:enterprise:issues:ps1",
+      "health": "healthy"
+    },
+    {
+      "id": "script:pr:enterprise:issues:sh",
+      "name": "pr:enterprise:issues:sh",
+      "command": "pnpm run pr:enterprise:issues:sh",
+      "rawCommand": "bash docs/gh-issues-enterprise-platform.sh",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run pr:enterprise:issues:sh",
+      "health": "healthy"
+    },
+    {
+      "id": "script:pr:enterprise:issues:sync",
+      "name": "pr:enterprise:issues:sync",
+      "command": "pnpm run pr:enterprise:issues:sync",
+      "rawCommand": "node scripts/sync-pr-enterprise-issues.mjs",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run pr:enterprise:issues:sync",
+      "health": "healthy"
+    },
+    {
+      "id": "script:pr:enterprise:labels",
+      "name": "pr:enterprise:labels",
+      "command": "pnpm run pr:enterprise:labels",
+      "rawCommand": "node scripts/run-gh-enterprise.mjs labels",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run pr:enterprise:labels",
+      "health": "healthy"
+    },
+    {
+      "id": "script:pr:enterprise:labels:ps1",
+      "name": "pr:enterprise:labels:ps1",
+      "command": "pnpm run pr:enterprise:labels:ps1",
+      "rawCommand": "powershell.exe -ExecutionPolicy Bypass -NoProfile -File docs/gh-labels-enterprise-pr.ps1",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run pr:enterprise:labels:ps1",
+      "health": "healthy"
+    },
+    {
+      "id": "script:pr:enterprise:labels:sh",
+      "name": "pr:enterprise:labels:sh",
+      "command": "pnpm run pr:enterprise:labels:sh",
+      "rawCommand": "bash docs/gh-labels-enterprise-pr.sh",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run pr:enterprise:labels:sh",
+      "health": "healthy"
+    },
+    {
+      "id": "script:pr:enterprise:screenshots:capture",
+      "name": "pr:enterprise:screenshots:capture",
+      "command": "pnpm run pr:enterprise:screenshots:capture",
+      "rawCommand": "node scripts/run-e2e-ci.mjs \"pnpm exec cypress run --spec cypress/e2e/pr_issue_evidence_spec.js\"",
+      "category": "e2e",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run pr:enterprise:screenshots:capture",
+      "health": "healthy"
+    },
+    {
+      "id": "script:pr:enterprise:screenshots:copy",
+      "name": "pr:enterprise:screenshots:copy",
+      "command": "pnpm run pr:enterprise:screenshots:copy",
+      "rawCommand": "node scripts/copy-pr-issue-screenshots.mjs",
+      "category": "other",
+      "area": "storefront",
+      "layer": "spa",
+      "ciMappings": [],
+      "ciCoverage": "none",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run pr:enterprise:screenshots:copy",
       "health": "healthy"
     },
     {
@@ -1146,6 +1443,27 @@
       "health": "healthy"
     },
     {
+      "id": "script:test:rpc-smoke",
+      "name": "test:rpc-smoke",
+      "command": "pnpm run test:rpc-smoke",
+      "rawCommand": "cross-env TEST_RPC_SMOKE=1 vitest run src/tests/rpc-postgrest-smoke.test.ts",
+      "category": "test",
+      "area": "infra-ci",
+      "layer": "spa",
+      "ciMappings": [
+        {
+          "workflow": "rpc-postgrest-smoke.yml",
+          "job": "workflow_dispatch",
+          "workflowName": "PostgREST RPC smoke"
+        }
+      ],
+      "ciCoverage": "manual-only",
+      "inValidate": false,
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
+      "verification": "pnpm run test:rpc-smoke",
+      "health": "healthy"
+    },
+    {
       "id": "script:test:ui",
       "name": "test:ui",
       "command": "pnpm run test:ui",
@@ -1164,7 +1482,7 @@
       "id": "script:test:unit",
       "name": "test:unit",
       "command": "pnpm run test:unit",
-      "rawCommand": "vitest run --exclude \"**/rls-e2e.test.ts\" --exclude \"**/rls-quick-validation.test.ts\"",
+      "rawCommand": "vitest run --exclude \"**/rls-e2e.test.ts\" --exclude \"**/rls-quick-validation.test.ts\" --exclude \"**/rpc-postgrest-smoke.test.ts\"",
       "category": "test",
       "area": "infra-ci",
       "layer": "spa",
@@ -1302,10 +1620,186 @@
       "ciCoverage": "ci.yml"
     },
     {
+      "id": "test:vitest:src/components/performance/CodeSplittingWrapper.hooks.test.tsx",
+      "file": "src/components/performance/CodeSplittingWrapper.hooks.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/components/performance/CodeSplittingWrapper.hooks.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/components/performance/LazyStripe.hooks.test.tsx",
+      "file": "src/components/performance/LazyStripe.hooks.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/components/performance/LazyStripe.hooks.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/components/performance/PerformanceMonitor.hooks.test.tsx",
+      "file": "src/components/performance/PerformanceMonitor.hooks.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/components/performance/PerformanceMonitor.hooks.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
       "id": "test:vitest:src/context/AuthContext.test.tsx",
       "file": "src/context/AuthContext.test.tsx",
       "runner": "vitest",
       "localCommand": "npx vitest run src/context/AuthContext.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/context/useProfileActions.test.tsx",
+      "file": "src/context/useProfileActions.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/context/useProfileActions.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/checkout/checkoutPageTotals.test.ts",
+      "file": "src/hooks/checkout/checkoutPageTotals.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/checkout/checkoutPageTotals.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "checkout-payments",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/use-mobile.test.tsx",
+      "file": "src/hooks/use-mobile.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/use-mobile.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/use-toast.test.tsx",
+      "file": "src/hooks/use-toast.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/use-toast.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useABThemeTest.test.tsx",
+      "file": "src/hooks/useABThemeTest.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useABThemeTest.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useAdminAuth.test.tsx",
+      "file": "src/hooks/useAdminAuth.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useAdminAuth.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useAdvancedProductFilters.test.tsx",
+      "file": "src/hooks/useAdvancedProductFilters.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useAdvancedProductFilters.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useAuditLog.test.tsx",
+      "file": "src/hooks/useAuditLog.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useAuditLog.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useBatchStock.test.ts",
+      "file": "src/hooks/useBatchStock.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useBatchStock.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useBusinessRules.test.ts",
+      "file": "src/hooks/useBusinessRules.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useBusinessRules.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useCachedProductSearch.test.ts",
+      "file": "src/hooks/useCachedProductSearch.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useCachedProductSearch.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useCartSync.test.ts",
+      "file": "src/hooks/useCartSync.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useCartSync.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useCartUI.test.ts",
+      "file": "src/hooks/useCartUI.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useCartUI.test.ts",
       "ciCommand": "pnpm run test:unit",
       "inValidate": true,
       "area": "storefront",
@@ -1335,6 +1829,39 @@
       "ciCoverage": "ci.yml"
     },
     {
+      "id": "test:vitest:src/hooks/useCheckoutSession.test.tsx",
+      "file": "src/hooks/useCheckoutSession.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useCheckoutSession.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useCompanySettings.test.ts",
+      "file": "src/hooks/useCompanySettings.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useCompanySettings.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useCsrfToken.test.ts",
+      "file": "src/hooks/useCsrfToken.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useCsrfToken.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
       "id": "test:vitest:src/hooks/useGuestSession.test.ts",
       "file": "src/hooks/useGuestSession.test.ts",
       "runner": "vitest",
@@ -1346,10 +1873,241 @@
       "ciCoverage": "ci.yml"
     },
     {
+      "id": "test:vitest:src/hooks/useHeroImage.test.ts",
+      "file": "src/hooks/useHeroImage.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useHeroImage.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useImageLoader.test.ts",
+      "file": "src/hooks/useImageLoader.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useImageLoader.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useInfiniteScroll.test.ts",
+      "file": "src/hooks/useInfiniteScroll.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useInfiniteScroll.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useMaintenanceMode.test.ts",
+      "file": "src/hooks/useMaintenanceMode.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useMaintenanceMode.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useOptimizedData.test.ts",
+      "file": "src/hooks/useOptimizedData.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useOptimizedData.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useOrderManagement.test.tsx",
+      "file": "src/hooks/useOrderManagement.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useOrderManagement.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/usePagination.test.ts",
+      "file": "src/hooks/usePagination.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/usePagination.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/usePerformanceOptimization.test.tsx",
+      "file": "src/hooks/usePerformanceOptimization.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/usePerformanceOptimization.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useProductFilters.test.tsx",
+      "file": "src/hooks/useProductFilters.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useProductFilters.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useProductRecommendations.test.ts",
+      "file": "src/hooks/useProductRecommendations.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useProductRecommendations.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/usePromoCode.test.ts",
+      "file": "src/hooks/usePromoCode.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/usePromoCode.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/usePullToRefresh.test.tsx",
+      "file": "src/hooks/usePullToRefresh.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/usePullToRefresh.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useReauthentication.test.tsx",
+      "file": "src/hooks/useReauthentication.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useReauthentication.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useRecentlyViewed.test.ts",
+      "file": "src/hooks/useRecentlyViewed.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useRecentlyViewed.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useReviews.test.tsx",
+      "file": "src/hooks/useReviews.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useReviews.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
       "id": "test:vitest:src/hooks/useSafetyTimeout.diagnostics.test.tsx",
       "file": "src/hooks/useSafetyTimeout.diagnostics.test.tsx",
       "runner": "vitest",
       "localCommand": "npx vitest run src/hooks/useSafetyTimeout.diagnostics.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useShipping.test.ts",
+      "file": "src/hooks/useShipping.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useShipping.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useStock.test.ts",
+      "file": "src/hooks/useStock.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useStock.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useTagTranslations.test.tsx",
+      "file": "src/hooks/useTagTranslations.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useTagTranslations.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useTranslatedContent.test.tsx",
+      "file": "src/hooks/useTranslatedContent.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useTranslatedContent.test.tsx",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useWebVitals.test.ts",
+      "file": "src/hooks/useWebVitals.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useWebVitals.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/hooks/useWishlist.test.tsx",
+      "file": "src/hooks/useWishlist.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/hooks/useWishlist.test.tsx",
       "ciCommand": "pnpm run test:unit",
       "inValidate": true,
       "area": "storefront",
@@ -1456,6 +2214,28 @@
       "ciCoverage": "ci.yml"
     },
     {
+      "id": "test:vitest:src/lib/hooks/useStableCallback.test.ts",
+      "file": "src/lib/hooks/useStableCallback.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/lib/hooks/useStableCallback.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/lib/invoice/generateInvoice.fetchInvoice.test.ts",
+      "file": "src/lib/invoice/generateInvoice.fetchInvoice.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/lib/invoice/generateInvoice.fetchInvoice.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
       "id": "test:vitest:src/lib/invoice/generateInvoice.requestOrderToken.test.ts",
       "file": "src/lib/invoice/generateInvoice.requestOrderToken.test.ts",
       "runner": "vitest",
@@ -1482,6 +2262,17 @@
       "file": "src/lib/security/forbiddenOrderRestFetchGuard.test.ts",
       "runner": "vitest",
       "localCommand": "npx vitest run src/lib/security/forbiddenOrderRestFetchGuard.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/lib/tracking/usePageTracking.test.tsx",
+      "file": "src/lib/tracking/usePageTracking.test.tsx",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/lib/tracking/usePageTracking.test.tsx",
       "ciCommand": "pnpm run test:unit",
       "inValidate": true,
       "area": "storefront",
@@ -1544,6 +2335,17 @@
       "ciCoverage": "ci.yml"
     },
     {
+      "id": "test:vitest:src/services/adminOrdersApi.resolveAnomaly.test.ts",
+      "file": "src/services/adminOrdersApi.resolveAnomaly.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/services/adminOrdersApi.resolveAnomaly.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
       "id": "test:vitest:src/services/checkoutService.test.ts",
       "file": "src/services/checkoutService.test.ts",
       "runner": "vitest",
@@ -1570,6 +2372,83 @@
       "file": "src/services/supabasePublishableKey.test.ts",
       "runner": "vitest",
       "localCommand": "npx vitest run src/services/supabasePublishableKey.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/stores/compareStore.test.ts",
+      "file": "src/stores/compareStore.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/stores/compareStore.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/stores/currencyStore.test.ts",
+      "file": "src/stores/currencyStore.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/stores/currencyStore.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/stores/languageStore.test.ts",
+      "file": "src/stores/languageStore.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/stores/languageStore.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/stores/themeStore.test.ts",
+      "file": "src/stores/themeStore.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/stores/themeStore.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/stores/uiStyleStore.test.ts",
+      "file": "src/stores/uiStyleStore.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/stores/uiStyleStore.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/stores/useCart.hook.test.ts",
+      "file": "src/stores/useCart.hook.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/stores/useCart.hook.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/tests/ci-workflow-parity.test.ts",
+      "file": "src/tests/ci-workflow-parity.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/tests/ci-workflow-parity.test.ts",
       "ciCommand": "pnpm run test:unit",
       "inValidate": true,
       "area": "storefront",
@@ -1654,10 +2533,43 @@
       "ciCoverage": "manual-only"
     },
     {
+      "id": "test:vitest:src/tests/rpc-postgrest-smoke.test.ts",
+      "file": "src/tests/rpc-postgrest-smoke.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/tests/rpc-postgrest-smoke.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
       "id": "test:vitest:src/tests/ui-resilience.test.ts",
       "file": "src/tests/ui-resilience.test.ts",
       "runner": "vitest",
       "localCommand": "npx vitest run src/tests/ui-resilience.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/types/contracts/edge-invoke-responses.test.ts",
+      "file": "src/types/contracts/edge-invoke-responses.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/types/contracts/edge-invoke-responses.test.ts",
+      "ciCommand": "pnpm run test:unit",
+      "inValidate": true,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "ci.yml"
+    },
+    {
+      "id": "test:vitest:src/utils/reactSchedulingHooks.test.ts",
+      "file": "src/utils/reactSchedulingHooks.test.ts",
+      "runner": "vitest",
+      "localCommand": "npx vitest run src/utils/reactSchedulingHooks.test.ts",
       "ciCommand": "pnpm run test:unit",
       "inValidate": true,
       "area": "storefront",
@@ -1819,6 +2731,17 @@
       "ciCoverage": "e2e-smoke"
     },
     {
+      "id": "test:cypress:cypress/e2e/internal_links_spa_spec.js",
+      "file": "cypress/e2e/internal_links_spa_spec.js",
+      "runner": "cypress",
+      "localCommand": "pnpm run e2e:ci (includes internal_links_spa_spec.js)",
+      "ciCommand": "pnpm run e2e:ci:smoke or e2e:ci:shard",
+      "inValidate": false,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "e2e-smoke"
+    },
+    {
       "id": "test:cypress:cypress/e2e/maintenance_mode_spec.js",
       "file": "cypress/e2e/maintenance_mode_spec.js",
       "runner": "cypress",
@@ -1878,6 +2801,17 @@
       "file": "cypress/e2e/payment_unsubscribe_routes_spec.js",
       "runner": "cypress",
       "localCommand": "pnpm run e2e:ci (includes payment_unsubscribe_routes_spec.js)",
+      "ciCommand": "pnpm run e2e:ci:smoke or e2e:ci:shard",
+      "inValidate": false,
+      "area": "storefront",
+      "layer": "spa",
+      "ciCoverage": "e2e-smoke"
+    },
+    {
+      "id": "test:cypress:cypress/e2e/pr_issue_evidence_spec.js",
+      "file": "cypress/e2e/pr_issue_evidence_spec.js",
+      "runner": "cypress",
+      "localCommand": "pnpm run e2e:ci (includes pr_issue_evidence_spec.js)",
       "ciCommand": "pnpm run e2e:ci:smoke or e2e:ci:shard",
       "inValidate": false,
       "area": "storefront",
@@ -2250,9 +3184,49 @@
   ],
   "docs": [
     {
+      "id": "doc:docs/BUSINESS_LOGIC_AND_EDGE_CASES.md",
+      "path": "docs/BUSINESS_LOGIC_AND_EDGE_CASES.md",
+      "title": "Business logic and edge cases",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
       "id": "doc:docs/CHANGELOG.md",
       "path": "docs/CHANGELOG.md",
       "title": "Changelog",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/CHECKOUT-PROD-RUNBOOK.md",
+      "path": "docs/CHECKOUT-PROD-RUNBOOK.md",
+      "title": "Runbook production — checkout, webhook Stripe, e-mail (Brevo), facture",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/CLIENT_VS_SERVER_RULES.md",
+      "path": "docs/CLIENT_VS_SERVER_RULES.md",
+      "title": "Client hints vs server-enforced rules",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/DATA_TYPES.md",
+      "path": "docs/DATA_TYPES.md",
+      "title": "Data typing layers (SSOT → domain → boundaries → UI)",
       "area": "docs-security",
       "layer": "docs",
       "ciCoverage": "none",
@@ -2274,6 +3248,36 @@
       "path": "docs/E2E-COVERAGE.md",
       "title": "E2E Cypress — couverture et limites",
       "area": "storefront",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/GITHUB-ACTIONS-CI-CD.md",
+      "path": "docs/GITHUB-ACTIONS-CI-CD.md",
+      "title": "GitHub Actions — inventory, branch coverage, KPIs, and runbook",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/HOOKS.md",
+      "path": "docs/HOOKS.md",
+      "title": "Hooks catalog (React)",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/LOCAL_CI.md",
+      "path": "docs/LOCAL_CI.md",
+      "title": "Local CI parity (workflows without GitHub)",
+      "area": "docs-security",
       "layer": "docs",
       "ciCoverage": "none",
       "verification": null,
@@ -2310,6 +3314,16 @@
       "health": "healthy"
     },
     {
+      "id": "doc:docs/RULES_REGISTRY.md",
+      "path": "docs/RULES_REGISTRY.md",
+      "title": "Rules registry",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
       "id": "doc:docs/STANDARDS.md",
       "path": "docs/STANDARDS.md",
       "title": "Engineering standards",
@@ -2323,6 +3337,186 @@
       "id": "doc:docs/TECH_DEBT.md",
       "path": "docs/TECH_DEBT.md",
       "title": "Technical debt backlog (explicit)",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/TECH_MAP.md",
+      "path": "docs/TECH_MAP.md",
+      "title": "Technology cartography",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/TYPEDOC.md",
+      "path": "docs/TYPEDOC.md",
+      "title": "TypeDoc (searchable HTML type catalog)",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/TYPEDOC_README.md",
+      "path": "docs/TYPEDOC_README.md",
+      "title": "Searchable type documentation",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/TYPES_INDEX.md",
+      "path": "docs/TYPES_INDEX.md",
+      "title": "Type symbol index (SPA)",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/enterprise-pr-pack-feat-platform-rebaseline.md",
+      "path": "docs/enterprise-pr-pack-feat-platform-rebaseline.md",
+      "title": "Enterprise PR pack — `feat/platform-pnpm-supabase-rebaseline-edge-hardening`",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/pr-body-only.md",
+      "path": "docs/pr-body-only.md",
+      "title": "pr-body-only.md",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/pr-enterprise/README.md",
+      "path": "docs/pr-enterprise/README.md",
+      "title": "Enterprise platform PR — issue bodies",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/pr-enterprise/assets/issues/README.md",
+      "path": "docs/pr-enterprise/assets/issues/README.md",
+      "title": "Issue evidence screenshots",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/pr-enterprise/issues/01-ci-runbook.md",
+      "path": "docs/pr-enterprise/issues/01-ci-runbook.md",
+      "title": "ci: workflows, smoke probe parity, and GITHUB-ACTIONS runbook",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/pr-enterprise/issues/02-eslint-any.md",
+      "path": "docs/pr-enterprise/issues/02-eslint-any.md",
+      "title": "chore(lint): align eslint config with stricter posture on admin/UI surfaces",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/pr-enterprise/issues/03-platform-docs.md",
+      "path": "docs/pr-enterprise/issues/03-platform-docs.md",
+      "title": "docs: rules registry, business logic, tech map, and agent runbooks",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/pr-enterprise/issues/04-e2e-smoke.md",
+      "path": "docs/pr-enterprise/issues/04-e2e-smoke.md",
+      "title": "test(e2e): smoke probe port alignment and internal links spec",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/pr-enterprise/issues/05-supabase-edge.md",
+      "path": "docs/pr-enterprise/issues/05-supabase-edge.md",
+      "title": "supabase: create-payment schema, confirm-order tests, generate-invoice hardening",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/pr-enterprise/issues/06-types-contracts.md",
+      "path": "docs/pr-enterprise/issues/06-types-contracts.md",
+      "title": "types: edge invoke contracts, domain modules, Typedoc pipeline",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/pr-enterprise/issues/07-scripts-tooling.md",
+      "path": "docs/pr-enterprise/issues/07-scripts-tooling.md",
+      "title": "chore(scripts): audit metrics, doc link check, gen-docs, proxy/CA helpers",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/pr-enterprise/issues/08-perf-seo.md",
+      "path": "docs/pr-enterprise/issues/08-perf-seo.md",
+      "title": "perf/seo: OptimizedImage, Hero webp set, sitemap, llms.txt, index metadata",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/pr-enterprise/issues/09-checkout-architecture.md",
+      "path": "docs/pr-enterprise/issues/09-checkout-architecture.md",
+      "title": "refactor(checkout): split useCheckoutPage, SPA import policy, CLIENT_VS_SERVER rules",
+      "area": "docs-security",
+      "layer": "docs",
+      "ciCoverage": "none",
+      "verification": null,
+      "health": "healthy"
+    },
+    {
+      "id": "doc:docs/pr-enterprise/pr-35-body.md",
+      "path": "docs/pr-enterprise/pr-35-body.md",
+      "title": "feat(platform): pnpm rebaseline, CI/CD hardening, checkout architecture, and rules governance",
       "area": "docs-security",
       "layer": "docs",
       "ciCoverage": "none",
@@ -2452,6 +3646,18 @@
   ],
   "workflows": [
     {
+      "id": "workflow:bootstrap-milestones.yml",
+      "file": ".github/workflows/bootstrap-milestones.yml",
+      "name": "Bootstrap milestones",
+      "triggers": ["push", "workflow_dispatch"],
+      "jobs": ["push", "workflow_dispatch", "milestones", "project-fields"],
+      "pnpmCommands": [],
+      "ciCoverage": "manual-only",
+      "verification": null,
+      "area": "infra-ci",
+      "layer": "ci"
+    },
+    {
       "id": "workflow:ci.yml",
       "file": ".github/workflows/ci.yml",
       "name": "CI",
@@ -2460,6 +3666,8 @@
       "pnpmCommands": [
         "build",
         "check:edge-functions:bundling:full",
+        "docs:check-links",
+        "docs:gen:check",
         "format:check",
         "lint",
         "openapi:edge-functions:check",
@@ -2532,6 +3740,18 @@
       "pnpmCommands": ["project:catalog", "project:catalog:check"],
       "ciCoverage": "manual-only",
       "verification": "pnpm run project:catalog",
+      "area": "infra-ci",
+      "layer": "ci"
+    },
+    {
+      "id": "workflow:rpc-postgrest-smoke.yml",
+      "file": ".github/workflows/rpc-postgrest-smoke.yml",
+      "name": "PostgREST RPC smoke",
+      "triggers": ["workflow_dispatch"],
+      "jobs": ["workflow_dispatch", "smoke"],
+      "pnpmCommands": ["test:rpc-smoke"],
+      "ciCoverage": "manual-only",
+      "verification": "pnpm run test:rpc-smoke",
       "area": "infra-ci",
       "layer": "ci"
     }
@@ -2943,16 +4163,6 @@
   ],
   "techDebt": [
     {
-      "id": "tech-debt:src/components/admin/ABThemeManager.tsx",
-      "file": "src/components/admin/ABThemeManager.tsx",
-      "notes": "merge-from-main carve-out",
-      "area": "storefront",
-      "layer": "edge",
-      "health": "debt",
-      "ciCoverage": "none",
-      "verification": "pnpm run validate"
-    },
-    {
       "id": "tech-debt:eslint-grandfather",
       "file": "docs/TECH_DEBT.md",
       "notes": "ESLint grandfathered imports (SPA)",
@@ -3175,6 +4385,18 @@
       "labels": ["catalog/doc", "area/storefront"]
     },
     {
+      "catalogId": "doc:docs/BUSINESS_LOGIC_AND_EDGE_CASES.md",
+      "title": "Business logic and edge cases",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/BUSINESS_LOGIC_AND_EDGE_CASES.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
       "catalogId": "doc:docs/CHANGELOG.md",
       "title": "Changelog",
       "itemType": "doc",
@@ -3183,6 +4405,42 @@
       "verification": null,
       "ciCoverage": "none",
       "docLink": "docs/CHANGELOG.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/CHECKOUT-PROD-RUNBOOK.md",
+      "title": "Runbook production — checkout, webhook Stripe, e-mail (Brevo), facture",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/CHECKOUT-PROD-RUNBOOK.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/CLIENT_VS_SERVER_RULES.md",
+      "title": "Client hints vs server-enforced rules",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/CLIENT_VS_SERVER_RULES.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/DATA_TYPES.md",
+      "title": "Data typing layers (SSOT → domain → boundaries → UI)",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/DATA_TYPES.md",
       "health": "healthy",
       "labels": ["catalog/doc", "area/docs-security"]
     },
@@ -3211,6 +4469,54 @@
       "labels": ["catalog/doc", "area/storefront"]
     },
     {
+      "catalogId": "doc:docs/enterprise-pr-pack-feat-platform-rebaseline.md",
+      "title": "Enterprise PR pack — `feat/platform-pnpm-supabase-rebaseline-edge-hardening`",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/enterprise-pr-pack-feat-platform-rebaseline.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/GITHUB-ACTIONS-CI-CD.md",
+      "title": "GitHub Actions — inventory, branch coverage, KPIs, and runbook",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/GITHUB-ACTIONS-CI-CD.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/HOOKS.md",
+      "title": "Hooks catalog (React)",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/HOOKS.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/LOCAL_CI.md",
+      "title": "Local CI parity (workflows without GitHub)",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/LOCAL_CI.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
       "catalogId": "doc:docs/MILESTONES.md",
       "title": "Milestones & release train",
       "itemType": "doc",
@@ -3235,6 +4541,162 @@
       "labels": ["catalog/doc", "area/docs-security"]
     },
     {
+      "catalogId": "doc:docs/pr-body-only.md",
+      "title": "pr-body-only.md",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/pr-body-only.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/pr-enterprise/assets/issues/README.md",
+      "title": "Issue evidence screenshots",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/pr-enterprise/assets/issues/README.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/pr-enterprise/issues/01-ci-runbook.md",
+      "title": "ci: workflows, smoke probe parity, and GITHUB-ACTIONS runbook",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/pr-enterprise/issues/01-ci-runbook.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/pr-enterprise/issues/02-eslint-any.md",
+      "title": "chore(lint): align eslint config with stricter posture on admin/UI surfaces",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/pr-enterprise/issues/02-eslint-any.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/pr-enterprise/issues/03-platform-docs.md",
+      "title": "docs: rules registry, business logic, tech map, and agent runbooks",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/pr-enterprise/issues/03-platform-docs.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/pr-enterprise/issues/04-e2e-smoke.md",
+      "title": "test(e2e): smoke probe port alignment and internal links spec",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/pr-enterprise/issues/04-e2e-smoke.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/pr-enterprise/issues/05-supabase-edge.md",
+      "title": "supabase: create-payment schema, confirm-order tests, generate-invoice hardening",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/pr-enterprise/issues/05-supabase-edge.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/pr-enterprise/issues/06-types-contracts.md",
+      "title": "types: edge invoke contracts, domain modules, Typedoc pipeline",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/pr-enterprise/issues/06-types-contracts.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/pr-enterprise/issues/07-scripts-tooling.md",
+      "title": "chore(scripts): audit metrics, doc link check, gen-docs, proxy/CA helpers",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/pr-enterprise/issues/07-scripts-tooling.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/pr-enterprise/issues/08-perf-seo.md",
+      "title": "perf/seo: OptimizedImage, Hero webp set, sitemap, llms.txt, index metadata",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/pr-enterprise/issues/08-perf-seo.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/pr-enterprise/issues/09-checkout-architecture.md",
+      "title": "refactor(checkout): split useCheckoutPage, SPA import policy, CLIENT_VS_SERVER rules",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/pr-enterprise/issues/09-checkout-architecture.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/pr-enterprise/pr-35-body.md",
+      "title": "feat(platform): pnpm rebaseline, CI/CD hardening, checkout architecture, and rules governance",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/pr-enterprise/pr-35-body.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/pr-enterprise/README.md",
+      "title": "Enterprise platform PR — issue bodies",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/pr-enterprise/README.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
       "catalogId": "doc:docs/README.md",
       "title": "Documentation",
       "itemType": "doc",
@@ -3243,6 +4705,18 @@
       "verification": null,
       "ciCoverage": "none",
       "docLink": "docs/README.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/RULES_REGISTRY.md",
+      "title": "Rules registry",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/RULES_REGISTRY.md",
       "health": "healthy",
       "labels": ["catalog/doc", "area/docs-security"]
     },
@@ -3303,6 +4777,54 @@
       "verification": null,
       "ciCoverage": "none",
       "docLink": "docs/TECH_DEBT.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/TECH_MAP.md",
+      "title": "Technology cartography",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/TECH_MAP.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/TYPEDOC_README.md",
+      "title": "Searchable type documentation",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/TYPEDOC_README.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/TYPEDOC.md",
+      "title": "TypeDoc (searchable HTML type catalog)",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/TYPEDOC.md",
+      "health": "healthy",
+      "labels": ["catalog/doc", "area/docs-security"]
+    },
+    {
+      "catalogId": "doc:docs/TYPES_INDEX.md",
+      "title": "Type symbol index (SPA)",
+      "itemType": "doc",
+      "area": "docs-security",
+      "layer": "docs",
+      "verification": null,
+      "ciCoverage": "none",
+      "docLink": "docs/TYPES_INDEX.md",
       "health": "healthy",
       "labels": ["catalog/doc", "area/docs-security"]
     },
@@ -3991,6 +5513,18 @@
       "labels": ["catalog/script", "area/edge"]
     },
     {
+      "catalogId": "script:ci:local",
+      "title": "script: ci:local",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run ci:local",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
       "catalogId": "script:coverage",
       "title": "script: coverage",
       "itemType": "script",
@@ -4195,6 +5729,54 @@
       "labels": ["catalog/script", "area/storefront"]
     },
     {
+      "catalogId": "script:docs:check-links",
+      "title": "script: docs:check-links",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run docs:check-links",
+      "ciCoverage": "ci.yml",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:docs:gen",
+      "title": "script: docs:gen",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run docs:gen",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:docs:gen:check",
+      "title": "script: docs:gen:check",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run docs:gen:check",
+      "ciCoverage": "ci.yml",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:docs:typedoc",
+      "title": "script: docs:typedoc",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run docs:typedoc",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
       "catalogId": "script:e2e:checkout",
       "title": "script: e2e:checkout",
       "itemType": "script",
@@ -4351,6 +5933,18 @@
       "labels": ["catalog/script", "area/infra-ci"]
     },
     {
+      "catalogId": "script:kill",
+      "title": "script: kill",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run kill",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
       "catalogId": "script:lint",
       "title": "script: lint",
       "itemType": "script",
@@ -4445,6 +6039,162 @@
       "docLink": "package.json",
       "health": "healthy",
       "labels": ["catalog/script", "area/edge"]
+    },
+    {
+      "catalogId": "script:pr:enterprise",
+      "title": "script: pr:enterprise",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run pr:enterprise",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:pr:enterprise:issues",
+      "title": "script: pr:enterprise:issues",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run pr:enterprise:issues",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:pr:enterprise:issues:dry",
+      "title": "script: pr:enterprise:issues:dry",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run pr:enterprise:issues:dry",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:pr:enterprise:issues:dry:ps1",
+      "title": "script: pr:enterprise:issues:dry:ps1",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run pr:enterprise:issues:dry:ps1",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:pr:enterprise:issues:dry:sh",
+      "title": "script: pr:enterprise:issues:dry:sh",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run pr:enterprise:issues:dry:sh",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:pr:enterprise:issues:ps1",
+      "title": "script: pr:enterprise:issues:ps1",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run pr:enterprise:issues:ps1",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:pr:enterprise:issues:sh",
+      "title": "script: pr:enterprise:issues:sh",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run pr:enterprise:issues:sh",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:pr:enterprise:issues:sync",
+      "title": "script: pr:enterprise:issues:sync",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run pr:enterprise:issues:sync",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:pr:enterprise:labels",
+      "title": "script: pr:enterprise:labels",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run pr:enterprise:labels",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:pr:enterprise:labels:ps1",
+      "title": "script: pr:enterprise:labels:ps1",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run pr:enterprise:labels:ps1",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:pr:enterprise:labels:sh",
+      "title": "script: pr:enterprise:labels:sh",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run pr:enterprise:labels:sh",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:pr:enterprise:screenshots:capture",
+      "title": "script: pr:enterprise:screenshots:capture",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run pr:enterprise:screenshots:capture",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
+    },
+    {
+      "catalogId": "script:pr:enterprise:screenshots:copy",
+      "title": "script: pr:enterprise:screenshots:copy",
+      "itemType": "script",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run pr:enterprise:screenshots:copy",
+      "ciCoverage": "none",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:predeploy",
@@ -4663,6 +6413,18 @@
       "labels": ["catalog/script", "area/edge"]
     },
     {
+      "catalogId": "script:test:rpc-smoke",
+      "title": "script: test:rpc-smoke",
+      "itemType": "script",
+      "area": "infra-ci",
+      "layer": "spa",
+      "verification": "pnpm run test:rpc-smoke",
+      "ciCoverage": "manual-only",
+      "docLink": "package.json",
+      "health": "healthy",
+      "labels": ["catalog/script", "area/infra-ci"]
+    },
+    {
       "catalogId": "script:test:ui",
       "title": "script: test:ui",
       "itemType": "script",
@@ -4788,18 +6550,6 @@
       "itemType": "tech-debt",
       "area": "storefront",
       "layer": "spa",
-      "verification": "pnpm run validate",
-      "ciCoverage": "none",
-      "docLink": "docs/TECH_DEBT.md",
-      "health": "debt",
-      "labels": ["catalog/tech-debt", "area/storefront"]
-    },
-    {
-      "catalogId": "tech-debt:src/components/admin/ABThemeManager.tsx",
-      "title": "merge-from-main carve-out",
-      "itemType": "tech-debt",
-      "area": "storefront",
-      "layer": "edge",
       "verification": "pnpm run validate",
       "ciCoverage": "none",
       "docLink": "docs/TECH_DEBT.md",
@@ -4987,6 +6737,18 @@
       "labels": ["catalog/test", "area/storefront"]
     },
     {
+      "catalogId": "test:cypress:cypress/e2e/internal_links_spa_spec.js",
+      "title": "test: cypress/e2e/internal_links_spa_spec.js",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run e2e:ci (includes internal_links_spa_spec.js)",
+      "ciCoverage": "e2e-smoke",
+      "docLink": "cypress/e2e/internal_links_spa_spec.js",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
       "catalogId": "test:cypress:cypress/e2e/maintenance_mode_spec.js",
       "title": "test: cypress/e2e/maintenance_mode_spec.js",
       "itemType": "test",
@@ -5055,6 +6817,18 @@
       "verification": "pnpm run e2e:ci (includes payment_unsubscribe_routes_spec.js)",
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/payment_unsubscribe_routes_spec.js",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:cypress:cypress/e2e/pr_issue_evidence_spec.js",
+      "title": "test: cypress/e2e/pr_issue_evidence_spec.js",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "pnpm run e2e:ci (includes pr_issue_evidence_spec.js)",
+      "ciCoverage": "e2e-smoke",
+      "docLink": "cypress/e2e/pr_issue_evidence_spec.js",
       "health": "healthy",
       "labels": ["catalog/test", "area/storefront"]
     },
@@ -5479,6 +7253,42 @@
       "labels": ["catalog/test", "area/storefront"]
     },
     {
+      "catalogId": "test:vitest:src/components/performance/CodeSplittingWrapper.hooks.test.tsx",
+      "title": "test: src/components/performance/CodeSplittingWrapper.hooks.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/components/performance/CodeSplittingWrapper.hooks.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/components/performance/CodeSplittingWrapper.hooks.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/components/performance/LazyStripe.hooks.test.tsx",
+      "title": "test: src/components/performance/LazyStripe.hooks.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/components/performance/LazyStripe.hooks.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/components/performance/LazyStripe.hooks.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/components/performance/PerformanceMonitor.hooks.test.tsx",
+      "title": "test: src/components/performance/PerformanceMonitor.hooks.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/components/performance/PerformanceMonitor.hooks.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/components/performance/PerformanceMonitor.hooks.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
       "catalogId": "test:vitest:src/context/AuthContext.test.tsx",
       "title": "test: src/context/AuthContext.test.tsx",
       "itemType": "test",
@@ -5487,6 +7297,162 @@
       "verification": "npx vitest run src/context/AuthContext.test.tsx",
       "ciCoverage": "ci.yml",
       "docLink": "src/context/AuthContext.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/context/useProfileActions.test.tsx",
+      "title": "test: src/context/useProfileActions.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/context/useProfileActions.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/context/useProfileActions.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/checkout/checkoutPageTotals.test.ts",
+      "title": "test: src/hooks/checkout/checkoutPageTotals.test.ts",
+      "itemType": "test",
+      "area": "checkout-payments",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/checkout/checkoutPageTotals.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/checkout/checkoutPageTotals.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/checkout-payments"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/use-mobile.test.tsx",
+      "title": "test: src/hooks/use-mobile.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/use-mobile.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/use-mobile.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/use-toast.test.tsx",
+      "title": "test: src/hooks/use-toast.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/use-toast.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/use-toast.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useABThemeTest.test.tsx",
+      "title": "test: src/hooks/useABThemeTest.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useABThemeTest.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useABThemeTest.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useAdminAuth.test.tsx",
+      "title": "test: src/hooks/useAdminAuth.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useAdminAuth.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useAdminAuth.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useAdvancedProductFilters.test.tsx",
+      "title": "test: src/hooks/useAdvancedProductFilters.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useAdvancedProductFilters.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useAdvancedProductFilters.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useAuditLog.test.tsx",
+      "title": "test: src/hooks/useAuditLog.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useAuditLog.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useAuditLog.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useBatchStock.test.ts",
+      "title": "test: src/hooks/useBatchStock.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useBatchStock.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useBatchStock.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useBusinessRules.test.ts",
+      "title": "test: src/hooks/useBusinessRules.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useBusinessRules.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useBusinessRules.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useCachedProductSearch.test.ts",
+      "title": "test: src/hooks/useCachedProductSearch.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useCachedProductSearch.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useCachedProductSearch.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useCartSync.test.ts",
+      "title": "test: src/hooks/useCartSync.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useCartSync.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useCartSync.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useCartUI.test.ts",
+      "title": "test: src/hooks/useCartUI.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useCartUI.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useCartUI.test.ts",
       "health": "healthy",
       "labels": ["catalog/test", "area/storefront"]
     },
@@ -5515,6 +7481,42 @@
       "labels": ["catalog/test", "area/storefront"]
     },
     {
+      "catalogId": "test:vitest:src/hooks/useCheckoutSession.test.tsx",
+      "title": "test: src/hooks/useCheckoutSession.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useCheckoutSession.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useCheckoutSession.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useCompanySettings.test.ts",
+      "title": "test: src/hooks/useCompanySettings.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useCompanySettings.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useCompanySettings.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useCsrfToken.test.ts",
+      "title": "test: src/hooks/useCsrfToken.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useCsrfToken.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useCsrfToken.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
       "catalogId": "test:vitest:src/hooks/useGuestSession.test.ts",
       "title": "test: src/hooks/useGuestSession.test.ts",
       "itemType": "test",
@@ -5527,6 +7529,186 @@
       "labels": ["catalog/test", "area/storefront"]
     },
     {
+      "catalogId": "test:vitest:src/hooks/useHeroImage.test.ts",
+      "title": "test: src/hooks/useHeroImage.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useHeroImage.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useHeroImage.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useImageLoader.test.ts",
+      "title": "test: src/hooks/useImageLoader.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useImageLoader.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useImageLoader.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useInfiniteScroll.test.ts",
+      "title": "test: src/hooks/useInfiniteScroll.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useInfiniteScroll.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useInfiniteScroll.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useMaintenanceMode.test.ts",
+      "title": "test: src/hooks/useMaintenanceMode.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useMaintenanceMode.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useMaintenanceMode.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useOptimizedData.test.ts",
+      "title": "test: src/hooks/useOptimizedData.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useOptimizedData.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useOptimizedData.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useOrderManagement.test.tsx",
+      "title": "test: src/hooks/useOrderManagement.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useOrderManagement.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useOrderManagement.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/usePagination.test.ts",
+      "title": "test: src/hooks/usePagination.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/usePagination.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/usePagination.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/usePerformanceOptimization.test.tsx",
+      "title": "test: src/hooks/usePerformanceOptimization.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/usePerformanceOptimization.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/usePerformanceOptimization.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useProductFilters.test.tsx",
+      "title": "test: src/hooks/useProductFilters.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useProductFilters.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useProductFilters.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useProductRecommendations.test.ts",
+      "title": "test: src/hooks/useProductRecommendations.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useProductRecommendations.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useProductRecommendations.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/usePromoCode.test.ts",
+      "title": "test: src/hooks/usePromoCode.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/usePromoCode.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/usePromoCode.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/usePullToRefresh.test.tsx",
+      "title": "test: src/hooks/usePullToRefresh.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/usePullToRefresh.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/usePullToRefresh.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useReauthentication.test.tsx",
+      "title": "test: src/hooks/useReauthentication.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useReauthentication.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useReauthentication.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useRecentlyViewed.test.ts",
+      "title": "test: src/hooks/useRecentlyViewed.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useRecentlyViewed.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useRecentlyViewed.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useReviews.test.tsx",
+      "title": "test: src/hooks/useReviews.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useReviews.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useReviews.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
       "catalogId": "test:vitest:src/hooks/useSafetyTimeout.diagnostics.test.tsx",
       "title": "test: src/hooks/useSafetyTimeout.diagnostics.test.tsx",
       "itemType": "test",
@@ -5535,6 +7717,78 @@
       "verification": "npx vitest run src/hooks/useSafetyTimeout.diagnostics.test.tsx",
       "ciCoverage": "ci.yml",
       "docLink": "src/hooks/useSafetyTimeout.diagnostics.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useShipping.test.ts",
+      "title": "test: src/hooks/useShipping.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useShipping.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useShipping.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useStock.test.ts",
+      "title": "test: src/hooks/useStock.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useStock.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useStock.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useTagTranslations.test.tsx",
+      "title": "test: src/hooks/useTagTranslations.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useTagTranslations.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useTagTranslations.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useTranslatedContent.test.tsx",
+      "title": "test: src/hooks/useTranslatedContent.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useTranslatedContent.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useTranslatedContent.test.tsx",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useWebVitals.test.ts",
+      "title": "test: src/hooks/useWebVitals.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useWebVitals.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useWebVitals.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/hooks/useWishlist.test.tsx",
+      "title": "test: src/hooks/useWishlist.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/hooks/useWishlist.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/hooks/useWishlist.test.tsx",
       "health": "healthy",
       "labels": ["catalog/test", "area/storefront"]
     },
@@ -5647,6 +7901,30 @@
       "labels": ["catalog/test", "area/checkout-payments"]
     },
     {
+      "catalogId": "test:vitest:src/lib/hooks/useStableCallback.test.ts",
+      "title": "test: src/lib/hooks/useStableCallback.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/lib/hooks/useStableCallback.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/lib/hooks/useStableCallback.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/lib/invoice/generateInvoice.fetchInvoice.test.ts",
+      "title": "test: src/lib/invoice/generateInvoice.fetchInvoice.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/lib/invoice/generateInvoice.fetchInvoice.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/lib/invoice/generateInvoice.fetchInvoice.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
       "catalogId": "test:vitest:src/lib/invoice/generateInvoice.requestOrderToken.test.ts",
       "title": "test: src/lib/invoice/generateInvoice.requestOrderToken.test.ts",
       "itemType": "test",
@@ -5679,6 +7957,18 @@
       "verification": "npx vitest run src/lib/security/forbiddenOrderRestFetchGuard.test.ts",
       "ciCoverage": "ci.yml",
       "docLink": "src/lib/security/forbiddenOrderRestFetchGuard.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/lib/tracking/usePageTracking.test.tsx",
+      "title": "test: src/lib/tracking/usePageTracking.test.tsx",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/lib/tracking/usePageTracking.test.tsx",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/lib/tracking/usePageTracking.test.tsx",
       "health": "healthy",
       "labels": ["catalog/test", "area/storefront"]
     },
@@ -5743,6 +8033,18 @@
       "labels": ["catalog/test", "area/storefront"]
     },
     {
+      "catalogId": "test:vitest:src/services/adminOrdersApi.resolveAnomaly.test.ts",
+      "title": "test: src/services/adminOrdersApi.resolveAnomaly.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/services/adminOrdersApi.resolveAnomaly.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/services/adminOrdersApi.resolveAnomaly.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
       "catalogId": "test:vitest:src/services/checkoutService.test.ts",
       "title": "test: src/services/checkoutService.test.ts",
       "itemType": "test",
@@ -5775,6 +8077,90 @@
       "verification": "npx vitest run src/services/supabasePublishableKey.test.ts",
       "ciCoverage": "ci.yml",
       "docLink": "src/services/supabasePublishableKey.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/stores/compareStore.test.ts",
+      "title": "test: src/stores/compareStore.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/stores/compareStore.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/stores/compareStore.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/stores/currencyStore.test.ts",
+      "title": "test: src/stores/currencyStore.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/stores/currencyStore.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/stores/currencyStore.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/stores/languageStore.test.ts",
+      "title": "test: src/stores/languageStore.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/stores/languageStore.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/stores/languageStore.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/stores/themeStore.test.ts",
+      "title": "test: src/stores/themeStore.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/stores/themeStore.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/stores/themeStore.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/stores/uiStyleStore.test.ts",
+      "title": "test: src/stores/uiStyleStore.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/stores/uiStyleStore.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/stores/uiStyleStore.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/stores/useCart.hook.test.ts",
+      "title": "test: src/stores/useCart.hook.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/stores/useCart.hook.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/stores/useCart.hook.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/tests/ci-workflow-parity.test.ts",
+      "title": "test: src/tests/ci-workflow-parity.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/tests/ci-workflow-parity.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/tests/ci-workflow-parity.test.ts",
       "health": "healthy",
       "labels": ["catalog/test", "area/storefront"]
     },
@@ -5863,6 +8249,18 @@
       "labels": ["catalog/test", "area/edge"]
     },
     {
+      "catalogId": "test:vitest:src/tests/rpc-postgrest-smoke.test.ts",
+      "title": "test: src/tests/rpc-postgrest-smoke.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/tests/rpc-postgrest-smoke.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/tests/rpc-postgrest-smoke.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
       "catalogId": "test:vitest:src/tests/ui-resilience.test.ts",
       "title": "test: src/tests/ui-resilience.test.ts",
       "itemType": "test",
@@ -5873,6 +8271,42 @@
       "docLink": "src/tests/ui-resilience.test.ts",
       "health": "healthy",
       "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/types/contracts/edge-invoke-responses.test.ts",
+      "title": "test: src/types/contracts/edge-invoke-responses.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/types/contracts/edge-invoke-responses.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/types/contracts/edge-invoke-responses.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "test:vitest:src/utils/reactSchedulingHooks.test.ts",
+      "title": "test: src/utils/reactSchedulingHooks.test.ts",
+      "itemType": "test",
+      "area": "storefront",
+      "layer": "spa",
+      "verification": "npx vitest run src/utils/reactSchedulingHooks.test.ts",
+      "ciCoverage": "ci.yml",
+      "docLink": "src/utils/reactSchedulingHooks.test.ts",
+      "health": "healthy",
+      "labels": ["catalog/test", "area/storefront"]
+    },
+    {
+      "catalogId": "workflow:bootstrap-milestones.yml",
+      "title": "Bootstrap milestones",
+      "itemType": "workflow",
+      "area": "infra-ci",
+      "layer": "ci",
+      "verification": null,
+      "ciCoverage": "manual-only",
+      "docLink": ".github/workflows/bootstrap-milestones.yml",
+      "health": "healthy",
+      "labels": ["catalog/workflow", "area/infra-ci"]
     },
     {
       "catalogId": "workflow:ci.yml",
@@ -5931,6 +8365,18 @@
       "verification": "pnpm run project:catalog",
       "ciCoverage": "manual-only",
       "docLink": ".github/workflows/project-catalog.yml",
+      "health": "healthy",
+      "labels": ["catalog/workflow", "area/infra-ci"]
+    },
+    {
+      "catalogId": "workflow:rpc-postgrest-smoke.yml",
+      "title": "PostgREST RPC smoke",
+      "itemType": "workflow",
+      "area": "infra-ci",
+      "layer": "ci",
+      "verification": "pnpm run test:rpc-smoke",
+      "ciCoverage": "manual-only",
+      "docLink": ".github/workflows/rpc-postgrest-smoke.yml",
       "health": "healthy",
       "labels": ["catalog/workflow", "area/infra-ci"]
     }

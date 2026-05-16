@@ -14,13 +14,18 @@ import { Label } from '@/components/ui/label';
 import { CheckCircle, Send, Loader2 } from 'lucide-react';
 import { invokeSupabaseEdgeFunction } from '@/services/supabaseFunctionsApi';
 import { toast } from 'sonner';
+import { formatUnknownError } from '@/lib/errors/AppError';
+
+function parseSnapshotName(raw: unknown): string | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const name = (raw as Record<string, unknown>).name;
+  return typeof name === 'string' ? name : undefined;
+}
 
 interface SendDeliveryEmailButtonProps {
   orderId: string;
   orderItems: Array<{
-    product_snapshot?: {
-      name?: string;
-    };
+    product_snapshot?: unknown;
     quantity: number;
   }>;
   onEmailSent?: () => void;
@@ -56,7 +61,7 @@ export const SendDeliveryEmailButton = ({
     setSending(true);
     try {
       const items = orderItems.map((item) => ({
-        name: item.product_snapshot?.name || 'Produit',
+        name: parseSnapshotName(item.product_snapshot) || 'Produit',
         quantity: item.quantity,
       }));
 
@@ -81,9 +86,9 @@ export const SendDeliveryEmailButton = ({
       } else {
         throw new Error(data?.error || 'Erreur inconnue');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending email:', error);
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(`Erreur: ${formatUnknownError(error)}`);
     } finally {
       setSending(false);
     }
@@ -150,7 +155,8 @@ export const SendDeliveryEmailButton = ({
             <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
               {orderItems.map((item, index) => (
                 <li key={index}>
-                  ✓ {item.product_snapshot?.name || 'Produit'} × {item.quantity}
+                  ✓ {parseSnapshotName(item.product_snapshot) || 'Produit'} ×{' '}
+                  {item.quantity}
                 </li>
               ))}
             </ul>
