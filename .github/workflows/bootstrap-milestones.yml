@@ -1,0 +1,94 @@
+# Create repository milestones (M0–M8) and optionally sync milestone epics to Project v2.
+name: Bootstrap milestones
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/milestones.yml'
+      - 'scripts/bootstrap-github-milestones.mjs'
+      - 'scripts/lib/parse-milestones-yml.mjs'
+      - '.github/workflows/bootstrap-milestones.yml'
+  workflow_dispatch:
+    inputs:
+      project_number:
+        description: GitHub Project number (e.g. 6)
+        required: true
+        default: '6'
+        type: string
+      sync_project_epics:
+        description: Sync milestone epic issues to Project v2
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: bootstrap-milestones
+  cancel-in-progress: false
+
+env:
+  PROJECT_NUMBER: ${{ github.event.inputs.project_number || '6' }}
+
+jobs:
+  milestones:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create repository milestones and assign issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/bootstrap-github-milestones.mjs
+
+      - name: Sync milestone epics to GitHub Project
+        if: >-
+          (github.event_name != 'workflow_dispatch' || inputs.sync_project_epics)
+          && vars.GITHUB_PROJECT_SYNC == 'true'
+        continue-on-error: true
+        env:
+          PROJECT_NUMBER: ${{ env.PROJECT_NUMBER }}
+          GITHUB_PROJECT_OWNER: benmed00
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/sync-github-project.mjs --milestones-only
+
+  project-fields:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure Project date fields exist
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          PN="${{ env.PROJECT_NUMBER }}"
+          OWNER="benmed00"
+          for name in "Target date" "Start date"; do
+            if gh project field-list "$PN" --owner "$OWNER" --format json \
+              | jq -e --arg n "$name" '.fields[] | select(.name == $n)' >/dev/null; then
+              echo "Field already exists: $name"
+            else
+              echo "Creating field: $name"
+              gh project field-create "$PN" --owner "$OWNER" --name "$name" --data-type "DATE"
+            fi
+          done

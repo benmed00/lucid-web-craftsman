@@ -11,7 +11,7 @@ pnpm install --frozen-lockfile
 pnpm run ci:local
 ```
 
-`ci:local` runs, in order: **lint** → **format:check** → **edge bundling (Deno)** → **OpenAPI drift** → **Postman drift** → **typecheck** → **`test:unit`** → **production build** (with CI-like `VITE_*` placeholders).
+`ci:local` runs, in order: **lint** → **format:check** → **edge bundling (Deno)** → **OpenAPI drift** → **Postman drift** → **docs link check** → **docs auto-block drift** → **project catalog drift** → **typecheck** → **`test:unit`** → **production build** (with CI-like `VITE_*` placeholders).
 
 ### Weak points / differences vs GitHub
 
@@ -28,17 +28,20 @@ pnpm run ci:local
 
 ### [`ci.yml`](../.github/workflows/ci.yml)
 
-| Step          | Local                                                                                                                    |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Install       | `pnpm install --frozen-lockfile`                                                                                         |
-| Lint          | `pnpm run lint`                                                                                                          |
-| Format        | `pnpm run format:check`                                                                                                  |
-| Edge bundling | `pnpm run check:edge-functions:bundling:full`                                                                            |
-| OpenAPI       | `pnpm run openapi:edge-functions:check`                                                                                  |
-| Postman       | `pnpm run postman:collection:check`                                                                                      |
-| Typecheck     | `pnpm run type:check`                                                                                                    |
-| Unit tests    | `pnpm run test:unit`                                                                                                     |
-| Build         | `cross-env VITE_SUPABASE_URL=https://test.supabase.co VITE_SUPABASE_PUBLISHABLE_KEY=test-anon-key-for-ci pnpm run build` |
+| Step            | Local                                                                                                                    |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Install         | `pnpm install --frozen-lockfile`                                                                                         |
+| Lint            | `pnpm run lint`                                                                                                          |
+| Format          | `pnpm run format:check`                                                                                                  |
+| Edge bundling   | `pnpm run check:edge-functions:bundling:full`                                                                            |
+| OpenAPI         | `pnpm run openapi:edge-functions:check`                                                                                  |
+| Postman         | `pnpm run postman:collection:check`                                                                                      |
+| Docs links      | `pnpm run docs:check-links`                                                                                              |
+| Docs auto-block | `pnpm run docs:gen:check`                                                                                                |
+| Project catalog | `pnpm run project:catalog:check`                                                                                         |
+| Typecheck       | `pnpm run type:check`                                                                                                    |
+| Unit tests      | `pnpm run test:unit`                                                                                                     |
+| Build           | `cross-env VITE_SUPABASE_URL=https://test.supabase.co VITE_SUPABASE_PUBLISHABLE_KEY=test-anon-key-for-ci pnpm run build` |
 
 ### [`e2e.yml`](../.github/workflows/e2e.yml)
 

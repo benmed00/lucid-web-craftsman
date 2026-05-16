@@ -59,6 +59,9 @@ jobs:
       - name: Docs auto-block drift check
         run: pnpm run docs:gen:check
 
+      - name: Project catalog drift check
+        run: pnpm run project:catalog:check
+
       - name: Typecheck
         run: pnpm run type:check
 

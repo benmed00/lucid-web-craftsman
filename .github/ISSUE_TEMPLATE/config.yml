@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Platform catalog
+    url: https://github.com/benmed00/lucid-web-craftsman/blob/main/.github/project/PROJECT_CATALOG.md
+    about: Scripts, tests, docs, and CI matrix (auto-generated)
+  - name: AGENTS.md (dev runbook)
+    url: https://github.com/benmed00/lucid-web-craftsman/blob/main/AGENTS.md
+    about: Local dev, ports, and verification commands

@@ -1,0 +1,51 @@
+name: Feature request
+description: Propose a new capability or improvement
+title: 'feat: '
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Link platform context: [.github/project/PROJECT_CATALOG.md](../project/PROJECT_CATALOG.md) · [docs/PLATFORM.md](../../docs/PLATFORM.md)
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - storefront
+        - checkout-payments
+        - edge
+        - admin
+        - infra-ci
+        - docs-security
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / goal
+      description: What user or operator problem does this solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+
+  - type: input
+    id: verification
+    attributes:
+      label: Verification command
+      description: e.g. pnpm run validate, pnpm run e2e:ci:smoke
+      placeholder: pnpm run validate
+
+  - type: textarea
+    id: docs
+    attributes:
+      label: Docs to update
+      description: Paths under docs/, AGENTS.md, E2E-COVERAGE.md, etc.
