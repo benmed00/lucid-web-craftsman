@@ -106,7 +106,14 @@ export const MobilePaymentButtons = ({
     setIsProcessing('google');
 
     try {
-      const paymentsClient = new google.payments.api.PaymentsClient({
+      const apiLayer = google.payments?.api;
+      if (!apiLayer) {
+        onPaymentError('Erreur Google Pay: API indisponible');
+        setIsProcessing(null);
+        return;
+      }
+
+      const paymentsClient = new apiLayer.PaymentsClient({
         environment: 'TEST',
       });
 

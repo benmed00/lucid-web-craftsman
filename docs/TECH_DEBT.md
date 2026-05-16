@@ -2,19 +2,11 @@
 
 Tracked items supersede tacit carve-outs — each should eventually get an owner and an issue ticket.
 
-## ESLint grandfathered imports (SPA)
+## ESLint: SPA Supabase client imports
 
-[`eslint.config.js`](../eslint.config.js) enforces **`no-restricted-imports`** for `@/integrations/supabase/client` in `src/pages/**` and `src/components/**`.
+[`eslint.config.js`](../eslint.config.js) enforces **`no-restricted-imports`** for `@/integrations/supabase/client` in `src/pages/**` and `src/components/**` (tests may mock the module).
 
-**Grandfather exceptions** (temporary; refactor to services layer):
-
-| File                                      | Notes                                                   |
-| ----------------------------------------- | ------------------------------------------------------- |
-| `src/components/admin/ABThemeManager.tsx` | merge-from-main carve-out                               |
-| `src/pages/Artisans.tsx`                  | merge-from-main carve-out                               |
-| `src/pages/OrderConfirmation.tsx`         | token-based flows; refactor with admin services roadmap |
-
-Prefer new code through [`src/services/`](src/services/README.md) and shared hooks (`AuthContext`).
+There are **no grandfather exceptions** in app sources: prefer [`src/services/`](../src/services/README.md), edge invokes, and shared hooks (`AuthContext`).
 
 ## ESLint `react-hooks/exhaustive-deps`
 
@@ -52,7 +44,7 @@ The admin UI ([`OrderPaymentTab`](../src/components/admin/orders/OrderPaymentTab
 
 ## ESLint `@typescript-eslint/no-explicit-any` (SPA)
 
-Production app sources enforce **`error`** on explicit **`any`** for the `src/**/*.{ts,tsx}` scope in [`eslint.config.js`](../eslint.config.js) (skips `**/*.{test,spec}.{ts,tsx}`, `src/tests/**`, `**/*.integration.{ts,tsx}`, `src/vite-env.d.ts`). Prefer `unknown`, generics, and narrowing instead of new **`any`**.
+Production app sources enforce **`error`** on explicit **`any`** for the `src/**/*.{ts,tsx}` scope in [`eslint.config.js`](../eslint.config.js) (skips `**/*.{test,spec}.{ts,tsx}`, `src/tests/**`, `**/*.integration.{ts,tsx}`, `src/vite-env.d.ts`). Prefer `unknown`, generics, and narrowing instead of new **`any`**. Ambient Apple Pay / Google Pay globals live in [`src/types/window-extensions.d.ts`](../src/types/window-extensions.d.ts) (not `any`).
 
 **Vendor pixel bootstraps:** [`src/lib/tracking/pixels.ts`](../src/lib/tracking/pixels.ts) keeps Meta/TikTok IIFE snippets under **`eslint-disable @typescript-eslint/no-explicit-any`** (third-party dynamic `fbq` / `ttq` shapes). Do not copy that pattern elsewhere.
 
@@ -79,7 +71,7 @@ Tracked from remediation audit **vague 4**; avoid big-bang refactors — extract
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Orders / payments client   | [`src/services/orderService.ts`](../src/services/orderService.ts)                                                                          | Split by concern (read paths vs admin mutations vs exports) behind existing service façade names where callers are numerous.                                |
 | Cart / sync                | [`src/stores/cartStore.ts`](../src/stores/cartStore.ts)                                                                                    | Isolate persistence + BroadcastChannel + debounce into dedicated modules; keep store API stable.                                                            |
-| Checkout / confirmation UI | [`src/pages/OrderConfirmation.tsx`](../src/pages/OrderConfirmation.tsx), [`src/hooks/useCheckoutPage.ts`](../src/hooks/useCheckoutPage.ts) | Hooks + presentational subcomponents; align with [`src/services/`](../src/services/README.md).                                                              |
+| Checkout / confirmation UI | [`src/pages/OrderConfirmation.tsx`](../src/pages/OrderConfirmation.tsx), [`src/hooks/useCheckoutPage.ts`](../src/hooks/useCheckoutPage.ts) (+ [`src/hooks/checkout/`](../src/hooks/checkout/)) | `useCheckoutPage` split into focused hooks under `checkout/`; continue presentational subcomponents on pages; align with [`src/services/`](../src/services/README.md). |
 | Mock API monolith          | [`backend/server.cjs`](../backend/server.cjs)                                                                                              | Route modules + shared middleware when touching checkout/order mocks.                                                                                       |
 | Routes shell               | [`src/App.tsx`](../src/App.tsx)                                                                                                            | Lazy route wrapper / route table module to dedupe `Suspense` boundaries.                                                                                    |
 | Dual caches                | [`src/lib/cache/UnifiedCache.ts`](../src/lib/cache/UnifiedCache.ts) vs TanStack Query                                                      | Prefer Query as source of truth for server state; shrink UnifiedCache to true dedupe/navigation-only cases or deprecate with migration notes in call sites. |

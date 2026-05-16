@@ -10,22 +10,3 @@ interface ImportMetaEnv {
   /** Node/Vitest only — never prefix with VITE_ or use in browser bundles */
   readonly SUPABASE_SERVICE_ROLE_KEY?: string;
 }
-
-// Apple Pay API types
-declare global {
-  interface Window {
-    ApplePaySession?: any;
-    google?: {
-      payments?: {
-        api?: {
-          PaymentsClient: any;
-        };
-      };
-    };
-    SpeechRecognition?: any;
-    webkitSpeechRecognition?: any;
-  }
-}
-
-declare let ApplePaySession: any;
-declare let google: any;

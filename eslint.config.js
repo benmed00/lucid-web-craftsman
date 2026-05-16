@@ -148,15 +148,7 @@ export default tseslint.config(
   // Leaf UI: Supabase client only via src/services (and AuthContext).
   {
     files: ['src/pages/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}'],
-    ignores: [
-      '**/*.{test,spec}.{ts,tsx}',
-      // Grandfathered from main's token-based OrderConfirmation / Artisans /
-      // ABThemeManager — each still reads supabase directly. Track these as
-      // follow-up in the admin services refactor instead of blocking every merge.
-      'src/components/admin/ABThemeManager.tsx',
-      'src/pages/Artisans.tsx',
-      'src/pages/OrderConfirmation.tsx',
-    ],
+    ignores: ['**/*.{test,spec}.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',

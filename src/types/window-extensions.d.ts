@@ -4,6 +4,20 @@
 /// <reference lib="dom" />
 export {};
 
+/** Apple Pay JS — constructor + session (storefront probes + `new ApplePaySession`). */
+interface ApplePaySessionGlobal {
+  new (version: number, paymentRequest: unknown): ApplePaySessionPayment;
+  readonly STATUS_SUCCESS: number;
+  canMakePayments(): boolean;
+}
+
+interface ApplePaySessionPayment {
+  begin(): void;
+  completePayment(status: number): void;
+  onvalidatemerchant?: ((event: unknown) => void) | null;
+  onpaymentauthorized?: ((event: unknown) => void) | null;
+}
+
 declare global {
   interface Window {
     STRIPE_PUBLIC_KEY?: string;
@@ -13,8 +27,8 @@ declare global {
     scheduler?: {
       postTask(callback: () => void, options?: { priority?: string }): void;
     };
-    /** Apple Pay JS (availability probe only in storefront). */
-    ApplePaySession?: { canMakePayments(): boolean };
+    /** Apple Pay JS */
+    ApplePaySession?: ApplePaySessionGlobal;
     google?: GooglePaymentsRoot;
     SpeechRecognition?: new () => SpeechRecognition;
     webkitSpeechRecognition?: new () => SpeechRecognition;
@@ -24,6 +38,12 @@ declare global {
     /** iOS Safari standalone PWA */
     standalone?: boolean;
   }
+
+  /** Global `ApplePaySession` binding (Safari; same object as `window.ApplePaySession`). */
+  var ApplePaySession: ApplePaySessionGlobal;
+
+  /** Google Pay — global alias used alongside `window.google`. */
+  var google: GooglePaymentsRoot;
 }
 
 interface GooglePaymentsRoot {
@@ -38,4 +58,5 @@ interface GooglePaymentsRoot {
 
 interface GooglePaymentsClient {
   isReadyToPay(request: unknown): Promise<{ result?: boolean }>;
+  loadPaymentData(request: unknown): Promise<unknown>;
 }

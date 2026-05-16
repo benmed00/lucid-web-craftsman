@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import React, { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { AuthError, Session, User } from '@supabase/supabase-js';
 import { AuthProvider, useAuth, cleanupAuthState } from './AuthContext';
 
 // Mock wishlist store to avoid Supabase calls during AuthProvider init
@@ -122,15 +123,18 @@ describe('AuthProvider', () => {
   });
 
   it('should initialize with existing session', async () => {
-    const mockUser = { id: 'user-123', email: 'test@example.com' };
-    const mockSession = { user: mockUser, access_token: 'token' };
+    const mockUser = { id: 'user-123', email: 'test@example.com' } as User;
+    const mockSession = {
+      user: mockUser,
+      access_token: 'token',
+    } as Session;
 
     vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
-      data: { session: mockSession as any },
+      data: { session: mockSession },
       error: null,
     });
     vi.mocked(supabase.auth.getUser).mockResolvedValueOnce({
-      data: { user: mockUser as any },
+      data: { user: mockUser },
       error: null,
     });
 
@@ -143,17 +147,19 @@ describe('AuthProvider', () => {
   });
 
   it('should restore session without waiting for getUser (optimistic init)', async () => {
-    const mockUser = { id: 'user-123', email: 'test@example.com' };
-    const mockSession = { user: mockUser, access_token: 'token' };
+    const mockUser = { id: 'user-123', email: 'test@example.com' } as User;
+    const mockSession = {
+      user: mockUser,
+      access_token: 'token',
+    } as Session;
 
     vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
-      data: { session: mockSession as any },
+      data: { session: mockSession },
       error: null,
     });
 
-    // Simulate a slow / hanging network call to /auth/v1/user.
     vi.mocked(supabase.auth.getUser).mockImplementationOnce(
-      () => new Promise(() => {}) as any
+      () => new Promise(() => {})
     );
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -172,7 +178,7 @@ describe('AuthProvider', () => {
       .mockImplementation(() => {});
 
     vi.mocked(supabase.auth.getSession).mockImplementationOnce(
-      () => new Promise(() => {}) as any
+      () => new Promise(() => {})
     );
 
     try {
@@ -224,12 +230,11 @@ describe('useAuth methods', () => {
 
   describe('signIn', () => {
     it('should call supabase signInWithPassword', async () => {
-      const mockData = {
-        user: { id: '123' },
-        session: { access_token: 'token' },
-      };
       vi.mocked(supabase.auth.signInWithPassword).mockResolvedValueOnce({
-        data: mockData as any,
+        data: {
+          user: { id: '123' } as User,
+          session: { access_token: 'token' } as Session,
+        },
         error: null,
       });
       vi.mocked(supabase.auth.signOut).mockResolvedValueOnce({ error: null });
@@ -252,7 +257,7 @@ describe('useAuth methods', () => {
       const error = new Error('Invalid credentials');
       vi.mocked(supabase.auth.signInWithPassword).mockResolvedValueOnce({
         data: { user: null, session: null },
-        error: error as any,
+        error: error as unknown as AuthError,
       });
       vi.mocked(supabase.auth.signOut).mockResolvedValueOnce({ error: null });
 
@@ -270,9 +275,8 @@ describe('useAuth methods', () => {
 
   describe('signUp', () => {
     it('should call supabase signUp with correct options', async () => {
-      const mockData = { user: { id: '123' }, session: null };
       vi.mocked(supabase.auth.signUp).mockResolvedValueOnce({
-        data: mockData as any,
+        data: { user: { id: '123' } as User, session: null },
         error: null,
       });
       vi.mocked(supabase.auth.signOut).mockResolvedValueOnce({ error: null });
@@ -345,12 +349,11 @@ describe('useAuth methods', () => {
 
   describe('verifyOtp', () => {
     it('should call supabase verifyOtp', async () => {
-      const mockData = {
-        user: { id: '123' },
-        session: { access_token: 'token' },
-      };
       vi.mocked(supabase.auth.verifyOtp).mockResolvedValueOnce({
-        data: mockData as any,
+        data: {
+          user: { id: '123' } as User,
+          session: { access_token: 'token' } as Session,
+        },
         error: null,
       });
 
@@ -397,7 +400,7 @@ describe('useAuth methods', () => {
   describe('updatePassword', () => {
     it('should call supabase updateUser', async () => {
       vi.mocked(supabase.auth.updateUser).mockResolvedValueOnce({
-        data: { user: { id: '123' } as any },
+        data: { user: { id: '123' } as User },
         error: null,
       });
 
