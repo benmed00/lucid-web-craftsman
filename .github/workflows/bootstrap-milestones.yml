@@ -30,6 +30,9 @@ concurrency:
   group: bootstrap-milestones
   cancel-in-progress: false
 
+env:
+  PROJECT_NUMBER: ${{ github.event.inputs.project_number || '6' }}
+
 jobs:
   milestones:
     runs-on: ubuntu-latest
@@ -47,27 +50,35 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Create repository milestones and assign issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/bootstrap-github-milestones.mjs
 
       - name: Sync milestone epics to GitHub Project
-        if: inputs.sync_project_epics
+        if: github.event_name != 'workflow_dispatch' || inputs.sync_project_epics
         env:
-          PROJECT_NUMBER: ${{ inputs.project_number }}
+          PROJECT_NUMBER: ${{ env.PROJECT_NUMBER }}
           GITHUB_PROJECT_OWNER: benmed00
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/sync-github-project.mjs --milestones-only
 
   project-fields:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
       - name: Ensure Project date fields exist
+        continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          PN="${{ inputs.project_number }}"
+          PN="${{ env.PROJECT_NUMBER }}"
           OWNER="benmed00"
           for name in "Target date" "Start date"; do
             if gh project field-list "$PN" --owner "$OWNER" --format json \
