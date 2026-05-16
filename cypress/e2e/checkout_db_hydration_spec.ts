@@ -73,7 +73,7 @@ describe('Checkout DB hydration (guest) @regression', () => {
         req.reply({ statusCode: 200, body: null });
         return;
       }
-      let guestId = decodeURIComponent(m[2]);
+      const guestId = decodeURIComponent(m[2]);
       req.reply({
         statusCode: 200,
         body: {

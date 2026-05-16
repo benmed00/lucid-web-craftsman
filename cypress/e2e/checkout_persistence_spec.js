@@ -91,9 +91,7 @@ describe('Checkout Persistence — Anonymous User', () => {
 
   it('should clear form fields when localStorage checkout data is removed', () => {
     cy.addCatalogLineAndOpenCheckoutStep1();
-    cy.get('#firstName')
-      .clear()
-      .type(testData.firstName);
+    cy.get('#firstName').clear().type(testData.firstName);
     cy.get('#lastName').clear().type(testData.lastName);
     cy.get('#email').clear().type(testData.email);
 
