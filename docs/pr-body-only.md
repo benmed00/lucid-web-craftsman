@@ -6,7 +6,7 @@ This branch rebases platform engineering on **`pnpm`**, tightens CI alignment (V
 
 _Create the issues from [enterprise-pr-pack-feat-platform-rebaseline.md](enterprise-pr-pack-feat-platform-rebaseline.md), then replace placeholders below._
 
-Fixes REPLACE_1, REPLACE_2, REPLACE_3, REPLACE_4, REPLACE_5, REPLACE_6, REPLACE_7, REPLACE_8
+Fixes #36, #37, #38, #39, #40, #41, #42, #43, #44
 
 (Use **Fixes** only for issues fully resolved by this PR; use **Refs** for partial / follow-up work.)
 
