@@ -47,10 +47,8 @@ function listMilestones(repo) {
   const merged = [];
   for (const state of ['open', 'closed']) {
     const r = ghApi([
-      `repos/${repo}/milestones`,
+      `repos/${repo}/milestones?state=${state}&per_page=100`,
       '--paginate',
-      '-f',
-      `state=${state}`,
     ]);
     merged.push(...JSON.parse(r.stdout || '[]'));
   }
