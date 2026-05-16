@@ -96,3 +96,11 @@ issue_overrides:
     milestone_id: M1
   - issue: 34
     milestone_id: M2
+  - issue: 55
+    milestone_id: M0
+  - issue: 56
+    milestone_id: M0
+  - issue: 57
+    milestone_id: M1
+  - issue: 58
+    milestone_id: M0
