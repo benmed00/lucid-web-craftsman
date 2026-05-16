@@ -3,7 +3,19 @@
   "$id": "https://github.com/benmed00/lucid-web-craftsman/.github/project/catalog.schema.json",
   "title": "Lucid Web Craftsman platform catalog",
   "type": "object",
-  "required": ["generatedAt", "repository", "git", "scripts", "tests", "docs", "workflows", "edgeFunctions", "techDebt", "platformAreas", "inventory"],
+  "required": [
+    "generatedAt",
+    "repository",
+    "git",
+    "scripts",
+    "tests",
+    "docs",
+    "workflows",
+    "edgeFunctions",
+    "techDebt",
+    "platformAreas",
+    "inventory"
+  ],
   "properties": {
     "generatedAt": { "type": "string", "format": "date-time" },
     "repository": {

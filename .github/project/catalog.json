@@ -116,10 +116,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run api:artifacts",
       "health": "healthy"
     },
@@ -134,10 +131,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run browserslist:update",
       "health": "healthy"
     },
@@ -158,10 +152,7 @@
       ],
       "ciCoverage": "ci.yml",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run build",
       "health": "healthy"
     },
@@ -176,10 +167,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run build:dev",
       "health": "healthy"
     },
@@ -194,10 +182,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run build:prod",
       "health": "healthy"
     },
@@ -212,10 +197,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": true,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run check:edge-functions:bundling",
       "health": "drift-risk"
     },
@@ -230,10 +212,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run check:edge-functions:bundling:ci",
       "health": "healthy"
     },
@@ -254,10 +233,7 @@
       ],
       "ciCoverage": "ci.yml",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run check:edge-functions:bundling:full",
       "health": "healthy"
     },
@@ -272,10 +248,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run check:edge-functions:bundling:report",
       "health": "healthy"
     },
@@ -290,10 +263,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run coverage",
       "health": "healthy"
     },
@@ -308,10 +278,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deno:check:create-admin-user",
       "health": "healthy"
     },
@@ -326,10 +293,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deno:check:create-payment",
       "health": "healthy"
     },
@@ -344,10 +308,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deno:lint:create-admin-user",
       "health": "healthy"
     },
@@ -362,10 +323,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deno:lint:create-payment",
       "health": "healthy"
     },
@@ -380,10 +338,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deploy",
       "health": "healthy"
     },
@@ -398,10 +353,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deploy:functions:all",
       "health": "healthy"
     },
@@ -416,10 +368,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deploy:functions:create-payment",
       "health": "healthy"
     },
@@ -434,10 +383,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deploy:functions:get-order-by-token",
       "health": "healthy"
     },
@@ -452,10 +398,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deploy:functions:monitor-payment-events",
       "health": "healthy"
     },
@@ -470,10 +413,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deploy:functions:order-confirmation-lookup",
       "health": "healthy"
     },
@@ -488,10 +428,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deploy:functions:payment-success",
       "health": "healthy"
     },
@@ -506,10 +443,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deploy:functions:reconcile-payment",
       "health": "healthy"
     },
@@ -524,10 +458,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deploy:functions:stripe-return",
       "health": "healthy"
     },
@@ -542,10 +473,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run deploy:pricing-snapshot-and-monitoring",
       "health": "healthy"
     },
@@ -560,10 +488,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run dev",
       "health": "healthy"
     },
@@ -578,10 +503,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run dev:e2e",
       "health": "healthy"
     },
@@ -596,10 +518,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run e2e:checkout",
       "health": "healthy"
     },
@@ -614,10 +533,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run e2e:ci",
       "health": "healthy"
     },
@@ -638,10 +554,7 @@
       ],
       "ciCoverage": "e2e-smoke",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run e2e:ci:shard",
       "health": "healthy"
     },
@@ -662,10 +575,7 @@
       ],
       "ciCoverage": "e2e-smoke",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run e2e:ci:smoke",
       "health": "healthy"
     },
@@ -680,10 +590,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run e2e:contact",
       "health": "healthy"
     },
@@ -698,10 +605,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run e2e:enterprise",
       "health": "healthy"
     },
@@ -716,10 +620,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run e2e:open",
       "health": "healthy"
     },
@@ -734,10 +635,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run e2e:preview",
       "health": "healthy"
     },
@@ -752,10 +650,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run e2e:regression",
       "health": "healthy"
     },
@@ -770,10 +665,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run e2e:run",
       "health": "healthy"
     },
@@ -788,10 +680,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run e2e:smoke",
       "health": "healthy"
     },
@@ -806,10 +695,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": true,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run format",
       "health": "drift-risk"
     },
@@ -830,10 +716,7 @@
       ],
       "ciCoverage": "ci.yml",
       "inValidate": true,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run format:check",
       "health": "healthy"
     },
@@ -854,10 +737,7 @@
       ],
       "ciCoverage": "ci.yml",
       "inValidate": true,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run lint",
       "health": "healthy"
     },
@@ -872,10 +752,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": true,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run lint:e2e-port",
       "health": "drift-risk"
     },
@@ -890,10 +767,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run lint:fix",
       "health": "drift-risk"
     },
@@ -908,10 +782,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run openapi:edge-functions",
       "health": "healthy"
     },
@@ -932,10 +803,7 @@
       ],
       "ciCoverage": "ci.yml",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run openapi:edge-functions:check",
       "health": "healthy"
     },
@@ -950,10 +818,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run postman:collection",
       "health": "healthy"
     },
@@ -974,10 +839,7 @@
       ],
       "ciCoverage": "ci.yml",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run postman:collection:check",
       "health": "healthy"
     },
@@ -992,10 +854,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run predeploy",
       "health": "healthy"
     },
@@ -1010,10 +869,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run prepare",
       "health": "healthy"
     },
@@ -1028,10 +884,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run preview",
       "health": "healthy"
     },
@@ -1052,10 +905,7 @@
       ],
       "ciCoverage": "manual-only",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run project:catalog",
       "health": "healthy"
     },
@@ -1081,10 +931,7 @@
       ],
       "ciCoverage": "ci.yml",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run project:catalog:check",
       "health": "healthy"
     },
@@ -1099,10 +946,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run serve",
       "health": "healthy"
     },
@@ -1117,10 +961,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run start:api",
       "health": "healthy"
     },
@@ -1135,10 +976,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run supabase:db:query",
       "health": "healthy"
     },
@@ -1153,10 +991,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run supabase:migration:diff",
       "health": "healthy"
     },
@@ -1171,10 +1006,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run supabase:migration:list",
       "health": "healthy"
     },
@@ -1189,10 +1021,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run supabase:types:gen",
       "health": "healthy"
     },
@@ -1207,10 +1036,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": true,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run test",
       "health": "healthy"
     },
@@ -1225,10 +1051,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run test:create-admin-user",
       "health": "healthy"
     },
@@ -1243,10 +1066,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run test:create-payment",
       "health": "healthy"
     },
@@ -1261,10 +1081,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run test:edge-functions",
       "health": "healthy"
     },
@@ -1279,10 +1096,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run test:pricing-snapshot",
       "health": "healthy"
     },
@@ -1297,10 +1111,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run test:pricing-snapshot:deno",
       "health": "healthy"
     },
@@ -1315,10 +1126,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run test:pricing-snapshot:offline-meta",
       "health": "healthy"
     },
@@ -1333,10 +1141,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run test:ui",
       "health": "healthy"
     },
@@ -1357,10 +1162,7 @@
       ],
       "ciCoverage": "ci.yml",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run test:unit",
       "health": "healthy"
     },
@@ -1381,10 +1183,7 @@
       ],
       "ciCoverage": "ci.yml",
       "inValidate": true,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run type:check",
       "health": "healthy"
     },
@@ -1399,10 +1198,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run validate",
       "health": "drift-risk"
     },
@@ -1417,10 +1213,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run verify:create-admin-user",
       "health": "drift-risk"
     },
@@ -1435,10 +1228,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run verify:create-payment",
       "health": "healthy"
     },
@@ -1453,10 +1243,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run verify:guest-token-rpc",
       "health": "drift-risk"
     },
@@ -1471,10 +1258,7 @@
       "ciMappings": [],
       "ciCoverage": "none",
       "inValidate": false,
-      "docLinks": [
-        "AGENTS.md",
-        "scripts/README.md"
-      ],
+      "docLinks": ["AGENTS.md", "scripts/README.md"],
       "verification": "pnpm run verify:pricing-snapshot:offline",
       "health": "drift-risk"
     }
@@ -2646,15 +2430,8 @@
       "id": "workflow:ci.yml",
       "file": ".github/workflows/ci.yml",
       "name": "CI",
-      "triggers": [
-        "push",
-        "pull_request"
-      ],
-      "jobs": [
-        "push",
-        "pull_request",
-        "ci"
-      ],
+      "triggers": ["push", "pull_request"],
+      "jobs": ["push", "pull_request", "ci"],
       "pnpmCommands": [
         "build",
         "check:edge-functions:bundling:full",
@@ -2675,15 +2452,8 @@
       "id": "workflow:deno-create-payment.yml",
       "file": ".github/workflows/deno-create-payment.yml",
       "name": "Deno create-payment",
-      "triggers": [
-        "push",
-        "pull_request"
-      ],
-      "jobs": [
-        "push",
-        "pull_request",
-        "deno"
-      ],
+      "triggers": ["push", "pull_request"],
+      "jobs": ["push", "pull_request", "deno"],
       "pnpmCommands": [],
       "ciCoverage": "deno-workflow",
       "verification": null,
@@ -2694,12 +2464,7 @@
       "id": "workflow:e2e.yml",
       "file": ".github/workflows/e2e.yml",
       "name": "E2E",
-      "triggers": [
-        "push",
-        "pull_request",
-        "schedule",
-        "workflow_dispatch"
-      ],
+      "triggers": ["push", "pull_request", "schedule", "workflow_dispatch"],
       "jobs": [
         "push",
         "pull_request",
@@ -2708,10 +2473,7 @@
         "e2e-smoke",
         "e2e-full"
       ],
-      "pnpmCommands": [
-        "e2e:ci:shard",
-        "e2e:ci:smoke"
-      ],
+      "pnpmCommands": ["e2e:ci:shard", "e2e:ci:smoke"],
       "ciCoverage": "e2e-smoke",
       "verification": "pnpm run e2e:ci:shard",
       "area": "storefront",
@@ -2721,15 +2483,8 @@
       "id": "workflow:monitor-payment-events.yml",
       "file": ".github/workflows/monitor-payment-events.yml",
       "name": "Monitor payment events",
-      "triggers": [
-        "schedule",
-        "workflow_dispatch"
-      ],
-      "jobs": [
-        "schedule",
-        "workflow_dispatch",
-        "probe"
-      ],
+      "triggers": ["schedule", "workflow_dispatch"],
+      "jobs": ["schedule", "workflow_dispatch", "probe"],
       "pnpmCommands": [],
       "ciCoverage": "manual-only",
       "verification": null,
@@ -2740,12 +2495,7 @@
       "id": "workflow:project-catalog.yml",
       "file": ".github/workflows/project-catalog.yml",
       "name": "Project catalog",
-      "triggers": [
-        "push",
-        "pull_request",
-        "schedule",
-        "workflow_dispatch"
-      ],
+      "triggers": ["push", "pull_request", "schedule", "workflow_dispatch"],
       "jobs": [
         "push",
         "pull_request",
@@ -2754,10 +2504,7 @@
         "catalog-check",
         "sync-project"
       ],
-      "pnpmCommands": [
-        "project:catalog",
-        "project:catalog:check"
-      ],
+      "pnpmCommands": ["project:catalog", "project:catalog:check"],
       "ciCoverage": "manual-only",
       "verification": "pnpm run project:catalog",
       "area": "infra-ci",
@@ -3264,10 +3011,7 @@
       "ciCoverage": "none",
       "docLink": "AGENTS.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/doc", "area/infra-ci"]
     },
     {
       "catalogId": "doc:backend/README.md",
@@ -3279,10 +3023,7 @@
       "ciCoverage": "none",
       "docLink": "backend/README.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/doc", "area/infra-ci"]
     },
     {
       "catalogId": "doc:cypress/README.md",
@@ -3294,10 +3035,7 @@
       "ciCoverage": "none",
       "docLink": "cypress/README.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/storefront"
-      ]
+      "labels": ["catalog/doc", "area/storefront"]
     },
     {
       "catalogId": "doc:docs/CHANGELOG.md",
@@ -3309,10 +3047,7 @@
       "ciCoverage": "none",
       "docLink": "docs/CHANGELOG.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/docs-security"
-      ]
+      "labels": ["catalog/doc", "area/docs-security"]
     },
     {
       "catalogId": "doc:docs/DENO_CERT.md",
@@ -3324,10 +3059,7 @@
       "ciCoverage": "none",
       "docLink": "docs/DENO_CERT.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/docs-security"
-      ]
+      "labels": ["catalog/doc", "area/docs-security"]
     },
     {
       "catalogId": "doc:docs/E2E-COVERAGE.md",
@@ -3339,10 +3071,7 @@
       "ciCoverage": "none",
       "docLink": "docs/E2E-COVERAGE.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/storefront"
-      ]
+      "labels": ["catalog/doc", "area/storefront"]
     },
     {
       "catalogId": "doc:docs/PLATFORM.md",
@@ -3354,10 +3083,7 @@
       "ciCoverage": "none",
       "docLink": "docs/PLATFORM.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/docs-security"
-      ]
+      "labels": ["catalog/doc", "area/docs-security"]
     },
     {
       "catalogId": "doc:docs/README.md",
@@ -3369,10 +3095,7 @@
       "ciCoverage": "none",
       "docLink": "docs/README.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/docs-security"
-      ]
+      "labels": ["catalog/doc", "area/docs-security"]
     },
     {
       "catalogId": "doc:docs/scripts/README.md",
@@ -3384,10 +3107,7 @@
       "ciCoverage": "none",
       "docLink": "docs/scripts/README.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/docs-security"
-      ]
+      "labels": ["catalog/doc", "area/docs-security"]
     },
     {
       "catalogId": "doc:docs/security/supabase-production-security-checklist.md",
@@ -3399,10 +3119,7 @@
       "ciCoverage": "none",
       "docLink": "docs/security/supabase-production-security-checklist.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/docs-security"
-      ]
+      "labels": ["catalog/doc", "area/docs-security"]
     },
     {
       "catalogId": "doc:docs/security/supabase-security-audit-report.md",
@@ -3414,10 +3131,7 @@
       "ciCoverage": "none",
       "docLink": "docs/security/supabase-security-audit-report.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/docs-security"
-      ]
+      "labels": ["catalog/doc", "area/docs-security"]
     },
     {
       "catalogId": "doc:docs/STANDARDS.md",
@@ -3429,10 +3143,7 @@
       "ciCoverage": "none",
       "docLink": "docs/STANDARDS.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/docs-security"
-      ]
+      "labels": ["catalog/doc", "area/docs-security"]
     },
     {
       "catalogId": "doc:docs/TECH_DEBT.md",
@@ -3444,10 +3155,7 @@
       "ciCoverage": "none",
       "docLink": "docs/TECH_DEBT.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/docs-security"
-      ]
+      "labels": ["catalog/doc", "area/docs-security"]
     },
     {
       "catalogId": "doc:openapi/README.md",
@@ -3459,10 +3167,7 @@
       "ciCoverage": "none",
       "docLink": "openapi/README.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/doc", "area/infra-ci"]
     },
     {
       "catalogId": "doc:postman/README.md",
@@ -3474,10 +3179,7 @@
       "ciCoverage": "none",
       "docLink": "postman/README.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/doc", "area/infra-ci"]
     },
     {
       "catalogId": "doc:scripts/README.md",
@@ -3489,10 +3191,7 @@
       "ciCoverage": "none",
       "docLink": "scripts/README.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/doc", "area/infra-ci"]
     },
     {
       "catalogId": "doc:src/services/README.md",
@@ -3504,10 +3203,7 @@
       "ciCoverage": "none",
       "docLink": "src/services/README.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/doc", "area/infra-ci"]
     },
     {
       "catalogId": "doc:supabase/functions/README.md",
@@ -3519,10 +3215,7 @@
       "ciCoverage": "none",
       "docLink": "supabase/functions/README.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/edge"
-      ]
+      "labels": ["catalog/doc", "area/edge"]
     },
     {
       "catalogId": "doc:supabase/README.md",
@@ -3534,10 +3227,7 @@
       "ciCoverage": "none",
       "docLink": "supabase/README.md",
       "health": "healthy",
-      "labels": [
-        "catalog/doc",
-        "area/edge"
-      ]
+      "labels": ["catalog/doc", "area/edge"]
     },
     {
       "catalogId": "edge:carrier-webhook",
@@ -3549,11 +3239,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/carrier-webhook/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:check-promo-alerts",
@@ -3565,11 +3251,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/check-promo-alerts/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:cleanup-pending-orders",
@@ -3581,11 +3263,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/cleanup-pending-orders/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:create-admin-user",
@@ -3597,11 +3275,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/create-admin-user/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:create-payment",
@@ -3613,11 +3287,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/create-payment/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:create-paypal-payment",
@@ -3629,11 +3299,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/create-paypal-payment/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:generate-invoice",
@@ -3645,11 +3311,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/generate-invoice/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:generate-sitemap",
@@ -3661,11 +3323,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/generate-sitemap/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:get-order-by-token",
@@ -3677,11 +3335,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/get-order-by-token/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:monitor-payment-events",
@@ -3693,11 +3347,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/monitor-payment-events/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:order-confirmation-lookup",
@@ -3709,11 +3359,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/order-confirmation-lookup/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:order-lookup",
@@ -3725,11 +3371,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/order-lookup/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:process-scheduled-emails",
@@ -3741,11 +3383,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/process-scheduled-emails/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:reconcile-payment",
@@ -3757,11 +3395,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/reconcile-payment/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:security-alert-notification",
@@ -3773,11 +3407,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/security-alert-notification/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:send-abandoned-cart-email",
@@ -3789,11 +3419,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/send-abandoned-cart-email/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:send-cancellation-email",
@@ -3805,11 +3431,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/send-cancellation-email/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:send-delivery-confirmation",
@@ -3821,11 +3443,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/send-delivery-confirmation/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:send-newsletter-welcome",
@@ -3837,11 +3455,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/send-newsletter-welcome/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:send-order-confirmation",
@@ -3853,11 +3467,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/send-order-confirmation/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:send-order-notification-improved",
@@ -3869,11 +3479,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/send-order-notification-improved/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:send-shipping-notification",
@@ -3885,11 +3491,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/send-shipping-notification/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:send-vip-order-notification",
@@ -3901,11 +3503,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/send-vip-order-notification/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:sign-invoice-token",
@@ -3917,11 +3515,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/sign-invoice-token/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:sign-order-token",
@@ -3933,11 +3527,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/sign-order-token/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:stripe-session-display",
@@ -3949,11 +3539,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/stripe-session-display/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:stripe-webhook",
@@ -3965,11 +3551,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/stripe-webhook/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:submit-contact",
@@ -3981,11 +3563,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/submit-contact/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:translate-tag",
@@ -3997,11 +3575,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/translate-tag/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:verify-payment",
@@ -4013,11 +3587,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/verify-payment/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "edge:verify-paypal-payment",
@@ -4029,11 +3599,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "supabase/functions/verify-paypal-payment/index.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge",
-        "layer/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge", "layer/edge"]
     },
     {
       "catalogId": "git-metric:hygiene",
@@ -4045,11 +3611,7 @@
       "ciCoverage": "none",
       "docLink": "commitlint.config.mjs",
       "health": "drift-risk",
-      "labels": [
-        "catalog/workflow",
-        "area/infra-ci",
-        "verify/validate"
-      ]
+      "labels": ["catalog/workflow", "area/infra-ci", "verify/validate"]
     },
     {
       "catalogId": "script:api:artifacts",
@@ -4061,10 +3623,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:browserslist:update",
@@ -4076,10 +3635,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:build",
@@ -4091,10 +3647,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:build:dev",
@@ -4106,10 +3659,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:build:prod",
@@ -4121,10 +3671,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:check:edge-functions:bundling",
@@ -4136,10 +3683,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "drift-risk",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:check:edge-functions:bundling:ci",
@@ -4151,10 +3695,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:check:edge-functions:bundling:full",
@@ -4166,10 +3707,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:check:edge-functions:bundling:report",
@@ -4181,10 +3719,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:coverage",
@@ -4196,10 +3731,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/script", "area/infra-ci"]
     },
     {
       "catalogId": "script:deno:check:create-admin-user",
@@ -4211,10 +3743,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:deno:check:create-payment",
@@ -4226,10 +3755,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:deno:lint:create-admin-user",
@@ -4241,10 +3767,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:deno:lint:create-payment",
@@ -4256,10 +3779,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:deploy",
@@ -4271,10 +3791,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:deploy:functions:all",
@@ -4286,10 +3803,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:deploy:functions:create-payment",
@@ -4301,10 +3815,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:deploy:functions:get-order-by-token",
@@ -4316,10 +3827,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:deploy:functions:monitor-payment-events",
@@ -4331,10 +3839,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:deploy:functions:order-confirmation-lookup",
@@ -4346,10 +3851,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:deploy:functions:payment-success",
@@ -4361,10 +3863,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:deploy:functions:reconcile-payment",
@@ -4376,10 +3875,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:deploy:functions:stripe-return",
@@ -4391,10 +3887,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:deploy:pricing-snapshot-and-monitoring",
@@ -4406,10 +3899,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/checkout-payments"
-      ]
+      "labels": ["catalog/script", "area/checkout-payments"]
     },
     {
       "catalogId": "script:dev",
@@ -4421,10 +3911,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:dev:e2e",
@@ -4436,10 +3923,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:e2e:checkout",
@@ -4451,10 +3935,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:e2e:ci",
@@ -4466,10 +3947,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:e2e:ci:shard",
@@ -4481,10 +3959,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:e2e:ci:smoke",
@@ -4496,10 +3971,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:e2e:contact",
@@ -4511,10 +3983,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:e2e:enterprise",
@@ -4526,10 +3995,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:e2e:open",
@@ -4541,10 +4007,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:e2e:preview",
@@ -4556,10 +4019,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:e2e:regression",
@@ -4571,10 +4031,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:e2e:run",
@@ -4586,10 +4043,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:e2e:smoke",
@@ -4601,10 +4055,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:format",
@@ -4616,10 +4067,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "drift-risk",
-      "labels": [
-        "catalog/script",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/script", "area/infra-ci"]
     },
     {
       "catalogId": "script:format:check",
@@ -4631,10 +4079,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/script", "area/infra-ci"]
     },
     {
       "catalogId": "script:lint",
@@ -4646,10 +4091,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/script", "area/infra-ci"]
     },
     {
       "catalogId": "script:lint:e2e-port",
@@ -4661,10 +4103,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "drift-risk",
-      "labels": [
-        "catalog/script",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/script", "area/infra-ci"]
     },
     {
       "catalogId": "script:lint:fix",
@@ -4676,10 +4115,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "drift-risk",
-      "labels": [
-        "catalog/script",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/script", "area/infra-ci"]
     },
     {
       "catalogId": "script:openapi:edge-functions",
@@ -4691,10 +4127,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:openapi:edge-functions:check",
@@ -4706,10 +4139,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:postman:collection",
@@ -4721,10 +4151,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:postman:collection:check",
@@ -4736,10 +4163,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:predeploy",
@@ -4751,10 +4175,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:prepare",
@@ -4766,10 +4187,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:preview",
@@ -4781,10 +4199,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:project:catalog",
@@ -4796,10 +4211,7 @@
       "ciCoverage": "manual-only",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:project:catalog:check",
@@ -4811,10 +4223,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:serve",
@@ -4826,10 +4235,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:start:api",
@@ -4841,10 +4247,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:supabase:db:query",
@@ -4856,10 +4259,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:supabase:migration:diff",
@@ -4871,10 +4271,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:supabase:migration:list",
@@ -4886,10 +4283,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:supabase:types:gen",
@@ -4901,10 +4295,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:test",
@@ -4916,10 +4307,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/script", "area/infra-ci"]
     },
     {
       "catalogId": "script:test:create-admin-user",
@@ -4931,10 +4319,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:test:create-payment",
@@ -4946,10 +4331,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:test:edge-functions",
@@ -4961,10 +4343,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:test:pricing-snapshot",
@@ -4976,10 +4355,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:test:pricing-snapshot:deno",
@@ -4991,10 +4367,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:test:pricing-snapshot:offline-meta",
@@ -5006,10 +4379,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:test:ui",
@@ -5021,10 +4391,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/script", "area/infra-ci"]
     },
     {
       "catalogId": "script:test:unit",
@@ -5036,10 +4403,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/script", "area/infra-ci"]
     },
     {
       "catalogId": "script:type:check",
@@ -5051,10 +4415,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/storefront"
-      ]
+      "labels": ["catalog/script", "area/storefront"]
     },
     {
       "catalogId": "script:validate",
@@ -5066,10 +4427,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "drift-risk",
-      "labels": [
-        "catalog/script",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/script", "area/infra-ci"]
     },
     {
       "catalogId": "script:verify:create-admin-user",
@@ -5081,10 +4439,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "drift-risk",
-      "labels": [
-        "catalog/script",
-        "area/admin"
-      ]
+      "labels": ["catalog/script", "area/admin"]
     },
     {
       "catalogId": "script:verify:create-payment",
@@ -5096,10 +4451,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "healthy",
-      "labels": [
-        "catalog/script",
-        "area/edge"
-      ]
+      "labels": ["catalog/script", "area/edge"]
     },
     {
       "catalogId": "script:verify:guest-token-rpc",
@@ -5111,10 +4463,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "drift-risk",
-      "labels": [
-        "catalog/script",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/script", "area/infra-ci"]
     },
     {
       "catalogId": "script:verify:pricing-snapshot:offline",
@@ -5126,10 +4475,7 @@
       "ciCoverage": "none",
       "docLink": "package.json",
       "health": "drift-risk",
-      "labels": [
-        "catalog/script",
-        "area/checkout-payments"
-      ]
+      "labels": ["catalog/script", "area/checkout-payments"]
     },
     {
       "catalogId": "tech-debt:deno-ban-ts-comment",
@@ -5141,10 +4487,7 @@
       "ciCoverage": "none",
       "docLink": "docs/TECH_DEBT.md",
       "health": "debt",
-      "labels": [
-        "catalog/tech-debt",
-        "area/edge"
-      ]
+      "labels": ["catalog/tech-debt", "area/edge"]
     },
     {
       "catalogId": "tech-debt:eslint-any",
@@ -5156,10 +4499,7 @@
       "ciCoverage": "none",
       "docLink": "docs/TECH_DEBT.md",
       "health": "debt",
-      "labels": [
-        "catalog/tech-debt",
-        "area/storefront"
-      ]
+      "labels": ["catalog/tech-debt", "area/storefront"]
     },
     {
       "catalogId": "tech-debt:eslint-grandfather",
@@ -5171,10 +4511,7 @@
       "ciCoverage": "none",
       "docLink": "docs/TECH_DEBT.md",
       "health": "debt",
-      "labels": [
-        "catalog/tech-debt",
-        "area/storefront"
-      ]
+      "labels": ["catalog/tech-debt", "area/storefront"]
     },
     {
       "catalogId": "tech-debt:src/components/admin/ABThemeManager.tsx",
@@ -5186,10 +4523,7 @@
       "ciCoverage": "none",
       "docLink": "docs/TECH_DEBT.md",
       "health": "debt",
-      "labels": [
-        "catalog/tech-debt",
-        "area/storefront"
-      ]
+      "labels": ["catalog/tech-debt", "area/storefront"]
     },
     {
       "catalogId": "tech-debt:vitest-rls-skip",
@@ -5201,10 +4535,7 @@
       "ciCoverage": "none",
       "docLink": "docs/TECH_DEBT.md",
       "health": "debt",
-      "labels": [
-        "catalog/tech-debt",
-        "area/edge"
-      ]
+      "labels": ["catalog/tech-debt", "area/edge"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/admin_compare_routes_spec.js",
@@ -5216,10 +4547,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/admin_compare_routes_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/admin"
-      ]
+      "labels": ["catalog/test", "area/admin"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/admin_dashboard_spec.js",
@@ -5231,10 +4559,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/admin_dashboard_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/admin"
-      ]
+      "labels": ["catalog/test", "area/admin"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/admin_routes_smoke_spec.js",
@@ -5246,10 +4571,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/admin_routes_smoke_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/admin"
-      ]
+      "labels": ["catalog/test", "area/admin"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/api_resilience_spec.js",
@@ -5261,10 +4583,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/api_resilience_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/auth_flows_spec.js",
@@ -5276,10 +4595,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/auth_flows_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/auth_state_poisoning_diagnostics_spec.js",
@@ -5291,10 +4607,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/auth_state_poisoning_diagnostics_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/checkout_db_hydration_spec.ts",
@@ -5306,10 +4619,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/checkout_db_hydration_spec.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/checkout-payments"
-      ]
+      "labels": ["catalog/test", "area/checkout-payments"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/checkout_flow_spec.js",
@@ -5321,10 +4631,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/checkout_flow_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/checkout-payments"
-      ]
+      "labels": ["catalog/test", "area/checkout-payments"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/checkout_persistence_spec.js",
@@ -5336,10 +4643,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/checkout_persistence_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/checkout-payments"
-      ]
+      "labels": ["catalog/test", "area/checkout-payments"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/contact_form_spec.js",
@@ -5351,10 +4655,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/contact_form_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/elevated_storefront_spec.ts",
@@ -5366,10 +4667,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/elevated_storefront_spec.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/enterprise_full_platform_spec.js",
@@ -5381,10 +4679,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/enterprise_full_platform_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/get_order_by_token_mocked_spec.ts",
@@ -5396,10 +4691,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/get_order_by_token_mocked_spec.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/header_nav_spec.js",
@@ -5411,10 +4703,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/header_nav_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/maintenance_mode_spec.js",
@@ -5426,10 +4715,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/maintenance_mode_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/mobile_menu_spec.js",
@@ -5441,10 +4727,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/mobile_menu_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/navigation_stability_spec.js",
@@ -5456,10 +4739,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/navigation_stability_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/order_confirmation_mocked_spec.ts",
@@ -5471,10 +4751,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/order_confirmation_mocked_spec.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/payment_success_mocked_spec.ts",
@@ -5486,10 +4763,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/payment_success_mocked_spec.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/payment_unsubscribe_routes_spec.js",
@@ -5501,10 +4775,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/payment_unsubscribe_routes_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/product_detail_spec.js",
@@ -5516,10 +4787,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/product_detail_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/product_filters_spec.ts",
@@ -5531,10 +4799,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/product_filters_spec.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/profile_spec.js",
@@ -5546,10 +4811,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/profile_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/reviews_and_otp_spec.js",
@@ -5561,10 +4823,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/reviews_and_otp_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:cypress:cypress/e2e/wishlist_spec.js",
@@ -5576,10 +4835,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": "cypress/e2e/wishlist_spec.js",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:deno:supabase/functions/_shared/confirm-order_test.ts",
@@ -5591,10 +4847,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/_shared/confirm-order_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/_shared/order-response-whitelists_test.ts",
@@ -5606,10 +4859,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/_shared/order-response-whitelists_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/_shared/payment-method-label_test.ts",
@@ -5621,10 +4871,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/_shared/payment-method-label_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/_shared/persist-pricing-snapshot_test.ts",
@@ -5636,10 +4883,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/_shared/persist-pricing-snapshot_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/_shared/pricing_snapshot_extended_test.ts",
@@ -5651,10 +4895,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/_shared/pricing_snapshot_extended_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/_shared/pricing_snapshot_golden_test.ts",
@@ -5666,10 +4907,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/_shared/pricing_snapshot_golden_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/_shared/pricing_snapshot_offline_meta_test.ts",
@@ -5681,10 +4919,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/_shared/pricing_snapshot_offline_meta_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/_shared/pricing-snapshot_test.ts",
@@ -5696,10 +4931,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/_shared/pricing-snapshot_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/_shared/rate-limit/rate-limit-composite_test.ts",
@@ -5711,10 +4943,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/_shared/rate-limit/rate-limit-composite_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/_shared/rate-limit/rate-limit-postgres_test.ts",
@@ -5726,10 +4955,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/_shared/rate-limit/rate-limit-postgres_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/create-admin-user/handler_test.ts",
@@ -5741,10 +4967,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/create-admin-user/handler_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/create-payment/constants_test.ts",
@@ -5756,10 +4979,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/create-payment/constants_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/create-payment/lib/amounts_test.ts",
@@ -5771,10 +4991,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/create-payment/lib/amounts_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/create-payment/lib/checkout-schema_test.ts",
@@ -5786,10 +5003,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/create-payment/lib/checkout-schema_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/create-payment/lib/discount_test.ts",
@@ -5801,10 +5015,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/create-payment/lib/discount_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/create-payment/lib/errors_test.ts",
@@ -5816,10 +5027,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/create-payment/lib/errors_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/create-payment/lib/orders_test.ts",
@@ -5831,10 +5039,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/create-payment/lib/orders_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/create-payment/lib/rate-limit_test.ts",
@@ -5846,10 +5051,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/create-payment/lib/rate-limit_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/create-payment/lib/security_test.ts",
@@ -5861,10 +5063,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/create-payment/lib/security_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/create-payment/lib/stripe-session_test.ts",
@@ -5876,10 +5075,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/create-payment/lib/stripe-session_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/create-payment/lib/verified-cart_test.ts",
@@ -5891,10 +5087,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/create-payment/lib/verified-cart_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/get-order-by-token/index_test.ts",
@@ -5906,10 +5099,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/get-order-by-token/index_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/monitor-payment-events/handler_test.ts",
@@ -5921,10 +5111,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/monitor-payment-events/handler_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/order-confirmation-lookup/handler_test.ts",
@@ -5936,10 +5123,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/order-confirmation-lookup/handler_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/order-confirmation-lookup/resolve_display_total_test.ts",
@@ -5951,10 +5135,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/order-confirmation-lookup/resolve_display_total_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/order-lookup/lib/order_uuid_test.ts",
@@ -5966,10 +5147,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/order-lookup/lib/order_uuid_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts",
@@ -5981,10 +5159,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/send-order-confirmation/_lib/email-pricing-from-db_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:deno:supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts",
@@ -5996,10 +5171,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": "supabase/functions/stripe-webhook/lib/pricing-snapshot_test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:vitest:src/components/BlogCard.test.tsx",
@@ -6011,10 +5183,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/components/BlogCard.test.tsx",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/components/Navigation.test.tsx",
@@ -6026,10 +5195,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/components/Navigation.test.tsx",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/context/AuthContext.test.tsx",
@@ -6041,10 +5207,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/context/AuthContext.test.tsx",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/hooks/useCheckoutFormPersistence.test.tsx",
@@ -6056,10 +5219,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/hooks/useCheckoutFormPersistence.test.tsx",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/hooks/useCheckoutResume.test.ts",
@@ -6071,10 +5231,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/hooks/useCheckoutResume.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/hooks/useGuestSession.test.ts",
@@ -6086,10 +5243,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/hooks/useGuestSession.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/hooks/useSafetyTimeout.diagnostics.test.tsx",
@@ -6101,10 +5255,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/hooks/useSafetyTimeout.diagnostics.test.tsx",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/integrations/supabase/client.origin-wiring.test.ts",
@@ -6116,10 +5267,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/integrations/supabase/client.origin-wiring.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/integrations/supabase/client.state-poisoning.test.ts",
@@ -6131,10 +5279,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/integrations/supabase/client.state-poisoning.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/integrations/supabase/resolveSupabaseOrigin.test.ts",
@@ -6146,10 +5291,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/integrations/supabase/resolveSupabaseOrigin.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/lib/cache/UnifiedCache.test.ts",
@@ -6161,10 +5303,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/lib/cache/UnifiedCache.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/lib/cart/cartSyncPolicy.test.ts",
@@ -6176,10 +5315,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/lib/cart/cartSyncPolicy.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/lib/checkout/checkoutStorageKeys.test.ts",
@@ -6191,10 +5327,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/lib/checkout/checkoutStorageKeys.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/checkout-payments"
-      ]
+      "labels": ["catalog/test", "area/checkout-payments"]
     },
     {
       "catalogId": "test:vitest:src/lib/checkout/orderConfirmationRoute.test.ts",
@@ -6206,10 +5339,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/lib/checkout/orderConfirmationRoute.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/checkout-payments"
-      ]
+      "labels": ["catalog/test", "area/checkout-payments"]
     },
     {
       "catalogId": "test:vitest:src/lib/checkout/orderUuid.test.ts",
@@ -6221,10 +5351,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/lib/checkout/orderUuid.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/checkout-payments"
-      ]
+      "labels": ["catalog/test", "area/checkout-payments"]
     },
     {
       "catalogId": "test:vitest:src/lib/checkout/pricingSnapshot.test.ts",
@@ -6236,10 +5363,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/lib/checkout/pricingSnapshot.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/checkout-payments"
-      ]
+      "labels": ["catalog/test", "area/checkout-payments"]
     },
     {
       "catalogId": "test:vitest:src/lib/invoice/generateInvoice.requestOrderToken.test.ts",
@@ -6251,10 +5375,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/lib/invoice/generateInvoice.requestOrderToken.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/lib/invoice/supabaseFunctionsBaseUrl.test.ts",
@@ -6266,10 +5387,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/lib/invoice/supabaseFunctionsBaseUrl.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/lib/security/forbiddenOrderRestFetchGuard.test.ts",
@@ -6281,10 +5399,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/lib/security/forbiddenOrderRestFetchGuard.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/lib/utils.test.ts",
@@ -6296,10 +5411,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/lib/utils.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/pages/Auth.integration.test.tsx",
@@ -6311,10 +5423,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/pages/Auth.integration.test.tsx",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/pages/Auth.test.tsx",
@@ -6326,10 +5435,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/pages/Auth.test.tsx",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/pages/Checkout.test.tsx",
@@ -6341,10 +5447,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/pages/Checkout.test.tsx",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/pages/Contact.test.tsx",
@@ -6356,10 +5459,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/pages/Contact.test.tsx",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/services/checkoutService.test.ts",
@@ -6371,10 +5471,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/services/checkoutService.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/checkout-payments"
-      ]
+      "labels": ["catalog/test", "area/checkout-payments"]
     },
     {
       "catalogId": "test:vitest:src/services/imageService.test.ts",
@@ -6386,10 +5483,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/services/imageService.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/services/supabasePublishableKey.test.ts",
@@ -6401,10 +5495,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/services/supabasePublishableKey.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/tests/edge-functions-carrier-mappings.test.ts",
@@ -6416,10 +5507,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/tests/edge-functions-carrier-mappings.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/tests/edge-functions.test.ts",
@@ -6431,10 +5519,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/tests/edge-functions.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/tests/i18n-test-utils.test.ts",
@@ -6446,10 +5531,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/tests/i18n-test-utils.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/tests/partial-failure-isolation.test.ts",
@@ -6461,10 +5543,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/tests/partial-failure-isolation.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "test:vitest:src/tests/rls-e2e.test.ts",
@@ -6476,10 +5555,7 @@
       "ciCoverage": "manual-only",
       "docLink": "src/tests/rls-e2e.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:vitest:src/tests/rls-policies.test.ts",
@@ -6491,10 +5567,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/tests/rls-policies.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:vitest:src/tests/rls-quick-validation.test.ts",
@@ -6506,10 +5579,7 @@
       "ciCoverage": "manual-only",
       "docLink": "src/tests/rls-quick-validation.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/edge"
-      ]
+      "labels": ["catalog/test", "area/edge"]
     },
     {
       "catalogId": "test:vitest:src/tests/ui-resilience.test.ts",
@@ -6521,10 +5591,7 @@
       "ciCoverage": "ci.yml",
       "docLink": "src/tests/ui-resilience.test.ts",
       "health": "healthy",
-      "labels": [
-        "catalog/test",
-        "area/storefront"
-      ]
+      "labels": ["catalog/test", "area/storefront"]
     },
     {
       "catalogId": "workflow:ci.yml",
@@ -6536,10 +5603,7 @@
       "ciCoverage": "ci.yml",
       "docLink": ".github/workflows/ci.yml",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/workflow", "area/infra-ci"]
     },
     {
       "catalogId": "workflow:deno-create-payment.yml",
@@ -6551,10 +5615,7 @@
       "ciCoverage": "deno-workflow",
       "docLink": ".github/workflows/deno-create-payment.yml",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/edge"
-      ]
+      "labels": ["catalog/workflow", "area/edge"]
     },
     {
       "catalogId": "workflow:e2e.yml",
@@ -6566,10 +5627,7 @@
       "ciCoverage": "e2e-smoke",
       "docLink": ".github/workflows/e2e.yml",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/storefront"
-      ]
+      "labels": ["catalog/workflow", "area/storefront"]
     },
     {
       "catalogId": "workflow:monitor-payment-events.yml",
@@ -6581,10 +5639,7 @@
       "ciCoverage": "manual-only",
       "docLink": ".github/workflows/monitor-payment-events.yml",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/workflow", "area/infra-ci"]
     },
     {
       "catalogId": "workflow:project-catalog.yml",
@@ -6596,10 +5651,7 @@
       "ciCoverage": "manual-only",
       "docLink": ".github/workflows/project-catalog.yml",
       "health": "healthy",
-      "labels": [
-        "catalog/workflow",
-        "area/infra-ci"
-      ]
+      "labels": ["catalog/workflow", "area/infra-ci"]
     }
   ]
 }

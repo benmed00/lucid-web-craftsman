@@ -737,6 +737,16 @@ function main() {
 
   fs.writeFileSync(DASHBOARD_HTML, renderDashboard(catalog));
 
+  const prettierTargets = [CATALOG_JSON, CATALOG_MD, path.join(PROJECT_DIR, 'catalog.schema.json')];
+  const prettier = spawnSync(
+    'pnpm',
+    ['exec', 'prettier', '--write', ...prettierTargets],
+    { cwd: ROOT, stdio: 'pipe' }
+  );
+  if (prettier.status !== 0) {
+    console.warn('Prettier on catalog outputs failed; run pnpm run format on .github/project/');
+  }
+
   console.log(`Wrote ${rel(CATALOG_JSON)}`);
   console.log(`Wrote ${rel(CATALOG_MD)}`);
   console.log(`Wrote ${rel(DASHBOARD_HTML)}`);

@@ -2,11 +2,11 @@
 
 Enterprise board for scripts, tests, documentation, CI workflows, edge functions, and git health. Data is generated from the repo (`pnpm run project:catalog`).
 
-| Artifact | Purpose |
-| -------- | ------- |
-| [catalog.json](./catalog.json) | Machine-readable inventory (CI drift check) |
-| [PROJECT_CATALOG.md](./PROJECT_CATALOG.md) | Human tables for the Project description |
-| [catalog.schema.json](./catalog.schema.json) | JSON schema for `catalog.json` |
+| Artifact                                                               | Purpose                                                                                   |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [catalog.json](./catalog.json)                                         | Machine-readable inventory (CI drift check)                                               |
+| [PROJECT_CATALOG.md](./PROJECT_CATALOG.md)                             | Human tables for the Project description                                                  |
+| [catalog.schema.json](./catalog.schema.json)                           | JSON schema for `catalog.json`                                                            |
 | [reports/project-dashboard.html](../../reports/project-dashboard.html) | Charts (git activity, script/test breakdown) — regenerate locally; CI uploads as artifact |
 
 ## One-time: create the Project
@@ -21,15 +21,15 @@ Note the project number from the URL (`.../projects/<number>`).
 
 Create these single-select or text fields in the Project settings (names must match sync script):
 
-| Field | Type | Options |
-| ----- | ---- | ------- |
-| Area | Single select | `storefront`, `checkout-payments`, `edge`, `admin`, `infra-ci`, `docs-security` |
-| Layer | Single select | `spa`, `edge`, `db`, `ci`, `docs` |
-| Item type | Single select | `script`, `test`, `doc`, `workflow`, `tech-debt`, `git-metric`, `edge-function` |
-| Verification | Text | e.g. `pnpm run validate` |
-| CI coverage | Single select | `none`, `ci.yml`, `e2e-smoke`, `e2e-full`, `deno-workflow`, `manual-only` |
-| Doc link | Text | Relative path in repo |
-| Health | Single select | `healthy`, `drift-risk`, `stale`, `debt` |
+| Field        | Type          | Options                                                                         |
+| ------------ | ------------- | ------------------------------------------------------------------------------- |
+| Area         | Single select | `storefront`, `checkout-payments`, `edge`, `admin`, `infra-ci`, `docs-security` |
+| Layer        | Single select | `spa`, `edge`, `db`, `ci`, `docs`                                               |
+| Item type    | Single select | `script`, `test`, `doc`, `workflow`, `tech-debt`, `git-metric`, `edge-function` |
+| Verification | Text          | e.g. `pnpm run validate`                                                        |
+| CI coverage  | Single select | `none`, `ci.yml`, `e2e-smoke`, `e2e-full`, `deno-workflow`, `manual-only`       |
+| Doc link     | Text          | Relative path in repo                                                           |
+| Health       | Single select | `healthy`, `drift-risk`, `stale`, `debt`                                        |
 
 CLI examples (after project exists; replace `<number>`):
 
@@ -79,12 +79,12 @@ pnpm run project:catalog:check   # CI: fail on catalog.json drift
 
 Repository secrets / variables:
 
-| Name | Purpose |
-| ---- | ------- |
-| `GITHUB_PROJECT_SYNC` | Repository **secret** set to `true` to enable sync job on `workflow_dispatch` |
-| `PROJECT_NUMBER` | GitHub Project number (user or org project) |
-| `GITHUB_PROJECT_OWNER` | Default: `benmed00` |
-| `GITHUB_TOKEN` | Fine-grained or classic PAT with `repo` + `project` (workflow uses `GITHUB_TOKEN` when sync runs in Actions with elevated permissions) |
+| Name                   | Purpose                                                                                                                                |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `GITHUB_PROJECT_SYNC`  | Repository **secret** set to `true` to enable sync job on `workflow_dispatch`                                                          |
+| `PROJECT_NUMBER`       | GitHub Project number (user or org project)                                                                                            |
+| `GITHUB_PROJECT_OWNER` | Default: `benmed00`                                                                                                                    |
+| `GITHUB_TOKEN`         | Fine-grained or classic PAT with `repo` + `project` (workflow uses `GITHUB_TOKEN` when sync runs in Actions with elevated permissions) |
 
 ```bash
 # Dry-run (no API writes)
