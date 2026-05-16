@@ -103,14 +103,8 @@ export function useCheckoutPage() {
     savePromoCode,
   });
 
-  const {
-    subtotal,
-    discount,
-    shipping,
-    total,
-    hasFreeShipping,
-    shippingCost,
-  } = computeCheckoutTotals(cartItems, appliedCoupon, freeShippingSettings);
+  const { subtotal, discount, shipping, total, hasFreeShipping, shippingCost } =
+    computeCheckoutTotals(cartItems, appliedCoupon, freeShippingSettings);
 
   const { hasRestoredState } = useCheckoutPersistedHydration({
     isFormLoading,

@@ -49,10 +49,7 @@ interface UseCheckoutStepNavigationParams {
     shipping: number,
     total: number
   ) => Promise<void>;
-  updateStep: (
-    currentStep: number,
-    lastCompletedStep: number
-  ) => Promise<void>;
+  updateStep: (currentStep: number, lastCompletedStep: number) => Promise<void>;
 }
 
 export function useCheckoutStepNavigation({

@@ -11,14 +11,14 @@ Short checklist for storefront logic: what the **browser may assume** for UX, an
 
 ## Quick reference
 
-| Area              | Client role                         | Server / DB authority                                      |
-| ----------------- | ----------------------------------- | ---------------------------------------------------------- |
-| Order totals      | Display, snapshot for confirmation  | Edge recomputes from DB-backed cart + coupon rules         |
-| Min/max cart EUR  | Block pay + toast (`BusinessRules`) | Edge / business logic must reject out-of-range submissions |
-| Promo codes       | RPC validation + UI messaging      | Coupon validity, limits, amounts on Edge                   |
-| Stock             | `reserveStock` before pay session   | Fulfillment / webhook paths; DB stock                      |
-| Guest vs auth     | Session IDs in headers/body         | Edge validates guest token / user                          |
-| CSRF              | Header from `useCsrfToken`          | Edge verifies                                              |
+| Area             | Client role                         | Server / DB authority                                      |
+| ---------------- | ----------------------------------- | ---------------------------------------------------------- |
+| Order totals     | Display, snapshot for confirmation  | Edge recomputes from DB-backed cart + coupon rules         |
+| Min/max cart EUR | Block pay + toast (`BusinessRules`) | Edge / business logic must reject out-of-range submissions |
+| Promo codes      | RPC validation + UI messaging       | Coupon validity, limits, amounts on Edge                   |
+| Stock            | `reserveStock` before pay session   | Fulfillment / webhook paths; DB stock                      |
+| Guest vs auth    | Session IDs in headers/body         | Edge validates guest token / user                          |
+| CSRF             | Header from `useCsrfToken`          | Edge verifies                                              |
 
 ## Where to go deeper
 

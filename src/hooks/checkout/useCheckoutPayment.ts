@@ -9,9 +9,7 @@ import type {
   CheckoutFormData,
   SavedCoupon,
 } from '@/hooks/useCheckoutFormPersistence';
-import {
-  validateCheckoutForm,
-} from '@/utils/checkoutValidation';
+import { validateCheckoutForm } from '@/utils/checkoutValidation';
 import { sanitizeUserInput } from '@/utils/xssProtection';
 import { isEligibleForCOD } from '@/utils/shipping';
 

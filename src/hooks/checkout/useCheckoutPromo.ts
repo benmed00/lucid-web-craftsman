@@ -3,9 +3,7 @@ import { toast } from 'sonner';
 import type { TFunction } from 'i18next';
 
 import { validateCouponCodeRpc } from '@/services/checkoutApi';
-import type {
-  PromoCodeData,
-} from '@/hooks/useCheckoutSession';
+import type { PromoCodeData } from '@/hooks/useCheckoutSession';
 import type { SavedCoupon } from '@/hooks/useCheckoutFormPersistence';
 import { validatePromoCode } from '@/utils/checkoutValidation';
 

@@ -17,13 +17,13 @@ This integration PR rebases **Rif Raw Straw** storefront engineering on a **pnpm
 
 ## Problem statement
 
-| Pain | Impact |
-|------|--------|
-| Monolithic `useCheckoutPage` (~750 lines) | Hard to review, test, or change payment vs step logic without regressions |
-| ESLint **grandfather** carve-outs for raw `@/integrations/supabase/client` in pages/components | Layering drift; Supabase calls scattered in UI |
-| CI / local parity gaps (Vitest slice, E2E port probe, Deno gates) | Green local runs that do not match CI; flaky smoke |
-| Undocumented rule surfaces | Client “hints” confused with authoritative pricing/stock/auth |
-| `<a href>` internal navigation | Full page reloads; lost React Query / cart state |
+| Pain                                                                                           | Impact                                                                    |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Monolithic `useCheckoutPage` (~750 lines)                                                      | Hard to review, test, or change payment vs step logic without regressions |
+| ESLint **grandfather** carve-outs for raw `@/integrations/supabase/client` in pages/components | Layering drift; Supabase calls scattered in UI                            |
+| CI / local parity gaps (Vitest slice, E2E port probe, Deno gates)                              | Green local runs that do not match CI; flaky smoke                        |
+| Undocumented rule surfaces                                                                     | Client “hints” confused with authoritative pricing/stock/auth             |
+| `<a href>` internal navigation                                                                 | Full page reloads; lost React Query / cart state                          |
 
 ---
 
@@ -65,25 +65,25 @@ flowchart TB
 
 ### Checkout UX (storefront)
 
-| Scenario | Before | After | Notes |
-|----------|--------|-------|-------|
-| 3-step checkout (info → shipping → pay) | Same steps, single hook file | Same steps; logic split by concern | **No intentional UX change** |
-| Promo code apply | RPC + toast in monolith | Same flow via `useCheckoutPromo` | Server still validates on pay |
-| Pay → Stripe redirect | `handlePayment` in monolith | `useCheckoutPayment` | CSRF + session headers unchanged |
-| Return mid-checkout | localStorage + session restore | `useCheckoutPersistedHydration` | Same persistence contracts |
-| Min/max order toasts | `BusinessRules` in monolith | Same rules; payment hook reads `businessRules.cart` | **Hints only** — Edge is authoritative |
-| COD eligibility | Postal code checks in monolith | Same rules in orchestrator + payment | |
+| Scenario                                | Before                         | After                                               | Notes                                  |
+| --------------------------------------- | ------------------------------ | --------------------------------------------------- | -------------------------------------- |
+| 3-step checkout (info → shipping → pay) | Same steps, single hook file   | Same steps; logic split by concern                  | **No intentional UX change**           |
+| Promo code apply                        | RPC + toast in monolith        | Same flow via `useCheckoutPromo`                    | Server still validates on pay          |
+| Pay → Stripe redirect                   | `handlePayment` in monolith    | `useCheckoutPayment`                                | CSRF + session headers unchanged       |
+| Return mid-checkout                     | localStorage + session restore | `useCheckoutPersistedHydration`                     | Same persistence contracts             |
+| Min/max order toasts                    | `BusinessRules` in monolith    | Same rules; payment hook reads `businessRules.cart` | **Hints only** — Edge is authoritative |
+| COD eligibility                         | Postal code checks in monolith | Same rules in orchestrator + payment                |                                        |
 
 ### Architecture & governance
 
-| Area | Before | After |
-|------|--------|-------|
-| Raw Supabase in `pages/` / `components/` | 3 ESLint **grandfather** files | **Zero** carve-outs; tests may mock client |
-| Checkout hook tests | Page test only (`Checkout.test.tsx`) | + `checkoutPageTotals.test.ts` (pure totals) |
-| Rules documentation | Scattered | `RULES_REGISTRY.md`, `BUSINESS_LOGIC_AND_EDGE_CASES.md`, **`CLIENT_VS_SERVER_RULES.md`** |
-| Footer / FAQ internal links | `<a href>` full reload | `react-router` `<Link>` + Cypress SPA spec |
-| TypeScript strictness | Partial | `strict` enabled; `@typescript-eslint/no-explicit-any` on app sources |
-| CI E2E smoke | Port probe could drift from Vite | `VITE_DEV_SERVER_PORT` aligned in `run-e2e-ci.mjs` |
+| Area                                     | Before                               | After                                                                                    |
+| ---------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Raw Supabase in `pages/` / `components/` | 3 ESLint **grandfather** files       | **Zero** carve-outs; tests may mock client                                               |
+| Checkout hook tests                      | Page test only (`Checkout.test.tsx`) | + `checkoutPageTotals.test.ts` (pure totals)                                             |
+| Rules documentation                      | Scattered                            | `RULES_REGISTRY.md`, `BUSINESS_LOGIC_AND_EDGE_CASES.md`, **`CLIENT_VS_SERVER_RULES.md`** |
+| Footer / FAQ internal links              | `<a href>` full reload               | `react-router` `<Link>` + Cypress SPA spec                                               |
+| TypeScript strictness                    | Partial                              | `strict` enabled; `@typescript-eslint/no-explicit-any` on app sources                    |
+| CI E2E smoke                             | Port probe could drift from Vite     | `VITE_DEV_SERVER_PORT` aligned in `run-e2e-ci.mjs`                                       |
 
 ---
 
@@ -91,15 +91,15 @@ flowchart TB
 
 > **Reviewer:** Replace placeholders with real captures from `pnpm run dev` (8080) or CI artifacts. Drag images into the PR comment or embed URLs below.
 
-| # | What to capture | Path / action | Status |
-|---|-----------------|---------------|--------|
-| 1 | Checkout step 1 — customer info | `/checkout` | ⬜ Attach |
-| 2 | Checkout step 3 — payment summary + promo | `/checkout` (step 3) | ⬜ Attach |
-| 3 | Stripe redirect (test mode) | Pay with test card | ⬜ Attach or redact URL |
-| 4 | Order confirmation (snapshot hydration) | `/order-confirmation` after return | ⬜ Attach |
-| 5 | Footer SPA navigation (no full reload) | Click Shop from `/cart` — network tab shows client navigation | ⬜ Attach |
-| 6 | GitHub Actions — CI green on PR | Checks tab on #35 | ⬜ Attach |
-| 7 | GitHub Actions — E2E smoke (if run) | `e2e.yml` job | ⬜ Attach |
+| #   | What to capture                           | Path / action                                                 | Status                  |
+| --- | ----------------------------------------- | ------------------------------------------------------------- | ----------------------- |
+| 1   | Checkout step 1 — customer info           | `/checkout`                                                   | ⬜ Attach               |
+| 2   | Checkout step 3 — payment summary + promo | `/checkout` (step 3)                                          | ⬜ Attach               |
+| 3   | Stripe redirect (test mode)               | Pay with test card                                            | ⬜ Attach or redact URL |
+| 4   | Order confirmation (snapshot hydration)   | `/order-confirmation` after return                            | ⬜ Attach               |
+| 5   | Footer SPA navigation (no full reload)    | Click Shop from `/cart` — network tab shows client navigation | ⬜ Attach               |
+| 6   | GitHub Actions — CI green on PR           | Checks tab on #35                                             | ⬜ Attach               |
+| 7   | GitHub Actions — E2E smoke (if run)       | `e2e.yml` job                                                 | ⬜ Attach               |
 
 **Optional screen recording (30–60s):** guest checkout → promo apply → pay (test mode) → confirmation.
 
@@ -107,16 +107,16 @@ flowchart TB
 
 ## Scope by theme
 
-| Theme | Representative paths | Reviewer focus |
-|-------|---------------------|----------------|
-| **Checkout refactor** | `src/hooks/checkout/*`, `src/hooks/useCheckoutPage.ts` | Payment/session headers, honeypot, stock reserve, error toasts |
-| **SPA layering** | `eslint.config.js`, `src/services/*` | No new raw client imports in pages/components |
-| **Edge / payments** | `supabase/functions/create-payment/*`, `confirm-order` | Schema alignment, discount parsing, Deno tests |
-| **CI / DX** | `.github/workflows/*`, `scripts/run-e2e-ci.mjs`, `scripts/check-doc-links.mjs` | Parity with `pnpm run ci:local` |
-| **Documentation** | `docs/RULES_REGISTRY.md`, `docs/BUSINESS_LOGIC_AND_EDGE_CASES.md`, `docs/GITHUB-ACTIONS-CI-CD.md`, `docs/CLIENT_VS_SERVER_RULES.md` | Links + anchors (`pnpm run docs:check-links`) |
-| **Types / contracts** | `src/types/domain/*`, `src/types/contracts/*` | No widening of payment payloads |
-| **Tests** | `src/hooks/**/*.test.*`, `cypress/e2e/*` | Vitest + smoke paths |
-| **SEO / static** | `index.html`, `public/llms.txt`, Hero assets | No regression on LCP-critical paths |
+| Theme                 | Representative paths                                                                                                                | Reviewer focus                                                 |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **Checkout refactor** | `src/hooks/checkout/*`, `src/hooks/useCheckoutPage.ts`                                                                              | Payment/session headers, honeypot, stock reserve, error toasts |
+| **SPA layering**      | `eslint.config.js`, `src/services/*`                                                                                                | No new raw client imports in pages/components                  |
+| **Edge / payments**   | `supabase/functions/create-payment/*`, `confirm-order`                                                                              | Schema alignment, discount parsing, Deno tests                 |
+| **CI / DX**           | `.github/workflows/*`, `scripts/run-e2e-ci.mjs`, `scripts/check-doc-links.mjs`                                                      | Parity with `pnpm run ci:local`                                |
+| **Documentation**     | `docs/RULES_REGISTRY.md`, `docs/BUSINESS_LOGIC_AND_EDGE_CASES.md`, `docs/GITHUB-ACTIONS-CI-CD.md`, `docs/CLIENT_VS_SERVER_RULES.md` | Links + anchors (`pnpm run docs:check-links`)                  |
+| **Types / contracts** | `src/types/domain/*`, `src/types/contracts/*`                                                                                       | No widening of payment payloads                                |
+| **Tests**             | `src/hooks/**/*.test.*`, `cypress/e2e/*`                                                                                            | Vitest + smoke paths                                           |
+| **SEO / static**      | `index.html`, `public/llms.txt`, Hero assets                                                                                        | No regression on LCP-critical paths                            |
 
 **Diff scale (vs `main`):** ~37 commits · +13.7k / −2.1k lines (integration PR — review by theme, not line-by-line entire diff).
 
@@ -126,12 +126,12 @@ flowchart TB
 
 See **[docs/CLIENT_VS_SERVER_RULES.md](../CLIENT_VS_SERVER_RULES.md)**.
 
-| Layer | Responsibility |
-|-------|----------------|
-| **Browser** | Display totals, form validation (Zod), promo RPC preview, `BusinessRules` toasts, CSRF header |
-| **Edge (`create-payment`)** | Authoritative cart, coupon, amounts, rate limits, session creation |
-| **Postgres + RLS** | Row access policy |
-| **Stripe + webhooks** | Payment state, order fulfillment triggers |
+| Layer                       | Responsibility                                                                                |
+| --------------------------- | --------------------------------------------------------------------------------------------- |
+| **Browser**                 | Display totals, form validation (Zod), promo RPC preview, `BusinessRules` toasts, CSRF header |
+| **Edge (`create-payment`)** | Authoritative cart, coupon, amounts, rate limits, session creation                            |
+| **Postgres + RLS**          | Row access policy                                                                             |
+| **Stripe + webhooks**       | Payment state, order fulfillment triggers                                                     |
 
 **This PR does not weaken server enforcement** — it clarifies and documents boundaries and moves client orchestration into testable modules.
 
@@ -139,13 +139,13 @@ See **[docs/CLIENT_VS_SERVER_RULES.md](../CLIENT_VS_SERVER_RULES.md)**.
 
 ## Risk assessment
 
-| Risk | Likelihood | Severity | Mitigation |
-|------|------------|----------|------------|
-| Checkout regression | Medium | High | Vitest + `e2e:checkout`; manual test matrix below |
-| Payment amount drift (client vs Edge) | Low | Critical | Existing Deno pricing snapshot tests; no change to Edge authority model |
-| CI false green | Medium | Medium | `ci:local`, workflow parity test, smoke on `VITE_DEV_SERVER_PORT` |
-| Large merge conflicts | Medium | Low | Merge `main` before final review; use theme-based review |
-| Doc link rot | Low | Low | `pnpm run docs:check-links` in CI |
+| Risk                                  | Likelihood | Severity | Mitigation                                                              |
+| ------------------------------------- | ---------- | -------- | ----------------------------------------------------------------------- |
+| Checkout regression                   | Medium     | High     | Vitest + `e2e:checkout`; manual test matrix below                       |
+| Payment amount drift (client vs Edge) | Low        | Critical | Existing Deno pricing snapshot tests; no change to Edge authority model |
+| CI false green                        | Medium     | Medium   | `ci:local`, workflow parity test, smoke on `VITE_DEV_SERVER_PORT`       |
+| Large merge conflicts                 | Medium     | Low      | Merge `main` before final review; use theme-based review                |
+| Doc link rot                          | Low        | Low      | `pnpm run docs:check-links` in CI                                       |
 
 ---
 
@@ -162,18 +162,18 @@ See **[docs/CLIENT_VS_SERVER_RULES.md](../CLIENT_VS_SERVER_RULES.md)**.
 
 ### Automated (run on branch)
 
-| Command | Purpose | Result |
-|---------|---------|--------|
-| `pnpm run lint` | ESLint 9 flat config, import policy, hooks deps | ✅ Local |
-| `pnpm run format:check` | Prettier LF parity | ⬜ CI / local |
-| `pnpm exec tsc --noEmit -p tsconfig.app.json` | App strict types | ✅ Local |
-| `pnpm run test:unit` | Vitest CI slice | ⬜ CI |
-| `npx vitest run src/hooks/checkout/checkoutPageTotals.test.ts src/pages/Checkout.test.tsx` | Checkout refactor | ✅ 4/4 local |
-| `pnpm run docs:check-links` | Rules / business-logic anchors | ✅ Local |
-| `pnpm run verify:create-payment` | Deno check/lint/test create-payment | ⬜ When Edge touched |
-| `pnpm run test:pricing-snapshot` | Pricing shape contract | ⬜ When pricing touched |
-| `pnpm run e2e:ci:smoke` | Cypress smoke + port contract | ⬜ **Required before merge** |
-| `pnpm run ci:local` | Full CI mirror | ⬜ Recommended |
+| Command                                                                                    | Purpose                                         | Result                       |
+| ------------------------------------------------------------------------------------------ | ----------------------------------------------- | ---------------------------- |
+| `pnpm run lint`                                                                            | ESLint 9 flat config, import policy, hooks deps | ✅ Local                     |
+| `pnpm run format:check`                                                                    | Prettier LF parity                              | ⬜ CI / local                |
+| `pnpm exec tsc --noEmit -p tsconfig.app.json`                                              | App strict types                                | ✅ Local                     |
+| `pnpm run test:unit`                                                                       | Vitest CI slice                                 | ⬜ CI                        |
+| `npx vitest run src/hooks/checkout/checkoutPageTotals.test.ts src/pages/Checkout.test.tsx` | Checkout refactor                               | ✅ 4/4 local                 |
+| `pnpm run docs:check-links`                                                                | Rules / business-logic anchors                  | ✅ Local                     |
+| `pnpm run verify:create-payment`                                                           | Deno check/lint/test create-payment             | ⬜ When Edge touched         |
+| `pnpm run test:pricing-snapshot`                                                           | Pricing shape contract                          | ⬜ When pricing touched      |
+| `pnpm run e2e:ci:smoke`                                                                    | Cypress smoke + port contract                   | ⬜ **Required before merge** |
+| `pnpm run ci:local`                                                                        | Full CI mirror                                  | ⬜ Recommended               |
 
 ### Manual regression matrix
 
@@ -200,17 +200,17 @@ See **[docs/CLIENT_VS_SERVER_RULES.md](../CLIENT_VS_SERVER_RULES.md)**.
 
 ## Related documentation
 
-| Doc | Role |
-|-----|------|
-| [docs/RULES_REGISTRY.md](../RULES_REGISTRY.md) | Index of all rule categories |
-| [docs/BUSINESS_LOGIC_AND_EDGE_CASES.md](../BUSINESS_LOGIC_AND_EDGE_CASES.md) | Schemas, edge cases, Cypress map |
-| [docs/CLIENT_VS_SERVER_RULES.md](../CLIENT_VS_SERVER_RULES.md) | Client hints vs server authority |
-| [docs/HOOKS.md](../HOOKS.md) | Hook catalog + test status |
-| [docs/GITHUB-ACTIONS-CI-CD.md](../GITHUB-ACTIONS-CI-CD.md) | Workflow inventory & KPIs |
-| [docs/LOCAL_CI.md](../LOCAL_CI.md) | `pnpm run ci:local` |
-| [docs/CHECKOUT-PROD-RUNBOOK.md](../CHECKOUT-PROD-RUNBOOK.md) | Production Stripe/Brevo/webhook |
-| [docs/enterprise-pr-pack-feat-platform-rebaseline.md](../enterprise-pr-pack-feat-platform-rebaseline.md) | Labels, issue scaffolding |
-| [AGENTS.md](../../AGENTS.md) | Agent/dev command reference |
+| Doc                                                                                                      | Role                             |
+| -------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| [docs/RULES_REGISTRY.md](../RULES_REGISTRY.md)                                                           | Index of all rule categories     |
+| [docs/BUSINESS_LOGIC_AND_EDGE_CASES.md](../BUSINESS_LOGIC_AND_EDGE_CASES.md)                             | Schemas, edge cases, Cypress map |
+| [docs/CLIENT_VS_SERVER_RULES.md](../CLIENT_VS_SERVER_RULES.md)                                           | Client hints vs server authority |
+| [docs/HOOKS.md](../HOOKS.md)                                                                             | Hook catalog + test status       |
+| [docs/GITHUB-ACTIONS-CI-CD.md](../GITHUB-ACTIONS-CI-CD.md)                                               | Workflow inventory & KPIs        |
+| [docs/LOCAL_CI.md](../LOCAL_CI.md)                                                                       | `pnpm run ci:local`              |
+| [docs/CHECKOUT-PROD-RUNBOOK.md](../CHECKOUT-PROD-RUNBOOK.md)                                             | Production Stripe/Brevo/webhook  |
+| [docs/enterprise-pr-pack-feat-platform-rebaseline.md](../enterprise-pr-pack-feat-platform-rebaseline.md) | Labels, issue scaffolding        |
+| [AGENTS.md](../../AGENTS.md)                                                                             | Agent/dev command reference      |
 
 ---
 
