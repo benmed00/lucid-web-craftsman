@@ -75,17 +75,7 @@ function createOrUpdateMilestone(repo, def, existingByTitle) {
     console.log(`[dry-run] create milestone ${def.id}: ${def.title}`);
     return { number: 0, title: def.title };
   }
-  const args = [
-    `repos/${repo}/milestones`,
-    '-f',
-    `title=${body.title}`,
-    '-f',
-    `description=${body.description}`,
-    '-f',
-    `state=${body.state}`,
-  ];
-  if (due) args.push('-f', `due_on=${due}`);
-  const r = ghApi(args);
+  const r = ghApi([`repos/${repo}/milestones`, '--input', '-'], JSON.stringify(body));
   const created = JSON.parse(r.stdout);
   console.log(`Created milestone #${created.number} (${def.id})`);
   return created;
@@ -98,13 +88,10 @@ function assignIssue(repo, issueNumber, milestoneNumber) {
     );
     return;
   }
-  ghApi([
-    `repos/${repo}/issues/${issueNumber}`,
-    '-X',
-    'PATCH',
-    '-f',
-    `milestone=${milestoneNumber}`,
-  ]);
+  ghApi(
+    [`repos/${repo}/issues/${issueNumber}`, '-X', 'PATCH', '--input', '-'],
+    JSON.stringify({ milestone: milestoneNumber })
+  );
   console.log(`Assigned issue #${issueNumber} → milestone #${milestoneNumber}`);
 }
 
