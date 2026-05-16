@@ -12,6 +12,14 @@ import { MemoryRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import Contact from './Contact';
 
+vi.mock('react-helmet-async', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-helmet-async')>();
+  return {
+    ...actual,
+    Helmet: () => null,
+  };
+});
+
 vi.mock('@/hooks/useCompanySettings', () => ({
   useCompanySettings: () => ({
     settings: {
