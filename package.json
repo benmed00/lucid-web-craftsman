@@ -119,6 +119,9 @@
     "pr:enterprise:issues:dry": "node scripts/run-gh-enterprise.mjs issues --dry",
     "pr:enterprise:issues:dry:sh": "cross-env DRY_RUN=1 bash docs/gh-issues-enterprise-platform.sh",
     "pr:enterprise:issues:dry:ps1": "powershell.exe -ExecutionPolicy Bypass -NoProfile -File docs/gh-issues-enterprise-platform.ps1 -DryRun",
+    "pr:enterprise:screenshots:capture": "node scripts/run-e2e-ci.mjs \"pnpm exec cypress run --spec cypress/e2e/pr_issue_evidence_spec.js\"",
+    "pr:enterprise:screenshots:copy": "node scripts/copy-pr-issue-screenshots.mjs",
+    "pr:enterprise:issues:sync": "node scripts/sync-pr-enterprise-issues.mjs",
     "prepare": "husky"
   },
   "dependencies": {
