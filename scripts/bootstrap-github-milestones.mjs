@@ -44,13 +44,17 @@ function ghApi(args, input) {
 }
 
 function listMilestones(repo) {
-  const r = ghApi([
-    `repos/${repo}/milestones`,
-    '--paginate',
-    '-f',
-    'state=all',
-  ]);
-  return JSON.parse(r.stdout || '[]');
+  const merged = [];
+  for (const state of ['open', 'closed']) {
+    const r = ghApi([
+      `repos/${repo}/milestones`,
+      '--paginate',
+      '-f',
+      `state=${state}`,
+    ]);
+    merged.push(...JSON.parse(r.stdout || '[]'));
+  }
+  return merged;
 }
 
 function createOrUpdateMilestone(repo, def, existingByTitle) {
