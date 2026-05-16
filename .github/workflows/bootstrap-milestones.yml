@@ -2,6 +2,13 @@
 name: Bootstrap milestones
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/milestones.yml'
+      - 'scripts/bootstrap-github-milestones.mjs'
+      - 'scripts/lib/parse-milestones-yml.mjs'
+      - '.github/workflows/bootstrap-milestones.yml'
   workflow_dispatch:
     inputs:
       project_number:
