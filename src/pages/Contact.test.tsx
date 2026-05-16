@@ -2,7 +2,7 @@
  * Contact page smoke test (Vitest + jsdom).
  *
  * Prerequisites: `pnpm run test:unit` or `npx vitest run src/pages/Contact.test.tsx`.
- * Mocks below: helmet (no provider in jsdom), network, lazy map.
+ * Mocks below: SEOHelmet + react-helmet-async Helmet (JSON-LD), network, lazy map.
  * E2E: `pnpm run e2e:contact`.
  */
 
