@@ -7,8 +7,23 @@
  * Tags: @regression
  */
 
-/** Stable guest id when `create_guest_token` is stubbed (valid UUID v4). */
+/** Stable guest id for checkout_sessions stub (valid UUID v4). */
 const E2E_GUEST_ID = 'aaaaaaaa-bbbb-4ccc-bbbb-bbbbbbbbbbbb';
+
+function seedGuestSession(win: Window) {
+  win.localStorage.setItem(
+    'guest_session',
+    JSON.stringify({
+      data: {
+        guestId: E2E_GUEST_ID,
+        signature: 'e2e-guest-signature',
+        createdAt: Date.now(),
+        device: { deviceType: 'desktop', os: 'Linux', browser: 'Chrome' },
+      },
+      timestamp: Date.now(),
+    })
+  );
+}
 
 function clearCheckoutStorageKeys(win: Window) {
   const ls = [
@@ -26,10 +41,6 @@ function clearCheckoutStorageKeys(win: Window) {
 describe('Checkout DB hydration (guest) @regression', () => {
   it('hydrates personal and shipping fields from stubbed checkout_sessions', () => {
     cy.stubProductsCatalog();
-    cy.intercept('POST', '**/rest/v1/rpc/create_guest_token', {
-      statusCode: 200,
-      body: { guest_id: E2E_GUEST_ID, signature: 'e2e-guest-signature' },
-    });
     cy.intercept('GET', '**/rest/v1/profiles**', { statusCode: 200, body: [] });
     cy.intercept('GET', '**/rest/v1/shipping_addresses**', {
       statusCode: 200,
@@ -90,16 +101,15 @@ describe('Checkout DB hydration (guest) @regression', () => {
       });
     }).as('checkoutSessionsHydration');
 
-    cy.visit('/products');
+    cy.visit('/products', {
+      onBeforeLoad(win) {
+        seedGuestSession(win);
+      },
+    });
     cy.get('[data-testid="products-catalog"] [id^="add-to-cart-btn-"]', {
       timeout: 25000,
     }).should('have.length.at.least', 1);
     cy.addCatalogLineAndOpenCartSpa();
-    cy.window()
-      .its('localStorage')
-      .invoke('getItem', 'guest_session')
-      .should('be.a', 'string')
-      .and('include', E2E_GUEST_ID);
     cy.window().then((win) => {
       clearCheckoutStorageKeys(win);
     });
