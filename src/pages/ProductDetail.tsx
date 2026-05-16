@@ -156,9 +156,8 @@ const ProductDetail: React.FC = () => {
         }
 
         // Fetch product with translations
-        const { getProductWithTranslation } = await import(
-          '@/services/translationService'
-        );
+        const { getProductWithTranslation } =
+          await import('@/services/translationService');
         const translatedProduct = await getProductWithTranslation(
           productId,
           currentLocale

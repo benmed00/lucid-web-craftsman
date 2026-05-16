@@ -37,7 +37,6 @@ Scope: Supabase database schema/policies/migrations, storage policies, edge func
 ## CRITICAL
 
 1. **Order lookup/verification endpoints allowed broad lookup by `session_id` with service-role reads.**
-
    - File: `supabase/functions/order-lookup/index.ts`, `supabase/functions/verify-payment/index.ts`
    - Vulnerability: high-value order/payment data could be queried or mutated if `session_id` is discovered.
    - Impact: unauthorized order status disclosure and potential unauthorized fallback processing.
@@ -46,7 +45,6 @@ Scope: Supabase database schema/policies/migrations, storage policies, edge func
      - Unauthorized lookups now return not-found semantics.
 
 2. **Hardcoded frontend Supabase fallback keys/URLs were embedded in runtime code.**
-
    - File: `src/integrations/supabase/client.ts`, `src/main.tsx`
    - Vulnerability: static key material in source and accidental environment drift.
    - Impact: key hygiene and scanner findings; higher operational risk during key rotation.
@@ -64,7 +62,6 @@ Scope: Supabase database schema/policies/migrations, storage policies, edge func
 ## HIGH
 
 4. **`app_settings` read policy required post-merge reconciliation after upstream admin-only tightening.**
-
    - Table: `app_settings`
    - Vulnerability: unrestricted read of operational settings.
    - Impact: business/security configuration disclosure.
@@ -73,7 +70,6 @@ Scope: Supabase database schema/policies/migrations, storage policies, edge func
      - Preserves storefront behavior while keeping sensitive settings restricted.
 
 5. **Storage policies had weak write constraints on sensitive buckets.**
-
    - Buckets: `blog-images`, `review-photos`, `error-screenshots`
    - Vulnerability: overly broad authenticated writes and weak ownership checks.
    - Impact: unauthorized content upload/overwrite and data exposure risk.
@@ -94,7 +90,6 @@ Scope: Supabase database schema/policies/migrations, storage policies, edge func
 ## MEDIUM
 
 7. **`verify_jwt=false` on multiple functions increases dependence on handler-level auth checks.**
-
    - File: `supabase/config.toml`
    - Impact: mistakes in per-function auth logic could become exploitable.
    - Mitigation status: **not globally flipped in this patch** to avoid breaking webhook/internal trigger flows that intentionally rely on non-JWT routes.

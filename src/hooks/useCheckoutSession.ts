@@ -298,9 +298,8 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
                 console.warn(
                   '[useCheckoutSession] Stale JWT detected, cleaning auth state'
                 );
-                const { cleanupAuthState } = await import(
-                  '@/context/AuthContext'
-                );
+                const { cleanupAuthState } =
+                  await import('@/context/AuthContext');
                 cleanupAuthState();
                 await signOutLocalScope();
               }
