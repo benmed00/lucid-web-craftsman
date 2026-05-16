@@ -47,7 +47,9 @@ describe('PR issue evidence screenshots @regression', () => {
     cy.get('#address').type('12 Rue de la Paix');
     cy.get('#postalCode').type('75001');
     cy.get('#city').type('Paris');
-    cy.get('[data-testid="checkout-continue-to-payment"]').filter(':visible').click();
+    cy.get('[data-testid="checkout-continue-to-payment"]')
+      .filter(':visible')
+      .click();
     cy.contains(/visa|mastercard|paiement sécurisé|secure payment/i, {
       timeout: 15000,
     }).should('be.visible');

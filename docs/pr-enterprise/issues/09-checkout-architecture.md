@@ -1,10 +1,10 @@
 # refactor(checkout): split useCheckoutPage, SPA import policy, CLIENT_VS_SERVER rules
 
-| Field | Value |
-|-------|--------|
+| Field           | Value                                                          |
+| --------------- | -------------------------------------------------------------- |
 | **Tracking PR** | [#35](https://github.com/benmed00/lucid-web-craftsman/pull/35) |
-| **Labels** | `area:frontend`, `type:feature`, `risk: medium` |
-| **Issue** | **#44** |
+| **Labels**      | `area:frontend`, `type:feature`, `risk: medium`                |
+| **Issue**       | **#44**                                                        |
 
 ---
 
@@ -35,14 +35,14 @@ flowchart TB
   Svc --> Edge[create-payment]
 ```
 
-| Module | Responsibility |
-|--------|----------------|
-| `checkoutPageTotals.ts` | Pure `computeCheckoutTotals` (subtotal, discount, shipping, total) |
-| `useCheckoutPersistedHydration.ts` | One-shot restore step + coupon from localStorage |
-| `useCheckoutPromo.ts` | Promo field, `validateCouponCodeRpc`, apply/remove |
-| `useCheckoutStepNavigation.ts` | Steps 1–2 validation, session persistence, scroll |
-| `useCheckoutPayment.ts` | Honeypot, business rules, stock reserve, `handlePayment` |
-| `useCheckoutPage.ts` | Wire hooks + form handlers + free-shipping fetch |
+| Module                             | Responsibility                                                     |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `checkoutPageTotals.ts`            | Pure `computeCheckoutTotals` (subtotal, discount, shipping, total) |
+| `useCheckoutPersistedHydration.ts` | One-shot restore step + coupon from localStorage                   |
+| `useCheckoutPromo.ts`              | Promo field, `validateCouponCodeRpc`, apply/remove                 |
+| `useCheckoutStepNavigation.ts`     | Steps 1–2 validation, session persistence, scroll                  |
+| `useCheckoutPayment.ts`            | Honeypot, business rules, stock reserve, `handlePayment`           |
+| `useCheckoutPage.ts`               | Wire hooks + form handlers + free-shipping fetch                   |
 
 ---
 
@@ -110,23 +110,23 @@ See [CLIENT_VS_SERVER_RULES.md](../../CLIENT_VS_SERVER_RULES.md) — browser **d
 
 ## Before vs after
 
-| Dimension | Before | After |
-|-----------|--------|-------|
-| File size | `useCheckoutPage.ts` ~750 lines | Orchestrator ~260 lines + modules |
-| Unit tests | Page mock only | `checkoutPageTotals.test.ts` + `Checkout.test.tsx` |
-| ESLint grandfathers | 3 pages/components ignored | **None** |
-| Reviewability | Single diff blob | Thematic modules |
-| Public API | `useCheckoutPage()` return shape | **Unchanged** for `Checkout.tsx` |
+| Dimension           | Before                           | After                                              |
+| ------------------- | -------------------------------- | -------------------------------------------------- |
+| File size           | `useCheckoutPage.ts` ~750 lines  | Orchestrator ~260 lines + modules                  |
+| Unit tests          | Page mock only                   | `checkoutPageTotals.test.ts` + `Checkout.test.tsx` |
+| ESLint grandfathers | 3 pages/components ignored       | **None**                                           |
+| Reviewability       | Single diff blob                 | Thematic modules                                   |
+| Public API          | `useCheckoutPage()` return shape | **Unchanged** for `Checkout.tsx`                   |
 
 ---
 
 ## Cypress screenshots
 
-| Step | Image | Spec |
-|------|-------|------|
-| Customer info (step 1) | ![Checkout step 1](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/44-checkout-step1-customer.png) | `pr_issue_evidence_spec.js` |
-| Payment (step 3) | ![Checkout payment](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/44-checkout-step3-payment.png) | `pr_issue_evidence_spec.js` |
-| Full flow | — | `checkout_flow_spec.js` @smoke |
+| Step                   | Image                                                                                                                                                                                                                   | Spec                           |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| Customer info (step 1) | ![Checkout step 1](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/44-checkout-step1-customer.png) | `pr_issue_evidence_spec.js`    |
+| Payment (step 3)       | ![Checkout payment](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/44-checkout-step3-payment.png) | `pr_issue_evidence_spec.js`    |
+| Full flow              | —                                                                                                                                                                                                                       | `checkout_flow_spec.js` @smoke |
 
 ```bash
 # Regenerate assets
@@ -161,12 +161,12 @@ All checkout Supabase access goes through **`checkoutApi`**, **`checkoutService`
 
 ## Verification matrix
 
-| Layer | Command |
-|-------|---------|
-| Unit | `npx vitest run src/hooks/checkout/` |
-| Page | `npx vitest run src/pages/Checkout.test.tsx` |
-| E2E | `pnpm run e2e:checkout` |
-| Lint | `pnpm exec eslint src/hooks/checkout src/hooks/useCheckoutPage.ts` |
+| Layer | Command                                                            |
+| ----- | ------------------------------------------------------------------ |
+| Unit  | `npx vitest run src/hooks/checkout/`                               |
+| Page  | `npx vitest run src/pages/Checkout.test.tsx`                       |
+| E2E   | `pnpm run e2e:checkout`                                            |
+| Lint  | `pnpm exec eslint src/hooks/checkout src/hooks/useCheckoutPage.ts` |
 
 ---
 

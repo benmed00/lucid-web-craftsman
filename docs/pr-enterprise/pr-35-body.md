@@ -216,16 +216,16 @@ See **[docs/CLIENT_VS_SERVER_RULES.md](../CLIENT_VS_SERVER_RULES.md)**.
 
 ## Tracking issues (created for this PR)
 
-| # | Issue | Theme |
-|---|-------|--------|
-| [#36](https://github.com/benmed00/lucid-web-craftsman/issues/36) | ci: workflows, smoke probe parity, and GITHUB-ACTIONS runbook | CI / runbook |
-| [#37](https://github.com/benmed00/lucid-web-craftsman/issues/37) | chore(lint): align eslint config with stricter posture on admin/UI surfaces | ESLint / typing |
-| [#38](https://github.com/benmed00/lucid-web-craftsman/issues/38) | docs: rules registry, business logic, tech map, and agent runbooks | Documentation |
-| [#39](https://github.com/benmed00/lucid-web-craftsman/issues/39) | test(e2e): smoke probe port alignment and internal links spec | E2E / Cypress |
-| [#40](https://github.com/benmed00/lucid-web-craftsman/issues/40) | supabase: create-payment schema, confirm-order tests, generate-invoice hardening | Edge / Deno |
-| [#41](https://github.com/benmed00/lucid-web-craftsman/issues/41) | types: edge invoke contracts, domain modules, Typedoc pipeline | Types / contracts |
-| [#42](https://github.com/benmed00/lucid-web-craftsman/issues/42) | chore(scripts): audit metrics, doc link check, gen-docs, proxy/CA helpers | Scripts / DX |
-| [#43](https://github.com/benmed00/lucid-web-craftsman/issues/43) | perf/seo: OptimizedImage, Hero webp set, sitemap, llms.txt, index metadata | Perf / SEO |
+| #                                                                | Issue                                                                                | Theme                 |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------- |
+| [#36](https://github.com/benmed00/lucid-web-craftsman/issues/36) | ci: workflows, smoke probe parity, and GITHUB-ACTIONS runbook                        | CI / runbook          |
+| [#37](https://github.com/benmed00/lucid-web-craftsman/issues/37) | chore(lint): align eslint config with stricter posture on admin/UI surfaces          | ESLint / typing       |
+| [#38](https://github.com/benmed00/lucid-web-craftsman/issues/38) | docs: rules registry, business logic, tech map, and agent runbooks                   | Documentation         |
+| [#39](https://github.com/benmed00/lucid-web-craftsman/issues/39) | test(e2e): smoke probe port alignment and internal links spec                        | E2E / Cypress         |
+| [#40](https://github.com/benmed00/lucid-web-craftsman/issues/40) | supabase: create-payment schema, confirm-order tests, generate-invoice hardening     | Edge / Deno           |
+| [#41](https://github.com/benmed00/lucid-web-craftsman/issues/41) | types: edge invoke contracts, domain modules, Typedoc pipeline                       | Types / contracts     |
+| [#42](https://github.com/benmed00/lucid-web-craftsman/issues/42) | chore(scripts): audit metrics, doc link check, gen-docs, proxy/CA helpers            | Scripts / DX          |
+| [#43](https://github.com/benmed00/lucid-web-craftsman/issues/43) | perf/seo: OptimizedImage, Hero webp set, sitemap, llms.txt, index metadata           | Perf / SEO            |
 | [#44](https://github.com/benmed00/lucid-web-craftsman/issues/44) | refactor(checkout): split useCheckoutPage, SPA import policy, CLIENT_VS_SERVER rules | Checkout architecture |
 
 Bodies live under [`docs/pr-enterprise/issues/`](../pr-enterprise/issues/).

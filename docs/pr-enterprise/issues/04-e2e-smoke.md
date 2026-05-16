@@ -1,10 +1,10 @@
 # test(e2e): smoke probe port alignment and internal links spec
 
-| Field | Value |
-|-------|--------|
+| Field           | Value                                                          |
+| --------------- | -------------------------------------------------------------- |
 | **Tracking PR** | [#35](https://github.com/benmed00/lucid-web-craftsman/pull/35) |
-| **Labels** | `area:test`, `area:ci` |
-| **Risk** | High if broken — smoke is merge gate for checkout-related PRs |
+| **Labels**      | `area:test`, `area:ci`                                         |
+| **Risk**        | High if broken — smoke is merge gate for checkout-related PRs  |
 
 ---
 
@@ -37,7 +37,9 @@ sequenceDiagram
 const SPA_MARKER = '__cypress_internal_link_spa__';
 
 function assertSpaClick(selector, urlChecks) {
-  cy.window().then((win) => { win[SPA_MARKER] = true; });
+  cy.window().then((win) => {
+    win[SPA_MARKER] = true;
+  });
   cy.get(selector).filter(':visible').first().scrollIntoView().click();
   urlChecks.forEach((frag) => cy.url().should('include', frag));
   cy.window().its(SPA_MARKER).should('eq', true);
@@ -64,19 +66,20 @@ cy.addCatalogLineAndOpenCheckoutStep1();
 cy.get('[data-testid="checkout-continue-to-payment"]')
   .filter(':visible')
   .click();
-cy.contains(/visa|mastercard|paiement sécurisé|secure payment/i)
-  .should('be.visible');
+cy.contains(/visa|mastercard|paiement sécurisé|secure payment/i).should(
+  'be.visible'
+);
 ```
 
 ---
 
 ## Cypress screenshots (committed assets)
 
-| Asset | Spec step | Proves |
-|-------|-----------|--------|
-| ![Footer index](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/39-footer-index.png) | `pr_issue_evidence` / footer | Storefront baseline |
-| ![SPA products](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/39-footer-spa-products.png) | After footer click | **No full reload** — marker survives |
-| ![Cart with line](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/39-cart-with-line.png) | SPA cart navigation | Cart state before checkout |
+| Asset                                                                                                                                                                                                            | Spec step                    | Proves                               |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------ |
+| ![Footer index](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/39-footer-index.png)        | `pr_issue_evidence` / footer | Storefront baseline                  |
+| ![SPA products](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/39-footer-spa-products.png) | After footer click           | **No full reload** — marker survives |
+| ![Cart with line](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/39-cart-with-line.png)    | SPA cart navigation          | Cart state before checkout           |
 
 _Regenerate: `pnpm run pr:enterprise:screenshots:capture` → `pnpm run pr:enterprise:screenshots:copy`_
 
@@ -84,12 +87,12 @@ _Regenerate: `pnpm run pr:enterprise:screenshots:capture` → `pnpm run pr:enter
 
 ## Before vs after
 
-| Behavior | Before | After |
-|----------|--------|-------|
-| Footer shop link | `<a href>` → full document load | `<Link>` → client route |
-| CI smoke probe | Possible 8080 vs env mismatch | `scripts/lib/e2e-port.mjs` |
-| Cart → checkout | Flaky with `cy.visit('/cart')` | `addCatalogLineAndOpenCartSpa()` command |
-| Product detail spec | Timing assumptions | Adjusted in PR for catalog stub |
+| Behavior            | Before                          | After                                    |
+| ------------------- | ------------------------------- | ---------------------------------------- |
+| Footer shop link    | `<a href>` → full document load | `<Link>` → client route                  |
+| CI smoke probe      | Possible 8080 vs env mismatch   | `scripts/lib/e2e-port.mjs`               |
+| Cart → checkout     | Flaky with `cy.visit('/cart')`  | `addCatalogLineAndOpenCartSpa()` command |
+| Product detail spec | Timing assumptions              | Adjusted in PR for catalog stub          |
 
 ---
 

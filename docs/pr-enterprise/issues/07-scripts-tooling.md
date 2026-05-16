@@ -1,9 +1,9 @@
 # chore(scripts): audit metrics, doc link check, gen-docs, proxy/CA helpers
 
-| Field | Value |
-|-------|--------|
+| Field           | Value                                                          |
+| --------------- | -------------------------------------------------------------- |
 | **Tracking PR** | [#35](https://github.com/benmed00/lucid-web-craftsman/pull/35) |
-| **Labels** | `area:ci`, `type:chore` |
+| **Labels**      | `area:ci`, `type:chore`                                        |
 
 ---
 
@@ -28,15 +28,15 @@ flowchart LR
   GhEnt --> PR[labels + issues]
 ```
 
-| Script | npm script | CI gate |
-|--------|------------|---------|
-| `check-doc-links.mjs` | `docs:check-links` | Yes |
-| `gen-docs.mjs` | `docs:gen:check` | Yes |
-| `run-e2e-ci.mjs` | `e2e:ci`, `e2e:ci:smoke` | e2e workflow |
-| `audit-src-metrics.mjs` | (optional local) | No |
-| `run-gh-enterprise.mjs` | `pr:enterprise:*` | No |
-| `copy-pr-issue-screenshots.mjs` | `pr:enterprise:screenshots:copy` | No |
-| `sync-pr-enterprise-issues.mjs` | `pr:enterprise:issues:sync` | No |
+| Script                          | npm script                       | CI gate      |
+| ------------------------------- | -------------------------------- | ------------ |
+| `check-doc-links.mjs`           | `docs:check-links`               | Yes          |
+| `gen-docs.mjs`                  | `docs:gen:check`                 | Yes          |
+| `run-e2e-ci.mjs`                | `e2e:ci`, `e2e:ci:smoke`         | e2e workflow |
+| `audit-src-metrics.mjs`         | (optional local)                 | No           |
+| `run-gh-enterprise.mjs`         | `pr:enterprise:*`                | No           |
+| `copy-pr-issue-screenshots.mjs` | `pr:enterprise:screenshots:copy` | No           |
+| `sync-pr-enterprise-issues.mjs` | `pr:enterprise:issues:sync`      | No           |
 
 ---
 
@@ -76,12 +76,12 @@ import { E2E_HTTP_GET_PROBE } from './lib/e2e-port.mjs';
 
 ## Before vs after
 
-| Task | Before | After |
-|------|--------|-------|
-| Broken doc anchor | Found at review | Fails `docs:check-links` in CI |
-| E2E one-liner | Copy-paste long SST command | `pnpm run e2e:ci:smoke` |
-| Issue scaffolding | Manual | `pr:enterprise:issues` + bodies in repo |
-| Source metrics | Ad hoc | `audit-src-metrics.mjs` |
+| Task              | Before                      | After                                   |
+| ----------------- | --------------------------- | --------------------------------------- |
+| Broken doc anchor | Found at review             | Fails `docs:check-links` in CI          |
+| E2E one-liner     | Copy-paste long SST command | `pnpm run e2e:ci:smoke`                 |
+| Issue scaffolding | Manual                      | `pr:enterprise:issues` + bodies in repo |
+| Source metrics    | Ad hoc                      | `audit-src-metrics.mjs`                 |
 
 ---
 
@@ -91,10 +91,10 @@ import { E2E_HTTP_GET_PROBE } from './lib/e2e-port.mjs';
 
 Scripts orchestrate **mock API + Vite + Cypress**. Successful capture proves the E2E wrapper works end-to-end:
 
-| Asset | Produced by |
-|-------|-------------|
+| Asset                                                                                                                                                                                                                   | Produced by                                                         |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | ![Contact smoke probe](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/36-contact-smoke-probe.png) | `pr_issue_evidence_spec.js` via `pr:enterprise:screenshots:capture` |
-| ![Checkout payment](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/44-checkout-step3-payment.png) | Same |
+| ![Checkout payment](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/44-checkout-step3-payment.png) | Same                                                                |
 
 ### CI log (attach manually)
 

@@ -1,9 +1,9 @@
 # types: edge invoke contracts, domain modules, Typedoc pipeline
 
-| Field | Value |
-|-------|--------|
+| Field           | Value                                                          |
+| --------------- | -------------------------------------------------------------- |
 | **Tracking PR** | [#35](https://github.com/benmed00/lucid-web-craftsman/pull/35) |
-| **Labels** | `area:frontend`, `type:feature` |
+| **Labels**      | `area:frontend`, `type:feature`                                |
 
 ---
 
@@ -64,12 +64,12 @@ pnpm run docs:typedoc
 
 ## Before vs after
 
-| Concern | Before | After |
-|---------|--------|-------|
-| Checkout payload | Loose interfaces | Contracts + service facades |
-| `window` globals | `any` or implicit | `window-extensions.d.ts` |
-| Order enums | Duplicated strings | SSOT in domain modules |
-| Discoverability | Grep only | TYPES_INDEX + TypeDoc |
+| Concern          | Before             | After                       |
+| ---------------- | ------------------ | --------------------------- |
+| Checkout payload | Loose interfaces   | Contracts + service facades |
+| `window` globals | `any` or implicit  | `window-extensions.d.ts`    |
+| Order enums      | Duplicated strings | SSOT in domain modules      |
+| Discoverability  | Grep only          | TYPES_INDEX + TypeDoc       |
 
 ---
 

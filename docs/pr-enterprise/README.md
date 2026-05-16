@@ -9,6 +9,6 @@ From repo root: **`pnpm run pr:enterprise -- labels`**, **`pnpm run pr:enterpris
 3. Copy the printed **`Fixes #…`** line into [pr-body-only.md](../pr-body-only.md).
 4. Refresh issue bodies on GitHub: **`pnpm run pr:enterprise:issues:sync`** (reads `docs/pr-enterprise/issues/*.md`).
 5. Optional screenshots: **`pnpm run pr:enterprise:screenshots:capture`** → **`pnpm run pr:enterprise:screenshots:copy`** → commit `docs/pr-enterprise/assets/issues/issue-evidence/`.
-4. **Enterprise issue bodies** (diagrams, code, Cypress PNGs): edit `docs/pr-enterprise/issues/*.md`, then **`pnpm run pr:enterprise:screenshots:capture`** → **`pnpm run pr:enterprise:screenshots:copy`** → commit assets → **`pnpm run pr:enterprise:issues:sync`**.
+6. **Enterprise issue bodies** (diagrams, code, Cypress PNGs): edit `docs/pr-enterprise/issues/*.md`, then **`pnpm run pr:enterprise:screenshots:capture`** → **`pnpm run pr:enterprise:screenshots:copy`** → commit assets → **`pnpm run pr:enterprise:issues:sync`**.
 
 Parent pack: [enterprise-pr-pack-feat-platform-rebaseline.md](../enterprise-pr-pack-feat-platform-rebaseline.md).

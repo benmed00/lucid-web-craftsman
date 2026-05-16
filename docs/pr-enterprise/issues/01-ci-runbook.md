@@ -1,12 +1,12 @@
 # ci: workflows, smoke probe parity, and GITHUB-ACTIONS runbook
 
-| Field | Value |
-|-------|--------|
-| **Tracking PR** | [#35](https://github.com/benmed00/lucid-web-craftsman/pull/35) |
-| **Branch** | `feat/platform-pnpm-supabase-rebaseline-edge-hardening` |
-| **Labels** | `area:ci`, `area:docs`, `type:documentation` |
-| **Risk** | Medium — incorrect CI parity causes false greens or blocked releases |
-| **Owner** | Platform / DevEx |
+| Field           | Value                                                                |
+| --------------- | -------------------------------------------------------------------- |
+| **Tracking PR** | [#35](https://github.com/benmed00/lucid-web-craftsman/pull/35)       |
+| **Branch**      | `feat/platform-pnpm-supabase-rebaseline-edge-hardening`              |
+| **Labels**      | `area:ci`, `area:docs`, `type:documentation`                         |
+| **Risk**        | Medium — incorrect CI parity causes false greens or blocked releases |
+| **Owner**       | Platform / DevEx                                                     |
 
 ---
 
@@ -18,11 +18,11 @@ Establish **one source of truth** for how GitHub Actions maps to local commands,
 
 ## Problem statement
 
-| Gap | Symptom | Business impact |
-|-----|---------|-----------------|
-| Split brain between local vs CI | Developers run `pnpm run validate` but CI also runs OpenAPI/Postman/docs drift | Surprises at PR time |
-| E2E port drift | `start-server-and-test` probes wrong port vs Cypress `baseUrl` | Flaky or false-red smoke on Windows |
-| No runbook inventory | On-call does not know which workflow owns payments vs lint | Slower incident response |
+| Gap                             | Symptom                                                                        | Business impact                     |
+| ------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------- |
+| Split brain between local vs CI | Developers run `pnpm run validate` but CI also runs OpenAPI/Postman/docs drift | Surprises at PR time                |
+| E2E port drift                  | `start-server-and-test` probes wrong port vs Cypress `baseUrl`                 | Flaky or false-red smoke on Windows |
+| No runbook inventory            | On-call does not know which workflow owns payments vs lint                     | Slower incident response            |
 
 ---
 
@@ -102,12 +102,12 @@ const cliArgs = [
 
 ## Before vs after
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| E2E probe URL | Could diverge from `vite.config.ts` port | `e2e-port.mjs` shared by Cypress + `start-server-and-test` |
-| Actions inventory | Scattered README mentions | `docs/GITHUB-ACTIONS-CI-CD.md` with workflow table + KPI cadence |
-| Local mirror | Ad-hoc commands | `pnpm run ci:local` documented in `LOCAL_CI.md` |
-| RPC smoke | Manual only | `rpc-postgrest-smoke.yml` (`workflow_dispatch`) |
+| Aspect            | Before                                   | After                                                            |
+| ----------------- | ---------------------------------------- | ---------------------------------------------------------------- |
+| E2E probe URL     | Could diverge from `vite.config.ts` port | `e2e-port.mjs` shared by Cypress + `start-server-and-test`       |
+| Actions inventory | Scattered README mentions                | `docs/GITHUB-ACTIONS-CI-CD.md` with workflow table + KPI cadence |
+| Local mirror      | Ad-hoc commands                          | `pnpm run ci:local` documented in `LOCAL_CI.md`                  |
+| RPC smoke         | Manual only                              | `rpc-postgrest-smoke.yml` (`workflow_dispatch`)                  |
 
 ---
 
@@ -115,9 +115,9 @@ const cliArgs = [
 
 PR #35 aligns smoke with **`VITE_DEV_SERVER_PORT`**. Related E2E specs (not all in this issue’s scope, but same port contract):
 
-| Spec | Tag | Purpose |
-|------|-----|---------|
-| `cypress/e2e/checkout_flow_spec.js` | `@smoke` | Checkout happy path |
+| Spec                                     | Tag           | Purpose                                      |
+| ---------------------------------------- | ------------- | -------------------------------------------- |
+| `cypress/e2e/checkout_flow_spec.js`      | `@smoke`      | Checkout happy path                          |
 | `cypress/e2e/internal_links_spa_spec.js` | `@regression` | SPA navigation after Footer `Link` migration |
 
 ### Cypress evidence — smoke probe route (`/contact`)
@@ -128,10 +128,10 @@ The same URL family used by `E2E_HTTP_GET_PROBE` (`http-get://127.0.0.1:8080/con
 
 ### GitHub Actions (attach manually)
 
-| Screenshot | Where to capture |
-|------------|------------------|
+| Screenshot      | Where to capture                                                  |
+| --------------- | ----------------------------------------------------------------- |
 | **CI workflow** | PR #35 → Checks → `ci` job → green steps (lint, test:unit, build) |
-| **E2E smoke** | PR #35 → Checks → `e2e` / smoke workflow (if triggered) |
+| **E2E smoke**   | PR #35 → Checks → `e2e` / smoke workflow (if triggered)           |
 
 _Regenerate Cypress assets: `pnpm run pr:enterprise:screenshots:capture` then `pnpm run pr:enterprise:screenshots:copy`._
 

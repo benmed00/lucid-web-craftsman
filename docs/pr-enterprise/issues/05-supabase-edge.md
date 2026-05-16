@@ -1,10 +1,10 @@
 # supabase: create-payment schema, confirm-order tests, generate-invoice hardening
 
-| Field | Value |
-|-------|--------|
+| Field           | Value                                                          |
+| --------------- | -------------------------------------------------------------- |
 | **Tracking PR** | [#35](https://github.com/benmed00/lucid-web-craftsman/pull/35) |
-| **Labels** | `area:supabase`, `risk: medium` |
-| **Risk** | **Critical** — payment and order confirmation |
+| **Labels**      | `area:supabase`, `risk: medium`                                |
+| **Risk**        | **Critical** — payment and order confirmation                  |
 
 ---
 
@@ -44,7 +44,9 @@ const { data, error } = await createPaymentSessionWithRetry(
     customerInfo: sanitizedFormData,
     guestSession,
     paymentMethod,
-    discount: appliedCoupon ? { couponId, code, amount, includesFreeShipping } : null,
+    discount: appliedCoupon
+      ? { couponId, code, amount, includesFreeShipping }
+      : null,
   },
   headerRecord, // CSRF + x-checkout-session-id
   { maxAttempts: 2, baseDelayMs: 1000 }
@@ -80,12 +82,12 @@ pnpm run test:pricing-snapshot   # shared pricing helpers + Vitest client schema
 
 ## Before vs after
 
-| Area | Before | After |
-|------|--------|-------|
-| Discount shape mismatch | Possible client/Edge drift | Aligned parsing + tests |
-| confirm-order | Gaps in validation | Hardened + tests in PR |
-| Invoice fetch | Limited coverage | `test(invoice): add fetchInvoice coverage` |
-| CI | Deno on select branches | Workflow aligned with root CI branches |
+| Area                    | Before                     | After                                      |
+| ----------------------- | -------------------------- | ------------------------------------------ |
+| Discount shape mismatch | Possible client/Edge drift | Aligned parsing + tests                    |
+| confirm-order           | Gaps in validation         | Hardened + tests in PR                     |
+| Invoice fetch           | Limited coverage           | `test(invoice): add fetchInvoice coverage` |
+| CI                      | Deno on select branches    | Workflow aligned with root CI branches     |
 
 ---
 
@@ -93,10 +95,10 @@ pnpm run test:pricing-snapshot   # shared pricing helpers + Vitest client schema
 
 Cypress **stubs** Edge for smoke; real integration is Deno + optional live Supabase.
 
-| Screenshot | Meaning |
-|------------|---------|
-| ![Payment step](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/44-checkout-step3-payment.png) | UI ready to call `create-payment` |
-| Spec | `checkout_flow_spec.js` — reaches payment step with stubs |
+| Screenshot                                                                                                                                                                                                          | Meaning                                                   |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| ![Payment step](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/44-checkout-step3-payment.png) | UI ready to call `create-payment`                         |
+| Spec                                                                                                                                                                                                                | `checkout_flow_spec.js` — reaches payment step with stubs |
 
 **Post-merge manual:** Stripe test mode → verify Edge logs + order row.
 

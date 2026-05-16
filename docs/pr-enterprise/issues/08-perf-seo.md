@@ -1,10 +1,10 @@
 # perf/seo: OptimizedImage, Hero webp set, sitemap, llms.txt, index metadata
 
-| Field | Value |
-|-------|--------|
+| Field           | Value                                                          |
+| --------------- | -------------------------------------------------------------- |
 | **Tracking PR** | [#35](https://github.com/benmed00/lucid-web-craftsman/pull/35) |
-| **Labels** | `area:frontend`, `type:feature` |
-| **Risk** | Low–Medium — SEO and LCP affect conversion |
+| **Labels**      | `area:frontend`, `type:feature`                                |
+| **Risk**        | Low–Medium — SEO and LCP affect conversion                     |
 
 ---
 
@@ -51,21 +51,21 @@ flowchart LR
 
 ## Before vs after
 
-| Metric / signal | Before | After |
-|-----------------|--------|-------|
-| Hero delivery | Single large asset | Responsive webp set |
-| Image component | Heavier re-renders | Tighter props + tests |
-| LLM/crawler hints | Minimal | `llms.txt` + sitemap refresh |
-| Product grid LCP | Baseline | Must not regress in smoke |
+| Metric / signal   | Before             | After                        |
+| ----------------- | ------------------ | ---------------------------- |
+| Hero delivery     | Single large asset | Responsive webp set          |
+| Image component   | Heavier re-renders | Tighter props + tests        |
+| LLM/crawler hints | Minimal            | `llms.txt` + sitemap refresh |
+| Product grid LCP  | Baseline           | Must not regress in smoke    |
 
 ---
 
 ## Cypress screenshot evidence
 
-| Screenshot | Route | Validates |
-|------------|-------|-----------|
+| Screenshot                                                                                                                                                                                                        | Route       | Validates                                      |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------------------------------------------- |
 | ![Products catalog](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/43-products-catalog.png) | `/products` | Catalog renders with images (stubbed Supabase) |
-| ![Footer index](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/39-footer-index.png) | `/` | Home + hero region visible |
+| ![Footer index](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/39-footer-index.png)         | `/`         | Home + hero region visible                     |
 
 Captured by: `cypress/e2e/pr_issue_evidence_spec.js`
 

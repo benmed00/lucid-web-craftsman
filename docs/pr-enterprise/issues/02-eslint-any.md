@@ -1,10 +1,10 @@
 # chore(lint): align eslint config with stricter posture on admin/UI surfaces
 
-| Field | Value |
-|-------|--------|
+| Field           | Value                                                          |
+| --------------- | -------------------------------------------------------------- |
 | **Tracking PR** | [#35](https://github.com/benmed00/lucid-web-craftsman/pull/35) |
-| **Labels** | `area:frontend`, `tech-debt` |
-| **Risk** | Low–Medium — lint regressions block all PRs |
+| **Labels**      | `area:frontend`, `tech-debt`                                   |
+| **Risk**        | Low–Medium — lint regressions block all PRs                    |
 
 ---
 
@@ -33,11 +33,11 @@ flowchart TB
   end
 ```
 
-| Anti-pattern | Why it hurts |
-|--------------|--------------|
+| Anti-pattern                    | Why it hurts                                               |
+| ------------------------------- | ---------------------------------------------------------- |
 | Raw Supabase in JSX-heavy files | RLS bypass confusion, untestable UI, duplicate query logic |
-| `any` in money/admin paths | Silent contract drift vs Edge functions |
-| Disabled `exhaustive-deps` | Stale closures in checkout and cart |
+| `any` in money/admin paths      | Silent contract drift vs Edge functions                    |
+| Disabled `exhaustive-deps`      | Stale closures in checkout and cart                        |
 
 ---
 
@@ -81,6 +81,7 @@ flowchart TB
 
 ```markdown
 ## ESLint: SPA Supabase client imports
+
 There are **no grandfather exceptions** in app sources:
 prefer src/services/, edge invokes, and shared hooks (AuthContext).
 ```
@@ -89,12 +90,12 @@ prefer src/services/, edge invokes, and shared hooks (AuthContext).
 
 ## Before vs after
 
-| Check | Before | After |
-|-------|--------|-------|
-| `ABThemeManager`, `Artisans`, `OrderConfirmation` | ESLint **ignored** | Must use services (already migrated in tree) |
-| `exhaustive-deps` | Was `off`, backlog of warnings | **`error`** with documented disable policy |
-| `no-explicit-any` in `src/**` | Off globally | **Error** except tests / `vite-env.d.ts` |
-| Admin components in PR | Mixed `any` | Typed against domain/contracts where touched |
+| Check                                             | Before                         | After                                        |
+| ------------------------------------------------- | ------------------------------ | -------------------------------------------- |
+| `ABThemeManager`, `Artisans`, `OrderConfirmation` | ESLint **ignored**             | Must use services (already migrated in tree) |
+| `exhaustive-deps`                                 | Was `off`, backlog of warnings | **`error`** with documented disable policy   |
+| `no-explicit-any` in `src/**`                     | Off globally                   | **Error** except tests / `vite-env.d.ts`     |
+| Admin components in PR                            | Mixed `any`                    | Typed against domain/contracts where touched |
 
 ---
 
@@ -102,10 +103,10 @@ prefer src/services/, edge invokes, and shared hooks (AuthContext).
 
 Lint does not produce UI screenshots; regression signal is **CI lint job** + **typed catalog render** (no runtime `any` explosions in product grid).
 
-| Command | Expected |
-|---------|----------|
-| `pnpm run lint` | Exit 0, `--max-warnings 0` at root script |
-| `pnpm exec eslint src/components/admin --max-warnings 9999` | No new errors on touched admin files |
+| Command                                                     | Expected                                  |
+| ----------------------------------------------------------- | ----------------------------------------- |
+| `pnpm run lint`                                             | Exit 0, `--max-warnings 0` at root script |
+| `pnpm exec eslint src/components/admin --max-warnings 9999` | No new errors on touched admin files      |
 
 ![Typed catalog renders after strict ESLint pass](https://raw.githubusercontent.com/benmed00/lucid-web-craftsman/feat/platform-pnpm-supabase-rebaseline-edge-hardening/docs/pr-enterprise/assets/issues/issue-evidence/37-products-eslint-typed-catalog.png)
 
