@@ -1,0 +1,94 @@
+# Label taxonomy for Lucid Web Craftsman platform project.
+# Sync: node scripts/bootstrap-github-labels.mjs (requires gh CLI + repo write).
+
+- name: area/storefront
+  color: '1d76db'
+  description: Storefront SPA, catalog, navigation
+
+- name: area/checkout
+  color: '0e8a16'
+  description: Checkout, cart, payment return flows
+
+- name: area/checkout-payments
+  color: '0e8a16'
+  description: Checkout and payments (catalog area id)
+
+- name: area/edge
+  color: '5319e7'
+  description: Supabase Edge Functions and Deno
+
+- name: area/admin
+  color: 'd93f0b'
+  description: Admin dashboard and staff tools
+
+- name: area/e2e
+  color: 'fbca04'
+  description: Cypress E2E coverage
+
+- name: area/docs
+  color: 'c5def5'
+  description: Documentation and runbooks
+
+- name: area/infra-ci
+  color: '006b75'
+  description: CI, lint, build, GitHub Actions
+
+- name: area/docs-security
+  color: 'ee0701'
+  description: Security docs and audits
+
+- name: layer/spa
+  color: '61dafb'
+  description: React SPA layer
+
+- name: layer/edge
+  color: 'cb3837'
+  description: Deno edge layer
+
+- name: layer/db
+  color: '336791'
+  description: Postgres / Supabase data layer
+
+- name: layer/ci
+  color: '2088ff'
+  description: CI and automation
+
+- name: layer/docs
+  color: 'bfdadc'
+  description: Documentation layer
+
+- name: catalog/script
+  color: 'ededed'
+  description: package.json script inventory (auto-sync)
+
+- name: catalog/test
+  color: 'ededed'
+  description: Test file inventory (auto-sync)
+
+- name: catalog/doc
+  color: 'ededed'
+  description: Documentation inventory (auto-sync)
+
+- name: catalog/workflow
+  color: 'ededed'
+  description: GitHub workflow inventory (auto-sync)
+
+- name: catalog/tech-debt
+  color: 'b60205'
+  description: TECH_DEBT.md tracked item
+
+- name: catalog/milestone
+  color: 'f9d0c4'
+  description: Delivery milestone epic (docs/MILESTONES.md)
+
+- name: verify/validate
+  color: '1d76db'
+  description: pnpm run validate gate
+
+- name: verify/e2e-smoke
+  color: 'fbca04'
+  description: e2e:ci:smoke / PR E2E
+
+- name: verify/deno
+  color: '5319e7'
+  description: Deno create-payment workflow

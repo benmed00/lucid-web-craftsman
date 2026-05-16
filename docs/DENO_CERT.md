@@ -185,14 +185,14 @@ commande `deno`.
 
 ## 4. Dépannage rapide
 
-| Symptôme                                         | Cause probable                          | Action                                                              |
-| ------------------------------------------------ | --------------------------------------- | ------------------------------------------------------------------- |
-| `UnknownIssuer` / `unable to get local issuer`   | Bundle incomplet (intermédiaire absent) | Ajouter le cert intermédiaire et re-concaténer                      |
-| `PEM routines: no start line`                    | Fichier en DER ou UTF-16/BOM            | Convertir en PEM ASCII (`openssl x509 -inform DER`)                 |
-| `407 Proxy Authentication Required`              | Proxy avec auth manquante               | Mettre `http://user:pass@host:port` dans `HTTPS_PROXY`              |
-| `curl` OK mais `deno` KO                         | `DENO_CERT` non exporté pour ce shell   | `export DENO_CERT=...` puis relancer dans la **même** session       |
-| `notAfter` dans le passé                         | Bundle expiré                           | Demander un nouveau bundle à l'IT                                   |
-| Plusieurs CA nécessaires (proxy + registry int.) | `DENO_CERT` = un seul fichier          | **Concaténer** toutes les chaînes dans un même `.pem`               |
+| Symptôme                                         | Cause probable                          | Action                                                        |
+| ------------------------------------------------ | --------------------------------------- | ------------------------------------------------------------- |
+| `UnknownIssuer` / `unable to get local issuer`   | Bundle incomplet (intermédiaire absent) | Ajouter le cert intermédiaire et re-concaténer                |
+| `PEM routines: no start line`                    | Fichier en DER ou UTF-16/BOM            | Convertir en PEM ASCII (`openssl x509 -inform DER`)           |
+| `407 Proxy Authentication Required`              | Proxy avec auth manquante               | Mettre `http://user:pass@host:port` dans `HTTPS_PROXY`        |
+| `curl` OK mais `deno` KO                         | `DENO_CERT` non exporté pour ce shell   | `export DENO_CERT=...` puis relancer dans la **même** session |
+| `notAfter` dans le passé                         | Bundle expiré                           | Demander un nouveau bundle à l'IT                             |
+| Plusieurs CA nécessaires (proxy + registry int.) | `DENO_CERT` = un seul fichier           | **Concaténer** toutes les chaînes dans un même `.pem`         |
 
 ---
 
@@ -269,11 +269,11 @@ du -sh "$DD" && ls "$DD"
 
 Défauts par OS (si `DENO_DIR` n'est pas exportée) :
 
-| OS              | Chemin par défaut                                            |
-| --------------- | ------------------------------------------------------------ |
-| Linux / WSL     | `~/.cache/deno`                                              |
-| macOS           | `~/Library/Caches/deno`                                      |
-| Windows         | `%LOCALAPPDATA%\deno` (`C:\Users\<u>\AppData\Local\deno`)    |
+| OS          | Chemin par défaut                                         |
+| ----------- | --------------------------------------------------------- |
+| Linux / WSL | `~/.cache/deno`                                           |
+| macOS       | `~/Library/Caches/deno`                                   |
+| Windows     | `%LOCALAPPDATA%\deno` (`C:\Users\<u>\AppData\Local\deno`) |
 
 > ⚠️ **Piège fréquent :** en local vous utilisez le défaut OS, en CI le job
 > exporte `DENO_DIR=$GITHUB_WORKSPACE/.deno-cache`. Les deux caches existent
@@ -318,12 +318,12 @@ Avant de conclure « ça marche en local mais pas en CI » (ou l'inverse),
 vérifier les **4 invariants** suivants — exécuter les mêmes commandes des
 deux côtés et comparer :
 
-| # | Invariant                              | Commande                                                                                   |
-| - | -------------------------------------- | ------------------------------------------------------------------------------------------ |
-| 1 | Version Deno identique                 | `deno --version`                                                                           |
-| 2 | `DENO_DIR` au même endroit *(relatif au repo)* | `deno info \| grep DENO_DIR`                                                       |
-| 3 | Mêmes `deno.json` + `deno.lock`        | `git status supabase/functions/**/deno.json deno.lock` (doit être propre)                  |
-| 4 | Empreinte du cache identique           | `find "$DENO_DIR" -type f -name '*.metadata.json' \| sort \| xargs sha256sum \| sha256sum` |
+| #   | Invariant                                      | Commande                                                                                   |
+| --- | ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 1   | Version Deno identique                         | `deno --version`                                                                           |
+| 2   | `DENO_DIR` au même endroit _(relatif au repo)_ | `deno info \| grep DENO_DIR`                                                               |
+| 3   | Mêmes `deno.json` + `deno.lock`                | `git status supabase/functions/**/deno.json deno.lock` (doit être propre)                  |
+| 4   | Empreinte du cache identique                   | `find "$DENO_DIR" -type f -name '*.metadata.json' \| sort \| xargs sha256sum \| sha256sum` |
 
 L'invariant **4** produit une empreinte unique du cache (toutes les metadata
 JSON de Deno triées + hashées). Si CI et local renvoient le **même hash**,
@@ -336,12 +336,12 @@ les caches sont équivalents.
 
 ### 6.4 Symptômes de désynchronisation
 
-| Symptôme en CI                                       | Cause probable                                                           |
-| ---------------------------------------------------- | ------------------------------------------------------------------------ |
-| `error: Module not found` (alors que ça passe local) | `deno.lock` modifié sans rejouer `deno cache`                            |
-| `Specifier not found in cache`                       | Cache CI restauré depuis une clé périmée                                 |
-| Hash invariant #4 différent                          | Versions Deno différentes, ou cache local pollué par d'autres projets    |
-| `deno test` télécharge en CI mais pas en local       | `DENO_DIR` non exporté en CI → utilise `~/.cache/deno` (vide)            |
+| Symptôme en CI                                       | Cause probable                                                        |
+| ---------------------------------------------------- | --------------------------------------------------------------------- |
+| `error: Module not found` (alors que ça passe local) | `deno.lock` modifié sans rejouer `deno cache`                         |
+| `Specifier not found in cache`                       | Cache CI restauré depuis une clé périmée                              |
+| Hash invariant #4 différent                          | Versions Deno différentes, ou cache local pollué par d'autres projets |
+| `deno test` télécharge en CI mais pas en local       | `DENO_DIR` non exporté en CI → utilise `~/.cache/deno` (vide)         |
 
 ---
 
@@ -351,4 +351,4 @@ les caches sont équivalents.
 - [`.github/workflows/deno-offline.yml.example`](../.github/workflows/deno-offline.yml.example) — job CI air-gapped
 - [Deno — Proxies & TLS](https://docs.deno.com/runtime/reference/cli/install/#proxies)
 - [Deno — `--cached-only` & `DENO_OFFLINE`](https://docs.deno.com/runtime/reference/cli/run/#--cached-only)
-- [`AGENTS.md`](../AGENTS.md) — section *Cursor Cloud specific instructions*
+- [`AGENTS.md`](../AGENTS.md) — section _Cursor Cloud specific instructions_

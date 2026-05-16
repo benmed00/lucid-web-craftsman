@@ -86,7 +86,11 @@ async function authorize(
   }
 
   if (!body.order_id) {
-    console.warn('[generate-invoice][auth]', reqId, 'missing order_id (no token)');
+    console.warn(
+      '[generate-invoice][auth]',
+      reqId,
+      'missing order_id (no token)'
+    );
     throw new Error('Missing order_id');
   }
 
@@ -125,10 +129,16 @@ async function authorize(
       const { data: isAdmin } = await admin.rpc('is_admin_user', {
         user_uuid: user.id,
       });
-      console.log('[generate-invoice][auth]', reqId, 'admin check', { isAdmin });
+      console.log('[generate-invoice][auth]', reqId, 'admin check', {
+        isAdmin,
+      });
       if (isAdmin) return body.order_id;
     } else {
-      console.warn('[generate-invoice][auth]', reqId, 'auth header present but no user resolved');
+      console.warn(
+        '[generate-invoice][auth]',
+        reqId,
+        'auth header present but no user resolved'
+      );
     }
   }
 
@@ -147,7 +157,8 @@ async function authorize(
       orderGuestId === guestId;
     console.log('[generate-invoice][auth]', reqId, 'guest check', {
       providedGuestLen: guestId.length,
-      orderHasGuest: typeof orderGuestId === 'string' && orderGuestId.length > 0,
+      orderHasGuest:
+        typeof orderGuestId === 'string' && orderGuestId.length > 0,
       match,
     });
     if (match) return body.order_id;
@@ -372,7 +383,12 @@ Deno.serve(async (req) => {
     });
 
     if (insertErr && !insertErr.message.includes('duplicate')) {
-      console.error('[generate-invoice][req]', reqId, '[step5] insert failed', insertErr);
+      console.error(
+        '[generate-invoice][req]',
+        reqId,
+        '[step5] insert failed',
+        insertErr
+      );
     } else {
       console.log('[generate-invoice][req]', reqId, '[step5] snapshot saved', {
         invoice_number: data.invoice_number,
