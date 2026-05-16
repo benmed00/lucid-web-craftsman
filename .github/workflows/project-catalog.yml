@@ -1,0 +1,102 @@
+# Regenerate platform catalog; optional sync to GitHub Project v2.
+name: Project catalog
+
+concurrency:
+  group: project-catalog-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - 'scripts/**'
+      - 'docs/**'
+      - 'cypress/**'
+      - 'src/**/*.test.*'
+      - 'src/tests/**'
+      - 'supabase/functions/**'
+      - '.github/workflows/**'
+      - 'scripts/generate-project-catalog.mjs'
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'scripts/**'
+      - 'docs/**'
+      - 'cypress/**'
+      - 'src/**/*.test.*'
+      - 'src/tests/**'
+      - 'supabase/functions/**'
+      - '.github/workflows/**'
+      - 'scripts/generate-project-catalog.mjs'
+      - '.github/project/catalog.json'
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * 0'
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  catalog-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Project catalog drift check
+        run: pnpm run project:catalog:check
+
+      - name: Generate dashboard (artifact)
+        run: pnpm run project:catalog
+
+      - name: Upload project dashboard
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-dashboard
+          path: reports/project-dashboard.html
+          if-no-files-found: error
+
+  sync-project:
+    needs: catalog-check
+    if: github.event_name == 'workflow_dispatch' && secrets.GITHUB_PROJECT_SYNC == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Regenerate catalog
+        run: pnpm run project:catalog
+
+      - name: Sync GitHub Project
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT_NUMBER: ${{ vars.PROJECT_NUMBER }}
+          GITHUB_PROJECT_OWNER: ${{ vars.GITHUB_PROJECT_OWNER }}
+        run: node scripts/sync-github-project.mjs

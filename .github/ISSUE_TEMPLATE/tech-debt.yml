@@ -1,0 +1,43 @@
+name: Technical debt
+description: Explicit debt item (align with docs/TECH_DEBT.md)
+title: 'chore(debt): '
+labels:
+  - catalog/tech-debt
+body:
+  - type: markdown
+    attributes:
+      value: |
+        See [docs/TECH_DEBT.md](../../docs/TECH_DEBT.md). Prefer small, owned tickets over silent carve-outs.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - storefront
+        - checkout-payments
+        - edge
+        - admin
+        - infra-ci
+        - docs-security
+    validations:
+      required: true
+
+  - type: input
+    id: file
+    attributes:
+      label: Primary file or module
+      placeholder: src/pages/OrderConfirmation.tsx
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Why is this debt? What is the exit criteria?
+    validations:
+      required: true
+
+  - type: input
+    id: verification
+    attributes:
+      label: Verification when done
+      placeholder: pnpm run validate

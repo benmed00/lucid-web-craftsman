@@ -1,0 +1,60 @@
+name: Bug report
+description: Report broken behavior or CI failure
+title: 'fix: '
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Diagnose API/DB layers: [docs/PLATFORM.md — Diagnosing failures](../../docs/PLATFORM.md#diagnosing-api-and-database-failures)
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - storefront
+        - checkout-payments
+        - edge
+        - admin
+        - infra-ci
+        - docs-security
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: input
+    id: verification
+    attributes:
+      label: Failing command
+      placeholder: pnpm run e2e:checkout
+
+  - type: checkboxes
+    id: gates
+    attributes:
+      label: Which gates fail?
+      options:
+        - label: pnpm run validate
+        - label: pnpm run test:unit (CI)
+        - label: Cypress (e2e:ci / smoke)
+        - label: Deno (verify:create-payment / pricing-snapshot)

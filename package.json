@@ -102,6 +102,8 @@
     "postman:collection": "node scripts/build-postman-collection.mjs",
     "postman:collection:check": "node scripts/postman-collection-check.mjs",
     "api:artifacts": "pnpm run openapi:edge-functions && pnpm run postman:collection",
+    "project:catalog": "node scripts/generate-project-catalog.mjs",
+    "project:catalog:check": "node scripts/project-catalog-check.mjs",
     "prepare": "husky"
   },
   "dependencies": {

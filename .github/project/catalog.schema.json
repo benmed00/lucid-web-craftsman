@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/benmed00/lucid-web-craftsman/.github/project/catalog.schema.json",
+  "title": "Lucid Web Craftsman platform catalog",
+  "type": "object",
+  "required": ["generatedAt", "repository", "git", "scripts", "tests", "docs", "workflows", "edgeFunctions", "techDebt", "platformAreas", "inventory"],
+  "properties": {
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "repository": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string" }
+      }
+    },
+    "git": {
+      "type": "object",
+      "properties": {
+        "totalCommits": { "type": "integer" },
+        "monthly": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "month": { "type": "string" },
+              "count": { "type": "integer" }
+            }
+          }
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "count": { "type": "integer" }
+            }
+          }
+        },
+        "subjectQuality": {
+          "type": "object",
+          "properties": {
+            "genericCount": { "type": "integer" },
+            "conventionalCount": { "type": "integer" },
+            "otherCount": { "type": "integer" },
+            "genericPercent": { "type": "number" },
+            "conventionalPercent": { "type": "number" }
+          }
+        },
+        "pathChurn": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "prefix": { "type": "string" },
+              "lastCommitDate": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "scripts": { "type": "array" },
+    "tests": { "type": "array" },
+    "docs": { "type": "array" },
+    "workflows": { "type": "array" },
+    "edgeFunctions": { "type": "array" },
+    "techDebt": { "type": "array" },
+    "platformAreas": { "type": "array" },
+    "inventory": {
+      "type": "array",
+      "description": "Flat list for GitHub Project sync (catalog-id, fields, labels)"
+    }
+  }
+}
