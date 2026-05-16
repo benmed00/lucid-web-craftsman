@@ -84,17 +84,17 @@ describe('Checkout DB hydration (guest) @regression', () => {
       });
     }).as('checkoutSessionsHydration');
 
-    cy.addProductToCart();
-    // Cart store debounces persistence (~500ms); ensure localStorage is flushed before checkout.
-    cy.wait(800);
-
-    cy.visit('/checkout', {
-      onBeforeLoad(win) {
-        clearCheckoutStorageKeys(win);
-      },
+    cy.visit('/products');
+    cy.get('[data-testid="products-catalog"] [id^="add-to-cart-btn-"]', {
+      timeout: 25000,
+    }).should('have.length.at.least', 1);
+    cy.addCatalogLineAndOpenCartSpa();
+    cy.window().then((win) => {
+      clearCheckoutStorageKeys(win);
     });
-
-    cy.get('#firstName', { timeout: 20000 }).should('be.visible');
+    cy.get('#main-content #cart-checkout-button').should('be.visible').click();
+    cy.wait('@checkoutSessionsHydration');
+    cy.waitForCheckoutCustomerStep({ timeout: 20000 });
     cy.get('#firstName').should('have.value', personal.first_name);
     cy.get('#lastName').should('have.value', personal.last_name);
     cy.get('#email').should('have.value', personal.email);

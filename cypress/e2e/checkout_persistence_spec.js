@@ -3,6 +3,9 @@
  * Validates that guest user data survives page reload.
  */
 
+const catalogAddToCart =
+  '[data-testid="products-catalog"] [id^="add-to-cart-btn-"]';
+
 describe('Checkout Persistence — Anonymous User', () => {
   beforeEach(() => {
     cy.stubCheckoutIntercepts();
@@ -12,6 +15,11 @@ describe('Checkout Persistence — Anonymous User', () => {
       statusCode: 200,
       body: [],
     });
+    cy.visit('/products');
+    cy.get(catalogAddToCart, { timeout: 25000 }).should(
+      'have.length.at.least',
+      1
+    );
   });
 
   const testData = {
@@ -26,10 +34,7 @@ describe('Checkout Persistence — Anonymous User', () => {
   };
 
   it('should persist checkout form data across page reload', () => {
-    cy.addProductToCart();
-    cy.visit('/checkout');
-
-    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.addCatalogLineAndOpenCheckoutStep1();
     cy.get('#firstName').type(testData.firstName);
     cy.get('#lastName').type(testData.lastName);
     cy.get('#email').type(testData.email);
@@ -41,6 +46,7 @@ describe('Checkout Persistence — Anonymous User', () => {
       .should('not.be.null');
 
     cy.reload();
+    cy.waitForCheckoutCustomerStep();
 
     cy.get('#firstName').should('have.value', testData.firstName);
     cy.get('#lastName').should('have.value', testData.lastName);
@@ -48,10 +54,7 @@ describe('Checkout Persistence — Anonymous User', () => {
   });
 
   it('should persist shipping data after advancing steps', () => {
-    cy.addProductToCart();
-    cy.visit('/checkout');
-
-    cy.get('#firstName', { timeout: 15000 }).should('be.visible');
+    cy.addCatalogLineAndOpenCheckoutStep1();
     cy.get('#firstName').type(testData.firstName);
     cy.get('#lastName').type(testData.lastName);
     cy.get('#email').type(testData.email);
@@ -87,10 +90,8 @@ describe('Checkout Persistence — Anonymous User', () => {
   });
 
   it('should clear form fields when localStorage checkout data is removed', () => {
-    cy.addProductToCart();
-    cy.visit('/checkout');
-    cy.get('#firstName', { timeout: 15000 })
-      .should('be.visible')
+    cy.addCatalogLineAndOpenCheckoutStep1();
+    cy.get('#firstName')
       .clear()
       .type(testData.firstName);
     cy.get('#lastName').clear().type(testData.lastName);
@@ -109,6 +110,7 @@ describe('Checkout Persistence — Anonymous User', () => {
       },
     });
 
-    cy.get('#firstName', { timeout: 15000 }).should('have.value', '');
+    cy.waitForCheckoutCustomerStep();
+    cy.get('#firstName').should('have.value', '');
   });
 });
