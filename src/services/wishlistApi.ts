@@ -49,8 +49,13 @@ export function subscribeWishlistChanges(
   userId: string,
   onEvent: () => void
 ): RealtimeChannel {
+  // Use a unique channel name per subscription to avoid reusing an
+  // already-subscribed channel (which causes "cannot add postgres_changes
+  // callbacks after subscribe()" when effects re-run, e.g. in StrictMode
+  // or after auth changes).
+  const channelName = `lwc-wishlist-${userId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   return supabase
-    .channel(`lwc-wishlist-${userId}`)
+    .channel(channelName)
     .on(
       'postgres_changes',
       {
