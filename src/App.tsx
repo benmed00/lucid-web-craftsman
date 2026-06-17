@@ -23,6 +23,7 @@ import ABThemeTestRunner from '@/components/ABThemeTestRunner';
 // Critical page loaded immediately (landing page only)
 import Index from './pages/Index';
 import Maintenance from './pages/Maintenance';
+import AliasRedirect from '@/components/seo/AliasRedirect';
 
 // Helper for resilient lazy loading with retry and reload fallback
 const lazyWithRetry = (
@@ -268,15 +269,15 @@ const App = () => {
                       {/* Common alias — landing is `/`, not `/home` (paths are case-sensitive) */}
                       <Route
                         path="/home"
-                        element={<Navigate to="/" replace />}
+                        element={<AliasRedirect to="/" />}
                       />
                       <Route
                         path="/Home"
-                        element={<Navigate to="/" replace />}
+                        element={<AliasRedirect to="/" />}
                       />
                       <Route
                         path="/HOME"
-                        element={<Navigate to="/" replace />}
+                        element={<AliasRedirect to="/" />}
                       />
                       <Route
                         path="/products"
@@ -288,7 +289,7 @@ const App = () => {
                       />
                       <Route
                         path="/shop"
-                        element={<Navigate to="/products" replace />}
+                        element={<AliasRedirect to="/products" />}
                       />
                       <Route
                         path="/products/:id"
