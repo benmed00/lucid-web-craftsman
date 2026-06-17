@@ -130,7 +130,7 @@ const ArtisansPage = () => {
     <div className="min-h-dvh bg-background">
       <SEOHelmet
         title="Artisans du Rif – Tisserandes & Savoir-faire | Rif Raw Straw"
-        description="Rencontrez les artisanes du Rif marocain qui tissent à la main chaque chapeau Rif Raw Straw : portraits, techniques ancestrales et savoir-faire transmis de génération en génération."
+        description="Rencontrez les artisanes du Rif marocain qui tissent à la main chaque chapeau Rif Raw Straw : portraits et savoir-faire ancestral."
         keywords={[
           'artisans',
           'tisserandes',
