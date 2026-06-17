@@ -80,6 +80,7 @@ const Shipping = lazyWithRetry(() => import('./pages/Shipping'));
 const Story = lazyWithRetry(() => import('./pages/Story'));
 const Artisans = lazyWithRetry(() => import('./pages/Artisans'));
 const CareGuide = lazyWithRetry(() => import('./pages/CareGuide'));
+const CareGuideBags = lazyWithRetry(() => import('./pages/CareGuideBags'));
 const Terms = lazyWithRetry(() => import('./pages/Terms'));
 const TermsOfService = lazyWithRetry(() => import('./pages/TermsOfService'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
@@ -515,6 +516,14 @@ const App = () => {
                         element={
                           <Suspense fallback={<PageLoadingFallback />}>
                             <CareGuide />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/care-guide/straw-bags"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <CareGuideBags />
                           </Suspense>
                         }
                       />
