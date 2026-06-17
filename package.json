@@ -34,10 +34,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "predev": "node scripts/generate-sitemap.mjs",
     "dev:e2e": "cross-env VITE_E2E=1 vite",
     "serve": "node backend/server.cjs",
     "start:api": "node backend/server.cjs",
+    "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "vite build",
+    "sitemap:generate": "node scripts/generate-sitemap.mjs",
     "predeploy": "vite build",
     "deploy": "gh-pages -d dist",
     "build:prod": "vite build --mode production",
