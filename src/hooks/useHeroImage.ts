@@ -123,6 +123,7 @@ export const useHeroImage = () => {
   return {
     heroImageData,
     isLoading,
+    hasFetchedRemote,
     updateHeroImage,
     resetHeroImage,
     uploadImage,
