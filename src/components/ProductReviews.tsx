@@ -244,20 +244,20 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
         <Card>
           <CardHeader>
             <h4 className="text-lg font-semibold">
-              Laisser un avis pour {productName}
+              {t('reviewsSection.leaveReviewFor', { name: productName })}
             </h4>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmitReview} className="space-y-4">
               <div>
-                <Label htmlFor="rating">Note *</Label>
+                <Label htmlFor="rating">{t('reviewsSection.rating')}</Label>
                 <div className="flex gap-1 mt-1">
                   {renderStars(reviewForm.rating, true, 24)}
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="title">Titre de l'avis</Label>
+                <Label htmlFor="title">{t('reviewsSection.title')}</Label>
                 <Input
                   id="title"
                   value={reviewForm.title}
@@ -267,13 +267,13 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                       title: e.target.value,
                     }))
                   }
-                  placeholder="Résumez votre expérience en quelques mots"
+                  placeholder={t('reviewsSection.titlePlaceholder')}
                   maxLength={100}
                 />
               </div>
 
               <div>
-                <Label htmlFor="comment">Commentaire</Label>
+                <Label htmlFor="comment">{t('reviewsSection.comment')}</Label>
                 <Textarea
                   id="comment"
                   value={reviewForm.comment}
@@ -283,12 +283,12 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                       comment: e.target.value,
                     }))
                   }
-                  placeholder="Partagez votre expérience avec ce produit..."
+                  placeholder={t('reviewsSection.commentPlaceholder')}
                   rows={4}
                   maxLength={500}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {reviewForm.comment.length}/500 caractères
+                  {t('reviewsSection.characters', { count: reviewForm.comment.length })}
                 </p>
               </div>
 
@@ -298,14 +298,14 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                   disabled={submitting}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  {submitting ? 'Envoi...' : "Publier l'avis"}
+                  {submitting ? t('reviewsSection.submitting') : t('reviewsSection.submit')}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowReviewForm(false)}
                 >
-                  Annuler
+                  {t('reviewsSection.cancel')}
                 </Button>
               </div>
             </form>
