@@ -186,7 +186,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHelmet
         title={t('contact.seo.title')}
         description={t('contact.seo.description')}

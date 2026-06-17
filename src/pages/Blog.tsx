@@ -93,7 +93,7 @@ const Blog = () => {
     (fetchError || (forceRender && isLoading)) && posts.length === 0;
   if (showError) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
@@ -125,7 +125,7 @@ const Blog = () => {
   // Empty state (loaded successfully but no data)
   if (!isLoading && posts.length === 0) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <SEOHelmet
           title={t('blog.seo.title')}
           description={t('blog.seo.description')}
@@ -150,7 +150,7 @@ const Blog = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHelmet
         title={t('blog.seo.title')}
         description={t('blog.seo.description')}

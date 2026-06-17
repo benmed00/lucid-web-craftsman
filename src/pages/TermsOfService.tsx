@@ -59,7 +59,7 @@ const TermsOfService = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col">
       <SEOHelmet
         title={t('pages:termsOfService.seo.title')}
         description={t('pages:termsOfService.seo.description')}

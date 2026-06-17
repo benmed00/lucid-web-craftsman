@@ -8,7 +8,7 @@ const AppNew = () => {
   const [status] = React.useState('✅ Working!');
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-dvh bg-background p-8">
       <div className="max-w-md mx-auto text-center">
         <h1 className="text-3xl font-bold mb-4">Cache Cleared ✨</h1>
         <p className="text-lg mb-4">Status: {status}</p>

@@ -36,7 +36,7 @@ export default function LogoutPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="min-h-dvh flex items-center justify-center bg-background">
       <p className="text-lg text-muted-foreground animate-pulse">
         {t('logoutFlow.signingOut')}
       </p>

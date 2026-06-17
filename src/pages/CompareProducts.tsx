@@ -50,7 +50,7 @@ const CompareProducts = () => {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <SEOHelmet
           title="Comparer les produits | Rif Raw Straw"
           description="Comparez nos produits artisanaux côte à côte"
@@ -80,7 +80,7 @@ const CompareProducts = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHelmet
         title="Comparer les produits | Rif Raw Straw"
         description="Comparez nos produits artisanaux côte à côte"

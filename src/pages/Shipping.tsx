@@ -7,7 +7,7 @@ const Shipping = () => {
   const { t } = useTranslation(['pages', 'common']);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col">
       <SEOHelmet
         title={t('pages:shipping.seo.title')}
         description={t('pages:shipping.seo.description')}

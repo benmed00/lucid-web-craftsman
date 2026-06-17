@@ -95,7 +95,7 @@ export const OfflineManager = ({ children }: OfflineManagerProps) => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-dvh">
       {/* Offline Alert - Mobile optimized */}
       {showOfflineAlert && (
         <Alert className="fixed top-0 left-0 right-0 z-[60] rounded-none border-0 bg-status-warning/10 border-b border-status-warning/20">

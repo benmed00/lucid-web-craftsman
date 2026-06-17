@@ -6,7 +6,7 @@ const About = () => {
   const { t } = useTranslation('pages');
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col">
       <SEOHelmet
         title={t('about.seo.title')}
         description={t('about.seo.description')}

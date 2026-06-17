@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
  */
 export const BlogSkeleton = () => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-dvh bg-white">
       {/* Page Header Skeleton */}
       <div className="bg-beige-50 py-16">
         <div className="container mx-auto px-4">

@@ -32,7 +32,7 @@ const Checkout = () => {
   // Rehydrated line items without product rows yet (batch fetch in flight)
   if (c.hasPendingProductResolution && c.cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <SEOHelmet
           title={c.t('payment.title') + ' - Rif Raw Straw'}
           description={c.t('payment.securePayment')}
@@ -59,7 +59,7 @@ const Checkout = () => {
   // Empty cart
   if (c.cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <SEOHelmet
           title={c.t('payment.title') + ' - Rif Raw Straw'}
           description={c.t('payment.securePayment')}
@@ -91,7 +91,7 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-muted/20" data-testid="checkout-page-main">
+    <div className="min-h-dvh bg-muted/20" data-testid="checkout-page-main">
       <SEOHelmet
         title={c.t('payment.title') + ' - Rif Raw Straw'}
         description={c.t('payment.securePayment')}

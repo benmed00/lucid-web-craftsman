@@ -147,7 +147,7 @@ const OrderHistory = () => {
 
   if (!user && !loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <div className="container mx-auto px-4 py-16 max-w-md text-center">
           <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
@@ -170,7 +170,7 @@ const OrderHistory = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHelmet
         title={`${t('orders.title')} - Rif Raw Straw`}
         url="/orders"

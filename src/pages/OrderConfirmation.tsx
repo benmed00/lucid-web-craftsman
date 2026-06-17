@@ -645,7 +645,7 @@ const OrderConfirmation = () => {
   }, [orderId, orderAccessToken, t]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <div className="container mx-auto px-4 py-8 md:py-16">
         <div className="max-w-2xl mx-auto">
           {state === 'loading' && (
