@@ -162,6 +162,7 @@ export const DesktopActions = ({
             >
               <Link
                 to="/profile"
+                aria-label={t('nav.profile', 'My profile')}
                 className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 transition-colors duration-300"
               >
                 {profile?.avatar_url ? (
