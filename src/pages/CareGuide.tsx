@@ -203,7 +203,7 @@ const CareGuide = () => {
             </p>
           </section>
 
-          <section className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
+          <section id="reshape" className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
             <h2 className="mb-4">2. How to reshape a straw hat with steam</h2>
             <p className="mb-4 leading-relaxed">
               A crushed crown or a wavy brim is almost always recoverable —
@@ -229,7 +229,7 @@ const CareGuide = () => {
             </ol>
           </section>
 
-          <section className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
+          <section id="repair" className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
             <h2 className="mb-4">3. How to repair tears and loose weaves</h2>
             <p className="mb-4 leading-relaxed">
               Small repairs are the difference between a five-year hat and a
@@ -261,7 +261,7 @@ const CareGuide = () => {
             </p>
           </section>
 
-          <section className="bg-primary/10 rounded-lg shadow-elegant p-8 md:p-10 border border-primary/20 mb-10">
+          <section id="repair-quote" className="bg-primary/10 rounded-lg shadow-elegant p-8 md:p-10 border border-primary/20 mb-10">
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="p-4 bg-primary/20 rounded-full">
                 <Wrench className="h-8 w-8 text-primary" aria-hidden="true" />
@@ -296,7 +296,7 @@ const CareGuide = () => {
             </div>
           </section>
 
-          <section className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
+          <section id="store" className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
             <h2 className="mb-4">4. How to store a straw hat between seasons</h2>
             <ul className="list-disc pl-6 space-y-3 leading-relaxed">
               <li>
@@ -318,7 +318,7 @@ const CareGuide = () => {
             </ul>
           </section>
 
-          <section className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
+          <section id="weavers-note" className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
             <h2 className="mb-4">A note from the Rif weavers</h2>
             <p className="leading-relaxed mb-4">
               Every hat we ship from the Rif is woven by hand from doum palm
