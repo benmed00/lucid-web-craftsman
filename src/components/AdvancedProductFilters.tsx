@@ -142,6 +142,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
               ref={searchInputRef}
               data-testid="products-page-search"
               type="text"
+              aria-label={t('advancedFilters.searchPlaceholder')}
               placeholder={t('advancedFilters.searchPlaceholder')}
               value={filters.searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
@@ -207,7 +208,7 @@ export const AdvancedProductFilters: React.FC<AdvancedProductFiltersProps> = ({
                 onFiltersChange({ sortBy: value })
               }
             >
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-48" aria-label={t('filters.sortBy', 'Trier par')}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

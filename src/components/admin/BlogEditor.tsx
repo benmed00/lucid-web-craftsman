@@ -783,7 +783,7 @@ export default function BlogEditor({
                       >
                         <img
                           src={url}
-                          alt={`Content ${index + 1}`}
+                          alt={`Image de contenu ${index + 1} de l'article`}
                           className="w-full h-24 object-cover"
                         />
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -891,7 +891,7 @@ function FeaturedImageUpload({
         <div className="relative group">
           <img
             src={currentImage}
-            alt="Featured"
+            alt="Image principale de l'article"
             className="w-full h-48 object-cover rounded-lg"
           />
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">

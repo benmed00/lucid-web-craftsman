@@ -764,6 +764,7 @@ const AdminPromoCodes = () => {
                               size="icon"
                               className="h-6 w-6"
                               onClick={() => copyCode(coupon.code)}
+                              aria-label="Copier le code"
                             >
                               {copiedCode === coupon.code ? (
                                 <Check className="h-3 w-3 text-primary" />
@@ -839,6 +840,7 @@ const AdminPromoCodes = () => {
                               size="icon"
                               className="h-8 w-8"
                               onClick={() => toggleCouponStatus(coupon)}
+                              aria-label={coupon.is_active ? "Désactiver le code promo" : "Activer le code promo"}
                             >
                               <Switch
                                 checked={coupon.is_active}
@@ -850,6 +852,7 @@ const AdminPromoCodes = () => {
                               size="icon"
                               className="h-8 w-8"
                               onClick={() => openEditDialog(coupon)}
+                              aria-label="Modifier le code promo"
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -858,6 +861,7 @@ const AdminPromoCodes = () => {
                               size="icon"
                               className="h-8 w-8 text-destructive hover:text-destructive"
                               onClick={() => deleteCoupon(coupon)}
+                              aria-label="Supprimer le code promo"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

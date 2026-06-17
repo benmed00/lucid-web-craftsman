@@ -204,7 +204,7 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
                   {/* Image */}
                   <img
                     src={item.url}
-                    alt={`Produit ${index + 1}`}
+                    alt={`Image ${index + 1} du produit`}
                     className="w-full h-full object-cover"
                   />
 

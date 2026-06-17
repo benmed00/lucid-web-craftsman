@@ -136,6 +136,7 @@ const CheckoutOrderSummary = ({
                 size="icon"
                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
                 onClick={onRemovePromo}
+                aria-label={t('promo.remove', 'Retirer le code promo')}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -143,6 +144,7 @@ const CheckoutOrderSummary = ({
           ) : (
             <div className="flex gap-2 mt-2">
               <Input
+                aria-label={t('promo.placeholder')}
                 placeholder={t('promo.placeholder')}
                 value={promoCode}
                 onChange={(e) =>
