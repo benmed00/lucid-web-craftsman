@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import SEOHelmet from '@/components/seo/SEOHelmet';
 import { useCsrfToken } from '@/hooks/useCsrfToken';
 import {
   clearProfileAvatarUrl,
@@ -160,6 +161,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHelmet title="Mon Profil - Rif Raw Straw" url="/profile" noindex />
       <main className="pt-4 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}

@@ -21,6 +21,7 @@ interface SEOProps {
     totalPages: number;
     baseUrl: string;
   };
+  noindex?: boolean;
 }
 
 const SEOHelmet = ({
@@ -41,6 +42,7 @@ const SEOHelmet = ({
   product,
   article,
   pagination,
+  noindex = false,
 }: SEOProps) => {
   // Ensure keywords is always an array
   const keywords = Array.isArray(keywordsProp)
@@ -228,10 +230,21 @@ const SEOHelmet = ({
       <meta name="twitter:image" content={fullImageUrl} />
 
       {/* Additional SEO Meta Tags */}
-      <meta name="robots" content="index, follow, max-image-preview:large" />
+      <meta
+        name="robots"
+        content={
+          noindex
+            ? 'noindex, nofollow, noarchive, nosnippet'
+            : 'index, follow, max-image-preview:large'
+        }
+      />
       <meta
         name="googlebot"
-        content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+        content={
+          noindex
+            ? 'noindex, nofollow, noarchive, nosnippet'
+            : 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1'
+        }
       />
       <meta name="language" content="French" />
       <meta name="revisit-after" content="7 days" />
