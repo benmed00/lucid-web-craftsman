@@ -227,11 +227,11 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
               </div>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Basé sur {stats.totalReviews} avis vérifiés
+                  {t('reviewsSection.basedOn', { count: stats.totalReviews })}
                 </p>
                 <div className="flex items-center gap-2 text-sm text-status-success">
                   <CheckCircle size={16} />
-                  <span>Avis modérés et vérifiés</span>
+                  <span>{t('reviewsSection.moderated')}</span>
                 </div>
               </div>
             </div>
