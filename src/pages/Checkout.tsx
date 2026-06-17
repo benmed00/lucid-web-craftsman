@@ -38,6 +38,7 @@ const Checkout = () => {
           description={c.t('payment.securePayment')}
           keywords={checkoutSeoKeywords}
           url="/checkout"
+          noindex
           type="website"
         />
         <div
@@ -64,6 +65,7 @@ const Checkout = () => {
           description={c.t('payment.securePayment')}
           keywords={checkoutSeoKeywords}
           url="/checkout"
+          noindex
           type="website"
         />
         <div
@@ -95,6 +97,7 @@ const Checkout = () => {
         description={c.t('payment.securePayment')}
         keywords={checkoutSeoKeywords}
         url="/checkout"
+          noindex
         type="website"
       />
 

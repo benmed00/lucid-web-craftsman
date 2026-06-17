@@ -140,6 +140,7 @@ const Cart = () => {
           description={t('cart.emptyMessage')}
           keywords={['panier', 'achat', 'commande', 'artisanat berbère']}
           url="/cart"
+          noindex
           type="website"
         />
         <main
@@ -166,6 +167,7 @@ const Cart = () => {
           description={t('cart.emptyMessage')}
           keywords={['panier', 'achat', 'commande', 'artisanat berbère']}
           url="/cart"
+          noindex
           type="website"
         />
         <main
@@ -211,6 +213,7 @@ const Cart = () => {
         description={t('cart.emptyMessage')}
         keywords={['panier', 'achat', 'commande', 'artisanat berbère']}
         url="/cart"
+          noindex
         type="website"
       />
 
