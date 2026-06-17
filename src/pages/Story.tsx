@@ -49,9 +49,9 @@ const Story = () => {
                   key={value}
                   className="bg-card rounded-lg border border-border p-6 text-center shadow-elegant"
                 >
-                  <h3 className="text-lg mb-2 text-primary">
+                  <h2 className="text-lg mb-2 text-primary">
                     {t(`story.values.${value}.title`)}
-                  </h3>
+                  </h2>
                   <p className="text-sm text-muted-foreground">
                     {t(`story.values.${value}.description`)}
                   </p>
