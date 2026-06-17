@@ -81,6 +81,7 @@ const Story = lazyWithRetry(() => import('./pages/Story'));
 const Artisans = lazyWithRetry(() => import('./pages/Artisans'));
 const CareGuide = lazyWithRetry(() => import('./pages/CareGuide'));
 const CareGuideBags = lazyWithRetry(() => import('./pages/CareGuideBags'));
+const StyleGuideBags = lazyWithRetry(() => import('./pages/StyleGuideBags'));
 const Terms = lazyWithRetry(() => import('./pages/Terms'));
 const TermsOfService = lazyWithRetry(() => import('./pages/TermsOfService'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
@@ -524,6 +525,14 @@ const App = () => {
                         element={
                           <Suspense fallback={<PageLoadingFallback />}>
                             <CareGuideBags />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/blog/how-to-style-straw-bags"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <StyleGuideBags />
                           </Suspense>
                         }
                       />
