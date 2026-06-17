@@ -56,7 +56,19 @@ export class SitemapGenerator {
         priority: 0.6,
       },
       {
+        url: `${this.baseUrl}/artisans`,
+        lastModified: new Date().toISOString(),
+        changeFrequency: 'monthly',
+        priority: 0.6,
+      },
+      {
         url: `${this.baseUrl}/contact`,
+        lastModified: new Date().toISOString(),
+        changeFrequency: 'monthly',
+        priority: 0.5,
+      },
+      {
+        url: `${this.baseUrl}/faq`,
         lastModified: new Date().toISOString(),
         changeFrequency: 'monthly',
         priority: 0.5,
@@ -80,10 +92,28 @@ export class SitemapGenerator {
         priority: 0.3,
       },
       {
+        url: `${this.baseUrl}/terms-of-service`,
+        lastModified: new Date().toISOString(),
+        changeFrequency: 'yearly',
+        priority: 0.3,
+      },
+      {
         url: `${this.baseUrl}/cgv`,
         lastModified: new Date().toISOString(),
         changeFrequency: 'yearly',
         priority: 0.3,
+      },
+      {
+        url: `${this.baseUrl}/compare`,
+        lastModified: new Date().toISOString(),
+        changeFrequency: 'weekly',
+        priority: 0.4,
+      },
+      {
+        url: `${this.baseUrl}/wishlist`,
+        lastModified: new Date().toISOString(),
+        changeFrequency: 'weekly',
+        priority: 0.4,
       },
     ];
   }
