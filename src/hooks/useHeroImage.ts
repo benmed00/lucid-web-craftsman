@@ -56,7 +56,7 @@ export const useHeroImage = () => {
   useEffect(() => {
     let cancelled = false;
 
-    // Wait 3 seconds before fetching from Supabase to free connection
+    // Wait briefly before fetching from Supabase to free connection
     // slots for critical product data during initial page load.
     const timer = setTimeout(async () => {
       if (cancelled) return;
@@ -74,7 +74,7 @@ export const useHeroImage = () => {
         console.error('Error loading hero image:', error);
         // Keep cached or default image on error
       }
-    }, 3000);
+    }, 300);
 
     return () => {
       cancelled = true;
