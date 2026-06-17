@@ -406,7 +406,7 @@ const ProductDetail: React.FC = () => {
       <div className="min-h-dvh bg-background">
         <main id="main-content" className="container mx-auto px-4 py-8">
           {/* Breadcrumbs */}
-          <nav className="mb-8" aria-label="Breadcrumb">
+          <nav className="mb-8" aria-label={t('common:accessibility.breadcrumb')}>
             <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
               <li>
                 <Link to="/" className="hover:text-primary transition-colors">
