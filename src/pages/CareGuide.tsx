@@ -129,7 +129,7 @@ const CareGuide = () => {
             </div>
           </header>
 
-          <section className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
+          <section id="clean" className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
             <h2 className="mb-4">1. How to clean a straw hat</h2>
             <p className="mb-4 leading-relaxed">
               Straw is a living fibre. It loves a gentle hand and dislikes
