@@ -69,6 +69,7 @@ export const useHeroImage = () => {
           setHeroImageData(data);
         }
         persistHeroImage(data);
+        setHasFetchedRemote(true);
       } catch (error) {
         console.error('Error loading hero image:', error);
         // Keep cached or default image on error
