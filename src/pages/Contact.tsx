@@ -59,6 +59,8 @@ const Contact = () => {
     const orderRef = orderId
       ? `[Order #${orderId.slice(-8).toUpperCase()}] `
       : '';
+    const subjectParam = searchParams.get('subject');
+    const isRepair = subjectParam === 'repair';
 
     return {
       firstName: searchParams.get('firstName') || '',
@@ -66,8 +68,12 @@ const Contact = () => {
       email: searchParams.get('email') || '',
       phone: '',
       company: '',
-      subject: orderId ? 'support' : '',
-      message: orderId ? `${orderRef}` : '',
+      subject: orderId ? 'support' : isRepair ? 'repair' : '',
+      message: orderId
+        ? `${orderRef}`
+        : isRepair
+          ? 'I would like a repair quote for my Rif straw hat.\n\nDescription of the damage:'
+          : '',
     };
   };
 
@@ -87,18 +93,21 @@ const Contact = () => {
     const lastName = searchParams.get('lastName');
     const email = searchParams.get('email');
     const orderId = searchParams.get('orderId');
+    const subjectParam = searchParams.get('subject');
 
-    if (firstName || lastName || email || orderId) {
+    if (firstName || lastName || email || orderId || subjectParam) {
       setContactForm((prev) => ({
         ...prev,
         firstName: firstName || prev.firstName,
         lastName: lastName || prev.lastName,
         email: email || prev.email,
-        subject: orderId ? 'support' : prev.subject,
+        subject: orderId ? 'support' : subjectParam || prev.subject,
         message:
           orderId && !prev.message
             ? `[Order #${orderId.slice(-8).toUpperCase()}] `
-            : prev.message,
+            : subjectParam === 'repair' && !prev.message
+              ? 'I would like a repair quote for my Rif straw hat.\n\nDescription of the damage:'
+              : prev.message,
       }));
     }
   }, [searchParams]);
@@ -665,6 +674,9 @@ const Contact = () => {
                           </option>
                           <option value="support">
                             {t('contact.form.subjectOptions.support')}
+                          </option>
+                          <option value="repair">
+                            {t('contact.form.subjectOptions.repair')}
                           </option>
                           <option value="other">
                             {t('contact.form.subjectOptions.other')}

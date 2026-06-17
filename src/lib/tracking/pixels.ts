@@ -260,11 +260,39 @@ export function trackPurchase(params: {
   }
 }
 
+/** Track contact / repair quote request */
+export function trackContact(params?: {
+  subject?: string;
+  contentName?: string;
+}): void {
+  const { subject, contentName } = params ?? {};
+
+  if (config.metaPixelId && window.fbq) {
+    window.fbq('track', 'Contact', {
+      content_name: contentName || 'Contact form',
+      subject: subject || 'general',
+    });
+  }
+  if (config.tiktokPixelId && window.ttq) {
+    window.ttq.track('Contact', {
+      content_name: contentName || 'Contact form',
+      subject: subject || 'general',
+    });
+  }
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', 'contact', {
+      event_category: 'engagement',
+      event_label: subject || 'general',
+    });
+  }
+}
+
 // ─── Global type augmentation ────────────────────────────────────
 declare global {
   interface Window {
     fbq: any;
     _fbq: any;
     ttq: any;
+    gtag: any;
   }
 }
