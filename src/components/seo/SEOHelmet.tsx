@@ -21,6 +21,7 @@ interface SEOProps {
     totalPages: number;
     baseUrl: string;
   };
+  noindex?: boolean;
 }
 
 const SEOHelmet = ({
