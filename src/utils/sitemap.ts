@@ -212,12 +212,21 @@ Sitemap: ${this.baseUrl}/sitemap.xml
 # Crawl-delay for respectful crawling
 Crawl-delay: 1
 
-# Block admin areas
+# Block admin and auth areas
 Disallow: /admin/
 Disallow: /api/
-Disallow: /cart/
-Disallow: /checkout/
-Disallow: /profile/
+Disallow: /auth
+
+# Block private / user-specific pages
+Disallow: /cart
+Disallow: /checkout
+Disallow: /profile
+Disallow: /enhanced-profile
+Disallow: /orders
+Disallow: /order-confirmation
+Disallow: /payment-success
+Disallow: /invoice
+Disallow: /logout
 
 # Block search parameters
 Disallow: /*?*sort=
