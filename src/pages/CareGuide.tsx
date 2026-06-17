@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
+import { Wrench, ArrowRight } from 'lucide-react';
 import PageFooter from '@/components/PageFooter';
 import SEOHelmet from '@/components/seo/SEOHelmet';
+import { trackContact } from '@/lib/tracking/pixels';
 
 const CareGuide = () => {
   const url = 'https://rif-raw-straw.lovable.app/care-guide';
