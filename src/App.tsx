@@ -23,6 +23,7 @@ import ABThemeTestRunner from '@/components/ABThemeTestRunner';
 // Critical page loaded immediately (landing page only)
 import Index from './pages/Index';
 import Maintenance from './pages/Maintenance';
+import AliasRedirect from '@/components/seo/AliasRedirect';
 
 // Helper for resilient lazy loading with retry and reload fallback
 const lazyWithRetry = (
