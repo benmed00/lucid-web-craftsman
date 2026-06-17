@@ -342,6 +342,7 @@ const CareGuide = () => {
           </section>
 
           <nav
+            id="continue-exploring"
             aria-label="Related pages"
             className="bg-secondary/30 rounded-lg p-8 md:p-10 border border-border mb-10"
           >
