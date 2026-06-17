@@ -56,7 +56,19 @@ export class SitemapGenerator {
         priority: 0.6,
       },
       {
+        url: `${this.baseUrl}/artisans`,
+        lastModified: new Date().toISOString(),
+        changeFrequency: 'monthly',
+        priority: 0.6,
+      },
+      {
         url: `${this.baseUrl}/contact`,
+        lastModified: new Date().toISOString(),
+        changeFrequency: 'monthly',
+        priority: 0.5,
+      },
+      {
+        url: `${this.baseUrl}/faq`,
         lastModified: new Date().toISOString(),
         changeFrequency: 'monthly',
         priority: 0.5,
@@ -80,10 +92,28 @@ export class SitemapGenerator {
         priority: 0.3,
       },
       {
+        url: `${this.baseUrl}/terms-of-service`,
+        lastModified: new Date().toISOString(),
+        changeFrequency: 'yearly',
+        priority: 0.3,
+      },
+      {
         url: `${this.baseUrl}/cgv`,
         lastModified: new Date().toISOString(),
         changeFrequency: 'yearly',
         priority: 0.3,
+      },
+      {
+        url: `${this.baseUrl}/compare`,
+        lastModified: new Date().toISOString(),
+        changeFrequency: 'weekly',
+        priority: 0.4,
+      },
+      {
+        url: `${this.baseUrl}/wishlist`,
+        lastModified: new Date().toISOString(),
+        changeFrequency: 'weekly',
+        priority: 0.4,
       },
     ];
   }
@@ -182,12 +212,21 @@ Sitemap: ${this.baseUrl}/sitemap.xml
 # Crawl-delay for respectful crawling
 Crawl-delay: 1
 
-# Block admin areas
+# Block admin and auth areas
 Disallow: /admin/
 Disallow: /api/
-Disallow: /cart/
-Disallow: /checkout/
-Disallow: /profile/
+Disallow: /auth
+
+# Block private / user-specific pages
+Disallow: /cart
+Disallow: /checkout
+Disallow: /profile
+Disallow: /enhanced-profile
+Disallow: /orders
+Disallow: /order-confirmation
+Disallow: /payment-success
+Disallow: /invoice
+Disallow: /logout
 
 # Block search parameters
 Disallow: /*?*sort=

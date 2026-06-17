@@ -32,12 +32,18 @@ serve(async (_req: Request): Promise<Response> => {
       { loc: '/', priority: '1.0', changefreq: 'daily' },
       { loc: '/products', priority: '0.9', changefreq: 'daily' },
       { loc: '/blog', priority: '0.7', changefreq: 'weekly' },
-      { loc: '/contact', priority: '0.5', changefreq: 'monthly' },
       { loc: '/about', priority: '0.5', changefreq: 'monthly' },
       { loc: '/story', priority: '0.5', changefreq: 'monthly' },
-      { loc: '/faq', priority: '0.4', changefreq: 'monthly' },
+      { loc: '/artisans', priority: '0.6', changefreq: 'monthly' },
+      { loc: '/contact', priority: '0.5', changefreq: 'monthly' },
+      { loc: '/faq', priority: '0.5', changefreq: 'monthly' },
       { loc: '/shipping', priority: '0.4', changefreq: 'monthly' },
       { loc: '/returns', priority: '0.4', changefreq: 'monthly' },
+      { loc: '/terms', priority: '0.3', changefreq: 'yearly' },
+      { loc: '/terms-of-service', priority: '0.3', changefreq: 'yearly' },
+      { loc: '/cgv', priority: '0.3', changefreq: 'yearly' },
+      { loc: '/compare', priority: '0.4', changefreq: 'weekly' },
+      { loc: '/wishlist', priority: '0.4', changefreq: 'weekly' },
     ];
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
