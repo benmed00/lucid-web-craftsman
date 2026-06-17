@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { fetchCustomerOrdersDetailed } from '@/services/orderService';
 
 import PageFooter from '@/components/PageFooter';
+import SEOHelmet from '@/components/seo/SEOHelmet';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
