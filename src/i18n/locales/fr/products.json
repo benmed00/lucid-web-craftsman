@@ -248,5 +248,24 @@
       "returns": "Retours",
       "returnsValue": "Retours gratuits sous 14 jours"
     }
+  },
+  "reviewsSection": {
+    "basedOn": "Basé sur {{count}} avis vérifiés",
+    "moderated": "Avis modérés et vérifiés",
+    "leaveReviewFor": "Laisser un avis pour {{name}}",
+    "rating": "Note *",
+    "title": "Titre de l'avis",
+    "titlePlaceholder": "Résumez votre expérience en quelques mots",
+    "comment": "Commentaire",
+    "commentPlaceholder": "Partagez votre expérience avec ce produit...",
+    "characters": "{{count}}/500 caractères",
+    "submit": "Publier l'avis",
+    "submitting": "Envoi...",
+    "cancel": "Annuler",
+    "empty": "Aucun avis pour le moment",
+    "emptyHint": "Soyez le premier à donner votre avis !",
+    "helpful": "Utile ({{count}})",
+    "report": "Signaler",
+    "loadingArticles": "Chargement des articles..."
   }
 }

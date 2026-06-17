@@ -115,7 +115,7 @@ const AdminLogin = () => {
   }, [pendingAdminCheck, adminLoading, isAdminAuthenticated, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-beige-50 to-olive-50 flex items-center justify-center p-4">
+    <div className="min-h-dvh bg-gradient-to-br from-beige-50 to-olive-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md mx-auto shadow-xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">

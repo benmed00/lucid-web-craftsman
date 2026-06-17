@@ -301,7 +301,7 @@ const ProductDetail: React.FC = () => {
   // Loading State
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb Skeleton */}
           <div className="mb-8">
@@ -340,7 +340,7 @@ const ProductDetail: React.FC = () => {
   // Error State
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <div className="container mx-auto px-4 py-16 text-center">
           <div className="max-w-md mx-auto">
             <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
@@ -403,10 +403,10 @@ const ProductDetail: React.FC = () => {
         ]}
       />
 
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <main id="main-content" className="container mx-auto px-4 py-8">
           {/* Breadcrumbs */}
-          <nav className="mb-8" aria-label="Breadcrumb">
+          <nav className="mb-8" aria-label={t('common:accessibility.breadcrumb')}>
             <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
               <li>
                 <Link to="/" className="hover:text-primary transition-colors">
@@ -698,7 +698,7 @@ const ProductDetail: React.FC = () => {
 
                   <Dialog open={shareMenuOpen} onOpenChange={setShareMenuOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="icon">
+                      <Button variant="outline" size="icon" aria-label={t('productDetail.share.title')}>
                         <Share2 className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>

@@ -24,21 +24,21 @@ const PageFooter = () => {
               <a
                 href="https://instagram.com"
                 className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Instagram"
+                aria-label={t('common:accessibility.instagramLink')}
               >
                 <Instagram className="h-5 w-5" />
               </a>
               <a
                 href="https://facebook.com"
                 className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Facebook"
+                aria-label={t('common:accessibility.facebookLink')}
               >
                 <Facebook className="h-5 w-5" />
               </a>
               <a
                 href="https://twitter.com"
                 className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Twitter"
+                aria-label={t('common:accessibility.twitterLink')}
               >
                 <Twitter className="h-5 w-5" />
               </a>

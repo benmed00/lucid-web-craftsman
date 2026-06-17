@@ -59,7 +59,7 @@ const CareGuide = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col">
       <SEOHelmet
         title="How to Clean, Reshape & Repair a Straw Hat — Rif Artisan Guide"
         description="Expert care guide from Rif artisans: how to clean, reshape, repair and store handwoven straw hats so they last for years."

@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getBlogPosts } from '@/api/mockApiService';
 import BlogCard from './BlogCard';
 
 const BlogList = () => {
+  const { t } = useTranslation('products');
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['blogPosts'],
     queryFn: getBlogPosts,
@@ -11,7 +13,7 @@ const BlogList = () => {
   if (isLoading) {
     return (
       <div className="text-center py-12">
-        <p>Chargement des articles...</p>
+        <p>{t('reviewsSection.loadingArticles')}</p>
       </div>
     );
   }

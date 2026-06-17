@@ -77,7 +77,7 @@ const PaymentSuccess = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-dvh bg-background flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <p className="text-muted-foreground mb-4">
             {t('paymentSuccess.legacyRoute.orderNotFoundBody')}
@@ -91,7 +91,7 @@ const PaymentSuccess = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="min-h-dvh bg-background flex items-center justify-center">
       <div className="text-center">
         <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
         <p className="text-muted-foreground">

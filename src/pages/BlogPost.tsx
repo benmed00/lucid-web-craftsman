@@ -57,7 +57,7 @@ const BlogPost = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center text-foreground">
+      <div className="min-h-dvh bg-background flex items-center justify-center text-foreground">
         {t('blogPost.loading')}
       </div>
     );
@@ -65,14 +65,14 @@ const BlogPost = () => {
 
   if (error || !post) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center text-foreground">
+      <div className="min-h-dvh bg-background flex items-center justify-center text-foreground">
         {t('blogPost.notFound')}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHelmet
         title={`${post.title} - Rif Raw Straw Blog`}
         description={post.excerpt || post.content?.substring(0, 155)}

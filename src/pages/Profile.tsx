@@ -160,7 +160,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHelmet title="Mon Profil - Rif Raw Straw" url="/profile" noindex />
       <main className="pt-4 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">

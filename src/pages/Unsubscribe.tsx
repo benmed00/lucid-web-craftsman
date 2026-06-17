@@ -33,7 +33,7 @@ const Unsubscribe = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <Navigation />
       <main className="container mx-auto px-4 py-20 flex items-center justify-center">
         <Card className="max-w-md w-full">

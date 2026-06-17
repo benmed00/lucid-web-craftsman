@@ -161,7 +161,7 @@ const AdminNewsletter = lazy(() => import('./pages/admin/AdminNewsletter'));
 
 // Loading fallback component
 const PageLoadingFallback = () => (
-  <div className="min-h-screen bg-background p-4">
+  <div className="min-h-dvh bg-background p-4">
     <div className="container mx-auto space-y-4">
       <Skeleton className="h-8 w-1/3" />
       <Skeleton className="h-64 w-full" />
@@ -244,7 +244,7 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <Suspense fallback={<div className="min-h-screen bg-background" />}>
+        <Suspense fallback={<div className="min-h-dvh bg-background" />}>
           <OfflineManager>
             <AuthProvider>
               <TooltipProvider delayDuration={300}>

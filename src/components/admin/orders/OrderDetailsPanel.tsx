@@ -188,6 +188,7 @@ export function OrderDetailsPanel({
               size="icon"
               onClick={copyOrderId}
               className="h-6 w-6"
+              aria-label="Copier l'identifiant de commande"
             >
               <Copy className="h-3 w-3" />
             </Button>
@@ -624,7 +625,7 @@ export function OrderDetailsPanel({
                         {productImage ? (
                           <img
                             src={productImage}
-                            alt={(snapshot?.name as string) || 'Produit'}
+                            alt={(snapshot?.name as string) || "Image du produit"}
                             className="h-full w-full object-cover"
                           />
                         ) : (

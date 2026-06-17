@@ -161,7 +161,7 @@ export default function Auth() {
           ? 'signup'
           : 'reset';
     return (
-      <div className="min-h-screen bg-[hsl(var(--background))] flex items-center justify-center p-4">
+      <div className="min-h-dvh bg-[hsl(var(--background))] flex items-center justify-center p-4">
         <div className="w-full max-w-md animate-fade-in">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
@@ -188,7 +188,7 @@ export default function Auth() {
   const isSignUp = view === 'signup';
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--background))] flex flex-col lg:flex-row">
+    <div className="min-h-dvh bg-[hsl(var(--background))] flex flex-col lg:flex-row">
       {/* ═══ LEFT — Visual storytelling (hidden on mobile) ═══ */}
       <div className="hidden lg:flex lg:w-[48%] xl:w-[45%] relative overflow-hidden">
         <picture className="absolute inset-0 block">

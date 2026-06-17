@@ -18,7 +18,8 @@
     "login": "Connexion",
     "logout": "Déconnexion",
     "search": "Rechercher",
-    "searchPlaceholder": "Rechercher des produits..."
+    "searchPlaceholder": "Rechercher des produits...",
+    "signOutError": "Erreur lors de la déconnexion"
   },
   "footer": {
     "about": "À Propos",
@@ -88,7 +89,8 @@
     "addedToCart": "Ajouté au panier",
     "removedFromCart": "Retiré du panier",
     "addedToWishlist": "Ajouté aux favoris",
-    "removedFromWishlist": "Retiré des favoris"
+    "removedFromWishlist": "Retiré des favoris",
+    "stillLoading": "Chargement en cours, veuillez patienter..."
   },
   "currency": {
     "label": "Devise",
@@ -119,7 +121,31 @@
     "mainNav": "Navigation principale",
     "mobileNav": "Menu principal mobile",
     "enableLightMode": "Activer le mode clair",
-    "enableDarkMode": "Activer le mode sombre"
+    "enableDarkMode": "Activer le mode sombre",
+    "instagramLink": "Suivez-nous sur Instagram",
+    "facebookLink": "Suivez-nous sur Facebook",
+    "twitterLink": "Suivez-nous sur Twitter",
+    "scrollToTop": "Retour en haut",
+    "searchResults": "Résultats de recherche",
+    "locationDirections": "Obtenir l'itinéraire vers notre boutique",
+    "calendarPrev": "Mois précédent",
+    "calendarNext": "Mois suivant",
+    "paginationPrev": "Page précédente",
+    "paginationNext": "Page suivante",
+    "toggleSidebar": "Afficher/masquer la barre latérale",
+    "breadcrumb": "Fil d'Ariane",
+    "share": "Partager",
+    "remove": "Supprimer",
+    "edit": "Modifier",
+    "copy": "Copier",
+    "close": "Fermer",
+    "viewAlert": "Voir l'alerte",
+    "removePromoCode": "Supprimer le code promo",
+    "toggleStatus": "Changer le statut",
+    "copyOrderId": "Copier l'identifiant de commande",
+    "downloadCareGuide": "Télécharger le guide d'entretien en PDF",
+    "tableOfContents": "Table des matières",
+    "requestRepairQuote": "Demander un devis de réparation aux artisans du Rif"
   },
   "wishlist": {
     "add": "Ajouter aux favoris",
@@ -161,5 +187,29 @@
   },
   "common": {
     "close": "Fermer"
+  },
+  "trust": {
+    "happyCustomers": "Clients satisfaits",
+    "returns": "Retours faciles",
+    "securePayment": "Paiement sécurisé",
+    "handmade": "Fait main"
+  },
+  "years": "ans d'expérience",
+  "scarcity": {
+    "lowStock": "Plus que {{count}} en stock !",
+    "sellingFast": "Cet article part vite"
+  },
+  "faq": {
+    "returns": {
+      "question": "Quelle est votre politique de retour ?",
+      "answer": "Vous disposez de 14 jours pour retourner un article. Les retours sont gratuits."
+    },
+    "care": {
+      "question": "Comment entretenir mon produit ?",
+      "answer": "Suivez nos conseils d'entretien disponibles sur la page dédiée."
+    }
+  },
+  "showcase": {
+    "empty": "Aucun produit à afficher"
   }
 }

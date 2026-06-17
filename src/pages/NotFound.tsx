@@ -17,7 +17,7 @@ const NotFound = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col bg-[#f7f3ee] relative overflow-hidden"
+      className="min-h-dvh flex flex-col bg-[#f7f3ee] relative overflow-hidden"
       style={{
         backgroundColor: '#f7f3ee',
       }}

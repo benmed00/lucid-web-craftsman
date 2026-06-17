@@ -28,11 +28,11 @@ export const SearchBar = ({
             <Input
               name="search"
               type="text"
+              aria-label={t('nav.searchPlaceholder')}
               placeholder={t('nav.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               className="flex-1 h-11 md:h-12 lg:h-11 text-base md:text-lg lg:text-base rounded-lg border-border focus:border-primary focus:ring-primary touch-manipulation"
-              autoFocus
             />
             <Button
               type="submit"

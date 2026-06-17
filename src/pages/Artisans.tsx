@@ -127,7 +127,7 @@ const ArtisansPage = () => {
   const featured = artisans[0] ?? null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHelmet
         title="Artisans du Rif – Tisserandes & Savoir-faire | Rif Raw Straw"
         description="Rencontrez les artisanes du Rif marocain qui tissent à la main chaque chapeau Rif Raw Straw : portraits, techniques ancestrales et savoir-faire transmis de génération en génération."

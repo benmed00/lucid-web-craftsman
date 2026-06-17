@@ -18,7 +18,7 @@ export const ProductsLoadingSkeleton = ({
   const { t } = useTranslation('common');
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       {/* Hero Banner Skeleton */}
       <div className="bg-gradient-to-r from-secondary to-muted py-8 md:py-12 lg:py-16">
         <div className="container mx-auto px-4 text-center animate-pulse">

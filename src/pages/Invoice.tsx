@@ -137,7 +137,7 @@ const InvoicePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-dvh bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-primary mx-auto mb-3 animate-spin" />
           <p className="text-muted-foreground text-sm">
@@ -153,7 +153,7 @@ const InvoicePage = () => {
 
   if (error || !html) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-dvh bg-background flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-card border border-border rounded-2xl shadow-lg p-8 text-center">
           <div
             className={`w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center ${
@@ -242,7 +242,7 @@ const InvoicePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 flex flex-col">
+    <div className="min-h-dvh bg-muted/30 flex flex-col">
       {/* Toolbar — hidden when printing */}
       <div className="bg-card border-b border-border shadow-sm print:hidden">
         <div className="container mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">

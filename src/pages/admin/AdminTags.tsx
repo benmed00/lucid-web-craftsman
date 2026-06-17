@@ -359,6 +359,7 @@ const AdminTags = () => {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleEditClick(tag)}
+                              aria-label="Modifier le tag"
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -367,6 +368,7 @@ const AdminTags = () => {
                               size="icon"
                               onClick={() => handleDeleteClick(tag)}
                               className="text-destructive hover:text-destructive"
+                              aria-label="Supprimer le tag"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

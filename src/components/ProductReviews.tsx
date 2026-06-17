@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Star, ThumbsUp, Flag, User, CheckCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +37,7 @@ interface ProductReviewsProps {
 }
 
 const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
+  const { t } = useTranslation('products');
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -225,11 +227,11 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
               </div>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Basé sur {stats.totalReviews} avis vérifiés
+                  {t('reviewsSection.basedOn', { count: stats.totalReviews })}
                 </p>
                 <div className="flex items-center gap-2 text-sm text-status-success">
                   <CheckCircle size={16} />
-                  <span>Avis modérés et vérifiés</span>
+                  <span>{t('reviewsSection.moderated')}</span>
                 </div>
               </div>
             </div>
@@ -242,20 +244,20 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
         <Card>
           <CardHeader>
             <h4 className="text-lg font-semibold">
-              Laisser un avis pour {productName}
+              {t('reviewsSection.leaveReviewFor', { name: productName })}
             </h4>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmitReview} className="space-y-4">
               <div>
-                <Label htmlFor="rating">Note *</Label>
+                <Label htmlFor="rating">{t('reviewsSection.rating')}</Label>
                 <div className="flex gap-1 mt-1">
                   {renderStars(reviewForm.rating, true, 24)}
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="title">Titre de l'avis</Label>
+                <Label htmlFor="title">{t('reviewsSection.title')}</Label>
                 <Input
                   id="title"
                   value={reviewForm.title}
@@ -265,13 +267,13 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                       title: e.target.value,
                     }))
                   }
-                  placeholder="Résumez votre expérience en quelques mots"
+                  placeholder={t('reviewsSection.titlePlaceholder')}
                   maxLength={100}
                 />
               </div>
 
               <div>
-                <Label htmlFor="comment">Commentaire</Label>
+                <Label htmlFor="comment">{t('reviewsSection.comment')}</Label>
                 <Textarea
                   id="comment"
                   value={reviewForm.comment}
@@ -281,12 +283,12 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                       comment: e.target.value,
                     }))
                   }
-                  placeholder="Partagez votre expérience avec ce produit..."
+                  placeholder={t('reviewsSection.commentPlaceholder')}
                   rows={4}
                   maxLength={500}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {reviewForm.comment.length}/500 caractères
+                  {t('reviewsSection.characters', { count: reviewForm.comment.length })}
                 </p>
               </div>
 
@@ -296,14 +298,14 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                   disabled={submitting}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  {submitting ? 'Envoi...' : "Publier l'avis"}
+                  {submitting ? t('reviewsSection.submitting') : t('reviewsSection.submit')}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowReviewForm(false)}
                 >
-                  Annuler
+                  {t('reviewsSection.cancel')}
                 </Button>
               </div>
             </form>
@@ -321,9 +323,9 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                   size={48}
                   className="mx-auto mb-2 text-muted-foreground/50"
                 />
-                <p>Aucun avis pour le moment</p>
+                <p>{t('reviewsSection.empty')}</p>
                 <p className="text-sm">
-                  Soyez le premier à donner votre avis !
+                  {t('reviewsSection.emptyHint')}
                 </p>
               </div>
               {user && (
@@ -381,13 +383,13 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                 )}
 
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <button className="flex items-center gap-1 hover:text-primary transition-colors">
+                  <button className="flex items-center gap-1 hover:text-primary transition-colors" aria-label={t('reviewsSection.helpful', { count: review.helpful_count })}>
                     <ThumbsUp size={14} />
-                    <span>Utile ({review.helpful_count})</span>
+                    <span>{t('reviewsSection.helpful', { count: review.helpful_count })}</span>
                   </button>
-                  <button className="flex items-center gap-1 hover:text-destructive transition-colors">
+                  <button className="flex items-center gap-1 hover:text-destructive transition-colors" aria-label={t('reviewsSection.report')}>
                     <Flag size={14} />
-                    <span>Signaler</span>
+                    <span>{t('reviewsSection.report')}</span>
                   </button>
                 </div>
               </CardContent>

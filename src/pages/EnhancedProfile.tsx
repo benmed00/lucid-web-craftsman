@@ -117,7 +117,7 @@ export default function EnhancedProfile() {
 
   if ((authLoading || isProfileLoading) && !forceRender) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <div className="container mx-auto px-4 py-8">
           <div className="space-y-6">
             <div className="flex items-center space-x-4">
@@ -140,7 +140,7 @@ export default function EnhancedProfile() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <div className="container mx-auto px-4 py-16 max-w-md text-center">
           <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
@@ -166,7 +166,7 @@ export default function EnhancedProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHelmet
         title={`${t('profile.title')} - Rif Raw Straw`}
         url="/enhanced-profile"

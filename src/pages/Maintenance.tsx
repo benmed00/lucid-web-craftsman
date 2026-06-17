@@ -28,7 +28,7 @@ const Maintenance = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
+      className="min-h-dvh flex items-center justify-center p-4"
       style={{
         background: 'linear-gradient(to bottom, #fafaf9, #f5f5f4)',
       }}

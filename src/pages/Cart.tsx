@@ -134,7 +134,7 @@ const Cart = () => {
 
   if (hasPendingProductResolution && cart.items.length === 0) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <SEOHelmet
           title={t('cart.title') + ' - Rif Raw Straw'}
           description={t('cart.emptyMessage')}
@@ -161,7 +161,7 @@ const Cart = () => {
 
   if (cart.items.length === 0) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <SEOHelmet
           title={t('cart.title') + ' - Rif Raw Straw'}
           description={t('cart.emptyMessage')}
@@ -207,7 +207,7 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHelmet
         title={`${t('cart.title')} (${itemCount}) - Rif Raw Straw`}
         description={t('cart.emptyMessage')}

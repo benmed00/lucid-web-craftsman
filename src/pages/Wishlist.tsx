@@ -156,7 +156,7 @@ const Wishlist = () => {
           title={t('pages:wishlist.title')}
           description={t('pages:wishlist.emptyMessage')}
         />
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <div className="container mx-auto px-4 py-16">
             <div className="max-w-2xl mx-auto text-center">
               <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-6" />
@@ -188,7 +188,7 @@ const Wishlist = () => {
           count: wishlistProducts.length,
         })}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto">
             {/* Header */}

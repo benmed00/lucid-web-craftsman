@@ -161,6 +161,7 @@ export const ProductQuickView = ({
           variant="ghost"
           size="icon"
           onClick={onClose}
+          aria-label={t('quickView.close', 'Fermer')}
           className="absolute top-4 right-4 z-modal h-11 w-11 rounded-full bg-background/95 backdrop-blur-md hover:bg-background shadow-xl border border-border/50 transition-all duration-300 hover:scale-110"
         >
           <X className="h-5 w-5 text-muted-foreground" />
@@ -187,6 +188,7 @@ export const ProductQuickView = ({
             variant="ghost"
             size="icon"
             onClick={handleShare}
+            aria-label={t('quickView.share', 'Partager')}
             className="absolute top-6 right-6 z-20 h-11 w-11 rounded-full bg-background/90 backdrop-blur-sm hover:bg-background shadow-lg border border-border/50 transition-all duration-300 hover:scale-110"
           >
             <Share2 className="h-4 w-4 text-muted-foreground" />
