@@ -167,6 +167,11 @@ export default function EnhancedProfile() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHelmet
+        title={`${t('profile.title')} - Rif Raw Straw`}
+        url="/enhanced-profile"
+        noindex
+      />
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
