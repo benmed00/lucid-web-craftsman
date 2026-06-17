@@ -698,7 +698,7 @@ const ProductDetail: React.FC = () => {
 
                   <Dialog open={shareMenuOpen} onOpenChange={setShareMenuOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="icon">
+                      <Button variant="outline" size="icon" aria-label={t('productDetail.share.title')}>
                         <Share2 className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
