@@ -38,7 +38,7 @@ const PageFooter = () => {
               <a
                 href="https://twitter.com"
                 className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Twitter"
+                aria-label={t('common:accessibility.twitterLink')}
               >
                 <Twitter className="h-5 w-5" />
               </a>
