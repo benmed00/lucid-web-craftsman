@@ -215,6 +215,41 @@ const CareGuide = () => {
             </p>
           </section>
 
+          <section className="bg-primary/10 rounded-lg shadow-elegant p-8 md:p-10 border border-primary/20 mb-10">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="p-4 bg-primary/20 rounded-full">
+                <Wrench className="h-8 w-8 text-primary" aria-hidden="true" />
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <h2 className="mb-2 text-2xl">
+                  Need a repair? Ask our artisans for a quote
+                </h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  If the damage is beyond a home fix, our Rif weavers can restore
+                  your hat by hand. Send a photo and we will reply with a
+                  personal repair estimate within 48 hours.
+                </p>
+              </div>
+              <Link
+                to="/contact?subject=repair"
+                className="inline-flex items-center gap-2 rounded-md border border-primary bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-elegant transition hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
+                onClick={() =>
+                  trackContact({
+                    subject: 'repair',
+                    contentName: 'Repair quote CTA - Care Guide',
+                  })
+                }
+                aria-label="Request a repair quote from the Rif artisans"
+              >
+                Request a quote
+                <ArrowRight
+                  className="h-4 w-4"
+                  aria-hidden="true"
+                />
+              </Link>
+            </div>
+          </section>
+
           <section className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
             <h2 className="mb-4">4. How to store a straw hat between seasons</h2>
             <ul className="list-disc pl-6 space-y-3 leading-relaxed">
