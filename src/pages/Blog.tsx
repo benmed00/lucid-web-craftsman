@@ -225,12 +225,15 @@ const Blog = () => {
                     </h3>
                     <p className="text-muted-foreground mb-6">{post.excerpt}</p>
 
-                    <Link to={`/blog/${post.id}`}>
+                    <Link
+                      to={`/blog/${post.id}`}
+                      aria-label={`${t('blog.readMore')} : ${post.title}`}
+                    >
                       <Button
                         variant="outline"
                         className="border-border hover:bg-muted hover:text-foreground"
                       >
-                        {t('blog.readMore')}
+                        {t('blog.readMore')} : {post.title}
                       </Button>
                     </Link>
                   </CardContent>
@@ -286,12 +289,15 @@ const Blog = () => {
                     {post.excerpt}
                   </p>
 
-                  <Link to={`/blog/${post.id}`}>
+                  <Link
+                    to={`/blog/${post.id}`}
+                    aria-label={`${t('blog.readMore')} : ${post.title}`}
+                  >
                     <Button
                       variant="link"
                       className="p-0 h-auto text-primary hover:text-primary/80"
                     >
-                      {t('blog.readMore')}
+                      {t('blog.readMore')} : {post.title}
                     </Button>
                   </Link>
                 </CardContent>
