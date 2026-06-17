@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import SEOHelmet from '@/components/seo/SEOHelmet';
 import { useCsrfToken } from '@/hooks/useCsrfToken';
 import {
   clearProfileAvatarUrl,
