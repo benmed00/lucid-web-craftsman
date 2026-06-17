@@ -171,6 +171,11 @@ const OrderHistory = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHelmet
+        title={`${t('orders.title')} - Rif Raw Straw`}
+        url="/orders"
+        noindex
+      />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
