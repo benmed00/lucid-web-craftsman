@@ -269,15 +269,15 @@ const App = () => {
                       {/* Common alias — landing is `/`, not `/home` (paths are case-sensitive) */}
                       <Route
                         path="/home"
-                        element={<Navigate to="/" replace />}
+                        element={<AliasRedirect to="/" />}
                       />
                       <Route
                         path="/Home"
-                        element={<Navigate to="/" replace />}
+                        element={<AliasRedirect to="/" />}
                       />
                       <Route
                         path="/HOME"
-                        element={<Navigate to="/" replace />}
+                        element={<AliasRedirect to="/" />}
                       />
                       <Route
                         path="/products"
