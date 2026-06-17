@@ -21,7 +21,11 @@
     "newsletter": {
       "title": "Restez Inspiré",
       "description": "Abonnez-vous pour recevoir nos derniers articles et histoires exclusives directement dans votre boîte mail."
-    }
+    },
+    "slowLoading": "Le chargement prend plus de temps que prévu...",
+    "errorTitle": "Impossible de charger les articles",
+    "retry": "Réessayer",
+    "noPosts": "Aucun article pour le moment"
   },
   "home": {
     "title": "Accueil",
@@ -81,9 +85,12 @@
       "title": "Suivez-nous sur Instagram",
       "postAlt": "Publication Instagram #{{id}}",
       "imageUnavailable": "Image non disponible"
+    },
+    "artisans": {
+      "badge": "Nos Artisans",
+      "title": "Rencontrez les Artisans"
     }
   },
-
   "about": {
     "title": "À Propos",
     "seo": {
@@ -94,9 +101,9 @@
     "intro": "L'aventure <brand>Rif Raw Straw</brand> commence avec une passion commune : révéler la beauté de l'artisanat berbère et la partager au plus grand nombre.",
     "paragraph1": "Depuis nos débuts, nous parcourons les ateliers, les marchés et les villages à la recherche de créateurs talentueux.",
     "paragraph2": "Aujourd'hui, notre boutique est le reflet de cette quête : une sélection exigeante et des pièces uniques.",
-    "paragraph3": "Merci de faire partie de cette aventure et de soutenir l'artisanat avec nous."
+    "paragraph3": "Merci de faire partie de cette aventure et de soutenir l'artisanat avec nous.",
+    "content": "Rif Raw Straw promeut l'artisanat berbère authentique à travers des produits en paille faits main."
   },
-
   "story": {
     "title": "Notre Histoire",
     "seo": {
@@ -123,7 +130,6 @@
       }
     }
   },
-
   "shipping": {
     "title": "Livraison & Expédition",
     "seo": {
@@ -147,9 +153,9 @@
     "tracking": {
       "title": "Suivi de commande",
       "description": "Un numéro de suivi vous sera envoyé par email après expédition."
-    }
+    },
+    "heading": "Livraison"
   },
-
   "returns": {
     "title": "Retours & Remboursements",
     "seo": {
@@ -172,9 +178,9 @@
     },
     "questions": "Pour toute question, consultez notre",
     "faqLink": "FAQ",
-    "questionsSuffix": "ou contactez notre support."
+    "questionsSuffix": "ou contactez notre support.",
+    "heading": "Retours"
   },
-
   "cgv": {
     "title": "Conditions Générales de Vente",
     "seo": {
@@ -191,7 +197,6 @@
     },
     "contact": "Pour plus d'informations, contactez-nous via la page contact."
   },
-
   "terms": {
     "title": "Mentions Légales",
     "seo": {
@@ -208,7 +213,6 @@
     },
     "contact": "Pour toute question, contactez-nous via la page"
   },
-
   "termsOfService": {
     "title": "Conditions d'Utilisation",
     "seo": {
@@ -253,7 +257,6 @@
       "description": "Si vous avez des questions concernant ces conditions d'utilisation, n'hésitez pas à nous contacter."
     }
   },
-
   "faq": {
     "title": "Questions Fréquentes",
     "seo": {
@@ -285,14 +288,12 @@
       }
     }
   },
-
   "notFound": {
     "title": "Page introuvable",
     "subtitle": "Nous n'avons pas trouvé cette page",
     "description": "La page demandée n'existe pas.",
     "backHome": "Retour à l'accueil"
   },
-
   "invoicePage": {
     "generating": "Génération de votre facture…",
     "orderShort": "Commande #{{shortId}}",
@@ -307,9 +308,17 @@
     "shop": "Boutique",
     "printPdf": "Imprimer / PDF",
     "iframeTitle": "Facture commande {{orderId}}",
-    "errorGeneric": "Erreur lors de la génération."
+    "errorGeneric": "Erreur lors de la génération.",
+    "errorAuth": "Vous devez être connecté pour voir cette facture.",
+    "errorNotFound": "Facture introuvable.",
+    "errorServer": "Erreur lors du chargement de la facture.",
+    "toastAuthTitle": "Authentification requise",
+    "unauthorizedTitle": "Accès non autorisé",
+    "errorCode": "Code d'erreur",
+    "retrying": "Nouvelle tentative...",
+    "signIn": "Se connecter",
+    "backHome": "Retour à l'accueil"
   },
-
   "maintenance": {
     "title": "Site en maintenance",
     "defaultMessage": "Nous effectuons actuellement des travaux de maintenance pour améliorer votre expérience.",
@@ -318,7 +327,6 @@
     "urgentContact": "Pour toute question urgente, contactez-nous :",
     "brandLine": "Rif Raw Straw — Artisanat berbère authentique"
   },
-
   "artisans": {
     "hero": {
       "kicker": "Artisanat authentique du Maroc",
@@ -383,19 +391,16 @@
       "button": "Voir la collection"
     }
   },
-
   "contact": {
     "seo": {
       "title": "Contact | Rifstraw",
       "description": "Contactez Rifstraw pour toute question, commande personnalisée, partenariat ou support client."
     },
-
     "hero": {
       "title": "Contactez-nous",
       "description": "Une question, un projet ou un besoin spécifique ? Notre équipe est à votre écoute.",
       "cta": "Nous contacter"
     },
-
     "cards": {
       "general": {
         "title": "Informations générales",
@@ -410,7 +415,6 @@
         "description": "Vous souhaitez collaborer avec nous ou développer un partenariat B2B ?"
       }
     },
-
     "info": {
       "title": "Coordonnées",
       "description": "Vous pouvez nous contacter par email, téléphone ou nous rendre visite.",
@@ -421,7 +425,6 @@
       "address": "6 allée de la Sèvre\n44400 Rezé, France",
       "hours": "Lundi - Vendredi : 9h - 18h\nSamedi : 10h - 16h\nDimanche : Fermé"
     },
-
     "services": {
       "title": "Nos services",
       "customOrders": "Commandes personnalisées",
@@ -429,32 +432,24 @@
       "b2b": "Solutions B2B",
       "international": "Livraison internationale"
     },
-
     "form": {
       "title": "Formulaire de contact",
       "subtitle": "Remplissez le formulaire ci-dessous et nous reviendrons vers vous rapidement.",
-
       "firstName": "Prénom",
       "firstNameRequired": "Prénom *",
-
       "lastName": "Nom",
       "lastNameRequired": "Nom *",
-
       "email": "Adresse email",
       "emailRequired": "Adresse email *",
       "emailPlaceholder": "exemple@email.com",
       "emailFormat": "Veuillez entrer une adresse email valide.",
-
       "phone": "Téléphone",
       "phonePlaceholder": "+33 6 12 34 56 78",
-
       "company": "Entreprise",
       "companyPlaceholder": "Nom de l’entreprise",
-
       "subject": "Sujet",
       "subjectRequired": "Sujet *",
       "subjectPlaceholder": "Objet de votre message",
-
       "subjectOptions": {
         "product": "Question sur un produit",
         "customOrder": "Commande personnalisée",
@@ -465,33 +460,26 @@
         "repair": "Réparation / restauration",
         "other": "Autre"
       },
-
       "message": "Message",
       "messageRequired": "Message *",
       "messagePlaceholder": "Décrivez votre demande en détail",
       "characters": "caractères",
       "minCharacters": "Le message doit contenir au moins 20 caractères.",
-
       "privacy": "J’accepte la politique de confidentialité et le traitement de mes données.",
-
       "success": "Votre message a bien été envoyé. Nous vous répondrons dans les plus brefs délais.",
       "rateLimited": "Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.",
       "submitting": "Envoi en cours…",
-
       "validation": {
         "subjectMinLength": "Le sujet doit contenir au moins 5 caractères.",
         "messageMinLength": "Le message doit contenir au moins 20 caractères."
       },
-
       "submit": "Envoyer le message"
     },
-
     "map": {
       "title": "Notre localisation",
       "description": "Retrouvez-nous facilement grâce à la carte ci-dessous."
     }
   },
-
   "paymentSuccess": {
     "verifying": {
       "title": "Vérification du paiement...",
@@ -626,7 +614,6 @@
       "contactSupport": "Contacter le support"
     }
   },
-
   "productDetail": {
     "reviews": "avis",
     "recommendations": "Produits similaires",
@@ -750,7 +737,8 @@
     "buttons": {
       "home": "Accueil",
       "signOut": "Déconnexion",
-      "deleteAccount": "Supprimer le compte"
+      "deleteAccount": "Supprimer le compte",
+      "login": "Se connecter"
     },
     "tabs": {
       "overview": "Vue d'ensemble",
@@ -787,7 +775,8 @@
       "legalNotices": "Mentions légales",
       "cookies": "Politique de cookies",
       "copyright": "© 2026 Rif Raw Straw. Tous droits réservés."
-    }
+    },
+    "loginRequired": "Vous devez être connecté pour accéder à votre profil."
   },
   "wishlist": {
     "title": "Mes Favoris",
@@ -844,5 +833,52 @@
     "messages": {
       "loadError": "Erreur lors du chargement des commandes"
     }
+  },
+  "blogPost": {
+    "loading": "Chargement de l'article...",
+    "notFound": "Article introuvable",
+    "backToArticles": "Retour aux articles",
+    "shareArticle": "Partager l'article",
+    "content": {
+      "intro": "",
+      "section1Title": "",
+      "section1": "",
+      "section2Title": "",
+      "section2": "",
+      "section3Title": "",
+      "section3": "",
+      "conclusion": ""
+    }
+  },
+  "compare": {
+    "title": "Comparer les produits",
+    "subtitle": "Comparez les caractéristiques côte à côte",
+    "empty": "Aucun produit à comparer",
+    "browseProducts": "Parcourir les produits",
+    "product": "Produit",
+    "price": "Prix",
+    "rating": "Note",
+    "artisan": "Artisan",
+    "material": "Matériau",
+    "color": "Couleur",
+    "dimensions": "Dimensions",
+    "weight": "Poids",
+    "stock": "Stock",
+    "category": "Catégorie",
+    "add": "Comparer",
+    "selected": "{{count}} sélectionné(s)",
+    "compareNow": "Comparer maintenant",
+    "clearAll": "Tout effacer",
+    "remove": "Retirer"
+  },
+  "unsubscribe": {
+    "title": "Désinscription",
+    "confirm": "Confirmer la désinscription",
+    "processing": "Traitement en cours...",
+    "successTitle": "Désinscription confirmée",
+    "successDescription": "Vous ne recevrez plus de communications de notre part.",
+    "errorTitle": "Erreur",
+    "errorDescription": "Impossible de traiter votre demande. Veuillez réessayer.",
+    "backHome": "Retour à l'accueil"
   }
 }

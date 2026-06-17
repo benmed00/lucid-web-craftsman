@@ -18,7 +18,8 @@
     "login": "Login",
     "logout": "Logout",
     "search": "Search",
-    "searchPlaceholder": "Search products..."
+    "searchPlaceholder": "Search products...",
+    "signOutError": "Sign-out failed"
   },
   "footer": {
     "about": "About",
@@ -88,7 +89,8 @@
     "addedToCart": "Added to cart",
     "removedFromCart": "Removed from cart",
     "addedToWishlist": "Added to wishlist",
-    "removedFromWishlist": "Removed from wishlist"
+    "removedFromWishlist": "Removed from wishlist",
+    "stillLoading": "Still loading, please wait..."
   },
   "currency": {
     "label": "Currency",
@@ -119,7 +121,31 @@
     "mainNav": "Main navigation",
     "mobileNav": "Mobile main menu",
     "enableLightMode": "Enable light mode",
-    "enableDarkMode": "Enable dark mode"
+    "enableDarkMode": "Enable dark mode",
+    "instagramLink": "Follow us on Instagram",
+    "facebookLink": "Follow us on Facebook",
+    "twitterLink": "Follow us on Twitter",
+    "scrollToTop": "Back to top",
+    "searchResults": "Search results",
+    "locationDirections": "Get directions to our shop",
+    "calendarPrev": "Previous month",
+    "calendarNext": "Next month",
+    "paginationPrev": "Previous page",
+    "paginationNext": "Next page",
+    "toggleSidebar": "Toggle sidebar",
+    "breadcrumb": "Breadcrumb",
+    "share": "Share",
+    "remove": "Remove",
+    "edit": "Edit",
+    "copy": "Copy",
+    "close": "Close",
+    "viewAlert": "View alert",
+    "removePromoCode": "Remove promo code",
+    "toggleStatus": "Toggle status",
+    "copyOrderId": "Copy order ID",
+    "downloadCareGuide": "Download the care guide as a PDF",
+    "tableOfContents": "Table of contents",
+    "requestRepairQuote": "Request a repair quote from the Rif artisans"
   },
   "wishlist": {
     "add": "Add to wishlist",
@@ -161,5 +187,29 @@
   },
   "common": {
     "close": "Close"
+  },
+  "trust": {
+    "happyCustomers": "Happy customers",
+    "returns": "Easy returns",
+    "securePayment": "Secure payment",
+    "handmade": "Handmade"
+  },
+  "years": "years of experience",
+  "scarcity": {
+    "lowStock": "Only {{count}} left in stock!",
+    "sellingFast": "This item is selling fast"
+  },
+  "faq": {
+    "returns": {
+      "question": "What is your return policy?",
+      "answer": "You have 14 days to return an item. Returns are free."
+    },
+    "care": {
+      "question": "How do I care for my product?",
+      "answer": "Follow our care tips on the dedicated page."
+    }
+  },
+  "showcase": {
+    "empty": "No products to display"
   }
 }

@@ -21,7 +21,11 @@
     "newsletter": {
       "title": "Stay Inspired",
       "description": "Subscribe to receive our latest articles and exclusive stories directly in your inbox."
-    }
+    },
+    "slowLoading": "Loading is taking longer than expected...",
+    "errorTitle": "Unable to load articles",
+    "retry": "Try again",
+    "noPosts": "No articles yet"
   },
   "home": {
     "seo": {
@@ -80,9 +84,12 @@
       "title": "Follow us on Instagram",
       "postAlt": "Instagram post #{{id}}",
       "imageUnavailable": "Image unavailable"
+    },
+    "artisans": {
+      "badge": "Our Artisans",
+      "title": "Meet the Artisans"
     }
   },
-
   "productDetail": {
     "reviews": "reviews",
     "recommendations": "Related Products",
@@ -200,7 +207,6 @@
       "error": "Something went wrong. Please try again."
     }
   },
-
   "shipping": {
     "title": "Shipping Information",
     "heading": "Shipping Information",
@@ -208,7 +214,6 @@
       "title": "Shipping Information – Rif Raw Straw",
       "description": "Delivery times, prices, zones and tracking information."
     },
-
     "delays": {
       "title": "Delivery Times & Prices",
       "standard": "Standard delivery",
@@ -219,18 +224,15 @@
       "freeThreshold": "€100",
       "freeLabel": "Free delivery"
     },
-
     "zones": {
       "title": "Shipping Zones",
       "description": "We currently ship within Europe and selected international destinations."
     },
-
     "tracking": {
       "title": "Order Tracking",
       "description": "Once your order is shipped, you will receive a tracking number by email."
     }
   },
-
   "returns": {
     "title": "Returns & Refunds",
     "heading": "Returns & Refunds",
@@ -238,14 +240,12 @@
       "title": "Returns & Refunds – Rif Raw Straw",
       "description": "Return conditions, refund policy and procedures."
     },
-
     "policy": {
       "title": "Return Policy",
       "item1": "You have 14 days from receipt of your order to request a return.",
       "item2": "Returned items must be unused and in their original packaging.",
       "item3": "Refunds are issued after inspection of the returned items."
     },
-
     "procedure": {
       "title": "Return Procedure",
       "step1": "Contact our customer support via the",
@@ -254,12 +254,10 @@
       "step2": "Carefully pack the item and include the return reference.",
       "step3": "Send the parcel using the provided instructions."
     },
-
     "questions": "If you have any questions about returns, please visit our",
     "faqLink": "FAQ page",
     "questionsSuffix": "or contact our support team."
   },
-
   "cgv": {
     "title": "Terms & Conditions",
     "seo": {
@@ -276,7 +274,6 @@
     },
     "contact": "For more details, please contact us via the contact page."
   },
-
   "terms": {
     "title": "Legal Notice",
     "seo": {
@@ -293,7 +290,6 @@
     },
     "contact": "For any questions, please contact us via the"
   },
-
   "termsOfService": {
     "title": "Terms of Service",
     "seo": {
@@ -338,7 +334,6 @@
       "description": "If you have any questions regarding these terms of service, please feel free to contact us."
     }
   },
-
   "faq": {
     "title": "Frequently Asked Questions",
     "seo": {
@@ -370,7 +365,6 @@
       }
     }
   },
-
   "about": {
     "title": "About Us",
     "seo": {
@@ -378,9 +372,12 @@
       "description": "Our mission, values and craftsmanship."
     },
     "heading": "About Rif Raw Straw",
-    "content": "Rif Raw Straw promotes authentic Berber craftsmanship through handmade straw products."
+    "content": "Rif Raw Straw promotes authentic Berber craftsmanship through handmade straw products.",
+    "intro": "The <brand>Rif Raw Straw</brand> adventure began with a shared passion: revealing the beauty of Berber craftsmanship and sharing it with as many people as possible.",
+    "paragraph1": "Since our beginnings, we have travelled through workshops, markets and villages in search of talented makers.",
+    "paragraph2": "Today, our boutique reflects that quest: a demanding selection and unique pieces.",
+    "paragraph3": "Thank you for being part of this adventure and supporting craftsmanship with us."
   },
-
   "story": {
     "title": "Our Story",
     "seo": {
@@ -407,14 +404,12 @@
       }
     }
   },
-
   "notFound": {
     "title": "Page not found",
     "subtitle": "We couldn't find that page",
     "description": "The page you are looking for does not exist.",
     "backHome": "Back to home"
   },
-
   "invoicePage": {
     "generating": "Generating your invoice…",
     "orderShort": "Order #{{shortId}}",
@@ -429,9 +424,17 @@
     "shop": "Shop",
     "printPdf": "Print / PDF",
     "iframeTitle": "Invoice order {{orderId}}",
-    "errorGeneric": "Could not generate the invoice."
+    "errorGeneric": "Could not generate the invoice.",
+    "errorAuth": "You must be signed in to view this invoice.",
+    "errorNotFound": "Invoice not found.",
+    "errorServer": "Error loading invoice.",
+    "toastAuthTitle": "Authentication required",
+    "unauthorizedTitle": "Access denied",
+    "errorCode": "Error code",
+    "retrying": "Retrying...",
+    "signIn": "Sign in",
+    "backHome": "Back to home"
   },
-
   "maintenance": {
     "title": "Site under maintenance",
     "defaultMessage": "We're performing maintenance to improve your experience.",
@@ -440,7 +443,6 @@
     "urgentContact": "For urgent questions, contact us:",
     "brandLine": "Rif Raw Straw — Authentic Berber craftsmanship"
   },
-
   "artisans": {
     "hero": {
       "kicker": "Authentic Moroccan Craftsmanship",
@@ -505,19 +507,16 @@
       "button": "Shop the Collection"
     }
   },
-
   "contact": {
     "seo": {
       "title": "Contact | Rifstraw",
       "description": "Get in touch with Rifstraw for any questions, custom orders, partnerships, or customer support."
     },
-
     "hero": {
       "title": "Get in Touch",
       "description": "Have a question, a project, or a specific request? Our team is here to help.",
       "cta": "Contact us"
     },
-
     "cards": {
       "general": {
         "title": "General information",
@@ -532,7 +531,6 @@
         "description": "Interested in collaborating with us or developing a B2B partnership?"
       }
     },
-
     "info": {
       "title": "Contact details",
       "description": "You can reach us by email, phone, or visit us in person.",
@@ -543,7 +541,6 @@
       "address": "6 allée de la Sèvre\n44400 Rezé, France",
       "hours": "Monday – Friday: 9:00 AM – 6:00 PM\nSaturday: 10:00 AM – 4:00 PM\nSunday: Closed"
     },
-
     "services": {
       "title": "Our services",
       "customOrders": "Custom orders",
@@ -551,32 +548,24 @@
       "b2b": "B2B solutions",
       "international": "International shipping"
     },
-
     "form": {
       "title": "Contact form",
       "subtitle": "Fill out the form below and we will get back to you as soon as possible.",
-
       "firstName": "First name",
       "firstNameRequired": "First name *",
-
       "lastName": "Last name",
       "lastNameRequired": "Last name *",
-
       "email": "Email address",
       "emailRequired": "Email address *",
       "emailPlaceholder": "example@email.com",
       "emailFormat": "Please enter a valid email address.",
-
       "phone": "Phone",
       "phonePlaceholder": "+33 6 12 34 56 78",
-
       "company": "Company",
       "companyPlaceholder": "Company name",
-
       "subject": "Subject",
       "subjectRequired": "Subject *",
       "subjectPlaceholder": "Subject of your message",
-
       "subjectOptions": {
         "product": "Product inquiry",
         "customOrder": "Custom order",
@@ -587,33 +576,26 @@
         "repair": "Repair / restoration",
         "other": "Other"
       },
-
       "message": "Message",
       "messageRequired": "Message *",
       "messagePlaceholder": "Describe your request in detail",
       "characters": "characters",
       "minCharacters": "The message must contain at least 20 characters.",
-
       "privacy": "I agree to the privacy policy and the processing of my personal data.",
-
       "success": "Your message has been sent. We'll get back to you soon.",
       "rateLimited": "Too many attempts. Please wait a few minutes before trying again.",
       "submitting": "Sending…",
-
       "validation": {
         "subjectMinLength": "The subject must contain at least 5 characters.",
         "messageMinLength": "The message must contain at least 20 characters."
       },
-
       "submit": "Send message"
     },
-
     "map": {
       "title": "Our location",
       "description": "Find us easily using the map below."
     }
   },
-
   "paymentSuccess": {
     "verifying": {
       "title": "Verifying your payment...",
@@ -754,7 +736,8 @@
     "buttons": {
       "home": "Home",
       "signOut": "Sign Out",
-      "deleteAccount": "Delete Account"
+      "deleteAccount": "Delete Account",
+      "login": "Sign in"
     },
     "tabs": {
       "overview": "Overview",
@@ -791,7 +774,8 @@
       "legalNotices": "Legal Notices",
       "cookies": "Cookie Policy",
       "copyright": "© 2026 Rif Raw Straw. All rights reserved."
-    }
+    },
+    "loginRequired": "You must be signed in to access your profile."
   },
   "wishlist": {
     "title": "My Wishlist",
@@ -848,5 +832,52 @@
     "messages": {
       "loadError": "Error loading orders"
     }
+  },
+  "blogPost": {
+    "loading": "Loading article...",
+    "notFound": "Article not found",
+    "backToArticles": "Back to articles",
+    "shareArticle": "Share article",
+    "content": {
+      "intro": "",
+      "section1Title": "",
+      "section1": "",
+      "section2Title": "",
+      "section2": "",
+      "section3Title": "",
+      "section3": "",
+      "conclusion": ""
+    }
+  },
+  "compare": {
+    "title": "Compare products",
+    "subtitle": "Compare features side by side",
+    "empty": "No products to compare",
+    "browseProducts": "Browse products",
+    "product": "Product",
+    "price": "Price",
+    "rating": "Rating",
+    "artisan": "Artisan",
+    "material": "Material",
+    "color": "Color",
+    "dimensions": "Dimensions",
+    "weight": "Weight",
+    "stock": "Stock",
+    "category": "Category",
+    "add": "Compare",
+    "selected": "{{count}} selected",
+    "compareNow": "Compare now",
+    "clearAll": "Clear all",
+    "remove": "Remove"
+  },
+  "unsubscribe": {
+    "title": "Unsubscribe",
+    "confirm": "Confirm unsubscribe",
+    "processing": "Processing...",
+    "successTitle": "Unsubscribe confirmed",
+    "successDescription": "You will no longer receive communications from us.",
+    "errorTitle": "Error",
+    "errorDescription": "We could not process your request. Please try again.",
+    "backHome": "Back to home"
   }
 }
