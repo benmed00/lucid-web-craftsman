@@ -211,15 +211,78 @@ const CareGuide = () => {
 
           <section className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
             <h2 className="mb-4">A note from the Rif weavers</h2>
-            <p className="leading-relaxed">
+            <p className="leading-relaxed mb-4">
               Every hat we ship from the Rif is woven by hand from doum palm
               and raffia harvested in the same valleys our families have
-              worked for generations. Looked after with these simple
-              gestures, your hat will keep its shape, scent and warmth long
-              after the trend cycle has moved on — and that is exactly the
-              point.
+              worked for generations. Meet the people behind each piece on
+              our{' '}
+              <Link to="/artisans" className="underline text-primary">
+                artisans page
+              </Link>
+              , or read the longer{' '}
+              <Link to="/story" className="underline text-primary">
+                story of Rif Elegance
+              </Link>{' '}
+              to understand the techniques referenced in this guide.
+            </p>
+            <p className="leading-relaxed">
+              Looked after with these simple gestures, your hat will keep its
+              shape, scent and warmth long after the trend cycle has moved
+              on — and that is exactly the point.
             </p>
           </section>
+
+          <nav
+            aria-label="Related pages"
+            className="bg-secondary/30 rounded-lg p-8 md:p-10 border border-border mb-10"
+          >
+            <h2 className="mb-4">Continue exploring</h2>
+            <ul className="space-y-3 leading-relaxed">
+              <li>
+                Browse our{' '}
+                <Link to="/products" className="underline text-primary">
+                  handwoven straw hat collection
+                </Link>{' '}
+                — every piece in this guide is one we ship today.
+              </li>
+              <li>
+                Discover the{' '}
+                <Link to="/artisans" className="underline text-primary">
+                  Rif weavers and cooperatives
+                </Link>{' '}
+                who craft each hat by hand.
+              </li>
+              <li>
+                Read the{' '}
+                <Link to="/story" className="underline text-primary">
+                  Rif Elegance story
+                </Link>{' '}
+                and our commitment to slow, durable craft.
+              </li>
+              <li>
+                Check{' '}
+                <Link to="/shipping" className="underline text-primary">
+                  shipping
+                </Link>{' '}
+                and{' '}
+                <Link to="/returns" className="underline text-primary">
+                  returns
+                </Link>{' '}
+                before you order, or{' '}
+                <Link to="/contact" className="underline text-primary">
+                  contact our workshop
+                </Link>{' '}
+                for a personal repair quote.
+              </li>
+              <li>
+                More questions?{' '}
+                <Link to="/faq" className="underline text-primary">
+                  Visit our FAQ
+                </Link>
+                .
+              </li>
+            </ul>
+          </nav>
         </article>
       </main>
       <PageFooter />
