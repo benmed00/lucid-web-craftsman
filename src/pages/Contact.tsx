@@ -59,6 +59,8 @@ const Contact = () => {
     const orderRef = orderId
       ? `[Order #${orderId.slice(-8).toUpperCase()}] `
       : '';
+    const subjectParam = searchParams.get('subject');
+    const isRepair = subjectParam === 'repair';
 
     return {
       firstName: searchParams.get('firstName') || '',
@@ -66,8 +68,12 @@ const Contact = () => {
       email: searchParams.get('email') || '',
       phone: '',
       company: '',
-      subject: orderId ? 'support' : '',
-      message: orderId ? `${orderRef}` : '',
+      subject: orderId ? 'support' : isRepair ? 'repair' : '',
+      message: orderId
+        ? `${orderRef}`
+        : isRepair
+          ? 'I would like a repair quote for my Rif straw hat.\n\nDescription of the damage:'
+          : '',
     };
   };
 
