@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Star, ThumbsUp, Flag, User, CheckCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
