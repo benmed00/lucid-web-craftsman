@@ -289,7 +289,7 @@ const App = () => {
                       />
                       <Route
                         path="/shop"
-                        element={<Navigate to="/products" replace />}
+                        element={<AliasRedirect to="/products" />}
                       />
                       <Route
                         path="/products/:id"
