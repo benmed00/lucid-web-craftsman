@@ -37,6 +37,7 @@ interface ProductReviewsProps {
 }
 
 const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
+  const { t } = useTranslation('products');
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
