@@ -248,5 +248,24 @@
       "returns": "Returns",
       "returnsValue": "Free returns within 14 days"
     }
+  },
+  "reviewsSection": {
+    "basedOn": "Based on {{count}} verified reviews",
+    "moderated": "Reviews moderated and verified",
+    "leaveReviewFor": "Leave a review for {{name}}",
+    "rating": "Rating *",
+    "title": "Review title",
+    "titlePlaceholder": "Summarize your experience in a few words",
+    "comment": "Comment",
+    "commentPlaceholder": "Share your experience with this product...",
+    "characters": "{{count}}/500 characters",
+    "submit": "Publish review",
+    "submitting": "Sending...",
+    "cancel": "Cancel",
+    "empty": "No reviews yet",
+    "emptyHint": "Be the first to share your opinion!",
+    "helpful": "Helpful ({{count}})",
+    "report": "Report",
+    "loadingArticles": "Loading articles..."
   }
 }
