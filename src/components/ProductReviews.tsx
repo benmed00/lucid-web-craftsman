@@ -323,9 +323,9 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                   size={48}
                   className="mx-auto mb-2 text-muted-foreground/50"
                 />
-                <p>Aucun avis pour le moment</p>
+                <p>{t('reviewsSection.empty')}</p>
                 <p className="text-sm">
-                  Soyez le premier à donner votre avis !
+                  {t('reviewsSection.emptyHint')}
                 </p>
               </div>
               {user && (
@@ -383,13 +383,13 @@ const ProductReviews = ({ productId, productName }: ProductReviewsProps) => {
                 )}
 
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <button className="flex items-center gap-1 hover:text-primary transition-colors">
+                  <button className="flex items-center gap-1 hover:text-primary transition-colors" aria-label={t('reviewsSection.helpful', { count: review.helpful_count })}>
                     <ThumbsUp size={14} />
-                    <span>Utile ({review.helpful_count})</span>
+                    <span>{t('reviewsSection.helpful', { count: review.helpful_count })}</span>
                   </button>
-                  <button className="flex items-center gap-1 hover:text-destructive transition-colors">
+                  <button className="flex items-center gap-1 hover:text-destructive transition-colors" aria-label={t('reviewsSection.report')}>
                     <Flag size={14} />
-                    <span>Signaler</span>
+                    <span>{t('reviewsSection.report')}</span>
                   </button>
                 </div>
               </CardContent>
