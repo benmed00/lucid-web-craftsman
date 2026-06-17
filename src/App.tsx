@@ -78,6 +78,7 @@ const Returns = lazyWithRetry(() => import('./pages/Returns'));
 const Shipping = lazyWithRetry(() => import('./pages/Shipping'));
 const Story = lazyWithRetry(() => import('./pages/Story'));
 const Artisans = lazyWithRetry(() => import('./pages/Artisans'));
+const CareGuide = lazyWithRetry(() => import('./pages/CareGuide'));
 const Terms = lazyWithRetry(() => import('./pages/Terms'));
 const TermsOfService = lazyWithRetry(() => import('./pages/TermsOfService'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
@@ -505,6 +506,14 @@ const App = () => {
                         element={
                           <Suspense fallback={<PageLoadingFallback />}>
                             <Artisans />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/care-guide"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <CareGuide />
                           </Suspense>
                         }
                       />
