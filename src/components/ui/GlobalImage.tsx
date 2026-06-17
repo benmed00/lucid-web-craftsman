@@ -76,11 +76,24 @@ export const GlobalImage = forwardRef<HTMLImageElement, GlobalImageProps>(
       url: string,
       includeTransformations: boolean = true
     ): string => {
-      // Do not transform Supabase storage URLs to avoid 400s in preview
-      if (url.includes('supabase.co/storage')) {
-        return url;
+      // Transform Supabase Storage /object/public/ URLs via the render
+      // endpoint so the CDN resizes/re-encodes (huge byte savings).
+      if (url.includes('/storage/v1/object/public/')) {
+        const dims =
+          category === 'hero'
+            ? { width: 1200, quality: 75 }
+            : category === 'product'
+              ? { width: 800, quality: 75 }
+              : category === 'instagram'
+                ? { width: 400, quality: 70 }
+                : { width: 800, quality: 75 };
+        return transformSupabaseImage(url, { ...dims, format: 'webp' });
       }
       if (!url.includes('supabase.co/storage')) {
+        return url;
+      }
+      if (url.includes('supabase.co/storage')) {
+        // Already a /render/image/ URL or otherwise pre-shaped — keep as-is
         return url;
       }
 
