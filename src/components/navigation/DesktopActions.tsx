@@ -149,9 +149,11 @@ export const DesktopActions = ({
             >
               <Link
                 to="/orders"
+                aria-label={t('nav.orders', 'Order history')}
                 className="flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 text-foreground hover:text-primary transition-colors duration-300"
               >
                 <Package className="h-4 w-4 transition-colors" />
+                <span className="sr-only">{t('nav.orders', 'Order history')}</span>
               </Link>
             </Button>
             <Button
