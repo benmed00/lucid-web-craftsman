@@ -46,6 +46,9 @@ export const useHeroImage = () => {
   // Start as NOT loading — we show the cached/default image immediately.
   // The Supabase fetch is deferred to avoid competing with product queries.
   const [isLoading, _setIsLoading] = useState(false);
+  // True once the deferred Supabase fetch has resolved (used by HeroImage
+  // to know when to mount the remote image with a crossfade transition).
+  const [hasFetchedRemote, setHasFetchedRemote] = useState(false);
 
   // Defer the Supabase fetch so product queries get priority.
   // Hero image is non-critical because we always have a localStorage
