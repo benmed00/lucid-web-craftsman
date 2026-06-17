@@ -34,6 +34,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import Footer from '@/components/Footer';
 import { deleteProfileByUserId } from '@/services/profileApi';
+import SEOHelmet from '@/components/seo/SEOHelmet';
 
 const VALID_TABS = [
   'overview',
