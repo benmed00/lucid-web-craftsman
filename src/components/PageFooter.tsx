@@ -31,7 +31,7 @@ const PageFooter = () => {
               <a
                 href="https://facebook.com"
                 className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Facebook"
+                aria-label={t('common:accessibility.facebookLink')}
               >
                 <Facebook className="h-5 w-5" />
               </a>
