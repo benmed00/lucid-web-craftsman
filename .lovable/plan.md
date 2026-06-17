@@ -1,84 +1,64 @@
+# Plan : Crossfade élégant sur la hero image
 
 ## Objectif
+Éliminer le "flash" visible quand l'image Supabase remplace l'image par défaut après 3s, en ajoutant une transition opacity douce. La stratégie de chargement actuelle (render-first, fetch-later 3s) est **conservée intacte** pour préserver le LCP.
 
-Produire une infographie **autonome, citable et linkable** sur l'artisanat du Rif marocain, déclinée en **PNG haute résolution** (web/blogs) et **PDF A4** (presse), avec un mix patrimoine + impact socio-économique + écologie, fondée sur des chiffres sourcés (UNESCO, Ministère de l'Artisanat marocain, Banque Mondiale, HCP) complétés d'un storytelling visuel.
-
-L'objectif backlink : que blogueurs/journalistes intègrent l'image avec un crédit `Source : rif-elegance.com` (suivi d'un lien follow).
-
-## Livrables
-
-Dans `/mnt/documents/` :
-- `rif-artisanat-infographie.png` (1200 × 3200 px, ~72-150 dpi web)
-- `rif-artisanat-infographie.pdf` (A4 portrait, vectoriel, imprimable)
-- `rif-artisanat-sources.md` — annexe listant chaque chiffre + source + URL (à publier sur le site comme page support pour renforcer la crédibilité du backlink)
-
-## Contenu éditorial (structure verticale)
+## Comportement cible
 
 ```text
-┌─────────────────────────────────────────┐
-│  HEADER — Logo Rif Élégance             │
-│  "L'artisanat du Rif en chiffres"       │
-│  Sous-titre + crédit rif-elegance.com   │
-├─────────────────────────────────────────┤
-│  SECTION 1 — PATRIMOINE                 │
-│  • Origine du tissage du doum/raphia    │
-│  • Régions clés (Chefchaouen, Al        │
-│    Hoceïma, Taounate)                   │
-│  • Transmission orale & gestuelle       │
-├─────────────────────────────────────────┤
-│  SECTION 2 — CHIFFRES CLÉS (sourcés)    │
-│  Grands stats visuels :                 │
-│  • X artisans au Maroc (Min. Artisanat) │
-│  • % de femmes artisanes (HCP)          │
-│  • Contribution PIB artisanat (BM)      │
-│  • Heures de travail / pièce            │
-├─────────────────────────────────────────┤
-│  SECTION 3 — IMPACT SOCIAL              │
-│  • Revenus moyens                       │
-│  • Coopératives féminines du Rif        │
-│  • Transmission intergénérationnelle    │
-├─────────────────────────────────────────┤
-│  SECTION 4 — ÉCOLOGIE                   │
-│  • Matériaux 100% naturels (doum,       │
-│    raphia, laine)                       │
-│  • Empreinte carbone ~zéro              │
-│  • Comparaison vs fast fashion          │
-├─────────────────────────────────────────┤
-│  FOOTER — CTA + crédit                  │
-│  "Découvrez nos pièces sur              │
-│   rif-elegance.com"                     │
-│  Sources listées en petit               │
-└─────────────────────────────────────────┘
+T=0      → Image A (défaut/cache) visible, opacity 1
+T=3000   → fetch Supabase déclenché
+T=~3200  → Image B montée en overlay, opacity 0 → 1 sur 600ms
+T=~3800  → Image A retirée du DOM, seule Image B reste
 ```
 
-## Direction artistique
+Aucun flash, aucun layout shift (même conteneur, même aspect-ratio 4/5).
 
-Cohérente avec la charte Rif Élégance (mémoire projet) :
-- **Couleurs** : sable `#E6D3A3`, beige clair `#F5EBD5`, terre `#8B6F47`, vert olive accent `#6B7A4E`, noir charbon pour le texte
-- **Typographies** : Playfair Display (titres, 700-800), Inter (corps, 400-500)
-- **Iconographie** : pictogrammes line-art fins, dorés sur fond sable — pas d'illustrations photoréalistes (alourdit le fichier et nuit à l'imprimabilité PDF)
-- **Style** : éditorial premium, beaucoup de respiration, gros chiffres en Playfair sur fond contrasté
+## Changements
 
-## Approche technique
+### 1. `src/components/HeroImage.tsx` — superposer A et B avec crossfade
 
-1. **Recherche sourcée** — `websearch--web_search` ciblé sur : Ministère du Tourisme et de l'Artisanat (MTA) Maroc, HCP (Haut-Commissariat au Plan), UNESCO ICH (Patrimoine immatériel), Banque Mondiale Maroc artisanat, rapports ANAPEC/Maison de l'Artisan. Récupérer **5-8 chiffres vérifiables avec URL** + dates. Si chiffre indisponible, marquer "estimation sectorielle" plutôt qu'inventer.
-2. **Génération HTML** — Construire un fichier HTML/CSS standalone (Google Fonts inline, palette en variables CSS) qui rend l'infographie en une page de ~1200 × 3200 px.
-3. **Export PNG** — via Playwright (Chromium headless) `page.screenshot({ fullPage: true })` à 2x device pixel ratio pour le retina.
-4. **Export PDF** — via Playwright `page.pdf({ format: 'A4' })` avec CSS `@page` adapté ; le contenu vertical long est reformaté en 2 pages A4 grâce à `@media print` (sections page-break).
-5. **QA visuelle obligatoire** — convertir PDF → JPG (`pdftoppm`) et inspecter chaque page : pas de débordement, contraste OK, sources lisibles, logo présent, URL claire. Itérer jusqu'à zéro défaut.
-6. **Annexe sources** — générer le `.md` listant chaque stat → source → URL → date de consultation.
+Au lieu de rendre soit le bloc "loading" soit le bloc "loaded", on rend **toujours les deux images dans le même conteneur** en position absolue, et on contrôle leur opacité :
 
-## Stack sandbox
+- Conteneur `relative` avec `aspect-ratio: 4/5`
+- **Image A** (défaut) : `absolute inset-0`, visible tant que B n'est pas chargée
+- **Image B** (Supabase) : `absolute inset-0`, `opacity-0` au départ, passe à `opacity-100` quand `onLoad` se déclenche, avec `transition-opacity duration-700 ease-out`
+- Une fois B affichée pendant ~1s, on peut retirer A du DOM (state `hideDefault`) pour libérer la mémoire — optionnel, low priority
 
-- `websearch--web_search` pour les sources
-- `bun` + Playwright (déjà préinstallé via `npx playwright`) pour render HTML → PNG/PDF
-- `pdftoppm` (poppler) pour la QA visuelle
-- Pas de dépendance ajoutée au projet — tout se fait dans `/tmp/` et `/mnt/documents/`
+### 2. `src/hooks/useHeroImage.ts` — exposer un flag de "fresh fetch"
 
-## Hors scope (sauf demande)
+Ajouter un état `hasFetchedRemote: boolean` qui passe à `true` quand le `setTimeout` de 3s résout avec succès. Permet à `HeroImage` de savoir quand monter l'image B pour la première fois (vs cache localStorage qui était déjà la "bonne" image dès T=0 — dans ce cas, pas de crossfade nécessaire).
 
-- Pas de page React intégrée au site (uniquement fichiers téléchargeables)
-- Pas de version anglaise/arabe (le contenu est en français — cohérent avec la cible journalistes francophones)
-- Pas de modifications du code applicatif
+**Logique de décision dans le composant :**
+- Si `heroImageData.imageUrl === defaultImageUrl` → on n'est qu'à l'image par défaut, en attente
+- Si `heroImageData.imageUrl !== defaultImageUrl` ET pas encore monté → c'est l'image Supabase, monter avec crossfade
+- Si cache localStorage présent dès le départ → image Supabase rendue direct, pas de A visible
 
-Une fois validé, je passe en build : recherche des sources → génération HTML → export PNG+PDF → QA visuelle → livraison des 3 fichiers dans `/mnt/documents/` prêts à téléverser sur le site.
+### 3. Overlays (titre, gradient, hover hint)
+
+Les overlays actuels (gradient bottom, carte de titre, hint hover) sont aujourd'hui dupliqués entre les deux branches `isLoading` / loaded. On les **factorise** dans un seul bloc rendu une fois, par-dessus le conteneur d'images. Réduction de duplication + cohérence visuelle pendant le crossfade.
+
+## Détails techniques
+
+- Utiliser `transition-opacity duration-700 ease-out` (Tailwind) — durée généreuse pour un effet premium, cohérent avec l'esthétique sable/terre du projet.
+- L'image B garde `fetchpriority="high"` (déjà le cas via `HeroImageComponent` avec `preload={true}`).
+- L'image A garde aussi `fetchpriority="high"` car c'est elle le LCP au premier rendu.
+- `onLoad` sur l'image B déclenche `setBLoaded(true)` qui passe l'opacité à 1.
+- Pas de modification du `useHeroImage` autre que l'ajout du flag (signature publique inchangée pour les autres consommateurs comme `AdminHeroImage`).
+- Pas de changement aux autres composants, services, ou config.
+
+## Fichiers touchés
+
+| Fichier | Type | Portée |
+|---|---|---|
+| `src/components/HeroImage.tsx` | edit | Restructure le JSX : 2 images en absolute, opacity contrôlée, overlays factorisés |
+| `src/hooks/useHeroImage.ts` | edit | Ajoute `hasFetchedRemote` dans le retour du hook |
+
+## Hors scope (volontairement)
+- Pas de changement de la stratégie 3s deferred fetch (memory: `useHeroImage` strategy).
+- Pas de changement du LCP / preload (déjà optimisé dans la session précédente).
+- Pas de changement de `AdminHeroImage` (consomme `useHeroImage` mais n'utilise pas le nouveau flag).
+- Pas de modification de la transformation Supabase Storage (`width=1200&quality=75` déjà en place).
+
+## Risques
+- **Très faible.** Modifications purement de présentation, dans un seul composant + un champ retourné par un hook. Pas de logique métier, pas de schéma, pas de network, pas de cache. Réversible en 1 revert.
