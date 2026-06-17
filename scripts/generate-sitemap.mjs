@@ -85,7 +85,7 @@ async function fetchFromSupabase(path) {
 async function fetchProducts() {
   try {
     return await fetchFromSupabase(
-      'products?select=id,slug,updated_at&in_stock=eq.true&order=updated_at.desc'
+      'products?select=id,slug,updated_at&is_available=eq.true&order=updated_at.desc'
     );
   } catch (err) {
     console.warn(`[sitemap] products fetch failed: ${err.message}`);
