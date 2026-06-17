@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useImageLoader } from '@/hooks/useImageLoader';
 import { ImageCategory } from '@/types/image.types';
+import { transformSupabaseImage } from '@/utils/supabaseImageTransform';
 
 /**
  * UNIVERSAL GLOBAL IMAGE COMPONENT
