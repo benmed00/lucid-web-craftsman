@@ -675,6 +675,9 @@ const Contact = () => {
                           <option value="support">
                             {t('contact.form.subjectOptions.support')}
                           </option>
+                          <option value="repair">
+                            {t('contact.form.subjectOptions.repair')}
+                          </option>
                           <option value="other">
                             {t('contact.form.subjectOptions.other')}
                           </option>
