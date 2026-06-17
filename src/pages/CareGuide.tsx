@@ -129,6 +129,52 @@ const CareGuide = () => {
             </div>
           </header>
 
+          <nav
+            aria-label="Table of contents"
+            className="bg-card rounded-lg shadow-elegant p-6 md:p-8 border border-border mb-10"
+          >
+            <h2 className="text-sm uppercase tracking-widest text-muted-foreground mb-4">
+              Table of contents
+            </h2>
+            <ol className="space-y-2 list-decimal pl-5 marker:text-muted-foreground">
+              <li>
+                <a href="#clean" className="underline text-primary hover:text-primary/80 transition">
+                  How to clean a straw hat
+                </a>
+              </li>
+              <li>
+                <a href="#reshape" className="underline text-primary hover:text-primary/80 transition">
+                  How to reshape a straw hat with steam
+                </a>
+              </li>
+              <li>
+                <a href="#repair" className="underline text-primary hover:text-primary/80 transition">
+                  How to repair tears and loose weaves
+                </a>
+              </li>
+              <li>
+                <a href="#repair-quote" className="underline text-primary hover:text-primary/80 transition">
+                  Need a repair? Ask our artisans for a quote
+                </a>
+              </li>
+              <li>
+                <a href="#store" className="underline text-primary hover:text-primary/80 transition">
+                  How to store a straw hat between seasons
+                </a>
+              </li>
+              <li>
+                <a href="#weavers-note" className="underline text-primary hover:text-primary/80 transition">
+                  A note from the Rif weavers
+                </a>
+              </li>
+              <li>
+                <a href="#continue-exploring" className="underline text-primary hover:text-primary/80 transition">
+                  Continue exploring
+                </a>
+              </li>
+            </ol>
+          </nav>
+
           <section id="clean" className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
             <h2 className="mb-4">1. How to clean a straw hat</h2>
             <p className="mb-4 leading-relaxed">
