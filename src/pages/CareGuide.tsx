@@ -129,7 +129,53 @@ const CareGuide = () => {
             </div>
           </header>
 
-          <section className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
+          <nav
+            aria-label="Table of contents"
+            className="bg-card rounded-lg shadow-elegant p-6 md:p-8 border border-border mb-10"
+          >
+            <h2 className="text-sm uppercase tracking-widest text-muted-foreground mb-4">
+              Table of contents
+            </h2>
+            <ol className="space-y-2 list-decimal pl-5 marker:text-muted-foreground">
+              <li>
+                <a href="#clean" className="underline text-primary hover:text-primary/80 transition">
+                  How to clean a straw hat
+                </a>
+              </li>
+              <li>
+                <a href="#reshape" className="underline text-primary hover:text-primary/80 transition">
+                  How to reshape a straw hat with steam
+                </a>
+              </li>
+              <li>
+                <a href="#repair" className="underline text-primary hover:text-primary/80 transition">
+                  How to repair tears and loose weaves
+                </a>
+              </li>
+              <li>
+                <a href="#repair-quote" className="underline text-primary hover:text-primary/80 transition">
+                  Need a repair? Ask our artisans for a quote
+                </a>
+              </li>
+              <li>
+                <a href="#store" className="underline text-primary hover:text-primary/80 transition">
+                  How to store a straw hat between seasons
+                </a>
+              </li>
+              <li>
+                <a href="#weavers-note" className="underline text-primary hover:text-primary/80 transition">
+                  A note from the Rif weavers
+                </a>
+              </li>
+              <li>
+                <a href="#continue-exploring" className="underline text-primary hover:text-primary/80 transition">
+                  Continue exploring
+                </a>
+              </li>
+            </ol>
+          </nav>
+
+          <section id="clean" className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
             <h2 className="mb-4">1. How to clean a straw hat</h2>
             <p className="mb-4 leading-relaxed">
               Straw is a living fibre. It loves a gentle hand and dislikes
@@ -157,7 +203,7 @@ const CareGuide = () => {
             </p>
           </section>
 
-          <section className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
+          <section id="reshape" className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
             <h2 className="mb-4">2. How to reshape a straw hat with steam</h2>
             <p className="mb-4 leading-relaxed">
               A crushed crown or a wavy brim is almost always recoverable —
@@ -183,7 +229,7 @@ const CareGuide = () => {
             </ol>
           </section>
 
-          <section className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
+          <section id="repair" className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
             <h2 className="mb-4">3. How to repair tears and loose weaves</h2>
             <p className="mb-4 leading-relaxed">
               Small repairs are the difference between a five-year hat and a
@@ -215,7 +261,7 @@ const CareGuide = () => {
             </p>
           </section>
 
-          <section className="bg-primary/10 rounded-lg shadow-elegant p-8 md:p-10 border border-primary/20 mb-10">
+          <section id="repair-quote" className="bg-primary/10 rounded-lg shadow-elegant p-8 md:p-10 border border-primary/20 mb-10">
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="p-4 bg-primary/20 rounded-full">
                 <Wrench className="h-8 w-8 text-primary" aria-hidden="true" />
@@ -250,7 +296,7 @@ const CareGuide = () => {
             </div>
           </section>
 
-          <section className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
+          <section id="store" className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
             <h2 className="mb-4">4. How to store a straw hat between seasons</h2>
             <ul className="list-disc pl-6 space-y-3 leading-relaxed">
               <li>
@@ -272,7 +318,7 @@ const CareGuide = () => {
             </ul>
           </section>
 
-          <section className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
+          <section id="weavers-note" className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
             <h2 className="mb-4">A note from the Rif weavers</h2>
             <p className="leading-relaxed mb-4">
               Every hat we ship from the Rif is woven by hand from doum palm
@@ -296,6 +342,7 @@ const CareGuide = () => {
           </section>
 
           <nav
+            id="continue-exploring"
             aria-label="Related pages"
             className="bg-secondary/30 rounded-lg p-8 md:p-10 border border-border mb-10"
           >
