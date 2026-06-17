@@ -99,6 +99,32 @@ const CareGuide = () => {
               generations — here are the exact steps they use to keep every
               strand of doum and raffia looking its best.
             </p>
+            <div className="mt-8 flex justify-center">
+              <a
+                href="/downloads/rif-straw-hat-care-guide.pdf"
+                download
+                className="inline-flex items-center gap-2 rounded-md border border-primary bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-elegant transition hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Download the Rif straw hat care guide as a PDF"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Download the PDF guide
+              </a>
+            </div>
           </header>
 
           <section className="bg-card rounded-lg shadow-elegant p-8 md:p-10 border border-border mb-10">
