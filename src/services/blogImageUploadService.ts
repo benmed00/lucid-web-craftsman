@@ -33,7 +33,7 @@ export class BlogImageUploadService {
       const { data, error } = await supabase.storage
         .from(this.bucketName)
         .upload(fileName, file, {
-          cacheControl: '3600',
+          cacheControl: '31536000',
           upsert: false,
         });
 
