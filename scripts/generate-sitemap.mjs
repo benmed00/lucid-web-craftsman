@@ -19,9 +19,9 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = resolve(__dirname, '..', 'public', 'sitemap.xml');
 
-const BASE_URL = (
-  process.env.SITE_URL || 'https://rif-raw-straw.lovable.app'
-).replace(/\/+$/, '');
+// Project canonical domain — pinned so sitemap entries always match the
+// published Lovable host regardless of ambient SITE_URL env vars.
+const BASE_URL = 'https://rif-raw-straw.lovable.app';
 
 const SUPABASE_URL =
   process.env.VITE_SUPABASE_URL ||
