@@ -95,7 +95,7 @@ export const LazyAdminProducts = lazy(() =>
 );
 
 export const LazyAdminOrders = lazy(() =>
-  import('@/pages/admin/AdminOrders').then((module) => ({
+  import('@/pages/admin/AdminOrdersEnhanced').then((module) => ({
     default: module.default,
   }))
 );
