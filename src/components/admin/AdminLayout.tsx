@@ -72,106 +72,66 @@ const AdminLayout = () => {
     return null; // Will redirect in useEffect
   }
 
-  const menuItems = [
+  const menuGroups: {
+    label: string;
+    items: { icon: typeof Package; label: string; path: string }[];
+  }[] = [
     {
-      icon: LayoutDashboard,
-      label: 'Tableau de bord',
-      path: '/admin',
+      label: 'Général',
+      items: [
+        { icon: LayoutDashboard, label: 'Tableau de bord', path: '/admin' },
+      ],
     },
     {
-      icon: Package,
-      label: 'Produits',
-      path: '/admin/products',
+      label: 'Ventes',
+      items: [
+        { icon: ShoppingCart, label: 'Commandes', path: '/admin/orders' },
+        { icon: Users, label: 'Clients', path: '/admin/customers' },
+        { icon: Tag, label: 'Codes Promo', path: '/admin/promo-codes' },
+      ],
     },
     {
-      icon: FileText,
-      label: 'Catalogue Complet',
-      path: '/admin/catalog',
+      label: 'Catalogue',
+      items: [
+        { icon: Package, label: 'Produits', path: '/admin/products' },
+        { icon: Warehouse, label: 'Stocks', path: '/admin/inventory' },
+        { icon: Star, label: 'Avis clients', path: '/admin/reviews' },
+      ],
     },
     {
-      icon: BookOpen,
-      label: 'Blog',
-      path: '/admin/blog',
+      label: 'Contenu',
+      items: [
+        { icon: BookOpen, label: 'Blog', path: '/admin/blog' },
+        { icon: Tag, label: 'Tags Blog', path: '/admin/tags' },
+        { icon: Image, label: 'Image Principale', path: '/admin/hero-image' },
+        { icon: Languages, label: 'Traductions', path: '/admin/translations' },
+      ],
     },
     {
-      icon: Image,
-      label: 'Image Principale',
-      path: '/admin/hero-image',
-    },
-    {
-      icon: Warehouse,
-      label: 'Stocks',
-      path: '/admin/inventory',
-    },
-    {
-      icon: ShoppingCart,
-      label: 'Commandes',
-      path: '/admin/orders-enhanced',
-    },
-    {
-      icon: Users,
-      label: 'Clients',
-      path: '/admin/customers',
-    },
-    {
-      icon: Megaphone,
       label: 'Marketing',
-      path: '/admin/marketing',
+      items: [
+        { icon: Megaphone, label: 'Marketing', path: '/admin/marketing' },
+        { icon: Mail, label: 'Newsletter', path: '/admin/newsletter' },
+        { icon: Mail, label: 'Tests Emails', path: '/admin/email-testing' },
+      ],
     },
     {
-      icon: Tag,
-      label: 'Codes Promo',
-      path: '/admin/promo-codes',
-    },
-    {
-      icon: BarChart3,
-      label: 'Analyses',
-      path: '/admin/analytics',
-    },
-    {
-      icon: Star,
-      label: 'Avis clients',
-      path: '/admin/reviews',
-    },
-    {
-      icon: Languages,
-      label: 'Traductions',
-      path: '/admin/translations',
-    },
-    {
-      icon: Tag,
-      label: 'Tags Blog',
-      path: '/admin/tags',
-    },
-    {
-      icon: AlertTriangle,
-      label: "Rapports d'erreurs",
-      path: '/admin/error-reports',
-    },
-    {
-      icon: Mail,
-      label: 'Newsletter',
-      path: '/admin/newsletter',
-    },
-    {
-      icon: Mail,
-      label: 'Tests Emails',
-      path: '/admin/email-testing',
-    },
-    {
-      icon: Activity,
-      label: 'Statut APIs',
-      path: '/admin/api-status',
-    },
-    {
-      icon: Settings,
-      label: 'Paramètres',
-      path: '/admin/settings',
+      label: 'Système',
+      items: [
+        { icon: BarChart3, label: 'Analyses', path: '/admin/analytics' },
+        {
+          icon: AlertTriangle,
+          label: "Rapports d'erreurs",
+          path: '/admin/error-reports',
+        },
+        { icon: Activity, label: 'Statut APIs', path: '/admin/api-status' },
+        { icon: Settings, label: 'Paramètres', path: '/admin/settings' },
+      ],
     },
   ];
 
   const Sidebar = ({ className }: { className?: string }) => (
-    <div className={cn('bg-card border-r border-border h-full', className)}>
+    <div className={cn('bg-card border-r border-border h-full flex flex-col', className)}>
       <div className="p-6 border-b border-border">
         <div className="flex items-center space-x-3">
           <div className="p-2 rounded-lg bg-primary/10">
@@ -205,31 +165,43 @@ const AdminLayout = () => {
         )}
       </div>
 
-      <nav className="p-4 space-y-2">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+      <nav className="flex-1 overflow-y-auto p-4 space-y-6">
+        {menuGroups.map((group) => (
+          <div key={group.label} className="space-y-1">
+            <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+              {group.label}
+            </p>
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                item.path === '/admin'
+                  ? location.pathname === '/admin' ||
+                    location.pathname === '/admin/dashboard'
+                  : location.pathname === item.path ||
+                    location.pathname.startsWith(item.path + '/');
 
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={cn(
-                'flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors',
-                isActive
-                  ? 'bg-primary/10 text-primary border border-primary/20'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              <span className="font-medium">{item.label}</span>
-            </Link>
-          );
-        })}
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    'flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-sm',
+                    isActive
+                      ? 'bg-primary/10 text-primary border border-primary/20'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
-      <div className="absolute bottom-4 left-4 right-4">
+      <div className="p-4 border-t border-border">
         <Button
           onClick={handleLogout}
           variant="outline"
