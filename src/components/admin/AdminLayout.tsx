@@ -22,7 +22,7 @@ import {
   Mail,
   Star,
   Activity,
-  FileText,
+  
   Languages,
   BookOpen,
 } from 'lucide-react';
