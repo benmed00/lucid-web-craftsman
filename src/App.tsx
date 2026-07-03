@@ -603,12 +603,9 @@ const App = () => {
                         />
                         <Route
                           path="orders-enhanced"
-                          element={
-                            <Suspense fallback={<PageLoadingFallback />}>
-                              <AdminOrdersEnhanced />
-                            </Suspense>
-                          }
+                          element={<Navigate to="/admin/orders" replace />}
                         />
+
                         <Route
                           path="customers"
                           element={
