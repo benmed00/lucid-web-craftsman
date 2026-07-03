@@ -514,7 +514,7 @@ export function CheckoutSessionsTab() {
                           asChild
                         >
                           <a
-                            href={`/admin/orders-enhanced?order=${selectedSession.order_id}`}
+                            href={`/admin/orders?order=${selectedSession.order_id}`}
                           >
                             {selectedSession.order_id.slice(0, 8).toUpperCase()}
                             <ExternalLink className="h-3 w-3 ml-1" />
