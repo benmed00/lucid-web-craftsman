@@ -672,12 +672,9 @@ const App = () => {
                         />
                         <Route
                           path="catalog"
-                          element={
-                            <Suspense fallback={<PageLoadingFallback />}>
-                              <AdminProductCatalog />
-                            </Suspense>
-                          }
+                          element={<Navigate to="/admin/products" replace />}
                         />
+
                         <Route
                           path="blog"
                           element={
