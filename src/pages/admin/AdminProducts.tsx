@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,66 +30,40 @@ import {
 } from 'lucide-react';
 import { ProductImageManager } from '@/components/admin/ProductImageManager';
 import { ProductFormWithImages } from '@/components/admin/ProductFormWithImages';
-import { ProductService } from '@/services/productService';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { useAuditLog } from '@/hooks/useAuditLog';
-import { updateAdminProductReturnRow } from '@/services/adminProductsApi';
-import { usePagination } from '@/hooks/usePagination';
+import { useAdminProducts } from '@/hooks/admin/useAdminProducts';
 import TablePagination from '@/components/admin/TablePagination';
 
 const AdminProducts = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterCategory, setFilterCategory] = useState('all');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const { logAction } = useAuditLog();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isNewProduct, setIsNewProduct] = useState(false);
   const [categories] = useState<string[]>(['Sacs', 'Chapeaux']);
   const [formData, setFormData] = useState<Partial<Product>>({});
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const data = await ProductService.getAllProducts();
-      setProducts(data);
-    } catch (error) {
-      console.error('Error loading products:', error);
-      toast.error('Erreur lors du chargement des produits');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.artisan?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      filterCategory === 'all' ||
-      product.category.toLowerCase() === filterCategory.toLowerCase();
-    return matchesSearch && matchesCategory;
-  });
-
-  // Pagination
   const {
+    products,
+    filteredProducts,
+    paginatedProducts,
+    isLoading: loading,
+    refresh,
+    searchQuery,
+    setSearchQuery,
+    filterCategory,
+    setFilterCategory,
+    updateProduct,
     currentPage,
     totalPages,
-    paginatedItems: paginatedProducts,
     startIndex,
     endIndex,
     totalItems,
     itemsPerPage,
     goToPage,
     setItemsPerPage,
-  } = usePagination({ items: filteredProducts, itemsPerPage: 12 });
+  } = useAdminProducts();
+
 
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
