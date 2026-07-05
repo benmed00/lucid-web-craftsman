@@ -128,14 +128,7 @@ export default function AdminOrdersEnhanced() {
 
             <ManualTestOrderStatus />
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                refetch();
-                queryClient.invalidateQueries({ queryKey: ['order-stats'] });
-              }}
-            >
+            <Button variant="outline" size="sm" onClick={refresh}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Actualiser
             </Button>
@@ -175,7 +168,7 @@ export default function AdminOrdersEnhanced() {
               </div>
 
               <Select
-                onValueChange={handleStatusFilter}
+                onValueChange={setStatusFilter}
                 value={filters.status?.[0] || 'all'}
               >
                 <SelectTrigger className="w-[180px]">
@@ -193,7 +186,7 @@ export default function AdminOrdersEnhanced() {
                 </SelectContent>
               </Select>
 
-              <Select onValueChange={handleAnomalyFilter} defaultValue="all">
+              <Select onValueChange={setAnomalyFilter} defaultValue="all">
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filtrer anomalies" />
                 </SelectTrigger>
