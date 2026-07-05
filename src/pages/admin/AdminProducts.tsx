@@ -96,51 +96,34 @@ const AdminProducts = () => {
   };
 
   const handleSaveProduct = async () => {
+    if (!formData.name || !formData.price || !formData.category) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+    if (isNewProduct) {
+      toast.info(
+        "Utilisez le bouton 'Ajouter un produit' pour créer de nouveaux produits"
+      );
+      return;
+    }
+    if (!editingProduct) return;
+
     try {
-      if (!formData.name || !formData.price || !formData.category) {
-        toast.error('Veuillez remplir tous les champs obligatoires');
-        return;
-      }
-
-      const productData = {
-        ...formData,
-        images: formData.images || [],
-      };
-
-      if (isNewProduct) {
-        // This shouldn't happen as we use ProductFormWithImages for new products
-        toast.info(
-          "Utilisez le bouton 'Ajouter un produit' pour créer de nouveaux produits"
-        );
-        return;
-      } else {
-        // Update existing product
-        const data = await updateAdminProductReturnRow(
-          editingProduct!.id,
-          productData as Record<string, unknown>
-        );
-
-        // Update local state
-        setProducts((prev) =>
-          prev.map((p) => (p.id === editingProduct?.id ? data : p))
-        );
-
-        toast.success('Produit modifié avec succès');
-        logAction(
-          'UPDATE_PRODUCT',
-          'products',
-          editingProduct?.id?.toString() || ''
-        );
-      }
-
+      await updateProduct({
+        id: editingProduct.id,
+        payload: {
+          ...formData,
+          images: formData.images || [],
+        } as Record<string, unknown>,
+      });
       setIsDialogOpen(false);
       setFormData({});
       setEditingProduct(null);
-    } catch (error) {
-      console.error('Error saving product:', error);
-      toast.error('Erreur lors de la sauvegarde du produit');
+    } catch {
+      // toast handled by mutation onError
     }
   };
+
 
   const ProductForm = () => {
     return (
