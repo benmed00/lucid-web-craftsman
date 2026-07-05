@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "rif-elegance-mcp",
+      "version": "0.1.0",
+      "title": "Rif Elegance — Catalogue MCP"
+    },
+    "tools": [
+      {
+        "name": "search_products",
+        "title": "Rechercher des produits",
+        "description": "Recherche des produits Rif Elegance (chapeaux en paille, sacs, accessoires) par mot-clé, catégorie ou fourchette de prix. Retourne nom, prix, catégorie, stock et slug.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Mot-clé recherché dans le nom ou la description"
+            },
+            "category": {
+              "type": "string",
+              "description": "Filtrer par catégorie exacte (ex: \"chapeaux\", \"sacs\")"
+            },
+            "max_price": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Prix maximum en EUR"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_product",
+        "title": "Détail d’un produit",
+        "description": "Récupère la fiche complète d’un produit Rif Elegance par son slug (ex: \"chapeau-paille-capeline-naturel\") : description, matière, entretien, artisan, dimensions, stock, prix.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "slug": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Slug URL du produit"
+            }
+          },
+          "required": [
+            "slug"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_categories",
+        "title": "Lister les catégories",
+        "description": "Retourne la liste distincte des catégories de produits disponibles dans le catalogue Rif Elegance, avec le nombre de produits par catégorie.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
