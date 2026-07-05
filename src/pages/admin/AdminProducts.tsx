@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,66 +30,40 @@ import {
 } from 'lucide-react';
 import { ProductImageManager } from '@/components/admin/ProductImageManager';
 import { ProductFormWithImages } from '@/components/admin/ProductFormWithImages';
-import { ProductService } from '@/services/productService';
 import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { useAuditLog } from '@/hooks/useAuditLog';
-import { updateAdminProductReturnRow } from '@/services/adminProductsApi';
-import { usePagination } from '@/hooks/usePagination';
+import { useAdminProducts } from '@/hooks/admin/useAdminProducts';
 import TablePagination from '@/components/admin/TablePagination';
 
 const AdminProducts = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterCategory, setFilterCategory] = useState('all');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const { logAction } = useAuditLog();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isNewProduct, setIsNewProduct] = useState(false);
   const [categories] = useState<string[]>(['Sacs', 'Chapeaux']);
   const [formData, setFormData] = useState<Partial<Product>>({});
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const data = await ProductService.getAllProducts();
-      setProducts(data);
-    } catch (error) {
-      console.error('Error loading products:', error);
-      toast.error('Erreur lors du chargement des produits');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.artisan?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      filterCategory === 'all' ||
-      product.category.toLowerCase() === filterCategory.toLowerCase();
-    return matchesSearch && matchesCategory;
-  });
-
-  // Pagination
   const {
+    products,
+    filteredProducts,
+    paginatedProducts,
+    isLoading: loading,
+    refresh,
+    searchQuery,
+    setSearchQuery,
+    filterCategory,
+    setFilterCategory,
+    updateProduct,
     currentPage,
     totalPages,
-    paginatedItems: paginatedProducts,
     startIndex,
     endIndex,
     totalItems,
     itemsPerPage,
     goToPage,
     setItemsPerPage,
-  } = usePagination({ items: filteredProducts, itemsPerPage: 12 });
+  } = useAdminProducts();
+
 
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
@@ -122,51 +96,34 @@ const AdminProducts = () => {
   };
 
   const handleSaveProduct = async () => {
+    if (!formData.name || !formData.price || !formData.category) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+    if (isNewProduct) {
+      toast.info(
+        "Utilisez le bouton 'Ajouter un produit' pour créer de nouveaux produits"
+      );
+      return;
+    }
+    if (!editingProduct) return;
+
     try {
-      if (!formData.name || !formData.price || !formData.category) {
-        toast.error('Veuillez remplir tous les champs obligatoires');
-        return;
-      }
-
-      const productData = {
-        ...formData,
-        images: formData.images || [],
-      };
-
-      if (isNewProduct) {
-        // This shouldn't happen as we use ProductFormWithImages for new products
-        toast.info(
-          "Utilisez le bouton 'Ajouter un produit' pour créer de nouveaux produits"
-        );
-        return;
-      } else {
-        // Update existing product
-        const data = await updateAdminProductReturnRow(
-          editingProduct!.id,
-          productData as Record<string, unknown>
-        );
-
-        // Update local state
-        setProducts((prev) =>
-          prev.map((p) => (p.id === editingProduct?.id ? data : p))
-        );
-
-        toast.success('Produit modifié avec succès');
-        logAction(
-          'UPDATE_PRODUCT',
-          'products',
-          editingProduct?.id?.toString() || ''
-        );
-      }
-
+      await updateProduct({
+        id: editingProduct.id,
+        payload: {
+          ...formData,
+          images: formData.images || [],
+        } as Record<string, unknown>,
+      });
       setIsDialogOpen(false);
       setFormData({});
       setEditingProduct(null);
-    } catch (error) {
-      console.error('Error saving product:', error);
-      toast.error('Erreur lors de la sauvegarde du produit');
+    } catch {
+      // toast handled by mutation onError
     }
   };
+
 
   const ProductForm = () => {
     return (
@@ -443,14 +400,14 @@ const AdminProducts = () => {
         </div>
 
         <div className="flex space-x-2">
-          <ProductFormWithImages onProductAdded={fetchProducts} />
+          <ProductFormWithImages onProductAdded={refresh} />
           <Link to="/admin/hero-image">
             <Button variant="outline" size="sm">
               <ImageIcon className="h-4 w-4 mr-2" />
               Gérer l'image principale
             </Button>
           </Link>
-          <Button onClick={fetchProducts} variant="outline" className="gap-2">
+          <Button onClick={refresh} variant="outline" className="gap-2">
             <RefreshCw className="h-4 w-4" />
             Actualiser
           </Button>
@@ -582,7 +539,7 @@ const AdminProducts = () => {
                 : 'Commencez par ajouter votre premier produit'}
             </p>
             {!searchQuery && filterCategory === 'all' && (
-              <ProductFormWithImages onProductAdded={fetchProducts} />
+              <ProductFormWithImages onProductAdded={refresh} />
             )}
           </CardContent>
         </Card>
