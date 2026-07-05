@@ -1,143 +1,48 @@
 
-# Plan de consolidation de l'admin
+# Installer Google Tag Manager (GTM-W37MDPNB)
 
-Objectif : éliminer les doublons de logique, supprimer le code mort, centraliser les patterns dupliqués, et rendre l'admin cohérent — sans toucher au design ni à l'i18n (FR conservé inline).
+## Objectif
+Injecter l'extrait GTM sur toutes les pages du site.
 
-## État actuel (audit)
+## Changements
 
-- **21 pages admin**, ~14 600 lignes, plusieurs fichiers > 800 lignes.
-- **Doublons de pages** :
-  - `AdminOrders.tsx` (724 l.) ↔ `AdminOrdersEnhanced.tsx` (409 l.) — deux routes actives (`/admin/orders` et `/admin/orders-enhanced`), la sidebar pointe vers Enhanced.
-  - `AdminProducts.tsx` (635 l.) ↔ `AdminProductCatalog.tsx` (691 l.) — deux entrées dans la sidebar (« Produits » et « Catalogue Complet »).
-- **Doublons de composants** dans `src/components/admin/` :
-  - 4× boutons d'envoi d'email : `SendShippingEmailButton`, `SendDeliveryEmailButton`, `SendCancellationEmailButton` + les variantes `Test*EmailButton` — même structure copiée.
-  - `ManualTestOrderStatus` + `TestOrderEmailButton` recouvrent `AdminEmailTesting`.
-- **RBAC hybride** : `useAdminAuth` s'appuie sur `user_roles` (bon), mais la table `admin_users` existe encore et est référencée dans plusieurs pages.
-- **Sidebar** : 19 entrées à plat, pas de regroupement, pas d'état actif fiable pour les sous-routes.
-- **Pas de standardisation** : chaque page refait sa propre table, sa propre pagination, ses propres skeletons, ses propres toasts d'erreur.
+### `index.html`
 
-## Phase 1 — Fusion des pages en double
+1. **Dans `<head>`, le plus haut possible** (juste après `<meta charset>` / viewport, avant les autres scripts) — snippet GTM inline :
+   ```html
+   <!-- Google Tag Manager -->
+   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+   j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+   })(window,document,'script','dataLayer','GTM-W37MDPNB');</script>
+   <!-- End Google Tag Manager -->
+   ```
 
-### 1.1 Commandes (une seule vue `/admin/orders`)
+2. **Juste après `<body>`** — fallback noscript (obligatoirement dans `<body>`, jamais dans `<head>` selon les règles Lovable) :
+   ```html
+   <!-- Google Tag Manager (noscript) -->
+   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W37MDPNB"
+   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+   <!-- End Google Tag Manager (noscript) -->
+   ```
 
-Nouvelle page unique reprenant le meilleur des deux :
-- **De `AdminOrdersEnhanced`** : `OrderStatsCards`, `OrderCommandPalette`, `CheckoutSessionsTab`, `OrderAnomaliesList`, `FraudAssessmentPanel`, `OrderDetailsPanel` avec onglets (Customer / Payment / Coupon / History).
-- **De `AdminOrders`** : filtres avancés (statut, date, montant), export CSV, actions bulk, `AddOrderDialog`.
+### CSP (`index.html` `<meta http-equiv="Content-Security-Policy">`)
 
-Structure cible :
-```text
-/admin/orders
-├── Header : stats cards + bouton "Nouvelle commande"
-├── Tabs : Commandes | Sessions checkout | Anomalies
-├── Toolbar : recherche + filtres + export
-├── Table unifiée (voir Phase 3)
-└── Drawer latéral : OrderDetailsPanel (onglets)
-```
+Autoriser les domaines GTM :
+- `script-src` : ajouter `https://www.googletagmanager.com`
+- `img-src` : ajouter `https://www.googletagmanager.com` (pixels de tags Google)
+- `connect-src` : ajouter `https://www.googletagmanager.com` et `https://www.google-analytics.com` (si GA4 sera loggé via GTM)
+- `frame-src` : ajouter `https://www.googletagmanager.com` (iframe noscript)
 
-Suppressions :
-- `src/pages/admin/AdminOrders.tsx`
-- Route `/admin/orders-enhanced` (redirect 301 côté client vers `/admin/orders` pour les anciens liens).
-- Entrée sidebar « orders-enhanced ».
+Si tu prévois d'ajouter GA4, Ads, Meta, TikTok via GTM plus tard, on étendra la CSP à ce moment-là.
 
-### 1.2 Produits (une seule vue `/admin/products`)
+## Hors périmètre
+- Pas de configuration de conteneur GTM côté Google (à faire dans l'interface GTM).
+- Pas de bandeau consentement / Consent Mode v2 — à traiter séparément si besoin RGPD (recommandé avant d'activer des tags marketing).
+- Pas de push `dataLayer` custom (events e-commerce type `add_to_cart`, `purchase`) — à faire dans une phase suivante si tu veux tracker les événements checkout.
 
-Fusion `AdminProducts` + `AdminProductCatalog` :
-- Vue liste avec **toggle Grid / Table** (Grid = actuel Catalog, Table = actuel Products).
-- Filtres partagés : catégorie, tags, stock, disponibilité, prix.
-- Formulaire unique via `ProductFormWithImages` + `ProductImageManager`.
-- Bulk actions : activation, catégorisation, suppression.
-
-Suppressions :
-- `AdminProductCatalog.tsx`
-- Route `/admin/catalog` (redirect vers `/admin/products`).
-- Entrée sidebar « Catalogue Complet ».
-
-## Phase 2 — Centralisation des composants dupliqués
-
-### 2.1 Emails transactionnels (bouton unique)
-
-Créer `src/components/admin/orders/OrderEmailActions.tsx` piloté par un enum :
-```ts
-type OrderEmailType = 'confirmation' | 'shipping' | 'delivery' | 'cancellation';
-<OrderEmailActions orderId={id} type="shipping" mode="send" />
-<OrderEmailActions orderId={id} type="shipping" mode="test" />
-```
-Supprimer les 8 fichiers `Send*EmailButton.tsx` + `Test*EmailButton.tsx` + `ManualTestOrderStatus.tsx`.
-
-### 2.2 Statuts de commande
-
-Un seul point d'entrée `orderStatusRegistry.ts` : mapping `status → label FR + variant Badge + transitions autorisées + email associé`. Utilisé par `OrderStatusBadge`, `OrderStatusSelect`, `OrderHistoryTimeline` et `OrderEmailActions`. Aligné sur `order_status_customer_mapping` + `order_state_transitions` en base.
-
-### 2.3 Hooks data partagés
-
-Extraire dans `src/hooks/admin/` :
-- `useAdminOrders(filters)` — remplace 4 duplications de `supabase.from('orders').select(...)`.
-- `useAdminProducts(filters)`
-- `useAdminCustomers(filters)`
-- `useAdminMutations` (update status, refund, cancel) avec invalidation React Query centralisée.
-
-## Phase 3 — Standardisation UI (sans redesign)
-
-### 3.1 Composants transverses `src/components/admin/shared/`
-
-- `<AdminDataTable>` — wrapper standard (colonnes, tri, pagination, sélection, empty state, skeleton).
-- `<AdminPageHeader title, description, actions, breadcrumbs>` — remplace le header ad hoc de chaque page.
-- `<AdminFilters>` — barre de filtres réutilisable (search + selects + date range).
-- `<AdminErrorBoundary>` — englobe chaque route admin dans `AdminLayout` pour éviter qu'une page cassée ne casse tout.
-- `<AdminEmptyState>` et `<AdminLoadingState>` (skeletons cohérents).
-
-### 3.2 Sidebar regroupée
-
-Refonte de `AdminLayout` pour regrouper les 19 entrées :
-```text
-Ventes       : Commandes · Clients · Codes promo
-Catalogue    : Produits · Stocks · Tags · Avis
-Contenu      : Blog · Image principale · Traductions
-Marketing    : Marketing · Newsletter · Emails
-Système      : Analyses · Rapports d'erreurs · Statut APIs · Paramètres
-```
-Utilisation de `shadcn/ui sidebar` avec `NavLink` (état actif fiable, y compris sous-routes) + trigger mobile correctement branché sur `SidebarProvider`.
-
-## Phase 4 — Nettoyage RBAC & sécurité
-
-- Supprimer les références restantes à `admin_users` dans le code applicatif (le RBAC passe par `user_roles` + `has_role`).
-- Table `admin_users` conservée en base tant qu'un audit dédié n'est pas fait (à traiter dans un plan séparé).
-- Ajouter `logAccessDenied` sur toutes les mutations admin (déjà présent sur `reverifyAdmin`).
-- Wrapper `useAdminMutations` : refuse la mutation si `canAdmin(role)` = false, sans dépendre uniquement de RLS.
-
-## Phase 5 — Validation
-
-- Écrire un smoke test manuel : chaque route admin charge sans erreur, la sidebar met en surbrillance la bonne entrée, les redirects legacy fonctionnent.
-- `pnpm run type:check` + `pnpm run lint` doivent passer après suppression des fichiers morts.
-- Vérifier qu'aucun import ne pointe encore vers les fichiers supprimés (`rg "AdminOrdersEnhanced|AdminProductCatalog|SendShippingEmailButton"`).
-
-## Livrables
-
-| # | Livrable | Impact |
-|---|---|---|
-| 1 | Page Orders unifiée + redirect | -1 page, -300 l. |
-| 2 | Page Products unifiée + redirect | -1 page, -400 l. |
-| 3 | `OrderEmailActions` + suppression 8 boutons | -600 l. |
-| 4 | `orderStatusRegistry` | source unique de vérité |
-| 5 | Hooks admin partagés | -800 l. de duplication |
-| 6 | `AdminDataTable` + `AdminPageHeader` + `AdminErrorBoundary` | pages plus courtes, plus robustes |
-| 7 | Sidebar regroupée | 5 sections, navigation lisible |
-| 8 | Nettoyage `admin_users` (code) | RBAC unifié |
-
-**Estimation** : ~2 500 lignes supprimées, 0 régression fonctionnelle, aucune migration SQL nécessaire pour cette phase.
-
-## Détails techniques
-
-- Aucune migration DB dans ce plan — la table `order_status_customer_mapping` sert déjà de source pour les libellés côté client.
-- Redirects legacy implémentés via `<Route path="orders-enhanced" element={<Navigate to="/admin/orders" replace />} />` dans `App.tsx`.
-- React Query : introduire des `queryKeys` centralisés (`adminKeys.orders.list(filters)`) pour éviter les invalidations manquées.
-- Les tests Cypress admin existants (`admin_dashboard_spec.js`) restent verts — les routes principales gardent la même URL.
-- Rien ne touche au design system (couleurs, fonts, spacing) ni à l'i18n front public.
-
-## Hors périmètre (à planifier séparément)
-
-- Traduction FR/EN de l'admin.
-- Refonte visuelle / redesign de l'admin.
-- Suppression physique de la table `admin_users` (nécessite audit).
-- Permissions granulaires super_admin vs admin vs staff.
-- Tests E2E admin exhaustifs.
+## Validation
+- Charger le site → onglet Réseau : vérifier `gtm.js?id=GTM-W37MDPNB` (200 OK).
+- Extension **Tag Assistant** de Google : conteneur détecté.
+- Console : aucune violation CSP.
