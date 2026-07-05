@@ -29,6 +29,7 @@ import type { PreRenderedAsset } from 'rollup';
 import { readFileSync } from 'fs';
 import path from 'path';
 import react from '@vitejs/plugin-react-swc';
+import { mcpPlugin } from '@lovable.dev/mcp-js/stacks/supabase/vite';
 
 const pkgVersion = JSON.parse(
   readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
@@ -111,7 +112,7 @@ export default defineConfig(({ mode }) => ({
   // ==========================================================================
   // Plugins
   // ==========================================================================
-  plugins: [react(), mode === 'development' && componentTaggerPlugin].filter(
+  plugins: [react(), mode === 'development' && componentTaggerPlugin, mcpPlugin()].filter(
     Boolean
   ),
 
