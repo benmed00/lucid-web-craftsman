@@ -400,14 +400,14 @@ const AdminProducts = () => {
         </div>
 
         <div className="flex space-x-2">
-          <ProductFormWithImages onProductAdded={fetchProducts} />
+          <ProductFormWithImages onProductAdded={refresh} />
           <Link to="/admin/hero-image">
             <Button variant="outline" size="sm">
               <ImageIcon className="h-4 w-4 mr-2" />
               Gérer l'image principale
             </Button>
           </Link>
-          <Button onClick={fetchProducts} variant="outline" className="gap-2">
+          <Button onClick={refresh} variant="outline" className="gap-2">
             <RefreshCw className="h-4 w-4" />
             Actualiser
           </Button>
@@ -539,7 +539,7 @@ const AdminProducts = () => {
                 : 'Commencez par ajouter votre premier produit'}
             </p>
             {!searchQuery && filterCategory === 'all' && (
-              <ProductFormWithImages onProductAdded={fetchProducts} />
+              <ProductFormWithImages onProductAdded={refresh} />
             )}
           </CardContent>
         </Card>
