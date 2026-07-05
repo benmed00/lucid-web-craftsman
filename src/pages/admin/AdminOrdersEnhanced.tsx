@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -41,12 +41,8 @@ import {
 } from '@/components/admin/orders/OrderStatsCards';
 import { OrderAnomaliesList } from '@/components/admin/orders/OrderAnomaliesList';
 import { CheckoutSessionsTab } from '@/components/admin/orders/CheckoutSessionsTab';
-import { useOrders, useOrderRealtimeUpdates } from '@/hooks/useOrderManagement';
-import {
-  ORDER_STATUS_CONFIG,
-  type OrderStatus,
-  type OrderFilters,
-} from '@/types/order.types';
+import { useAdminOrders } from '@/hooks/admin/useAdminOrders';
+import { ORDER_STATUS_CONFIG, type OrderStatus } from '@/types/order.types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddOrderDialog } from '@/components/admin/AddOrderDialog';
 import { ManualTestOrderStatus } from '@/components/admin/ManualTestOrderStatus';
@@ -55,7 +51,6 @@ import { TestShippingEmailButton } from '@/components/admin/TestShippingEmailBut
 import { TestDeliveryEmailButton } from '@/components/admin/TestDeliveryEmailButton';
 import { TestCancellationEmailButton } from '@/components/admin/TestCancellationEmailButton';
 import TablePagination from '@/components/admin/TablePagination';
-import { usePagination } from '@/hooks/usePagination';
 import {
   Search,
   AlertTriangle,
@@ -65,80 +60,34 @@ import {
   ShoppingCart,
   Package,
 } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
+
 
 export default function AdminOrdersEnhanced() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [filters, setFilters] = useState<OrderFilters>({});
-  const [searchValue, setSearchValue] = useState('');
 
-  const queryClient = useQueryClient();
-  const { data: orders = [], isLoading, refetch } = useOrders(filters);
-  const { subscribe } = useOrderRealtimeUpdates();
-
-  // Set up real-time updates
-  useEffect(() => {
-    const unsubscribe = subscribe();
-    return unsubscribe;
-  }, [subscribe]);
-
-  // Debounced search
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setFilters((prev) => ({ ...prev, search: searchValue || undefined }));
-    }, 300);
-    return () => clearTimeout(timeout);
-  }, [searchValue]);
-
-  const handleStatusFilter = (status: string) => {
-    if (status === 'all') {
-      setFilters((prev) => ({ ...prev, status: undefined }));
-    } else {
-      setFilters((prev) => ({ ...prev, status: [status as OrderStatus] }));
-    }
-  };
-
-  const handleAnomalyFilter = (value: string) => {
-    if (value === 'all') {
-      setFilters((prev) => ({
-        ...prev,
-        hasAnomaly: undefined,
-        requiresAttention: undefined,
-      }));
-    } else if (value === 'anomalies') {
-      setFilters((prev) => ({
-        ...prev,
-        hasAnomaly: true,
-        requiresAttention: undefined,
-      }));
-    } else if (value === 'attention') {
-      setFilters((prev) => ({
-        ...prev,
-        hasAnomaly: undefined,
-        requiresAttention: true,
-      }));
-    }
-  };
-
-  const clearFilters = () => {
-    setFilters({});
-    setSearchValue('');
-  };
-
-  const hasActiveFilters = Object.values(filters).some((v) => v !== undefined);
-
-  // Pagination
   const {
+    orders,
+    paginatedOrders,
+    isLoading,
+    refetch,
+    refresh,
+    filters,
+    searchValue,
+    setSearchValue,
+    setStatusFilter,
+    setAnomalyFilter,
+    clearFilters,
+    hasActiveFilters,
     currentPage,
     totalPages,
-    paginatedItems: paginatedOrders,
     startIndex,
     endIndex,
     totalItems,
     itemsPerPage,
     goToPage,
     setItemsPerPage,
-  } = usePagination({ items: orders, itemsPerPage: 15 });
+  } = useAdminOrders();
+
 
   return (
     <div className="space-y-6 p-6">
