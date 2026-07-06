@@ -5,13 +5,14 @@
  * React Query, avec état de filtres/recherche, pagination et mutation de mise
  * à jour centralisée.
  */
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ProductService } from '@/services/productService';
 import { updateAdminProductReturnRow } from '@/services/adminProductsApi';
 import { usePagination } from '@/hooks/usePagination';
 import { useAuditLog } from '@/hooks/useAuditLog';
+import { handleSupabaseError } from '@/lib/supabaseErrorHandler';
 import type { Product } from '@/shared/interfaces/Iproduct.interface';
 import type { Database } from '@/integrations/supabase/types';
 
