@@ -41,6 +41,15 @@ export function useAdminProducts(options: UseAdminProductsOptions = {}) {
 
   const products = query.data ?? [];
 
+  // Harmonise les toasts d'erreur de fetch (dédupliqués par le handler global).
+  const lastReportedError = useRef<unknown>(null);
+  useEffect(() => {
+    if (query.error && query.error !== lastReportedError.current) {
+      lastReportedError.current = query.error;
+      handleSupabaseError(query.error, 'admin/products:fetch');
+    }
+  }, [query.error]);
+
   const filteredProducts = useMemo(() => {
     const needle = searchQuery.toLowerCase();
     return products.filter((product) => {
