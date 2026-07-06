@@ -32,6 +32,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import UIStyleSwitcher from '@/components/admin/UIStyleSwitcher';
+import { AdminErrorBoundary } from '@/components/admin/AdminErrorBoundary';
 
 const AdminLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -270,7 +271,9 @@ const AdminLayout = () => {
 
         {/* Page Content */}
         <main className="flex-1 p-6">
-          <Outlet />
+          <AdminErrorBoundary context="admin">
+            <Outlet />
+          </AdminErrorBoundary>
         </main>
       </div>
     </div>
