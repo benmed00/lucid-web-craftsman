@@ -5,13 +5,14 @@
  * (via useOrders), abonnement realtime, pagination, et helpers de filtrage.
  * Permet à la page d'être purement présentationnelle.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   useOrders,
   useOrderRealtimeUpdates,
 } from '@/hooks/useOrderManagement';
 import { usePagination } from '@/hooks/usePagination';
+import { handleSupabaseError } from '@/lib/supabaseErrorHandler';
 import type { OrderFilters, OrderStatus } from '@/types/order.types';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -31,6 +32,15 @@ export function useAdminOrders(options: UseAdminOrdersOptions = {}) {
 
   const query = useOrders(filters);
   const orders = query.data ?? [];
+
+  // Harmonise les toasts d'erreur de fetch (fenêtre de dédup 3s dans le handler).
+  const lastReportedError = useRef<unknown>(null);
+  useEffect(() => {
+    if (query.error && query.error !== lastReportedError.current) {
+      lastReportedError.current = query.error;
+      handleSupabaseError(query.error, 'admin/orders:fetch');
+    }
+  }, [query.error]);
 
   const { subscribe } = useOrderRealtimeUpdates();
 

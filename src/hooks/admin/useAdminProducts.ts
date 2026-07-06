@@ -5,13 +5,14 @@
  * React Query, avec état de filtres/recherche, pagination et mutation de mise
  * à jour centralisée.
  */
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ProductService } from '@/services/productService';
 import { updateAdminProductReturnRow } from '@/services/adminProductsApi';
 import { usePagination } from '@/hooks/usePagination';
 import { useAuditLog } from '@/hooks/useAuditLog';
+import { handleSupabaseError } from '@/lib/supabaseErrorHandler';
 import type { Product } from '@/shared/interfaces/Iproduct.interface';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -39,6 +40,15 @@ export function useAdminProducts(options: UseAdminProductsOptions = {}) {
   });
 
   const products = query.data ?? [];
+
+  // Harmonise les toasts d'erreur de fetch (dédupliqués par le handler global).
+  const lastReportedError = useRef<unknown>(null);
+  useEffect(() => {
+    if (query.error && query.error !== lastReportedError.current) {
+      lastReportedError.current = query.error;
+      handleSupabaseError(query.error, 'admin/products:fetch');
+    }
+  }, [query.error]);
 
   const filteredProducts = useMemo(() => {
     const needle = searchQuery.toLowerCase();
@@ -88,7 +98,10 @@ export function useAdminProducts(options: UseAdminProductsOptions = {}) {
     },
     onError: (error) => {
       console.error('Error saving product:', error);
-      toast.error('Erreur lors de la sauvegarde du produit');
+      const handled = handleSupabaseError(error, 'admin/products:update');
+      if (!handled) {
+        toast.error('Erreur lors de la sauvegarde du produit');
+      }
     },
   });
 
