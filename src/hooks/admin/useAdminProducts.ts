@@ -98,7 +98,10 @@ export function useAdminProducts(options: UseAdminProductsOptions = {}) {
     },
     onError: (error) => {
       console.error('Error saving product:', error);
-      toast.error('Erreur lors de la sauvegarde du produit');
+      const handled = handleSupabaseError(error, 'admin/products:update');
+      if (!handled) {
+        toast.error('Erreur lors de la sauvegarde du produit');
+      }
     },
   });
 
