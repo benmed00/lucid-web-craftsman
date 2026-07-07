@@ -131,6 +131,7 @@ export function useAdminOrders(options: UseAdminOrdersOptions = {}) {
     setSearchValue,
     setStatusFilter,
     setAnomalyFilter,
+    setDateRange,
     clearFilters,
     hasActiveFilters,
 
