@@ -393,6 +393,11 @@ function OrderEmailActionButton({
       return;
     }
 
+    // Toast ID stable par (mode, type) : garantit une seule notification
+    // par action, remplaçable de "loading" → "success"/"error".
+    const toastId = `order-email:${mode}:${type}`;
+    toast.loading(loadingMessage(type, mode), { id: toastId });
+
     setSending(true);
     try {
       const payload =
@@ -411,7 +416,14 @@ function OrderEmailActionButton({
       toast.success(
         mode === 'test'
           ? `Email de test envoyé à ${email}`
-          : successMessage(type, isRefund)
+          : successMessage(type, isRefund),
+        {
+          id: toastId,
+          description:
+            mode === 'test'
+              ? `Type : ${humanType(type)}`
+              : `Commande ${orderId ?? ''}`.trim(),
+        }
       );
       setOpen(false);
       if (mode === 'test') setEmail('');
@@ -419,7 +431,10 @@ function OrderEmailActionButton({
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`Error sending ${type} email:`, err);
-      toast.error(`Erreur: ${message}`);
+      toast.error(errorMessage(type, mode), {
+        id: toastId,
+        description: message,
+      });
     } finally {
       setSending(false);
     }
@@ -438,10 +453,18 @@ function OrderEmailActionButton({
         <Button
           variant="outline"
           size={mode === 'send' ? 'sm' : undefined}
+          disabled={sending}
+          aria-busy={sending}
           className={`gap-${mode === 'send' ? '1' : '2'} ${meta.buttonClassName ?? ''}`}
         >
-          <Icon className={mode === 'send' ? 'h-3 w-3' : 'h-4 w-4'} />
-          {buttonLabel}
+          {sending ? (
+            <Loader2
+              className={`animate-spin ${mode === 'send' ? 'h-3 w-3' : 'h-4 w-4'}`}
+            />
+          ) : (
+            <Icon className={mode === 'send' ? 'h-3 w-3' : 'h-4 w-4'} />
+          )}
+          {sending ? 'Envoi…' : buttonLabel}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
@@ -521,6 +544,26 @@ function OrderEmailActionButton({
   );
 }
 
+function humanType(type: OrderEmailType): string {
+  switch (type) {
+    case 'order-confirmation':
+      return 'Confirmation de commande';
+    case 'shipping':
+      return "Notification d'expédition";
+    case 'delivery':
+      return 'Confirmation de livraison';
+    case 'cancellation':
+      return "Annulation / Remboursement";
+  }
+}
+
+function loadingMessage(type: OrderEmailType, mode: Mode): string {
+  const label = humanType(type);
+  return mode === 'test'
+    ? `Envoi de l'email de test — ${label}…`
+    : `Envoi de l'email au client — ${label}…`;
+}
+
 function successMessage(type: OrderEmailType, isRefund: boolean): string {
   switch (type) {
     case 'shipping':
@@ -532,6 +575,13 @@ function successMessage(type: OrderEmailType, isRefund: boolean): string {
     case 'order-confirmation':
       return 'Email de confirmation envoyé';
   }
+}
+
+function errorMessage(type: OrderEmailType, mode: Mode): string {
+  const label = humanType(type);
+  return mode === 'test'
+    ? `Échec de l'envoi du test — ${label}`
+    : `Échec de l'envoi au client — ${label}`;
 }
 
 // -----------------------------------------------------------------------------
