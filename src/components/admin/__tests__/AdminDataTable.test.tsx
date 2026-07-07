@@ -289,8 +289,9 @@ describe('AdminDataTable — pagination', () => {
     expect(getBodyRows()).toHaveLength(3);
     expect(screen.getByText(/sur 6/i)).toBeInTheDocument();
 
-    const next = screen.getByRole('link', { name: /page suivante/i });
-    await user.click(next);
+    // Click page "2" in the pagination bar (PaginationLink renders as <a> without href).
+    const pageTwo = screen.getByText('2');
+    await user.click(pageTwo);
     expect(onPageChange).toHaveBeenCalledWith(2);
   });
 });
