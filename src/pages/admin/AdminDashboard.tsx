@@ -434,20 +434,22 @@ const AdminDashboard = () => {
               </Button>
             </Link>
 
-            <Link to={ADMIN_ROUTES.settings}>
-              <Button
-                className="w-full justify-start h-auto p-4"
-                variant="outline"
-              >
-                <Settings className="h-5 w-5 mr-3" />
-                <div className="text-left">
-                  <div className="font-medium">Paramètres</div>
-                  <div className="text-sm text-muted-foreground">
-                    Configurer la boutique
+            {canReachSettings && (
+              <Link to={ADMIN_ROUTES.settings}>
+                <Button
+                  className="w-full justify-start h-auto p-4"
+                  variant="outline"
+                >
+                  <Settings className="h-5 w-5 mr-3" />
+                  <div className="text-left">
+                    <div className="font-medium">Paramètres</div>
+                    <div className="text-sm text-muted-foreground">
+                      Configurer la boutique
+                    </div>
                   </div>
-                </div>
-              </Button>
-            </Link>
+                </Button>
+              </Link>
+            )}
           </div>
         </CardContent>
       </Card>
