@@ -76,6 +76,28 @@ export function useAdminOrders(options: UseAdminOrdersOptions = {}) {
     });
   }, []);
 
+  const setDateRange = useCallback(
+    (from: Date | undefined, to: Date | undefined) => {
+      setFilters((prev) => ({
+        ...prev,
+        dateFrom: from ? from.toISOString() : undefined,
+        // Inclut la journée entière du "to"
+        dateTo: to
+          ? new Date(
+              to.getFullYear(),
+              to.getMonth(),
+              to.getDate(),
+              23,
+              59,
+              59,
+              999
+            ).toISOString()
+          : undefined,
+      }));
+    },
+    []
+  );
+
   const clearFilters = useCallback(() => {
     setFilters({});
     setSearchValue('');
@@ -109,6 +131,7 @@ export function useAdminOrders(options: UseAdminOrdersOptions = {}) {
     setSearchValue,
     setStatusFilter,
     setAnomalyFilter,
+    setDateRange,
     clearFilters,
     hasActiveFilters,
 

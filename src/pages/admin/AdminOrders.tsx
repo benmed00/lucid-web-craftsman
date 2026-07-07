@@ -1,9 +1,17 @@
 import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import type { DateRange } from 'react-day-picker';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import {
   Sheet,
   SheetContent,
@@ -51,12 +59,22 @@ import {
   ShoppingCart,
   Package,
   Loader2,
+  CalendarIcon,
 } from 'lucide-react';
 
 type OrderRow = ReturnType<typeof useAdminOrders>['paginatedOrders'][number];
 
 export default function AdminOrders() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [dateRange, setDateRangeState] = useState<DateRange | undefined>();
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRangeState(range);
+    setDateRange(range?.from, range?.to);
+  };
+  const clearAllFilters = () => {
+    setDateRangeState(undefined);
+    clearFilters();
+  };
   const [sendingEmails, setSendingEmails] = useState<Set<OrderEmailType>>(
     () => new Set()
   );
@@ -82,6 +100,7 @@ export default function AdminOrders() {
     setSearchValue,
     setStatusFilter,
     setAnomalyFilter,
+    setDateRange,
     clearFilters,
     hasActiveFilters,
     currentPage,
@@ -299,8 +318,46 @@ export default function AdminOrders() {
                 </SelectContent>
               </Select>
 
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      'justify-start text-left font-normal w-[240px]',
+                      !dateRange?.from && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateRange?.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, 'dd MMM', { locale: fr })} –{' '}
+                          {format(dateRange.to, 'dd MMM yyyy', { locale: fr })}
+                        </>
+                      ) : (
+                        format(dateRange.from, 'dd MMM yyyy', { locale: fr })
+                      )
+                    ) : (
+                      <span>Filtrer par date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={handleDateRangeChange}
+                    numberOfMonths={2}
+                    locale={fr}
+                    initialFocus
+                    className={cn('p-3 pointer-events-auto')}
+                  />
+                </PopoverContent>
+              </Popover>
+
               {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <Button variant="ghost" size="sm" onClick={clearAllFilters}>
                   <X className="h-4 w-4 mr-1" />
                   Effacer
                 </Button>
