@@ -289,7 +289,7 @@ describe('AdminDataTable — pagination', () => {
     expect(getBodyRows()).toHaveLength(3);
     expect(screen.getByText(/sur 6/i)).toBeInTheDocument();
 
-    const next = screen.getByRole('link', { name: /go to next page/i });
+    const next = screen.getByRole('link', { name: /page suivante/i });
     await user.click(next);
     expect(onPageChange).toHaveBeenCalledWith(2);
   });
