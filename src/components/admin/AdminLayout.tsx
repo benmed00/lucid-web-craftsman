@@ -21,7 +21,9 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user: adminUser, isAuthenticated, isLoading } = useAdminAuth();
-  const { signOut } = useAuth();
+  const { role, signOut } = useAuth();
+
+  const menuGroups = useMemo(() => filterAdminNavByRole(role), [role]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
