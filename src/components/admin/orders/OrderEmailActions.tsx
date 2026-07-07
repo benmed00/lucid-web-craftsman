@@ -70,6 +70,8 @@ export interface OrderEmailActionsProps {
   defaultCustomerEmail?: string;
   defaultCustomerName?: string;
   onEmailSent?: () => void;
+  /** Notifié quand une action email démarre/termine (pour afficher un état global). */
+  onSendingChange?: (type: OrderEmailType, sending: boolean) => void;
 }
 
 interface ActionMeta {
