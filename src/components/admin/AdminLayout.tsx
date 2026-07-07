@@ -1,31 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import {
-  LayoutDashboard,
-  Package,
-  ShoppingCart,
-  Settings,
-  LogOut,
-  Menu,
-  Leaf,
-  Users,
-  BarChart3,
-  Warehouse,
-  Megaphone,
-  User,
-  Image,
-  AlertTriangle,
-  Tag,
-  Mail,
-  Star,
-  Activity,
-  
-  Languages,
-  BookOpen,
-} from 'lucide-react';
+import { LogOut, Menu, Leaf, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -33,13 +11,19 @@ import { useAuth } from '@/context/AuthContext';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import UIStyleSwitcher from '@/components/admin/UIStyleSwitcher';
 import { AdminErrorBoundary } from '@/components/admin/AdminErrorBoundary';
+import {
+  filterAdminNavByRole,
+  isAdminNavItemActive,
+} from '@/config/adminNav';
 
 const AdminLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user: adminUser, isAuthenticated, isLoading } = useAdminAuth();
-  const { signOut } = useAuth();
+  const { role, signOut } = useAuth();
+
+  const menuGroups = useMemo(() => filterAdminNavByRole(role), [role]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -73,63 +57,8 @@ const AdminLayout = () => {
     return null; // Will redirect in useEffect
   }
 
-  const menuGroups: {
-    label: string;
-    items: { icon: typeof Package; label: string; path: string }[];
-  }[] = [
-    {
-      label: 'Général',
-      items: [
-        { icon: LayoutDashboard, label: 'Tableau de bord', path: '/admin' },
-      ],
-    },
-    {
-      label: 'Ventes',
-      items: [
-        { icon: ShoppingCart, label: 'Commandes', path: '/admin/orders' },
-        { icon: Users, label: 'Clients', path: '/admin/customers' },
-        { icon: Tag, label: 'Codes Promo', path: '/admin/promo-codes' },
-      ],
-    },
-    {
-      label: 'Catalogue',
-      items: [
-        { icon: Package, label: 'Produits', path: '/admin/products' },
-        { icon: Warehouse, label: 'Stocks', path: '/admin/inventory' },
-        { icon: Star, label: 'Avis clients', path: '/admin/reviews' },
-      ],
-    },
-    {
-      label: 'Contenu',
-      items: [
-        { icon: BookOpen, label: 'Blog', path: '/admin/blog' },
-        { icon: Tag, label: 'Tags Blog', path: '/admin/tags' },
-        { icon: Image, label: 'Image Principale', path: '/admin/hero-image' },
-        { icon: Languages, label: 'Traductions', path: '/admin/translations' },
-      ],
-    },
-    {
-      label: 'Marketing',
-      items: [
-        { icon: Megaphone, label: 'Marketing', path: '/admin/marketing' },
-        { icon: Mail, label: 'Newsletter', path: '/admin/newsletter' },
-        { icon: Mail, label: 'Tests Emails', path: '/admin/email-testing' },
-      ],
-    },
-    {
-      label: 'Système',
-      items: [
-        { icon: BarChart3, label: 'Analyses', path: '/admin/analytics' },
-        {
-          icon: AlertTriangle,
-          label: "Rapports d'erreurs",
-          path: '/admin/error-reports',
-        },
-        { icon: Activity, label: 'Statut APIs', path: '/admin/api-status' },
-        { icon: Settings, label: 'Paramètres', path: '/admin/settings' },
-      ],
-    },
-  ];
+
+
 
   const Sidebar = ({ className }: { className?: string }) => (
     <div className={cn('bg-card border-r border-border h-full flex flex-col', className)}>
@@ -174,12 +103,7 @@ const AdminLayout = () => {
             </p>
             {group.items.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                item.path === '/admin'
-                  ? location.pathname === '/admin' ||
-                    location.pathname === '/admin/dashboard'
-                  : location.pathname === item.path ||
-                    location.pathname.startsWith(item.path + '/');
+              const isActive = isAdminNavItemActive(item, location.pathname);
 
               return (
                 <Link

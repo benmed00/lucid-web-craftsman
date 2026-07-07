@@ -24,6 +24,9 @@ import {
 } from '@/services/adminDashboardApi';
 import { toast } from 'sonner';
 import { useCurrency } from '@/stores/currencyStore';
+import { ADMIN_ROUTES } from '@/config/adminNav';
+import { useAuth } from '@/context/AuthContext';
+import { canSuperAdmin } from '@/lib/rbac';
 
 interface Order {
   id: string;
@@ -50,6 +53,8 @@ interface DashboardStats {
 
 const AdminDashboard = () => {
   const { formatPrice } = useCurrency();
+  const { role } = useAuth();
+  const canReachSettings = canSuperAdmin(role);
   const [_products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
@@ -309,7 +314,7 @@ const AdminDashboard = () => {
               <CardTitle className="text-lg font-semibold text-foreground">
                 Commandes Récentes
               </CardTitle>
-              <Link to="/admin/orders">
+              <Link to={ADMIN_ROUTES.orders}>
                 <Button variant="outline" size="sm">
                   <Eye className="h-4 w-4 mr-2" />
                   Voir tout
@@ -399,7 +404,7 @@ const AdminDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link to="/admin/products">
+            <Link to={ADMIN_ROUTES.products}>
               <Button
                 className="w-full justify-start h-auto p-4"
                 variant="outline"
@@ -414,7 +419,7 @@ const AdminDashboard = () => {
               </Button>
             </Link>
 
-            <Link to="/admin/orders">
+            <Link to={ADMIN_ROUTES.orders}>
               <Button
                 className="w-full justify-start h-auto p-4"
                 variant="outline"
@@ -429,20 +434,22 @@ const AdminDashboard = () => {
               </Button>
             </Link>
 
-            <Link to="/admin/settings">
-              <Button
-                className="w-full justify-start h-auto p-4"
-                variant="outline"
-              >
-                <Settings className="h-5 w-5 mr-3" />
-                <div className="text-left">
-                  <div className="font-medium">Paramètres</div>
-                  <div className="text-sm text-muted-foreground">
-                    Configurer la boutique
+            {canReachSettings && (
+              <Link to={ADMIN_ROUTES.settings}>
+                <Button
+                  className="w-full justify-start h-auto p-4"
+                  variant="outline"
+                >
+                  <Settings className="h-5 w-5 mr-3" />
+                  <div className="text-left">
+                    <div className="font-medium">Paramètres</div>
+                    <div className="text-sm text-muted-foreground">
+                      Configurer la boutique
+                    </div>
                   </div>
-                </div>
-              </Button>
-            </Link>
+                </Button>
+              </Link>
+            )}
           </div>
         </CardContent>
       </Card>
