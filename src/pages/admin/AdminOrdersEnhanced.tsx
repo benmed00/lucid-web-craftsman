@@ -11,12 +11,6 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -41,14 +35,16 @@ import { OrderAnomaliesList } from '@/components/admin/orders/OrderAnomaliesList
 import { CheckoutSessionsTab } from '@/components/admin/orders/CheckoutSessionsTab';
 import { useAdminOrders } from '@/hooks/admin/useAdminOrders';
 import { ORDER_STATUS_CONFIG, type OrderStatus } from '@/types/order.types';
-import { Skeleton } from '@/components/ui/skeleton';
 import { AddOrderDialog } from '@/components/admin/AddOrderDialog';
 import { ManualTestOrderStatus } from '@/components/admin/ManualTestOrderStatus';
 import { TestOrderEmailButton } from '@/components/admin/TestOrderEmailButton';
 import { TestShippingEmailButton } from '@/components/admin/TestShippingEmailButton';
 import { TestDeliveryEmailButton } from '@/components/admin/TestDeliveryEmailButton';
 import { TestCancellationEmailButton } from '@/components/admin/TestCancellationEmailButton';
-import TablePagination from '@/components/admin/TablePagination';
+import {
+  AdminDataTable,
+  type AdminDataTableColumn,
+} from '@/components/admin/AdminDataTable';
 import {
   Search,
   AlertTriangle,
@@ -59,6 +55,7 @@ import {
   Package,
 } from 'lucide-react';
 
+type OrderRow = ReturnType<typeof useAdminOrders>['paginatedOrders'][number];
 
 export default function AdminOrdersEnhanced() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -67,6 +64,7 @@ export default function AdminOrdersEnhanced() {
     orders,
     paginatedOrders,
     isLoading,
+    error,
     refetch,
     refresh,
     filters,
@@ -86,6 +84,78 @@ export default function AdminOrdersEnhanced() {
     setItemsPerPage,
   } = useAdminOrders();
 
+  const columns = useMemo<AdminDataTableColumn<OrderRow>[]>(
+    () => [
+      {
+        id: 'order',
+        header: 'Commande',
+        sortAccessor: (row) => row.id,
+        cell: (row) => (
+          <>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm">
+                {row.id.slice(0, 8).toUpperCase()}
+              </span>
+              {row.has_anomaly && (
+                <AlertTriangle className="h-4 w-4 text-orange-500" />
+              )}
+            </div>
+            {row.order_items && row.order_items.length > 0 && (
+              <span className="text-xs text-muted-foreground">
+                {row.order_items.length} article(s)
+              </span>
+            )}
+          </>
+        ),
+      },
+      {
+        id: 'status',
+        header: 'Statut',
+        sortAccessor: (row) => row.order_status ?? '',
+        cell: (row) => (
+          <OrderStatusBadge
+            status={row.order_status as OrderStatus}
+            size="sm"
+          />
+        ),
+      },
+      {
+        id: 'amount',
+        header: 'Montant',
+        sortAccessor: (row) => row.amount ?? 0,
+        cell: (row) => (
+          <span className="font-medium">
+            {((row.amount || 0) / 100).toFixed(2)} €
+          </span>
+        ),
+      },
+      {
+        id: 'date',
+        header: 'Date',
+        sortAccessor: (row) => new Date(row.created_at),
+        cell: (row) => (
+          <span className="text-sm text-muted-foreground">
+            {format(new Date(row.created_at), 'dd MMM', { locale: fr })}
+          </span>
+        ),
+      },
+      {
+        id: 'attention',
+        header: '',
+        className: 'w-[50px]',
+        cell: (row) =>
+          row.requires_attention ? (
+            <Badge
+              variant="destructive"
+              className="h-6 w-6 p-0 justify-center"
+            >
+              !
+            </Badge>
+          ) : null,
+      },
+    ],
+    []
+  );
 
   return (
     <div className="space-y-6 p-6">
@@ -101,7 +171,6 @@ export default function AdminOrdersEnhanced() {
           <div className="flex flex-wrap gap-2">
             <AddOrderDialog onOrderAdded={() => refetch()} />
 
-            {/* Email Testing Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -133,7 +202,6 @@ export default function AdminOrdersEnhanced() {
           </div>
         </div>
 
-        {/* Main Tabs: Orders vs Checkout Sessions */}
         <Tabs defaultValue="orders" className="space-y-4">
           <TabsList>
             <TabsTrigger value="orders" className="gap-2">
@@ -147,10 +215,7 @@ export default function AdminOrdersEnhanced() {
           </TabsList>
 
           <TabsContent value="orders" className="space-y-6">
-            {/* Attention Banner */}
             <AttentionBanner />
-
-            {/* Stats Cards */}
             <OrderStatsCards />
 
             {/* Filters */}
@@ -205,121 +270,45 @@ export default function AdminOrdersEnhanced() {
 
             {/* Main Content - Split View */}
             <div className="grid lg:grid-cols-3 gap-6">
-              {/* Orders Table */}
               <div className="lg:col-span-2">
-                <div className="rounded-lg border bg-card">
-                  {isLoading ? (
-                    <div className="p-4 space-y-4">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <Skeleton key={i} className="h-16 w-full" />
-                      ))}
-                    </div>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Commande</TableHead>
-                          <TableHead>Statut</TableHead>
-                          <TableHead>Montant</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead className="w-[50px]"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {paginatedOrders.map((order) => (
-                          <TableRow
-                            key={order.id}
-                            className={`cursor-pointer hover:bg-muted/50 ${
-                              selectedOrderId === order.id ? 'bg-muted' : ''
-                            } ${order.requires_attention ? 'bg-orange-50/50 dark:bg-orange-950/20' : ''}`}
-                            onClick={() => setSelectedOrderId(order.id)}
-                          >
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono text-sm">
-                                  {order.id.slice(0, 8).toUpperCase()}
-                                </span>
-                                {order.has_anomaly && (
-                                  <AlertTriangle className="h-4 w-4 text-orange-500" />
-                                )}
-                              </div>
-                              {order.order_items &&
-                                order.order_items.length > 0 && (
-                                  <span className="text-xs text-muted-foreground">
-                                    {order.order_items.length} article(s)
-                                  </span>
-                                )}
-                            </TableCell>
-                            <TableCell>
-                              <OrderStatusBadge
-                                status={order.order_status as OrderStatus}
-                                size="sm"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <span className="font-medium">
-                                {((order.amount || 0) / 100).toFixed(2)} €
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <span className="text-sm text-muted-foreground">
-                                {format(new Date(order.created_at), 'dd MMM', {
-                                  locale: fr,
-                                })}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              {order.requires_attention && (
-                                <Badge
-                                  variant="destructive"
-                                  className="h-6 w-6 p-0 justify-center"
-                                >
-                                  !
-                                </Badge>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-
-                        {paginatedOrders.length === 0 && (
-                          <TableRow>
-                            <TableCell
-                              colSpan={5}
-                              className="text-center py-12 text-muted-foreground"
-                            >
-                              Aucune commande trouvée
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  )}
-
-                  {/* Pagination */}
-                  {!isLoading && orders.length > 0 && (
-                    <div className="px-4 border-t">
-                      <TablePagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        totalItems={totalItems}
-                        startIndex={startIndex}
-                        endIndex={endIndex}
-                        itemsPerPage={itemsPerPage}
-                        onPageChange={goToPage}
-                        onItemsPerPageChange={setItemsPerPage}
-                      />
-                    </div>
-                  )}
-                </div>
+                <AdminDataTable<OrderRow>
+                  data={paginatedOrders}
+                  columns={columns}
+                  getRowId={(row) => row.id}
+                  isLoading={isLoading}
+                  error={error}
+                  onRetry={refresh}
+                  emptyMessage="Aucune commande trouvée"
+                  selectedRowId={selectedOrderId}
+                  onRowClick={(row) => setSelectedOrderId(row.id)}
+                  rowClassName={(row) =>
+                    row.requires_attention
+                      ? 'bg-orange-50/50 dark:bg-orange-950/20'
+                      : undefined
+                  }
+                  pagination={
+                    orders.length > 0
+                      ? {
+                          mode: 'controlled',
+                          currentPage,
+                          totalPages,
+                          startIndex,
+                          endIndex,
+                          totalItems,
+                          itemsPerPage,
+                          onPageChange: goToPage,
+                          onItemsPerPageChange: setItemsPerPage,
+                        }
+                      : undefined
+                  }
+                />
               </div>
 
-              {/* Sidebar - Anomalies Overview */}
               <div className="hidden lg:block">
                 <OrderAnomaliesList compact />
               </div>
             </div>
 
-            {/* Order Details Sheet */}
             <Sheet
               open={!!selectedOrderId}
               onOpenChange={() => setSelectedOrderId(null)}
@@ -338,7 +327,6 @@ export default function AdminOrdersEnhanced() {
             </Sheet>
           </TabsContent>
 
-          {/* Checkout Sessions Tab */}
           <TabsContent value="checkouts">
             <CheckoutSessionsTab />
           </TabsContent>
