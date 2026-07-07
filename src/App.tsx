@@ -134,10 +134,11 @@ const ProtectedAdminRoute = lazy(() =>
 );
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
-// AdminOrders (legacy) and AdminProductCatalog (read-only viewer) were removed
+// AdminOrders (legacy list) and AdminProductCatalog (read-only viewer) were removed
 // during admin consolidation. See .lovable/plan.md for details.
-// /admin/orders now uses AdminOrdersEnhanced; /admin/catalog redirects to /admin/products.
-const AdminOrders = lazy(() => import('./pages/admin/AdminOrdersEnhanced'));
+// /admin/orders is the canonical route; /admin/orders-enhanced is a legacy alias
+// that redirects to it, and /admin/catalog redirects to /admin/products.
+const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
 const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'));
 const AdminAnalytics = lazy(() => import('./pages/admin/AdminAnalytics'));

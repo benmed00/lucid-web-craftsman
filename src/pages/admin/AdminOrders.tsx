@@ -54,7 +54,7 @@ import {
 
 type OrderRow = ReturnType<typeof useAdminOrders>['paginatedOrders'][number];
 
-export default function AdminOrdersEnhanced() {
+export default function AdminOrders() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const {
