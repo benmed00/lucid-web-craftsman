@@ -111,6 +111,7 @@ export function useAdminProducts(options: UseAdminProductsOptions = {}) {
     filteredProducts,
     paginatedProducts: pagination.paginatedItems,
     isLoading: query.isLoading,
+    error: query.error,
     refresh,
 
     // Filter state

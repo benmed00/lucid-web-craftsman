@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Package,
   Edit,
   Search,
   Filter,
@@ -34,7 +33,10 @@ import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { useAdminProducts } from '@/hooks/admin/useAdminProducts';
-import TablePagination from '@/components/admin/TablePagination';
+import {
+  AdminDataTable,
+  type AdminDataTableColumn,
+} from '@/components/admin/AdminDataTable';
 
 const AdminProducts = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -46,8 +48,9 @@ const AdminProducts = () => {
   const {
     products,
     filteredProducts,
-    paginatedProducts,
-    isLoading: loading,
+    
+    isLoading,
+    error,
     refresh,
     searchQuery,
     setSearchQuery,
@@ -378,13 +381,118 @@ const AdminProducts = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p>Chargement des produits...</p>
-      </div>
-    );
-  }
+  const columns: AdminDataTableColumn<Product>[] = [
+    {
+      id: 'image',
+      header: 'Image',
+      className: 'w-16',
+      cell: (product) => (
+        <img
+          src={product.images?.[0] || '/placeholder.svg'}
+          alt={product.name}
+          className="h-12 w-12 rounded object-cover"
+          loading="lazy"
+        />
+      ),
+    },
+    {
+      id: 'name',
+      header: 'Produit',
+      sortAccessor: (p) => p.name?.toLowerCase() ?? '',
+      cell: (product) => (
+        <div className="min-w-0">
+          <p className="font-medium text-foreground line-clamp-1">
+            {product.name}
+          </p>
+          {product.artisan && (
+            <p className="text-xs text-muted-foreground line-clamp-1">
+              {product.artisan}
+            </p>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'category',
+      header: 'Catégorie',
+      sortAccessor: (p) => p.category ?? '',
+      cell: (product) => (
+        <Badge variant="outline" className="text-xs">
+          {product.category}
+        </Badge>
+      ),
+    },
+    {
+      id: 'price',
+      header: 'Prix',
+      className: 'text-right',
+      headerClassName: 'text-right',
+      sortAccessor: (p) => p.price ?? 0,
+      cell: (product) => (
+        <span className="font-semibold text-primary">{product.price}€</span>
+      ),
+    },
+    {
+      id: 'stock',
+      header: 'Stock',
+      className: 'text-right',
+      headerClassName: 'text-right',
+      sortAccessor: (p) => p.stock_quantity ?? 0,
+      cell: (product) => {
+        const qty = product.stock_quantity ?? 0;
+        const min = product.min_stock_level ?? 5;
+        const variant =
+          qty === 0 ? 'destructive' : qty <= min ? 'secondary' : 'outline';
+        return (
+          <Badge variant={variant} className="text-xs">
+            {qty}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: 'status',
+      header: 'Statut',
+      sortAccessor: (p) => (p.is_active === false ? 0 : 1),
+      cell: (product) => (
+        <div className="flex flex-wrap gap-1">
+          {product.is_active === false ? (
+            <Badge variant="secondary" className="text-xs">Inactif</Badge>
+          ) : (
+            <Badge className="bg-primary/10 text-primary text-xs">Actif</Badge>
+          )}
+          {product.is_new && (
+            <Badge className="bg-primary text-primary-foreground text-xs">
+              Nouveau
+            </Badge>
+          )}
+          {product.is_featured && (
+            <Badge variant="outline" className="text-xs">Vedette</Badge>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      className: 'text-right w-32',
+      headerClassName: 'text-right',
+      cell: (product) => (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleEditProduct(product);
+          }}
+        >
+          <Edit className="h-4 w-4 mr-1" />
+          Modifier
+        </Button>
+      ),
+    },
+  ];
+
 
   return (
     <div className="space-y-6">
@@ -450,114 +558,32 @@ const AdminProducts = () => {
         </CardContent>
       </Card>
 
-      {/* Pagination Info */}
-      <TablePagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        startIndex={startIndex}
-        endIndex={endIndex}
-        itemsPerPage={itemsPerPage}
-        onPageChange={goToPage}
-        onItemsPerPageChange={setItemsPerPage}
+      {/* Products Table */}
+      <AdminDataTable<Product>
+        data={filteredProducts}
+        columns={columns}
+        getRowId={(p) => p.id}
+        isLoading={isLoading}
+        error={error}
+        onRetry={refresh}
+        emptyMessage={
+          searchQuery || filterCategory !== 'all'
+            ? 'Aucun produit ne correspond à vos critères de recherche.'
+            : 'Aucun produit dans votre catalogue. Commencez par en ajouter un.'
+        }
+        pagination={{
+          mode: 'controlled',
+          currentPage,
+          totalPages,
+          startIndex,
+          endIndex,
+          totalItems,
+          itemsPerPage,
+          onPageChange: goToPage,
+          onItemsPerPageChange: setItemsPerPage,
+        }}
       />
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {paginatedProducts.map((product) => (
-          <Card
-            key={product.id}
-            className="group hover:shadow-lg transition-shadow"
-          >
-            <CardHeader className="p-0">
-              <div className="relative h-48 overflow-hidden rounded-t-lg">
-                <img
-                  src={product.images?.[0] || '/placeholder.svg'}
-                  alt={product.name}
-                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute top-2 right-2 flex gap-2">
-                  {product.is_new && (
-                    <Badge className="bg-primary text-primary-foreground">
-                      Nouveau
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-medium text-foreground line-clamp-2">
-                      {product.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {product.artisan}
-                    </p>
-                  </div>
-                  <p className="font-semibold text-primary">{product.price}€</p>
-                </div>
-
-                <Badge variant="outline" className="text-xs">
-                  {product.category}
-                </Badge>
-
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {product.description}
-                </p>
-              </div>
-
-              <div className="flex gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEditProduct(product)}
-                  className="flex-1"
-                >
-                  <Edit className="h-4 w-4 mr-1" />
-                  Modifier
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* No products found */}
-      {filteredProducts.length === 0 && (
-        <Card className="py-12">
-          <CardContent className="text-center">
-            <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">
-              Aucun produit trouvé
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {searchQuery || filterCategory !== 'all'
-                ? 'Essayez de modifier vos critères de recherche'
-                : 'Commencez par ajouter votre premier produit'}
-            </p>
-            {!searchQuery && filterCategory === 'all' && (
-              <ProductFormWithImages onProductAdded={refresh} />
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Bottom Pagination */}
-      {filteredProducts.length > 0 && (
-        <TablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          startIndex={startIndex}
-          endIndex={endIndex}
-          itemsPerPage={itemsPerPage}
-          onPageChange={goToPage}
-          onItemsPerPageChange={setItemsPerPage}
-        />
-      )}
 
       {/* Edit Product Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
