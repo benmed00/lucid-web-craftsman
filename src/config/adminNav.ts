@@ -162,7 +162,7 @@ export function canAccessAdminNavItem(
   item: AdminNavItem,
   role: AppRole
 ): boolean {
-  if (item.requiredRole === 'super_admin') return isSuperAdmin(role);
+  if (item.requiredRole === 'super_admin') return canSuperAdmin(role);
   return canAdmin(role);
 }
 
