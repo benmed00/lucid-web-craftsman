@@ -1,31 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import {
-  LayoutDashboard,
-  Package,
-  ShoppingCart,
-  Settings,
-  LogOut,
-  Menu,
-  Leaf,
-  Users,
-  BarChart3,
-  Warehouse,
-  Megaphone,
-  User,
-  Image,
-  AlertTriangle,
-  Tag,
-  Mail,
-  Star,
-  Activity,
-  
-  Languages,
-  BookOpen,
-} from 'lucide-react';
+import { LogOut, Menu, Leaf, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +11,10 @@ import { useAuth } from '@/context/AuthContext';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import UIStyleSwitcher from '@/components/admin/UIStyleSwitcher';
 import { AdminErrorBoundary } from '@/components/admin/AdminErrorBoundary';
+import {
+  filterAdminNavByRole,
+  isAdminNavItemActive,
+} from '@/config/adminNav';
 
 const AdminLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
