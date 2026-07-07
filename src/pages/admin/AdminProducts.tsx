@@ -48,7 +48,7 @@ const AdminProducts = () => {
   const {
     products,
     filteredProducts,
-    paginatedProducts,
+    
     isLoading,
     error,
     refresh,
