@@ -19,9 +19,7 @@ import { OrderCommandPalette } from './OrderCommandPalette';
 import { useOrder } from '@/hooks/useOrderManagement';
 import type { OrderStatus } from '@/types/order.types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { SendShippingEmailButton } from '@/components/admin/SendShippingEmailButton';
-import { SendDeliveryEmailButton } from '@/components/admin/SendDeliveryEmailButton';
-import { SendCancellationEmailButton } from '@/components/admin/SendCancellationEmailButton';
+import { OrderEmailActions } from '@/components/admin/orders/OrderEmailActions';
 import {
   updateOrderInternalNotes,
   updateOrderTrackingFields,
