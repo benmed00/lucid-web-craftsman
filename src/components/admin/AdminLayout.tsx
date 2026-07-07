@@ -57,63 +57,8 @@ const AdminLayout = () => {
     return null; // Will redirect in useEffect
   }
 
-  const menuGroups: {
-    label: string;
-    items: { icon: typeof Package; label: string; path: string }[];
-  }[] = [
-    {
-      label: 'Général',
-      items: [
-        { icon: LayoutDashboard, label: 'Tableau de bord', path: '/admin' },
-      ],
-    },
-    {
-      label: 'Ventes',
-      items: [
-        { icon: ShoppingCart, label: 'Commandes', path: '/admin/orders' },
-        { icon: Users, label: 'Clients', path: '/admin/customers' },
-        { icon: Tag, label: 'Codes Promo', path: '/admin/promo-codes' },
-      ],
-    },
-    {
-      label: 'Catalogue',
-      items: [
-        { icon: Package, label: 'Produits', path: '/admin/products' },
-        { icon: Warehouse, label: 'Stocks', path: '/admin/inventory' },
-        { icon: Star, label: 'Avis clients', path: '/admin/reviews' },
-      ],
-    },
-    {
-      label: 'Contenu',
-      items: [
-        { icon: BookOpen, label: 'Blog', path: '/admin/blog' },
-        { icon: Tag, label: 'Tags Blog', path: '/admin/tags' },
-        { icon: Image, label: 'Image Principale', path: '/admin/hero-image' },
-        { icon: Languages, label: 'Traductions', path: '/admin/translations' },
-      ],
-    },
-    {
-      label: 'Marketing',
-      items: [
-        { icon: Megaphone, label: 'Marketing', path: '/admin/marketing' },
-        { icon: Mail, label: 'Newsletter', path: '/admin/newsletter' },
-        { icon: Mail, label: 'Tests Emails', path: '/admin/email-testing' },
-      ],
-    },
-    {
-      label: 'Système',
-      items: [
-        { icon: BarChart3, label: 'Analyses', path: '/admin/analytics' },
-        {
-          icon: AlertTriangle,
-          label: "Rapports d'erreurs",
-          path: '/admin/error-reports',
-        },
-        { icon: Activity, label: 'Statut APIs', path: '/admin/api-status' },
-        { icon: Settings, label: 'Paramètres', path: '/admin/settings' },
-      ],
-    },
-  ];
+
+
 
   const Sidebar = ({ className }: { className?: string }) => (
     <div className={cn('bg-card border-r border-border h-full flex flex-col', className)}>
