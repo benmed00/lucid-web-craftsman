@@ -25,6 +25,8 @@ import {
 import { toast } from 'sonner';
 import { useCurrency } from '@/stores/currencyStore';
 import { ADMIN_ROUTES } from '@/config/adminNav';
+import { useAuth } from '@/context/AuthContext';
+import { canSuperAdmin } from '@/lib/rbac';
 
 interface Order {
   id: string;
