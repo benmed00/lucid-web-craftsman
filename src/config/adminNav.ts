@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { AppRole } from '@/lib/rbac';
-import { canAdmin, isSuperAdmin } from '@/lib/rbac';
+import { canAdmin, canSuperAdmin } from '@/lib/rbac';
 
 // --- Chemins canoniques (à réutiliser partout : Link to={ADMIN_ROUTES.orders}) ---
 export const ADMIN_ROUTES = {
