@@ -272,7 +272,9 @@ export function AdminDataTable<T>({
           </Table>
 
           {/* Pagination */}
-          {pagination && pagination.mode === 'controlled' ? (
+          {pagination &&
+          pagination.mode === 'controlled' &&
+          pagination.totalItems > 0 ? (
             <div className="px-4 border-t">
               <TablePagination
                 currentPage={pagination.currentPage}
