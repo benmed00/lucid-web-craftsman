@@ -453,10 +453,18 @@ function OrderEmailActionButton({
         <Button
           variant="outline"
           size={mode === 'send' ? 'sm' : undefined}
+          disabled={sending}
+          aria-busy={sending}
           className={`gap-${mode === 'send' ? '1' : '2'} ${meta.buttonClassName ?? ''}`}
         >
-          <Icon className={mode === 'send' ? 'h-3 w-3' : 'h-4 w-4'} />
-          {buttonLabel}
+          {sending ? (
+            <Loader2
+              className={`animate-spin ${mode === 'send' ? 'h-3 w-3' : 'h-4 w-4'}`}
+            />
+          ) : (
+            <Icon className={mode === 'send' ? 'h-3 w-3' : 'h-4 w-4'} />
+          )}
+          {sending ? 'Envoi…' : buttonLabel}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
