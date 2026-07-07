@@ -51,6 +51,8 @@ interface DashboardStats {
 
 const AdminDashboard = () => {
   const { formatPrice } = useCurrency();
+  const { role } = useAuth();
+  const canReachSettings = canSuperAdmin(role);
   const [_products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
