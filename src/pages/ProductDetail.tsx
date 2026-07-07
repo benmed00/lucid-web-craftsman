@@ -485,9 +485,10 @@ const ProductDetail: React.FC = () => {
                       <Button
                         variant="ghost"
                         size="sm"
+                        aria-label={t("product.zoomImage", "Zoom image")}
                         className="absolute top-4 right-4 bg-background/80 hover:bg-background shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl">
