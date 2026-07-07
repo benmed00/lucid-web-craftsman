@@ -66,6 +66,15 @@ type OrderRow = ReturnType<typeof useAdminOrders>['paginatedOrders'][number];
 
 export default function AdminOrders() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [dateRange, setDateRangeState] = useState<DateRange | undefined>();
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRangeState(range);
+    setDateRange(range?.from, range?.to);
+  };
+  const clearAllFilters = () => {
+    setDateRangeState(undefined);
+    clearFilters();
+  };
   const [sendingEmails, setSendingEmails] = useState<Set<OrderEmailType>>(
     () => new Set()
   );
