@@ -298,12 +298,17 @@ function OrderEmailActionButton({
   defaultCustomerEmail = '',
   defaultCustomerName = '',
   onEmailSent,
+  onSendingChange,
 }: OrderEmailActionButtonProps) {
   const meta = ACTION_META[type];
   const Icon = meta.icon;
 
   const [open, setOpen] = useState(false);
-  const [sending, setSending] = useState(false);
+  const [sending, setSendingLocal] = useState(false);
+  const setSending = (next: boolean) => {
+    setSendingLocal(next);
+    onSendingChange?.(type, next);
+  };
 
   // Champs partagés
   const [email, setEmail] = useState(defaultCustomerEmail);
