@@ -191,16 +191,32 @@ export function AdminDataTable<T>({
                 {columns.map((col) => {
                   const sortable = Boolean(col.sortAccessor);
                   const isActive = sortState.columnId === col.id;
+                  const disabled = sortable && sortedData.length === 0;
                   return (
                     <TableHead
                       key={col.id}
                       className={cn(col.headerClassName, col.className)}
+                      aria-sort={
+                        sortable && isActive
+                          ? sortState.direction === 'asc'
+                            ? 'ascending'
+                            : sortState.direction === 'desc'
+                              ? 'descending'
+                              : 'none'
+                          : undefined
+                      }
                     >
                       {sortable ? (
                         <button
                           type="button"
                           onClick={() => toggleSort(col.id, sortable)}
-                          className="inline-flex items-center gap-1 font-medium hover:text-foreground"
+                          disabled={disabled}
+                          aria-disabled={disabled || undefined}
+                          className={cn(
+                            'inline-flex items-center gap-1 font-medium hover:text-foreground',
+                            disabled &&
+                              'opacity-50 cursor-not-allowed hover:text-inherit'
+                          )}
                         >
                           {col.header}
                           {isActive && sortState.direction === 'asc' ? (
