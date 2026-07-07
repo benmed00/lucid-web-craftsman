@@ -37,7 +37,7 @@ import { useAdminOrders } from '@/hooks/admin/useAdminOrders';
 import { ORDER_STATUS_CONFIG, type OrderStatus } from '@/types/order.types';
 import { AddOrderDialog } from '@/components/admin/AddOrderDialog';
 import { ManualTestOrderStatus } from '@/components/admin/ManualTestOrderStatus';
-import { OrderEmailActions } from '@/components/admin/orders/OrderEmailActions';
+import { OrderEmailActions, type OrderEmailType } from '@/components/admin/orders/OrderEmailActions';
 import {
   AdminDataTable,
   type AdminDataTableColumn,
@@ -50,12 +50,25 @@ import {
   TestTube2,
   ShoppingCart,
   Package,
+  Loader2,
 } from 'lucide-react';
 
 type OrderRow = ReturnType<typeof useAdminOrders>['paginatedOrders'][number];
 
 export default function AdminOrders() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [sendingEmails, setSendingEmails] = useState<Set<OrderEmailType>>(
+    () => new Set()
+  );
+  const handleEmailSendingChange = (type: OrderEmailType, sending: boolean) => {
+    setSendingEmails((prev) => {
+      const next = new Set(prev);
+      if (sending) next.add(type);
+      else next.delete(type);
+      return next;
+    });
+  };
+  const isAnyEmailSending = sendingEmails.size > 0;
 
   const {
     orders,
@@ -170,19 +183,51 @@ export default function AdminOrders() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <TestTube2 className="h-4 w-4 mr-2" />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-busy={isAnyEmailSending}
+                  aria-label={
+                    isAnyEmailSending
+                      ? `Tests emails — ${sendingEmails.size} envoi(s) en cours`
+                      : 'Tests emails'
+                  }
+                >
+                  {isAnyEmailSending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <TestTube2 className="h-4 w-4 mr-2" />
+                  )}
                   Tests Emails
+                  {isAnyEmailSending && (
+                    <Badge
+                      variant="secondary"
+                      className="ml-2 h-5 px-1.5 text-[10px]"
+                    >
+                      {sendingEmails.size}
+                    </Badge>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
                 className="w-56 bg-popover border shadow-lg"
               >
-                <DropdownMenuLabel>Tests d'emails</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                  Tests d'emails
+                  {isAnyEmailSending && (
+                    <span className="ml-2 inline-flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Envoi…
+                    </span>
+                  )}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <div className="p-2 flex flex-col gap-2">
-                  <OrderEmailActions mode="test" />
+                  <OrderEmailActions
+                    mode="test"
+                    onSendingChange={handleEmailSendingChange}
+                  />
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>

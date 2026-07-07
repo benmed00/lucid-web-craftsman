@@ -70,6 +70,8 @@ export interface OrderEmailActionsProps {
   defaultCustomerEmail?: string;
   defaultCustomerName?: string;
   onEmailSent?: () => void;
+  /** Notifié quand une action email démarre/termine (pour afficher un état global). */
+  onSendingChange?: (type: OrderEmailType, sending: boolean) => void;
 }
 
 interface ActionMeta {
@@ -248,6 +250,7 @@ export function OrderEmailActions({
   defaultCustomerEmail,
   defaultCustomerName,
   onEmailSent,
+  onSendingChange,
 }: OrderEmailActionsProps) {
   const activeTypes = useMemo(() => {
     const fallback = mode === 'test' ? DEFAULT_TYPES_TEST : DEFAULT_TYPES_SEND;
@@ -271,6 +274,7 @@ export function OrderEmailActions({
           defaultCustomerEmail={defaultCustomerEmail}
           defaultCustomerName={defaultCustomerName}
           onEmailSent={onEmailSent}
+          onSendingChange={onSendingChange}
         />
       ))}
     </>
@@ -294,12 +298,17 @@ function OrderEmailActionButton({
   defaultCustomerEmail = '',
   defaultCustomerName = '',
   onEmailSent,
+  onSendingChange,
 }: OrderEmailActionButtonProps) {
   const meta = ACTION_META[type];
   const Icon = meta.icon;
 
   const [open, setOpen] = useState(false);
-  const [sending, setSending] = useState(false);
+  const [sending, setSendingLocal] = useState(false);
+  const setSending = (next: boolean) => {
+    setSendingLocal(next);
+    onSendingChange?.(type, next);
+  };
 
   // Champs partagés
   const [email, setEmail] = useState(defaultCustomerEmail);
