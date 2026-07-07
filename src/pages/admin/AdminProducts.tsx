@@ -559,7 +559,7 @@ const AdminProducts = () => {
       </Card>
 
       {/* Products Table */}
-      <AdminDataTable<Product>
+      <AdminDataTable
         data={filteredProducts}
         columns={columns}
         getRowId={(p) => p.id}
