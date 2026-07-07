@@ -250,6 +250,7 @@ export function OrderEmailActions({
   defaultCustomerEmail,
   defaultCustomerName,
   onEmailSent,
+  onSendingChange,
 }: OrderEmailActionsProps) {
   const activeTypes = useMemo(() => {
     const fallback = mode === 'test' ? DEFAULT_TYPES_TEST : DEFAULT_TYPES_SEND;
@@ -273,6 +274,7 @@ export function OrderEmailActions({
           defaultCustomerEmail={defaultCustomerEmail}
           defaultCustomerName={defaultCustomerName}
           onEmailSent={onEmailSent}
+          onSendingChange={onSendingChange}
         />
       ))}
     </>
