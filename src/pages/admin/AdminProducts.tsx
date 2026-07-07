@@ -381,13 +381,118 @@ const AdminProducts = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p>Chargement des produits...</p>
-      </div>
-    );
-  }
+  const columns: AdminDataTableColumn<Product>[] = [
+    {
+      id: 'image',
+      header: 'Image',
+      className: 'w-16',
+      cell: (product) => (
+        <img
+          src={product.images?.[0] || '/placeholder.svg'}
+          alt={product.name}
+          className="h-12 w-12 rounded object-cover"
+          loading="lazy"
+        />
+      ),
+    },
+    {
+      id: 'name',
+      header: 'Produit',
+      sortAccessor: (p) => p.name?.toLowerCase() ?? '',
+      cell: (product) => (
+        <div className="min-w-0">
+          <p className="font-medium text-foreground line-clamp-1">
+            {product.name}
+          </p>
+          {product.artisan && (
+            <p className="text-xs text-muted-foreground line-clamp-1">
+              {product.artisan}
+            </p>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'category',
+      header: 'Catégorie',
+      sortAccessor: (p) => p.category ?? '',
+      cell: (product) => (
+        <Badge variant="outline" className="text-xs">
+          {product.category}
+        </Badge>
+      ),
+    },
+    {
+      id: 'price',
+      header: 'Prix',
+      className: 'text-right',
+      headerClassName: 'text-right',
+      sortAccessor: (p) => p.price ?? 0,
+      cell: (product) => (
+        <span className="font-semibold text-primary">{product.price}€</span>
+      ),
+    },
+    {
+      id: 'stock',
+      header: 'Stock',
+      className: 'text-right',
+      headerClassName: 'text-right',
+      sortAccessor: (p) => p.stock_quantity ?? 0,
+      cell: (product) => {
+        const qty = product.stock_quantity ?? 0;
+        const min = product.min_stock_level ?? 5;
+        const variant =
+          qty === 0 ? 'destructive' : qty <= min ? 'secondary' : 'outline';
+        return (
+          <Badge variant={variant} className="text-xs">
+            {qty}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: 'status',
+      header: 'Statut',
+      sortAccessor: (p) => (p.is_active === false ? 0 : 1),
+      cell: (product) => (
+        <div className="flex flex-wrap gap-1">
+          {product.is_active === false ? (
+            <Badge variant="secondary" className="text-xs">Inactif</Badge>
+          ) : (
+            <Badge className="bg-primary/10 text-primary text-xs">Actif</Badge>
+          )}
+          {product.is_new && (
+            <Badge className="bg-primary text-primary-foreground text-xs">
+              Nouveau
+            </Badge>
+          )}
+          {product.is_featured && (
+            <Badge variant="outline" className="text-xs">Vedette</Badge>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      className: 'text-right w-32',
+      headerClassName: 'text-right',
+      cell: (product) => (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleEditProduct(product);
+          }}
+        >
+          <Edit className="h-4 w-4 mr-1" />
+          Modifier
+        </Button>
+      ),
+    },
+  ];
+
 
   return (
     <div className="space-y-6">
