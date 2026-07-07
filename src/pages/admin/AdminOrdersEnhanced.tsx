@@ -37,10 +37,7 @@ import { useAdminOrders } from '@/hooks/admin/useAdminOrders';
 import { ORDER_STATUS_CONFIG, type OrderStatus } from '@/types/order.types';
 import { AddOrderDialog } from '@/components/admin/AddOrderDialog';
 import { ManualTestOrderStatus } from '@/components/admin/ManualTestOrderStatus';
-import { TestOrderEmailButton } from '@/components/admin/TestOrderEmailButton';
-import { TestShippingEmailButton } from '@/components/admin/TestShippingEmailButton';
-import { TestDeliveryEmailButton } from '@/components/admin/TestDeliveryEmailButton';
-import { TestCancellationEmailButton } from '@/components/admin/TestCancellationEmailButton';
+import { OrderEmailActions } from '@/components/admin/orders/OrderEmailActions';
 import {
   AdminDataTable,
   type AdminDataTableColumn,
@@ -184,11 +181,8 @@ export default function AdminOrdersEnhanced() {
               >
                 <DropdownMenuLabel>Tests d'emails</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <div className="p-2 space-y-2">
-                  <TestOrderEmailButton />
-                  <TestShippingEmailButton />
-                  <TestDeliveryEmailButton />
-                  <TestCancellationEmailButton />
+                <div className="p-2 flex flex-col gap-2">
+                  <OrderEmailActions mode="test" />
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -271,7 +265,7 @@ export default function AdminOrdersEnhanced() {
             {/* Main Content - Split View */}
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
-                <AdminDataTable<OrderRow>
+                <AdminDataTable
                   data={paginatedOrders}
                   columns={columns}
                   getRowId={(row) => row.id}

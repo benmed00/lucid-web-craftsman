@@ -19,9 +19,7 @@ import { OrderCommandPalette } from './OrderCommandPalette';
 import { useOrder } from '@/hooks/useOrderManagement';
 import type { OrderStatus } from '@/types/order.types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { SendShippingEmailButton } from '@/components/admin/SendShippingEmailButton';
-import { SendDeliveryEmailButton } from '@/components/admin/SendDeliveryEmailButton';
-import { SendCancellationEmailButton } from '@/components/admin/SendCancellationEmailButton';
+import { OrderEmailActions } from '@/components/admin/orders/OrderEmailActions';
 import {
   updateOrderInternalNotes,
   updateOrderTrackingFields,
@@ -780,18 +778,11 @@ export function OrderDetailsPanel({
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                <SendShippingEmailButton
+                <OrderEmailActions
+                  mode="send"
                   orderId={orderId}
                   orderItems={order.order_items || []}
-                />
-                <SendDeliveryEmailButton
-                  orderId={orderId}
-                  orderItems={order.order_items || []}
-                />
-                <SendCancellationEmailButton
-                  orderId={orderId}
                   orderAmount={order.amount || 0}
-                  orderItems={order.order_items || []}
                 />
               </div>
             </CardContent>
