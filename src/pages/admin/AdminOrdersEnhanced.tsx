@@ -181,11 +181,8 @@ export default function AdminOrdersEnhanced() {
               >
                 <DropdownMenuLabel>Tests d'emails</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <div className="p-2 space-y-2">
-                  <TestOrderEmailButton />
-                  <TestShippingEmailButton />
-                  <TestDeliveryEmailButton />
-                  <TestCancellationEmailButton />
+                <div className="p-2 flex flex-col gap-2">
+                  <OrderEmailActions mode="test" />
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
