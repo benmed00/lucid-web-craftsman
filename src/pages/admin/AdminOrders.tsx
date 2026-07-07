@@ -183,19 +183,51 @@ export default function AdminOrders() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <TestTube2 className="h-4 w-4 mr-2" />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-busy={isAnyEmailSending}
+                  aria-label={
+                    isAnyEmailSending
+                      ? `Tests emails — ${sendingEmails.size} envoi(s) en cours`
+                      : 'Tests emails'
+                  }
+                >
+                  {isAnyEmailSending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <TestTube2 className="h-4 w-4 mr-2" />
+                  )}
                   Tests Emails
+                  {isAnyEmailSending && (
+                    <Badge
+                      variant="secondary"
+                      className="ml-2 h-5 px-1.5 text-[10px]"
+                    >
+                      {sendingEmails.size}
+                    </Badge>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
                 className="w-56 bg-popover border shadow-lg"
               >
-                <DropdownMenuLabel>Tests d'emails</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                  Tests d'emails
+                  {isAnyEmailSending && (
+                    <span className="ml-2 inline-flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Envoi…
+                    </span>
+                  )}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <div className="p-2 flex flex-col gap-2">
-                  <OrderEmailActions mode="test" />
+                  <OrderEmailActions
+                    mode="test"
+                    onSendingChange={handleEmailSendingChange}
+                  />
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
