@@ -18,26 +18,19 @@ export interface TransformOptions {
 
 export function transformSupabaseImage(
   url: string | undefined | null,
-  opts: TransformOptions = {}
+  _opts: TransformOptions = {}
 ): string {
   if (!url) return url ?? '';
   if (typeof url !== 'string') return url;
-  if (!url.includes('/storage/v1/object/public/')) return url;
 
-  try {
-    const rendered = url.replace(
-      '/storage/v1/object/public/',
-      '/storage/v1/render/image/public/'
-    );
-    const u = new URL(rendered);
-    const { width, height, quality = 75, format = 'webp', resize = 'cover' } = opts;
-    if (width) u.searchParams.set('width', String(width));
-    if (height) u.searchParams.set('height', String(height));
-    if (quality) u.searchParams.set('quality', String(quality));
-    if (format) u.searchParams.set('format', format);
-    if (resize) u.searchParams.set('resize', resize);
-    return u.toString();
-  } catch {
-    return url;
-  }
+  // NOTE: l'endpoint /storage/v1/render/image/public/ nécessite l'add-on
+  // Supabase "Image Transformation". Il n'est PAS activé sur ce projet
+  // (renvoie 403), ce qui casse toutes les images produits/hero.
+  //
+  // Tant que l'add-on n'est pas activé, on retourne l'URL /object/public/
+  // brute (plus lourde mais fonctionnelle). Pour réactiver l'optimisation
+  // CDN :
+  //   1. Activer "Image Transformation" dans Supabase → Storage → Settings
+  //   2. Restaurer la logique de réécriture ci-dessous (voir git history)
+  return url;
 }
