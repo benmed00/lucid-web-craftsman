@@ -778,18 +778,11 @@ export function OrderDetailsPanel({
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                <SendShippingEmailButton
+                <OrderEmailActions
+                  mode="send"
                   orderId={orderId}
                   orderItems={order.order_items || []}
-                />
-                <SendDeliveryEmailButton
-                  orderId={orderId}
-                  orderItems={order.order_items || []}
-                />
-                <SendCancellationEmailButton
-                  orderId={orderId}
                   orderAmount={order.amount || 0}
-                  orderItems={order.order_items || []}
                 />
               </div>
             </CardContent>
