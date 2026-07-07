@@ -91,6 +91,7 @@ export default function AdminOrders() {
     setSearchValue,
     setStatusFilter,
     setAnomalyFilter,
+    setDateRange,
     clearFilters,
     hasActiveFilters,
     currentPage,
