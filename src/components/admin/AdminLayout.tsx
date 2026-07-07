@@ -103,12 +103,7 @@ const AdminLayout = () => {
             </p>
             {group.items.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                item.path === '/admin'
-                  ? location.pathname === '/admin' ||
-                    location.pathname === '/admin/dashboard'
-                  : location.pathname === item.path ||
-                    location.pathname.startsWith(item.path + '/');
+              const isActive = isAdminNavItemActive(item, location.pathname);
 
               return (
                 <Link
