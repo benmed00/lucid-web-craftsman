@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Package,
   Edit,
   Search,
   Filter,
@@ -34,7 +33,10 @@ import { Product } from '@/shared/interfaces/Iproduct.interface';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { useAdminProducts } from '@/hooks/admin/useAdminProducts';
-import TablePagination from '@/components/admin/TablePagination';
+import {
+  AdminDataTable,
+  type AdminDataTableColumn,
+} from '@/components/admin/AdminDataTable';
 
 const AdminProducts = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
