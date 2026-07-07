@@ -271,7 +271,7 @@ export default function AdminOrdersEnhanced() {
             {/* Main Content - Split View */}
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
-                <AdminDataTable<OrderRow>
+                <AdminDataTable
                   data={paginatedOrders}
                   columns={columns}
                   getRowId={(row) => row.id}
