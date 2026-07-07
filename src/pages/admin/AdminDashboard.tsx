@@ -24,6 +24,7 @@ import {
 } from '@/services/adminDashboardApi';
 import { toast } from 'sonner';
 import { useCurrency } from '@/stores/currencyStore';
+import { ADMIN_ROUTES } from '@/config/adminNav';
 
 interface Order {
   id: string;
