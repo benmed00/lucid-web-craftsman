@@ -57,6 +57,18 @@ type OrderRow = ReturnType<typeof useAdminOrders>['paginatedOrders'][number];
 
 export default function AdminOrders() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [sendingEmails, setSendingEmails] = useState<Set<OrderEmailType>>(
+    () => new Set()
+  );
+  const handleEmailSendingChange = (type: OrderEmailType, sending: boolean) => {
+    setSendingEmails((prev) => {
+      const next = new Set(prev);
+      if (sending) next.add(type);
+      else next.delete(type);
+      return next;
+    });
+  };
+  const isAnyEmailSending = sendingEmails.size > 0;
 
   const {
     orders,
