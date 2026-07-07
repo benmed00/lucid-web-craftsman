@@ -99,6 +99,7 @@ export function useAdminOrders(options: UseAdminOrdersOptions = {}) {
     orders,
     paginatedOrders: pagination.paginatedItems,
     isLoading: query.isLoading,
+    error: query.error,
     refetch: query.refetch,
     refresh,
 
