@@ -393,6 +393,11 @@ function OrderEmailActionButton({
       return;
     }
 
+    // Toast ID stable par (mode, type) : garantit une seule notification
+    // par action, remplaçable de "loading" → "success"/"error".
+    const toastId = `order-email:${mode}:${type}`;
+    toast.loading(loadingMessage(type, mode), { id: toastId });
+
     setSending(true);
     try {
       const payload =
@@ -411,7 +416,14 @@ function OrderEmailActionButton({
       toast.success(
         mode === 'test'
           ? `Email de test envoyé à ${email}`
-          : successMessage(type, isRefund)
+          : successMessage(type, isRefund),
+        {
+          id: toastId,
+          description:
+            mode === 'test'
+              ? `Type : ${humanType(type)}`
+              : `Commande ${orderId ?? ''}`.trim(),
+        }
       );
       setOpen(false);
       if (mode === 'test') setEmail('');
@@ -419,7 +431,10 @@ function OrderEmailActionButton({
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`Error sending ${type} email:`, err);
-      toast.error(`Erreur: ${message}`);
+      toast.error(errorMessage(type, mode), {
+        id: toastId,
+        description: message,
+      });
     } finally {
       setSending(false);
     }
