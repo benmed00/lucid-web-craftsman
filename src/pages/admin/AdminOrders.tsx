@@ -37,7 +37,7 @@ import { useAdminOrders } from '@/hooks/admin/useAdminOrders';
 import { ORDER_STATUS_CONFIG, type OrderStatus } from '@/types/order.types';
 import { AddOrderDialog } from '@/components/admin/AddOrderDialog';
 import { ManualTestOrderStatus } from '@/components/admin/ManualTestOrderStatus';
-import { OrderEmailActions } from '@/components/admin/orders/OrderEmailActions';
+import { OrderEmailActions, type OrderEmailType } from '@/components/admin/orders/OrderEmailActions';
 import {
   AdminDataTable,
   type AdminDataTableColumn,
