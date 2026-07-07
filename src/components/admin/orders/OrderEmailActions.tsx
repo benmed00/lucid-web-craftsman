@@ -544,6 +544,26 @@ function OrderEmailActionButton({
   );
 }
 
+function humanType(type: OrderEmailType): string {
+  switch (type) {
+    case 'order-confirmation':
+      return 'Confirmation de commande';
+    case 'shipping':
+      return "Notification d'expédition";
+    case 'delivery':
+      return 'Confirmation de livraison';
+    case 'cancellation':
+      return "Annulation / Remboursement";
+  }
+}
+
+function loadingMessage(type: OrderEmailType, mode: Mode): string {
+  const label = humanType(type);
+  return mode === 'test'
+    ? `Envoi de l'email de test — ${label}…`
+    : `Envoi de l'email au client — ${label}…`;
+}
+
 function successMessage(type: OrderEmailType, isRefund: boolean): string {
   switch (type) {
     case 'shipping':
@@ -555,6 +575,13 @@ function successMessage(type: OrderEmailType, isRefund: boolean): string {
     case 'order-confirmation':
       return 'Email de confirmation envoyé';
   }
+}
+
+function errorMessage(type: OrderEmailType, mode: Mode): string {
+  const label = humanType(type);
+  return mode === 'test'
+    ? `Échec de l'envoi du test — ${label}`
+    : `Échec de l'envoi au client — ${label}`;
 }
 
 // -----------------------------------------------------------------------------
