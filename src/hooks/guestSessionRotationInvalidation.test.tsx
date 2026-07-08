@@ -385,12 +385,18 @@ describe('integration: sequential guest rotations invalidate the right slice at 
     const seedFor = (g: string) => {
       client.setQueryData(checkoutQueryKeys.activeSession(null, g), { g });
       client.setQueryData(['cart', 'server', 'lines', g], [{ g }]);
+      // Root-gate stress: wishlist / products keys that literally embed the
+      // guest_id. These must NEVER be invalidated by a guest rotation because
+      // their root is neither 'checkout' nor 'cart'.
+      client.setQueryData(['wishlist', g], [{ g }]);
+      client.setQueryData(['products', 'by-guest', g], [{ g }]);
+      client.setQueryData(['orders', 'by-guest', g], [{ g }]);
     };
     seedFor(GUEST_A);
     seedFor(GUEST_B);
     seedFor(GUEST_C);
     seedFor(UNRELATED);
-    // Non-checkout/cart keys that must stay untouched across the whole run
+    // Non-guest-scoped keys that must stay untouched across the whole run
     client.setQueryData(wishlistQueryKeys.list('u'), [1]);
     client.setQueryData(['products', 'list'], [1]);
 
@@ -474,6 +480,19 @@ describe('integration: sequential guest rotations invalidate the right slice at 
         JSON.stringify(wishlistQueryKeys.list('u'))
       );
       expect(invalidated).not.toContain(JSON.stringify(['products', 'list']));
+
+      // Root-gate assertion: wishlist / products / orders keys that embed
+      // the rotated guest_id must NEVER refetch — even for the pair that
+      // just rotated. Assert for EVERY guest in the scenario at every step.
+      for (const g of [GUEST_A, GUEST_B, GUEST_C, UNRELATED]) {
+        expect(invalidated).not.toContain(JSON.stringify(['wishlist', g]));
+        expect(invalidated).not.toContain(
+          JSON.stringify(['products', 'by-guest', g])
+        );
+        expect(invalidated).not.toContain(
+          JSON.stringify(['orders', 'by-guest', g])
+        );
+      }
 
       unmount();
       resetInvalidationFlags();
