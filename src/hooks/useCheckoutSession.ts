@@ -244,6 +244,49 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
     initSession();
   }, [user, getGuestData, isGuestReady]);
 
+  // React to guest token rotation: the server has migrated our in-flight
+  // checkout_sessions rows from the old guest_id to the new one. Invalidate
+  // React Query caches so subscribers refetch, and reset local init state so
+  // this hook re-runs its lookup under the new guest_id — no "disappeared
+  // lines" between rotation and next user interaction.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as
+        | { oldGuestId?: string; newGuestId?: string }
+        | undefined;
+
+      void queryClient.invalidateQueries({
+        queryKey: checkoutQueryKeys.all,
+      });
+
+      // Drop stale local state and force init to re-run with the new guest_id
+      initRef.current = false;
+      initInFlight.current = false;
+      ensureSessionPromiseRef.current = null;
+      sessionIdRef.current = null;
+      setSessionId(null);
+      setSessionData(null);
+
+      if (import.meta.env.DEV) {
+        console.info(
+          '[useCheckoutSession] guest-session:rotated — refetching',
+          detail
+        );
+      }
+    };
+
+    window.addEventListener(
+      'guest-session:rotated',
+      handler as EventListener
+    );
+    return () => {
+      window.removeEventListener(
+        'guest-session:rotated',
+        handler as EventListener
+      );
+    };
+  }, [queryClient]);
+
   // Queue-based update to prevent race conditions
   const queueUpdate = useCallback((updateFn: () => Promise<void>) => {
     saveQueue.current = saveQueue.current.then(updateFn).catch(() => {
