@@ -19,23 +19,7 @@
     <!-- End Google Tag Manager -->
 
 
-    <!-- Security Headers - Note: frame-ancestors only works via HTTP headers, not meta tags -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="
-      default-src 'self';
-      manifest-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://cdn.gpteng.co https://m.stripe.network https://connect.facebook.net https://analytics.tiktok.com https://www.googletagmanager.com https://www.google-analytics.com blob:;
-      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-      img-src 'self' data: blob: https: http:;
-      font-src 'self' https://fonts.gstatic.com data:;
-      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://js.stripe.com https://m.stripe.network https://*.sentry.io https://cdn.gpteng.co https://*.lovable.app https://*.lovableproject.com https://lovable.dev https://api.exchangerate.host https://api.frankfurter.app https://api.frankfurter.dev https://www.facebook.com https://analytics.tiktok.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net;
-      frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.googletagmanager.com;
-      object-src 'none';
-      base-uri 'self';
-      form-action 'self';
-    "
-    />
+    <!-- CSP is delivered via HTTP headers (_headers/vercel.json); frame-ancestors is ignored in meta CSP. -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta
       http-equiv="Referrer-Policy"
