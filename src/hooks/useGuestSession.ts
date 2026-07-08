@@ -2,12 +2,15 @@
 // GDPR-compliant guest session tracking with server-signed tokens
 
 import { useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   safeGetItem,
   safeSetItem,
   StorageTTL,
 } from '@/lib/storage/safeStorage';
 import { supabase } from '@/integrations/supabase/client';
+import { checkoutQueryKeys } from '@/lib/checkout/queryKeys';
+import { cartServerQueryKeys } from '@/lib/checkout/queryKeys';
 
 // Storage key for guest session
 const GUEST_SESSION_KEY = 'guest_session';
@@ -129,6 +132,7 @@ function createDeviceMetadata(): GuestDeviceMetadata {
 export function useGuestSession() {
   const [session, setSession] = useState<GuestSession | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const queryClient = useQueryClient();
 
   // Initialize or restore guest session on mount
   useEffect(() => {
@@ -211,10 +215,12 @@ export function useGuestSession() {
       } else {
         // Prefer rotation (migrates existing checkout_sessions atomically);
         // fall back to a fresh token when no prior signed session exists.
-        const token =
-          stored?.guestId && stored.signature
-            ? await rotateToken(stored.guestId, stored.signature)
-            : await mintNewToken();
+        const canRotate = Boolean(stored?.guestId && stored?.signature);
+        const token = canRotate
+          ? await rotateToken(stored!.guestId, stored!.signature!)
+          : await mintNewToken();
+
+        const rotated = canRotate && token.guestId !== stored!.guestId;
 
         persist({
           guestId: token.guestId,
@@ -223,13 +229,33 @@ export function useGuestSession() {
           createdAt: now,
           device: createDeviceMetadata(),
         });
+
+        // After a successful rotation, the DB has migrated ongoing
+        // checkout_sessions from the old guest_id to the new one.
+        // Invalidate cached queries so the UI immediately re-fetches the
+        // migrated rows under the new guest_id (no "disappeared lines").
+        if (rotated) {
+          queryClient.invalidateQueries({ queryKey: checkoutQueryKeys.all });
+          queryClient.invalidateQueries({ queryKey: cartServerQueryKeys.all });
+          // Notify non-query listeners (analytics, custom subscriptions)
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+              new CustomEvent('guest-session:rotated', {
+                detail: {
+                  oldGuestId: stored!.guestId,
+                  newGuestId: token.guestId,
+                },
+              })
+            );
+          }
+        }
       }
 
       setIsInitialized(true);
     };
 
     initSession();
-  }, []);
+  }, [queryClient]);
 
 
 
