@@ -71,6 +71,12 @@ function seedRotationScenario(client: QueryClient) {
   client.setQueryData(wishlistQueryKeys.list(USER_ID), [{ product: 1 }]);
   client.setQueryData(['products', 'list'], [{ id: 1 }]);
   client.setQueryData(cartServerQueryKeys.lines(USER_ID), [{ line: 99 }]);
+  // Root-gate stress: even when the rotated guest_id happens to appear in
+  // a wishlist / products key, the non-checkout/cart root must protect it.
+  client.setQueryData(['wishlist', OLD_GUEST], [{ product: 2 }]);
+  client.setQueryData(['wishlist', NEW_GUEST], [{ product: 3 }]);
+  client.setQueryData(['products', 'by-guest', OLD_GUEST], [{ id: 42 }]);
+  client.setQueryData(['products', 'by-guest', NEW_GUEST], [{ id: 43 }]);
 }
 
 function invalidatedKeys(client: QueryClient): string[] {
