@@ -215,10 +215,12 @@ export function useGuestSession() {
       } else {
         // Prefer rotation (migrates existing checkout_sessions atomically);
         // fall back to a fresh token when no prior signed session exists.
-        const token =
-          stored?.guestId && stored.signature
-            ? await rotateToken(stored.guestId, stored.signature)
-            : await mintNewToken();
+        const canRotate = Boolean(stored?.guestId && stored?.signature);
+        const token = canRotate
+          ? await rotateToken(stored!.guestId, stored!.signature!)
+          : await mintNewToken();
+
+        const rotated = canRotate && token.guestId !== stored!.guestId;
 
         persist({
           guestId: token.guestId,
@@ -227,13 +229,33 @@ export function useGuestSession() {
           createdAt: now,
           device: createDeviceMetadata(),
         });
+
+        // After a successful rotation, the DB has migrated ongoing
+        // checkout_sessions from the old guest_id to the new one.
+        // Invalidate cached queries so the UI immediately re-fetches the
+        // migrated rows under the new guest_id (no "disappeared lines").
+        if (rotated) {
+          queryClient.invalidateQueries({ queryKey: checkoutQueryKeys.all });
+          queryClient.invalidateQueries({ queryKey: cartServerQueryKeys.all });
+          // Notify non-query listeners (analytics, custom subscriptions)
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+              new CustomEvent('guest-session:rotated', {
+                detail: {
+                  oldGuestId: stored!.guestId,
+                  newGuestId: token.guestId,
+                },
+              })
+            );
+          }
+        }
       }
 
       setIsInitialized(true);
     };
 
     initSession();
-  }, []);
+  }, [queryClient]);
 
 
 
