@@ -3670,6 +3670,10 @@ export type Database = {
         Returns: boolean
       }
       restore_contact_data_access: { Args: never; Returns: undefined }
+      rotate_guest_token: {
+        Args: { _old_guest_id: string; _old_signature: string }
+        Returns: Json
+      }
       sync_cart: {
         Args: { p_items: Json; p_user_id: string }
         Returns: undefined
