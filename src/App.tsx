@@ -82,6 +82,7 @@ const Artisans = lazyWithRetry(() => import('./pages/Artisans'));
 const CareGuide = lazyWithRetry(() => import('./pages/CareGuide'));
 const CareGuideBags = lazyWithRetry(() => import('./pages/CareGuideBags'));
 const StyleGuideBags = lazyWithRetry(() => import('./pages/StyleGuideBags'));
+const StyleGuideHats = lazyWithRetry(() => import('./pages/StyleGuideHats'));
 const Terms = lazyWithRetry(() => import('./pages/Terms'));
 const TermsOfService = lazyWithRetry(() => import('./pages/TermsOfService'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
