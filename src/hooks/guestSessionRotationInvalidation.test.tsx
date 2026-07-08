@@ -1073,7 +1073,7 @@ describe('non-regression: rotation invalidation set is EXACTLY checkout/cart for
     // Seed the "must stay untouched" set — includes wishlist/products keys that
     // literally embed the rotated guest_id (root-gate stress) plus unrelated
     // guest_id checkout/cart, unrelated user cart, non-guest-scoped keys, etc.
-    const mustStayClean: readonly unknown[][] = [
+    const mustStayClean: readonly (readonly unknown[])[] = [
       ['wishlist', OLD_G],
       ['wishlist', NEW_G],
       ['wishlist', OTHER_G],
