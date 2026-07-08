@@ -511,4 +511,55 @@ describe('integration: sequential guest rotations invalidate the right slice at 
     expect(client.getQueryData(wishlistQueryKeys.list('u'))).toEqual([1]);
     expect(client.getQueryData(['products', 'list'])).toEqual([1]);
   });
+
+  it('no rotation (valid session, guest_id unchanged): zero checkout/cart invalidations, even for pre-seeded old/new guest keys', async () => {
+    // Prime a still-valid signed session for GUEST_A — must NOT trigger rotation
+    seedExistingSession(GUEST_A, 'sig-valid', Date.now() + 24 * 3600_000);
+
+    const client = makeClient();
+
+    // Seed caches for BOTH the current guest (GUEST_A) and a hypothetical
+    // "new" guest (GUEST_B) that a rotation would have targeted. Neither
+    // must be invalidated because no rotation event fires.
+    const seedFor = (g: string) => {
+      client.setQueryData(checkoutQueryKeys.activeSession(null, g), { g });
+      client.setQueryData(checkoutQueryKeys.activeSession(USER_ID, g), { g, u: USER_ID });
+      client.setQueryData(['cart', 'server', 'lines', g], [{ g }]);
+    };
+    seedFor(GUEST_A);
+    seedFor(GUEST_B);
+    seedFor(UNRELATED);
+    client.setQueryData(wishlistQueryKeys.list('u'), [1]);
+    client.setQueryData(['products', 'list'], [1]);
+
+    const rotatedEvents: unknown[] = [];
+    const listener = (e: Event) => rotatedEvents.push((e as CustomEvent).detail);
+    window.addEventListener('guest-session:rotated', listener);
+
+    try {
+      const { result } = renderHook(
+        () => {
+          const guest = useGuestSession();
+          useCheckoutSession();
+          return guest;
+        },
+        { wrapper: wrapper(client) }
+      );
+
+      await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
+      // Contract: session was valid → NO RPC call, guest_id unchanged, no event
+      expect(rpcMock).not.toHaveBeenCalled();
+      expect(result.current.guestId).toBe(GUEST_A);
+      expect(rotatedEvents).toEqual([]);
+
+      // Give any hypothetical async invalidation a tick to (not) happen
+      await new Promise((r) => setTimeout(r, 20));
+
+      // Zero invalidations — including for GUEST_A and GUEST_B keys
+      expect(invalidatedKeys(client)).toEqual([]);
+    } finally {
+      window.removeEventListener('guest-session:rotated', listener);
+    }
+  });
 });
