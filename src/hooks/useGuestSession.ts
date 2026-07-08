@@ -23,9 +23,14 @@ export interface GuestDeviceMetadata {
 export interface GuestSession {
   guestId: string;
   signature?: string;
+  expiresAt?: number; // epoch ms — server-issued token expiry (24h)
   createdAt: number;
   device: GuestDeviceMetadata;
 }
+
+// Renew token this many ms before actual expiry (clock skew buffer)
+const EXPIRY_SKEW_MS = 5 * 60 * 1000; // 5 minutes
+
 
 /**
  * Generate a cryptographically secure UUID v4
@@ -127,72 +132,69 @@ export function useGuestSession() {
 
   // Initialize or restore guest session on mount
   useEffect(() => {
+    const fetchToken = async (): Promise<{
+      guestId: string;
+      signature?: string;
+      expiresAt?: number;
+    }> => {
+      try {
+        const { data: tokenData, error: rpcError } =
+          await supabase.rpc('create_guest_token');
+        if (rpcError) {
+          if (import.meta.env.DEV) {
+            console.warn(
+              '[useGuestSession] create_guest_token:',
+              rpcError.message
+            );
+          }
+          return { guestId: generateUUID() };
+        }
+        const td = tokenData as Record<string, string> | null;
+        const expiresAtMs = td?.expires_at
+          ? new Date(td.expires_at).getTime()
+          : undefined;
+        return {
+          guestId: td?.guest_id ?? generateUUID(),
+          signature: td?.signature,
+          expiresAt: Number.isFinite(expiresAtMs) ? expiresAtMs : undefined,
+        };
+      } catch {
+        return { guestId: generateUUID() };
+      }
+    };
+
+    const persist = (s: GuestSession) => {
+      safeSetItem(GUEST_SESSION_KEY, s, {
+        storage: 'localStorage',
+        ttl: StorageTTL.MONTH,
+      });
+      setSession(s);
+    };
+
     const initSession = async () => {
-      // Try to restore existing session
       const stored = safeGetItem<GuestSession>(GUEST_SESSION_KEY, {
         storage: 'localStorage',
       });
 
-      if (stored && stored.guestId) {
-        // Update device metadata on each visit (in case browser/device changed)
-        const updatedSession: GuestSession = {
-          ...stored,
-          device: createDeviceMetadata(),
-        };
+      const now = Date.now();
+      const isExpired =
+        stored?.signature &&
+        typeof stored.expiresAt === 'number' &&
+        stored.expiresAt - EXPIRY_SKEW_MS <= now;
 
-        safeSetItem(GUEST_SESSION_KEY, updatedSession, {
-          storage: 'localStorage',
-          ttl: StorageTTL.MONTH, // 30 days TTL for GDPR compliance
-        });
-
-        setSession(updatedSession);
+      if (stored && stored.guestId && !isExpired) {
+        // Reuse existing (still valid) session — refresh device metadata only
+        persist({ ...stored, device: createDeviceMetadata() });
       } else {
-        const persistUnsigned = () => {
-          const newSession: GuestSession = {
-            guestId: generateUUID(),
-            createdAt: Date.now(),
-            device: createDeviceMetadata(),
-          };
-          safeSetItem(GUEST_SESSION_KEY, newSession, {
-            storage: 'localStorage',
-            ttl: StorageTTL.MONTH,
-          });
-          setSession(newSession);
-        };
-
-        try {
-          const { data: tokenData, error: rpcError } =
-            await supabase.rpc('create_guest_token');
-          if (rpcError) {
-            if (import.meta.env.DEV) {
-              console.warn(
-                '[useGuestSession] create_guest_token:',
-                rpcError.message
-              );
-            }
-          }
-          const td = tokenData as Record<string, string> | null;
-          const guestId =
-            !rpcError && td?.guest_id ? td.guest_id : generateUUID();
-          const signature =
-            !rpcError && td?.signature ? td.signature : undefined;
-
-          const newSession: GuestSession = {
-            guestId,
-            signature,
-            createdAt: Date.now(),
-            device: createDeviceMetadata(),
-          };
-
-          safeSetItem(GUEST_SESSION_KEY, newSession, {
-            storage: 'localStorage',
-            ttl: StorageTTL.MONTH,
-          });
-
-          setSession(newSession);
-        } catch {
-          persistUnsigned();
-        }
+        // No session, or signature expired → mint a new signed token
+        const token = await fetchToken();
+        persist({
+          guestId: token.guestId,
+          signature: token.signature,
+          expiresAt: token.expiresAt,
+          createdAt: now,
+          device: createDeviceMetadata(),
+        });
       }
 
       setIsInitialized(true);
@@ -200,6 +202,7 @@ export function useGuestSession() {
 
     initSession();
   }, []);
+
 
   /**
    * Get session data for API calls (checkout, analytics, etc.)
