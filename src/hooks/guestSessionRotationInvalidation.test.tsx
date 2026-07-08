@@ -611,16 +611,16 @@ describe('integration: sequential guest rotations invalidate the right slice at 
     for (let i = 6; i <= 10; i++) rerender({ tick: i });
     await new Promise((r) => setTimeout(r, 20));
 
-    // Count invalidateQueries calls that target GUEST_A or GUEST_B via a predicate.
-    // The hook fires ONE invalidateQueries per guest id (old + new) per rotation.
+    // Count invalidateQueries calls that target guest-scoped keys via a predicate.
+    // The contract: ONE invalidateQueries call per rotation event, carrying a
+    // predicate that covers both the old and new guest_id — NOT one call per
+    // rerender, NOT one call per guest id.
     const guestScopedCalls = invalidateSpy.mock.calls.filter(([arg]) => {
       const filters = arg as { predicate?: unknown } | undefined;
       return typeof filters?.predicate === 'function';
     });
 
-    // Exactly 2 guest-scoped invalidations: one for GUEST_A, one for GUEST_B.
-    // NOT 2 * (1 + rerenders).
-    expect(guestScopedCalls.length).toBe(2);
+    expect(guestScopedCalls.length).toBe(1);
 
     // Structural check: both invalidations landed on the seeded caches only once each
     const cache = client.getQueryCache();
