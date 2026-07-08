@@ -316,13 +316,19 @@ describe('integration: useGuestSession + useCheckoutSession share the same rotat
       expect(invalidated).toContain(JSON.stringify(key));
     }
 
-    // Untouched — the contract holds end-to-end
+    // Untouched — the contract holds end-to-end. Includes root-gate stress:
+    // wishlist / products keys that literally contain the rotated guest_id
+    // must NOT be invalidated because their root is neither 'checkout' nor 'cart'.
     for (const key of [
       checkoutQueryKeys.activeSession(null, OTHER_GUEST),
       checkoutQueryKeys.sessionById('session-uuid-untouched'),
       wishlistQueryKeys.list(USER_ID),
       ['products', 'list'],
       cartServerQueryKeys.lines(USER_ID),
+      ['wishlist', OLD_GUEST],
+      ['wishlist', NEW_GUEST],
+      ['products', 'by-guest', OLD_GUEST],
+      ['products', 'by-guest', NEW_GUEST],
     ]) {
       expect(invalidated).not.toContain(JSON.stringify(key));
     }
