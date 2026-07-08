@@ -23,9 +23,14 @@ export interface GuestDeviceMetadata {
 export interface GuestSession {
   guestId: string;
   signature?: string;
+  expiresAt?: number; // epoch ms — server-issued token expiry (24h)
   createdAt: number;
   device: GuestDeviceMetadata;
 }
+
+// Renew token this many ms before actual expiry (clock skew buffer)
+const EXPIRY_SKEW_MS = 5 * 60 * 1000; // 5 minutes
+
 
 /**
  * Generate a cryptographically secure UUID v4
