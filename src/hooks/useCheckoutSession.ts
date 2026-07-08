@@ -257,30 +257,16 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
       const detail = (e as CustomEvent).detail as
         | { oldGuestId?: string; newGuestId?: string }
         | undefined;
-      const oldGuestId = detail?.oldGuestId;
-      const newGuestId = detail?.newGuestId;
 
-      // Targeted invalidation: only checkout query keys that reference the
-      // migrated guest_id (old or new). Avoid invalidating unrelated keys
-      // like sessionById(...) or another user's activeSession(...).
-      const guestIds = new Set(
-        [oldGuestId, newGuestId].filter(
-          (v): v is string => typeof v === 'string' && v.length > 0
-        )
-      );
-
-      if (guestIds.size > 0) {
-        void queryClient.invalidateQueries({
-          predicate: (query) => {
-            const key = query.queryKey;
-            if (!Array.isArray(key) || key[0] !== 'checkout') return false;
-            // Only the activeSession(userId, guestId) shape carries the guest_id
-            if (key[1] !== 'session' || key[2] !== 'active') return false;
-            const guestPart = key[4];
-            return typeof guestPart === 'string' && guestIds.has(guestPart);
-          },
-        });
-      }
+      // Targeted invalidation via the shared guest-scoped predicate — the
+      // same rule useGuestSession uses when it rotates. Keeps sessionById(_)
+      // and unrelated users' activeSession(_) caches untouched.
+      void queryClient.invalidateQueries({
+        predicate: createGuestScopedQueryPredicate([
+          detail?.oldGuestId,
+          detail?.newGuestId,
+        ]),
+      });
 
       // Drop stale local state and force init to re-run with the new guest_id
       initRef.current = false;
