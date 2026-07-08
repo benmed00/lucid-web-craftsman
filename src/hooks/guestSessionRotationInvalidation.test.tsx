@@ -1238,6 +1238,118 @@ describe('non-regression: a non-targeted guest_id is fully immune to rotation', 
   });
 });
 
+describe('integration: multiple useGuestSession + useCheckoutSession mounts share ONE invalidation per rotation', () => {
+  const OLD_G = 'cccccccc-1111-4111-8111-111111111111';
+  const NEW_G = 'cccccccc-2222-4222-8222-222222222222';
+
+  beforeEach(() => {
+    rpcMock.mockReset();
+    rpcMock.mockResolvedValue({ data: null, error: null });
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+  });
+  afterEach(() => {
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+  });
+
+  it('N mounted (useGuestSession + useCheckoutSession) pairs on the same QueryClient → 1 invalidateQueries call and 1 refetch per matching query', async () => {
+    const client = makeClient();
+
+    const fns = {
+      checkoutOld: vi.fn(async () => ({ id: 'old' })),
+      checkoutNew: vi.fn(async () => ({ id: 'new' })),
+      cartOld: vi.fn(async () => [{ line: 'old' }]),
+      cartNew: vi.fn(async () => [{ line: 'new' }]),
+    };
+
+    // Active observers so invalidateQueries triggers real refetches.
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
+
+    // Mount the hook pair FIVE times in the same tree under the same client —
+    // mimics a page where multiple widgets consume the checkout/guest hooks.
+    const MOUNTS = 5;
+    const { unmount } = renderHook(
+      () => {
+        // Observers (once — they'd dedupe naturally in RQ anyway)
+        useQuery({
+          queryKey: checkoutQueryKeys.activeSession(null, OLD_G),
+          queryFn: fns.checkoutOld,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: checkoutQueryKeys.activeSession(null, NEW_G),
+          queryFn: fns.checkoutNew,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: ['cart', 'server', 'lines', OLD_G],
+          queryFn: fns.cartOld,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: ['cart', 'server', 'lines', NEW_G],
+          queryFn: fns.cartNew,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+
+        // Multiple hook pairs mounted in parallel — each subscribes its own
+        // rotation handler. The dedup contract must collapse them into one.
+        for (let i = 0; i < MOUNTS; i++) {
+          useGuestSession();
+          useCheckoutSession();
+        }
+      },
+      { wrapper: wrapper(client) }
+    );
+
+    // Wait for initial fetches
+    await waitFor(() => {
+      expect(fns.checkoutOld).toHaveBeenCalledTimes(1);
+      expect(fns.checkoutNew).toHaveBeenCalledTimes(1);
+      expect(fns.cartOld).toHaveBeenCalledTimes(1);
+      expect(fns.cartNew).toHaveBeenCalledTimes(1);
+    });
+
+    invalidateSpy.mockClear();
+
+    // Single rotation event
+    window.dispatchEvent(
+      new CustomEvent('guest-session:rotated', {
+        detail: { oldGuestId: OLD_G, newGuestId: NEW_G },
+      })
+    );
+
+    await waitFor(() => {
+      expect(fns.checkoutOld).toHaveBeenCalledTimes(2);
+    });
+    await new Promise((r) => setTimeout(r, 80));
+
+    // Contract: exactly ONE guest-scoped invalidateQueries call, regardless
+    // of how many useCheckoutSession instances are mounted on this client.
+    const guestScopedCalls = invalidateSpy.mock.calls.filter(([arg]) => {
+      const filters = arg as { predicate?: unknown } | undefined;
+      return typeof filters?.predicate === 'function';
+    });
+    expect(
+      guestScopedCalls.length,
+      `expected 1 invalidateQueries call across ${MOUNTS} mounted hook pairs, got ${guestScopedCalls.length}`
+    ).toBe(1);
+
+    // And exactly ONE refetch per matching query (not MOUNTS)
+    expect(fns.checkoutOld).toHaveBeenCalledTimes(2);
+    expect(fns.checkoutNew).toHaveBeenCalledTimes(2);
+    expect(fns.cartOld).toHaveBeenCalledTimes(2);
+    expect(fns.cartNew).toHaveBeenCalledTimes(2);
+
+    invalidateSpy.mockRestore();
+    unmount();
+  });
+});
+
+
 
 
 
