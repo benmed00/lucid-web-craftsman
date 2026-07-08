@@ -9,6 +9,7 @@ import {
   StorageTTL,
 } from '@/lib/storage/safeStorage';
 import { supabase } from '@/integrations/supabase/client';
+import { createGuestScopedQueryPredicate } from '@/lib/checkout/queryKeys';
 
 
 // Storage key for guest session
@@ -236,21 +237,12 @@ export function useGuestSession() {
         if (rotated) {
           const oldGuestId = stored!.guestId;
           const newGuestId = token.guestId;
-          const guestIds = new Set([oldGuestId, newGuestId]);
-
-          const matchesRotatedGuest = (queryKey: readonly unknown[]) =>
-            queryKey.some(
-              (part) => typeof part === 'string' && guestIds.has(part)
-            );
 
           queryClient.invalidateQueries({
-            predicate: (query) => {
-              const key = query.queryKey;
-              if (!Array.isArray(key) || key.length === 0) return false;
-              const root = key[0];
-              if (root !== 'checkout' && root !== 'cart') return false;
-              return matchesRotatedGuest(key);
-            },
+            predicate: createGuestScopedQueryPredicate([
+              oldGuestId,
+              newGuestId,
+            ]),
           });
 
           // Notify non-query listeners (analytics, custom subscriptions)
