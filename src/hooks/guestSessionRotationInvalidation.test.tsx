@@ -883,3 +883,158 @@ describe('integration: authenticated user is immune to guest rotation noise', ()
   });
 });
 
+describe('integration: duplicate guest-session:rotated events dedupe to a single invalidation', () => {
+  const OLD_G = 'dddddddd-1111-4111-8111-111111111111';
+  const NEW_G = 'dddddddd-2222-4222-8222-222222222222';
+
+  beforeEach(() => {
+    rpcMock.mockReset();
+    rpcMock.mockResolvedValue({ data: null, error: null });
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+  });
+  afterEach(() => {
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+  });
+
+  it('N identical rotation events → exactly 1 invalidateQueries call and 1 refetch per matching query', async () => {
+    const client = makeClient();
+
+    const fns = {
+      checkoutOld: vi.fn(async () => ({ id: 'old' })),
+      checkoutNew: vi.fn(async () => ({ id: 'new' })),
+      cartOld: vi.fn(async () => [{ line: 'old' }]),
+      cartNew: vi.fn(async () => [{ line: 'new' }]),
+    };
+
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
+
+    const { unmount } = renderHook(
+      () => {
+        useQuery({
+          queryKey: checkoutQueryKeys.activeSession(null, OLD_G),
+          queryFn: fns.checkoutOld,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: checkoutQueryKeys.activeSession(null, NEW_G),
+          queryFn: fns.checkoutNew,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: ['cart', 'server', 'lines', OLD_G],
+          queryFn: fns.cartOld,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: ['cart', 'server', 'lines', NEW_G],
+          queryFn: fns.cartNew,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useCheckoutSession();
+      },
+      { wrapper: wrapper(client) }
+    );
+
+    // Wait for initial fetches (1 each)
+    await waitFor(() => {
+      expect(fns.checkoutOld).toHaveBeenCalledTimes(1);
+      expect(fns.checkoutNew).toHaveBeenCalledTimes(1);
+      expect(fns.cartOld).toHaveBeenCalledTimes(1);
+      expect(fns.cartNew).toHaveBeenCalledTimes(1);
+    });
+
+    invalidateSpy.mockClear();
+
+    // Fire the SAME rotation event 5 times in a row.
+    for (let i = 0; i < 5; i++) {
+      window.dispatchEvent(
+        new CustomEvent('guest-session:rotated', {
+          detail: { oldGuestId: OLD_G, newGuestId: NEW_G },
+        })
+      );
+    }
+
+    // Let refetches settle
+    await waitFor(() => {
+      expect(fns.checkoutOld).toHaveBeenCalledTimes(2);
+    });
+    await new Promise((r) => setTimeout(r, 80));
+
+    // Contract: exactly ONE invalidateQueries call, ONE refetch per matching query.
+    const guestScopedCalls = invalidateSpy.mock.calls.filter(([arg]) => {
+      const filters = arg as { predicate?: unknown } | undefined;
+      return typeof filters?.predicate === 'function';
+    });
+    expect(guestScopedCalls.length).toBe(1);
+
+    expect(fns.checkoutOld).toHaveBeenCalledTimes(2);
+    expect(fns.checkoutNew).toHaveBeenCalledTimes(2);
+    expect(fns.cartOld).toHaveBeenCalledTimes(2);
+    expect(fns.cartNew).toHaveBeenCalledTimes(2);
+
+    invalidateSpy.mockRestore();
+    unmount();
+  });
+
+  it('duplicates for the same pair dedupe, but a DIFFERENT pair after that still invalidates', async () => {
+    const OTHER_G = 'dddddddd-3333-4333-8333-333333333333';
+    const client = makeClient();
+
+    client.setQueryData(checkoutQueryKeys.activeSession(null, OLD_G), { g: 'old' });
+    client.setQueryData(checkoutQueryKeys.activeSession(null, NEW_G), { g: 'new' });
+    client.setQueryData(checkoutQueryKeys.activeSession(null, OTHER_G), { g: 'other' });
+
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
+
+    renderHook(() => useCheckoutSession(), { wrapper: wrapper(client) });
+
+    // Same pair, 3 times → 1 call
+    for (let i = 0; i < 3; i++) {
+      window.dispatchEvent(
+        new CustomEvent('guest-session:rotated', {
+          detail: { oldGuestId: OLD_G, newGuestId: NEW_G },
+        })
+      );
+    }
+
+    await waitFor(() => {
+      expect(
+        client
+          .getQueryCache()
+          .find({ queryKey: checkoutQueryKeys.activeSession(null, OLD_G) })
+          ?.state.isInvalidated
+      ).toBe(true);
+    });
+
+    // Different pair → 1 additional call
+    window.dispatchEvent(
+      new CustomEvent('guest-session:rotated', {
+        detail: { oldGuestId: NEW_G, newGuestId: OTHER_G },
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        client
+          .getQueryCache()
+          .find({ queryKey: checkoutQueryKeys.activeSession(null, OTHER_G) })
+          ?.state.isInvalidated
+      ).toBe(true);
+    });
+
+    const guestScopedCalls = invalidateSpy.mock.calls.filter(([arg]) => {
+      const filters = arg as { predicate?: unknown } | undefined;
+      return typeof filters?.predicate === 'function';
+    });
+    // 1 for OLD→NEW (dedup'd from 3), + 1 for NEW→OTHER = 2 total
+    expect(guestScopedCalls.length).toBe(2);
+
+    invalidateSpy.mockRestore();
+  });
+});
+
+
