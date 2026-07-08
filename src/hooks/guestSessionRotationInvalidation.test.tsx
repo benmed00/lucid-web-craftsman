@@ -481,6 +481,19 @@ describe('integration: sequential guest rotations invalidate the right slice at 
       );
       expect(invalidated).not.toContain(JSON.stringify(['products', 'list']));
 
+      // Root-gate assertion: wishlist / products / orders keys that embed
+      // the rotated guest_id must NEVER refetch — even for the pair that
+      // just rotated. Assert for EVERY guest in the scenario at every step.
+      for (const g of [GUEST_A, GUEST_B, GUEST_C, UNRELATED]) {
+        expect(invalidated).not.toContain(JSON.stringify(['wishlist', g]));
+        expect(invalidated).not.toContain(
+          JSON.stringify(['products', 'by-guest', g])
+        );
+        expect(invalidated).not.toContain(
+          JSON.stringify(['orders', 'by-guest', g])
+        );
+      }
+
       unmount();
       resetInvalidationFlags();
       rpcMock.mockReset();
