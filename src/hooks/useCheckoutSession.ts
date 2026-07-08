@@ -253,23 +253,20 @@ export function useCheckoutSession(): UseCheckoutSessionReturn {
   // this hook re-runs its lookup under the new guest_id — no "disappeared
   // lines" between rotation and next user interaction.
   useEffect(() => {
-    // Dedup: a duplicate 'guest-session:rotated' event carrying the same
-    // { oldGuestId, newGuestId } pair must not trigger a second invalidation.
-    // In practice several hooks can fan out the same rotation and we don't
-    // want N invalidateQueries calls for one logical rotation.
-    let lastPairKey: string | null = null;
-
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail as
         | { oldGuestId?: string; newGuestId?: string }
         | undefined;
 
       const pairKey = `${detail?.oldGuestId ?? ''}|${detail?.newGuestId ?? ''}`;
-      if (pairKey === lastPairKey) {
-        // Same rotation already processed — skip to avoid duplicate refetches.
+      // Cross-instance dedup, scoped per QueryClient: N mounted useCheckoutSession
+      // hooks sharing a QueryClient must produce ONE invalidateQueries call per
+      // logical rotation event, not N. Also collapses duplicate events fired for
+      // the same pair back-to-back on the same client.
+      if (rotationDedupByClient.get(queryClient) === pairKey) {
         return;
       }
-      lastPairKey = pairKey;
+      rotationDedupByClient.set(queryClient, pairKey);
 
       // Targeted invalidation via the shared guest-scoped predicate — the
       // same rule useGuestSession uses when it rotates. Keeps sessionById(_)
