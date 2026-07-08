@@ -9,7 +9,7 @@ import {
   StorageTTL,
 } from '@/lib/storage/safeStorage';
 import { supabase } from '@/integrations/supabase/client';
-import { checkoutQueryKeys } from '@/lib/checkout/queryKeys';
+
 
 // Storage key for guest session
 const GUEST_SESSION_KEY = 'guest_session';
