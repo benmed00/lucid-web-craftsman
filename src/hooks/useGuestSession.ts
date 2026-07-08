@@ -9,6 +9,7 @@ import {
   StorageTTL,
 } from '@/lib/storage/safeStorage';
 import { supabase } from '@/integrations/supabase/client';
+import { createGuestScopedQueryPredicate } from '@/lib/checkout/queryKeys';
 
 
 // Storage key for guest session
