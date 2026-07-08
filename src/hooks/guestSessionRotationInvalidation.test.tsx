@@ -244,3 +244,109 @@ describe('useCheckoutSession → targeted refetch on guest-session:rotated event
     );
   });
 });
+
+describe('integration: useGuestSession + useCheckoutSession share the same rotation contract', () => {
+  beforeEach(() => {
+    rpcMock.mockReset();
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+  });
+  afterEach(() => {
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+  });
+
+  it('rotation in useGuestSession propagates to useCheckoutSession via the guest-session:rotated event without invalidating unrelated caches', async () => {
+    // Prime an expired signed session so useGuestSession rotates on mount
+    seedExistingSession(OLD_GUEST, 'sig-old', Date.now() - 60_000);
+    rpcMock.mockResolvedValue({
+      data: {
+        guest_id: NEW_GUEST,
+        signature: 'sig-new',
+        expires_at: new Date(Date.now() + 24 * 3600_000).toISOString(),
+      },
+      error: null,
+    });
+
+    const client = makeClient();
+    seedRotationScenario(client);
+
+    // Mount BOTH hooks under the same QueryClient — real app topology.
+    const { result } = renderHook(
+      () => {
+        const guest = useGuestSession();
+        const checkout = useCheckoutSession();
+        return { guest, checkout };
+      },
+      { wrapper: wrapper(client) }
+    );
+
+    await waitFor(() => expect(result.current.guest.isInitialized).toBe(true));
+
+    // rotate_guest_token was called once — no fallback to create_guest_token
+    expect(rpcMock).toHaveBeenCalledWith('rotate_guest_token', {
+      _old_guest_id: OLD_GUEST,
+      _old_signature: 'sig-old',
+    });
+    expect(result.current.guest.guestId).toBe(NEW_GUEST);
+
+    // Wait for the event-driven invalidation from useCheckoutSession to land
+    await waitFor(() => {
+      const cache = client.getQueryCache();
+      expect(
+        cache.find({
+          queryKey: checkoutQueryKeys.activeSession(USER_ID, OLD_GUEST),
+        })?.state.isInvalidated
+      ).toBe(true);
+    });
+
+    const invalidated = invalidatedKeys(client);
+
+    // Targeted — invalidated by either useGuestSession (direct) or
+    // useCheckoutSession (event handler). Both hooks converge on the same set.
+    for (const key of [
+      checkoutQueryKeys.activeSession(null, OLD_GUEST),
+      checkoutQueryKeys.activeSession(USER_ID, OLD_GUEST),
+      ['cart', 'server', 'lines', OLD_GUEST],
+    ]) {
+      expect(invalidated).toContain(JSON.stringify(key));
+    }
+
+    // Untouched — the contract holds end-to-end
+    for (const key of [
+      checkoutQueryKeys.activeSession(null, OTHER_GUEST),
+      checkoutQueryKeys.sessionById('session-uuid-untouched'),
+      wishlistQueryKeys.list(USER_ID),
+      ['products', 'list'],
+      cartServerQueryKeys.lines(USER_ID),
+    ]) {
+      expect(invalidated).not.toContain(JSON.stringify(key));
+    }
+  });
+
+  it('fresh mint (no prior session) does not invalidate any cached query even with useCheckoutSession mounted', async () => {
+    rpcMock.mockResolvedValue({
+      data: {
+        guest_id: NEW_GUEST,
+        signature: 'sig-new',
+        expires_at: new Date(Date.now() + 24 * 3600_000).toISOString(),
+      },
+      error: null,
+    });
+
+    const client = makeClient();
+    seedRotationScenario(client);
+
+    const { result } = renderHook(
+      () => {
+        const guest = useGuestSession();
+        useCheckoutSession();
+        return guest;
+      },
+      { wrapper: wrapper(client) }
+    );
+
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
+    expect(rpcMock).toHaveBeenCalledWith('create_guest_token');
+    expect(invalidatedKeys(client)).toEqual([]);
+  });
+});
