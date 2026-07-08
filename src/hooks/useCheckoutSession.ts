@@ -12,7 +12,16 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, type QueryClient } from '@tanstack/react-query';
+
+/**
+ * Per-QueryClient dedup for 'guest-session:rotated' fan-out. When multiple
+ * useCheckoutSession hooks share a QueryClient, one logical rotation event
+ * (or duplicate events for the same pair) must produce exactly one
+ * invalidateQueries call — not one per hook instance. Scoped to the client
+ * via WeakMap so unrelated QueryClients (tests, sub-trees) stay independent.
+ */
+const rotationDedupByClient: WeakMap<QueryClient, string> = new WeakMap();
 import { useGuestSession } from '@/hooks/useGuestSession';
 import { useOptimizedAuth } from '@/context/AuthContext';
 import { retryWithBackoffSilent } from '@/lib/retryWithBackoff';
