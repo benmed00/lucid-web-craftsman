@@ -562,4 +562,73 @@ describe('integration: sequential guest rotations invalidate the right slice at 
       window.removeEventListener('guest-session:rotated', listener);
     }
   });
+
+  it('single rotation event: exactly one invalidation per target guest_id even across many rerenders', async () => {
+    const client = makeClient();
+
+    // Seed both old and new guest caches so invalidateQueries has real targets
+    client.setQueryData(checkoutQueryKeys.activeSession(null, GUEST_A), { g: GUEST_A });
+    client.setQueryData(['cart', 'server', 'lines', GUEST_A], [{ g: GUEST_A }]);
+    client.setQueryData(checkoutQueryKeys.activeSession(null, GUEST_B), { g: GUEST_B });
+    client.setQueryData(['cart', 'server', 'lines', GUEST_B], [{ g: GUEST_B }]);
+
+    // Spy on the QueryClient's invalidateQueries to count calls per guest target
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
+
+    const { rerender, result } = renderHook(
+      ({ tick: _tick }: { tick: number }) => {
+        const guest = useGuestSession();
+        useCheckoutSession();
+        return guest;
+      },
+      { wrapper: wrapper(client), initialProps: { tick: 0 } }
+    );
+
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
+    // Rerender many times BEFORE the rotation event — the event handler
+    // must not be re-invoked per render.
+    for (let i = 1; i <= 5; i++) rerender({ tick: i });
+
+    // Fire the rotation event exactly ONCE
+    window.dispatchEvent(
+      new CustomEvent('guest-session:rotated', {
+        detail: { oldGuestId: GUEST_A, newGuestId: GUEST_B },
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        client
+          .getQueryCache()
+          .find({ queryKey: checkoutQueryKeys.activeSession(null, GUEST_A) })
+          ?.state.isInvalidated
+      ).toBe(true);
+    });
+
+    // Rerender AGAIN after the event — a re-run of the effect would
+    // duplicate the invalidateQueries calls; the contract forbids it.
+    for (let i = 6; i <= 10; i++) rerender({ tick: i });
+    await new Promise((r) => setTimeout(r, 20));
+
+    // Count invalidateQueries calls that target guest-scoped keys via a predicate.
+    // The contract: ONE invalidateQueries call per rotation event, carrying a
+    // predicate that covers both the old and new guest_id — NOT one call per
+    // rerender, NOT one call per guest id.
+    const guestScopedCalls = invalidateSpy.mock.calls.filter(([arg]) => {
+      const filters = arg as { predicate?: unknown } | undefined;
+      return typeof filters?.predicate === 'function';
+    });
+
+    expect(guestScopedCalls.length).toBe(1);
+
+    // Structural check: both invalidations landed on the seeded caches only once each
+    const cache = client.getQueryCache();
+    const oldQ = cache.find({ queryKey: checkoutQueryKeys.activeSession(null, GUEST_A) });
+    const newQ = cache.find({ queryKey: checkoutQueryKeys.activeSession(null, GUEST_B) });
+    expect(oldQ?.state.isInvalidated).toBe(true);
+    expect(newQ?.state.isInvalidated).toBe(true);
+
+    invalidateSpy.mockRestore();
+  });
 });
