@@ -132,6 +132,7 @@ function createDeviceMetadata(): GuestDeviceMetadata {
 export function useGuestSession() {
   const [session, setSession] = useState<GuestSession | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const queryClient = useQueryClient();
 
   // Initialize or restore guest session on mount
   useEffect(() => {
