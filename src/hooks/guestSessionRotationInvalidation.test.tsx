@@ -24,7 +24,10 @@ const NEW_GUEST = '99999999-8888-4777-8666-555555555555';
 const OTHER_GUEST = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
 const USER_ID = 'user-xyz';
 
-const { rpcMock } = vi.hoisted(() => ({ rpcMock: vi.fn() }));
+const { rpcMock, authState } = vi.hoisted(() => ({
+  rpcMock: vi.fn(),
+  authState: { user: null as null | { id: string; email?: string } },
+}));
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -32,9 +35,10 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-// Prevent useCheckoutSession from touching auth / network in the second test
+// Prevent useCheckoutSession from touching auth / network in the second test.
+// `authState.user` is mutable so a test can flip to an authenticated user.
 vi.mock('@/context/AuthContext', () => ({
-  useOptimizedAuth: () => ({ user: null }),
+  useOptimizedAuth: () => ({ user: authState.user }),
   cleanupAuthState: () => {},
 }));
 vi.mock('@/lib/cart/cartSyncPolicy', () => ({
@@ -749,3 +753,133 @@ describe('integration: sequential guest rotations invalidate the right slice at 
     unmount();
   });
 });
+
+describe('integration: authenticated user is immune to guest rotation noise', () => {
+  const AUTHED_USER_ID = 'authed-user-42';
+  const NOISE_GUEST_A = '55555555-1111-4111-8111-111111111111';
+  const NOISE_GUEST_B = '55555555-2222-4222-8222-222222222222';
+
+  beforeEach(() => {
+    rpcMock.mockReset();
+    rpcMock.mockResolvedValue({ data: null, error: null });
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+    authState.user = { id: AUTHED_USER_ID, email: 'authed@example.com' };
+  });
+  afterEach(() => {
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+    authState.user = null;
+  });
+
+  it('authenticated user: no checkout/cart invalidation even with a signed guest session present and irrelevant rotation events fired', async () => {
+    // A signed guest session exists in storage (leftover from before login).
+    // Its presence must NOT drag the authenticated user's caches into any refetch.
+    seedExistingSession(NOISE_GUEST_A, 'sig-noise', Date.now() + 24 * 3600_000);
+
+    const client = makeClient();
+
+    // Real queryFn spies for the authenticated user's caches — keyed by USER ID,
+    // no guest_id — plus unrelated noise. Rotation must touch none of them.
+    const fns = {
+      checkoutUser: vi.fn(async () => ({ id: 'checkout-user' })),
+      cartUser: vi.fn(async () => [{ line: 'user' }]),
+      wishlistUser: vi.fn(async () => [{ w: 'user' }]),
+      productsList: vi.fn(async () => [{ p: 1 }]),
+      // A totally unrelated guest_id that happens to sit in the cache
+      checkoutOtherGuest: vi.fn(async () => ({ id: 'other-guest' })),
+    };
+
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
+
+    const { unmount } = renderHook(
+      () => {
+        useQuery({
+          queryKey: checkoutQueryKeys.activeSession(AUTHED_USER_ID, null),
+          queryFn: fns.checkoutUser,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: cartServerQueryKeys.lines(AUTHED_USER_ID),
+          queryFn: fns.cartUser,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: wishlistQueryKeys.list(AUTHED_USER_ID),
+          queryFn: fns.wishlistUser,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: ['products', 'list'],
+          queryFn: fns.productsList,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: checkoutQueryKeys.activeSession(null, NOISE_GUEST_B),
+          queryFn: fns.checkoutOtherGuest,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useCheckoutSession();
+      },
+      { wrapper: wrapper(client) }
+    );
+
+    // Wait for initial fetches
+    await waitFor(() => {
+      expect(fns.checkoutUser).toHaveBeenCalledTimes(1);
+      expect(fns.cartUser).toHaveBeenCalledTimes(1);
+      expect(fns.wishlistUser).toHaveBeenCalledTimes(1);
+      expect(fns.productsList).toHaveBeenCalledTimes(1);
+      expect(fns.checkoutOtherGuest).toHaveBeenCalledTimes(1);
+    });
+
+    invalidateSpy.mockClear();
+
+    // Fire multiple IRRELEVANT rotation events (guest_ids that match none
+    // of the authenticated user's cached keys).
+    for (let i = 0; i < 3; i++) {
+      window.dispatchEvent(
+        new CustomEvent('guest-session:rotated', {
+          detail: { oldGuestId: NOISE_GUEST_A, newGuestId: NOISE_GUEST_B },
+        })
+      );
+    }
+
+    // Give the event loop time to fire any handler-induced refetch
+    await new Promise((r) => setTimeout(r, 80));
+
+    // The authenticated user's caches must NEVER refetch as a side-effect
+    // of guest rotation — they aren't keyed by guest_id.
+    expect(fns.checkoutUser).toHaveBeenCalledTimes(1);
+    expect(fns.cartUser).toHaveBeenCalledTimes(1);
+    expect(fns.wishlistUser).toHaveBeenCalledTimes(1);
+    expect(fns.productsList).toHaveBeenCalledTimes(1);
+
+    // The user's queries must not be marked invalidated either
+    const cache = client.getQueryCache();
+    expect(
+      cache.find({ queryKey: checkoutQueryKeys.activeSession(AUTHED_USER_ID, null) })
+        ?.state.isInvalidated
+    ).toBe(false);
+    expect(
+      cache.find({ queryKey: cartServerQueryKeys.lines(AUTHED_USER_ID) })
+        ?.state.isInvalidated
+    ).toBe(false);
+    expect(
+      cache.find({ queryKey: wishlistQueryKeys.list(AUTHED_USER_ID) })
+        ?.state.isInvalidated
+    ).toBe(false);
+
+    // Sanity: rotation handler in useCheckoutSession is still wired — the
+    // NOISE_GUEST_B checkout key IS legitimately guest-scoped and can be
+    // marked invalidated. That's expected and unrelated to the user.
+    // We only assert that the user-scoped set stayed clean.
+
+    invalidateSpy.mockRestore();
+    unmount();
+  });
+});
+
