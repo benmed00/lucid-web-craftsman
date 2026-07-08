@@ -362,3 +362,134 @@ describe('integration: useGuestSession + useCheckoutSession share the same rotat
     expect(invalidatedKeys(client)).toEqual([]);
   });
 });
+
+describe('integration: sequential guest rotations invalidate the right slice at every step', () => {
+  const GUEST_A = '11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const GUEST_B = '22222222-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const GUEST_C = '33333333-cccc-4ccc-8ccc-cccccccccccc';
+  const UNRELATED = '99999999-eeee-4eee-8eee-eeeeeeeeeeee';
+
+  beforeEach(() => {
+    rpcMock.mockReset();
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+  });
+  afterEach(() => {
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+  });
+
+  it('A → B → C: each rotation only invalidates caches keyed by the pair that just rotated', async () => {
+    const client = makeClient();
+
+    // Cache entries for every guest that ever existed in this scenario,
+    // plus an unrelated guest that must survive all three rotations.
+    const seedFor = (g: string) => {
+      client.setQueryData(checkoutQueryKeys.activeSession(null, g), { g });
+      client.setQueryData(['cart', 'server', 'lines', g], [{ g }]);
+    };
+    seedFor(GUEST_A);
+    seedFor(GUEST_B);
+    seedFor(GUEST_C);
+    seedFor(UNRELATED);
+    // Non-checkout/cart keys that must stay untouched across the whole run
+    client.setQueryData(wishlistQueryKeys.list('u'), [1]);
+    client.setQueryData(['products', 'list'], [1]);
+
+    const resetInvalidationFlags = () => {
+      // Re-materialize each query to clear its `isInvalidated` flag between steps
+      for (const q of client.getQueryCache().getAll()) {
+        client.setQueryData(q.queryKey, q.state.data);
+      }
+    };
+
+    const runRotationStep = async (
+      fromGuest: string,
+      toGuest: string,
+      label: string
+    ) => {
+      // Prime an expired signed session for `fromGuest` and stub RPC to return `toGuest`
+      seedExistingSession(fromGuest, `sig-${label}`, Date.now() - 60_000);
+      rpcMock.mockResolvedValue({
+        data: {
+          guest_id: toGuest,
+          signature: `sig-${label}-new`,
+          expires_at: new Date(Date.now() + 24 * 3600_000).toISOString(),
+        },
+        error: null,
+      });
+
+      const { unmount, result } = renderHook(
+        () => {
+          const guest = useGuestSession();
+          useCheckoutSession();
+          return guest;
+        },
+        { wrapper: wrapper(client) }
+      );
+
+      await waitFor(() => expect(result.current.isInitialized).toBe(true));
+      await waitFor(() => expect(result.current.guestId).toBe(toGuest));
+
+      // Wait for the event-driven invalidation from useCheckoutSession to land
+      await waitFor(() => {
+        expect(
+          client
+            .getQueryCache()
+            .find({
+              queryKey: checkoutQueryKeys.activeSession(null, fromGuest),
+            })
+            ?.state.isInvalidated
+        ).toBe(true);
+      });
+
+      const invalidated = invalidatedKeys(client);
+
+      // MUST be invalidated: only the pair (fromGuest, toGuest)
+      expect(invalidated).toContain(
+        JSON.stringify(checkoutQueryKeys.activeSession(null, fromGuest))
+      );
+      expect(invalidated).toContain(
+        JSON.stringify(checkoutQueryKeys.activeSession(null, toGuest))
+      );
+      expect(invalidated).toContain(
+        JSON.stringify(['cart', 'server', 'lines', fromGuest])
+      );
+      expect(invalidated).toContain(
+        JSON.stringify(['cart', 'server', 'lines', toGuest])
+      );
+
+      // MUST NOT be invalidated: any guest not in the current pair, plus
+      // all non-checkout/cart keys.
+      const untouchedGuests = [GUEST_A, GUEST_B, GUEST_C, UNRELATED].filter(
+        (g) => g !== fromGuest && g !== toGuest
+      );
+      for (const g of untouchedGuests) {
+        expect(invalidated).not.toContain(
+          JSON.stringify(checkoutQueryKeys.activeSession(null, g))
+        );
+        expect(invalidated).not.toContain(
+          JSON.stringify(['cart', 'server', 'lines', g])
+        );
+      }
+      expect(invalidated).not.toContain(
+        JSON.stringify(wishlistQueryKeys.list('u'))
+      );
+      expect(invalidated).not.toContain(JSON.stringify(['products', 'list']));
+
+      unmount();
+      resetInvalidationFlags();
+      rpcMock.mockReset();
+    };
+
+    // Chain three sequential rotations: A→B, B→C, C→A (loop-back).
+    await runRotationStep(GUEST_A, GUEST_B, 'a-to-b');
+    await runRotationStep(GUEST_B, GUEST_C, 'b-to-c');
+    await runRotationStep(GUEST_C, GUEST_A, 'c-to-a');
+
+    // Sanity: the unrelated guest and the non-checkout/cart keys still have data
+    expect(
+      client.getQueryData(checkoutQueryKeys.activeSession(null, UNRELATED))
+    ).toEqual({ g: UNRELATED });
+    expect(client.getQueryData(wishlistQueryKeys.list('u'))).toEqual([1]);
+    expect(client.getQueryData(['products', 'list'])).toEqual([1]);
+  });
+});
