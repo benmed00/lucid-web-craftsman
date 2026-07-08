@@ -132,34 +132,58 @@ export function useGuestSession() {
 
   // Initialize or restore guest session on mount
   useEffect(() => {
-    const fetchToken = async (): Promise<{
+    type TokenPayload = {
       guestId: string;
       signature?: string;
       expiresAt?: number;
-    }> => {
+    };
+
+    const parseTokenData = (
+      td: Record<string, string> | null
+    ): TokenPayload => {
+      const expiresAtMs = td?.expires_at
+        ? new Date(td.expires_at).getTime()
+        : undefined;
+      return {
+        guestId: td?.guest_id ?? generateUUID(),
+        signature: td?.signature,
+        expiresAt: Number.isFinite(expiresAtMs) ? expiresAtMs : undefined,
+      };
+    };
+
+    const mintNewToken = async (): Promise<TokenPayload> => {
       try {
-        const { data: tokenData, error: rpcError } =
-          await supabase.rpc('create_guest_token');
-        if (rpcError) {
+        const { data, error } = await supabase.rpc('create_guest_token');
+        if (error) {
           if (import.meta.env.DEV) {
-            console.warn(
-              '[useGuestSession] create_guest_token:',
-              rpcError.message
-            );
+            console.warn('[useGuestSession] create_guest_token:', error.message);
           }
           return { guestId: generateUUID() };
         }
-        const td = tokenData as Record<string, string> | null;
-        const expiresAtMs = td?.expires_at
-          ? new Date(td.expires_at).getTime()
-          : undefined;
-        return {
-          guestId: td?.guest_id ?? generateUUID(),
-          signature: td?.signature,
-          expiresAt: Number.isFinite(expiresAtMs) ? expiresAtMs : undefined,
-        };
+        return parseTokenData(data as Record<string, string> | null);
       } catch {
         return { guestId: generateUUID() };
+      }
+    };
+
+    const rotateToken = async (
+      oldGuestId: string,
+      oldSignature: string
+    ): Promise<TokenPayload> => {
+      try {
+        const { data, error } = await supabase.rpc('rotate_guest_token', {
+          _old_guest_id: oldGuestId,
+          _old_signature: oldSignature,
+        });
+        if (error) {
+          if (import.meta.env.DEV) {
+            console.warn('[useGuestSession] rotate_guest_token:', error.message);
+          }
+          return mintNewToken();
+        }
+        return parseTokenData(data as Record<string, string> | null);
+      } catch {
+        return mintNewToken();
       }
     };
 
@@ -183,11 +207,15 @@ export function useGuestSession() {
         stored.expiresAt - EXPIRY_SKEW_MS <= now;
 
       if (stored && stored.guestId && !isExpired) {
-        // Reuse existing (still valid) session — refresh device metadata only
         persist({ ...stored, device: createDeviceMetadata() });
       } else {
-        // No session, or signature expired → mint a new signed token
-        const token = await fetchToken();
+        // Prefer rotation (migrates existing checkout_sessions atomically);
+        // fall back to a fresh token when no prior signed session exists.
+        const token =
+          stored?.guestId && stored.signature
+            ? await rotateToken(stored.guestId, stored.signature)
+            : await mintNewToken();
+
         persist({
           guestId: token.guestId,
           signature: token.signature,
@@ -202,6 +230,7 @@ export function useGuestSession() {
 
     initSession();
   }, []);
+
 
 
   /**
