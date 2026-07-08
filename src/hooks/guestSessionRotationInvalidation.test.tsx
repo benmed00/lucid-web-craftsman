@@ -1137,5 +1137,107 @@ describe('non-regression: rotation invalidation set is EXACTLY checkout/cart for
   });
 });
 
+describe('non-regression: a non-targeted guest_id is fully immune to rotation', () => {
+  const OLD_G = 'aaaaaaaa-1111-4111-8111-111111111111';
+  const NEW_G = 'aaaaaaaa-2222-4222-8222-222222222222';
+  const NON_TARGET = 'aaaaaaaa-9999-4999-8999-999999999999';
+
+  beforeEach(() => {
+    rpcMock.mockReset();
+    rpcMock.mockResolvedValue({ data: null, error: null });
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+  });
+  afterEach(() => {
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+  });
+
+  it('rotation OLD→NEW: NON_TARGET keys stay untouched; OLD and NEW checkout/cart keys are invalidated exactly once', async () => {
+    const client = makeClient();
+
+    const oldKeys: readonly (readonly unknown[])[] = [
+      checkoutQueryKeys.activeSession(null, OLD_G),
+      ['cart', 'server', 'lines', OLD_G],
+    ];
+    const newKeys: readonly (readonly unknown[])[] = [
+      checkoutQueryKeys.activeSession(null, NEW_G),
+      ['cart', 'server', 'lines', NEW_G],
+    ];
+    const nonTargetKeys: readonly (readonly unknown[])[] = [
+      checkoutQueryKeys.activeSession(null, NON_TARGET),
+      ['cart', 'server', 'lines', NON_TARGET],
+      ['wishlist', NON_TARGET],
+      ['products', 'by-guest', NON_TARGET],
+      ['orders', 'by-guest', NON_TARGET],
+    ];
+    for (const k of [...oldKeys, ...newKeys, ...nonTargetKeys]) {
+      client.setQueryData(k, { seeded: true });
+    }
+
+    // Count false→true transitions of `isInvalidated` per tracked key.
+    const flipCounts = new Map<string, number>();
+    const prevFlags = new Map<string, boolean>();
+    const trackedKeys = [...oldKeys, ...newKeys, ...nonTargetKeys].map((k) =>
+      JSON.stringify(k)
+    );
+    for (const k of trackedKeys) {
+      flipCounts.set(k, 0);
+      prevFlags.set(k, false);
+    }
+    const unsub = client.getQueryCache().subscribe(() => {
+      for (const q of client.getQueryCache().getAll()) {
+        const keyStr = JSON.stringify(q.queryKey);
+        if (!flipCounts.has(keyStr)) continue;
+        const wasInvalid = prevFlags.get(keyStr) ?? false;
+        const isInvalid = q.state.isInvalidated;
+        if (!wasInvalid && isInvalid) {
+          flipCounts.set(keyStr, (flipCounts.get(keyStr) ?? 0) + 1);
+        }
+        prevFlags.set(keyStr, isInvalid);
+      }
+    });
+
+    renderHook(() => useCheckoutSession(), { wrapper: wrapper(client) });
+
+    window.dispatchEvent(
+      new CustomEvent('guest-session:rotated', {
+        detail: { oldGuestId: OLD_G, newGuestId: NEW_G },
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        client
+          .getQueryCache()
+          .find({ queryKey: checkoutQueryKeys.activeSession(null, OLD_G) })
+          ?.state.isInvalidated
+      ).toBe(true);
+    });
+    // Give any spurious extra flip time to happen — there must be none.
+    await new Promise((r) => setTimeout(r, 60));
+
+    for (const k of oldKeys) {
+      expect(
+        flipCounts.get(JSON.stringify(k)),
+        `expected ${JSON.stringify(k)} to be invalidated exactly once`
+      ).toBe(1);
+    }
+    for (const k of newKeys) {
+      expect(
+        flipCounts.get(JSON.stringify(k)),
+        `expected ${JSON.stringify(k)} to be invalidated exactly once`
+      ).toBe(1);
+    }
+    for (const k of nonTargetKeys) {
+      expect(
+        flipCounts.get(JSON.stringify(k)),
+        `expected ${JSON.stringify(k)} to NEVER be invalidated`
+      ).toBe(0);
+    }
+
+    unsub();
+  });
+});
+
+
 
 
