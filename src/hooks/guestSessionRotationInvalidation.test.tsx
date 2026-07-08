@@ -9,7 +9,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import {
   safeRemoveItem,
   safeSetItem,
@@ -630,5 +630,122 @@ describe('integration: sequential guest rotations invalidate the right slice at 
     expect(newQ?.state.isInvalidated).toBe(true);
 
     invalidateSpy.mockRestore();
+  });
+
+  it('rotation refetches ONLY the checkout/cart queries tied to the rotated guest_id (real queryFn spies)', async () => {
+    const client = makeClient();
+
+    // queryFn spies for every query we want to observe. Only the ones tied
+    // to the rotated guest_id (GUEST_A → GUEST_B) must be re-invoked after
+    // the rotation event.
+    const fns = {
+      checkoutA: vi.fn(async () => ({ id: 'checkout-A' })),
+      checkoutB: vi.fn(async () => ({ id: 'checkout-B' })),
+      checkoutOther: vi.fn(async () => ({ id: 'checkout-other' })),
+      cartA: vi.fn(async () => [{ line: 'A' }]),
+      cartB: vi.fn(async () => [{ line: 'B' }]),
+      cartOther: vi.fn(async () => [{ line: 'other' }]),
+      wishlistA: vi.fn(async () => [{ w: 'A' }]),
+      productsList: vi.fn(async () => [{ p: 1 }]),
+    };
+
+    // Mount active observers so `invalidateQueries` actually triggers refetches.
+    // (Inactive queries in the cache are only marked stale.)
+    const { unmount } = renderHook(
+      () => {
+        useQuery({
+          queryKey: checkoutQueryKeys.activeSession(null, GUEST_A),
+          queryFn: fns.checkoutA,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: checkoutQueryKeys.activeSession(null, GUEST_B),
+          queryFn: fns.checkoutB,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: checkoutQueryKeys.activeSession(null, UNRELATED),
+          queryFn: fns.checkoutOther,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: ['cart', 'server', 'lines', GUEST_A],
+          queryFn: fns.cartA,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: ['cart', 'server', 'lines', GUEST_B],
+          queryFn: fns.cartB,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: ['cart', 'server', 'lines', UNRELATED],
+          queryFn: fns.cartOther,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        // Root-gate stress: wishlist key literally embedding GUEST_A must not refetch
+        useQuery({
+          queryKey: ['wishlist', GUEST_A],
+          queryFn: fns.wishlistA,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useQuery({
+          queryKey: ['products', 'list'],
+          queryFn: fns.productsList,
+          staleTime: Infinity,
+          gcTime: Infinity,
+        });
+        useCheckoutSession();
+      },
+      { wrapper: wrapper(client) }
+    );
+
+    // Wait for initial fetches to settle (1 call each)
+    await waitFor(() => {
+      expect(fns.checkoutA).toHaveBeenCalledTimes(1);
+      expect(fns.checkoutB).toHaveBeenCalledTimes(1);
+      expect(fns.checkoutOther).toHaveBeenCalledTimes(1);
+      expect(fns.cartA).toHaveBeenCalledTimes(1);
+      expect(fns.cartB).toHaveBeenCalledTimes(1);
+      expect(fns.cartOther).toHaveBeenCalledTimes(1);
+      expect(fns.wishlistA).toHaveBeenCalledTimes(1);
+      expect(fns.productsList).toHaveBeenCalledTimes(1);
+    });
+
+    // Fire the rotation event: GUEST_A → GUEST_B
+    window.dispatchEvent(
+      new CustomEvent('guest-session:rotated', {
+        detail: { oldGuestId: GUEST_A, newGuestId: GUEST_B },
+      })
+    );
+
+    // The rotated pair (checkout/cart for GUEST_A and GUEST_B) must refetch
+    await waitFor(() => {
+      expect(fns.checkoutA).toHaveBeenCalledTimes(2);
+      expect(fns.checkoutB).toHaveBeenCalledTimes(2);
+      expect(fns.cartA).toHaveBeenCalledTimes(2);
+      expect(fns.cartB).toHaveBeenCalledTimes(2);
+    });
+
+    // Give any hypothetical wrong-target refetch time to (not) happen
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Everything else stays at exactly ONE call — no collateral refetch:
+    //   - checkout/cart for an unrelated guest_id
+    //   - wishlist key even when it embeds the rotated guest_id (root-gate)
+    //   - non-guest-scoped products list
+    expect(fns.checkoutOther).toHaveBeenCalledTimes(1);
+    expect(fns.cartOther).toHaveBeenCalledTimes(1);
+    expect(fns.wishlistA).toHaveBeenCalledTimes(1);
+    expect(fns.productsList).toHaveBeenCalledTimes(1);
+
+    unmount();
   });
 });
