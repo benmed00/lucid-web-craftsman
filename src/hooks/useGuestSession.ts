@@ -232,19 +232,33 @@ export function useGuestSession() {
 
         // After a successful rotation, the DB has migrated ongoing
         // checkout_sessions from the old guest_id to the new one.
-        // Invalidate cached queries so the UI immediately re-fetches the
-        // migrated rows under the new guest_id (no "disappeared lines").
+        // Targeted invalidation: only touch query keys that reference the
+        // old or new guest_id — avoid blowing away unrelated checkout cache.
         if (rotated) {
-          queryClient.invalidateQueries({ queryKey: checkoutQueryKeys.all });
-          queryClient.invalidateQueries({ queryKey: cartServerQueryKeys.all });
+          const oldGuestId = stored!.guestId;
+          const newGuestId = token.guestId;
+          const guestIds = new Set([oldGuestId, newGuestId]);
+
+          const matchesRotatedGuest = (queryKey: readonly unknown[]) =>
+            queryKey.some(
+              (part) => typeof part === 'string' && guestIds.has(part)
+            );
+
+          queryClient.invalidateQueries({
+            predicate: (query) => {
+              const key = query.queryKey;
+              if (!Array.isArray(key) || key.length === 0) return false;
+              const root = key[0];
+              if (root !== 'checkout' && root !== 'cart') return false;
+              return matchesRotatedGuest(key);
+            },
+          });
+
           // Notify non-query listeners (analytics, custom subscriptions)
           if (typeof window !== 'undefined') {
             window.dispatchEvent(
               new CustomEvent('guest-session:rotated', {
-                detail: {
-                  oldGuestId: stored!.guestId,
-                  newGuestId: token.guestId,
-                },
+                detail: { oldGuestId, newGuestId },
               })
             );
           }
