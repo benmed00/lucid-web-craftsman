@@ -24,7 +24,10 @@ const NEW_GUEST = '99999999-8888-4777-8666-555555555555';
 const OTHER_GUEST = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
 const USER_ID = 'user-xyz';
 
-const { rpcMock } = vi.hoisted(() => ({ rpcMock: vi.fn() }));
+const { rpcMock, authState } = vi.hoisted(() => ({
+  rpcMock: vi.fn(),
+  authState: { user: null as null | { id: string; email?: string } },
+}));
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -32,9 +35,10 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-// Prevent useCheckoutSession from touching auth / network in the second test
+// Prevent useCheckoutSession from touching auth / network in the second test.
+// `authState.user` is mutable so a test can flip to an authenticated user.
 vi.mock('@/context/AuthContext', () => ({
-  useOptimizedAuth: () => ({ user: null }),
+  useOptimizedAuth: () => ({ user: authState.user }),
   cleanupAuthState: () => {},
 }));
 vi.mock('@/lib/cart/cartSyncPolicy', () => ({
