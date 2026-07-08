@@ -1037,4 +1037,105 @@ describe('integration: duplicate guest-session:rotated events dedupe to a single
   });
 });
 
+describe('non-regression: rotation invalidation set is EXACTLY checkout/cart for the rotated pair — nothing else', () => {
+  const OLD_G = 'ffffffff-1111-4111-8111-111111111111';
+  const NEW_G = 'ffffffff-2222-4222-8222-222222222222';
+  const OTHER_G = 'ffffffff-3333-4333-8333-333333333333';
+  const UID = 'user-nr';
+
+  beforeEach(() => {
+    rpcMock.mockReset();
+    rpcMock.mockResolvedValue({ data: null, error: null });
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+  });
+  afterEach(() => {
+    safeRemoveItem(GUEST_SESSION_KEY, { storage: 'localStorage' });
+  });
+
+  it('never invalidates wishlist/products (even when their keys embed the rotated guest_id), and the invalidated set is strictly bounded', async () => {
+    const client = makeClient();
+
+    // Keys that MAY be invalidated (checkout/cart for the rotated pair)
+    const expectedInvalidated = new Set<string>([
+      JSON.stringify(checkoutQueryKeys.activeSession(null, OLD_G)),
+      JSON.stringify(checkoutQueryKeys.activeSession(null, NEW_G)),
+      JSON.stringify(checkoutQueryKeys.activeSession(UID, OLD_G)),
+      JSON.stringify(checkoutQueryKeys.activeSession(UID, NEW_G)),
+      JSON.stringify(['cart', 'server', 'lines', OLD_G]),
+      JSON.stringify(['cart', 'server', 'lines', NEW_G]),
+    ]);
+
+    // Seed the "may be invalidated" set
+    for (const k of expectedInvalidated) {
+      client.setQueryData(JSON.parse(k), { seeded: true });
+    }
+
+    // Seed the "must stay untouched" set — includes wishlist/products keys that
+    // literally embed the rotated guest_id (root-gate stress) plus unrelated
+    // guest_id checkout/cart, unrelated user cart, non-guest-scoped keys, etc.
+    const mustStayClean: readonly (readonly unknown[])[] = [
+      ['wishlist', OLD_G],
+      ['wishlist', NEW_G],
+      ['wishlist', OTHER_G],
+      wishlistQueryKeys.list(UID),
+      ['products', 'by-guest', OLD_G],
+      ['products', 'by-guest', NEW_G],
+      ['products', 'list'],
+      ['products', 'detail', 'sku-42'],
+      ['orders', 'by-guest', OLD_G],
+      ['orders', 'by-guest', NEW_G],
+      checkoutQueryKeys.activeSession(null, OTHER_G),
+      checkoutQueryKeys.sessionById('sid-untouched'),
+      cartServerQueryKeys.lines(UID),
+      ['cart', 'server', 'lines', OTHER_G],
+    ];
+    for (const k of mustStayClean) {
+      client.setQueryData(k, { seeded: true });
+    }
+
+    renderHook(() => useCheckoutSession(), { wrapper: wrapper(client) });
+
+    window.dispatchEvent(
+      new CustomEvent('guest-session:rotated', {
+        detail: { oldGuestId: OLD_G, newGuestId: NEW_G },
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        client
+          .getQueryCache()
+          .find({ queryKey: checkoutQueryKeys.activeSession(null, OLD_G) })
+          ?.state.isInvalidated
+      ).toBe(true);
+    });
+    await new Promise((r) => setTimeout(r, 50));
+
+    const invalidated = new Set(invalidatedKeys(client));
+
+    // 1. Every "must stay clean" key is NOT invalidated — no wishlist/products refetch
+    for (const k of mustStayClean) {
+      expect(
+        invalidated.has(JSON.stringify(k)),
+        `key ${JSON.stringify(k)} must NOT be invalidated by guest rotation`
+      ).toBe(false);
+    }
+
+    // 2. The invalidated set is a SUBSET of expectedInvalidated — nothing else leaks in.
+    //    (Subset, not equality, because only seeded keys matching the predicate flip,
+    //    and only checkout/cart[OLD_G|NEW_G] keys were seeded above.)
+    for (const key of invalidated) {
+      expect(
+        expectedInvalidated.has(key),
+        `unexpected invalidation for key ${key}`
+      ).toBe(true);
+    }
+
+    // 3. Sanity: at least one checkout/cart key for the rotated pair DID flip —
+    //    otherwise the assertion above would trivially pass.
+    expect(invalidated.size).toBeGreaterThan(0);
+  });
+});
+
+
 
