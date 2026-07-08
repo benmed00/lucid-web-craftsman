@@ -2,12 +2,15 @@
 // GDPR-compliant guest session tracking with server-signed tokens
 
 import { useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   safeGetItem,
   safeSetItem,
   StorageTTL,
 } from '@/lib/storage/safeStorage';
 import { supabase } from '@/integrations/supabase/client';
+import { checkoutQueryKeys } from '@/lib/checkout/queryKeys';
+import { cartServerQueryKeys } from '@/lib/checkout/queryKeys';
 
 // Storage key for guest session
 const GUEST_SESSION_KEY = 'guest_session';
