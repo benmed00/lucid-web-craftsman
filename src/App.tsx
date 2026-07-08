@@ -535,6 +535,16 @@ const App = () => {
                           </Suspense>
                         }
                       />
+                      <Route
+                        path="/blog/straw-hat-style-guide"
+                        element={
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <StyleGuideHats />
+                          </Suspense>
+                        }
+                      />
+
+
 
                       {/* Admin routes with lazy loading */}
                       <Route
