@@ -20,7 +20,10 @@ import {
   resolveCartSyncPolicy,
   isElevatedStorefrontUser,
 } from '@/lib/cart/cartSyncPolicy';
-import { checkoutQueryKeys } from '@/lib/checkout/queryKeys';
+import {
+  checkoutQueryKeys,
+  createGuestScopedQueryPredicate,
+} from '@/lib/checkout/queryKeys';
 import {
   fetchActiveCheckoutSessionByGuestId,
   fetchActiveCheckoutSessionByUserId,
